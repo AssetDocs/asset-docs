@@ -11,11 +11,12 @@ const Navbar: React.FC = () => {
     <nav className="bg-white shadow-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3">
         <div className="flex justify-between items-center">
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="w-10 h-10 rounded-full bg-brand-blue flex items-center justify-center">
-              <span className="text-white font-bold text-lg">AD</span>
-            </div>
-            <span className="text-xl font-bold text-brand-blue">AssetDocs</span>
+          <Link to="/" className="flex items-center">
+            <img 
+              src="/lovable-uploads/c2744c0b-391a-44b1-9133-004db899c866.png" 
+              alt="AssetDocs Logo" 
+              className="h-10 mr-2"
+            />
           </Link>
           
           {/* Desktop menu */}

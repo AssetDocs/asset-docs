@@ -9,10 +9,11 @@ const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
             <div className="flex items-center space-x-2 mb-4">
-              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
-                <span className="text-brand-blue font-bold text-lg">AD</span>
-              </div>
-              <span className="text-xl font-bold">AssetDocs</span>
+              <img 
+                src="/lovable-uploads/c2744c0b-391a-44b1-9133-004db899c866.png" 
+                alt="AssetDocs Logo" 
+                className="h-10 bg-white p-1 rounded"
+              />
             </div>
             <p className="text-gray-300 mb-4">
               Your digital safety net for property documentation and asset protection.
