@@ -15,7 +15,7 @@ const Navbar: React.FC = () => {
             <img 
               src="/lovable-uploads/c2744c0b-391a-44b1-9133-004db899c866.png" 
               alt="AssetDocs Logo" 
-              className="h-10 mr-2"
+              className="h-16 mr-2" // Increased from h-10 to h-16
             />
           </Link>
           
