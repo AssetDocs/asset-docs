@@ -68,7 +68,8 @@ export default {
 					green: '#2a9d8f',
 					lightBlue: '#457b9d',
 					gray: '#f8f9fa',
-					darkGray: '#343a40'
+					darkGray: '#343a40',
+					orange: '#F97316'  // Added the orange color from the logo
 				}
 			},
 			borderRadius: {

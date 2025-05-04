@@ -47,14 +47,14 @@ const Login: React.FC = () => {
               <input
                 id="remember"
                 type="checkbox"
-                className="h-4 w-4 text-brand-blue border-gray-300 rounded"
+                className="h-4 w-4 text-brand-orange border-gray-300 rounded"
               />
               <label htmlFor="remember" className="ml-2 text-sm text-gray-600">
                 Remember me for 30 days
               </label>
             </div>
             
-            <Button type="submit" className="w-full bg-brand-blue hover:bg-brand-lightBlue">
+            <Button type="submit" className="w-full bg-brand-orange hover:bg-brand-orange/90">
               Sign In
             </Button>
           </form>

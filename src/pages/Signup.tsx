@@ -56,7 +56,7 @@ const Signup: React.FC = () => {
               <input
                 id="terms"
                 type="checkbox"
-                className="h-4 w-4 text-brand-blue border-gray-300 rounded mt-1"
+                className="h-4 w-4 text-brand-orange border-gray-300 rounded mt-1"
                 required
               />
               <label htmlFor="terms" className="ml-2 text-sm text-gray-600">
@@ -64,7 +64,7 @@ const Signup: React.FC = () => {
               </label>
             </div>
             
-            <Button type="submit" className="w-full bg-brand-blue hover:bg-brand-lightBlue">
+            <Button type="submit" className="w-full bg-brand-orange hover:bg-brand-orange/90">
               Create Account
             </Button>
           </form>

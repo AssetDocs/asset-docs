@@ -96,7 +96,7 @@
 
 @layer components {
   .hero-gradient {
-    @apply bg-gradient-to-br from-brand-blue via-brand-lightBlue to-brand-green;
+    @apply bg-gradient-to-br from-brand-blue via-brand-lightBlue to-brand-orange;
   }
   
   .feature-card {

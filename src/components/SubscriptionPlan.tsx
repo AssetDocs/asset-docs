@@ -24,9 +24,9 @@ const SubscriptionPlan: React.FC<SubscriptionPlanProps> = ({
   onClick
 }) => {
   return (
-    <Card className={`flex flex-col h-full ${recommended ? 'border-2 border-brand-green relative' : ''}`}>
+    <Card className={`flex flex-col h-full ${recommended ? 'border-2 border-brand-orange relative' : ''}`}>
       {recommended && (
-        <div className="absolute top-0 right-0 bg-brand-green text-white px-4 py-1 rounded-bl-lg text-sm font-medium">
+        <div className="absolute top-0 right-0 bg-brand-orange text-white px-4 py-1 rounded-bl-lg text-sm font-medium">
           Recommended
         </div>
       )}
@@ -42,7 +42,7 @@ const SubscriptionPlan: React.FC<SubscriptionPlanProps> = ({
         <ul className="space-y-3">
           {features.map((feature, index) => (
             <li key={index} className="flex items-start">
-              <CheckIcon className="h-5 w-5 text-brand-green flex-shrink-0 mr-2" />
+              <CheckIcon className="h-5 w-5 text-brand-orange flex-shrink-0 mr-2" />
               <span className="text-gray-600">{feature}</span>
             </li>
           ))}
@@ -50,7 +50,7 @@ const SubscriptionPlan: React.FC<SubscriptionPlanProps> = ({
       </CardContent>
       <CardFooter className="pt-4">
         <Button 
-          className={`w-full ${recommended ? 'bg-brand-green hover:bg-brand-green/90' : 'bg-brand-blue hover:bg-brand-lightBlue'}`} 
+          className={`w-full ${recommended ? 'bg-brand-orange hover:bg-brand-orange/90' : 'bg-brand-blue hover:bg-brand-lightBlue'}`} 
           onClick={onClick}
         >
           {buttonText}
