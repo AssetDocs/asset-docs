@@ -14,10 +14,10 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 210 64% 34%;
+    --primary: 192 77% 40%; /* Bright blue from the new logo */
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 174 59% 39%;
+    --secondary: 216 98% 32%; /* Dark blue from the new logo */
     --secondary-foreground: 222.2 47.4% 11.2%;
 
     --muted: 210 40% 96.1%;
@@ -55,10 +55,10 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 64% 34%;
+    --primary: 192 77% 40%; /* Bright blue from the new logo */
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 174 59% 39%;
+    --secondary: 216 98% 32%; /* Dark blue from the new logo */
     --secondary-foreground: 210 40% 98%;
 
     --muted: 217.2 32.6% 17.5%;
@@ -96,7 +96,7 @@
 
 @layer components {
   .hero-gradient {
-    @apply bg-gradient-to-br from-brand-blue via-brand-lightBlue to-brand-orange;
+    @apply bg-gradient-to-br from-[#1EAEDB] via-[#0FA0CE] to-[#0040AF];
   }
   
   .feature-card {
@@ -104,10 +104,10 @@
   }
   
   .section-title {
-    @apply text-3xl font-bold text-center mb-10 text-brand-blue;
+    @apply text-3xl font-bold text-center mb-10 text-[#1EAEDB];
   }
   
   .input-field {
-    @apply w-full p-3 rounded-md border border-gray-300 focus:outline-none focus:border-brand-blue focus:ring-1 focus:ring-brand-blue;
+    @apply w-full p-3 rounded-md border border-gray-300 focus:outline-none focus:border-[#1EAEDB] focus:ring-1 focus:ring-[#1EAEDB];
   }
 }

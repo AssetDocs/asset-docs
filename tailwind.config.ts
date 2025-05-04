@@ -64,12 +64,13 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				brand: {
-					blue: '#1e4d8c',
+					blue: '#1EAEDB',     // Bright blue from the new logo
 					green: '#2a9d8f',
-					lightBlue: '#457b9d',
+					lightBlue: '#0FA0CE',// Light blue shade from logo
+					darkBlue: '#0040AF', // Dark blue from the new logo
 					gray: '#f8f9fa',
 					darkGray: '#343a40',
-					orange: '#F97316'  // Added the orange color from the logo
+					orange: '#F97316'    // Keeping orange for buttons as requested earlier
 				}
 			},
 			borderRadius: {
