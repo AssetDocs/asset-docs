@@ -1,0 +1,50 @@
+
+import React from 'react';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import WelcomeVideo from '@/components/WelcomeVideo';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
+
+const Welcome: React.FC = () => {
+  return (
+    <div className="flex flex-col min-h-screen">
+      <Navbar />
+      
+      <div className="flex-grow py-12 px-4 bg-gray-50">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-3xl font-bold text-center text-brand-blue mb-8">
+            Welcome to AssetDocs
+          </h1>
+          
+          <p className="text-lg text-gray-700 text-center mb-10">
+            Watch this short animation to learn how AssetDocs can help protect your valuable assets
+          </p>
+          
+          {/* Welcome Video Animation */}
+          <WelcomeVideo />
+          
+          <div className="mt-12 text-center">
+            <p className="text-lg mb-6">
+              Ready to secure your property documentation?
+            </p>
+            
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
+              <Button asChild size="lg" className="bg-brand-blue hover:bg-brand-lightBlue">
+                <Link to="/signup">Start Your Free Trial</Link>
+              </Button>
+              
+              <Button asChild size="lg" variant="outline" className="border-brand-blue text-brand-blue">
+                <Link to="/features">Learn More About Features</Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <Footer />
+    </div>
+  );
+};
+
+export default Welcome;
