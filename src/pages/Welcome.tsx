@@ -2,7 +2,6 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import WelcomeVideo from '@/components/WelcomeVideo';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 
@@ -18,11 +17,8 @@ const Welcome: React.FC = () => {
           </h1>
           
           <p className="text-lg text-gray-700 text-center mb-10">
-            Watch this short animation to learn how AssetDocs can help protect your valuable assets
+            Your digital safety net for property and asset documentation
           </p>
-          
-          {/* Welcome Video Animation */}
-          <WelcomeVideo />
           
           <div className="mt-12 text-center">
             <p className="text-lg mb-6">
