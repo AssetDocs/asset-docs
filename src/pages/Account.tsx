@@ -1,0 +1,215 @@
+
+import React from 'react';
+import { Link } from 'react-router-dom';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Home, Camera, FileText, Shield, Settings, Plus, Eye } from 'lucide-react';
+
+const Account: React.FC = () => {
+  return (
+    <div className="flex flex-col min-h-screen">
+      <Navbar />
+      
+      <div className="flex-grow py-8 px-4 bg-gray-50">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-brand-blue mb-2">Account Dashboard</h1>
+            <p className="text-gray-600">Manage your properties and asset documentation</p>
+          </div>
+
+          {/* Quick Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <Home className="h-8 w-8 text-brand-blue" />
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-600">Properties</p>
+                    <p className="text-2xl font-bold">2</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <Camera className="h-8 w-8 text-brand-blue" />
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-600">Photos</p>
+                    <p className="text-2xl font-bold">147</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <FileText className="h-8 w-8 text-brand-blue" />
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-600">Documents</p>
+                    <p className="text-2xl font-bold">23</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <Shield className="h-8 w-8 text-brand-blue" />
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-600">Total Value</p>
+                    <p className="text-2xl font-bold">$48.2K</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Main Actions */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Home className="h-6 w-6 mr-2 text-brand-blue" />
+                  Property Profiles
+                </CardTitle>
+                <CardDescription>
+                  Create and manage property information, square footage, and details
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <Button asChild className="w-full bg-brand-blue hover:bg-brand-lightBlue">
+                    <Link to="/account/properties/new">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create New Property
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link to="/account/properties">
+                      <Eye className="h-4 w-4 mr-2" />
+                      View All Properties
+                    </Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Camera className="h-6 w-6 mr-2 text-brand-blue" />
+                  Photo Management
+                </CardTitle>
+                <CardDescription>
+                  Upload photos and get AI-powered value estimates for your items
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <Button asChild className="w-full bg-brand-orange hover:bg-brand-orange/90">
+                    <Link to="/account/photos/upload">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Upload Photos
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link to="/account/photos">
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Photo Gallery
+                    </Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <FileText className="h-6 w-6 mr-2 text-brand-blue" />
+                  Document Storage
+                </CardTitle>
+                <CardDescription>
+                  Store PDFs, receipts, warranties, and other important documents
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <Button asChild className="w-full bg-brand-blue hover:bg-brand-lightBlue">
+                    <Link to="/account/documents/upload">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Upload Documents
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link to="/account/documents">
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Documents
+                    </Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Shield className="h-6 w-6 mr-2 text-brand-blue" />
+                  Insurance Information
+                </CardTitle>
+                <CardDescription>
+                  Manage insurance policies, claims, and related documentation
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <Button asChild className="w-full bg-brand-orange hover:bg-brand-orange/90">
+                    <Link to="/account/insurance/new">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Insurance Policy
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link to="/account/insurance">
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Insurance
+                    </Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Settings className="h-6 w-6 mr-2 text-brand-blue" />
+                  Account Settings
+                </CardTitle>
+                <CardDescription>
+                  Update your profile, security settings, and preferences
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild variant="outline" className="w-full">
+                  <Link to="/account/settings">
+                    <Settings className="h-4 w-4 mr-2" />
+                    Manage Settings
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+      
+      <Footer />
+    </div>
+  );
+};
+
+export default Account;

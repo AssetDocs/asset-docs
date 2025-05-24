@@ -3,15 +3,19 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
 const Login: React.FC = () => {
+  const navigate = useNavigate();
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Login logic would go here
     console.log('Login form submitted');
+    // Redirect to account dashboard after successful login
+    navigate('/account');
   };
 
   return (
