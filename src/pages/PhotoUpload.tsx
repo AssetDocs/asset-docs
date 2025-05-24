@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -8,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Upload, Camera, Zap, DollarSign } from 'lucide-react';
+import { ArrowLeft, Upload, Camera, Zap, DollarSign, MapPin } from 'lucide-react';
 
 interface UploadedItem {
   id: string;
@@ -19,6 +18,7 @@ interface UploadedItem {
   estimatedValue: number;
   aiGenerated: boolean;
   category: string;
+  location: string;
 }
 
 const PhotoUpload: React.FC = () => {
@@ -34,13 +34,15 @@ const PhotoUpload: React.FC = () => {
     }
   };
 
-  const simulateAIAnalysis = async (file: File): Promise<{ name: string; value: number; category: string; description: string }> => {
+  const simulateAIAnalysis = async (file: File): Promise<{ name: string; value: number; category: string; description: string; location: string }> => {
     // Simulate AI processing delay
     await new Promise(resolve => setTimeout(resolve, 2000));
     
     // Mock AI responses based on file name or random generation
     const categories = ['Electronics', 'Furniture', 'Jewelry', 'Artwork', 'Appliances', 'Collectibles'];
+    const locations = ['Living Room', 'Bedroom', 'Kitchen', 'Dining Room', 'Garage', 'Office', 'Basement', 'Attic'];
     const category = categories[Math.floor(Math.random() * categories.length)];
+    const location = locations[Math.floor(Math.random() * locations.length)];
     
     const mockResponses = {
       'Electronics': { name: 'Smart TV', value: 850, description: 'Large screen smart television with streaming capabilities' },
@@ -52,7 +54,7 @@ const PhotoUpload: React.FC = () => {
     };
 
     const response = mockResponses[category as keyof typeof mockResponses];
-    return { ...response, category };
+    return { ...response, category, location };
   };
 
   const processWithAI = async () => {
@@ -71,7 +73,8 @@ const PhotoUpload: React.FC = () => {
         description: aiResult.description,
         estimatedValue: aiResult.value,
         aiGenerated: true,
-        category: aiResult.category
+        category: aiResult.category,
+        location: aiResult.location
       };
       
       newItems.push(item);
@@ -232,6 +235,15 @@ const PhotoUpload: React.FC = () => {
                                 onChange={(e) => updateItemValue(item.id, 'category', e.target.value)}
                                 placeholder="Category"
                                 className="text-sm"
+                              />
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <MapPin className="h-4 w-4 text-gray-500" />
+                              <Input
+                                value={item.location}
+                                onChange={(e) => updateItemValue(item.id, 'location', e.target.value)}
+                                placeholder="Location (e.g., Living Room, Bedroom)"
+                                className="text-sm flex-1"
                               />
                             </div>
                             <Textarea

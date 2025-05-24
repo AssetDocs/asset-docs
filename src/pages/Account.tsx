@@ -5,7 +5,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Home, Camera, FileText, Shield, Settings, Plus, Eye } from 'lucide-react';
+import { Home, Camera, FileText, Shield, Settings, Plus, Eye, Video, FileImage } from 'lucide-react';
 
 const Account: React.FC = () => {
   return (
@@ -20,7 +20,7 @@ const Account: React.FC = () => {
           </div>
 
           {/* Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center">
@@ -40,6 +40,18 @@ const Account: React.FC = () => {
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">Photos</p>
                     <p className="text-2xl font-bold">147</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <Video className="h-8 w-8 text-brand-blue" />
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-600">Videos</p>
+                    <p className="text-2xl font-bold">8</p>
                   </div>
                 </div>
               </CardContent>
@@ -122,6 +134,62 @@ const Account: React.FC = () => {
                     <Link to="/account/photos">
                       <Eye className="h-4 w-4 mr-2" />
                       View Photo Gallery
+                    </Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Video className="h-6 w-6 mr-2 text-brand-blue" />
+                  Video Documentation
+                </CardTitle>
+                <CardDescription>
+                  Upload and manage video recordings of your property and belongings
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <Button asChild className="w-full bg-brand-orange hover:bg-brand-orange/90">
+                    <Link to="/account/videos/upload">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Upload Videos
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link to="/account/videos">
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Videos
+                    </Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <FileImage className="h-6 w-6 mr-2 text-brand-blue" />
+                  Floor Plans
+                </CardTitle>
+                <CardDescription>
+                  Upload and manage architectural drawings and floor plans
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <Button asChild className="w-full bg-brand-blue hover:bg-brand-lightBlue">
+                    <Link to="/account/floorplans/upload">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Upload Floor Plans
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link to="/account/floorplans">
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Floor Plans
                     </Link>
                   </Button>
                 </div>
