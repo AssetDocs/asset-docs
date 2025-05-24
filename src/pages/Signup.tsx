@@ -60,7 +60,7 @@ const Signup: React.FC = () => {
                 required
               />
               <label htmlFor="terms" className="ml-2 text-sm text-gray-600">
-                I agree to the <a href="/terms" className="text-brand-blue hover:underline">Terms of Service</a> and <a href="/privacy" className="text-brand-blue hover:underline">Privacy Policy</a>
+                I agree to the <Link to="/terms" className="text-brand-blue hover:underline">Terms of Service</Link> and <a href="/privacy" className="text-brand-blue hover:underline">Privacy Policy</a>
               </label>
             </div>
             
