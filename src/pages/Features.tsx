@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -33,6 +32,14 @@ const Features: React.FC = () => {
             
             {/* Documentation Tab */}
             <TabsContent value="documentation" className="animate-fade-in">
+              {/* Unlimited Properties Notice */}
+              <div className="bg-brand-green text-white p-6 rounded-lg mb-8">
+                <h3 className="text-xl font-semibold mb-2">📍 No Limits on Properties</h3>
+                <p className="text-lg">
+                  Document unlimited properties and businesses with AssetDocs. Whether you own a single home, multiple rental properties, vacation homes, or various business locations - there are no restrictions on how many properties you can document and manage through our platform.
+                </p>
+              </div>
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="bg-white p-6 rounded-lg shadow">
                   <div className="flex items-center mb-4">
