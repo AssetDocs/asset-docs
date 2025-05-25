@@ -1,12 +1,17 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import PropertySelector from '@/components/PropertySelector';
+import ItemTypeSelector from '@/components/ItemTypeSelector';
+import PropertyUpgradeSelector from '@/components/PropertyUpgradeSelector';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { ArrowLeft, Upload, Camera, Zap, DollarSign, MapPin, Key, AlertCircle } from 'lucide-react';
 import { aiAnalysisService } from '@/components/AIAnalysisService';
 
@@ -19,11 +24,15 @@ interface UploadedItem {
   estimatedValue: number;
   aiGenerated: boolean;
   category: string;
+  itemType: string;
+  propertyUpgrade?: string;
+  propertyId: string;
   location: string;
   confidence?: number;
   condition?: string;
   brand?: string;
   model?: string;
+  useAI: boolean;
 }
 
 const PhotoUpload: React.FC = () => {
@@ -32,6 +41,9 @@ const PhotoUpload: React.FC = () => {
   const [uploadedItems, setUploadedItems] = useState<UploadedItem[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [apiKey, setApiKey] = useState(localStorage.getItem('openai_api_key') || '');
+  const [defaultUseAI, setDefaultUseAI] = useState(true);
+  const [defaultPropertyId, setDefaultPropertyId] = useState('');
+  const [defaultItemType, setDefaultItemType] = useState('');
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -40,46 +52,71 @@ const PhotoUpload: React.FC = () => {
     }
   };
 
-  const processWithAI = async () => {
+  const processItems = async () => {
     setIsAnalyzing(true);
     const newItems: UploadedItem[] = [];
 
     for (const file of selectedFiles) {
       const preview = URL.createObjectURL(file);
       
-      try {
-        const aiResult = await aiAnalysisService.analyzeImage(file);
-        
-        const item: UploadedItem = {
-          id: Date.now().toString() + Math.random().toString(),
-          file,
-          preview,
-          name: aiResult.name,
-          description: aiResult.description,
-          estimatedValue: aiResult.estimatedValue,
-          aiGenerated: true,
-          category: aiResult.category,
-          location: '',
-          confidence: aiResult.confidence,
-          condition: aiResult.condition,
-          brand: aiResult.brand,
-          model: aiResult.model
-        };
-        
-        newItems.push(item);
-      } catch (error) {
-        console.error('AI analysis failed for file:', file.name, error);
-        // Fallback to basic item structure
+      if (defaultUseAI && apiKey) {
+        try {
+          const aiResult = await aiAnalysisService.analyzeImage(file);
+          
+          const item: UploadedItem = {
+            id: Date.now().toString() + Math.random().toString(),
+            file,
+            preview,
+            name: aiResult.name,
+            description: aiResult.description,
+            estimatedValue: aiResult.estimatedValue,
+            aiGenerated: true,
+            category: aiResult.category,
+            itemType: defaultItemType || aiResult.category,
+            propertyId: defaultPropertyId,
+            location: '',
+            confidence: aiResult.confidence,
+            condition: aiResult.condition,
+            brand: aiResult.brand,
+            model: aiResult.model,
+            useAI: true
+          };
+          
+          newItems.push(item);
+        } catch (error) {
+          console.error('AI analysis failed for file:', file.name, error);
+          // Fallback to basic item structure
+          const basicItem: UploadedItem = {
+            id: Date.now().toString() + Math.random().toString(),
+            file,
+            preview,
+            name: file.name.replace(/\.[^/.]+$/, ""),
+            description: '',
+            estimatedValue: 0,
+            aiGenerated: false,
+            category: 'Uncategorized',
+            itemType: defaultItemType || 'Other',
+            propertyId: defaultPropertyId,
+            location: '',
+            useAI: false
+          };
+          newItems.push(basicItem);
+        }
+      } else {
+        // Create basic item without AI analysis
         const basicItem: UploadedItem = {
           id: Date.now().toString() + Math.random().toString(),
           file,
           preview,
           name: file.name.replace(/\.[^/.]+$/, ""),
-          description: 'AI analysis unavailable',
+          description: '',
           estimatedValue: 0,
           aiGenerated: false,
-          category: 'Uncategorized',
-          location: ''
+          category: 'Manual Entry',
+          itemType: defaultItemType || 'Other',
+          propertyId: defaultPropertyId,
+          location: '',
+          useAI: false
         };
         newItems.push(basicItem);
       }
@@ -95,7 +132,7 @@ const PhotoUpload: React.FC = () => {
     console.log('OpenAI API key updated');
   };
 
-  const updateItemValue = (id: string, field: string, value: string | number) => {
+  const updateItemValue = (id: string, field: string, value: string | number | boolean) => {
     setUploadedItems(items =>
       items.map(item =>
         item.id === id 
@@ -134,7 +171,7 @@ const PhotoUpload: React.FC = () => {
             <p className="text-gray-600">Upload photos of your items and get AI-powered value estimates</p>
           </div>
 
-          {/* API Key Configuration */}
+          {/* AI Configuration */}
           <Card className="mb-6">
             <CardHeader>
               <CardTitle className="flex items-center">
@@ -142,7 +179,7 @@ const PhotoUpload: React.FC = () => {
                 AI Configuration
               </CardTitle>
               <CardDescription>
-                Enter your OpenAI API key for enhanced AI valuation (optional)
+                Configure AI settings and default values for your uploads
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -151,17 +188,46 @@ const PhotoUpload: React.FC = () => {
                   type="password"
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
-                  placeholder="Enter OpenAI API key for better analysis"
+                  placeholder="Enter OpenAI API key for AI analysis"
                   className="flex-1"
                 />
                 <Button onClick={handleApiKeyUpdate}>
                   Save Key
                 </Button>
               </div>
+              
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="use-ai"
+                  checked={defaultUseAI}
+                  onCheckedChange={setDefaultUseAI}
+                />
+                <Label htmlFor="use-ai">Use AI for automatic item analysis</Label>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Default Property</Label>
+                  <PropertySelector
+                    value={defaultPropertyId}
+                    onChange={setDefaultPropertyId}
+                    placeholder="Select default property"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Default Item Type</Label>
+                  <ItemTypeSelector
+                    value={defaultItemType}
+                    onChange={setDefaultItemType}
+                    placeholder="Select default item type"
+                  />
+                </div>
+              </div>
+
               <div className="flex items-start space-x-2 text-xs text-gray-500">
                 <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                 <p>
-                  Without an API key, the system will use mock analysis. For production use, 
+                  Without an API key, the system will skip AI analysis. For production use, 
                   connect to Supabase for secure key storage.
                 </p>
               </div>
@@ -212,19 +278,19 @@ const PhotoUpload: React.FC = () => {
                     </div>
                     
                     <Button 
-                      onClick={processWithAI}
+                      onClick={processItems}
                       disabled={isAnalyzing}
                       className="w-full mt-4 bg-brand-orange hover:bg-brand-orange/90"
                     >
                       {isAnalyzing ? (
                         <>
                           <Zap className="h-4 w-4 mr-2 animate-spin" />
-                          Analyzing with AI...
+                          Processing...
                         </>
                       ) : (
                         <>
-                          <Zap className="h-4 w-4 mr-2" />
-                          Analyze with AI
+                          <Upload className="h-4 w-4 mr-2" />
+                          Process Items
                         </>
                       )}
                     </Button>
@@ -233,91 +299,112 @@ const PhotoUpload: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* AI Analysis Results */}
+            {/* Item Details */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <DollarSign className="h-6 w-6 mr-2 text-brand-blue" />
-                  AI Valuations
+                  Item Details
                 </CardTitle>
                 <CardDescription>
-                  Review and adjust the AI-generated estimates
+                  Review and adjust item information
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 {uploadedItems.length === 0 ? (
                   <p className="text-gray-500 text-center py-8">
-                    Upload photos to see AI valuations here
+                    Upload photos to add item details here
                   </p>
                 ) : (
                   <div className="space-y-4 max-h-96 overflow-y-auto">
                     {uploadedItems.map((item) => (
                       <div key={item.id} className="border rounded-lg p-4 bg-white">
-                        <div className="flex space-x-4">
-                          <img
-                            src={item.preview}
-                            alt={item.name}
-                            className="w-16 h-16 object-cover rounded"
-                          />
-                          <div className="flex-1 space-y-2">
-                            <Input
-                              value={item.name}
-                              onChange={(e) => updateItemValue(item.id, 'name', e.target.value)}
-                              placeholder="Item name"
-                              className="text-sm"
+                        <div className="space-y-3">
+                          <div className="flex space-x-4">
+                            <img
+                              src={item.preview}
+                              alt={item.name}
+                              className="w-16 h-16 object-cover rounded"
                             />
-                            <div className="flex space-x-2">
+                            <div className="flex-1 space-y-2">
                               <Input
-                                type="number"
-                                value={item.estimatedValue}
-                                onChange={(e) => updateItemValue(item.id, 'estimatedValue', Number(e.target.value))}
-                                placeholder="Value"
+                                value={item.name}
+                                onChange={(e) => updateItemValue(item.id, 'name', e.target.value)}
+                                placeholder="Item name"
                                 className="text-sm"
                               />
-                              <Input
-                                value={item.category}
-                                onChange={(e) => updateItemValue(item.id, 'category', e.target.value)}
-                                placeholder="Category"
-                                className="text-sm"
-                              />
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <MapPin className="h-4 w-4 text-gray-500" />
-                              <Input
-                                value={item.location}
-                                onChange={(e) => updateItemValue(item.id, 'location', e.target.value)}
-                                placeholder="Location (e.g., Living Room, Bedroom)"
-                                className="text-sm flex-1"
-                              />
-                            </div>
-                            <Textarea
-                              value={item.description}
-                              onChange={(e) => updateItemValue(item.id, 'description', e.target.value)}
-                              placeholder="Description"
-                              rows={2}
-                              className="text-sm"
-                            />
-                            <div className="flex justify-between items-center">
-                              <div className="flex space-x-2">
-                                {item.aiGenerated && (
-                                  <span className="text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded">
-                                    AI Generated
-                                  </span>
-                                )}
-                                {item.confidence && (
-                                  <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">
-                                    {item.confidence}% confidence
-                                  </span>
+                              
+                              <div className="space-y-2">
+                                <PropertySelector
+                                  value={item.propertyId}
+                                  onChange={(value) => updateItemValue(item.id, 'propertyId', value)}
+                                  placeholder="Select property"
+                                />
+                                
+                                <ItemTypeSelector
+                                  value={item.itemType}
+                                  onChange={(value) => updateItemValue(item.id, 'itemType', value)}
+                                  placeholder="Select item type"
+                                />
+                                
+                                {item.itemType === 'Property Upgrades' && (
+                                  <PropertyUpgradeSelector
+                                    value={item.propertyUpgrade || ''}
+                                    onChange={(value) => updateItemValue(item.id, 'propertyUpgrade', value)}
+                                    placeholder="Select upgrade type"
+                                  />
                                 )}
                               </div>
-                              <Button
-                                onClick={() => removeItem(item.id)}
-                                variant="destructive"
-                                size="sm"
-                                className="text-xs"
-                              >
-                                Remove
-                              </Button>
+                              
+                              <div className="flex space-x-2">
+                                <Input
+                                  type="number"
+                                  value={item.estimatedValue}
+                                  onChange={(e) => updateItemValue(item.id, 'estimatedValue', Number(e.target.value))}
+                                  placeholder="Value ($)"
+                                  className="text-sm"
+                                />
+                                <div className="flex items-center space-x-2 flex-1">
+                                  <MapPin className="h-4 w-4 text-gray-500" />
+                                  <Input
+                                    value={item.location}
+                                    onChange={(e) => updateItemValue(item.id, 'location', e.target.value)}
+                                    placeholder="Room/Location"
+                                    className="text-sm"
+                                  />
+                                </div>
+                              </div>
+                              
+                              <Textarea
+                                value={item.description}
+                                onChange={(e) => updateItemValue(item.id, 'description', e.target.value)}
+                                placeholder="Detailed description"
+                                rows={3}
+                                className="text-sm"
+                              />
+                              
+                              <div className="flex justify-between items-center">
+                                <div className="flex space-x-2">
+                                  {item.aiGenerated && (
+                                    <span className="text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded">
+                                      AI Generated
+                                    </span>
+                                  )}
+                                  {item.confidence && (
+                                    <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">
+                                      {item.confidence}% confidence
+                                    </span>
+                                  )}
+                                </div>
+                                <Button
+                                  onClick={() => removeItem(item.id)}
+                                  variant="destructive"
+                                  size="sm"
+                                  className="text-xs"
+                                >
+                                  Remove
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         </div>

@@ -3,6 +3,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import PropertySelector from '@/components/PropertySelector';
+import ItemTypeSelector from '@/components/ItemTypeSelector';
+import PropertyUpgradeSelector from '@/components/PropertyUpgradeSelector';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,12 +20,17 @@ interface UploadedVideo {
   description: string;
   location: string;
   category: string;
+  itemType: string;
+  propertyUpgrade?: string;
+  propertyId: string;
 }
 
 const VideoUpload: React.FC = () => {
   const navigate = useNavigate();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadedVideos, setUploadedVideos] = useState<UploadedVideo[]>([]);
+  const [defaultPropertyId, setDefaultPropertyId] = useState('');
+  const [defaultItemType, setDefaultItemType] = useState('');
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -38,7 +46,9 @@ const VideoUpload: React.FC = () => {
       name: file.name.replace(/\.[^/.]+$/, ""), // Remove file extension
       description: '',
       location: '',
-      category: 'General'
+      category: 'General',
+      itemType: defaultItemType || 'Other',
+      propertyId: defaultPropertyId
     }));
 
     setUploadedVideos([...uploadedVideos, ...newVideos]);
@@ -83,6 +93,36 @@ const VideoUpload: React.FC = () => {
             <h1 className="text-3xl font-bold text-brand-blue mb-2">Upload Videos</h1>
             <p className="text-gray-600">Upload videos of your property and belongings for documentation</p>
           </div>
+
+          {/* Default Settings */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Default Settings</CardTitle>
+              <CardDescription>
+                Set default values for all video uploads
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Default Property</Label>
+                  <PropertySelector
+                    value={defaultPropertyId}
+                    onChange={setDefaultPropertyId}
+                    placeholder="Select default property"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Default Item Type</Label>
+                  <ItemTypeSelector
+                    value={defaultItemType}
+                    onChange={setDefaultItemType}
+                    placeholder="Select default item type"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Upload Section */}
@@ -171,29 +211,43 @@ const VideoUpload: React.FC = () => {
                             className="text-sm"
                           />
                           
-                          <div className="flex space-x-2">
-                            <Input
-                              value={video.category}
-                              onChange={(e) => updateVideoValue(video.id, 'category', e.target.value)}
-                              placeholder="Category"
-                              className="text-sm"
+                          <div className="space-y-2">
+                            <PropertySelector
+                              value={video.propertyId}
+                              onChange={(value) => updateVideoValue(video.id, 'propertyId', value)}
+                              placeholder="Select property"
                             />
-                            <div className="flex items-center space-x-2 flex-1">
-                              <MapPin className="h-4 w-4 text-gray-500" />
-                              <Input
-                                value={video.location}
-                                onChange={(e) => updateVideoValue(video.id, 'location', e.target.value)}
-                                placeholder="Location"
-                                className="text-sm"
+                            
+                            <ItemTypeSelector
+                              value={video.itemType}
+                              onChange={(value) => updateVideoValue(video.id, 'itemType', value)}
+                              placeholder="Select item type"
+                            />
+                            
+                            {video.itemType === 'Property Upgrades' && (
+                              <PropertyUpgradeSelector
+                                value={video.propertyUpgrade || ''}
+                                onChange={(value) => updateVideoValue(video.id, 'propertyUpgrade', value)}
+                                placeholder="Select upgrade type"
                               />
-                            </div>
+                            )}
+                          </div>
+                          
+                          <div className="flex items-center space-x-2">
+                            <MapPin className="h-4 w-4 text-gray-500" />
+                            <Input
+                              value={video.location}
+                              onChange={(e) => updateVideoValue(video.id, 'location', e.target.value)}
+                              placeholder="Location (e.g., Living Room, Kitchen)"
+                              className="text-sm flex-1"
+                            />
                           </div>
                           
                           <Textarea
                             value={video.description}
                             onChange={(e) => updateVideoValue(video.id, 'description', e.target.value)}
-                            placeholder="Video description"
-                            rows={2}
+                            placeholder="Detailed video description"
+                            rows={3}
                             className="text-sm"
                           />
                           
