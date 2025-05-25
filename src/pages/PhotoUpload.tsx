@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Upload, Camera, Zap, DollarSign, MapPin } from 'lucide-react';
+import { ArrowLeft, Upload, Camera, Zap, DollarSign, MapPin, Key, AlertCircle } from 'lucide-react';
+import { aiAnalysisService } from '@/components/AIAnalysisService';
 
 interface UploadedItem {
   id: string;
@@ -19,6 +20,10 @@ interface UploadedItem {
   aiGenerated: boolean;
   category: string;
   location: string;
+  confidence?: number;
+  condition?: string;
+  brand?: string;
+  model?: string;
 }
 
 const PhotoUpload: React.FC = () => {
@@ -26,6 +31,7 @@ const PhotoUpload: React.FC = () => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadedItems, setUploadedItems] = useState<UploadedItem[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [apiKey, setApiKey] = useState(localStorage.getItem('openai_api_key') || '');
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -34,55 +40,59 @@ const PhotoUpload: React.FC = () => {
     }
   };
 
-  const simulateAIAnalysis = async (file: File): Promise<{ name: string; value: number; category: string; description: string; location: string }> => {
-    // Simulate AI processing delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Mock AI responses based on file name or random generation
-    const categories = ['Electronics', 'Furniture', 'Jewelry', 'Artwork', 'Appliances', 'Collectibles'];
-    const locations = ['Living Room', 'Bedroom', 'Kitchen', 'Dining Room', 'Garage', 'Office', 'Basement', 'Attic'];
-    const category = categories[Math.floor(Math.random() * categories.length)];
-    const location = locations[Math.floor(Math.random() * locations.length)];
-    
-    const mockResponses = {
-      'Electronics': { name: 'Smart TV', value: 850, description: 'Large screen smart television with streaming capabilities' },
-      'Furniture': { name: 'Leather Sofa', value: 1200, description: 'Premium leather sectional sofa in excellent condition' },
-      'Jewelry': { name: 'Diamond Ring', value: 2500, description: 'Elegant diamond engagement ring with certification' },
-      'Artwork': { name: 'Oil Painting', value: 450, description: 'Original oil painting by local artist' },
-      'Appliances': { name: 'Refrigerator', value: 1100, description: 'Stainless steel refrigerator with ice maker' },
-      'Collectibles': { name: 'Vintage Watch', value: 750, description: 'Vintage mechanical watch in working condition' }
-    };
-
-    const response = mockResponses[category as keyof typeof mockResponses];
-    return { ...response, category, location };
-  };
-
   const processWithAI = async () => {
     setIsAnalyzing(true);
     const newItems: UploadedItem[] = [];
 
     for (const file of selectedFiles) {
       const preview = URL.createObjectURL(file);
-      const aiResult = await simulateAIAnalysis(file);
       
-      const item: UploadedItem = {
-        id: Date.now().toString() + Math.random().toString(),
-        file,
-        preview,
-        name: aiResult.name,
-        description: aiResult.description,
-        estimatedValue: aiResult.value,
-        aiGenerated: true,
-        category: aiResult.category,
-        location: aiResult.location
-      };
-      
-      newItems.push(item);
+      try {
+        const aiResult = await aiAnalysisService.analyzeImage(file);
+        
+        const item: UploadedItem = {
+          id: Date.now().toString() + Math.random().toString(),
+          file,
+          preview,
+          name: aiResult.name,
+          description: aiResult.description,
+          estimatedValue: aiResult.estimatedValue,
+          aiGenerated: true,
+          category: aiResult.category,
+          location: '',
+          confidence: aiResult.confidence,
+          condition: aiResult.condition,
+          brand: aiResult.brand,
+          model: aiResult.model
+        };
+        
+        newItems.push(item);
+      } catch (error) {
+        console.error('AI analysis failed for file:', file.name, error);
+        // Fallback to basic item structure
+        const basicItem: UploadedItem = {
+          id: Date.now().toString() + Math.random().toString(),
+          file,
+          preview,
+          name: file.name.replace(/\.[^/.]+$/, ""),
+          description: 'AI analysis unavailable',
+          estimatedValue: 0,
+          aiGenerated: false,
+          category: 'Uncategorized',
+          location: ''
+        };
+        newItems.push(basicItem);
+      }
     }
 
     setUploadedItems([...uploadedItems, ...newItems]);
     setSelectedFiles([]);
     setIsAnalyzing(false);
+  };
+
+  const handleApiKeyUpdate = () => {
+    aiAnalysisService.setApiKey(apiKey);
+    console.log('OpenAI API key updated');
   };
 
   const updateItemValue = (id: string, field: string, value: string | number) => {
@@ -123,6 +133,40 @@ const PhotoUpload: React.FC = () => {
             <h1 className="text-3xl font-bold text-brand-blue mb-2">Upload Photos</h1>
             <p className="text-gray-600">Upload photos of your items and get AI-powered value estimates</p>
           </div>
+
+          {/* API Key Configuration */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Key className="h-5 w-5 mr-2 text-orange-500" />
+                AI Configuration
+              </CardTitle>
+              <CardDescription>
+                Enter your OpenAI API key for enhanced AI valuation (optional)
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex space-x-2">
+                <Input
+                  type="password"
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  placeholder="Enter OpenAI API key for better analysis"
+                  className="flex-1"
+                />
+                <Button onClick={handleApiKeyUpdate}>
+                  Save Key
+                </Button>
+              </div>
+              <div className="flex items-start space-x-2 text-xs text-gray-500">
+                <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                <p>
+                  Without an API key, the system will use mock analysis. For production use, 
+                  connect to Supabase for secure key storage.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Upload Section */}
@@ -254,11 +298,18 @@ const PhotoUpload: React.FC = () => {
                               className="text-sm"
                             />
                             <div className="flex justify-between items-center">
-                              {item.aiGenerated && (
-                                <span className="text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded">
-                                  AI Generated
-                                </span>
-                              )}
+                              <div className="flex space-x-2">
+                                {item.aiGenerated && (
+                                  <span className="text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded">
+                                    AI Generated
+                                  </span>
+                                )}
+                                {item.confidence && (
+                                  <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">
+                                    {item.confidence}% confidence
+                                  </span>
+                                )}
+                              </div>
                               <Button
                                 onClick={() => removeItem(item.id)}
                                 variant="destructive"
