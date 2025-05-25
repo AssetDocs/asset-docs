@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -28,6 +27,8 @@ const Pricing: React.FC = () => {
       "100GB secure cloud storage",
       "Unlimited photo and video uploads",
       "Professional asset tagging",
+      "AI-powered item identification & valuation",
+      "Floor plan scanning with live camera",
       "Mobile app access with premium features",
       "Export comprehensive reports",
       "Priority email and phone support",
@@ -51,6 +52,8 @@ const Pricing: React.FC = () => {
       "25 user accounts",
       "Unlimited photo and video uploads",
       "Advanced asset tracking and management",
+      "AI-powered item identification & valuation",
+      "Floor plan scanning with live camera",
       "Mobile app access with premium features",
       "Custom reporting templates",
       "Priority email and phone support",
