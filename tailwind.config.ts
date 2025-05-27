@@ -64,13 +64,13 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				brand: {
-					blue: '#1EAEDB',     // Bright blue from the new logo
+					blue: '#1EAEDB',     // Bright teal blue - exact match from your image
 					green: '#2a9d8f',
-					lightBlue: '#0FA0CE',// Light blue shade from logo
-					darkBlue: '#0040AF', // Dark blue from the new logo
+					lightBlue: '#0FA0CE',// Light blue shade for gradients
+					darkBlue: '#0040AF', // Deep royal blue - exact match from your image
 					gray: '#f8f9fa',
 					darkGray: '#343a40',
-					orange: '#F97316'    // Keeping orange for buttons as requested earlier
+					orange: '#F97316'    // Vibrant orange - exact match from your image
 				}
 			},
 			borderRadius: {

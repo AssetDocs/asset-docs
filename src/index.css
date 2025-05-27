@@ -14,10 +14,10 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 192 77% 40%; /* Bright blue from the new logo */
+    --primary: 192 77% 40%; /* Bright teal blue #1EAEDB */
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 216 98% 32%; /* Dark blue from the new logo */
+    --secondary: 216 98% 32%; /* Deep royal blue #0040AF */
     --secondary-foreground: 222.2 47.4% 11.2%;
 
     --muted: 210 40% 96.1%;
@@ -55,10 +55,10 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 192 77% 40%; /* Bright blue from the new logo */
+    --primary: 192 77% 40%; /* Bright teal blue #1EAEDB */
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 216 98% 32%; /* Dark blue from the new logo */
+    --secondary: 216 98% 32%; /* Deep royal blue #0040AF */
     --secondary-foreground: 210 40% 98%;
 
     --muted: 217.2 32.6% 17.5%;
