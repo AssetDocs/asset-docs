@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -22,9 +21,35 @@ const Terms: React.FC = () => {
               and trademark law.
             </p>
           </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">2. Copyright Notice</h2>
+            <p>
+              All content, materials, software, source code, algorithms, proprietary information, designs, graphics, 
+              text, images, videos, audio files, data, databases, third-party integrations, APIs, and other intellectual 
+              property contained within this website and application are the exclusive property of AssetDocs (AD) and 
+              are protected by United States federal copyright laws, international copyright treaties, and other applicable 
+              intellectual property laws.
+            </p>
+            <p className="mt-4">
+              The unauthorized reproduction, distribution, modification, public display, public performance, preparation 
+              of derivative works, or any other use of copyrighted material without the express written consent of 
+              AssetDocs (AD) is strictly prohibited and may result in severe civil and criminal penalties. This includes, 
+              but is not limited to, any disclosure, distribution, reverse engineering, decompilation, or extraction of 
+              ideas, concepts, methodologies, source code, or proprietary algorithms contained within this application.
+            </p>
+            <p className="mt-4">
+              All rights reserved. No part of this website, application, or its underlying technology may be used, 
+              copied, or distributed in any form or by any means without prior written permission from AssetDocs (AD). 
+              Violation of these copyright protections may subject the violator to legal action and monetary damages.
+            </p>
+            <p className="mt-4">
+              © 2025 AssetDocs (AD). All rights reserved under U.S. and international copyright law.
+            </p>
+          </section>
           
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">2. Disclaimer</h2>
+            <h2 className="text-2xl font-semibold mb-4">3. Disclaimer</h2>
             <p>
               The materials on AssetDocs (AD) web site are provided "as is". (AD) makes no warranties, 
               expressed or implied, and hereby disclaims and negates all other warranties, including without 
@@ -37,7 +62,7 @@ const Terms: React.FC = () => {
           </section>
           
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">3. Limitations</h2>
+            <h2 className="text-2xl font-semibold mb-4">4. Limitations</h2>
             <p>
               In no event shall (AD) or its representatives be liable for any damages (including, without 
               limitation, damages for loss of data or profit, or due to business interruption), arising out 
@@ -49,7 +74,7 @@ const Terms: React.FC = () => {
           </section>
           
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">4. Revisions and Errata</h2>
+            <h2 className="text-2xl font-semibold mb-4">5. Revisions and Errata</h2>
             <p>
               The materials appearing on (AD) website could include technical, typographical, or photographic 
               errors. (AD) does not warrant that any of the materials on its web site are accurate, complete, 
@@ -59,7 +84,7 @@ const Terms: React.FC = () => {
           </section>
           
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">5. Links</h2>
+            <h2 className="text-2xl font-semibold mb-4">6. Links</h2>
             <p>
               (AD) has not reviewed all of the sites linked to its Internet web site and is not responsible 
               for the contents of any such linked site. The inclusion of any link does not imply endorsement 
@@ -68,7 +93,7 @@ const Terms: React.FC = () => {
           </section>
           
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">6. Site Terms of Use Modifications</h2>
+            <h2 className="text-2xl font-semibold mb-4">7. Site Terms of Use Modifications</h2>
             <p>
               (AD) may revise these terms of use for its web site at any time without notice. By using this 
               web site you are agreeing to be bound by the then current version of these Terms and Conditions 
@@ -77,7 +102,7 @@ const Terms: React.FC = () => {
           </section>
           
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">7. Governing Law</h2>
+            <h2 className="text-2xl font-semibold mb-4">8. Governing Law</h2>
             <p>
               Any claim relating to (AD) web site shall be governed by the laws of the State of Texas without 
               regard to its conflict of law provisions. General Terms and Conditions applicable to Use of a 
@@ -86,7 +111,7 @@ const Terms: React.FC = () => {
           </section>
           
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">8. Privacy Policy</h2>
+            <h2 className="text-2xl font-semibold mb-4">9. Privacy Policy</h2>
             <p>
               Your privacy is very important to us. Accordingly, we have developed this Policy in order for 
               you to understand how we collect, use, communicate and disclose and make use of personal information. 
