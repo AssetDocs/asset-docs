@@ -43,8 +43,8 @@ const Footer: React.FC = () => {
             <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/welcome" className="text-gray-300 hover:text-white transition-colors">
-                  Welcome Video
+                <Link to="/video-testimonial" className="text-gray-300 hover:text-white transition-colors">
+                  Video Testimonial
                 </Link>
               </li>
               <li>
