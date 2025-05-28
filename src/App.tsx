@@ -21,6 +21,7 @@ import VideoUpload from "./pages/VideoUpload";
 import FloorPlanUpload from "./pages/FloorPlanUpload";
 import InsuranceForm from "./pages/InsuranceForm";
 import ScheduleProfessional from "./pages/ScheduleProfessional";
+import About from "./pages/About";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ const App = () => (
           <Route path="/account/floorplans/upload" element={<FloorPlanUpload />} />
           <Route path="/account/insurance/new" element={<InsuranceForm />} />
           <Route path="/schedule-professional" element={<ScheduleProfessional />} />
+          <Route path="/about" element={<About />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
