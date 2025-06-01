@@ -95,16 +95,6 @@ const Features: React.FC = () => {
                 
                 <div className="bg-white p-6 rounded-lg shadow">
                   <div className="flex items-center mb-4">
-                    <Shield className="h-8 w-8 text-brand-blue mr-3" />
-                    <h3 className="text-xl font-semibold">Manual Information Blurring</h3>
-                  </div>
-                  <p className="text-gray-600">
-                    Our professional team manually blurs sensitive information in your documentation, such as personal identification, financial details, and other private data to protect your identity.
-                  </p>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <div className="flex items-center mb-4">
                     <Lock className="h-8 w-8 text-brand-blue mr-3" />
                     <h3 className="text-xl font-semibold">Secure Cloud Backup</h3>
                   </div>
