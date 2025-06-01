@@ -167,14 +167,7 @@ const Features: React.FC = () => {
       <section className="py-16">
         <div className="container mx-auto px-4">
           <h2 className="section-title">Additional Features</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white p-6 rounded-lg shadow border border-gray-100">
-              <h3 className="text-xl font-semibold mb-3 text-brand-blue">Asset Tagging</h3>
-              <p className="text-gray-600">
-                Our real-time tagging system allows you to categorize and organize your assets directly within photos and 3D models for easy reference.
-              </p>
-            </div>
-            
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="bg-white p-6 rounded-lg shadow border border-gray-100">
               <h3 className="text-xl font-semibold mb-3 text-brand-blue">Mobile Access</h3>
               <p className="text-gray-600">
