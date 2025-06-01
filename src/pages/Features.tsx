@@ -1,8 +1,9 @@
+
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Camera, Shield, Lock, FileImage, BarChart, Clock, Home, Building, Briefcase, Scale } from 'lucide-react';
+import { Camera, Shield, Lock, FileImage, BarChart, Clock, Home, Building, Briefcase, Scale, Truck } from 'lucide-react';
 
 const Features: React.FC = () => {
   return (
@@ -26,7 +27,7 @@ const Features: React.FC = () => {
             <TabsList className="grid w-full grid-cols-1 md:grid-cols-3 mb-8">
               <TabsTrigger value="documentation">Documentation</TabsTrigger>
               <TabsTrigger value="security">Security & Privacy</TabsTrigger>
-              <TabsTrigger value="industries">Industries</TabsTrigger>
+              <TabsTrigger value="usage">Usage</TabsTrigger>
             </TabsList>
             
             {/* Documentation Tab */}
@@ -105,9 +106,19 @@ const Features: React.FC = () => {
               </div>
             </TabsContent>
             
-            {/* Industries Tab */}
-            <TabsContent value="industries" className="animate-fade-in">
+            {/* Usage Tab */}
+            <TabsContent value="usage" className="animate-fade-in">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <div className="flex items-center mb-4">
+                    <Truck className="h-8 w-8 text-brand-blue mr-3" />
+                    <h3 className="text-xl font-semibold">Moving</h3>
+                  </div>
+                  <p className="text-gray-600">
+                    Having complete asset documentation before your next move provides crucial protection against damage during transit. With detailed photos, valuations, and condition reports of all your belongings, you can quickly identify and claim compensation for any items damaged by moving companies, ensuring you're fully protected throughout the relocation process.
+                  </p>
+                </div>
+                
                 <div className="bg-white p-6 rounded-lg shadow">
                   <div className="flex items-center mb-4">
                     <Home className="h-8 w-8 text-brand-blue mr-3" />
@@ -125,16 +136,6 @@ const Features: React.FC = () => {
                   </div>
                   <p className="text-gray-600">
                     Specialized documentation services for commercial buildings, retail spaces, and office properties. Includes detailed asset tracking, condition reports, and valuation services.
-                  </p>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <div className="flex items-center mb-4">
-                    <Briefcase className="h-8 w-8 text-brand-blue mr-3" />
-                    <h3 className="text-xl font-semibold">Small Businesses</h3>
-                  </div>
-                  <p className="text-gray-600">
-                    Documentation services tailored for small businesses, including inventory management, equipment documentation, and business asset tracking for insurance and financial purposes.
                   </p>
                 </div>
                 
