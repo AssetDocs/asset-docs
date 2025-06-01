@@ -1,3 +1,4 @@
+
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -40,7 +41,7 @@ const Pricing: React.FC = () => {
   const businessFeatures = {
     small: [
       "50GB secure cloud storage",
-      "10 user accounts",
+      "3 user accounts",
       "Photo and video uploads",
       "Asset tagging and inventory tracking",
       "Mobile app access for all users",

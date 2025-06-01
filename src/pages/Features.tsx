@@ -40,22 +40,6 @@ const Features: React.FC = () => {
                   Document unlimited properties and businesses with AssetDocs. Whether you own a single home, multiple rental properties, vacation homes, or various business locations - there are no restrictions on how many properties you can document and manage through our platform.
                 </p>
               </div>
-
-              {/* Professional Photography Notice */}
-              <div className="bg-brand-blue text-white p-6 rounded-lg mb-8">
-                <h3 className="text-xl font-semibold mb-2">🏠 Professional Documentation Services</h3>
-                <p className="text-lg mb-4">
-                  High resolution photos, 3D models with LiDAR, detailed reports, Xactimate ESX files, and asset tagging are available when you hire an AssetDocs professional photographer. Our certified professionals will capture comprehensive documentation of your property, create precise 3D models with asset tagging, and provide third-party verification reports.
-                </p>
-                <p className="text-lg">
-                  <strong>Investment:</strong> $0.35 per square foot of property
-                </p>
-                <div className="mt-4">
-                  <a href="/schedule-professional" className="bg-white text-brand-blue hover:bg-gray-100 px-6 py-3 rounded-md font-medium inline-block">
-                    Schedule a Professional
-                  </a>
-                </div>
-              </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="bg-white p-6 rounded-lg shadow">
@@ -64,9 +48,8 @@ const Features: React.FC = () => {
                     <h3 className="text-xl font-semibold">High Resolution Photos</h3>
                   </div>
                   <p className="text-gray-600">
-                    Professional photographers capture detailed images of your property and possessions with our mobile app or professional photography service. Our system automatically organizes and tags your photos for easy retrieval.
+                    Capture detailed images of your property and possessions with our mobile app. Our system automatically organizes and tags your photos for easy retrieval.
                   </p>
-                  <p className="text-sm text-brand-blue mt-2 font-medium">Professional photographer required</p>
                 </div>
                 
                 <div className="bg-white p-6 rounded-lg shadow">
@@ -77,7 +60,6 @@ const Features: React.FC = () => {
                   <p className="text-gray-600">
                     Create precise 3D models of your property using advanced LiDAR technology. These models provide accurate measurements and asset location references for insurance and documentation purposes.
                   </p>
-                  <p className="text-sm text-brand-blue mt-2 font-medium">Professional photographer required</p>
                 </div>
                 
                 <div className="bg-white p-6 rounded-lg shadow">
@@ -88,7 +70,6 @@ const Features: React.FC = () => {
                   <p className="text-gray-600">
                     Generate comprehensive reports of your property and possessions, including valuations, condition assessments, and detailed inventories. Perfect for insurance claims, estate planning, and property sales.
                   </p>
-                  <p className="text-sm text-brand-blue mt-2 font-medium">Professional photographer required</p>
                 </div>
                 
                 <div className="bg-white p-6 rounded-lg shadow">
@@ -99,7 +80,6 @@ const Features: React.FC = () => {
                   <p className="text-gray-600">
                     Our system generates professional Xactimate ESX files for insurance claims, making it easier and faster to get accurate reimbursements for covered losses.
                   </p>
-                  <p className="text-sm text-brand-blue mt-2 font-medium">Professional photographer required</p>
                 </div>
               </div>
 
