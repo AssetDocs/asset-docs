@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -24,10 +23,9 @@ const Features: React.FC = () => {
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <Tabs defaultValue="documentation" className="w-full">
-            <TabsList className="grid w-full grid-cols-1 md:grid-cols-4 mb-8">
+            <TabsList className="grid w-full grid-cols-1 md:grid-cols-3 mb-8">
               <TabsTrigger value="documentation">Documentation</TabsTrigger>
               <TabsTrigger value="security">Security & Privacy</TabsTrigger>
-              <TabsTrigger value="professional">Professional Services</TabsTrigger>
               <TabsTrigger value="industries">Industries</TabsTrigger>
             </TabsList>
             
@@ -54,31 +52,11 @@ const Features: React.FC = () => {
                 
                 <div className="bg-white p-6 rounded-lg shadow">
                   <div className="flex items-center mb-4">
-                    <FileImage className="h-8 w-8 text-brand-blue mr-3" />
-                    <h3 className="text-xl font-semibold">3D Models with LiDAR</h3>
-                  </div>
-                  <p className="text-gray-600">
-                    Create precise 3D models of your property using advanced LiDAR technology. These models provide accurate measurements and asset location references for insurance and documentation purposes.
-                  </p>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <div className="flex items-center mb-4">
                     <BarChart className="h-8 w-8 text-brand-blue mr-3" />
                     <h3 className="text-xl font-semibold">Detailed Reports</h3>
                   </div>
                   <p className="text-gray-600">
                     Generate comprehensive reports of your property and possessions, including valuations, condition assessments, and detailed inventories. Perfect for insurance claims, estate planning, and property sales.
-                  </p>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <div className="flex items-center mb-4">
-                    <Shield className="h-8 w-8 text-brand-blue mr-3" />
-                    <h3 className="text-xl font-semibold">Xactimate ESX Files</h3>
-                  </div>
-                  <p className="text-gray-600">
-                    Our system generates professional Xactimate ESX files for insurance claims, making it easier and faster to get accurate reimbursements for covered losses.
                   </p>
                 </div>
               </div>
@@ -132,51 +110,6 @@ const Features: React.FC = () => {
                   </div>
                   <p className="text-gray-600">
                     Your documentation is automatically backed up to secure cloud storage, ensuring that your valuable information is always available even in the event of a disaster or device loss.
-                  </p>
-                </div>
-              </div>
-            </TabsContent>
-            
-            {/* Professional Services Tab */}
-            <TabsContent value="professional" className="animate-fade-in">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <div className="flex items-center mb-4">
-                    <Camera className="h-8 w-8 text-brand-blue mr-3" />
-                    <h3 className="text-xl font-semibold">On-Site Documentation</h3>
-                  </div>
-                  <p className="text-gray-600">
-                    Our professional team visits your property to capture comprehensive documentation, including photos, videos, measurements, and detailed inventories of your possessions.
-                  </p>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <div className="flex items-center mb-4">
-                    <FileImage className="h-8 w-8 text-brand-blue mr-3" />
-                    <h3 className="text-xl font-semibold">360° Virtual Tours</h3>
-                  </div>
-                  <p className="text-gray-600">
-                    Our specialists create interactive 360° virtual tours of your property, allowing you to navigate through your spaces digitally and document the condition and contents.
-                  </p>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <div className="flex items-center mb-4">
-                    <BarChart className="h-8 w-8 text-brand-blue mr-3" />
-                    <h3 className="text-xl font-semibold">Notarized Documentation</h3>
-                  </div>
-                  <p className="text-gray-600">
-                    All professional documentation services include notarization to provide third-party verification of your assets, adding credibility and legal weight to your documentation.
-                  </p>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <div className="flex items-center mb-4">
-                    <Shield className="h-8 w-8 text-brand-blue mr-3" />
-                    <h3 className="text-xl font-semibold">Expert Valuation</h3>
-                  </div>
-                  <p className="text-gray-600">
-                    Our team includes experts who can provide professional valuations of your property and possessions, helping to ensure accurate insurance coverage and proper estate planning.
                   </p>
                 </div>
               </div>
