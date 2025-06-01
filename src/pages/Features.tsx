@@ -14,7 +14,7 @@ const Features: React.FC = () => {
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl font-bold mb-6">Comprehensive Asset Documentation Features</h1>
           <p className="text-xl max-w-3xl mx-auto">
-            Discover all the powerful tools and services that AssetDocs offers to protect your property and possessions.
+            Discover all the powerful tools and services that Asset Docs offers to protect your property and possessions.
           </p>
         </div>
       </section>
@@ -35,7 +35,7 @@ const Features: React.FC = () => {
               <div className="bg-brand-green text-white p-6 rounded-lg mb-8">
                 <h3 className="text-xl font-semibold mb-2">📍 No Limits on Properties</h3>
                 <p className="text-lg">
-                  Document unlimited properties and businesses with AssetDocs. Whether you own a single home, multiple rental properties, vacation homes, or various business locations - there are no restrictions on how many properties you can document and manage through our platform.
+                  Document unlimited properties and businesses with Asset Docs. Whether you own a single home, multiple rental properties, vacation homes, or various business locations - there are no restrictions on how many properties you can document and manage through our platform.
                 </p>
               </div>
               
@@ -188,9 +188,9 @@ const Features: React.FC = () => {
       {/* CTA Section */}
       <section className="py-16 bg-brand-green text-white">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-6">Experience the AssetDocs Difference</h2>
+          <h2 className="text-3xl font-bold mb-6">Experience the Asset Docs Difference</h2>
           <p className="text-xl mb-8 max-w-3xl mx-auto">
-            Join thousands of property owners who trust AssetDocs to protect their valuable assets and provide peace of mind.
+            Join thousands of property owners who trust Asset Docs to protect their valuable assets and provide peace of mind.
           </p>
           <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
             <a href="/signup" className="bg-white text-brand-green hover:bg-gray-100 px-6 py-3 rounded-md font-medium">

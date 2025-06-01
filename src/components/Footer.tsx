@@ -10,7 +10,7 @@ const Footer: React.FC = () => {
             <div className="flex items-center space-x-2 mb-4">
               <img 
                 src="/lovable-uploads/b60286e3-ddd8-48f4-9a60-56cfa470be11.png" 
-                alt="AssetDocs Logo" 
+                alt="Asset Docs Logo" 
                 className="h-20 bg-white p-1 rounded" // Increased from h-16 to h-20 for larger display
               />
             </div>
@@ -98,7 +98,7 @@ const Footer: React.FC = () => {
           </div>
         </div>
         <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-          <p>&copy; {new Date().getFullYear()} AssetDocs. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Asset Docs. All rights reserved.</p>
         </div>
       </div>
     </footer>

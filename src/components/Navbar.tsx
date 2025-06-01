@@ -14,7 +14,7 @@ const Navbar: React.FC = () => {
           <Link to="/" className="flex items-center">
             <img 
               src="/lovable-uploads/b60286e3-ddd8-48f4-9a60-56cfa470be11.png" 
-              alt="AssetDocs Logo" 
+              alt="Asset Docs Logo" 
               className="h-20 mr-2" // Increased from h-16 to h-20 for larger display
             />
           </Link>
