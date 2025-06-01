@@ -1,9 +1,10 @@
 
+
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Camera, Shield, Lock, FileImage, BarChart, Clock, Home, Building, Briefcase, Scale, Truck } from 'lucide-react';
+import { Camera, Shield, Lock, FileImage, BarChart, Clock, Home, Building, Briefcase, Scale, Truck, Users } from 'lucide-react';
 
 const Features: React.FC = () => {
   return (
@@ -121,6 +122,16 @@ const Features: React.FC = () => {
                 
                 <div className="bg-white p-6 rounded-lg shadow">
                   <div className="flex items-center mb-4">
+                    <Users className="h-8 w-8 text-brand-blue mr-3" />
+                    <h3 className="text-xl font-semibold">Separation</h3>
+                  </div>
+                  <p className="text-gray-600">
+                    Comprehensive asset documentation provides crucial evidence for court decisions during divorce proceedings. Having detailed records, photos, and valuations of all marital property helps ensure fair asset division, reduces disputes, and provides the court with objective evidence needed to make informed decisions about property distribution.
+                  </p>
+                </div>
+                
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <div className="flex items-center mb-4">
                     <Home className="h-8 w-8 text-brand-blue mr-3" />
                     <h3 className="text-xl font-semibold">Residential Properties</h3>
                   </div>
@@ -200,3 +211,4 @@ const Features: React.FC = () => {
 };
 
 export default Features;
+
