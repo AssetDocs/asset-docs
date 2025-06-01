@@ -23,6 +23,7 @@ import InsuranceForm from "./pages/InsuranceForm";
 import ScheduleProfessional from "./pages/ScheduleProfessional";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
+import Testimonials from "./pages/Testimonials";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,7 @@ const App = () => (
           <Route path="/schedule-professional" element={<ScheduleProfessional />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/testimonials" element={<Testimonials />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
