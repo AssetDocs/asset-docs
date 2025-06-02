@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 
@@ -118,8 +117,7 @@ const Footer: React.FC = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Contact Us</h3>
             <address className="not-italic text-gray-300">
-              <p className="mb-2">123 Documentation Street</p>
-              <p className="mb-2">Secure City, SC 12345</p>
+              <p className="mb-2">McKinney, Texas</p>
               <p className="mb-2">United States</p>
               <p className="mb-2">
                 <a href="mailto:info@assetdocs.com" className="hover:text-white transition-colors">
