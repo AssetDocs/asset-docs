@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 
@@ -48,7 +49,7 @@ const Footer: React.FC = () => {
               </li>
               <li>
                 <Link to="/features" className="text-gray-300 hover:text-white transition-colors">
-                  Features
+                  All Features
                 </Link>
               </li>
               <li>
