@@ -1,8 +1,9 @@
+
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Camera, Shield, Lock, FileImage, BarChart, Clock, Home, Building, Briefcase, Scale, Truck, Users } from 'lucide-react';
+import { Camera, Shield, Lock, FileImage, BarChart, Clock, Home, Building, Briefcase, Scale, Truck, Users, TrendingUp, Heart, Handshake } from 'lucide-react';
 
 const Features: React.FC = () => {
   return (
@@ -67,6 +68,42 @@ const Features: React.FC = () => {
                 <p className="text-lg text-gray-700">
                   All documentation, links, reports, and files are securely accessible through your personalized online portal. Access your complete property documentation anytime, anywhere, with full privacy controls and sharing capabilities.
                 </p>
+              </div>
+
+              {/* Added Value Section */}
+              <div className="mt-12">
+                <h3 className="text-2xl font-bold text-center text-brand-blue mb-8">Added Value</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  <div className="bg-white p-6 rounded-lg shadow border border-gray-100">
+                    <div className="flex items-center mb-4">
+                      <TrendingUp className="h-8 w-8 text-brand-green mr-3" />
+                      <h4 className="text-xl font-semibold text-brand-blue">Maximize Property Value</h4>
+                    </div>
+                    <p className="text-gray-600">
+                      Authenticate and showcase increased property value when selling your home, liquidating assets, or raising business capital with comprehensive documentation that proves your investments.
+                    </p>
+                  </div>
+                  
+                  <div className="bg-white p-6 rounded-lg shadow border border-gray-100">
+                    <div className="flex items-center mb-4">
+                      <Heart className="h-8 w-8 text-brand-green mr-3" />
+                      <h4 className="text-xl font-semibold text-brand-blue">Protect Your Legacy</h4>
+                    </div>
+                    <p className="text-gray-600">
+                      Prevent family disputes and ensure your assets reach the right beneficiaries. Our detailed documentation provides clarity for executors and peace of mind for your loved ones during difficult times.
+                    </p>
+                  </div>
+                  
+                  <div className="bg-white p-6 rounded-lg shadow border border-gray-100">
+                    <div className="flex items-center mb-4">
+                      <Handshake className="h-8 w-8 text-brand-green mr-3" />
+                      <h4 className="text-xl font-semibold text-brand-blue">Fair Asset Division</h4>
+                    </div>
+                    <p className="text-gray-600">
+                      Navigate separation with confidence. Our comprehensive asset records ensure fair division, minimize disputes, and protect your financial future as you start your new chapter.
+                    </p>
+                  </div>
+                </div>
               </div>
             </TabsContent>
             
