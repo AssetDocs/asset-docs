@@ -36,6 +36,7 @@ const Account: React.FC = () => {
                       <div className="ml-4">
                         <p className="text-sm font-medium text-gray-600">Properties</p>
                         <p className="text-2xl font-bold">2</p>
+                        <p className="text-xs text-gray-500">$810K total value</p>
                       </div>
                     </div>
                   </CardContent>
@@ -83,7 +84,8 @@ const Account: React.FC = () => {
                       <Shield className="h-8 w-8 text-brand-blue" />
                       <div className="ml-4">
                         <p className="text-sm font-medium text-gray-600">Total Value</p>
-                        <p className="text-2xl font-bold">$48.2K</p>
+                        <p className="text-2xl font-bold">$858.2K</p>
+                        <p className="text-xs text-gray-500">Including real estate</p>
                       </div>
                     </div>
                   </CardContent>
