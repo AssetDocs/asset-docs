@@ -10,7 +10,8 @@ interface ItemTypeSelectorProps {
 
 const ItemTypeSelector: React.FC<ItemTypeSelectorProps> = ({ value, onChange, placeholder = "Select item type" }) => {
   const itemTypes = [
-    'Vehicles',
+    'Motorized Vehicles',
+    'Watercraft',
     'Sporting Equipment',
     'Cookware',
     'Clothing & Accessories',
