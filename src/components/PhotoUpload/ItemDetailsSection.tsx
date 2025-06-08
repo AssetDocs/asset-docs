@@ -7,7 +7,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { DollarSign, MapPin, FileText } from 'lucide-react';
 import PropertySelector from '@/components/PropertySelector';
 import ItemTypeSelector from '@/components/ItemTypeSelector';
-import CategorySelector from '@/components/CategorySelector';
 import PropertyUpgradeSelector from '@/components/PropertyUpgradeSelector';
 
 interface UploadedItem {
@@ -44,6 +43,11 @@ const ItemDetailsSection: React.FC<ItemDetailsSectionProps> = ({
   onRemoveItem,
   onSaveItems
 }) => {
+  const handleItemTypeChange = (itemId: string, itemType: string, category: string) => {
+    onUpdateItemValue(itemId, 'itemType', itemType);
+    onUpdateItemValue(itemId, 'category', category);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -92,18 +96,17 @@ const ItemDetailsSection: React.FC<ItemDetailsSectionProps> = ({
                           placeholder="Select property"
                         />
                         
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-2">
                           <ItemTypeSelector
                             value={item.itemType}
-                            onChange={(value) => onUpdateItemValue(item.id, 'itemType', value)}
+                            onChange={(itemType) => onUpdateItemValue(item.id, 'itemType', itemType)}
+                            onCategoryChange={(category) => onUpdateItemValue(item.id, 'category', category)}
                             placeholder="Select item type"
                           />
                           
-                          <CategorySelector
-                            value={item.category}
-                            onChange={(value) => onUpdateItemValue(item.id, 'category', value)}
-                            placeholder="Select category"
-                          />
+                          <div className="text-xs text-gray-600">
+                            <span className="font-medium">Category:</span> {item.category}
+                          </div>
                         </div>
                         
                         {item.itemType === 'Property Upgrades' && (

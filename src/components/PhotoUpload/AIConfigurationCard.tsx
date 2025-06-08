@@ -8,7 +8,6 @@ import { Switch } from '@/components/ui/switch';
 import { Key, AlertCircle } from 'lucide-react';
 import PropertySelector from '@/components/PropertySelector';
 import ItemTypeSelector from '@/components/ItemTypeSelector';
-import CategorySelector from '@/components/CategorySelector';
 
 interface AIConfigurationCardProps {
   apiKey: string;
@@ -71,7 +70,7 @@ const AIConfigurationCard: React.FC<AIConfigurationCardProps> = ({
           <Label htmlFor="use-ai">Use AI for automatic item analysis</Label>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>Default Property</Label>
             <PropertySelector
@@ -85,24 +84,22 @@ const AIConfigurationCard: React.FC<AIConfigurationCardProps> = ({
             <ItemTypeSelector
               value={defaultItemType}
               onChange={setDefaultItemType}
+              onCategoryChange={setDefaultCategory}
               placeholder="Select default item type"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Default Category</Label>
-            <CategorySelector
-              value={defaultCategory}
-              onChange={setDefaultCategory}
-              placeholder="Select default category"
             />
           </div>
         </div>
 
+        {defaultCategory && (
+          <div className="text-sm text-gray-600">
+            <span className="font-medium">Auto-selected category:</span> {defaultCategory}
+          </div>
+        )}
+
         <div className="flex items-start space-x-2 text-xs text-gray-500">
           <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
           <p>
-            Without an API key, the system will skip AI analysis. For production use, 
-            connect to Supabase for secure key storage.
+            Without an API key, the system will skip AI analysis. The category is automatically set based on your item type selection.
           </p>
         </div>
       </CardContent>
