@@ -1,8 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis } from 'recharts';
 import { DollarSign, TrendingUp, Package, Home } from 'lucide-react';
 import { PropertyValuation, propertyValuationService } from '@/services/PropertyValuationService';
 import PropertyValuesSection from '@/components/PropertyValuesSection';
@@ -16,16 +14,6 @@ const mockPersonalAssetData = [
   { category: 'Art & Collectibles', value: 3200, color: '#8B5CF6' },
   { category: 'Tools & Equipment', value: 1950, color: '#F97316' }
 ];
-
-const chartConfig = {
-  Electronics: { label: 'Electronics', color: '#0EA5E9' },
-  Furniture: { label: 'Furniture', color: '#10B981' },
-  'Jewelry & Watches': { label: 'Jewelry & Watches', color: '#F59E0B' },
-  Appliances: { label: 'Appliances', color: '#EF4444' },
-  'Art & Collectibles': { label: 'Art & Collectibles', color: '#8B5CF6' },
-  'Tools & Equipment': { label: 'Tools & Equipment', color: '#F97316' },
-  'Real Estate': { label: 'Real Estate', color: '#059669' }
-};
 
 const AssetValuesSection: React.FC = () => {
   const [propertyValuations, setPropertyValuations] = useState<PropertyValuation[]>([]);
@@ -61,7 +49,6 @@ const AssetValuesSection: React.FC = () => {
 
   const totalPersonalAssets = mockPersonalAssetData.reduce((sum, item) => sum + item.value, 0);
   const totalAllAssets = totalPersonalAssets + totalPropertyValue;
-  const totalItems = 147; // This would come from your actual item count + properties
 
   if (isLoading) {
     return (
@@ -135,78 +122,7 @@ const AssetValuesSection: React.FC = () => {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Enhanced Pie Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Asset Value Distribution</CardTitle>
-            <CardDescription>
-              Complete breakdown including real estate and personal assets
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={combinedAssetData}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ category, value }) => `${category}: $${value.toLocaleString()}`}
-                  >
-                    {combinedAssetData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <ChartTooltip 
-                    content={<ChartTooltipContent />}
-                    formatter={(value: number) => [`$${value.toLocaleString()}`, 'Value']}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-
-        {/* Enhanced Bar Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Asset Values Comparison</CardTitle>
-            <CardDescription>
-              Compare all asset categories including real estate
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={combinedAssetData}>
-                  <XAxis 
-                    dataKey="category" 
-                    tick={{ fontSize: 12 }}
-                    angle={-45}
-                    textAnchor="end"
-                    height={60}
-                  />
-                  <YAxis 
-                    tick={{ fontSize: 12 }}
-                    tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
-                  />
-                  <ChartTooltip 
-                    content={<ChartTooltipContent />}
-                    formatter={(value: number) => [`$${value.toLocaleString()}`, 'Value']}
-                  />
-                  <Bar dataKey="value" fill="#0EA5E9" />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Enhanced Category Breakdown Table */}
+      {/* Complete Asset Breakdown Table */}
       <Card>
         <CardHeader>
           <CardTitle>Complete Asset Breakdown</CardTitle>
