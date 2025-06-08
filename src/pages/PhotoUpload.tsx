@@ -6,19 +6,20 @@ import Footer from '@/components/Footer';
 import PropertySelector from '@/components/PropertySelector';
 import ItemTypeSelector from '@/components/ItemTypeSelector';
 import PropertyUpgradeSelector from '@/components/PropertyUpgradeSelector';
+import CategorySelector from '@/components/CategorySelector';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { ArrowLeft, Upload, Camera, Zap, DollarSign, MapPin, Key, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Upload, Camera, Zap, DollarSign, MapPin, Key, AlertCircle, Plus, FileText } from 'lucide-react';
 import { aiAnalysisService } from '@/components/AIAnalysisService';
 
 interface UploadedItem {
   id: string;
-  file: File;
-  preview: string;
+  file?: File;
+  preview?: string;
   name: string;
   description: string;
   estimatedValue: number;
@@ -33,6 +34,7 @@ interface UploadedItem {
   brand?: string;
   model?: string;
   useAI: boolean;
+  isManualEntry?: boolean;
 }
 
 const PhotoUpload: React.FC = () => {
@@ -44,6 +46,7 @@ const PhotoUpload: React.FC = () => {
   const [defaultUseAI, setDefaultUseAI] = useState(true);
   const [defaultPropertyId, setDefaultPropertyId] = useState('');
   const [defaultItemType, setDefaultItemType] = useState('');
+  const [defaultCategory, setDefaultCategory] = useState('');
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -71,7 +74,7 @@ const PhotoUpload: React.FC = () => {
             description: aiResult.description,
             estimatedValue: aiResult.estimatedValue,
             aiGenerated: true,
-            category: aiResult.category,
+            category: defaultCategory || aiResult.category,
             itemType: defaultItemType || aiResult.category,
             propertyId: defaultPropertyId,
             location: '',
@@ -94,7 +97,7 @@ const PhotoUpload: React.FC = () => {
             description: '',
             estimatedValue: 0,
             aiGenerated: false,
-            category: 'Uncategorized',
+            category: defaultCategory || 'Uncategorized',
             itemType: defaultItemType || 'Other',
             propertyId: defaultPropertyId,
             location: '',
@@ -112,7 +115,7 @@ const PhotoUpload: React.FC = () => {
           description: '',
           estimatedValue: 0,
           aiGenerated: false,
-          category: 'Manual Entry',
+          category: defaultCategory || 'Manual Entry',
           itemType: defaultItemType || 'Other',
           propertyId: defaultPropertyId,
           location: '',
@@ -125,6 +128,24 @@ const PhotoUpload: React.FC = () => {
     setUploadedItems([...uploadedItems, ...newItems]);
     setSelectedFiles([]);
     setIsAnalyzing(false);
+  };
+
+  const addManualEntry = () => {
+    const manualItem: UploadedItem = {
+      id: Date.now().toString() + Math.random().toString(),
+      name: '',
+      description: '',
+      estimatedValue: 0,
+      aiGenerated: false,
+      category: defaultCategory || '',
+      itemType: defaultItemType || 'Other',
+      propertyId: defaultPropertyId,
+      location: '',
+      useAI: false,
+      isManualEntry: true
+    };
+
+    setUploadedItems([...uploadedItems, manualItem]);
   };
 
   const handleApiKeyUpdate = () => {
@@ -176,7 +197,7 @@ const PhotoUpload: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Key className="h-5 w-5 mr-2 text-orange-500" />
-                AI Configuration
+                AI Configuration & Defaults
               </CardTitle>
               <CardDescription>
                 Configure AI settings and default values for your uploads
@@ -205,7 +226,7 @@ const PhotoUpload: React.FC = () => {
                 <Label htmlFor="use-ai">Use AI for automatic item analysis</Label>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label>Default Property</Label>
                   <PropertySelector
@@ -220,6 +241,14 @@ const PhotoUpload: React.FC = () => {
                     value={defaultItemType}
                     onChange={setDefaultItemType}
                     placeholder="Select default item type"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Default Category</Label>
+                  <CategorySelector
+                    value={defaultCategory}
+                    onChange={setDefaultCategory}
+                    placeholder="Select default category"
                   />
                 </div>
               </div>
@@ -296,6 +325,20 @@ const PhotoUpload: React.FC = () => {
                     </Button>
                   </div>
                 )}
+
+                <div className="border-t pt-4">
+                  <Button 
+                    onClick={addManualEntry}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Manual Entry
+                  </Button>
+                  <p className="text-xs text-gray-500 mt-2 text-center">
+                    Add items without photos or videos
+                  </p>
+                </div>
               </CardContent>
             </Card>
 
@@ -313,7 +356,7 @@ const PhotoUpload: React.FC = () => {
               <CardContent>
                 {uploadedItems.length === 0 ? (
                   <p className="text-gray-500 text-center py-8">
-                    Upload photos to add item details here
+                    Upload photos or add manual entries to start
                   </p>
                 ) : (
                   <div className="space-y-4 max-h-96 overflow-y-auto">
@@ -321,11 +364,17 @@ const PhotoUpload: React.FC = () => {
                       <div key={item.id} className="border rounded-lg p-4 bg-white">
                         <div className="space-y-3">
                           <div className="flex space-x-4">
-                            <img
-                              src={item.preview}
-                              alt={item.name}
-                              className="w-16 h-16 object-cover rounded"
-                            />
+                            {item.preview ? (
+                              <img
+                                src={item.preview}
+                                alt={item.name}
+                                className="w-16 h-16 object-cover rounded"
+                              />
+                            ) : (
+                              <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
+                                <FileText className="h-8 w-8 text-gray-400" />
+                              </div>
+                            )}
                             <div className="flex-1 space-y-2">
                               <Input
                                 value={item.name}
@@ -341,11 +390,19 @@ const PhotoUpload: React.FC = () => {
                                   placeholder="Select property"
                                 />
                                 
-                                <ItemTypeSelector
-                                  value={item.itemType}
-                                  onChange={(value) => updateItemValue(item.id, 'itemType', value)}
-                                  placeholder="Select item type"
-                                />
+                                <div className="grid grid-cols-2 gap-2">
+                                  <ItemTypeSelector
+                                    value={item.itemType}
+                                    onChange={(value) => updateItemValue(item.id, 'itemType', value)}
+                                    placeholder="Select item type"
+                                  />
+                                  
+                                  <CategorySelector
+                                    value={item.category}
+                                    onChange={(value) => updateItemValue(item.id, 'category', value)}
+                                    placeholder="Select category"
+                                  />
+                                </div>
                                 
                                 {item.itemType === 'Property Upgrades' && (
                                   <PropertyUpgradeSelector
@@ -385,6 +442,11 @@ const PhotoUpload: React.FC = () => {
                               
                               <div className="flex justify-between items-center">
                                 <div className="flex space-x-2">
+                                  {item.isManualEntry && (
+                                    <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
+                                      Manual Entry
+                                    </span>
+                                  )}
                                   {item.aiGenerated && (
                                     <span className="text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded">
                                       AI Generated
