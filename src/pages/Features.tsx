@@ -1,9 +1,8 @@
-
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Camera, Shield, Lock, FileImage, BarChart, Clock, Home, Building, Briefcase, Scale, Truck, Users, TrendingUp, Heart, Handshake, MapPin, Smartphone, Cloud, Share2, FileText, DollarSign, UserCheck, Globe, Calculator, ClipboardList, ShieldCheck, Timer, Archive, Download } from 'lucide-react';
+import { Camera, Shield, Lock, FileImage, BarChart, Clock, Home, Building, Briefcase, Scale, Truck, Users, TrendingUp, Heart, Handshake, MapPin, Smartphone, Cloud, Share2, FileText, DollarSign, UserCheck, Globe, Calculator, ClipboardList, ShieldCheck, Timer, Archive, Download, GraduationCap, Car, Plane, Anchor, Factory, Stethoscope, HardHat, Church, Palette, Hammer } from 'lucide-react';
 
 const Features: React.FC = () => {
   return (
@@ -328,6 +327,219 @@ const Features: React.FC = () => {
         </div>
       </section>
       
+      {/* Industries We Serve - New Section */}
+      <section className="py-16">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center text-brand-blue mb-4">Industries We Serve</h2>
+          <p className="text-center text-lg text-gray-600 max-w-4xl mx-auto mb-12">
+            Asset Docs provides specialized documentation solutions across diverse industries, helping protect valuable assets and streamline operations for professionals and organizations worldwide.
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Educational Institutions */}
+            <div className="bg-white p-6 rounded-lg shadow border">
+              <GraduationCap className="h-8 w-8 text-brand-blue mb-4" />
+              <h3 className="text-xl font-semibold mb-3 text-brand-blue">Educational Institutions</h3>
+              <p className="text-gray-700 mb-4">
+                Schools, universities, and training centers protect valuable educational assets, laboratory equipment, and technology infrastructure.
+              </p>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• Computer labs and technology inventory</li>
+                <li>• Scientific equipment and instruments</li>
+                <li>• Library assets and rare collections</li>
+                <li>• Campus facility documentation</li>
+              </ul>
+            </div>
+
+            {/* Automotive Industry */}
+            <div className="bg-white p-6 rounded-lg shadow border">
+              <Car className="h-8 w-8 text-brand-blue mb-4" />
+              <h3 className="text-xl font-semibold mb-3 text-brand-blue">Automotive Industry</h3>
+              <p className="text-gray-700 mb-4">
+                Dealerships, repair shops, and fleet managers document vehicles, parts inventory, and specialized equipment for insurance and operational efficiency.
+              </p>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• Vehicle inventory and condition reports</li>
+                <li>• Specialized automotive tools and equipment</li>
+                <li>• Parts inventory management</li>
+                <li>• Fleet asset tracking and documentation</li>
+              </ul>
+            </div>
+
+            {/* Aviation & Transportation */}
+            <div className="bg-white p-6 rounded-lg shadow border">
+              <Plane className="h-8 w-8 text-brand-blue mb-4" />
+              <h3 className="text-xl font-semibold mb-3 text-brand-blue">Aviation & Transportation</h3>
+              <p className="text-gray-700 mb-4">
+                Airlines, airports, and transportation companies maintain detailed records of aircraft, ground equipment, and safety-critical assets.
+              </p>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• Aircraft and component documentation</li>
+                <li>• Ground support equipment tracking</li>
+                <li>• Maintenance facility assets</li>
+                <li>• Regulatory compliance documentation</li>
+              </ul>
+            </div>
+
+            {/* Marine & Maritime */}
+            <div className="bg-white p-6 rounded-lg shadow border">
+              <Anchor className="h-8 w-8 text-brand-blue mb-4" />
+              <h3 className="text-xl font-semibold mb-3 text-brand-blue">Marine & Maritime</h3>
+              <p className="text-gray-700 mb-4">
+                Marinas, boat dealers, and shipping companies document vessels, marine equipment, and port facilities for insurance and regulatory purposes.
+              </p>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• Vessel condition and equipment documentation</li>
+                <li>• Marina and dock facility records</li>
+                <li>• Marine equipment and safety gear</li>
+                <li>• Charter and rental fleet management</li>
+              </ul>
+            </div>
+
+            {/* Manufacturing */}
+            <div className="bg-white p-6 rounded-lg shadow border">
+              <Factory className="h-8 w-8 text-brand-blue mb-4" />
+              <h3 className="text-xl font-semibold mb-3 text-brand-blue">Manufacturing</h3>
+              <p className="text-gray-700 mb-4">
+                Manufacturing facilities document production equipment, raw materials, and finished goods for operational efficiency and insurance coverage.
+              </p>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• Production machinery and equipment</li>
+                <li>• Raw materials and inventory tracking</li>
+                <li>• Quality control equipment</li>
+                <li>• Facility infrastructure documentation</li>
+              </ul>
+            </div>
+
+            {/* Healthcare */}
+            <div className="bg-white p-6 rounded-lg shadow border">
+              <Stethoscope className="h-8 w-8 text-brand-blue mb-4" />
+              <h3 className="text-xl font-semibold mb-3 text-brand-blue">Healthcare</h3>
+              <p className="text-gray-700 mb-4">
+                Hospitals, clinics, and medical practices protect expensive medical equipment and maintain compliance with healthcare regulations.
+              </p>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• Medical equipment and devices</li>
+                <li>• Pharmaceutical inventory</li>
+                <li>• Facility and infrastructure assets</li>
+                <li>• Compliance and audit documentation</li>
+              </ul>
+            </div>
+
+            {/* Construction */}
+            <div className="bg-white p-6 rounded-lg shadow border">
+              <HardHat className="h-8 w-8 text-brand-blue mb-4" />
+              <h3 className="text-xl font-semibold mb-3 text-brand-blue">Construction</h3>
+              <p className="text-gray-700 mb-4">
+                Construction companies document heavy equipment, tools, and materials across multiple job sites for theft protection and project management.
+              </p>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• Heavy machinery and equipment</li>
+                <li>• Tools and material inventory</li>
+                <li>• Job site progress documentation</li>
+                <li>• Equipment maintenance records</li>
+              </ul>
+            </div>
+
+            {/* Religious Organizations */}
+            <div className="bg-white p-6 rounded-lg shadow border">
+              <Church className="h-8 w-8 text-brand-blue mb-4" />
+              <h3 className="text-xl font-semibold mb-3 text-brand-blue">Religious Organizations</h3>
+              <p className="text-gray-700 mb-4">
+                Churches, temples, and religious institutions protect sacred artifacts, musical instruments, and facility assets for preservation and insurance.
+              </p>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• Sacred artifacts and religious items</li>
+                <li>• Musical instruments and sound equipment</li>
+                <li>• Facility and building documentation</li>
+                <li>• Historical preservation records</li>
+              </ul>
+            </div>
+
+            {/* Arts & Entertainment */}
+            <div className="bg-white p-6 rounded-lg shadow border">
+              <Palette className="h-8 w-8 text-brand-blue mb-4" />
+              <h3 className="text-xl font-semibold mb-3 text-brand-blue">Arts & Entertainment</h3>
+              <p className="text-gray-700 mb-4">
+                Museums, galleries, theaters, and entertainment venues document valuable collections, equipment, and performance assets.
+              </p>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• Art collections and exhibitions</li>
+                <li>• Performance equipment and instruments</li>
+                <li>• Audio/visual technology</li>
+                <li>• Venue and facility documentation</li>
+              </ul>
+            </div>
+
+            {/* Skilled Trades */}
+            <div className="bg-white p-6 rounded-lg shadow border">
+              <Hammer className="h-8 w-8 text-brand-blue mb-4" />
+              <h3 className="text-xl font-semibold mb-3 text-brand-blue">Skilled Trades</h3>
+              <p className="text-gray-700 mb-4">
+                Electricians, plumbers, HVAC technicians, and other tradespeople protect expensive tools and equipment from theft and damage.
+              </p>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• Specialized tools and equipment</li>
+                <li>• Vehicle and trailer inventory</li>
+                <li>• Material and supply documentation</li>
+                <li>• Job site equipment tracking</li>
+              </ul>
+            </div>
+
+            {/* Government & Public Sector */}
+            <div className="bg-white p-6 rounded-lg shadow border">
+              <Building className="h-8 w-8 text-brand-blue mb-4" />
+              <h3 className="text-xl font-semibold mb-3 text-brand-blue">Government & Public Sector</h3>
+              <p className="text-gray-700 mb-4">
+                Government agencies, municipalities, and public organizations maintain accountability and transparency through comprehensive asset documentation.
+              </p>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• Public facility and infrastructure</li>
+                <li>• Vehicle fleet management</li>
+                <li>• Equipment and technology assets</li>
+                <li>• Compliance and audit requirements</li>
+              </ul>
+            </div>
+
+            {/* Non-Profit Organizations */}
+            <div className="bg-white p-6 rounded-lg shadow border">
+              <Heart className="h-8 w-8 text-brand-blue mb-4" />
+              <h3 className="text-xl font-semibold mb-3 text-brand-blue">Non-Profit Organizations</h3>
+              <p className="text-gray-700 mb-4">
+                Charities, foundations, and community organizations document donated assets and operational equipment for donor transparency and grant compliance.
+              </p>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• Donated equipment and supplies</li>
+                <li>• Facility and program assets</li>
+                <li>• Grant compliance documentation</li>
+                <li>• Volunteer and community resources</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-12 text-center">
+            <h3 className="text-2xl font-semibold text-brand-blue mb-4">Why Choose Asset Docs?</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+              <div className="text-center">
+                <Shield className="h-12 w-12 text-brand-blue mx-auto mb-3" />
+                <h4 className="font-semibold mb-2">Comprehensive Protection</h4>
+                <p className="text-sm text-gray-600">Complete documentation for insurance claims, legal proceedings, and regulatory compliance.</p>
+              </div>
+              <div className="text-center">
+                <Timer className="h-12 w-12 text-brand-blue mx-auto mb-3" />
+                <h4 className="font-semibold mb-2">Time & Cost Savings</h4>
+                <p className="text-sm text-gray-600">Streamlined documentation process reduces administrative burden and operational costs.</p>
+              </div>
+              <div className="text-center">
+                <UserCheck className="h-12 w-12 text-brand-blue mx-auto mb-3" />
+                <h4 className="font-semibold mb-2">Professional Standards</h4>
+                <p className="text-sm text-gray-600">Industry-specific documentation that meets professional and regulatory requirements.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
       {/* CTA Section */}
       <section className="py-16 bg-brand-green text-white">
         <div className="container mx-auto px-4 text-center">
@@ -352,3 +564,5 @@ const Features: React.FC = () => {
 };
 
 export default Features;
+
+</edits_to_apply>
