@@ -1,3 +1,4 @@
+
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -564,5 +565,3 @@ const Features: React.FC = () => {
 };
 
 export default Features;
-
-</edits_to_apply>
