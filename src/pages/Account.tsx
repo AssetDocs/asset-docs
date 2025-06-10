@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import AssetValuesSection from '@/components/AssetValuesSection';
+import ShareButton from '@/components/ShareButton';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -15,9 +16,12 @@ const Account: React.FC = () => {
       
       <div className="flex-grow py-8 px-4 bg-gray-50">
         <div className="max-w-6xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-brand-blue mb-2">Account Dashboard</h1>
-            <p className="text-gray-600">Manage your properties and asset documentation</p>
+          <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-brand-blue mb-2">Account Dashboard</h1>
+              <p className="text-gray-600">Manage your properties and asset documentation</p>
+            </div>
+            <ShareButton className="bg-brand-blue hover:bg-brand-lightBlue" />
           </div>
 
           <Tabs defaultValue="overview" className="space-y-6">
