@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -7,9 +8,14 @@ import ShareButton from '@/components/ShareButton';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Home, Camera, FileText, Shield, Settings, Plus, Eye, Video, FileImage, BarChart3 } from 'lucide-react';
+import { Home, Camera, FileText, Shield, Settings, Plus, Eye, Video, FileImage, BarChart3, Building } from 'lucide-react';
 
 const Account: React.FC = () => {
+  const handleCreateFloorPlan = () => {
+    console.log('Create Floor Plan clicked - will connect to CubiCasa');
+    // TODO: Integrate with CubiCasa software
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
@@ -194,6 +200,13 @@ const Account: React.FC = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
+                      <Button 
+                        onClick={handleCreateFloorPlan}
+                        className="w-full bg-brand-orange hover:bg-brand-orange/90"
+                      >
+                        <Building className="h-4 w-4 mr-2" />
+                        Create Floor Plan
+                      </Button>
                       <Button asChild className="w-full bg-brand-blue hover:bg-brand-lightBlue">
                         <Link to="/account/floorplans/upload">
                           <Plus className="h-4 w-4 mr-2" />
