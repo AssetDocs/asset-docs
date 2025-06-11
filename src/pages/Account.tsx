@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -8,12 +7,20 @@ import ShareButton from '@/components/ShareButton';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Home, Camera, FileText, Shield, Settings, Plus, Eye, Video, FileImage, BarChart3, Building } from 'lucide-react';
+import { Home, Camera, FileText, Shield, Settings, Plus, Eye, Video, FileImage, BarChart3, Building, QrCode } from 'lucide-react';
+import QRCodeGenerator from '@/components/QRCodeGenerator';
 
 const Account: React.FC = () => {
+  const [showQRCode, setShowQRCode] = useState(false);
+
   const handleCreateFloorPlan = () => {
     console.log('Create Floor Plan clicked - will connect to CubiCasa');
     // TODO: Integrate with CubiCasa software
+  };
+
+  const generatePropertyQR = () => {
+    setShowQRCode(true);
+    console.log('Generating QR code for property access');
   };
 
   return (
@@ -27,8 +34,28 @@ const Account: React.FC = () => {
               <h1 className="text-3xl font-bold text-brand-blue mb-2">Account Dashboard</h1>
               <p className="text-gray-600">Manage your properties and asset documentation</p>
             </div>
-            <ShareButton className="bg-brand-blue hover:bg-brand-lightBlue" />
+            <div className="flex gap-2">
+              <Button 
+                onClick={generatePropertyQR}
+                variant="outline"
+                className="border-brand-blue text-brand-blue"
+              >
+                <QrCode className="h-4 w-4 mr-2" />
+                Generate QR Code
+              </Button>
+              <ShareButton className="bg-brand-blue hover:bg-brand-lightBlue" />
+            </div>
           </div>
+
+          {showQRCode && (
+            <div className="mb-6">
+              <QRCodeGenerator 
+                url={`${window.location.origin}/account/properties/shared`}
+                title="My Property Portfolio"
+                description="Quick access to all property documentation and asset information"
+              />
+            </div>
+          )}
 
           <Tabs defaultValue="overview" className="space-y-6">
             <TabsList className="grid w-full grid-cols-2">
@@ -299,6 +326,50 @@ const Account: React.FC = () => {
                   </CardContent>
                 </Card>
               </div>
+
+              {/* New QR Code Integration Section */}
+              <Card className="bg-gradient-to-r from-blue-50 to-orange-50 border-brand-blue">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <QrCode className="h-6 w-6 mr-2 text-brand-blue" />
+                    Quick Access & Sharing
+                  </CardTitle>
+                  <CardDescription>
+                    Generate QR codes for instant access to your property documentation
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="text-center p-4 bg-white rounded-lg border">
+                      <h4 className="font-semibold text-brand-blue mb-2">Property Portfolio</h4>
+                      <p className="text-sm text-gray-600 mb-3">
+                        Share all properties with insurance agents or family
+                      </p>
+                      <Button size="sm" className="bg-brand-blue hover:bg-brand-lightBlue">
+                        Generate QR
+                      </Button>
+                    </div>
+                    <div className="text-center p-4 bg-white rounded-lg border">
+                      <h4 className="font-semibold text-brand-blue mb-2">Emergency Access</h4>
+                      <p className="text-sm text-gray-600 mb-3">
+                        Quick access during emergencies or claims
+                      </p>
+                      <Button size="sm" className="bg-brand-orange hover:bg-brand-orange/90">
+                        Create Emergency QR
+                      </Button>
+                    </div>
+                    <div className="text-center p-4 bg-white rounded-lg border">
+                      <h4 className="font-semibold text-brand-blue mb-2">Professional Services</h4>
+                      <p className="text-sm text-gray-600 mb-3">
+                        For appraisers, contractors, and inspectors
+                      </p>
+                      <Button size="sm" variant="outline">
+                        Professional QR
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="asset-values">
