@@ -43,6 +43,17 @@ const QA: React.FC = () => {
               </AccordionItem>
               
               <AccordionItem value="item-3">
+                <AccordionTrigger className="text-lg font-medium">Can I use AssetDocs for inventory management or business operations?</AccordionTrigger>
+                <AccordionContent>
+                  No, AssetDocs is specifically designed for property documentation and insurance protection, not 
+                  inventory management or business operations. Our platform focuses on helping property owners 
+                  create comprehensive documentation of their personal assets for insurance claims, estate planning, 
+                  and financial records. For business inventory management, we recommend using dedicated inventory 
+                  management software that is designed for tracking business assets and operations.
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-4">
                 <AccordionTrigger className="text-lg font-medium">Can I use AssetDocs for insurance claims?</AccordionTrigger>
                 <AccordionContent>
                   Yes! AssetDocs is specifically designed to help with insurance claims. Our third-party verification 
@@ -52,7 +63,7 @@ const QA: React.FC = () => {
                 </AccordionContent>
               </AccordionItem>
               
-              <AccordionItem value="item-4">
+              <AccordionItem value="item-5">
                 <AccordionTrigger className="text-lg font-medium">How does receipt integration work?</AccordionTrigger>
                 <AccordionContent>
                   When you upload photos of your possessions, you can also upload associated receipts. Our system 
@@ -62,7 +73,7 @@ const QA: React.FC = () => {
                 </AccordionContent>
               </AccordionItem>
               
-              <AccordionItem value="item-5">
+              <AccordionItem value="item-6">
                 <AccordionTrigger className="text-lg font-medium">What types of assets can I document?</AccordionTrigger>
                 <AccordionContent>
                   AssetDocs supports documentation of virtually any physical asset, including electronics, furniture, 
@@ -72,7 +83,7 @@ const QA: React.FC = () => {
                 </AccordionContent>
               </AccordionItem>
               
-              <AccordionItem value="item-6">
+              <AccordionItem value="item-7">
                 <AccordionTrigger className="text-lg font-medium">How do I get started with AssetDocs?</AccordionTrigger>
                 <AccordionContent>
                   Getting started is easy! Sign up for a free 14-day trial (no credit card required) and download our 
@@ -82,7 +93,7 @@ const QA: React.FC = () => {
                 </AccordionContent>
               </AccordionItem>
               
-              <AccordionItem value="item-7">
+              <AccordionItem value="item-8">
                 <AccordionTrigger className="text-lg font-medium">Can I share my documentation with others?</AccordionTrigger>
                 <AccordionContent>
                   Yes, AssetDocs allows you to securely share selected documentation with specified parties, such as 

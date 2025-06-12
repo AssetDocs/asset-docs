@@ -7,7 +7,6 @@ import AIValuationSection from '@/components/AIValuationSection';
 import FeaturesSection from '@/components/FeaturesSection';
 import HowItWorksSection from '@/components/HowItWorksSection';
 import CTASection from '@/components/CTASection';
-import DisclaimerSection from '@/components/DisclaimerSection';
 
 const Index: React.FC = () => {
   return (
@@ -18,7 +17,6 @@ const Index: React.FC = () => {
       <FeaturesSection />
       <HowItWorksSection />
       <CTASection />
-      <DisclaimerSection />
       <Footer />
     </div>
   );
