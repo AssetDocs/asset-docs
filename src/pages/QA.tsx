@@ -54,6 +54,26 @@ const QA: React.FC = () => {
               </AccordionItem>
               
               <AccordionItem value="item-4">
+                <AccordionTrigger className="text-lg font-medium">What pricing plans are available?</AccordionTrigger>
+                <AccordionContent>
+                  AssetDocs offers flexible pricing plans to meet different needs. We provide a free 14-day trial 
+                  with no credit card required. Our plans include basic documentation features for individuals, 
+                  premium plans with advanced AI valuation and 3D scanning, and professional services for high-value 
+                  properties. All plans include secure cloud storage and insurance-ready documentation.
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-5">
+                <AccordionTrigger className="text-lg font-medium">How accurate are the AI valuations?</AccordionTrigger>
+                <AccordionContent>
+                  Our AI valuation system provides estimates based on current market data and comparable sales. 
+                  While highly accurate for most common items, valuations should be considered estimates for 
+                  insurance and planning purposes. For high-value items like fine art, jewelry, or antiques, 
+                  we recommend professional appraisals which can be coordinated through our platform.
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-6">
                 <AccordionTrigger className="text-lg font-medium">Can I use AssetDocs for insurance claims?</AccordionTrigger>
                 <AccordionContent>
                   Yes! AssetDocs is specifically designed to help with insurance claims. Our third-party verification 
@@ -63,7 +83,17 @@ const QA: React.FC = () => {
                 </AccordionContent>
               </AccordionItem>
               
-              <AccordionItem value="item-5">
+              <AccordionItem value="item-7">
+                <AccordionTrigger className="text-lg font-medium">Is my data backed up and what happens if I cancel?</AccordionTrigger>
+                <AccordionContent>
+                  Yes, all your data is automatically backed up across multiple secure data centers with 99.9% uptime. 
+                  If you cancel your subscription, you'll have 90 days to download all your documentation and data. 
+                  We also offer data export in multiple formats including PDF reports, image archives, and structured 
+                  data files that you can use with other systems.
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-8">
                 <AccordionTrigger className="text-lg font-medium">How does receipt integration work?</AccordionTrigger>
                 <AccordionContent>
                   When you upload photos of your possessions, you can also upload associated receipts. Our system 
@@ -73,7 +103,7 @@ const QA: React.FC = () => {
                 </AccordionContent>
               </AccordionItem>
               
-              <AccordionItem value="item-6">
+              <AccordionItem value="item-9">
                 <AccordionTrigger className="text-lg font-medium">What types of assets can I document?</AccordionTrigger>
                 <AccordionContent>
                   AssetDocs supports documentation of virtually any physical asset, including electronics, furniture, 
@@ -83,7 +113,17 @@ const QA: React.FC = () => {
                 </AccordionContent>
               </AccordionItem>
               
-              <AccordionItem value="item-7">
+              <AccordionItem value="item-10">
+                <AccordionTrigger className="text-lg font-medium">Do you offer mobile apps?</AccordionTrigger>
+                <AccordionContent>
+                  Yes! AssetDocs offers mobile apps for both iOS and Android devices. The mobile app includes all 
+                  core features like photo capture, AI identification, receipt scanning, and 3D room scanning. 
+                  You can document items on-the-go and sync everything automatically with your account. The app 
+                  works offline and syncs when you're connected to the internet.
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-11">
                 <AccordionTrigger className="text-lg font-medium">How do I get started with AssetDocs?</AccordionTrigger>
                 <AccordionContent>
                   Getting started is easy! Sign up for a free 14-day trial (no credit card required) and download our 
@@ -93,13 +133,23 @@ const QA: React.FC = () => {
                 </AccordionContent>
               </AccordionItem>
               
-              <AccordionItem value="item-8">
+              <AccordionItem value="item-12">
                 <AccordionTrigger className="text-lg font-medium">Can I share my documentation with others?</AccordionTrigger>
                 <AccordionContent>
                   Yes, AssetDocs allows you to securely share selected documentation with specified parties, such as 
                   insurance agents, estate planners, or family members. You can control exactly what information is 
                   shared and for how long, and you can revoke access at any time. This feature is particularly useful 
                   when filing insurance claims or during estate planning.
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-13">
+                <AccordionTrigger className="text-lg font-medium">What support options are available?</AccordionTrigger>
+                <AccordionContent>
+                  We offer comprehensive support including 24/7 chat support, email assistance, and phone support 
+                  for premium subscribers. Our support team includes insurance documentation specialists who can 
+                  help with claims preparation. We also provide extensive documentation, video tutorials, and 
+                  webinars to help you get the most out of AssetDocs.
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
