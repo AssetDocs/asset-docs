@@ -138,7 +138,7 @@ const AccountActions: React.FC<AccountActionsProps> = ({ onCreateFloorPlan }) =>
             Document Storage
           </CardTitle>
           <CardDescription>
-            Store PDFs, receipts, warranties, and other important documents
+            Store PDFs, receipts, warranties, licenses, titles, and other important documents
           </CardDescription>
         </CardHeader>
         <CardContent>
