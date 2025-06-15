@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
+import LanguageSelector from '@/components/LanguageSelector';
 
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -15,7 +16,7 @@ const Navbar: React.FC = () => {
             <img 
               src="/lovable-uploads/b60286e3-ddd8-48f4-9a60-56cfa470be11.png" 
               alt="Asset Docs Logo" 
-              className="h-20 mr-2" // Increased from h-16 to h-20 for larger display
+              className="h-20 mr-2"
             />
           </Link>
           
@@ -30,13 +31,15 @@ const Navbar: React.FC = () => {
             <Link to="/login" className="text-gray-700 hover:text-brand-blue transition-colors">
               Login
             </Link>
+            <LanguageSelector />
             <Button asChild className="bg-brand-orange hover:bg-brand-orange/90">
               <Link to="/signup">Start Free Trial</Link>
             </Button>
           </div>
           
           {/* Mobile menu button */}
-          <div className="md:hidden">
+          <div className="md:hidden flex items-center gap-2">
+            <LanguageSelector />
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="p-2 focus:outline-none"
