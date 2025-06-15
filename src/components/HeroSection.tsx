@@ -13,8 +13,11 @@ const HeroSection: React.FC = () => {
             <h1 className="text-4xl md:text-5xl font-bold mb-6 animate-fade-in">
               Your Digital Safety Net for Asset Protection
             </h1>
-            <p className="text-xl mb-8 animate-slide-up opacity-90">
+            <p className="text-xl mb-4 animate-slide-up opacity-90">
               Secure documentation of your property and possessions with professional-grade tools and third-party verification.
+            </p>
+            <p className="text-lg mb-8 animate-slide-up opacity-80">
+              Join thousands of property owners who trust AssetDocs to protect their valuable assets and provide peace of mind.
             </p>
             
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 animate-slide-up">
