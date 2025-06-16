@@ -17,7 +17,7 @@ const HeroSection: React.FC = () => {
               Secure documentation of your property and possessions with professional-grade tools and third-party verification.
             </p>
             <p className="text-lg mb-8 animate-slide-up opacity-80 font-bold">
-              Join thousands of property owners who trust AssetDocs to protect their valuable assets and provide peace of mind.
+              Join thousands of property owners who trust Asset Docs to protect their valuable assets and provide peace of mind.
             </p>
             
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 animate-slide-up">

@@ -15,7 +15,7 @@ const FeedbackSection: React.FC = () => {
           </h2>
           <p className="text-lg text-muted-foreground mb-8">
             Your thoughts and experiences matter to us. Whether you have concerns, suggestions, 
-            or simply want to share your experience with AssetDocs, we'd love to hear from you. 
+            or simply want to share your experience with Asset Docs, we'd love to hear from you. 
             Your feedback helps us improve our service and better serve our community.
           </p>
           <Button asChild size="lg" className="bg-brand-blue hover:bg-brand-lightBlue">
