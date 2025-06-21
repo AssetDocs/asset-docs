@@ -4,6 +4,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { Video } from 'lucide-react';
 
 const Welcome: React.FC = () => {
   return (
@@ -32,6 +33,13 @@ const Welcome: React.FC = () => {
               
               <Button asChild size="lg" variant="outline" className="border-brand-blue text-brand-blue">
                 <Link to="/features">Learn More About Features</Link>
+              </Button>
+              
+              <Button asChild size="lg" variant="outline" className="border-green-500 text-green-500">
+                <Link to="/video-help">
+                  <Video className="h-4 w-4 mr-2" />
+                  Watch Video Tutorials
+                </Link>
               </Button>
             </div>
           </div>

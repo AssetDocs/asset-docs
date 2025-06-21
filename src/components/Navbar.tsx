@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Video } from 'lucide-react';
 import LanguageSelector from '@/components/LanguageSelector';
 
 const Navbar: React.FC = () => {
@@ -27,6 +27,13 @@ const Navbar: React.FC = () => {
             </Link>
             <Link to="/pricing" className="text-gray-700 hover:text-brand-blue transition-colors">
               Pricing
+            </Link>
+            <Link 
+              to="/video-help" 
+              className="text-gray-700 hover:text-brand-blue transition-colors flex items-center"
+            >
+              <Video className="h-4 w-4 mr-1" />
+              Video Help
             </Link>
             <Link to="/login" className="text-gray-700 hover:text-brand-blue transition-colors">
               Login
@@ -66,6 +73,14 @@ const Navbar: React.FC = () => {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Pricing
+              </Link>
+              <Link 
+                to="/video-help" 
+                className="text-gray-700 hover:text-brand-blue transition-colors py-2 flex items-center"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <Video className="h-4 w-4 mr-1" />
+                Video Help
               </Link>
               <Link 
                 to="/login" 

@@ -26,6 +26,7 @@ import Contact from "./pages/Contact";
 import Testimonials from "./pages/Testimonials";
 import Resources from "./pages/Resources";
 import Feedback from "./pages/Feedback";
+import VideoHelp from "./pages/VideoHelp";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,7 @@ const App = () => (
           <Route path="/testimonials" element={<Testimonials />} />
           <Route path="/resources" element={<Resources />} />
           <Route path="/feedback" element={<Feedback />} />
+          <Route path="/video-help" element={<VideoHelp />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

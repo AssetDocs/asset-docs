@@ -3,7 +3,8 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import ShareButton from '@/components/ShareButton';
 import QRCodeGenerator from '@/components/QRCodeGenerator';
-import { QrCode } from 'lucide-react';
+import { QrCode, Video } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface AccountHeaderProps {
   showQRCode: boolean;
@@ -19,6 +20,12 @@ const AccountHeader: React.FC<AccountHeaderProps> = ({ showQRCode, onGenerateQR 
           <p className="text-gray-600">Manage your properties and asset documentation</p>
         </div>
         <div className="flex gap-2">
+          <Button asChild variant="outline" className="border-green-500 text-green-500">
+            <Link to="/video-help">
+              <Video className="h-4 w-4 mr-2" />
+              Video Help
+            </Link>
+          </Button>
           <Button 
             onClick={onGenerateQR}
             variant="outline"
