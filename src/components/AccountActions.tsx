@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -198,12 +197,7 @@ const AccountActions: React.FC<AccountActionsProps> = ({ onCreateFloorPlan }) =>
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button 
-            asChild 
-            variant="outline" 
-            className="w-full"
-            onClick={() => console.log('Navigating to account settings')}
-          >
+          <Button asChild variant="outline" className="w-full">
             <Link to="/account/settings">
               <Settings className="h-4 w-4 mr-2" />
               Manage Settings
