@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import useScrollToTop from "@/hooks/useScrollToTop";
 
 import Index from "./pages/Index";
 import Features from "./pages/Features";
@@ -30,12 +31,18 @@ import VideoHelp from "./pages/VideoHelp";
 
 const queryClient = new QueryClient();
 
+const ScrollToTopWrapper = () => {
+  useScrollToTop();
+  return null;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ScrollToTopWrapper />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/features" element={<Features />} />
