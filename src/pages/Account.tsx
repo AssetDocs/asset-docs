@@ -7,6 +7,7 @@ import AccountHeader from '@/components/AccountHeader';
 import AccountStats from '@/components/AccountStats';
 import AccountActions from '@/components/AccountActions';
 import QRCodeSection from '@/components/QRCodeSection';
+import FloorPlansSection from '@/components/FloorPlansSection';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Account: React.FC = () => {
@@ -34,8 +35,9 @@ const Account: React.FC = () => {
           />
 
           <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="floor-plans">Floor Plans</TabsTrigger>
               <TabsTrigger value="asset-values">Asset Values</TabsTrigger>
             </TabsList>
 
@@ -43,6 +45,10 @@ const Account: React.FC = () => {
               <AccountStats />
               <AccountActions onCreateFloorPlan={handleCreateFloorPlan} />
               <QRCodeSection />
+            </TabsContent>
+
+            <TabsContent value="floor-plans">
+              <FloorPlansSection />
             </TabsContent>
 
             <TabsContent value="asset-values">
