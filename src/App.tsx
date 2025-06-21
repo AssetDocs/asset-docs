@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -28,6 +27,7 @@ import Testimonials from "./pages/Testimonials";
 import Resources from "./pages/Resources";
 import Feedback from "./pages/Feedback";
 import VideoHelp from "./pages/VideoHelp";
+import AccountSettings from "./pages/AccountSettings";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +58,7 @@ const App = () => (
           <Route path="/account/videos/upload" element={<VideoUpload />} />
           <Route path="/account/floorplans/upload" element={<FloorPlanUpload />} />
           <Route path="/account/insurance/new" element={<InsuranceForm />} />
+          <Route path="/account/settings" element={<AccountSettings />} />
           <Route path="/schedule-professional" element={<ScheduleProfessional />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
