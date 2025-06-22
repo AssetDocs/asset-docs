@@ -9,7 +9,33 @@ interface Property {
   name: string;
   address: string;
   type: string;
+  squareFootage: number;
+  yearBuilt: number;
   estimatedValue: number;
+  lastUpdated: string;
+  photos: Array<{
+    id: number;
+    name: string;
+    url: string;
+    uploadDate: string;
+  }>;
+  videos: Array<{
+    id: number;
+    name: string;
+    duration: string;
+    uploadDate: string;
+  }>;
+  documents: Array<{
+    id: number;
+    name: string;
+    type: string;
+    uploadDate: string;
+  }>;
+  floorPlans: Array<{
+    id: number;
+    name: string;
+    uploadDate: string;
+  }>;
 }
 
 interface PropertyListProps {
