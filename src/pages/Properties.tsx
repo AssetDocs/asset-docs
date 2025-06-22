@@ -1,26 +1,15 @@
+
 import React, { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Home, 
-  Camera, 
-  Video, 
-  FileText, 
-  FileImage, 
-  Plus, 
-  Edit,
-  MapPin,
-  DollarSign,
-  Calendar,
-  Eye,
-  Download,
-  Images
-} from 'lucide-react';
+import { Plus, Images } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import PropertyList from '@/components/PropertyList';
+import PropertyHeader from '@/components/PropertyHeader';
+import PropertySummary from '@/components/PropertySummary';
+import PropertyTabs from '@/components/PropertyTabs';
 
 // Mock data for demonstration
 const mockProperties = [
@@ -81,23 +70,6 @@ const Properties: React.FC = () => {
   const navigate = useNavigate();
   const [selectedProperty, setSelectedProperty] = useState(mockProperties[0]);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
   const handleViewPhotoGallery = () => {
     navigate('/account/photos');
   };
@@ -131,231 +103,27 @@ const Properties: React.FC = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Property List */}
-            <div className="lg:col-span-1 space-y-4">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">Properties ({mockProperties.length})</h2>
-              {mockProperties.map((property) => (
-                <Card 
-                  key={property.id}
-                  className={`cursor-pointer transition-all hover:shadow-md ${
-                    selectedProperty.id === property.id ? 'ring-2 ring-brand-blue' : ''
-                  }`}
-                  onClick={() => setSelectedProperty(property)}
-                >
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg flex items-center">
-                      <Home className="h-5 w-5 mr-2 text-brand-blue" />
-                      {property.name}
-                    </CardTitle>
-                    <CardDescription className="flex items-start">
-                      <MapPin className="h-4 w-4 mr-1 mt-0.5 flex-shrink-0" />
-                      {property.address}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="flex justify-between items-center text-sm text-gray-600">
-                      <span>{property.type}</span>
-                      <Badge variant="secondary">{formatCurrency(property.estimatedValue)}</Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="lg:col-span-1">
+              <PropertyList
+                properties={mockProperties}
+                selectedProperty={selectedProperty}
+                onPropertySelect={setSelectedProperty}
+              />
             </div>
 
             {/* Property Details */}
             <div className="lg:col-span-2">
               <Card>
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-2xl text-brand-blue">{selectedProperty.name}</CardTitle>
-                      <CardDescription className="flex items-center mt-2">
-                        <MapPin className="h-4 w-4 mr-1" />
-                        {selectedProperty.address}
-                      </CardDescription>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit Property
-                    </Button>
-                  </div>
-                </CardHeader>
+                <PropertyHeader property={selectedProperty} />
                 <CardContent>
-                  {/* Property Summary */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-brand-blue">{selectedProperty.squareFootage.toLocaleString()}</div>
-                      <div className="text-sm text-gray-600">Sq Ft</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-brand-blue">{selectedProperty.yearBuilt}</div>
-                      <div className="text-sm text-gray-600">Year Built</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-brand-blue">{formatCurrency(selectedProperty.estimatedValue)}</div>
-                      <div className="text-sm text-gray-600">Est. Value</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-brand-blue">{formatDate(selectedProperty.lastUpdated)}</div>
-                      <div className="text-sm text-gray-600">Last Updated</div>
-                    </div>
-                  </div>
-
-                  {/* Content Tabs */}
-                  <Tabs defaultValue="photos" className="w-full">
-                    <TabsList className="grid w-full grid-cols-4">
-                      <TabsTrigger value="photos" className="flex items-center">
-                        <Camera className="h-4 w-4 mr-1" />
-                        Photos ({selectedProperty.photos.length})
-                      </TabsTrigger>
-                      <TabsTrigger value="videos" className="flex items-center">
-                        <Video className="h-4 w-4 mr-1" />
-                        Videos ({selectedProperty.videos.length})
-                      </TabsTrigger>
-                      <TabsTrigger value="documents" className="flex items-center">
-                        <FileText className="h-4 w-4 mr-1" />
-                        Documents ({selectedProperty.documents.length})
-                      </TabsTrigger>
-                      <TabsTrigger value="floorplans" className="flex items-center">
-                        <FileImage className="h-4 w-4 mr-1" />
-                        Floor Plans ({selectedProperty.floorPlans.length})
-                      </TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="photos" className="mt-6">
-                      <div className="mb-4 flex justify-between items-center">
-                        <p className="text-sm text-gray-600">Preview of recent photos for this property</p>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={handleViewPhotoGallery}
-                        >
-                          <Images className="h-4 w-4 mr-2" />
-                          View All Photos
-                        </Button>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {selectedProperty.photos.map((photo) => (
-                          <Card key={photo.id} className="overflow-hidden">
-                            <div className="aspect-video bg-gray-200 flex items-center justify-center">
-                              <Camera className="h-8 w-8 text-gray-400" />
-                            </div>
-                            <CardContent className="p-3">
-                              <h4 className="font-medium text-sm">{photo.name}</h4>
-                              <p className="text-xs text-gray-500 mt-1">
-                                Uploaded {formatDate(photo.uploadDate)}
-                              </p>
-                              <div className="flex gap-2 mt-2">
-                                <Button size="sm" variant="outline" className="flex-1">
-                                  <Eye className="h-3 w-3 mr-1" />
-                                  View
-                                </Button>
-                                <Button size="sm" variant="outline" className="flex-1">
-                                  <Download className="h-3 w-3 mr-1" />
-                                  Download
-                                </Button>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="videos" className="mt-6">
-                      <div className="space-y-4">
-                        {selectedProperty.videos.map((video) => (
-                          <Card key={video.id}>
-                            <CardContent className="p-4">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center">
-                                  <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center mr-3">
-                                    <Video className="h-6 w-6 text-gray-400" />
-                                  </div>
-                                  <div>
-                                    <h4 className="font-medium">{video.name}</h4>
-                                    <p className="text-sm text-gray-500">
-                                      Duration: {video.duration} • Uploaded {formatDate(video.uploadDate)}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="flex gap-2">
-                                  <Button size="sm" variant="outline">
-                                    <Eye className="h-4 w-4 mr-1" />
-                                    Watch
-                                  </Button>
-                                  <Button size="sm" variant="outline">
-                                    <Download className="h-4 w-4 mr-1" />
-                                    Download
-                                  </Button>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="documents" className="mt-6">
-                      <div className="space-y-4">
-                        {selectedProperty.documents.map((document) => (
-                          <Card key={document.id}>
-                            <CardContent className="p-4">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center">
-                                  <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center mr-3">
-                                    <FileText className="h-6 w-6 text-gray-400" />
-                                  </div>
-                                  <div>
-                                    <h4 className="font-medium">{document.name}</h4>
-                                    <p className="text-sm text-gray-500">
-                                      {document.type} • Uploaded {formatDate(document.uploadDate)}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="flex gap-2">
-                                  <Button size="sm" variant="outline">
-                                    <Eye className="h-4 w-4 mr-1" />
-                                    View
-                                  </Button>
-                                  <Button size="sm" variant="outline">
-                                    <Download className="h-4 w-4 mr-1" />
-                                    Download
-                                  </Button>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="floorplans" className="mt-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {selectedProperty.floorPlans.map((floorPlan) => (
-                          <Card key={floorPlan.id} className="overflow-hidden">
-                            <div className="aspect-video bg-gray-200 flex items-center justify-center">
-                              <FileImage className="h-8 w-8 text-gray-400" />
-                            </div>
-                            <CardContent className="p-3">
-                              <h4 className="font-medium text-sm">{floorPlan.name}</h4>
-                              <p className="text-xs text-gray-500 mt-1">
-                                Uploaded {formatDate(floorPlan.uploadDate)}
-                              </p>
-                              <div className="flex gap-2 mt-2">
-                                <Button size="sm" variant="outline" className="flex-1">
-                                  <Eye className="h-3 w-3 mr-1" />
-                                  View
-                                </Button>
-                                <Button size="sm" variant="outline" className="flex-1">
-                                  <Download className="h-3 w-3 mr-1" />
-                                  Download
-                                </Button>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    </TabsContent>
-                  </Tabs>
+                  <PropertySummary property={selectedProperty} />
+                  <PropertyTabs
+                    photos={selectedProperty.photos}
+                    videos={selectedProperty.videos}
+                    documents={selectedProperty.documents}
+                    floorPlans={selectedProperty.floorPlans}
+                    onViewPhotoGallery={handleViewPhotoGallery}
+                  />
                 </CardContent>
               </Card>
             </div>
