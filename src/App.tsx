@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,6 +16,7 @@ import Terms from "./pages/Terms";
 import QA from "./pages/QA";
 import Welcome from "./pages/Welcome";
 import Account from "./pages/Account";
+import Properties from "./pages/Properties";
 import PropertyForm from "./pages/PropertyForm";
 import PhotoUpload from "./pages/PhotoUpload";
 import VideoUpload from "./pages/VideoUpload";
@@ -53,6 +55,7 @@ const App = () => (
           <Route path="/qa" element={<QA />} />
           <Route path="/welcome" element={<Welcome />} />
           <Route path="/account" element={<Account />} />
+          <Route path="/account/properties" element={<Properties />} />
           <Route path="/account/properties/new" element={<PropertyForm />} />
           <Route path="/account/photos/upload" element={<PhotoUpload />} />
           <Route path="/account/videos/upload" element={<VideoUpload />} />
