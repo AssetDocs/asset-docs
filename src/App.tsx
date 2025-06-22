@@ -30,6 +30,7 @@ import Resources from "./pages/Resources";
 import Feedback from "./pages/Feedback";
 import VideoHelp from "./pages/VideoHelp";
 import AccountSettings from "./pages/AccountSettings";
+import PhotoGallery from "./pages/PhotoGallery";
 
 const queryClient = new QueryClient();
 
@@ -57,6 +58,7 @@ const App = () => (
           <Route path="/account" element={<Account />} />
           <Route path="/account/properties" element={<Properties />} />
           <Route path="/account/properties/new" element={<PropertyForm />} />
+          <Route path="/account/photos" element={<PhotoGallery />} />
           <Route path="/account/photos/upload" element={<PhotoUpload />} />
           <Route path="/account/videos/upload" element={<VideoUpload />} />
           <Route path="/account/floorplans/upload" element={<FloorPlanUpload />} />

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -18,8 +17,10 @@ import {
   DollarSign,
   Calendar,
   Eye,
-  Download
+  Download,
+  Images
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 // Mock data for demonstration
 const mockProperties = [
@@ -77,6 +78,7 @@ const mockProperties = [
 ];
 
 const Properties: React.FC = () => {
+  const navigate = useNavigate();
   const [selectedProperty, setSelectedProperty] = useState(mockProperties[0]);
 
   const formatCurrency = (amount: number) => {
@@ -96,6 +98,10 @@ const Properties: React.FC = () => {
     });
   };
 
+  const handleViewPhotoGallery = () => {
+    navigate('/account/photos');
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
@@ -107,10 +113,20 @@ const Properties: React.FC = () => {
               <h1 className="text-3xl font-bold text-brand-blue mb-2">My Properties</h1>
               <p className="text-gray-600">View and manage all your property documentation</p>
             </div>
-            <Button className="bg-brand-blue hover:bg-brand-lightBlue">
-              <Plus className="h-4 w-4 mr-2" />
-              Add New Property
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline"
+                onClick={handleViewPhotoGallery}
+                className="flex items-center gap-2"
+              >
+                <Images className="h-4 w-4" />
+                View Photo Gallery
+              </Button>
+              <Button className="bg-brand-blue hover:bg-brand-lightBlue">
+                <Plus className="h-4 w-4 mr-2" />
+                Add New Property
+              </Button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -206,6 +222,17 @@ const Properties: React.FC = () => {
                     </TabsList>
 
                     <TabsContent value="photos" className="mt-6">
+                      <div className="mb-4 flex justify-between items-center">
+                        <p className="text-sm text-gray-600">Preview of recent photos for this property</p>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={handleViewPhotoGallery}
+                        >
+                          <Images className="h-4 w-4 mr-2" />
+                          View All Photos
+                        </Button>
+                      </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {selectedProperty.photos.map((photo) => (
                           <Card key={photo.id} className="overflow-hidden">
