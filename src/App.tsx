@@ -26,6 +26,7 @@ import ScheduleProfessional from "./pages/ScheduleProfessional";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Testimonials from "./pages/Testimonials";
+import PressNews from "./pages/PressNews";
 import Resources from "./pages/Resources";
 import Feedback from "./pages/Feedback";
 import VideoHelp from "./pages/VideoHelp";
