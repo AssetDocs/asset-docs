@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface AuthContextType {
@@ -21,7 +20,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Simple password - in production, this should be more secure
-  const SITE_PASSWORD = "AssetDocs2024!";
+  const SITE_PASSWORD = "AssetDocs2025";
 
   useEffect(() => {
     // Check if user was previously authenticated
