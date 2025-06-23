@@ -5,6 +5,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import useScrollToTop from "@/hooks/useScrollToTop";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import LoginGate from "@/components/LoginGate";
 
 import Index from "./pages/Index";
 import Features from "./pages/Features";
@@ -40,42 +42,56 @@ const ScrollToTopWrapper = () => {
   return null;
 };
 
+const AppContent = () => {
+  const { isAuthenticated } = useAuth();
+
+  if (!isAuthenticated) {
+    return <LoginGate />;
+  }
+
+  return (
+    <BrowserRouter>
+      <ScrollToTopWrapper />
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/features" element={<Features />} />
+        <Route path="/pricing" element={<Pricing />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/qa" element={<QA />} />
+        <Route path="/welcome" element={<Welcome />} />
+        <Route path="/account" element={<Account />} />
+        <Route path="/account/properties" element={<Properties />} />
+        <Route path="/account/properties/new" element={<PropertyForm />} />
+        <Route path="/account/photos" element={<PhotoGallery />} />
+        <Route path="/account/photos/upload" element={<PhotoUpload />} />
+        <Route path="/account/videos/upload" element={<VideoUpload />} />
+        <Route path="/account/floorplans/upload" element={<FloorPlanUpload />} />
+        <Route path="/account/insurance/new" element={<InsuranceForm />} />
+        <Route path="/account/settings" element={<AccountSettings />} />
+        <Route path="/schedule-professional" element={<ScheduleProfessional />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/testimonials" element={<Testimonials />} />
+        <Route path="/resources" element={<Resources />} />
+        <Route path="/feedback" element={<Feedback />} />
+        <Route path="/video-help" element={<VideoHelp />} />
+        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-        <ScrollToTopWrapper />
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/features" element={<Features />} />
-          <Route path="/pricing" element={<Pricing />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/qa" element={<QA />} />
-          <Route path="/welcome" element={<Welcome />} />
-          <Route path="/account" element={<Account />} />
-          <Route path="/account/properties" element={<Properties />} />
-          <Route path="/account/properties/new" element={<PropertyForm />} />
-          <Route path="/account/photos" element={<PhotoGallery />} />
-          <Route path="/account/photos/upload" element={<PhotoUpload />} />
-          <Route path="/account/videos/upload" element={<VideoUpload />} />
-          <Route path="/account/floorplans/upload" element={<FloorPlanUpload />} />
-          <Route path="/account/insurance/new" element={<InsuranceForm />} />
-          <Route path="/account/settings" element={<AccountSettings />} />
-          <Route path="/schedule-professional" element={<ScheduleProfessional />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/testimonials" element={<Testimonials />} />
-          <Route path="/resources" element={<Resources />} />
-          <Route path="/feedback" element={<Feedback />} />
-          <Route path="/video-help" element={<VideoHelp />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
