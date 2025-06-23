@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -10,6 +9,16 @@ const PressNews: React.FC = () => {
   const articles = [
     {
       id: 1,
+      title: "Why Your Insurance Claim Could Be Denied: The Critical Importance of Proving Your Losses",
+      excerpt: "Understanding your responsibility to provide sufficient evidence when filing insurance claims - and what happens when documentation falls short.",
+      author: "Legal Team",
+      date: "2024-06-20",
+      readTime: "6 min read",
+      category: "Legal Guide",
+      content: "When filing an insurance claim, the burden of proof lies entirely with you, the policyholder. This fundamental principle is backed by policy language, legal precedent, and industry practice. Most standard homeowners policies explicitly require a 'Proof of Loss' within 60 days, including detailed inventories, repair estimates, and supporting documentation. The legal principle is clear: you must prove coverage while insurers prove exclusions. Major insurers like Allstate and State Farm emphasize the need for detailed lists and sworn statements. Consumer Reports identifies inadequate documentation as the leading cause of claim disputes. The key takeaway: always maintain receipts, photos, videos, and updated inventories to protect your claim from delays, underpayment, or denial."
+    },
+    {
+      id: 2,
       title: "Family Loses $50,000 After Fire Insurance Claim Denied Due to Insufficient Photo Documentation",
       excerpt: "The Martinez family's claim was rejected when they couldn't provide detailed photos of their belongings before the house fire. Their story highlights the critical importance of comprehensive property documentation.",
       author: "Sarah Johnson",
@@ -19,7 +28,7 @@ const PressNews: React.FC = () => {
       content: "When the Martinez family's home was destroyed in a wildfire last year, they thought their insurance policy would cover the $200,000 in damages. However, their claim was denied because they couldn't provide sufficient photographic evidence of their personal belongings and property improvements made over the years..."
     },
     {
-      id: 2,
+      id: 3,
       title: "New California Law Requires Enhanced Documentation Standards for Insurance Claims",
       excerpt: "Assembly Bill 2273 mandates stricter documentation requirements for property insurance claims, putting pressure on homeowners to maintain detailed records.",
       author: "Legal Team",
@@ -29,7 +38,7 @@ const PressNews: React.FC = () => {
       content: "California's new insurance documentation law, effective January 2025, will require homeowners to provide comprehensive visual evidence of their property and belongings when filing claims over $10,000..."
     },
     {
-      id: 3,
+      id: 4,
       title: "Hurricane Victim's $75,000 Claim Rejected: 'I Wish I Had Better Records'",
       excerpt: "After Hurricane Isabel damaged her coastal home, Jane Wilson's insurance claim was partially denied due to lack of proper documentation of recent renovations and high-value items.",
       author: "Michael Chen",
@@ -39,7 +48,7 @@ const PressNews: React.FC = () => {
       content: "Jane Wilson had lived in her beachfront home for 15 years, making numerous improvements and collecting valuable antiques. When Hurricane Isabel struck, she lost everything – and then her insurance company denied most of her claim..."
     },
     {
-      id: 4,
+      id: 5,
       title: "Insurance Industry Report: 40% of Claims Delayed Due to Insufficient Documentation",
       excerpt: "A comprehensive study reveals that poor documentation is the leading cause of insurance claim delays and denials, costing homeowners millions annually.",
       author: "Insurance Research Institute",
@@ -49,7 +58,7 @@ const PressNews: React.FC = () => {
       content: "The latest industry analysis shows a troubling trend: nearly half of all property insurance claims face delays or partial denials due to inadequate documentation provided by policyholders..."
     },
     {
-      id: 5,
+      id: 6,
       title: "Apartment Renter Denied $25,000 After Flood: Personal Property Documentation Gaps",
       excerpt: "College student loses everything in apartment flood but receives minimal payout due to lack of photographic evidence of belongings and their values.",
       author: "Emma Rodriguez",
@@ -59,7 +68,7 @@ const PressNews: React.FC = () => {
       content: "Twenty-two-year-old Alex Thompson thought his renter's insurance would cover the electronics, textbooks, and personal belongings destroyed when a pipe burst in his apartment building..."
     },
     {
-      id: 6,
+      id: 7,
       title: "Supreme Court Ruling Strengthens Insurance Companies' Right to Require Photo Evidence",
       excerpt: "Recent court decision upholds insurers' ability to deny claims lacking proper visual documentation, emphasizing the need for comprehensive property records.",
       author: "Legal Correspondent",
@@ -72,6 +81,8 @@ const PressNews: React.FC = () => {
 
   const getCategoryColor = (category: string) => {
     switch (category) {
+      case 'Legal Guide':
+        return 'bg-indigo-100 text-indigo-800';
       case 'Case Study':
         return 'bg-red-100 text-red-800';
       case 'Legal Update':
