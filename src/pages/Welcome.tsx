@@ -28,7 +28,7 @@ const Welcome: React.FC = () => {
             
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Button asChild size="lg" className="bg-brand-blue hover:bg-brand-lightBlue">
-                <Link to="/signup">Start Your Free Trial</Link>
+                <Link to="/signup">Start Your Free 30-Day Trial</Link>
               </Button>
               
               <Button asChild size="lg" variant="outline" className="border-brand-blue text-brand-blue">

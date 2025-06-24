@@ -23,7 +23,7 @@ const Signup: React.FC = () => {
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-brand-blue mb-2">Create Your Account</h1>
             <p className="text-gray-600">
-              Start your 14-day free trial. No credit card required.
+              Start your 30-day free trial. No credit card required.
             </p>
           </div>
           

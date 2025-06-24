@@ -1,3 +1,4 @@
+
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -12,7 +13,8 @@ const Pricing: React.FC = () => {
       "Basic asset tagging",
       "Mobile app access",
       "Export basic reports",
-      "Email support"
+      "Email support",
+      "30-day free trial"
     ],
     standard: [
       "25GB secure cloud storage",
@@ -20,7 +22,8 @@ const Pricing: React.FC = () => {
       "Mobile app access",
       "Export detailed reports",
       "Priority email support",
-      "Share with 2 trusted contacts"
+      "Share with 2 trusted contacts",
+      "30-day free trial"
     ],
     premium: [
       "100GB secure cloud storage",
@@ -32,7 +35,8 @@ const Pricing: React.FC = () => {
       "Export comprehensive reports",
       "Priority email and phone support",
       "Share with 5 trusted contacts",
-      "Annual on-site documentation update"
+      "Annual on-site documentation update",
+      "30-day free trial"
     ]
   };
 
@@ -44,7 +48,8 @@ const Pricing: React.FC = () => {
       "Asset tagging and inventory tracking",
       "Mobile app access for all users",
       "Export business-ready reports",
-      "Priority email support"
+      "Priority email support",
+      "30-day free trial"
     ],
     medium: [
       "250GB secure cloud storage",
@@ -55,7 +60,8 @@ const Pricing: React.FC = () => {
       "Mobile app access with premium features",
       "Custom reporting templates",
       "Priority email and phone support",
-      "Annual on-site documentation update"
+      "Annual on-site documentation update",
+      "30-day free trial"
     ],
     enterprise: [
       "Unlimited secure cloud storage",
@@ -65,7 +71,8 @@ const Pricing: React.FC = () => {
       "API access for custom integrations",
       "White-label mobile app option",
       "Custom reporting and analytics",
-      "Quarterly on-site documentation updates"
+      "Quarterly on-site documentation updates",
+      "30-day free trial"
     ]
   };
 
@@ -102,7 +109,7 @@ const Pricing: React.FC = () => {
                   price="$9.99"
                   description="Perfect for individuals with basic documentation needs."
                   features={individualFeatures.basic}
-                  buttonText="Get Started"
+                  buttonText="Start 30-Day Free Trial"
                 />
                 <SubscriptionPlan
                   title="Standard"
@@ -110,14 +117,14 @@ const Pricing: React.FC = () => {
                   description="Our most popular plan for comprehensive home documentation."
                   features={individualFeatures.standard}
                   recommended={true}
-                  buttonText="Get Started"
+                  buttonText="Start 30-Day Free Trial"
                 />
                 <SubscriptionPlan
                   title="Premium"
                   price="$29.99"
                   description="Complete protection with professional documentation services."
                   features={individualFeatures.premium}
-                  buttonText="Get Started"
+                  buttonText="Start 30-Day Free Trial"
                 />
               </div>
             </TabsContent>
@@ -130,7 +137,7 @@ const Pricing: React.FC = () => {
                   price="$49.99"
                   description="For small businesses with basic asset documentation needs."
                   features={businessFeatures.small}
-                  buttonText="Get Started"
+                  buttonText="Start 30-Day Free Trial"
                 />
                 <SubscriptionPlan
                   title="Business Plus"
@@ -138,14 +145,14 @@ const Pricing: React.FC = () => {
                   description="For growing businesses with extensive documentation requirements."
                   features={businessFeatures.medium}
                   recommended={true}
-                  buttonText="Get Started"
+                  buttonText="Start 30-Day Free Trial"
                 />
                 <SubscriptionPlan
                   title="Enterprise"
                   price="Custom"
                   description="Tailored solutions for large businesses with complex needs."
                   features={businessFeatures.enterprise}
-                  buttonText="Contact Sales"
+                  buttonText="Start 30-Day Free Trial"
                 />
               </div>
             </TabsContent>
@@ -168,7 +175,7 @@ const Pricing: React.FC = () => {
             <div className="bg-white p-6 rounded-lg shadow">
               <h3 className="text-xl font-semibold mb-3">Is there a free trial available?</h3>
               <p className="text-gray-600">
-                Yes, we offer a 14-day free trial for all individual and family plans. No credit card required to start.
+                Yes, we offer a 30-day free trial for all individual, family, and business plans. No credit card required to start.
               </p>
             </div>
             
