@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -35,7 +34,6 @@ const Pricing: React.FC = () => {
       "Export comprehensive reports",
       "Priority email and phone support",
       "Share with 5 trusted contacts",
-      "Annual on-site documentation update",
       "30-day free trial"
     ]
   };
