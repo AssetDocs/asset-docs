@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 const HowItWorksSection: React.FC = () => {
@@ -16,7 +17,7 @@ const HowItWorksSection: React.FC = () => {
             </p>
           </div>
           <div className="p-6">
-            <div className="w-16 h-16 rounded-full bg-brand-lightBlue text-white flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 rounded-full bg-teal-500 text-white flex items-center justify-center mx-auto mb-4">
               <span className="text-xl font-bold">2</span>
             </div>
             <h3 className="text-xl font-semibold mb-3">Store</h3>
@@ -25,7 +26,7 @@ const HowItWorksSection: React.FC = () => {
             </p>
           </div>
           <div className="p-6">
-            <div className="w-16 h-16 rounded-full bg-brand-green text-white flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 rounded-full bg-blue-600 text-white flex items-center justify-center mx-auto mb-4">
               <span className="text-xl font-bold">3</span>
             </div>
             <h3 className="text-xl font-semibold mb-3">Protect</h3>
