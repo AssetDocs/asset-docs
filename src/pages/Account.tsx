@@ -8,6 +8,7 @@ import AccountStats from '@/components/AccountStats';
 import AccountActions from '@/components/AccountActions';
 import QRCodeSection from '@/components/QRCodeSection';
 import FloorPlansSection from '@/components/FloorPlansSection';
+import StorageAlert from '@/components/StorageAlert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Account: React.FC = () => {
@@ -33,6 +34,8 @@ const Account: React.FC = () => {
             showQRCode={showQRCode}
             onGenerateQR={generatePropertyQR}
           />
+
+          <StorageAlert />
 
           <Tabs defaultValue="overview" className="space-y-6">
             <TabsList className="grid w-full grid-cols-3">
