@@ -3,6 +3,7 @@ import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import HeroSection from '@/components/HeroSection';
+import AboutSection from '@/components/AboutSection';
 import AIValuationSection from '@/components/AIValuationSection';
 import FeaturesSection from '@/components/FeaturesSection';
 import HowItWorksSection from '@/components/HowItWorksSection';
@@ -14,6 +15,7 @@ const Index: React.FC = () => {
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <HeroSection />
+      <AboutSection />
       <AIValuationSection />
       <FeaturesSection />
       <HowItWorksSection />
