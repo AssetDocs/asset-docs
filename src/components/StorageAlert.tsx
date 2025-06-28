@@ -11,7 +11,7 @@ const StorageAlert: React.FC = () => {
       <Info className="h-4 w-4 text-orange-600" />
       <AlertDescription className="flex items-center justify-between">
         <span className="text-orange-800">
-          Running low on storage? Upgrade your subscription for more space.
+          Running low on storage? Upgrade your subscription for more space and unlock more features.
         </span>
         <Button asChild variant="outline" size="sm" className="ml-4">
           <Link to="/account-settings">
