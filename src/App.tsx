@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import useScrollToTop from "@/hooks/useScrollToTop";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import LoginGate from "@/components/LoginGate";
+import { TranslationProvider } from "@/contexts/TranslationContext";
 
 import Index from "./pages/Index";
 import Features from "./pages/Features";
@@ -89,9 +89,11 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
+      <TranslationProvider>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </TranslationProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

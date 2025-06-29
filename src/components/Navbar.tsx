@@ -4,9 +4,11 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Menu, X, Video } from 'lucide-react';
 import LanguageSelector from '@/components/LanguageSelector';
+import { useTranslation } from '@/contexts/TranslationContext';
 
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { translate } = useTranslation();
 
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
@@ -23,24 +25,24 @@ const Navbar: React.FC = () => {
           {/* Desktop menu */}
           <div className="hidden md:flex items-center space-x-6">
             <Link to="/features" className="text-gray-700 hover:text-brand-blue transition-colors">
-              Features
+              {translate('nav.features')}
             </Link>
             <Link to="/pricing" className="text-gray-700 hover:text-brand-blue transition-colors">
-              Pricing
+              {translate('nav.pricing')}
             </Link>
             <Link 
               to="/video-help" 
               className="text-gray-700 hover:text-brand-blue transition-colors flex items-center"
             >
               <Video className="h-4 w-4 mr-1" />
-              Video Help
+              {translate('nav.videoHelp')}
             </Link>
             <Link to="/login" className="text-gray-700 hover:text-brand-blue transition-colors">
-              Login
+              {translate('nav.login')}
             </Link>
             <LanguageSelector />
             <Button asChild className="bg-brand-orange hover:bg-brand-orange/90">
-              <Link to="/signup">Start Free Trial</Link>
+              <Link to="/signup">{translate('nav.startTrial')}</Link>
             </Button>
           </div>
           
@@ -65,14 +67,14 @@ const Navbar: React.FC = () => {
                 className="text-gray-700 hover:text-brand-blue transition-colors py-2"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Features
+                {translate('nav.features')}
               </Link>
               <Link 
                 to="/pricing" 
                 className="text-gray-700 hover:text-brand-blue transition-colors py-2"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Pricing
+                {translate('nav.pricing')}
               </Link>
               <Link 
                 to="/video-help" 
@@ -80,21 +82,21 @@ const Navbar: React.FC = () => {
                 onClick={() => setIsMenuOpen(false)}
               >
                 <Video className="h-4 w-4 mr-1" />
-                Video Help
+                {translate('nav.videoHelp')}
               </Link>
               <Link 
                 to="/login" 
                 className="text-gray-700 hover:text-brand-blue transition-colors py-2"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Login
+                {translate('nav.login')}
               </Link>
               <Button 
                 asChild 
                 className="bg-brand-orange hover:bg-brand-orange/90"
                 onClick={() => setIsMenuOpen(false)}
               >
-                <Link to="/signup">Start Free Trial</Link>
+                <Link to="/signup">{translate('nav.startTrial')}</Link>
               </Button>
             </div>
           </div>

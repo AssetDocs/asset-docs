@@ -4,12 +4,15 @@ import { Button } from '@/components/ui/button';
 import FeatureCard from '@/components/FeatureCard';
 import { Link } from 'react-router-dom';
 import { Shield, Camera, Lock, FileImage, BarChart, Clock } from 'lucide-react';
+import { useTranslation } from '@/contexts/TranslationContext';
 
 const FeaturesSection: React.FC = () => {
+  const { translate } = useTranslation();
+
   return (
     <section className="py-20 bg-gray-50">
       <div className="container mx-auto px-4">
-        <h2 className="section-title">Comprehensive Documentation Tools</h2>
+        <h2 className="section-title">{translate('features.title')}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <FeatureCard 
             icon={<Camera size={48} />}
@@ -44,7 +47,7 @@ const FeaturesSection: React.FC = () => {
         </div>
         <div className="mt-12 text-center">
           <Button asChild size="lg" className="bg-brand-blue hover:bg-brand-lightBlue">
-            <Link to="/features">View All Features</Link>
+            <Link to="/features">{translate('features.viewAll')}</Link>
           </Button>
         </div>
       </div>

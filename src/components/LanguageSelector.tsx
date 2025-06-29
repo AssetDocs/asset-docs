@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,25 +8,13 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Globe, ChevronDown } from 'lucide-react';
-
-const languages = [
-  { code: 'en', name: 'English', flag: '🇺🇸' },
-  { code: 'es', name: 'Español', flag: '🇪🇸' },
-  { code: 'fr', name: 'Français', flag: '🇫🇷' },
-  { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
-  { code: 'it', name: 'Italiano', flag: '🇮🇹' },
-  { code: 'pt', name: 'Português', flag: '🇧🇷' },
-  { code: 'zh', name: '中文', flag: '🇨🇳' },
-  { code: 'ja', name: '日本語', flag: '🇯🇵' },
-];
+import { useTranslation, languages } from '@/contexts/TranslationContext';
 
 const LanguageSelector: React.FC = () => {
-  const [selectedLanguage, setSelectedLanguage] = useState(languages[0]);
+  const { currentLanguage, changeLanguage } = useTranslation();
 
   const handleLanguageChange = (language: typeof languages[0]) => {
-    setSelectedLanguage(language);
-    console.log(`Language changed to: ${language.name}`);
-    // Here you would typically integrate with your i18n library
+    changeLanguage(language);
   };
 
   return (
@@ -34,8 +22,8 @@ const LanguageSelector: React.FC = () => {
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="flex items-center gap-2">
           <Globe size={16} />
-          <span className="hidden sm:inline">{selectedLanguage.flag} {selectedLanguage.name}</span>
-          <span className="sm:hidden">{selectedLanguage.flag}</span>
+          <span className="hidden sm:inline">{currentLanguage.flag} {currentLanguage.name}</span>
+          <span className="sm:hidden">{currentLanguage.flag}</span>
           <ChevronDown size={12} />
         </Button>
       </DropdownMenuTrigger>
@@ -48,7 +36,7 @@ const LanguageSelector: React.FC = () => {
           >
             <span className="text-lg">{language.flag}</span>
             <span className="text-sm">{language.name}</span>
-            {selectedLanguage.code === language.code && (
+            {currentLanguage.code === language.code && (
               <span className="ml-auto text-brand-blue">✓</span>
             )}
           </DropdownMenuItem>
