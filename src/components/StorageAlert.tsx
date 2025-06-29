@@ -14,7 +14,7 @@ const StorageAlert: React.FC = () => {
           Running low on storage? Upgrade your subscription for more space and unlock more features.
         </span>
         <Button asChild variant="outline" size="sm" className="ml-4">
-          <Link to="/account-settings">
+          <Link to="/account/settings">
             <Settings className="h-4 w-4 mr-2" />
             Account Settings
           </Link>
