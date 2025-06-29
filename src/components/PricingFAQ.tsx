@@ -41,13 +41,6 @@ const PricingFAQ: React.FC = () => {
               After cancellation, your data remains stored for 30 days, during which you can reactivate your account or request a data export. After 30 days, your data is permanently deleted.
             </p>
           </div>
-          
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-xl font-semibold mb-3">Do you offer on-site documentation services?</h3>
-            <p className="text-gray-600">
-              Yes, our Premium and Enterprise plans include on-site documentation services. For other plans, on-site services can be added for an additional fee.
-            </p>
-          </div>
         </div>
       </div>
     </section>
