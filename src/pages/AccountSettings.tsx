@@ -1,56 +1,17 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import ProfileTab from '@/components/ProfileTab';
+import BillingTab from '@/components/BillingTab';
+import SubscriptionTab from '@/components/SubscriptionTab';
+import NotificationsTab from '@/components/NotificationsTab';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Save, CreditCard, User, Package, Bell } from 'lucide-react';
+import { ArrowLeft, User, CreditCard, Package, Bell } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
 
 const AccountSettings: React.FC = () => {
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleSaveProfile = async () => {
-    setIsLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsLoading(false);
-    toast({
-      title: "Profile Updated",
-      description: "Your profile information has been successfully updated.",
-    });
-  };
-
-  const handleSaveBilling = async () => {
-    setIsLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsLoading(false);
-    toast({
-      title: "Billing Information Updated",
-      description: "Your billing information has been successfully updated.",
-    });
-  };
-
-  const handleChangePlan = async () => {
-    setIsLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsLoading(false);
-    toast({
-      title: "Plan Updated",
-      description: "Your subscription plan has been successfully updated.",
-    });
-  };
-
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
@@ -91,273 +52,19 @@ const AccountSettings: React.FC = () => {
             </TabsList>
 
             <TabsContent value="profile">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Profile Information</CardTitle>
-                  <CardDescription>
-                    Update your personal information and contact details
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="firstName">First Name</Label>
-                      <Input id="firstName" placeholder="Enter your first name" defaultValue="John" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="lastName">Last Name</Label>
-                      <Input id="lastName" placeholder="Enter your last name" defaultValue="Doe" />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email Address</Label>
-                    <Input id="email" type="email" placeholder="Enter your email" defaultValue="john.doe@example.com" />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input id="phone" type="tel" placeholder="Enter your phone number" defaultValue="+1 (555) 123-4567" />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="company">Company (Optional)</Label>
-                    <Input id="company" placeholder="Enter your company name" />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="bio">Bio (Optional)</Label>
-                    <Textarea id="bio" placeholder="Tell us about yourself" rows={3} />
-                  </div>
-                  
-                  <Button onClick={handleSaveProfile} disabled={isLoading}>
-                    <Save className="h-4 w-4 mr-2" />
-                    {isLoading ? 'Saving...' : 'Save Profile'}
-                  </Button>
-                </CardContent>
-              </Card>
+              <ProfileTab />
             </TabsContent>
 
             <TabsContent value="billing">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Billing Information</CardTitle>
-                  <CardDescription>
-                    Manage your payment methods and billing address
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Payment Method</h3>
-                    <div className="p-4 border rounded-lg bg-gray-50">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <CreditCard className="h-6 w-6 text-brand-blue" />
-                          <div>
-                            <p className="font-medium">•••• •••• •••• 4242</p>
-                            <p className="text-sm text-gray-600">Expires 12/2025</p>
-                          </div>
-                        </div>
-                        <Button variant="outline" size="sm">Update Card</Button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Billing Address</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="address1">Address Line 1</Label>
-                        <Input id="address1" placeholder="Enter street address" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="address2">Address Line 2 (Optional)</Label>
-                        <Input id="address2" placeholder="Apartment, suite, etc." />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="city">City</Label>
-                        <Input id="city" placeholder="Enter city" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="state">State/Province</Label>
-                        <Input id="state" placeholder="Enter state/province" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="zip">ZIP/Postal Code</Label>
-                        <Input id="zip" placeholder="Enter ZIP code" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="country">Country</Label>
-                        <Select>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select country" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="us">United States</SelectItem>
-                            <SelectItem value="ca">Canada</SelectItem>
-                            <SelectItem value="uk">United Kingdom</SelectItem>
-                            <SelectItem value="au">Australia</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <Button onClick={handleSaveBilling} disabled={isLoading}>
-                    <Save className="h-4 w-4 mr-2" />
-                    {isLoading ? 'Saving...' : 'Save Billing Info'}
-                  </Button>
-                </CardContent>
-              </Card>
+              <BillingTab />
             </TabsContent>
 
             <TabsContent value="subscription">
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Current Plan</CardTitle>
-                    <CardDescription>
-                      Manage your subscription plan and billing cycle
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="p-4 border rounded-lg bg-blue-50 border-brand-blue">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="text-lg font-semibold text-brand-blue">Standard Plan</h3>
-                          <p className="text-gray-600">$14.99/month • Billed monthly</p>
-                          <p className="text-sm text-gray-500">Next billing date: January 15, 2024</p>
-                        </div>
-                        <Button variant="outline">Change Plan</Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Available Plans</CardTitle>
-                    <CardDescription>
-                      Choose the plan that best fits your needs
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="p-4 border rounded-lg">
-                        <h3 className="font-semibold">Basic</h3>
-                        <p className="text-2xl font-bold text-brand-blue">$9.99<span className="text-sm font-normal">/month</span></p>
-                        <ul className="mt-3 space-y-1 text-sm text-gray-600">
-                          <li>• 5GB secure cloud storage</li>
-                          <li>• Photo and video uploads</li>
-                          <li>• Basic asset tagging</li>
-                          <li>• Mobile app access</li>
-                          <li>• Export basic reports</li>
-                          <li>• Email support</li>
-                          <li>• 30-day free trial</li>
-                        </ul>
-                        <Button variant="outline" className="w-full mt-4">Select Basic</Button>
-                      </div>
-                      
-                      <div className="p-4 border-2 border-brand-blue rounded-lg bg-blue-50">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-semibold">Standard</h3>
-                          <span className="text-xs bg-brand-blue text-white px-2 py-1 rounded">Current</span>
-                        </div>
-                        <p className="text-2xl font-bold text-brand-blue">$14.99<span className="text-sm font-normal">/month</span></p>
-                        <ul className="mt-3 space-y-1 text-sm text-gray-600">
-                          <li>• 25GB secure cloud storage</li>
-                          <li>• Photo and video uploads</li>
-                          <li>• Mobile app access</li>
-                          <li>• Export detailed reports</li>
-                          <li>• Priority email support</li>
-                          <li>• Share with 2 trusted contacts</li>
-                          <li>• 30-day free trial</li>
-                        </ul>
-                        <Button className="w-full mt-4 bg-brand-blue" disabled>Current Plan</Button>
-                      </div>
-                      
-                      <div className="p-4 border rounded-lg">
-                        <h3 className="font-semibold">Premium</h3>
-                        <p className="text-2xl font-bold text-brand-blue">$29.99<span className="text-sm font-normal">/month</span></p>
-                        <ul className="mt-3 space-y-1 text-sm text-gray-600">
-                          <li>• 100GB secure cloud storage</li>
-                          <li>• Unlimited photo and video uploads</li>
-                          <li>• Professional asset tagging</li>
-                          <li>• AI-powered item identification & valuation</li>
-                          <li>• Floor plan scanning with live camera</li>
-                          <li>• Mobile app access with premium features</li>
-                          <li>• Export comprehensive reports</li>
-                          <li>• Priority email and phone support</li>
-                          <li>• Share with 5 trusted contacts</li>
-                          <li>• 30-day free trial</li>
-                        </ul>
-                        <Button onClick={handleChangePlan} className="w-full mt-4 bg-brand-orange hover:bg-brand-orange/90">
-                          Upgrade to Premium
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+              <SubscriptionTab />
             </TabsContent>
 
             <TabsContent value="notifications">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Notification Preferences</CardTitle>
-                  <CardDescription>
-                    Choose how you want to be notified about updates and activities
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-medium">Email Notifications</h3>
-                        <p className="text-sm text-gray-600">Receive updates about your account via email</p>
-                      </div>
-                      <Switch defaultChecked />
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-medium">Security Alerts</h3>
-                        <p className="text-sm text-gray-600">Get notified about login attempts and security changes</p>
-                      </div>
-                      <Switch defaultChecked />
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-medium">Marketing Communications</h3>
-                        <p className="text-sm text-gray-600">Receive newsletters and product updates</p>
-                      </div>
-                      <Switch />
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-medium">Billing Notifications</h3>
-                        <p className="text-sm text-gray-600">Get notified about billing and payment issues</p>
-                      </div>
-                      <Switch defaultChecked />
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-medium">Property Updates</h3>
-                        <p className="text-sm text-gray-600">Notifications when property values change</p>
-                      </div>
-                      <Switch defaultChecked />
-                    </div>
-                  </div>
-                  
-                  <Button onClick={handleSaveProfile} disabled={isLoading}>
-                    <Save className="h-4 w-4 mr-2" />
-                    {isLoading ? 'Saving...' : 'Save Preferences'}
-                  </Button>
-                </CardContent>
-              </Card>
+              <NotificationsTab />
             </TabsContent>
           </Tabs>
         </div>
