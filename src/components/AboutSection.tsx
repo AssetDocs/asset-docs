@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 const AboutSection: React.FC = () => {
@@ -60,7 +61,7 @@ const AboutSection: React.FC = () => {
               <div className="bg-gray-50 p-8 rounded-lg">
                 <h4 className="text-2xl font-semibold mb-4 text-center text-gray-800">Our Mission</h4>
                 <p className="text-lg text-gray-700 leading-relaxed text-center mb-6">
-                  We believe every family deserves the confidence that comes with knowing their most precious 
+                  We believe everyone deserves the confidence that comes with knowing their most precious 
                   belongings are properly documented and protected. Asset Docs transforms the traditional, 
                   tedious process of property documentation into a modern, intuitive experience that actually 
                   works when you need it most.
