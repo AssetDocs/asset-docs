@@ -103,7 +103,7 @@ const PricingPlans: React.FC = () => {
               <SubscriptionPlan
                 title="Premium"
                 price="$29.99"
-                description="Complete protection with professional documentation services."
+                description="Complete protection with professional documentation tools."
                 features={individualFeatures.premium}
                 buttonText="Start 30-Day Free Trial"
               />
