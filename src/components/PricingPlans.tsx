@@ -57,7 +57,6 @@ const PricingPlans: React.FC = () => {
       "Mobile app access with premium features",
       "Custom reporting templates",
       "Priority email and phone support",
-      "Annual on-site documentation update",
       "30-day free trial"
     ],
     enterprise: [
@@ -68,7 +67,6 @@ const PricingPlans: React.FC = () => {
       "API access for custom integrations",
       "White-label mobile app option",
       "Custom reporting and analytics",
-      "Quarterly on-site documentation updates",
       "30-day free trial"
     ]
   };
