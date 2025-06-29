@@ -3,7 +3,7 @@ import React from 'react';
 
 const AboutSection: React.FC = () => {
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20 pb-8 bg-white">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-4xl font-bold text-brand-blue mb-8 text-center">About Asset Docs</h2>
