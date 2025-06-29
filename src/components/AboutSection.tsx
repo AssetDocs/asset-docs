@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 const AboutSection: React.FC = () => {
@@ -10,10 +9,6 @@ const AboutSection: React.FC = () => {
           
           <div className="prose prose-lg max-w-none">
             <section className="mb-12">
-              <h3 className="text-3xl font-semibold mb-6 text-center text-gray-800">
-                Your Digital Guardian for What Matters Most
-              </h3>
-              
               <div className="bg-gradient-to-r from-blue-50 to-teal-50 p-8 rounded-lg mb-8">
                 <p className="text-xl text-gray-700 leading-relaxed text-center mb-6">
                   Asset Docs was born from a simple yet powerful belief: protecting your family's most valuable 
