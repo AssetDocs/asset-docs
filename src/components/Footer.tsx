@@ -120,8 +120,8 @@ const Footer: React.FC = () => {
               <p className="mb-2">McKinney, Texas</p>
               <p className="mb-2">United States</p>
               <p className="mb-2">
-                <a href="mailto:info@assetdocs.com" className="hover:text-white transition-colors">
-                  info@assetdocs.com
+                <a href="mailto:info@assetdocs.net" className="hover:text-white transition-colors">
+                  info@assetdocs.net
                 </a>
               </p>
               <p>
