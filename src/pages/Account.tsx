@@ -9,6 +9,7 @@ import AccountActions from '@/components/AccountActions';
 import QRCodeSection from '@/components/QRCodeSection';
 import FloorPlansSection from '@/components/FloorPlansSection';
 import StorageAlert from '@/components/StorageAlert';
+import HouseholdIncomeSection from '@/components/HouseholdIncomeSection';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Account: React.FC = () => {
@@ -38,10 +39,11 @@ const Account: React.FC = () => {
           <StorageAlert />
 
           <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="floor-plans">Floor Plans</TabsTrigger>
               <TabsTrigger value="asset-values">Asset Values</TabsTrigger>
+              <TabsTrigger value="profile">Profile</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
@@ -56,6 +58,10 @@ const Account: React.FC = () => {
 
             <TabsContent value="asset-values">
               <AssetValuesSection />
+            </TabsContent>
+
+            <TabsContent value="profile" className="space-y-6">
+              <HouseholdIncomeSection />
             </TabsContent>
           </Tabs>
         </div>
