@@ -105,8 +105,7 @@ const QA: React.FC = () => {
                 <AccordionContent>
                   AssetDocs supports documentation of virtually any physical asset, including electronics, furniture, 
                   artwork, jewelry, collectibles, appliances, vehicles, and real estate. Our AI is trained to identify 
-                  and categorize thousands of different items, and our 3D virtual tour feature is perfect for 
-                  documenting spaces and larger possessions with precise measurements.
+                  and categorize thousands of different items.
                 </AccordionContent>
               </AccordionItem>
               
