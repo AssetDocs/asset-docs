@@ -1,8 +1,10 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Home, Camera, Video, FileImage, FileText, Shield, Settings, Plus, Eye, Building } from 'lucide-react';
+import DownloadAllFilesButton from './DownloadAllFilesButton';
 
 interface AccountActionsProps {
   onCreateFloorPlan: () => void;
@@ -185,6 +187,8 @@ const AccountActions: React.FC<AccountActionsProps> = ({ onCreateFloorPlan }) =>
           </div>
         </CardContent>
       </Card>
+
+      <DownloadAllFilesButton />
 
       <Card className="hover:shadow-lg transition-shadow">
         <CardHeader>
