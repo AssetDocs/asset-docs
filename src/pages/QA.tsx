@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -88,8 +87,6 @@ const QA: React.FC = () => {
                 <AccordionContent>
                   Yes, all your data is automatically backed up across multiple secure data centers with 99.9% uptime. 
                   If you cancel your subscription, you'll have 90 days to download all your documentation and data. 
-                  We also offer data export in multiple formats including PDF reports, image archives, and structured 
-                  data files that you can use with other systems.
                 </AccordionContent>
               </AccordionItem>
               
