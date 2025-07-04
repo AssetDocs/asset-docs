@@ -87,22 +87,25 @@ const PricingPlans: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <SubscriptionPlan
                 title="Basic"
-                price="$9.99"
+                price="$8.99"
                 description="Perfect for individuals with basic documentation needs."
                 features={individualFeatures.basic}
                 buttonText="Start 30-Day Free Trial"
               />
               <SubscriptionPlan
                 title="Standard"
-                price="$14.99"
+                price="$8.99"
                 description="Our most popular plan for comprehensive home documentation."
-                features={individualFeatures.standard}
+                features={[
+                  ...individualFeatures.standard,
+                  "🎉 6-month introductory price (reg. $12.99)"
+                ]}
                 recommended={true}
                 buttonText="Start 30-Day Free Trial"
               />
               <SubscriptionPlan
                 title="Premium"
-                price="$29.99"
+                price="$18.99"
                 description="Complete protection with professional documentation tools."
                 features={individualFeatures.premium}
                 buttonText="Start 30-Day Free Trial"
