@@ -1,4 +1,3 @@
-
 import React from 'react';
 import SubscriptionPlan from '@/components/SubscriptionPlan';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -7,17 +6,15 @@ const PricingPlans: React.FC = () => {
   const individualFeatures = {
     basic: [
       "5GB secure cloud storage",
-      "Photo and video uploads",
-      "Basic asset tagging",
+      "Photo and video uploads", 
       "Mobile app access",
-      "Export basic reports",
       "Email support",
       "30-day free trial"
     ],
     standard: [
       "25GB secure cloud storage",
       "Photo and video uploads",
-      "Mobile app access",
+      "Mobile app access", 
       "Export detailed reports",
       "Priority email support",
       "Share with 2 trusted contacts",
