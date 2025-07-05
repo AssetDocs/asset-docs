@@ -1,10 +1,11 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import PropertySelector from '@/components/PropertySelector';
+import ManualDamageEntry from '@/components/ManualDamageEntry';
 import { 
   AlertTriangle, 
   Camera, 
@@ -14,7 +15,8 @@ import {
   Plus,
   Calendar,
   MapPin,
-  FileText
+  FileText,
+  Edit
 } from 'lucide-react';
 
 interface DamagePhoto {
@@ -37,6 +39,8 @@ interface DamageVideo {
 }
 
 const PostDamageSection: React.FC = () => {
+  const [selectedPropertyId, setSelectedPropertyId] = useState('');
+  
   // Mock data - in a real app, this would come from your backend
   const [damagePhotos] = useState<DamagePhoto[]>([
     {
@@ -94,13 +98,38 @@ const PostDamageSection: React.FC = () => {
           Post Damage Documentation
         </CardTitle>
         <CardDescription>
-          Document property damage with photos and videos for insurance claims and repairs
+          Document property damage with photos, videos, and manual entries for insurance claims and repairs
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
+          {/* Property Selection */}
+          <Card className="bg-blue-50 border-blue-200">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center">
+                <MapPin className="h-5 w-5 mr-2 text-blue-600" />
+                Property Selection
+              </CardTitle>
+              <CardDescription>
+                Select the property where damage documentation will be added
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <PropertySelector
+                value={selectedPropertyId}
+                onChange={setSelectedPropertyId}
+                placeholder="Select property for damage documentation"
+              />
+              {selectedPropertyId && (
+                <p className="text-sm text-green-600 mt-2">
+                  ✓ Property selected - all damage entries will be associated with this property
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Quick Upload Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Button asChild className="h-16 bg-red-600 hover:bg-red-700">
               <Link to="/account/damage/photos/upload">
                 <div className="flex flex-col items-center">
@@ -117,18 +146,41 @@ const PostDamageSection: React.FC = () => {
                 </div>
               </Link>
             </Button>
+            <Button className="h-16 bg-orange-600 hover:bg-orange-700" disabled={!selectedPropertyId}>
+              <div className="flex flex-col items-center">
+                <Edit className="h-6 w-6 mb-1" />
+                <span>Add Manual Entry</span>
+              </div>
+            </Button>
           </div>
+
+          {!selectedPropertyId && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <p className="text-yellow-800 text-sm">
+                <AlertTriangle className="h-4 w-4 inline mr-1" />
+                Please select a property above to enable damage documentation features.
+              </p>
+            </div>
+          )}
 
           {/* Damage Documentation Tabs */}
           <Tabs defaultValue="photos" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="photos" className="flex items-center">
                 <Camera className="h-4 w-4 mr-1" />
-                Damage Photos ({damagePhotos.length})
+                Photos ({damagePhotos.length})
               </TabsTrigger>
               <TabsTrigger value="videos" className="flex items-center">
                 <Video className="h-4 w-4 mr-1" />
-                Damage Videos ({damageVideos.length})
+                Videos ({damageVideos.length})
+              </TabsTrigger>
+              <TabsTrigger value="manual" className="flex items-center">
+                <Edit className="h-4 w-4 mr-1" />
+                Manual Entries
+              </TabsTrigger>
+              <TabsTrigger value="reports" className="flex items-center">
+                <FileText className="h-4 w-4 mr-1" />
+                Reports
               </TabsTrigger>
             </TabsList>
 
@@ -138,7 +190,7 @@ const PostDamageSection: React.FC = () => {
                   <Camera className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-600 mb-2">No damage photos yet</h3>
                   <p className="text-gray-500 mb-4">Start documenting property damage by uploading photos</p>
-                  <Button asChild>
+                  <Button asChild disabled={!selectedPropertyId}>
                     <Link to="/account/damage/photos/upload">
                       <Plus className="h-4 w-4 mr-2" />
                       Upload First Photo
@@ -196,7 +248,7 @@ const PostDamageSection: React.FC = () => {
                   <Video className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-600 mb-2">No damage videos yet</h3>
                   <p className="text-gray-500 mb-4">Create video walkthroughs of property damage</p>
-                  <Button asChild>
+                  <Button asChild disabled={!selectedPropertyId}>
                     <Link to="/account/damage/videos/upload">
                       <Plus className="h-4 w-4 mr-2" />
                       Upload First Video
@@ -250,12 +302,38 @@ const PostDamageSection: React.FC = () => {
                 </div>
               )}
             </TabsContent>
+
+            <TabsContent value="manual" className="mt-4">
+              {selectedPropertyId ? (
+                <ManualDamageEntry />
+              ) : (
+                <div className="text-center py-8">
+                  <Edit className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-600 mb-2">Select a property first</h3>
+                  <p className="text-gray-500">Choose a property above to add manual damage entries</p>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="reports" className="mt-4">
+              <div className="text-center py-8">
+                <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-600 mb-2">Damage Reports</h3>
+                <p className="text-gray-500 mb-4">Generate comprehensive damage reports for insurance claims</p>
+                <Button asChild disabled={!selectedPropertyId}>
+                  <Link to="/account/damage/report">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Generate Damage Report
+                  </Link>
+                </Button>
+              </div>
+            </TabsContent>
           </Tabs>
 
           {/* Quick Actions */}
           <div className="pt-4 border-t">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <Button asChild variant="outline" size="sm">
+              <Button asChild variant="outline" size="sm" disabled={!selectedPropertyId}>
                 <Link to="/account/damage/report">
                   <FileText className="h-4 w-4 mr-2" />
                   Generate Damage Report
