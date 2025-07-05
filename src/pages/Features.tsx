@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -235,7 +234,7 @@ const Features: React.FC = () => {
             <div className="bg-white p-6 rounded-lg shadow border">
               <Camera className="h-8 w-8 text-brand-blue mb-3" />
               <h3 className="text-lg font-semibold mb-2">High-Resolution Photography</h3>
-              <p className="text-gray-600 text-sm">Professional quality images with automatic organization and tagging.</p>
+              <p className="text-gray-600 text-sm">Upload high quality images straight from your mobile device with automatic organization and tagging.</p>
             </div>
             
             <div className="bg-white p-6 rounded-lg shadow border">
