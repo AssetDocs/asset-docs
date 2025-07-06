@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 
@@ -116,7 +115,7 @@ const Footer: React.FC = () => {
           </div>
 
           <div>
-            <h3 className="text-lg font-semibold mb-4">Information</h3>
+            <h3 className="text-lg font-semibold mb-4">References</h3>
             <ul className="space-y-1">
               <li>
                 <Link to="/claims" className="text-gray-300 hover:text-white transition-colors text-sm">
