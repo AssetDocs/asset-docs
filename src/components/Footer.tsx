@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 
@@ -5,7 +6,7 @@ const Footer: React.FC = () => {
   return (
     <footer className="bg-brand-darkGray text-white py-12">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
           <div>
             <div className="flex items-center space-x-2 mb-4">
               <img 
@@ -112,6 +113,17 @@ const Footer: React.FC = () => {
                 </li>
               </ul>
             </div>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Information</h3>
+            <ul className="space-y-1">
+              <li>
+                <Link to="/claims" className="text-gray-300 hover:text-white transition-colors text-sm">
+                  Claims Documentation
+                </Link>
+              </li>
+            </ul>
           </div>
           
           <div>
