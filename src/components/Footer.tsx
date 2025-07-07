@@ -7,16 +7,7 @@ const Footer: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
           <div>
-            <div className="flex items-center space-x-2 mb-4">
-              <img 
-                src="/lovable-uploads/b60286e3-ddd8-48f4-9a60-56cfa470be11.png" 
-                alt="Asset Docs Logo" 
-                className="h-20 bg-white p-1 rounded"
-              />
-            </div>
-            <p className="text-gray-300 mb-4">
-              Your digital safety net for property documentation and asset protection.
-            </p>
+            <h3 className="text-lg font-semibold mb-4">Get Social</h3>
             <div className="flex space-x-4">
               <a href="#" className="text-gray-300 hover:text-white">
                 <span className="sr-only">Facebook</span>
