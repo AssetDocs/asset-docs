@@ -36,6 +36,7 @@ import VideoHelp from "./pages/VideoHelp";
 import AccountSettings from "./pages/AccountSettings";
 import PhotoGallery from "./pages/PhotoGallery";
 import Claims from "./pages/Claims";
+import Legal from "./pages/Legal";
 
 const queryClient = new QueryClient();
 
@@ -80,6 +81,7 @@ const AppContent = () => {
         <Route path="/feedback" element={<Feedback />} />
         <Route path="/video-help" element={<VideoHelp />} />
         <Route path="/claims" element={<Claims />} />
+        <Route path="/legal" element={<Legal />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
