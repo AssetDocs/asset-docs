@@ -7,6 +7,7 @@ import useScrollToTop from "@/hooks/useScrollToTop";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import LoginGate from "@/components/LoginGate";
 import { TranslationProvider } from "@/contexts/TranslationContext";
+import CustomerSupportWidget from "@/components/CustomerSupportWidget";
 
 import Index from "./pages/Index";
 import Features from "./pages/Features";
@@ -82,6 +83,7 @@ const AppContent = () => {
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
+      <CustomerSupportWidget />
     </BrowserRouter>
   );
 };

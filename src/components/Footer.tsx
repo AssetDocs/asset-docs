@@ -123,9 +123,16 @@ const Footer: React.FC = () => {
               <p className="mb-2">McKinney, Texas</p>
               <p className="mb-4">United States</p>
             </address>
-            <div className="flex items-center space-x-2">
-              <MessageCircle className="h-6 w-6 text-gray-300 hover:text-white cursor-pointer transition-colors" />
-              <span className="text-gray-300 text-sm">Chat with us</span>
+            <div 
+              className="flex items-center space-x-2 cursor-pointer hover:text-brand-orange transition-colors"
+              onClick={() => {
+                // This will be handled by the CustomerSupportWidget
+                const event = new CustomEvent('openSupportWidget');
+                window.dispatchEvent(event);
+              }}
+            >
+              <MessageCircle className="h-6 w-6 text-gray-300 hover:text-brand-orange transition-colors" />
+              <span className="text-gray-300 text-sm hover:text-brand-orange transition-colors">Chat with us</span>
             </div>
           </div>
         </div>
