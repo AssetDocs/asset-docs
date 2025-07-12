@@ -17,7 +17,7 @@ const PricingFAQ: React.FC = () => {
           <div className="bg-white p-6 rounded-lg shadow">
             <h3 className="text-xl font-semibold mb-3">Is there a free trial available?</h3>
             <p className="text-gray-600">
-              Yes, we offer a 30-day free trial for all individual, family, and business plans. No credit card required to start.
+              Yes, we offer a 30-day free trial for all individual, family, and business plans.
             </p>
           </div>
           
