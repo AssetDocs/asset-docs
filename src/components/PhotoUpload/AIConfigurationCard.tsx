@@ -70,6 +70,12 @@ const AIConfigurationCard: React.FC<AIConfigurationCardProps> = ({
           <Label htmlFor="use-ai">Use AI for automatic item analysis</Label>
         </div>
 
+        {defaultUseAI && (
+          <div className="text-sm text-blue-600 bg-blue-50 p-3 rounded-md">
+            <p className="font-medium">💡 Tip: Ensure clear, well-lit image(s) for AI recognition</p>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>Default Property</Label>
