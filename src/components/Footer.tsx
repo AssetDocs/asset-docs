@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { MessageCircle } from 'lucide-react';
 
 const Footer: React.FC = () => {
   return (
@@ -120,18 +121,12 @@ const Footer: React.FC = () => {
             <h3 className="text-lg font-semibold mb-4">Contact Us</h3>
             <address className="not-italic text-gray-300">
               <p className="mb-2">McKinney, Texas</p>
-              <p className="mb-2">United States</p>
-              <p className="mb-2">
-                <a href="mailto:info@assetdocs.net" className="hover:text-white transition-colors">
-                  info@assetdocs.net
-                </a>
-              </p>
-              <p>
-                <a href="tel:+11234567890" className="hover:text-white transition-colors">
-                  (123) 456-7890
-                </a>
-              </p>
+              <p className="mb-4">United States</p>
             </address>
+            <div className="flex items-center space-x-2">
+              <MessageCircle className="h-6 w-6 text-gray-300 hover:text-white cursor-pointer transition-colors" />
+              <span className="text-gray-300 text-sm">Chat with us</span>
+            </div>
           </div>
         </div>
         <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
