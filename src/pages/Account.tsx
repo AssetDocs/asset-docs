@@ -11,6 +11,7 @@ import FloorPlansSection from '@/components/FloorPlansSection';
 import StorageAlert from '@/components/StorageAlert';
 import HouseholdIncomeSection from '@/components/HouseholdIncomeSection';
 import PostDamageSection from '@/components/PostDamageSection';
+import LegalEthicalSection from '@/components/LegalEthicalSection';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Account: React.FC = () => {
@@ -40,11 +41,12 @@ const Account: React.FC = () => {
           <StorageAlert />
 
           <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="floor-plans">Floor Plans</TabsTrigger>
               <TabsTrigger value="asset-values">Asset Values</TabsTrigger>
               <TabsTrigger value="damage">Post Damage</TabsTrigger>
+              <TabsTrigger value="legal">Legal</TabsTrigger>
               <TabsTrigger value="profile">Profile</TabsTrigger>
             </TabsList>
 
@@ -64,6 +66,10 @@ const Account: React.FC = () => {
 
             <TabsContent value="damage">
               <PostDamageSection />
+            </TabsContent>
+
+            <TabsContent value="legal">
+              <LegalEthicalSection />
             </TabsContent>
 
             <TabsContent value="profile" className="space-y-6">
