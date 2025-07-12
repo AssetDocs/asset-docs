@@ -41,6 +41,13 @@ const PricingFAQ: React.FC = () => {
               After cancellation, your data remains stored for 30 days, during which you can reactivate your account or request a data export. After 30 days, your data is permanently deleted.
             </p>
           </div>
+          
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-xl font-semibold mb-3">What if I don't want AI to scan my photos?</h3>
+            <p className="text-gray-600">
+              You have complete control over your privacy. You can choose between having AI valuation turned on or off at any time in your account settings.
+            </p>
+          </div>
         </div>
       </div>
     </section>
