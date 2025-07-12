@@ -188,7 +188,7 @@ const CustomerSupportWidget: React.FC<CustomerSupportWidgetProps> = ({ openaiApi
       <div className="fixed bottom-4 right-4 z-50">
         <Button
           onClick={() => setIsOpen(true)}
-          className="rounded-full w-14 h-14 bg-brand-orange hover:bg-brand-orange/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 animate-pulse"
+          className="rounded-full w-14 h-14 bg-brand-orange hover:bg-brand-orange/90 text-white shadow-lg hover:shadow-xl transition-all duration-300"
           size="lg"
         >
           <MessageCircle className="h-6 w-6" />
