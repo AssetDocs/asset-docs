@@ -44,6 +44,7 @@ interface DashboardTourProps {
 const DashboardTour: React.FC<DashboardTourProps> = ({ isVisible, onClose }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [tourPosition, setTourPosition] = useState({ top: 0, left: 0 });
+  const [arrowPath, setArrowPath] = useState('');
 
   useEffect(() => {
     if (!isVisible) return;
@@ -77,6 +78,41 @@ const DashboardTour: React.FC<DashboardTourProps> = ({ isVisible, onClose }) => 
         }
 
         setTourPosition({ top, left });
+
+        // Calculate arrow path
+        const targetCenterX = rect.left + window.scrollX + rect.width / 2;
+        const targetCenterY = rect.top + window.scrollY + rect.height / 2;
+        
+        let arrowStartX = 0;
+        let arrowStartY = 0;
+        let arrowEndX = targetCenterX;
+        let arrowEndY = targetCenterY;
+
+        switch (position) {
+          case 'bottom':
+            arrowStartX = left;
+            arrowStartY = top - 10;
+            arrowEndY = rect.bottom + window.scrollY;
+            break;
+          case 'top':
+            arrowStartX = left;
+            arrowStartY = top + 10;
+            arrowEndY = rect.top + window.scrollY;
+            break;
+          case 'right':
+            arrowStartX = left - 10;
+            arrowStartY = top;
+            arrowEndX = rect.right + window.scrollX;
+            break;
+          case 'left':
+            arrowStartX = left + 10;
+            arrowStartY = top;
+            arrowEndX = rect.left + window.scrollX;
+            break;
+        }
+
+        const path = `M ${arrowStartX} ${arrowStartY} L ${arrowEndX} ${arrowEndY}`;
+        setArrowPath(path);
       }
     };
 
@@ -116,6 +152,43 @@ const DashboardTour: React.FC<DashboardTourProps> = ({ isVisible, onClose }) => 
     <>
       {/* Backdrop */}
       <div className="fixed inset-0 bg-black bg-opacity-50 z-40" />
+      
+      {/* Arrow SVG */}
+      {arrowPath && (
+        <svg 
+          className="fixed z-45 pointer-events-none"
+          style={{ 
+            top: 0, 
+            left: 0, 
+            width: '100vw', 
+            height: '100vh' 
+          }}
+        >
+          <defs>
+            <marker
+              id="arrowhead"
+              markerWidth="10"
+              markerHeight="7"
+              refX="9"
+              refY="3.5"
+              orient="auto"
+            >
+              <polygon
+                points="0 0, 10 3.5, 0 7"
+                fill="#3b82f6"
+              />
+            </marker>
+          </defs>
+          <path
+            d={arrowPath}
+            stroke="#3b82f6"
+            strokeWidth="2"
+            fill="none"
+            markerEnd="url(#arrowhead)"
+            className="animate-pulse"
+          />
+        </svg>
+      )}
       
       {/* Tour tooltip */}
       <div 
