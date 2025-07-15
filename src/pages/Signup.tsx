@@ -12,6 +12,9 @@ const Signup: React.FC = () => {
     e.preventDefault();
     // Signup logic would go here
     console.log('Signup form submitted');
+    
+    // Redirect to welcome/verification page
+    window.location.href = '/welcome';
   };
 
   return (

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import AssetValuesSection from '@/components/AssetValuesSection';
@@ -12,11 +12,27 @@ import StorageAlert from '@/components/StorageAlert';
 import HouseholdIncomeSection from '@/components/HouseholdIncomeSection';
 import PostDamageSection from '@/components/PostDamageSection';
 import VoiceNotesSection from '@/components/VoiceNotesSection';
+import DashboardTour from '@/components/DashboardTour';
+import AppDownloadButtons from '@/components/AppDownloadButtons';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Account: React.FC = () => {
   const [showQRCode, setShowQRCode] = useState(false);
+  const [showTour, setShowTour] = useState(false);
+
+  useEffect(() => {
+    // Check if user has seen the tour before
+    const hasSeenTour = localStorage.getItem('hasSeenDashboardTour');
+    if (!hasSeenTour) {
+      setShowTour(true);
+    }
+  }, []);
+
+  const closeTour = () => {
+    setShowTour(false);
+    localStorage.setItem('hasSeenDashboardTour', 'true');
+  };
 
   const handleCreateFloorPlan = () => {
     console.log('Create Floor Plan clicked - will connect to CubiCasa');
@@ -34,14 +50,20 @@ const Account: React.FC = () => {
       
       <div className="flex-grow py-8 px-4 bg-gray-50">
         <div className="max-w-6xl mx-auto">
-          <AccountHeader 
-            showQRCode={showQRCode}
-            onGenerateQR={generatePropertyQR}
-          />
+          <AppDownloadButtons />
+          
+          <div id="account-header">
+            <AccountHeader 
+              showQRCode={showQRCode}
+              onGenerateQR={generatePropertyQR}
+            />
+          </div>
 
-          <StorageAlert />
+          <div id="storage-alert">
+            <StorageAlert />
+          </div>
 
-          <Tabs defaultValue="overview" className="space-y-6">
+          <Tabs defaultValue="overview" className="space-y-6" id="tabs-content">
             <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="floor-plans">Floor Plans</TabsTrigger>
@@ -81,6 +103,8 @@ const Account: React.FC = () => {
       </div>
       
       <Footer />
+      
+      <DashboardTour isVisible={showTour} onClose={closeTour} />
     </div>
   );
 };
