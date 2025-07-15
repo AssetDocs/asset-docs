@@ -48,6 +48,13 @@ const PricingFAQ: React.FC = () => {
               You have complete control over your privacy. You can choose between having AI valuation turned on or off at any time in your account settings.
             </p>
           </div>
+          
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-xl font-semibold mb-3">How do you determine the valuation of my items?</h3>
+            <p className="text-gray-600">
+              Our AI analyzes current market values from multiple sources including eBay, Amazon, specialized auction sites, and industry databases. We consider factors like item condition, rarity, brand, age, and recent sales data to provide accurate valuations. For unique or antique items, we also reference collector guides and expert appraisals to ensure comprehensive assessments.
+            </p>
+          </div>
         </div>
       </div>
     </section>
