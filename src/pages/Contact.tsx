@@ -209,8 +209,8 @@ const Contact: React.FC = () => {
               <div className="bg-gray-50 p-6 rounded-lg">
                 <h3 className="text-lg font-semibold mb-3 text-gray-800">Email</h3>
                 <p className="text-gray-600">
-                  <a href="mailto:info@assetdocs.com" className="hover:text-brand-blue transition-colors">
-                    info@assetdocs.com
+                  <a href="mailto:info@assetdocs.net" className="hover:text-brand-blue transition-colors">
+                    info@assetdocs.net
                   </a>
                 </p>
               </div>
