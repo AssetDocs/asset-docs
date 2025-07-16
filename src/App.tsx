@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import useScrollToTop from "@/hooks/useScrollToTop";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import LoginGate from "@/components/LoginGate";
 import { TranslationProvider } from "@/contexts/TranslationContext";
 import CustomerSupportWidget from "@/components/CustomerSupportWidget";
 
@@ -14,6 +13,7 @@ import Features from "./pages/Features";
 import Pricing from "./pages/Pricing";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Terms from "./pages/Terms";
 import QA from "./pages/QA";
@@ -45,43 +45,61 @@ const ScrollToTopWrapper = () => {
   return null;
 };
 
-const AppContent = () => {
-  const { isAuthenticated } = useAuth();
-
-  if (!isAuthenticated) {
-    return <LoginGate />;
+// Protected Route Component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
   }
+  
+  if (!isAuthenticated) {
+    return <Auth />;
+  }
+  
+  return <>{children}</>;
+};
 
+const AppContent = () => {
   return (
     <BrowserRouter>
       <ScrollToTopWrapper />
       <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/features" element={<Features />} />
-        <Route path="/pricing" element={<Pricing />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+        {/* Public routes */}
+        <Route path="/auth" element={<Auth />} />
         <Route path="/terms" element={<Terms />} />
-        <Route path="/qa" element={<QA />} />
-        <Route path="/welcome" element={<Welcome />} />
-        <Route path="/account" element={<Account />} />
-        <Route path="/account/properties" element={<Properties />} />
-        <Route path="/account/properties/new" element={<PropertyForm />} />
-        <Route path="/account/photos" element={<PhotoGallery />} />
-        <Route path="/account/photos/upload" element={<PhotoUpload />} />
-        <Route path="/account/videos/upload" element={<VideoUpload />} />
-        <Route path="/account/floorplans/upload" element={<FloorPlanUpload />} />
-        <Route path="/account/insurance/new" element={<InsuranceForm />} />
-        <Route path="/account/settings" element={<AccountSettings />} />
-        <Route path="/schedule-professional" element={<ScheduleProfessional />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path="/testimonials" element={<Testimonials />} />
-        <Route path="/resources" element={<Resources />} />
-        <Route path="/feedback" element={<Feedback />} />
-        <Route path="/video-help" element={<VideoHelp />} />
-        <Route path="/claims" element={<Claims />} />
         <Route path="/legal" element={<Legal />} />
+        
+        {/* Protected routes */}
+        <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+        <Route path="/features" element={<ProtectedRoute><Features /></ProtectedRoute>} />
+        <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
+        <Route path="/login" element={<ProtectedRoute><Login /></ProtectedRoute>} />
+        <Route path="/signup" element={<ProtectedRoute><Signup /></ProtectedRoute>} />
+        <Route path="/qa" element={<ProtectedRoute><QA /></ProtectedRoute>} />
+        <Route path="/welcome" element={<ProtectedRoute><Welcome /></ProtectedRoute>} />
+        <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
+        <Route path="/account/properties" element={<ProtectedRoute><Properties /></ProtectedRoute>} />
+        <Route path="/account/properties/new" element={<ProtectedRoute><PropertyForm /></ProtectedRoute>} />
+        <Route path="/account/photos" element={<ProtectedRoute><PhotoGallery /></ProtectedRoute>} />
+        <Route path="/account/photos/upload" element={<ProtectedRoute><PhotoUpload /></ProtectedRoute>} />
+        <Route path="/account/videos/upload" element={<ProtectedRoute><VideoUpload /></ProtectedRoute>} />
+        <Route path="/account/floorplans/upload" element={<ProtectedRoute><FloorPlanUpload /></ProtectedRoute>} />
+        <Route path="/account/insurance/new" element={<ProtectedRoute><InsuranceForm /></ProtectedRoute>} />
+        <Route path="/account/settings" element={<ProtectedRoute><AccountSettings /></ProtectedRoute>} />
+        <Route path="/schedule-professional" element={<ProtectedRoute><ScheduleProfessional /></ProtectedRoute>} />
+        <Route path="/testimonials" element={<ProtectedRoute><Testimonials /></ProtectedRoute>} />
+        <Route path="/resources" element={<ProtectedRoute><Resources /></ProtectedRoute>} />
+        <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
+        <Route path="/video-help" element={<ProtectedRoute><VideoHelp /></ProtectedRoute>} />
+        <Route path="/claims" element={<ProtectedRoute><Claims /></ProtectedRoute>} />
+        
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
