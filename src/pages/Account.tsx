@@ -22,10 +22,14 @@ const Account: React.FC = () => {
   const [showTour, setShowTour] = useState(false);
 
   useEffect(() => {
-    // Check if user has seen the tour before
+    // Check if user is a new user and hasn't seen the tour
+    const isNewUser = localStorage.getItem('isNewUser');
     const hasSeenTour = localStorage.getItem('hasSeenDashboardTour');
-    if (!hasSeenTour) {
+    
+    if (isNewUser && !hasSeenTour) {
       setShowTour(true);
+      // Clear the new user flag
+      localStorage.removeItem('isNewUser');
     }
   }, []);
 

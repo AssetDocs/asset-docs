@@ -101,14 +101,9 @@ const Auth = () => {
           setError(error.message);
         }
       } else {
-        setMessage('Please check your email for a confirmation link to complete your registration.');
-        setSignUpData({
-          email: '',
-          password: '',
-          confirmPassword: '',
-          firstName: '',
-          lastName: ''
-        });
+        // Mark as new user and redirect to welcome page
+        localStorage.setItem('isNewUser', 'true');
+        navigate('/welcome');
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
