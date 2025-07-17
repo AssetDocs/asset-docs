@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,6 +8,7 @@ import useScrollToTop from "@/hooks/useScrollToTop";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { TranslationProvider } from "@/contexts/TranslationContext";
 import CustomerSupportWidget from "@/components/CustomerSupportWidget";
+import PasswordGate from "@/components/PasswordGate";
 
 import Index from "./pages/Index";
 import Features from "./pages/Features";
@@ -108,18 +110,46 @@ const AppContent = () => {
   );
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <TranslationProvider>
-        <AuthProvider>
-          <AppContent />
-        </AuthProvider>
-      </TranslationProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  const [hasAccess, setHasAccess] = useState(false);
+  
+  useEffect(() => {
+    // Check if user has already entered the correct password
+    const accessGranted = localStorage.getItem('assetdocs-access');
+    if (accessGranted === 'granted') {
+      setHasAccess(true);
+    }
+  }, []);
+
+  const handlePasswordCorrect = () => {
+    setHasAccess(true);
+  };
+
+  if (!hasAccess) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <PasswordGate onPasswordCorrect={handlePasswordCorrect} />
+        </TooltipProvider>
+      </QueryClientProvider>
+    );
+  }
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <TranslationProvider>
+          <AuthProvider>
+            <AppContent />
+          </AuthProvider>
+        </TranslationProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
