@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Auth = () => {
   const { signUp, signIn, isAuthenticated } = useAuth();
@@ -101,6 +101,20 @@ const Auth = () => {
           setError(error.message);
         }
       } else {
+        // Send welcome email
+        try {
+          await supabase.functions.invoke('send-welcome-email', {
+            body: {
+              email: signUpData.email,
+              firstName: signUpData.firstName,
+              lastName: signUpData.lastName
+            }
+          });
+        } catch (emailError) {
+          console.error('Failed to send welcome email:', emailError);
+          // Don't block the signup process if email fails
+        }
+        
         // Mark as new user and redirect to welcome page
         localStorage.setItem('isNewUser', 'true');
         navigate('/welcome');
