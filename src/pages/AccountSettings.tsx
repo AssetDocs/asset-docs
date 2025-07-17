@@ -6,6 +6,7 @@ import ProfileTab from '@/components/ProfileTab';
 import BillingTab from '@/components/BillingTab';
 import SubscriptionTab from '@/components/SubscriptionTab';
 import NotificationsTab from '@/components/NotificationsTab';
+import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, User, CreditCard, Package, Bell } from 'lucide-react';
@@ -18,17 +19,11 @@ const AccountSettings: React.FC = () => {
       
       <div className="flex-grow py-8 px-4 bg-gray-50">
         <div className="max-w-4xl mx-auto">
-          <div className="mb-6 flex items-center gap-4">
-            <Button asChild variant="outline" size="sm">
-              <Link to="/account">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Link>
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-brand-blue">Account Settings</h1>
-              <p className="text-gray-600">Manage your profile, billing, and subscription preferences</p>
-            </div>
+          <DashboardBreadcrumb />
+          
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold text-brand-blue">Account Settings</h1>
+            <p className="text-gray-600">Manage your profile, billing, and subscription preferences</p>
           </div>
 
           <Tabs defaultValue="profile" className="space-y-6">

@@ -34,6 +34,7 @@ import VideoGalleryHeader from '@/components/VideoGalleryHeader';
 import VideoGalleryGrid from '@/components/VideoGalleryGrid';
 import VideoGalleryFolders from '@/components/VideoGalleryFolders';
 import CreateFolderModal from '@/components/CreateFolderModal';
+import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 
 // Mock data for demonstration
 const mockVideos = [
@@ -138,7 +139,7 @@ const Videos: React.FC = () => {
   const [showCreateFolder, setShowCreateFolder] = useState(false);
 
   const handleBack = () => {
-    navigate('/account/properties');
+    navigate('/account');
   };
 
   const filteredAndSortedVideos = React.useMemo(() => {
@@ -225,7 +226,9 @@ const Videos: React.FC = () => {
       
       <div className="flex-grow py-8 px-4 bg-gray-50">
         <div className="max-w-7xl mx-auto">
-          <VideoGalleryHeader 
+          <DashboardBreadcrumb />
+          
+          <VideoGalleryHeader
             onBack={handleBack}
             currentFolderName={currentFolderName}
             videoCount={filteredAndSortedVideos.length}

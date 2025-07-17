@@ -6,10 +6,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, Images } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import PropertyList from '@/components/PropertyList';
+import PropertyManagement from '@/components/PropertyManagement';
 import PropertyHeader from '@/components/PropertyHeader';
 import PropertySummary from '@/components/PropertySummary';
 import PropertyTabs from '@/components/PropertyTabs';
+import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 
 // Mock data for demonstration
 const mockProperties = [
@@ -68,10 +69,15 @@ const mockProperties = [
 
 const Properties: React.FC = () => {
   const navigate = useNavigate();
+  const [properties, setProperties] = useState(mockProperties);
   const [selectedProperty, setSelectedProperty] = useState(mockProperties[0]);
 
   const handleViewPhotoGallery = () => {
     navigate('/account/photos');
+  };
+
+  const handlePropertyUpdate = (updatedProperties: typeof mockProperties) => {
+    setProperties(updatedProperties);
   };
 
   return (
@@ -80,6 +86,8 @@ const Properties: React.FC = () => {
       
       <div className="flex-grow py-8 px-4 bg-gray-50">
         <div className="max-w-7xl mx-auto">
+          <DashboardBreadcrumb />
+          
           <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <h1 className="text-3xl font-bold text-brand-blue mb-2">My Properties</h1>
@@ -94,18 +102,15 @@ const Properties: React.FC = () => {
                 <Images className="h-4 w-4" />
                 View Photo Gallery
               </Button>
-              <Button className="bg-brand-blue hover:bg-brand-lightBlue">
-                <Plus className="h-4 w-4 mr-2" />
-                Add New Property
-              </Button>
             </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Property List */}
+            {/* Property Management */}
             <div className="lg:col-span-1">
-              <PropertyList
-                properties={mockProperties}
+              <PropertyManagement
+                properties={properties}
+                onPropertyUpdate={handlePropertyUpdate}
                 selectedProperty={selectedProperty}
                 onPropertySelect={setSelectedProperty}
               />

@@ -33,6 +33,7 @@ import PhotoGalleryHeader from '@/components/PhotoGalleryHeader';
 import PhotoGalleryGrid from '@/components/PhotoGalleryGrid';
 import PhotoGalleryFolders from '@/components/PhotoGalleryFolders';
 import CreateFolderModal from '@/components/CreateFolderModal';
+import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 
 // Mock data for demonstration
 const mockPhotos = [
@@ -132,7 +133,7 @@ const PhotoGallery: React.FC = () => {
   const [showCreateFolder, setShowCreateFolder] = useState(false);
 
   const handleBack = () => {
-    navigate('/account/properties');
+    navigate('/account');
   };
 
   const filteredAndSortedPhotos = React.useMemo(() => {
@@ -215,7 +216,9 @@ const PhotoGallery: React.FC = () => {
       
       <div className="flex-grow py-8 px-4 bg-gray-50">
         <div className="max-w-7xl mx-auto">
-          <PhotoGalleryHeader 
+          <DashboardBreadcrumb />
+          
+          <PhotoGalleryHeader
             onBack={handleBack}
             currentFolderName={currentFolderName}
             photoCount={filteredAndSortedPhotos.length}
