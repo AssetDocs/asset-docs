@@ -70,6 +70,7 @@ const AppContent = () => {
       <ScrollToTopWrapper />
       <Routes>
         {/* Public routes */}
+        <Route path="/" element={<Index />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/about" element={<About />} />
@@ -77,7 +78,6 @@ const AppContent = () => {
         <Route path="/legal" element={<Legal />} />
         
         {/* Protected routes */}
-        <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
         <Route path="/features" element={<ProtectedRoute><Features /></ProtectedRoute>} />
         <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
         <Route path="/login" element={<ProtectedRoute><Login /></ProtectedRoute>} />
