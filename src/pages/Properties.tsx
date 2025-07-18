@@ -80,6 +80,14 @@ const Properties: React.FC = () => {
     setProperties(updatedProperties);
   };
 
+  const handleSelectedPropertyUpdate = (updatedProperty: typeof mockProperties[0]) => {
+    const updatedProperties = properties.map(prop => 
+      prop.id === updatedProperty.id ? updatedProperty : prop
+    );
+    setProperties(updatedProperties);
+    setSelectedProperty(updatedProperty);
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
@@ -119,7 +127,10 @@ const Properties: React.FC = () => {
             {/* Property Details */}
             <div className="lg:col-span-2">
               <Card>
-                <PropertyHeader property={selectedProperty} />
+                <PropertyHeader 
+                  property={selectedProperty} 
+                  onPropertyUpdate={handleSelectedPropertyUpdate}
+                />
                 <CardContent>
                   <PropertySummary property={selectedProperty} />
                   <PropertyTabs
