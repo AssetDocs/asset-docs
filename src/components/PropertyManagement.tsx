@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Edit3, Trash2, Plus, Home, MapPin } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Plus, Home, MapPin, Edit3, Trash2, Loader2 } from "lucide-react";
+import GoogleMapsAutocomplete from './GoogleMapsAutocomplete';
+import RealEstateDataService from '@/services/RealEstateDataService';
 import { useToast } from '@/hooks/use-toast';
 
 interface Property {
@@ -45,13 +47,6 @@ interface Property {
   }>;
 }
 
-interface PropertyManagementProps {
-  properties: Property[];
-  onPropertyUpdate: (properties: Property[]) => void;
-  selectedProperty: Property;
-  onPropertySelect: (property: Property) => void;
-}
-
 interface PropertyFormData {
   name: string;
   address: string;
@@ -59,6 +54,13 @@ interface PropertyFormData {
   squareFootage: string;
   yearBuilt: string;
   estimatedValue: string;
+}
+
+interface PropertyManagementProps {
+  properties: Property[];
+  onPropertyUpdate: (properties: Property[]) => void;
+  selectedProperty: Property;
+  onPropertySelect: (property: Property) => void;
 }
 
 const PropertyManagement: React.FC<PropertyManagementProps> = ({
@@ -78,6 +80,8 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
     yearBuilt: '',
     estimatedValue: ''
   });
+  const [isLoadingPropertyData, setIsLoadingPropertyData] = useState(false);
+  const realEstateService = RealEstateDataService.getInstance();
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -97,6 +101,34 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
       yearBuilt: '',
       estimatedValue: ''
     });
+    setEditingProperty(null);
+  };
+
+  const handlePlaceSelected = async (place: google.maps.places.PlaceResult) => {
+    if (!place.formatted_address) return;
+    
+    setIsLoadingPropertyData(true);
+    try {
+      const addressComponents = realEstateService.extractAddressComponents(place);
+      const propertyDetails = await realEstateService.fetchPropertyDetails(
+        place.formatted_address,
+        addressComponents
+      );
+      
+      // Auto-populate the form with fetched property details
+      setFormData(prev => ({
+        ...prev,
+        address: place.formatted_address || prev.address,
+        type: propertyDetails.propertyType || prev.type,
+        yearBuilt: propertyDetails.yearBuilt?.toString() || prev.yearBuilt,
+        squareFootage: propertyDetails.squareFootage?.toString() || prev.squareFootage,
+        estimatedValue: propertyDetails.estimatedValue?.toString() || prev.estimatedValue,
+      }));
+    } catch (error) {
+      console.error('Error fetching property details:', error);
+    } finally {
+      setIsLoadingPropertyData(false);
+    }
   };
 
   const handleEdit = (property: Property) => {
@@ -213,15 +245,20 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
               </div>
               
               <div>
-                <Label htmlFor="address">Address</Label>
-                <Textarea
-                  id="address"
+                <GoogleMapsAutocomplete
                   value={formData.address}
-                  onChange={(e) => setFormData({...formData, address: e.target.value})}
-                  placeholder="Enter full address"
+                  onChange={(address) => setFormData({...formData, address})}
+                  onPlaceSelected={handlePlaceSelected}
+                  label="Address"
+                  placeholder="Start typing an address..."
                   required
-                  rows={2}
                 />
+                {isLoadingPropertyData && (
+                  <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Fetching property details...
+                  </div>
+                )}
               </div>
               
               <div>
@@ -345,14 +382,20 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
                       </div>
                       
                       <div>
-                        <Label htmlFor="edit-address">Address</Label>
-                        <Textarea
-                          id="edit-address"
+                        <GoogleMapsAutocomplete
                           value={formData.address}
-                          onChange={(e) => setFormData({...formData, address: e.target.value})}
+                          onChange={(address) => setFormData({...formData, address})}
+                          onPlaceSelected={handlePlaceSelected}
+                          label="Address"
+                          placeholder="Start typing an address..."
                           required
-                          rows={2}
                         />
+                        {isLoadingPropertyData && (
+                          <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Updating property details...
+                          </div>
+                        )}
                       </div>
                       
                       <div>
