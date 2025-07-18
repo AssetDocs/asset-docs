@@ -23,21 +23,11 @@ const GoogleMapsAutocomplete: React.FC<GoogleMapsAutocompleteProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [apiKey, setApiKey] = useState('');
 
   useEffect(() => {
-    // In a real implementation, this would come from Supabase Edge Function secrets
-    // For now, we'll use a placeholder that prompts users to add their key
     const initializeGoogleMaps = async () => {
       try {
-        // This is where you'd fetch the API key from your backend/secrets
-        // For demo purposes, we'll use a placeholder
-        const GOOGLE_MAPS_API_KEY = apiKey || 'YOUR_GOOGLE_MAPS_API_KEY';
-        
-        if (GOOGLE_MAPS_API_KEY === 'YOUR_GOOGLE_MAPS_API_KEY') {
-          console.warn('Please add your Google Maps API key to use autocomplete');
-          return;
-        }
+        const GOOGLE_MAPS_API_KEY = 'AIzaSyA3KbBfFCS4b4duF8AFWl-2q3Aq4U2ZkJM';
 
         const loader = new Loader({
           apiKey: GOOGLE_MAPS_API_KEY,
@@ -53,7 +43,7 @@ const GoogleMapsAutocomplete: React.FC<GoogleMapsAutocompleteProps> = ({
     };
 
     initializeGoogleMaps();
-  }, [apiKey]);
+  }, []);
 
   useEffect(() => {
     if (isLoaded && inputRef.current && !autocompleteRef.current) {
@@ -89,21 +79,6 @@ const GoogleMapsAutocomplete: React.FC<GoogleMapsAutocompleteProps> = ({
         required={required}
         className="w-full"
       />
-      {!isLoaded && apiKey === '' && (
-        <div className="mt-2">
-          <Label htmlFor="google-api-key">Google Maps API Key (Required)</Label>
-          <Input
-            id="google-api-key"
-            type="password"
-            placeholder="Enter your Google Maps API key"
-            onChange={(e) => setApiKey(e.target.value)}
-            className="text-sm"
-          />
-          <p className="text-xs text-muted-foreground mt-1">
-            Get your API key from <a href="https://console.cloud.google.com/google/maps-apis/credentials" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Google Cloud Console</a>
-          </p>
-        </div>
-      )}
     </div>
   );
 };
