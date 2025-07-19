@@ -73,6 +73,28 @@ const AccountActions: React.FC<AccountActionsProps> = ({ onCreateFloorPlan }) =>
         <CardHeader>
           <CardTitle className="flex items-center">
             <Video className="h-6 w-6 mr-2 text-brand-blue" />
+            Media Management
+          </CardTitle>
+          <CardDescription>
+            Comprehensive management for videos, documents, floor plans, and insurance
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <Button asChild className="w-full" style={{ backgroundColor: '#8B5CF6' }}>
+              <Link to="/media-management">
+                <Eye className="h-4 w-4 mr-2" />
+                View All Media
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="hover:shadow-lg transition-shadow">
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Video className="h-6 w-6 mr-2 text-brand-blue" />
             Video Documentation
           </CardTitle>
           <CardDescription>

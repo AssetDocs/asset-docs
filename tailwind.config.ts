@@ -70,7 +70,8 @@ export default {
 					darkBlue: '#0040AF', // Deep royal blue - exact match from your image
 					gray: '#f8f9fa',
 					darkGray: '#343a40',
-					orange: '#F97316'    // Vibrant orange - exact match from your image
+					orange: '#F97316',   // Vibrant orange - exact match from your image
+					purple: '#8B5CF6'    // Purple for media management
 				}
 			},
 			borderRadius: {
