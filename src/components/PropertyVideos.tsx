@@ -1,8 +1,9 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Video, Eye, Download } from 'lucide-react';
+import { Video, Eye, Download, Trash2 } from 'lucide-react';
+import DeleteConfirmationDialog from './DeleteConfirmationDialog';
 
 interface VideoItem {
   id: number;
@@ -13,15 +14,37 @@ interface VideoItem {
 
 interface PropertyVideosProps {
   videos: VideoItem[];
+  onDeleteVideo?: (videoId: number) => void;
 }
 
-const PropertyVideos: React.FC<PropertyVideosProps> = ({ videos }) => {
+const PropertyVideos: React.FC<PropertyVideosProps> = ({ videos, onDeleteVideo }) => {
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [videoToDelete, setVideoToDelete] = useState<number | null>(null);
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  const handleDeleteClick = (videoId: number) => {
+    setVideoToDelete(videoId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (videoToDelete && onDeleteVideo) {
+      onDeleteVideo(videoToDelete);
+    }
+    setDeleteDialogOpen(false);
+    setVideoToDelete(null);
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setVideoToDelete(null);
   };
 
   return (
@@ -50,11 +73,29 @@ const PropertyVideos: React.FC<PropertyVideosProps> = ({ videos }) => {
                   <Download className="h-4 w-4 mr-1" />
                   Download
                 </Button>
+                {onDeleteVideo && (
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => handleDeleteClick(video.id)}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             </div>
           </CardContent>
         </Card>
       ))}
+      
+      <DeleteConfirmationDialog
+        isOpen={deleteDialogOpen}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title="Delete Video"
+        description="Are you sure you want to delete this video? This action cannot be undone."
+      />
     </div>
   );
 };

@@ -1,8 +1,9 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileImage, Eye, Download } from 'lucide-react';
+import { FileImage, Eye, Download, Trash2 } from 'lucide-react';
+import DeleteConfirmationDialog from './DeleteConfirmationDialog';
 
 interface FloorPlan {
   id: number;
@@ -12,15 +13,37 @@ interface FloorPlan {
 
 interface PropertyFloorPlansProps {
   floorPlans: FloorPlan[];
+  onDeleteFloorPlan?: (floorPlanId: number) => void;
 }
 
-const PropertyFloorPlans: React.FC<PropertyFloorPlansProps> = ({ floorPlans }) => {
+const PropertyFloorPlans: React.FC<PropertyFloorPlansProps> = ({ floorPlans, onDeleteFloorPlan }) => {
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [floorPlanToDelete, setFloorPlanToDelete] = useState<number | null>(null);
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  const handleDeleteClick = (floorPlanId: number) => {
+    setFloorPlanToDelete(floorPlanId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (floorPlanToDelete && onDeleteFloorPlan) {
+      onDeleteFloorPlan(floorPlanToDelete);
+    }
+    setDeleteDialogOpen(false);
+    setFloorPlanToDelete(null);
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setFloorPlanToDelete(null);
   };
 
   return (
@@ -44,10 +67,28 @@ const PropertyFloorPlans: React.FC<PropertyFloorPlansProps> = ({ floorPlans }) =
                 <Download className="h-3 w-3 mr-1" />
                 Download
               </Button>
+              {onDeleteFloorPlan && (
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => handleDeleteClick(floorPlan.id)}
+                  className="text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
       ))}
+      
+      <DeleteConfirmationDialog
+        isOpen={deleteDialogOpen}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title="Delete Floor Plan"
+        description="Are you sure you want to delete this floor plan? This action cannot be undone."
+      />
     </div>
   );
 };

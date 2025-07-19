@@ -1,8 +1,9 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, Eye, Download } from 'lucide-react';
+import { FileText, Eye, Download, Trash2 } from 'lucide-react';
+import DeleteConfirmationDialog from './DeleteConfirmationDialog';
 
 interface Document {
   id: number;
@@ -13,15 +14,37 @@ interface Document {
 
 interface PropertyDocumentsProps {
   documents: Document[];
+  onDeleteDocument?: (documentId: number) => void;
 }
 
-const PropertyDocuments: React.FC<PropertyDocumentsProps> = ({ documents }) => {
+const PropertyDocuments: React.FC<PropertyDocumentsProps> = ({ documents, onDeleteDocument }) => {
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [documentToDelete, setDocumentToDelete] = useState<number | null>(null);
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  const handleDeleteClick = (documentId: number) => {
+    setDocumentToDelete(documentId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (documentToDelete && onDeleteDocument) {
+      onDeleteDocument(documentToDelete);
+    }
+    setDeleteDialogOpen(false);
+    setDocumentToDelete(null);
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setDocumentToDelete(null);
   };
 
   return (
@@ -50,11 +73,29 @@ const PropertyDocuments: React.FC<PropertyDocumentsProps> = ({ documents }) => {
                   <Download className="h-4 w-4 mr-1" />
                   Download
                 </Button>
+                {onDeleteDocument && (
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => handleDeleteClick(document.id)}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             </div>
           </CardContent>
         </Card>
       ))}
+      
+      <DeleteConfirmationDialog
+        isOpen={deleteDialogOpen}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title="Delete Document"
+        description="Are you sure you want to delete this document? This action cannot be undone."
+      />
     </div>
   );
 };
