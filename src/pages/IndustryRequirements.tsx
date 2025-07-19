@@ -182,6 +182,108 @@ const IndustryRequirements: React.FC = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Insurance Guide */}
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Home className="h-5 w-5" />
+                4. Insurance Guide
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-8">
+                {/* Coverage Levels */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Coverage Levels</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-semibold text-foreground mb-2">Actual Cash Value (ACV)</h4>
+                      <p className="text-sm text-muted-foreground">Covers replacement cost minus depreciation. Most basic coverage level.</p>
+                    </div>
+                    
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-semibold text-foreground mb-2">Replacement Cost</h4>
+                      <p className="text-sm text-muted-foreground">Covers full replacement value without depreciation deduction.</p>
+                    </div>
+                    
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-semibold text-foreground mb-2">Guaranteed Replacement</h4>
+                      <p className="text-sm text-muted-foreground">Most comprehensive. Covers full rebuilding costs even above policy limits.</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* What's Covered */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Standard Coverage Includes</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <h4 className="font-semibold text-foreground mb-2">Structure & Contents</h4>
+                      <ul className="space-y-1 text-sm text-muted-foreground">
+                        <li>• Fire, lightning, wind, vandalism damage</li>
+                        <li>• Personal belongings (typically 50-70% of structure value)</li>
+                        <li>• Detached structures (garages, sheds)</li>
+                      </ul>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-semibold text-foreground mb-2">Liability & Living Expenses</h4>
+                      <ul className="space-y-1 text-sm text-muted-foreground">
+                        <li>• Personal liability (recommended $300K minimum)</li>
+                        <li>• Pet-related injuries</li>
+                        <li>• Temporary housing during repairs</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* What's Not Covered */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Common Exclusions</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <h4 className="font-semibold text-foreground mb-2">Natural Disasters</h4>
+                      <ul className="space-y-1 text-sm text-muted-foreground">
+                        <li>• Floods (requires separate NFIP policy)</li>
+                        <li>• Earthquakes (separate coverage needed)</li>
+                        <li>• Sinkholes (gradual damage)</li>
+                      </ul>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-semibold text-foreground mb-2">Maintenance & Other</h4>
+                      <ul className="space-y-1 text-sm text-muted-foreground">
+                        <li>• Normal wear and tear</li>
+                        <li>• Pest damage (termites, rodents)</li>
+                        <li>• Intentional damage</li>
+                        <li>• Acts of war or terrorism</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Rate Factors */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">How Rates Are Determined</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <ul className="space-y-2 text-muted-foreground">
+                      <li>• Claims history (home and personal)</li>
+                      <li>• Location and neighborhood crime rate</li>
+                      <li>• Home age, condition, and materials</li>
+                      <li>• Credit score</li>
+                    </ul>
+                    <ul className="space-y-2 text-muted-foreground">
+                      <li>• Coverage amount and deductible</li>
+                      <li>• Additional riders (jewelry, art)</li>
+                      <li>• Risk factors (pools, certain dog breeds)</li>
+                      <li>• Building code compliance requirements</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </main>
 
