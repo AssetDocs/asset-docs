@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import FeatureCard from '@/components/FeatureCard';
 import { Link } from 'react-router-dom';
-import { Shield, Camera, Lock, FileImage, BarChart, Clock } from 'lucide-react';
+import { Shield, Camera, Lock, BarChart, Clock } from 'lucide-react';
 import { useTranslation } from '@/contexts/TranslationContext';
 
 const FeaturesSection: React.FC = () => {
@@ -18,11 +18,6 @@ const FeaturesSection: React.FC = () => {
             icon={<Camera size={48} />}
             title="High Resolution Documentation"
             description="Capture detailed images and video of your property and possessions with our easy-to-use tools."
-          />
-          <FeatureCard 
-            icon={<FileImage size={48} />}
-            title="3D Virtual Tours"
-            description="Create interactive 3D models of your property with precise measurements and asset location references."
           />
           <FeatureCard 
             icon={<Shield size={48} />}
