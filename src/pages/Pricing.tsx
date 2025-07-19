@@ -76,29 +76,32 @@ const Pricing: React.FC = () => {
     {
       title: "Basic",
       price: "$8.99",
-      description: "Perfect for getting started with property management",
+      description: "Perfect for individuals with basic documentation needs",
       features: [
-        "Up to 5 properties",
-        "Basic photo storage",
-        "Property value estimates",
-        "Standard support",
-        "Mobile app access"
+        "1 property",
+        "250GB secure cloud storage",
+        "Photo and video uploads",
+        "Mobile app access",
+        "Email support",
+        "30-day free trial"
       ],
       planType: "basic",
       icon: <Shield className="h-6 w-6" />
     },
     {
       title: "Standard",
-      price: "$12.99",
-      description: "Great value plan with 30-day free trial",
+      price: "$8.99",
+      description: "Our most popular plan for comprehensive home documentation",
       features: [
-        "Up to 20 properties",
-        "Enhanced photo & video storage",
-        "Advanced property analytics",
-        "Priority support",
-        "Document management",
-        "Floor plan scanning",
-        "30-day free trial included"
+        "Up to 3 properties",
+        "500GB secure cloud storage",
+        "Photo and video uploads",
+        "Mobile app access",
+        "Export detailed reports",
+        "Priority email support",
+        "Share with 2 trusted contacts",
+        "🎉 6-month introductory price (reg. $12.99)",
+        "30-day free trial"
       ],
       planType: "standard",
       recommended: true,
@@ -107,15 +110,19 @@ const Pricing: React.FC = () => {
     {
       title: "Premium",
       price: "$18.99",
-      description: "Full-featured solution for serious property investors",
+      description: "Complete protection with professional documentation tools",
       features: [
-        "Unlimited properties",
-        "Unlimited storage",
-        "AI-powered insights",
-        "24/7 premium support",
-        "Custom reports",
-        "API access",
-        "White-label options"
+        "Up to 10 properties",
+        "2TB secure cloud storage",
+        "Unlimited photo and video uploads",
+        "Professional asset tagging",
+        "AI-powered item identification & valuation",
+        "Floor plan scanning with live camera",
+        "Mobile app access with premium features",
+        "Export comprehensive reports",
+        "Priority email and phone support",
+        "Share with 5 trusted contacts",
+        "30-day free trial"
       ],
       planType: "premium",
       icon: <Star className="h-6 w-6" />
