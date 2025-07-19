@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
   ArrowLeft,
-  Video,
+  Shield,
   Plus,
   FolderPlus,
   Search,
@@ -20,7 +20,7 @@ import {
   Download,
   Move,
   Trash2,
-  Clock
+  FileText
 } from 'lucide-react';
 import { 
   DropdownMenu,
@@ -33,81 +33,90 @@ import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import CreateFolderModal from '@/components/CreateFolderModal';
 
 // Mock data for demonstration
-const mockVideos = [
+const mockInsurancePolicies = [
   {
     id: 1,
-    name: "Living Room Walkthrough",
-    filename: "living-room-tour.mp4",
-    url: "/placeholder.svg",
-    uploadDate: "2024-06-15",
-    duration: "3:45",
-    size: "45.2 MB",
+    name: "Home Insurance Policy 2024",
+    policyNumber: "HI-2024-001234",
+    provider: "State Farm",
+    type: "Homeowners",
+    status: "Active",
+    premium: "$1,250/year",
+    coverage: "$500,000",
+    startDate: "2024-01-01",
+    endDate: "2024-12-31",
     propertyId: 1,
     propertyName: "Main Residence",
     folderId: null,
-    tags: ["interior", "living room"]
+    tags: ["homeowners", "active"]
   },
   {
     id: 2,
-    name: "Kitchen Details",
-    filename: "kitchen-appliances.mp4", 
-    url: "/placeholder.svg",
-    uploadDate: "2024-06-14",
-    duration: "2:15",
-    size: "28.7 MB",
+    name: "Flood Insurance Policy",
+    policyNumber: "FL-2024-005678", 
+    provider: "FEMA",
+    type: "Flood",
+    status: "Active",
+    premium: "$450/year",
+    coverage: "$250,000",
+    startDate: "2024-02-15",
+    endDate: "2025-02-15",
     propertyId: 1,
     propertyName: "Main Residence",
     folderId: 1,
-    tags: ["interior", "kitchen", "appliances"]
+    tags: ["flood", "active"]
   },
   {
     id: 3,
-    name: "Exterior Overview",
-    filename: "exterior-walkthrough.mp4",
-    url: "/placeholder.svg",
-    uploadDate: "2024-06-13",
-    duration: "5:30",
-    size: "67.8 MB",
-    propertyId: 2,
-    propertyName: "Vacation Home",
-    folderId: null,
-    tags: ["exterior", "landscape"]
+    name: "Umbrella Policy",
+    policyNumber: "UM-2024-009876",
+    provider: "Allstate",
+    type: "Umbrella",
+    status: "Active", 
+    premium: "$300/year",
+    coverage: "$1,000,000",
+    startDate: "2024-01-01",
+    endDate: "2024-12-31",
+    propertyId: 1,
+    propertyName: "Main Residence",
+    folderId: 2,
+    tags: ["umbrella", "liability"]
   }
 ];
 
 const mockFolders = [
   {
     id: 1,
-    name: "Interior Videos",
-    videoCount: 15,
+    name: "Property Insurance",
+    policyCount: 6,
     color: "blue"
   },
   {
     id: 2,
-    name: "Exterior Videos", 
-    videoCount: 8,
+    name: "Liability Coverage", 
+    policyCount: 3,
     color: "green"
   },
   {
     id: 3,
-    name: "Property Tours",
-    videoCount: 12,
-    color: "purple"
+    name: "Claims History",
+    policyCount: 2,
+    color: "red"
   }
 ];
 
-type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'size-desc' | 'size-asc';
+type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'premium-desc' | 'premium-asc';
 type ViewMode = 'grid' | 'list';
 
-const Videos: React.FC = () => {
+const Insurance: React.FC = () => {
   const navigate = useNavigate();
-  const [videos, setVideos] = useState(mockVideos);
+  const [policies, setPolicies] = useState(mockInsurancePolicies);
   const [folders, setFolders] = useState(mockFolders);
   const [selectedFolder, setSelectedFolder] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('date-desc');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedVideos, setSelectedVideos] = useState<number[]>([]);
+  const [selectedPolicies, setSelectedPolicies] = useState<number[]>([]);
   const [showCreateFolder, setShowCreateFolder] = useState(false);
 
   const handleBack = () => {
@@ -119,57 +128,59 @@ const Videos: React.FC = () => {
   };
 
   const currentFolderName = selectedFolder 
-    ? folders.find(f => f.id === selectedFolder)?.name || 'Videos'
-    : 'All Videos';
+    ? folders.find(f => f.id === selectedFolder)?.name || 'Insurance'
+    : 'All Insurance Policies';
 
-  const filteredVideos = videos.filter(video => {
-    const matchesSearch = video.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         video.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesFolder = selectedFolder ? video.folderId === selectedFolder : true;
+  const filteredPolicies = policies.filter(policy => {
+    const matchesSearch = policy.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         policy.provider.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         policy.policyNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         policy.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesFolder = selectedFolder ? policy.folderId === selectedFolder : true;
     return matchesSearch && matchesFolder;
   });
 
-  const sortedVideos = [...filteredVideos].sort((a, b) => {
+  const sortedPolicies = [...filteredPolicies].sort((a, b) => {
     switch (sortBy) {
       case 'date-desc':
-        return new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime();
+        return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
       case 'date-asc':
-        return new Date(a.uploadDate).getTime() - new Date(b.uploadDate).getTime();
+        return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
       case 'name-asc':
         return a.name.localeCompare(b.name);
       case 'name-desc':
         return b.name.localeCompare(a.name);
-      case 'size-desc':
-        return parseFloat(b.size) - parseFloat(a.size);
-      case 'size-asc':
-        return parseFloat(a.size) - parseFloat(b.size);
+      case 'premium-desc':
+        return parseFloat(b.premium.replace(/[^0-9.]/g, '')) - parseFloat(a.premium.replace(/[^0-9.]/g, ''));
+      case 'premium-asc':
+        return parseFloat(a.premium.replace(/[^0-9.]/g, '')) - parseFloat(b.premium.replace(/[^0-9.]/g, ''));
       default:
         return 0;
     }
   });
 
-  const toggleVideoSelection = (videoId: number) => {
-    setSelectedVideos(prev => 
-      prev.includes(videoId) 
-        ? prev.filter(id => id !== videoId)
-        : [...prev, videoId]
+  const togglePolicySelection = (policyId: number) => {
+    setSelectedPolicies(prev => 
+      prev.includes(policyId) 
+        ? prev.filter(id => id !== policyId)
+        : [...prev, policyId]
     );
   };
 
-  const handleMoveVideos = (targetFolderId: number | null) => {
-    setVideos(prev => prev.map(video => 
-      selectedVideos.includes(video.id) 
-        ? { ...video, folderId: targetFolderId }
-        : video
+  const handleMovePolicies = (targetFolderId: number | null) => {
+    setPolicies(prev => prev.map(policy => 
+      selectedPolicies.includes(policy.id) 
+        ? { ...policy, folderId: targetFolderId }
+        : policy
     ));
-    setSelectedVideos([]);
+    setSelectedPolicies([]);
   };
 
   const handleCreateFolder = (name: string, color: string) => {
     const newFolder = {
       id: folders.length + 1,
       name,
-      videoCount: 0,
+      policyCount: 0,
       color
     };
     setFolders(prev => [...prev, newFolder]);
@@ -182,6 +193,19 @@ const Videos: React.FC = () => {
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'active':
+        return 'bg-green-100 text-green-800';
+      case 'expired':
+        return 'bg-red-100 text-red-800';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
   };
 
   return (
@@ -205,12 +229,12 @@ const Videos: React.FC = () => {
               </Button>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-                  <Video className="h-6 w-6 mr-2 text-brand-blue" />
+                  <Shield className="h-6 w-6 mr-2 text-brand-blue" />
                   {currentFolderName}
                 </h1>
                 <p className="text-sm text-gray-500">
-                  {sortedVideos.length} video{sortedVideos.length !== 1 ? 's' : ''} 
-                  {selectedVideos.length > 0 && ` • ${selectedVideos.length} selected`}
+                  {sortedPolicies.length} polic{sortedPolicies.length !== 1 ? 'ies' : 'y'} 
+                  {selectedPolicies.length > 0 && ` • ${selectedPolicies.length} selected`}
                 </p>
               </div>
             </div>
@@ -225,9 +249,9 @@ const Videos: React.FC = () => {
                 New Folder
               </Button>
               <Button asChild size="sm">
-                <a href="/account/videos/upload">
+                <a href="/account/insurance/new">
                   <Plus className="h-4 w-4 mr-1" />
-                  Upload Videos
+                  Add Policy
                 </a>
               </Button>
             </div>
@@ -239,7 +263,7 @@ const Videos: React.FC = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <input
                 type="text"
-                placeholder="Search videos..."
+                placeholder="Search policies..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent"
@@ -309,10 +333,10 @@ const Videos: React.FC = () => {
                       className="w-full justify-start"
                       onClick={() => setSelectedFolder(null)}
                     >
-                      <Video className="h-4 w-4 mr-2" />
-                      All Videos
+                      <Shield className="h-4 w-4 mr-2" />
+                      All Policies
                       <Badge variant="secondary" className="ml-auto">
-                        {videos.length}
+                        {policies.length}
                       </Badge>
                     </Button>
                     
@@ -326,7 +350,7 @@ const Videos: React.FC = () => {
                         <div className={`w-3 h-3 rounded-full mr-2 bg-${folder.color}-500`} />
                         {folder.name}
                         <Badge variant="secondary" className="ml-auto">
-                          {videos.filter(v => v.folderId === folder.id).length}
+                          {policies.filter(p => p.folderId === folder.id).length}
                         </Badge>
                       </Button>
                     ))}
@@ -335,42 +359,64 @@ const Videos: React.FC = () => {
               </Card>
             </div>
 
-            {/* Videos Grid */}
+            {/* Policies Grid */}
             <div className="lg:col-span-3">
               {viewMode === 'grid' ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {sortedVideos.map((video) => (
-                    <Card key={video.id} className="hover:shadow-lg transition-shadow cursor-pointer">
-                      <div className="aspect-video bg-gray-200 flex items-center justify-center relative">
-                        <Video className="h-8 w-8 text-gray-400" />
-                        <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
-                          {video.duration}
-                        </div>
-                      </div>
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="font-medium text-sm line-clamp-2">{video.name}</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {sortedPolicies.map((policy) => (
+                    <Card key={policy.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center">
+                            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                              <Shield className="h-6 w-6 text-blue-600" />
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-lg">{policy.name}</h3>
+                              <p className="text-sm text-gray-500">{policy.provider}</p>
+                            </div>
+                          </div>
                           <input
                             type="checkbox"
-                            checked={selectedVideos.includes(video.id)}
-                            onChange={() => toggleVideoSelection(video.id)}
+                            checked={selectedPolicies.includes(policy.id)}
+                            onChange={() => togglePolicySelection(policy.id)}
                             className="h-4 w-4"
                           />
                         </div>
-                        <p className="text-xs text-gray-500 mb-2">
-                          {video.size} • {video.duration}
-                        </p>
-                        <p className="text-xs text-gray-400 mb-3">
-                          {formatDate(video.uploadDate)}
-                        </p>
-                        <div className="flex gap-1">
+                        
+                        <div className="space-y-2 mb-4">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">Policy #:</span>
+                            <span className="text-sm font-medium">{policy.policyNumber}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">Type:</span>
+                            <span className="text-sm font-medium">{policy.type}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">Coverage:</span>
+                            <span className="text-sm font-medium">{policy.coverage}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">Premium:</span>
+                            <span className="text-sm font-medium">{policy.premium}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">Status:</span>
+                            <Badge className={getStatusColor(policy.status)}>
+                              {policy.status}
+                            </Badge>
+                          </div>
+                        </div>
+                        
+                        <div className="flex gap-2">
                           <Button size="sm" variant="outline" className="flex-1">
                             <Eye className="h-3 w-3 mr-1" />
-                            Watch
+                            View
                           </Button>
                           <Button size="sm" variant="outline" className="flex-1">
-                            <Download className="h-3 w-3 mr-1" />
-                            Download
+                            <FileText className="h-3 w-3 mr-1" />
+                            Details
                           </Button>
                         </div>
                       </CardContent>
@@ -379,36 +425,41 @@ const Videos: React.FC = () => {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {sortedVideos.map((video) => (
-                    <Card key={video.id} className="hover:shadow-sm transition-shadow">
+                  {sortedPolicies.map((policy) => (
+                    <Card key={policy.id} className="hover:shadow-sm transition-shadow">
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
                             <input
                               type="checkbox"
-                              checked={selectedVideos.includes(video.id)}
-                              onChange={() => toggleVideoSelection(video.id)}
+                              checked={selectedPolicies.includes(policy.id)}
+                              onChange={() => togglePolicySelection(policy.id)}
                               className="h-4 w-4 mr-3"
                             />
                             <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center mr-3">
-                              <Video className="h-4 w-4 text-blue-600" />
+                              <Shield className="h-4 w-4 text-blue-600" />
                             </div>
                             <div>
-                              <h3 className="font-medium">{video.name}</h3>
+                              <h3 className="font-medium">{policy.name}</h3>
                               <p className="text-sm text-gray-500">
-                                {video.duration} • {video.size} • {formatDate(video.uploadDate)}
+                                {policy.provider} • {policy.policyNumber} • {policy.premium}
                               </p>
                             </div>
                           </div>
-                          <div className="flex gap-2">
-                            <Button size="sm" variant="outline">
-                              <Eye className="h-4 w-4 mr-1" />
-                              Watch
-                            </Button>
-                            <Button size="sm" variant="outline">
-                              <Download className="h-4 w-4 mr-1" />
-                              Download
-                            </Button>
+                          <div className="flex items-center gap-3">
+                            <Badge className={getStatusColor(policy.status)}>
+                              {policy.status}
+                            </Badge>
+                            <div className="flex gap-2">
+                              <Button size="sm" variant="outline">
+                                <Eye className="h-4 w-4 mr-1" />
+                                View
+                              </Button>
+                              <Button size="sm" variant="outline">
+                                <FileText className="h-4 w-4 mr-1" />
+                                Details
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </CardContent>
@@ -432,4 +483,4 @@ const Videos: React.FC = () => {
   );
 };
 
-export default Videos;
+export default Insurance;

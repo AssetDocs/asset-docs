@@ -37,6 +37,10 @@ import Feedback from "./pages/Feedback";
 import VideoHelp from "./pages/VideoHelp";
 import AccountSettings from "./pages/AccountSettings";
 import PhotoGallery from "./pages/PhotoGallery";
+import Videos from "./pages/Videos";
+import Documents from "./pages/Documents";
+import FloorPlans from "./pages/FloorPlans";
+import Insurance from "./pages/Insurance";
 import MediaManagement from "./pages/MediaManagement";
 import Claims from "./pages/Claims";
 import Legal from "./pages/Legal";
@@ -93,6 +97,10 @@ const AppContent = () => {
         <Route path="/account/properties/new" element={<ProtectedRoute><PropertyForm /></ProtectedRoute>} />
         <Route path="/account/photos" element={<ProtectedRoute><PhotoGallery /></ProtectedRoute>} />
         <Route path="/photo-gallery" element={<ProtectedRoute><PhotoGallery /></ProtectedRoute>} />
+        <Route path="/account/videos" element={<ProtectedRoute><Videos /></ProtectedRoute>} />
+        <Route path="/account/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
+        <Route path="/account/floorplans" element={<ProtectedRoute><FloorPlans /></ProtectedRoute>} />
+        <Route path="/account/insurance" element={<ProtectedRoute><Insurance /></ProtectedRoute>} />
         <Route path="/media-management" element={<ProtectedRoute><MediaManagement /></ProtectedRoute>} />
         <Route path="/account/photos/upload" element={<ProtectedRoute><PhotoUpload /></ProtectedRoute>} />
         <Route path="/account/videos/upload" element={<ProtectedRoute><VideoUpload /></ProtectedRoute>} />

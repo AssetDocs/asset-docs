@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
   ArrowLeft,
-  Video,
+  FileImage,
   Plus,
   FolderPlus,
   Search,
@@ -19,8 +19,7 @@ import {
   Eye,
   Download,
   Move,
-  Trash2,
-  Clock
+  Trash2
 } from 'lucide-react';
 import { 
   DropdownMenu,
@@ -33,65 +32,62 @@ import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import CreateFolderModal from '@/components/CreateFolderModal';
 
 // Mock data for demonstration
-const mockVideos = [
+const mockFloorPlans = [
   {
     id: 1,
-    name: "Living Room Walkthrough",
-    filename: "living-room-tour.mp4",
+    name: "Main Floor Plan",
+    filename: "main-floor-blueprint.pdf",
     url: "/placeholder.svg",
     uploadDate: "2024-06-15",
-    duration: "3:45",
-    size: "45.2 MB",
+    size: "3.2 MB",
     propertyId: 1,
     propertyName: "Main Residence",
     folderId: null,
-    tags: ["interior", "living room"]
+    tags: ["blueprint", "main floor"]
   },
   {
     id: 2,
-    name: "Kitchen Details",
-    filename: "kitchen-appliances.mp4", 
+    name: "Second Floor Layout",
+    filename: "second-floor-layout.pdf", 
     url: "/placeholder.svg",
     uploadDate: "2024-06-14",
-    duration: "2:15",
-    size: "28.7 MB",
+    size: "2.8 MB",
     propertyId: 1,
     propertyName: "Main Residence",
     folderId: 1,
-    tags: ["interior", "kitchen", "appliances"]
+    tags: ["blueprint", "second floor"]
   },
   {
     id: 3,
-    name: "Exterior Overview",
-    filename: "exterior-walkthrough.mp4",
+    name: "Basement Floor Plan",
+    filename: "basement-blueprint.pdf",
     url: "/placeholder.svg",
     uploadDate: "2024-06-13",
-    duration: "5:30",
-    size: "67.8 MB",
-    propertyId: 2,
-    propertyName: "Vacation Home",
-    folderId: null,
-    tags: ["exterior", "landscape"]
+    size: "2.1 MB",
+    propertyId: 1,
+    propertyName: "Main Residence",
+    folderId: 1,
+    tags: ["blueprint", "basement"]
   }
 ];
 
 const mockFolders = [
   {
     id: 1,
-    name: "Interior Videos",
-    videoCount: 15,
+    name: "Architectural Plans",
+    floorPlanCount: 8,
     color: "blue"
   },
   {
     id: 2,
-    name: "Exterior Videos", 
-    videoCount: 8,
+    name: "Renovation Plans", 
+    floorPlanCount: 3,
     color: "green"
   },
   {
     id: 3,
-    name: "Property Tours",
-    videoCount: 12,
+    name: "Original Blueprints",
+    floorPlanCount: 5,
     color: "purple"
   }
 ];
@@ -99,15 +95,15 @@ const mockFolders = [
 type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'size-desc' | 'size-asc';
 type ViewMode = 'grid' | 'list';
 
-const Videos: React.FC = () => {
+const FloorPlans: React.FC = () => {
   const navigate = useNavigate();
-  const [videos, setVideos] = useState(mockVideos);
+  const [floorPlans, setFloorPlans] = useState(mockFloorPlans);
   const [folders, setFolders] = useState(mockFolders);
   const [selectedFolder, setSelectedFolder] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('date-desc');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedVideos, setSelectedVideos] = useState<number[]>([]);
+  const [selectedFloorPlans, setSelectedFloorPlans] = useState<number[]>([]);
   const [showCreateFolder, setShowCreateFolder] = useState(false);
 
   const handleBack = () => {
@@ -119,17 +115,17 @@ const Videos: React.FC = () => {
   };
 
   const currentFolderName = selectedFolder 
-    ? folders.find(f => f.id === selectedFolder)?.name || 'Videos'
-    : 'All Videos';
+    ? folders.find(f => f.id === selectedFolder)?.name || 'Floor Plans'
+    : 'All Floor Plans';
 
-  const filteredVideos = videos.filter(video => {
-    const matchesSearch = video.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         video.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesFolder = selectedFolder ? video.folderId === selectedFolder : true;
+  const filteredFloorPlans = floorPlans.filter(floorPlan => {
+    const matchesSearch = floorPlan.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         floorPlan.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesFolder = selectedFolder ? floorPlan.folderId === selectedFolder : true;
     return matchesSearch && matchesFolder;
   });
 
-  const sortedVideos = [...filteredVideos].sort((a, b) => {
+  const sortedFloorPlans = [...filteredFloorPlans].sort((a, b) => {
     switch (sortBy) {
       case 'date-desc':
         return new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime();
@@ -148,28 +144,28 @@ const Videos: React.FC = () => {
     }
   });
 
-  const toggleVideoSelection = (videoId: number) => {
-    setSelectedVideos(prev => 
-      prev.includes(videoId) 
-        ? prev.filter(id => id !== videoId)
-        : [...prev, videoId]
+  const toggleFloorPlanSelection = (floorPlanId: number) => {
+    setSelectedFloorPlans(prev => 
+      prev.includes(floorPlanId) 
+        ? prev.filter(id => id !== floorPlanId)
+        : [...prev, floorPlanId]
     );
   };
 
-  const handleMoveVideos = (targetFolderId: number | null) => {
-    setVideos(prev => prev.map(video => 
-      selectedVideos.includes(video.id) 
-        ? { ...video, folderId: targetFolderId }
-        : video
+  const handleMoveFloorPlans = (targetFolderId: number | null) => {
+    setFloorPlans(prev => prev.map(floorPlan => 
+      selectedFloorPlans.includes(floorPlan.id) 
+        ? { ...floorPlan, folderId: targetFolderId }
+        : floorPlan
     ));
-    setSelectedVideos([]);
+    setSelectedFloorPlans([]);
   };
 
   const handleCreateFolder = (name: string, color: string) => {
     const newFolder = {
       id: folders.length + 1,
       name,
-      videoCount: 0,
+      floorPlanCount: 0,
       color
     };
     setFolders(prev => [...prev, newFolder]);
@@ -205,12 +201,12 @@ const Videos: React.FC = () => {
               </Button>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-                  <Video className="h-6 w-6 mr-2 text-brand-blue" />
+                  <FileImage className="h-6 w-6 mr-2 text-brand-blue" />
                   {currentFolderName}
                 </h1>
                 <p className="text-sm text-gray-500">
-                  {sortedVideos.length} video{sortedVideos.length !== 1 ? 's' : ''} 
-                  {selectedVideos.length > 0 && ` • ${selectedVideos.length} selected`}
+                  {sortedFloorPlans.length} floor plan{sortedFloorPlans.length !== 1 ? 's' : ''} 
+                  {selectedFloorPlans.length > 0 && ` • ${selectedFloorPlans.length} selected`}
                 </p>
               </div>
             </div>
@@ -225,9 +221,9 @@ const Videos: React.FC = () => {
                 New Folder
               </Button>
               <Button asChild size="sm">
-                <a href="/account/videos/upload">
+                <a href="/account/floorplans/upload">
                   <Plus className="h-4 w-4 mr-1" />
-                  Upload Videos
+                  Upload Floor Plans
                 </a>
               </Button>
             </div>
@@ -239,7 +235,7 @@ const Videos: React.FC = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <input
                 type="text"
-                placeholder="Search videos..."
+                placeholder="Search floor plans..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent"
@@ -309,10 +305,10 @@ const Videos: React.FC = () => {
                       className="w-full justify-start"
                       onClick={() => setSelectedFolder(null)}
                     >
-                      <Video className="h-4 w-4 mr-2" />
-                      All Videos
+                      <FileImage className="h-4 w-4 mr-2" />
+                      All Floor Plans
                       <Badge variant="secondary" className="ml-auto">
-                        {videos.length}
+                        {floorPlans.length}
                       </Badge>
                     </Button>
                     
@@ -326,7 +322,7 @@ const Videos: React.FC = () => {
                         <div className={`w-3 h-3 rounded-full mr-2 bg-${folder.color}-500`} />
                         {folder.name}
                         <Badge variant="secondary" className="ml-auto">
-                          {videos.filter(v => v.folderId === folder.id).length}
+                          {floorPlans.filter(fp => fp.folderId === folder.id).length}
                         </Badge>
                       </Button>
                     ))}
@@ -335,38 +331,35 @@ const Videos: React.FC = () => {
               </Card>
             </div>
 
-            {/* Videos Grid */}
+            {/* Floor Plans Grid */}
             <div className="lg:col-span-3">
               {viewMode === 'grid' ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {sortedVideos.map((video) => (
-                    <Card key={video.id} className="hover:shadow-lg transition-shadow cursor-pointer">
-                      <div className="aspect-video bg-gray-200 flex items-center justify-center relative">
-                        <Video className="h-8 w-8 text-gray-400" />
-                        <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
-                          {video.duration}
-                        </div>
+                  {sortedFloorPlans.map((floorPlan) => (
+                    <Card key={floorPlan.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+                      <div className="aspect-video bg-gray-200 flex items-center justify-center">
+                        <FileImage className="h-8 w-8 text-gray-400" />
                       </div>
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between mb-2">
-                          <h3 className="font-medium text-sm line-clamp-2">{video.name}</h3>
+                          <h3 className="font-medium text-sm line-clamp-2">{floorPlan.name}</h3>
                           <input
                             type="checkbox"
-                            checked={selectedVideos.includes(video.id)}
-                            onChange={() => toggleVideoSelection(video.id)}
+                            checked={selectedFloorPlans.includes(floorPlan.id)}
+                            onChange={() => toggleFloorPlanSelection(floorPlan.id)}
                             className="h-4 w-4"
                           />
                         </div>
                         <p className="text-xs text-gray-500 mb-2">
-                          {video.size} • {video.duration}
+                          {floorPlan.size}
                         </p>
                         <p className="text-xs text-gray-400 mb-3">
-                          {formatDate(video.uploadDate)}
+                          {formatDate(floorPlan.uploadDate)}
                         </p>
                         <div className="flex gap-1">
                           <Button size="sm" variant="outline" className="flex-1">
                             <Eye className="h-3 w-3 mr-1" />
-                            Watch
+                            View
                           </Button>
                           <Button size="sm" variant="outline" className="flex-1">
                             <Download className="h-3 w-3 mr-1" />
@@ -379,31 +372,31 @@ const Videos: React.FC = () => {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {sortedVideos.map((video) => (
-                    <Card key={video.id} className="hover:shadow-sm transition-shadow">
+                  {sortedFloorPlans.map((floorPlan) => (
+                    <Card key={floorPlan.id} className="hover:shadow-sm transition-shadow">
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
                             <input
                               type="checkbox"
-                              checked={selectedVideos.includes(video.id)}
-                              onChange={() => toggleVideoSelection(video.id)}
+                              checked={selectedFloorPlans.includes(floorPlan.id)}
+                              onChange={() => toggleFloorPlanSelection(floorPlan.id)}
                               className="h-4 w-4 mr-3"
                             />
                             <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center mr-3">
-                              <Video className="h-4 w-4 text-blue-600" />
+                              <FileImage className="h-4 w-4 text-blue-600" />
                             </div>
                             <div>
-                              <h3 className="font-medium">{video.name}</h3>
+                              <h3 className="font-medium">{floorPlan.name}</h3>
                               <p className="text-sm text-gray-500">
-                                {video.duration} • {video.size} • {formatDate(video.uploadDate)}
+                                {floorPlan.size} • {formatDate(floorPlan.uploadDate)}
                               </p>
                             </div>
                           </div>
                           <div className="flex gap-2">
                             <Button size="sm" variant="outline">
                               <Eye className="h-4 w-4 mr-1" />
-                              Watch
+                              View
                             </Button>
                             <Button size="sm" variant="outline">
                               <Download className="h-4 w-4 mr-1" />
@@ -432,4 +425,4 @@ const Videos: React.FC = () => {
   );
 };
 
-export default Videos;
+export default FloorPlans;
