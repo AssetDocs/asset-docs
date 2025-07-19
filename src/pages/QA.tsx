@@ -55,10 +55,9 @@ const QA: React.FC = () => {
               <AccordionItem value="item-4">
                 <AccordionTrigger className="text-lg font-medium">What pricing plans are available?</AccordionTrigger>
                 <AccordionContent>
-                  AssetDocs offers flexible pricing plans to meet different needs. We provide a free 14-day trial 
-                  with no credit card required. Our plans include basic documentation features for individuals, 
-                  premium plans with advanced AI valuation and 3D scanning, and professional services for high-value 
-                  properties. All plans include secure cloud storage and insurance-ready documentation.
+                  AssetDocs offers flexible pricing plans to meet different needs. We provide a free 14-day trial. 
+                  Our plans include basic documentation features for individuals, premium plans with advanced AI valuation, 
+                  and professional services for high-value properties. All plans include secure cloud storage and insurance-ready documentation.
                 </AccordionContent>
               </AccordionItem>
               
@@ -122,10 +121,9 @@ const QA: React.FC = () => {
               <AccordionItem value="item-11">
                 <AccordionTrigger className="text-lg font-medium">How do I get started with AssetDocs?</AccordionTrigger>
                 <AccordionContent>
-                  Getting started is easy! Sign up for a free 14-day trial (no credit card required) and download our 
+                  Getting started is easy! Sign up for a free 14-day trial and download our 
                   mobile app. You can begin documenting your possessions right away by taking photos or videos. For more 
-                  comprehensive documentation, you can use our 3D virtual tour feature or request our professional 
-                  documentation service for high-value assets.
+                  comprehensive documentation, you can request our professional documentation service for high-value assets.
                 </AccordionContent>
               </AccordionItem>
               

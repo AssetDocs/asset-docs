@@ -22,7 +22,7 @@ const CTASection: React.FC = () => {
             className="bg-transparent border-white text-white hover:bg-white/10"
           />
         </div>
-        <p className="mt-4 text-sm opacity-90">No credit card required. Cancel anytime.</p>
+        <p className="mt-4 text-sm opacity-90">Cancel anytime.</p>
       </div>
     </section>
   );

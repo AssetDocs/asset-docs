@@ -85,7 +85,7 @@ const ChatbotInterface: React.FC = () => {
     }
     
     if (normalizedInput.includes('free') || normalizedInput.includes('trial')) {
-      return "Yes! We offer a 14-day free trial with no credit card required. This gives you full access to all features so you can experience the benefits of AssetDocs before committing to a subscription.";
+      return "Yes! We offer a 14-day free trial. This gives you full access to all features so you can experience the benefits of AssetDocs before committing to a subscription.";
     }
     
     if (normalizedInput.includes('how') && normalizedInput.includes('work')) {

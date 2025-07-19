@@ -135,7 +135,7 @@ const SubscriptionTab: React.FC = () => {
           <div className="space-y-6">
             <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 text-center">
               <p className="text-primary font-semibold">🎉 Start with a 30-day free trial</p>
-              <p className="text-sm text-muted-foreground">No credit card required to get started</p>
+              <p className="text-sm text-muted-foreground">No long-term contract. Cancel anytime</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
