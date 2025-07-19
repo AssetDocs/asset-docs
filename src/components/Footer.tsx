@@ -143,11 +143,6 @@ const Footer: React.FC = () => {
                     Checklists
                   </Link>
                 </li>
-                <li>
-                  <Link to="/qr-code-guide" className="text-gray-300 hover:text-white transition-colors text-sm">
-                    QR Code Guide
-                  </Link>
-                </li>
               </ul>
             </div>
             
