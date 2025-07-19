@@ -89,8 +89,8 @@ const Pricing: React.FC = () => {
     },
     {
       title: "Standard",
-      price: "$8.99",
-      description: "Great value with promotional pricing for 6 months",
+      price: "$12.99",
+      description: "Great value plan with 30-day free trial",
       features: [
         "Up to 20 properties",
         "Enhanced photo & video storage",
@@ -98,7 +98,7 @@ const Pricing: React.FC = () => {
         "Priority support",
         "Document management",
         "Floor plan scanning",
-        "$12.99/mo after 6 months"
+        "30-day free trial included"
       ],
       planType: "standard",
       recommended: true,
@@ -132,9 +132,13 @@ const Pricing: React.FC = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">Choose Your Plan</h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-4">
               Select the perfect plan for your property management needs
             </p>
+            <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 max-w-md mx-auto">
+              <p className="text-primary font-semibold">🎉 Start with a 30-day free trial</p>
+              <p className="text-sm text-muted-foreground">No credit card required to get started</p>
+            </div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
