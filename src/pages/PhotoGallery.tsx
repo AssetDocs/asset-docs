@@ -217,12 +217,12 @@ const PhotoGallery: React.FC = () => {
     setShowDeleteDialog(true);
   };
 
-  const handleBulkDelete = () => {
+  const handleBulkDelete = React.useCallback(() => {
     if (selectedPhotos.length > 0) {
       setBulkDeleteMode(true);
       setShowDeleteDialog(true);
     }
-  };
+  }, [selectedPhotos.length]);
 
   const confirmDelete = () => {
     if (bulkDeleteMode) {
