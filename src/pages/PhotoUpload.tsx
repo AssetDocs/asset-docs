@@ -9,6 +9,9 @@ import ItemDetailsSection from '@/components/PhotoUpload/ItemDetailsSection';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { aiAnalysisService } from '@/components/AIAnalysisService';
+import { StorageService } from '@/services/StorageService';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface UploadedItem {
   id: string;
@@ -33,9 +36,12 @@ interface UploadedItem {
 
 const PhotoUpload: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadedItems, setUploadedItems] = useState<UploadedItem[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [apiKey, setApiKey] = useState(localStorage.getItem('openai_api_key') || '');
   const [defaultUseAI, setDefaultUseAI] = useState(true);
   const [defaultPropertyId, setDefaultPropertyId] = useState('');
@@ -161,10 +167,71 @@ const PhotoUpload: React.FC = () => {
     setUploadedItems(items => items.filter(item => item.id !== id));
   };
 
-  const saveItems = () => {
-    console.log('Saving items:', uploadedItems);
-    // Here you would save to your backend/database
-    navigate('/account/photos');
+  const saveItems = async () => {
+    if (!user?.id) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to save your photos.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    
+    try {
+      const savedItems = [];
+      
+      // Upload files with photos to Supabase Storage
+      for (const item of uploadedItems) {
+        if (item.file) {
+          try {
+            const uploadResult = await StorageService.uploadFile(
+              item.file,
+              'photos',
+              user.id,
+              `${item.name.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.${item.file.name.split('.').pop()}`
+            );
+            
+            const savedItem = {
+              ...item,
+              url: uploadResult.url,
+              path: uploadResult.path,
+              file: undefined // Remove file object after upload
+            };
+            savedItems.push(savedItem);
+          } catch (error) {
+            console.error('Failed to upload file:', item.name, error);
+            toast({
+              title: "Upload failed",
+              description: `Failed to upload ${item.name}. Please try again.`,
+              variant: "destructive",
+            });
+          }
+        } else {
+          // Manual entries without files
+          savedItems.push(item);
+        }
+      }
+
+      console.log('Items saved to storage:', savedItems);
+      
+      toast({
+        title: "Success!",
+        description: `${savedItems.length} items saved successfully.`,
+      });
+      
+      navigate('/account/photos');
+    } catch (error) {
+      console.error('Error saving items:', error);
+      toast({
+        title: "Save failed",
+        description: "Failed to save items. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -214,6 +281,7 @@ const PhotoUpload: React.FC = () => {
               onUpdateItemValue={updateItemValue}
               onRemoveItem={removeItem}
               onSaveItems={saveItems}
+              isSaving={isSaving}
             />
           </div>
         </div>

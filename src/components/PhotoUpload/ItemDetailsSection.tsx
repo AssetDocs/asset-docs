@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { DollarSign, MapPin, FileText } from 'lucide-react';
+import { DollarSign, MapPin, FileText, Loader2 } from 'lucide-react';
 import PropertySelector from '@/components/PropertySelector';
 import ItemTypeSelector from '@/components/ItemTypeSelector';
 import PropertyUpgradeSelector from '@/components/PropertyUpgradeSelector';
@@ -35,13 +35,15 @@ interface ItemDetailsSectionProps {
   onUpdateItemValue: (id: string, field: string, value: string | number | boolean) => void;
   onRemoveItem: (id: string) => void;
   onSaveItems: () => void;
+  isSaving?: boolean;
 }
 
 const ItemDetailsSection: React.FC<ItemDetailsSectionProps> = ({
   uploadedItems,
   onUpdateItemValue,
   onRemoveItem,
-  onSaveItems
+  onSaveItems,
+  isSaving = false
 }) => {
   const handleItemTypeChange = (itemId: string, itemType: string, category: string) => {
     onUpdateItemValue(itemId, 'itemType', itemType);
@@ -183,9 +185,17 @@ const ItemDetailsSection: React.FC<ItemDetailsSectionProps> = ({
         {uploadedItems.length > 0 && (
           <Button 
             onClick={onSaveItems}
+            disabled={isSaving}
             className="w-full mt-4 bg-brand-blue hover:bg-brand-lightBlue"
           >
-            Save All Items
+            {isSaving ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Saving to Storage...
+              </>
+            ) : (
+              'Save All Items'
+            )}
           </Button>
         )}
       </CardContent>
