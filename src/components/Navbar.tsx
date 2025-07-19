@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Menu, X, Video, LogOut, User, Home } from 'lucide-react';
-import LanguageSelector from '@/components/LanguageSelector';
+
 import { useTranslation } from '@/contexts/TranslationContext';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -45,7 +45,6 @@ const Navbar: React.FC = () => {
                   <Video className="h-4 w-4 mr-1" />
                   {translate('nav.videoHelp')}
                 </Link>
-                <LanguageSelector />
                 <div className="flex items-center space-x-4">
                   <Link 
                     to="/account/settings" 
@@ -86,7 +85,6 @@ const Navbar: React.FC = () => {
                 >
                   {translate('nav.login')}
                 </Link>
-                <LanguageSelector />
                 <Button asChild className="bg-brand-orange hover:bg-brand-orange/90">
                    <Link to="/auth">{translate('nav.getStarted')}</Link>
                 </Button>
@@ -96,7 +94,6 @@ const Navbar: React.FC = () => {
           
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center gap-2">
-            <LanguageSelector />
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="p-2 focus:outline-none"
