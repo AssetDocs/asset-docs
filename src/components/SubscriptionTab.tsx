@@ -79,7 +79,7 @@ const SubscriptionTab: React.FC = () => {
                   </div>
                   <p className="text-gray-600">
                     {subscriptionStatus.subscription_tier === 'Basic' && '$8.99/month'}
-                    {subscriptionStatus.subscription_tier === 'Standard' && '$8.99/month (Introductory pricing)'}
+                    {subscriptionStatus.subscription_tier === 'Standard' && '$12.99/month'}
                     {subscriptionStatus.subscription_tier === 'Premium' && '$18.99/month'}
                   </p>
                   {subscriptionStatus.subscription_end && (
@@ -88,8 +88,8 @@ const SubscriptionTab: React.FC = () => {
                     </p>
                   )}
                   {subscriptionStatus.subscription_tier === 'Standard' && (
-                    <p className="text-xs text-orange-600 font-medium">
-                      Regular price $12.99/month after 6 months
+                    <p className="text-xs text-green-600 font-medium">
+                      Includes 30-day free trial
                     </p>
                   )}
                 </div>
@@ -132,71 +132,127 @@ const SubscriptionTab: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 border rounded-lg">
-              <h3 className="font-semibold mb-2">Basic Features</h3>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li className="flex items-center gap-2">
-                  <CheckIcon className="h-4 w-4 text-green-500" />
-                  Up to 5 properties
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckIcon className="h-4 w-4 text-green-500" />
-                  Basic photo storage
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckIcon className="h-4 w-4 text-green-500" />
-                  Property value estimates
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckIcon className="h-4 w-4 text-green-500" />
-                  Mobile app access
-                </li>
-              </ul>
+          <div className="space-y-6">
+            <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 text-center">
+              <p className="text-primary font-semibold">🎉 Start with a 30-day free trial</p>
+              <p className="text-sm text-muted-foreground">No credit card required to get started</p>
             </div>
-            
-            <div className="p-4 border rounded-lg">
-              <h3 className="font-semibold mb-2">Standard Features</h3>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li className="flex items-center gap-2">
-                  <CheckIcon className="h-4 w-4 text-green-500" />
-                  Up to 20 properties
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckIcon className="h-4 w-4 text-green-500" />
-                  Enhanced storage
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckIcon className="h-4 w-4 text-green-500" />
-                  Advanced analytics
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckIcon className="h-4 w-4 text-green-500" />
-                  Priority support
-                </li>
-              </ul>
-            </div>
-            
-            <div className="p-4 border rounded-lg">
-              <h3 className="font-semibold mb-2">Premium Features</h3>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li className="flex items-center gap-2">
-                  <CheckIcon className="h-4 w-4 text-green-500" />
-                  Unlimited properties
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckIcon className="h-4 w-4 text-green-500" />
-                  AI-powered insights
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckIcon className="h-4 w-4 text-green-500" />
-                  24/7 support
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckIcon className="h-4 w-4 text-green-500" />
-                  API access
-                </li>
-              </ul>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className={`p-4 border rounded-lg ${subscriptionStatus.subscription_tier === 'Basic' ? 'border-primary bg-primary/5' : ''}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold">Basic - $8.99/month</h3>
+                  {subscriptionStatus.subscription_tier === 'Basic' && (
+                    <Badge variant="default">Current Plan</Badge>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">Perfect for getting started with property management</p>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li className="flex items-center gap-2">
+                    <CheckIcon className="h-4 w-4 text-green-500" />
+                    Up to 5 properties
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckIcon className="h-4 w-4 text-green-500" />
+                    Basic photo storage
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckIcon className="h-4 w-4 text-green-500" />
+                    Property value estimates
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckIcon className="h-4 w-4 text-green-500" />
+                    Standard support
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckIcon className="h-4 w-4 text-green-500" />
+                    Mobile app access
+                  </li>
+                </ul>
+              </div>
+              
+              <div className={`p-4 border rounded-lg relative ${subscriptionStatus.subscription_tier === 'Standard' ? 'border-primary bg-primary/5' : 'border-brand-orange'}`}>
+                <div className="absolute top-0 right-0 bg-brand-orange text-white px-3 py-1 rounded-bl-lg text-xs font-medium">
+                  Recommended
+                </div>
+                <div className="flex items-center justify-between mb-2 mt-6">
+                  <h3 className="font-semibold">Standard - $12.99/month</h3>
+                  {subscriptionStatus.subscription_tier === 'Standard' && (
+                    <Badge variant="default">Current Plan</Badge>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">Great value plan with 30-day free trial</p>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li className="flex items-center gap-2">
+                    <CheckIcon className="h-4 w-4 text-green-500" />
+                    Up to 20 properties
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckIcon className="h-4 w-4 text-green-500" />
+                    Enhanced photo & video storage
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckIcon className="h-4 w-4 text-green-500" />
+                    Advanced property analytics
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckIcon className="h-4 w-4 text-green-500" />
+                    Priority support
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckIcon className="h-4 w-4 text-green-500" />
+                    Document management
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckIcon className="h-4 w-4 text-green-500" />
+                    Floor plan scanning
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckIcon className="h-4 w-4 text-green-500" />
+                    30-day free trial included
+                  </li>
+                </ul>
+              </div>
+              
+              <div className={`p-4 border rounded-lg ${subscriptionStatus.subscription_tier === 'Premium' ? 'border-primary bg-primary/5' : ''}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold">Premium - $18.99/month</h3>
+                  {subscriptionStatus.subscription_tier === 'Premium' && (
+                    <Badge variant="default">Current Plan</Badge>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">Full-featured solution for serious property investors</p>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li className="flex items-center gap-2">
+                    <CheckIcon className="h-4 w-4 text-green-500" />
+                    Unlimited properties
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckIcon className="h-4 w-4 text-green-500" />
+                    Unlimited storage
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckIcon className="h-4 w-4 text-green-500" />
+                    AI-powered insights
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckIcon className="h-4 w-4 text-green-500" />
+                    24/7 premium support
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckIcon className="h-4 w-4 text-green-500" />
+                    Custom reports
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckIcon className="h-4 w-4 text-green-500" />
+                    API access
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckIcon className="h-4 w-4 text-green-500" />
+                    White-label options
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
           
