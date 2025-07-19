@@ -17,7 +17,7 @@ const IndustryRequirements: React.FC = () => {
           <Alert className="mb-8">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              <strong>Important Notice:</strong> Make note that not all applies. And, contact your insurance provider for more information.
+              <strong>Important Notice:</strong> Not all requirements may apply to your situation. Contact your insurance provider for specific details.
             </AlertDescription>
           </Alert>
 
