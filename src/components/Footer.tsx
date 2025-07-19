@@ -132,11 +132,6 @@ const Footer: React.FC = () => {
                     Insurance Guide
                   </Link>
                 </li>
-                <li>
-                  <Link to="/legal-documentation-standards" className="text-gray-300 hover:text-white transition-colors text-sm">
-                    Legal Documentation Standards
-                  </Link>
-                </li>
               </ul>
             </div>
             
