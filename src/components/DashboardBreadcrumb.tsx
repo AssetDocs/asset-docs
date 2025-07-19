@@ -89,7 +89,7 @@ const DashboardBreadcrumb: React.FC<DashboardBreadcrumbProps> = ({
       <Breadcrumb className="flex-1">
         <BreadcrumbList>
           {breadcrumbItems.map((item, index) => (
-            <React.Fragment key={item.href || item.label}>
+            <div key={item.href || item.label} className="contents">
               <BreadcrumbItem>
                 {index === breadcrumbItems.length - 1 ? (
                   <BreadcrumbPage className="flex items-center gap-1">
@@ -106,7 +106,7 @@ const DashboardBreadcrumb: React.FC<DashboardBreadcrumbProps> = ({
                 )}
               </BreadcrumbItem>
               {index < breadcrumbItems.length - 1 && <BreadcrumbSeparator />}
-            </React.Fragment>
+            </div>
           ))}
         </BreadcrumbList>
       </Breadcrumb>
