@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import PropertyManagement from '@/components/PropertyManagement';
 import PropertyHeader from '@/components/PropertyHeader';
 import PropertySummary from '@/components/PropertySummary';
-import PropertyTabs from '@/components/PropertyTabs';
+
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 
 // Mock data for demonstration
@@ -133,13 +133,6 @@ const Properties: React.FC = () => {
                 />
                 <CardContent>
                   <PropertySummary property={selectedProperty} />
-                  <PropertyTabs
-                    photos={selectedProperty.photos}
-                    videos={selectedProperty.videos}
-                    documents={selectedProperty.documents}
-                    floorPlans={selectedProperty.floorPlans}
-                    onViewPhotoGallery={handleViewPhotoGallery}
-                  />
                 </CardContent>
               </Card>
             </div>
