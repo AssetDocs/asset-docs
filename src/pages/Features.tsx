@@ -2,7 +2,7 @@ import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Camera, Shield, Lock, FileImage, BarChart, Clock, Home, Building, Briefcase, Scale, Truck, Users, TrendingUp, Heart, Handshake, MapPin, Smartphone, Cloud, Share2, FileText, DollarSign, UserCheck, Globe, Calculator, ClipboardList, ShieldCheck, Timer, Archive, Download, GraduationCap, Car, Plane, Anchor, Factory, Stethoscope, HardHat, Church, Palette, Hammer } from 'lucide-react';
+import { Camera, Shield, Lock, FileImage, BarChart, Clock, Home, Building, Briefcase, Scale, Truck, Users, TrendingUp, Heart, Handshake, MapPin, Smartphone, Cloud, Share2, FileText, DollarSign, UserCheck, Globe, Calculator, ClipboardList, ShieldCheck, Timer, Archive, Download, GraduationCap, Car, Plane, Anchor, Factory, Stethoscope, HardHat, Church, Palette, Hammer, Trash2 } from 'lucide-react';
 
 const Features: React.FC = () => {
   return (
@@ -41,7 +41,10 @@ const Features: React.FC = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div className="bg-white p-6 rounded-lg shadow">
-                  <Camera className="h-8 w-8 text-brand-blue mb-3" />
+                  <div className="flex items-center gap-2 mb-3">
+                    <Camera className="h-8 w-8 text-brand-blue" />
+                    <Trash2 className="h-8 w-8 text-brand-blue" />
+                  </div>
                   <h3 className="text-xl font-semibold mb-2">Property Documentation</h3>
                   <p className="text-gray-600">Complete visual inventory of your home, improvements, and possessions for insurance and resale value.</p>
                 </div>
