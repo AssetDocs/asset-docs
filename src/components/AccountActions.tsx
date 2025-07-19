@@ -16,6 +16,26 @@ const AccountActions: React.FC<AccountActionsProps> = ({ onCreateFloorPlan }) =>
       <Card className="hover:shadow-lg transition-shadow">
         <CardHeader>
           <CardTitle className="flex items-center">
+            <Settings className="h-6 w-6 mr-2 text-brand-blue" />
+            Account Settings
+          </CardTitle>
+          <CardDescription>
+            Update your profile, security settings, and preferences
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button asChild variant="outline" className="w-full">
+            <Link to="/account/settings">
+              <Settings className="h-4 w-4 mr-2" />
+              Manage Settings
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card className="hover:shadow-lg transition-shadow">
+        <CardHeader>
+          <CardTitle className="flex items-center">
             <Home className="h-6 w-6 mr-2 text-brand-blue" />
             Property Profiles
           </CardTitle>
@@ -68,7 +88,6 @@ const AccountActions: React.FC<AccountActionsProps> = ({ onCreateFloorPlan }) =>
           </div>
         </CardContent>
       </Card>
-
 
       <Card className="hover:shadow-lg transition-shadow">
         <CardHeader>
@@ -190,26 +209,6 @@ const AccountActions: React.FC<AccountActionsProps> = ({ onCreateFloorPlan }) =>
       </Card>
 
       <DownloadAllFilesButton />
-
-      <Card className="hover:shadow-lg transition-shadow">
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Settings className="h-6 w-6 mr-2 text-brand-blue" />
-            Account Settings
-          </CardTitle>
-          <CardDescription>
-            Update your profile, security settings, and preferences
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button asChild variant="outline" className="w-full">
-            <Link to="/account/settings">
-              <Settings className="h-4 w-4 mr-2" />
-              Manage Settings
-            </Link>
-          </Button>
-        </CardContent>
-      </Card>
     </div>
   );
 };
