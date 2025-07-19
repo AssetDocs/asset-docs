@@ -119,6 +119,11 @@ const Footer: React.FC = () => {
                   Claims Documentation
                 </Link>
               </li>
+              <li>
+                <Link to="/features#scenarios" className="text-gray-300 hover:text-white transition-colors text-sm">
+                  Scenarios
+                </Link>
+              </li>
             </ul>
           </div>
           
