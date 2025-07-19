@@ -94,6 +94,46 @@ const translations: Translations = {
     pt: 'Ver todos os recursos',
     zh: '查看所有功能',
     ja: 'すべての機能を見る'
+  },
+  'nav.dashboard': {
+    en: 'Dashboard',
+    es: 'Tablero',
+    fr: 'Tableau de bord',
+    de: 'Dashboard',
+    it: 'Dashboard',
+    pt: 'Painel',
+    zh: '仪表板',
+    ja: 'ダッシュボード'
+  },
+  'nav.signOut': {
+    en: 'Sign Out',
+    es: 'Cerrar sesión',
+    fr: 'Se déconnecter',
+    de: 'Abmelden',
+    it: 'Disconnetti',
+    pt: 'Sair',
+    zh: '退出',
+    ja: 'サインアウト'
+  },
+  'nav.getStarted': {
+    en: 'Get Started',
+    es: 'Comenzar',
+    fr: 'Commencer',
+    de: 'Loslegen',
+    it: 'Inizia',
+    pt: 'Começar',
+    zh: '开始使用',
+    ja: '始める'
+  },
+  'nav.account': {
+    en: 'Account',
+    es: 'Cuenta',
+    fr: 'Compte',
+    de: 'Konto',
+    it: 'Account',
+    pt: 'Conta',
+    zh: '账户',
+    ja: 'アカウント'
   }
 };
 

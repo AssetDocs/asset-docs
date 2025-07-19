@@ -28,13 +28,13 @@ const Navbar: React.FC = () => {
           <div className="hidden md:flex items-center space-x-6">
             {isAuthenticated ? (
               <>
-                <Link 
-                  to="/account" 
-                  className="flex items-center px-3 py-2 bg-brand-blue/10 text-brand-blue hover:bg-brand-blue hover:text-white transition-all rounded-md font-medium"
-                >
-                  <Home className="h-4 w-4 mr-1" />
-                  Dashboard
-                </Link>
+                 <Link 
+                   to="/account" 
+                   className="flex items-center px-3 py-2 bg-brand-blue/10 text-brand-blue hover:bg-brand-blue hover:text-white transition-all rounded-md font-medium"
+                 >
+                   <Home className="h-4 w-4 mr-1" />
+                   {translate('nav.dashboard')}
+                 </Link>
                 <Link to="/features" className="text-gray-700 hover:text-brand-blue transition-colors">
                   {translate('nav.features')}
                 </Link>
@@ -52,7 +52,7 @@ const Navbar: React.FC = () => {
                     className="flex items-center text-gray-700 hover:text-brand-blue transition-colors"
                   >
                     <User className="h-4 w-4 mr-1" />
-                    {profile?.first_name || 'Account'}
+                     {profile?.first_name || translate('nav.account')}
                   </Link>
                   <Button 
                     onClick={signOut}
@@ -61,7 +61,7 @@ const Navbar: React.FC = () => {
                     className="text-gray-700 hover:text-red-600"
                   >
                     <LogOut className="h-4 w-4 mr-1" />
-                    Sign Out
+                     {translate('nav.signOut')}
                   </Button>
                 </div>
               </>
@@ -88,7 +88,7 @@ const Navbar: React.FC = () => {
                 </Link>
                 <LanguageSelector />
                 <Button asChild className="bg-brand-orange hover:bg-brand-orange/90">
-                  <Link to="/auth">Get Started</Link>
+                   <Link to="/auth">{translate('nav.getStarted')}</Link>
                 </Button>
               </>
             )}
@@ -118,7 +118,7 @@ const Navbar: React.FC = () => {
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <Home className="h-4 w-4 mr-1" />
-                    Dashboard
+                    {translate('nav.dashboard')}
                   </Link>
                   <Link 
                     to="/features" 
@@ -141,7 +141,7 @@ const Navbar: React.FC = () => {
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <User className="h-4 w-4 mr-1" />
-                    {profile?.first_name || 'Account'}
+                    {profile?.first_name || translate('nav.account')}
                   </Link>
                   <Button 
                     onClick={() => {
@@ -153,7 +153,7 @@ const Navbar: React.FC = () => {
                     className="text-gray-700 hover:text-red-600 w-fit"
                   >
                     <LogOut className="h-4 w-4 mr-1" />
-                    Sign Out
+                    {translate('nav.signOut')}
                   </Button>
                 </>
               ) : (
@@ -192,7 +192,7 @@ const Navbar: React.FC = () => {
                     className="bg-brand-orange hover:bg-brand-orange/90 w-fit"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    <Link to="/auth">Get Started</Link>
+                    <Link to="/auth">{translate('nav.getStarted')}</Link>
                   </Button>
                 </>
               )}
