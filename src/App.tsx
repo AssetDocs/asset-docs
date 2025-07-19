@@ -41,7 +41,6 @@ import Videos from "./pages/Videos";
 import Documents from "./pages/Documents";
 import FloorPlans from "./pages/FloorPlans";
 import Insurance from "./pages/Insurance";
-import MediaManagement from "./pages/MediaManagement";
 import Claims from "./pages/Claims";
 import Legal from "./pages/Legal";
 import SubscriptionSuccess from "./pages/SubscriptionSuccess";
@@ -101,7 +100,6 @@ const AppContent = () => {
         <Route path="/account/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
         <Route path="/account/floorplans" element={<ProtectedRoute><FloorPlans /></ProtectedRoute>} />
         <Route path="/account/insurance" element={<ProtectedRoute><Insurance /></ProtectedRoute>} />
-        <Route path="/media-management" element={<ProtectedRoute><MediaManagement /></ProtectedRoute>} />
         <Route path="/account/photos/upload" element={<ProtectedRoute><PhotoUpload /></ProtectedRoute>} />
         <Route path="/account/videos/upload" element={<ProtectedRoute><VideoUpload /></ProtectedRoute>} />
         <Route path="/account/floorplans/upload" element={<ProtectedRoute><FloorPlanUpload /></ProtectedRoute>} />
