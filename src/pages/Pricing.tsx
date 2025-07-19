@@ -137,7 +137,7 @@ const Pricing: React.FC = () => {
             </p>
             <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 max-w-md mx-auto">
               <p className="text-primary font-semibold">🎉 Start with a 30-day free trial</p>
-              <p className="text-sm text-muted-foreground">No credit card required to get started</p>
+              <p className="text-sm text-muted-foreground">No long-term contract. Cancel anytime</p>
             </div>
           </div>
           
