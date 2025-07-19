@@ -83,10 +83,10 @@ const AppContent = () => {
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/legal" element={<Legal />} />
+        <Route path="/pricing" element={<Pricing />} />
         
         {/* Protected routes */}
         <Route path="/features" element={<ProtectedRoute><Features /></ProtectedRoute>} />
-        <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
         <Route path="/login" element={<ProtectedRoute><Login /></ProtectedRoute>} />
         <Route path="/signup" element={<ProtectedRoute><Signup /></ProtectedRoute>} />
         <Route path="/qa" element={<ProtectedRoute><QA /></ProtectedRoute>} />
