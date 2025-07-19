@@ -12,7 +12,7 @@ const AboutSection: React.FC = () => {
             <section className="mb-12">
               <div className="bg-gradient-to-r from-blue-50 to-teal-50 p-8 rounded-lg mb-8">
                 <p className="text-xl text-gray-700 leading-relaxed text-center mb-6">
-                  Asset Docs was born from a simple yet powerful belief: protecting your family's most valuable 
+                  Asset Docs was born from a simple yet powerful belief: protecting your most valuable 
                   possessions shouldn't be complicated, stressful, or uncertain.
                 </p>
               </div>
