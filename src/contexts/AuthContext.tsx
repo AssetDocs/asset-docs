@@ -47,7 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch user profile
+          // Fetch user profile and check subscription status
           setTimeout(async () => {
             try {
               const { data: profileData } = await supabase
@@ -56,8 +56,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 .eq('user_id', session.user.id)
                 .single();
               setProfile(profileData);
+              
+              // Also check subscription status on login
+              await supabase.functions.invoke('check-subscription');
             } catch (error) {
-              console.error('Error fetching profile:', error);
+              console.error('Error fetching profile or checking subscription:', error);
             }
           }, 0);
         } else {
