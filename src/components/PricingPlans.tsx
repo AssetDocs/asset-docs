@@ -5,14 +5,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 const PricingPlans: React.FC = () => {
   const individualFeatures = {
     basic: [
-      "5GB secure cloud storage",
+      "1 property",
+      "250GB secure cloud storage",
       "Photo and video uploads", 
       "Mobile app access",
       "Email support",
       "30-day free trial"
     ],
     standard: [
-      "25GB secure cloud storage",
+      "Up to 3 properties",
+      "500GB secure cloud storage",
       "Photo and video uploads",
       "Mobile app access", 
       "Export detailed reports",
@@ -21,7 +23,8 @@ const PricingPlans: React.FC = () => {
       "30-day free trial"
     ],
     premium: [
-      "100GB secure cloud storage",
+      "Up to 10 properties",
+      "2TB secure cloud storage",
       "Unlimited photo and video uploads",
       "Professional asset tagging",
       "AI-powered item identification & valuation",
