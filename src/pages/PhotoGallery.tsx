@@ -34,6 +34,7 @@ import PhotoGalleryGrid from '@/components/PhotoGalleryGrid';
 import PhotoGalleryFolders from '@/components/PhotoGalleryFolders';
 import CreateFolderModal from '@/components/CreateFolderModal';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 
 // Mock data for demonstration
 const mockPhotos = [
@@ -131,6 +132,9 @@ const PhotoGallery: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPhotos, setSelectedPhotos] = useState<number[]>([]);
   const [showCreateFolder, setShowCreateFolder] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [photoToDelete, setPhotoToDelete] = useState<number | null>(null);
+  const [bulkDeleteMode, setBulkDeleteMode] = useState(false);
 
   const handleBack = () => {
     navigate('/account');
@@ -169,11 +173,11 @@ const PhotoGallery: React.FC = () => {
     return filtered;
   }, [photos, searchTerm, selectedFolder, sortBy]);
 
-  const handleCreateFolder = (name: string, description: string, color: string) => {
+  const handleCreateFolder = (name: string, color: string) => {
     const newFolder = {
       id: Math.max(...folders.map(f => f.id)) + 1,
       name,
-      description,
+      description: `Folder for ${name}`,
       photoCount: 0,
       createdDate: new Date().toISOString().split('T')[0],
       color
@@ -206,6 +210,39 @@ const PhotoGallery: React.FC = () => {
     );
   };
 
+
+  const handleDeletePhoto = (photoId: number) => {
+    setPhotoToDelete(photoId);
+    setBulkDeleteMode(false);
+    setShowDeleteDialog(true);
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedPhotos.length > 0) {
+      setBulkDeleteMode(true);
+      setShowDeleteDialog(true);
+    }
+  };
+
+  const confirmDelete = () => {
+    if (bulkDeleteMode) {
+      setPhotos(prev => prev.filter(photo => !selectedPhotos.includes(photo.id)));
+      setSelectedPhotos([]);
+    } else if (photoToDelete) {
+      setPhotos(prev => prev.filter(photo => photo.id !== photoToDelete));
+      setSelectedPhotos(prev => prev.filter(id => id !== photoToDelete));
+    }
+    setShowDeleteDialog(false);
+    setPhotoToDelete(null);
+    setBulkDeleteMode(false);
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteDialog(false);
+    setPhotoToDelete(null);
+    setBulkDeleteMode(false);
+  };
+
   const currentFolderName = selectedFolder 
     ? folders.find(f => f.id === selectedFolder)?.name 
     : 'All Photos';
@@ -231,6 +268,7 @@ const PhotoGallery: React.FC = () => {
             onViewModeChange={setViewMode}
             onCreateFolder={() => setShowCreateFolder(true)}
             onMovePhotos={handleMovePhotos}
+            onBulkDelete={handleBulkDelete}
             folders={folders}
           />
 
@@ -248,6 +286,7 @@ const PhotoGallery: React.FC = () => {
                 viewMode={viewMode}
                 selectedPhotos={selectedPhotos}
                 onPhotoSelect={togglePhotoSelection}
+                onDeletePhoto={handleDeletePhoto}
               />
             </div>
           </div>
@@ -258,6 +297,14 @@ const PhotoGallery: React.FC = () => {
         isOpen={showCreateFolder}
         onClose={() => setShowCreateFolder(false)}
         onCreateFolder={handleCreateFolder}
+      />
+
+      <DeleteConfirmationDialog
+        isOpen={showDeleteDialog}
+        onClose={cancelDelete}
+        onConfirm={confirmDelete}
+        title={bulkDeleteMode ? "Delete Photos" : "Delete Photo"}
+        itemCount={bulkDeleteMode ? selectedPhotos.length : 1}
       />
       
       <Footer />

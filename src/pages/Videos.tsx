@@ -31,6 +31,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import CreateFolderModal from '@/components/CreateFolderModal';
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 
 // Mock data for demonstration
 const mockVideos = [
@@ -109,6 +110,9 @@ const Videos: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedVideos, setSelectedVideos] = useState<number[]>([]);
   const [showCreateFolder, setShowCreateFolder] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [videoToDelete, setVideoToDelete] = useState<number | null>(null);
+  const [bulkDeleteMode, setBulkDeleteMode] = useState(false);
 
   const handleBack = () => {
     if (selectedFolder) {
@@ -176,6 +180,38 @@ const Videos: React.FC = () => {
     setShowCreateFolder(false);
   };
 
+  const handleDeleteVideo = (videoId: number) => {
+    setVideoToDelete(videoId);
+    setBulkDeleteMode(false);
+    setShowDeleteDialog(true);
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedVideos.length > 0) {
+      setBulkDeleteMode(true);
+      setShowDeleteDialog(true);
+    }
+  };
+
+  const confirmDelete = () => {
+    if (bulkDeleteMode) {
+      setVideos(prev => prev.filter(video => !selectedVideos.includes(video.id)));
+      setSelectedVideos([]);
+    } else if (videoToDelete) {
+      setVideos(prev => prev.filter(video => video.id !== videoToDelete));
+      setSelectedVideos(prev => prev.filter(id => id !== videoToDelete));
+    }
+    setShowDeleteDialog(false);
+    setVideoToDelete(null);
+    setBulkDeleteMode(false);
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteDialog(false);
+    setVideoToDelete(null);
+    setBulkDeleteMode(false);
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -230,6 +266,12 @@ const Videos: React.FC = () => {
                   Upload Videos
                 </a>
               </Button>
+              {selectedVideos.length > 0 && (
+                <Button onClick={handleBulkDelete} variant="destructive" size="sm">
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete ({selectedVideos.length})
+                </Button>
+              )}
             </div>
           </div>
 
@@ -372,6 +414,14 @@ const Videos: React.FC = () => {
                             <Download className="h-3 w-3 mr-1" />
                             Download
                           </Button>
+                          <Button 
+                            size="sm" 
+                            variant="destructive"
+                            onClick={() => handleDeleteVideo(video.id)}
+                            className="px-2"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -409,6 +459,13 @@ const Videos: React.FC = () => {
                               <Download className="h-4 w-4 mr-1" />
                               Download
                             </Button>
+                            <Button 
+                              size="sm" 
+                              variant="destructive"
+                              onClick={() => handleDeleteVideo(video.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
                         </div>
                       </CardContent>
@@ -425,6 +482,14 @@ const Videos: React.FC = () => {
         isOpen={showCreateFolder}
         onClose={() => setShowCreateFolder(false)}
         onCreateFolder={handleCreateFolder}
+      />
+
+      <DeleteConfirmationDialog
+        isOpen={showDeleteDialog}
+        onClose={cancelDelete}
+        onConfirm={confirmDelete}
+        title={bulkDeleteMode ? "Delete Videos" : "Delete Video"}
+        itemCount={bulkDeleteMode ? selectedVideos.length : 1}
       />
       
       <Footer />

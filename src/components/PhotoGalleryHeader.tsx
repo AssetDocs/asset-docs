@@ -13,7 +13,8 @@ import {
   Grid3X3,
   List,
   FolderPlus,
-  Move
+  Move,
+  Trash2
 } from 'lucide-react';
 import { 
   DropdownMenu,
@@ -39,6 +40,7 @@ interface PhotoGalleryHeaderProps {
   onViewModeChange: (mode: ViewMode) => void;
   onCreateFolder: () => void;
   onMovePhotos: (folderId: number | null) => void;
+  onBulkDelete: () => void;
   folders: Array<{
     id: number;
     name: string;
@@ -62,6 +64,7 @@ const PhotoGalleryHeader: React.FC<PhotoGalleryHeaderProps> = ({
   onViewModeChange,
   onCreateFolder,
   onMovePhotos,
+  onBulkDelete,
   folders
 }) => {
   const getSortLabel = (sort: SortOption) => {
@@ -126,6 +129,13 @@ const PhotoGalleryHeader: React.FC<PhotoGalleryHeaderProps> = ({
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+          )}
+
+          {selectedCount > 0 && (
+            <Button onClick={onBulkDelete} variant="destructive" size="sm">
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete ({selectedCount})
+            </Button>
           )}
         </div>
       </div>

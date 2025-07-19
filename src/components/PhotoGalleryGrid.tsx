@@ -9,7 +9,8 @@ import {
   Eye,
   Download,
   Calendar,
-  HardDrive
+  HardDrive,
+  Trash2
 } from 'lucide-react';
 
 type ViewMode = 'grid' | 'list';
@@ -32,13 +33,15 @@ interface PhotoGalleryGridProps {
   viewMode: ViewMode;
   selectedPhotos: number[];
   onPhotoSelect: (photoId: number) => void;
+  onDeletePhoto: (photoId: number) => void;
 }
 
 const PhotoGalleryGrid: React.FC<PhotoGalleryGridProps> = ({
   photos,
   viewMode,
   selectedPhotos,
-  onPhotoSelect
+  onPhotoSelect,
+  onDeletePhoto
 }) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -108,6 +111,13 @@ const PhotoGalleryGrid: React.FC<PhotoGalleryGridProps> = ({
                     <Download className="h-4 w-4 mr-1" />
                     Download
                   </Button>
+                  <Button 
+                    size="sm" 
+                    variant="destructive" 
+                    onClick={() => onDeletePhoto(photo.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             </CardContent>
@@ -132,6 +142,17 @@ const PhotoGalleryGrid: React.FC<PhotoGalleryGridProps> = ({
                 onCheckedChange={() => onPhotoSelect(photo.id)}
                 className="bg-white/80 border-white"
               />
+            </div>
+
+            <div className="absolute top-2 right-2">
+              <Button 
+                size="sm" 
+                variant="destructive"
+                onClick={() => onDeletePhoto(photo.id)}
+                className="h-8 w-8 p-0"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </div>
 
             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
