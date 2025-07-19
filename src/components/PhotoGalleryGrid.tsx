@@ -144,12 +144,12 @@ const PhotoGalleryGrid: React.FC<PhotoGalleryGridProps> = ({
               />
             </div>
 
-            <div className="absolute top-2 right-2">
+            <div className="absolute bottom-2 right-2">
               <Button 
                 size="sm" 
                 variant="destructive"
                 onClick={() => onDeletePhoto(photo.id)}
-                className="h-8 w-8 p-0"
+                className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
