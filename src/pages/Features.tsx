@@ -543,6 +543,122 @@ const Features: React.FC = () => {
         </div>
       </section>
       
+      {/* Scenarios Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center text-brand-blue mb-4">Scenarios</h2>
+          <p className="text-center text-lg text-gray-600 max-w-4xl mx-auto mb-12">
+            Asset Docs is invaluable in these situations where comprehensive documentation protects your interests and streamlines the claims process.
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Natural Disasters */}
+            <div className="bg-white p-6 rounded-lg shadow border">
+              <div className="text-2xl mb-4">🔥</div>
+              <h3 className="text-xl font-semibold mb-3 text-brand-blue">Natural Disasters</h3>
+              <div className="space-y-3">
+                <div>
+                  <h4 className="font-medium text-gray-800 mb-2">🌪️ Weather & Storm-Related</h4>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• Tornadoes</li>
+                    <li>• Hurricanes</li>
+                    <li>• Hailstorms</li>
+                    <li>• Thunderstorms / Windstorms</li>
+                    <li>• Blizzards</li>
+                    <li>• Ice Storms / Freezing Rain</li>
+                    <li>• Lightning Strikes</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-800 mb-2">🌊 Water-Related</h4>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• Flooding (from heavy rain, river overflow, storm surge)</li>
+                    <li>• Tsunamis</li>
+                    <li>• Snowmelt Runoff / Ice Dams</li>
+                    <li>• Sewer Backup (covered by endorsements)</li>
+                    <li>• Burst Pipes due to Freeze</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-800 mb-2">🌋 Geological</h4>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• Earthquakes</li>
+                    <li>• Landslides / Mudslides</li>
+                    <li>• Sinkholes</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-800 mb-2">🔥 Fire-Related</h4>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• Wildfires</li>
+                    <li>• Lightning-induced fires</li>
+                    <li>• Smoke Damage (from nearby fires)</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Man-Made Events */}
+            <div className="bg-white p-6 rounded-lg shadow border">
+              <div className="text-2xl mb-4">🏚️</div>
+              <h3 className="text-xl font-semibold mb-3 text-brand-blue">Man-Made Events / Other Insurable Incidents</h3>
+              <div className="space-y-3">
+                <div>
+                  <h4 className="font-medium text-gray-800 mb-2">🚗 Property & Liability-Related</h4>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• House fires (non-natural cause)</li>
+                    <li>• Theft or burglary</li>
+                    <li>• Vandalism</li>
+                    <li>• Riots / Civil commotion</li>
+                    <li>• Explosion (e.g., gas leaks)</li>
+                    <li>• Power surge (e.g., electrical damage)</li>
+                    <li>• Vehicle crashing into property</li>
+                    <li>• Falling objects (e.g., trees, construction debris)</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-800 mb-2">🏢 Business-Specific</h4>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• Business interruption (due to disaster)</li>
+                    <li>• Cyberattacks (for cyber liability insurance)</li>
+                    <li>• Equipment breakdown</li>
+                    <li>• Loss of income due to forced closure</li>
+                    <li>• Supply chain disruption</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Special Insurance Scenarios */}
+            <div className="bg-white p-6 rounded-lg shadow border">
+              <div className="text-2xl mb-4">🌀</div>
+              <h3 className="text-xl font-semibold mb-3 text-brand-blue">Special Insurance Scenarios</h3>
+              <ul className="text-sm text-gray-600 space-y-2">
+                <li>• Loss during evacuation (ALE - Additional Living Expenses)</li>
+                <li>• Mold damage (if caused by a covered peril)</li>
+                <li>• Loss of use or habitability</li>
+                <li>• Damage from construction defects (builder's risk insurance)</li>
+                <li>• HVAC or appliance failure (covered by warranties or service plans)</li>
+              </ul>
+              
+              <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                <h4 className="font-medium text-brand-blue mb-2">Why Documentation Matters</h4>
+                <p className="text-sm text-gray-700">
+                  In any of these scenarios, having comprehensive pre-incident documentation through Asset Docs can:
+                </p>
+                <ul className="text-sm text-gray-600 mt-2 space-y-1">
+                  <li>• Expedite insurance claims processing</li>
+                  <li>• Ensure accurate settlement amounts</li>
+                  <li>• Provide proof of ownership and condition</li>
+                  <li>• Support legal proceedings if necessary</li>
+                  <li>• Facilitate emergency planning and recovery</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-16 bg-brand-green text-white">
         <div className="container mx-auto px-4 text-center">
