@@ -9,7 +9,7 @@ import AccountActions from '@/components/AccountActions';
 import QRCodeSection from '@/components/QRCodeSection';
 import FloorPlansSection from '@/components/FloorPlansSection';
 import StorageAlert from '@/components/StorageAlert';
-import HouseholdIncomeSection from '@/components/HouseholdIncomeSection';
+
 import PostDamageSection from '@/components/PostDamageSection';
 import VoiceNotesSection from '@/components/VoiceNotesSection';
 import DashboardTour from '@/components/DashboardTour';
@@ -68,13 +68,12 @@ const Account: React.FC = () => {
           </div>
 
           <Tabs defaultValue="overview" className="space-y-6" id="tabs-content">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="floor-plans">Floor Plans</TabsTrigger>
               <TabsTrigger value="asset-values">Asset Values</TabsTrigger>
               <TabsTrigger value="damage">Post Damage</TabsTrigger>
               <TabsTrigger value="voice-notes">Voice Notes</TabsTrigger>
-              <TabsTrigger value="profile">Profile</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
@@ -99,9 +98,6 @@ const Account: React.FC = () => {
               <VoiceNotesSection />
             </TabsContent>
 
-            <TabsContent value="profile" className="space-y-6">
-              <HouseholdIncomeSection />
-            </TabsContent>
           </Tabs>
         </div>
       </div>
