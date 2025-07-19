@@ -44,6 +44,7 @@ import Insurance from "./pages/Insurance";
 import Claims from "./pages/Claims";
 import Legal from "./pages/Legal";
 import SubscriptionSuccess from "./pages/SubscriptionSuccess";
+import IndustryRequirements from "./pages/IndustryRequirements";
 
 const queryClient = new QueryClient();
 
@@ -112,6 +113,7 @@ const AppContent = () => {
         <Route path="/video-help" element={<ProtectedRoute><VideoHelp /></ProtectedRoute>} />
         <Route path="/claims" element={<ProtectedRoute><Claims /></ProtectedRoute>} />
         <Route path="/subscription-success" element={<ProtectedRoute><SubscriptionSuccess /></ProtectedRoute>} />
+        <Route path="/industry-requirements" element={<IndustryRequirements />} />
         
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
