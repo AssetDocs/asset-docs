@@ -7,6 +7,7 @@ import AboutSection from '@/components/AboutSection';
 import AIValuationSection from '@/components/AIValuationSection';
 import FeaturesSection from '@/components/FeaturesSection';
 import HowItWorksSection from '@/components/HowItWorksSection';
+import ComprehensiveDocumentationSection from '@/components/ComprehensiveDocumentationSection';
 import CTASection from '@/components/CTASection';
 import FeedbackSection from '@/components/FeedbackSection';
 
@@ -19,6 +20,7 @@ const Index: React.FC = () => {
       <AIValuationSection />
       <FeaturesSection />
       <HowItWorksSection />
+      <ComprehensiveDocumentationSection />
       <CTASection />
       <FeedbackSection />
       <Footer />
