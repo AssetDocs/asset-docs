@@ -48,6 +48,7 @@ import IndustryRequirements from "./pages/IndustryRequirements";
 import Checklists from "./pages/Checklists";
 import Glossary from "./pages/Glossary";
 import StateRequirements from "./pages/StateRequirements";
+import SubscriptionCheckout from "./pages/SubscriptionCheckout";
 
 const queryClient = new QueryClient();
 
@@ -89,6 +90,7 @@ const AppContent = () => {
         <Route path="/contact" element={<Contact />} />
         <Route path="/legal" element={<Legal />} />
         <Route path="/pricing" element={<Pricing />} />
+        <Route path="/subscription-checkout" element={<SubscriptionCheckout />} />
         <Route path="/video-help" element={<VideoHelp />} />
         
         {/* Authentication routes */}

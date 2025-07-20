@@ -40,7 +40,7 @@ const Pricing: React.FC = () => {
     }
   }, [user]);
 
-  const handleSubscribe = async (planType: string) => {
+  const handleSubscribe = (planType: string) => {
     if (!user) {
       toast({
         title: "Authentication Required",
@@ -50,26 +50,8 @@ const Pricing: React.FC = () => {
       return;
     }
 
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { planType },
-      });
-      
-      if (error) throw error;
-      
-      // Open Stripe checkout in a new tab
-      window.open(data.url, '_blank');
-    } catch (error) {
-      console.error('Error creating checkout:', error);
-      toast({
-        title: "Error",
-        description: "Failed to start checkout process. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    // Navigate to subscription checkout page with plan type
+    window.location.href = `/subscription-checkout?plan=${planType}`;
   };
 
   const plans = [
