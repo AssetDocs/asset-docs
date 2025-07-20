@@ -1,6 +1,8 @@
 import React from 'react';
-import { ArrowLeft, BookOpen, Building2, FileText, Shield, TrendingUp, Brain, Scale } from 'lucide-react';
+import { BookOpen, Building2, FileText, Shield, TrendingUp, Brain, Scale } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
@@ -285,19 +287,8 @@ const Glossary = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Navigation */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4">
-          <Link
-            to="/"
-            className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Home
-          </Link>
-        </div>
-      </div>
+    <div className="flex flex-col min-h-screen">
+      <Navbar />
 
       {/* Header */}
       <div className="bg-white">
@@ -364,6 +355,7 @@ const Glossary = () => {
           </Link>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };
