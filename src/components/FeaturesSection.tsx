@@ -39,18 +39,13 @@ const FeaturesSection: React.FC = () => {
             title="Disaster Preparedness"
             description="Be prepared for unforeseen events with complete documentation of your assets."
           />
+          <FeatureCard 
+            icon={<Shield size={48} />}
+            title="Real Estate"
+            description="Property condition reports, improvement documentation, and value authentication."
+          />
         </div>
-        
-        <div className="mt-12 max-w-md mx-auto">
-          <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm">
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">Real Estate</h3>
-            <p className="text-gray-600">
-              Property condition reports, improvement documentation, and value authentication.
-            </p>
-          </div>
-        </div>
-        
-        <div className="mt-8 text-center">
+        <div className="mt-12 text-center">
           <Button asChild size="lg" className="bg-brand-blue hover:bg-brand-lightBlue">
             <Link to="/features">{translate('features.viewAll')}</Link>
           </Button>
