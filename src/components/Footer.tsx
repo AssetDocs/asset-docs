@@ -150,6 +150,14 @@ const Footer: React.FC = () => {
                 </Link>
               </li>
             </ul>
+            
+            <div className="mt-6">
+              <h4 className="text-md font-medium text-gray-200 mb-2">Comprehensive Documentation Tools</h4>
+              <div className="bg-gray-800 p-3 rounded-md">
+                <h5 className="text-sm font-medium text-white mb-1">Real Estate</h5>
+                <p className="text-xs text-gray-300">Property condition reports, improvement documentation, and value authentication.</p>
+              </div>
+            </div>
           </div>
           
           <div>
