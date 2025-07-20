@@ -89,6 +89,7 @@ const AppContent = () => {
         <Route path="/contact" element={<Contact />} />
         <Route path="/legal" element={<Legal />} />
         <Route path="/pricing" element={<Pricing />} />
+        <Route path="/video-help" element={<VideoHelp />} />
         
         {/* Authentication routes */}
         <Route path="/login" element={<Login />} />
@@ -115,7 +116,7 @@ const AppContent = () => {
         <Route path="/testimonials" element={<ProtectedRoute><Testimonials /></ProtectedRoute>} />
         <Route path="/resources" element={<ProtectedRoute><Resources /></ProtectedRoute>} />
         <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
-        <Route path="/video-help" element={<ProtectedRoute><VideoHelp /></ProtectedRoute>} />
+        
         <Route path="/claims" element={<ProtectedRoute><Claims /></ProtectedRoute>} />
         <Route path="/subscription-success" element={<ProtectedRoute><SubscriptionSuccess /></ProtectedRoute>} />
         <Route path="/industry-requirements" element={<IndustryRequirements />} />
