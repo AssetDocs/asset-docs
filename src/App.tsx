@@ -90,9 +90,11 @@ const AppContent = () => {
         <Route path="/legal" element={<Legal />} />
         <Route path="/pricing" element={<Pricing />} />
         
+        {/* Authentication routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        
         {/* Protected routes */}
-        <Route path="/login" element={<ProtectedRoute><Login /></ProtectedRoute>} />
-        <Route path="/signup" element={<ProtectedRoute><Signup /></ProtectedRoute>} />
         <Route path="/qa" element={<ProtectedRoute><QA /></ProtectedRoute>} />
         <Route path="/welcome" element={<ProtectedRoute><Welcome /></ProtectedRoute>} />
         <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
