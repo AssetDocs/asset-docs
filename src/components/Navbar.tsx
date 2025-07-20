@@ -89,7 +89,7 @@ const Navbar: React.FC = () => {
                   {translate('nav.login')}
                 </Link>
                 <Button asChild className="bg-brand-orange hover:bg-brand-orange/90">
-                   <Link to="/auth">{translate('nav.getStarted')}</Link>
+                   <Link to="/pricing">{translate('nav.getStarted')}</Link>
                 </Button>
               </>
             )}
@@ -199,7 +199,7 @@ const Navbar: React.FC = () => {
                     className="bg-brand-orange hover:bg-brand-orange/90 w-fit"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    <Link to="/auth">{translate('nav.getStarted')}</Link>
+                    <Link to="/pricing">{translate('nav.getStarted')}</Link>
                   </Button>
                 </>
               )}
