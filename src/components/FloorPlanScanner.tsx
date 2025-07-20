@@ -1,22 +1,23 @@
-
 import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Camera, Upload, Scan, AlertCircle } from 'lucide-react';
+import { Camera, Scan, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface ScannedFloorPlan {
   id: string;
   name: string;
   imageUrl: string;
   floorPlanUrl?: string;
-  dimensions: {
+  uploadId?: string;
+  status: 'uploading' | 'processing' | 'completed' | 'failed';
+  dimensions?: {
     width: number;
     height: number;
     area: number;
   };
-  rooms: Array<{
+  rooms?: Array<{
     name: string;
     area: number;
   }>;
@@ -26,9 +27,10 @@ interface ScannedFloorPlan {
 const FloorPlanScanner: React.FC = () => {
   const [isScanning, setIsScanning] = useState(false);
   const [scannedPlans, setScannedPlans] = useState<ScannedFloorPlan[]>([]);
-  const [apiKey, setApiKey] = useState(localStorage.getItem('floorplan_api_key') || '');
+  const [isCameraActive, setIsCameraActive] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { toast } = useToast();
 
   const startCamera = async () => {
     try {
@@ -37,9 +39,28 @@ const FloorPlanScanner: React.FC = () => {
       });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        setIsCameraActive(true);
+        toast({
+          title: "Camera started",
+          description: "Point your camera at the room to scan",
+        });
       }
     } catch (error) {
       console.error('Camera access denied:', error);
+      toast({
+        title: "Camera access denied",
+        description: "Please allow camera access to scan floor plans",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const stopCamera = () => {
+    if (videoRef.current?.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+      setIsCameraActive(false);
     }
   };
 
@@ -57,89 +78,168 @@ const FloorPlanScanner: React.FC = () => {
   const processFloorPlanScan = async (imageData: string) => {
     setIsScanning(true);
     
+    const newPlan: ScannedFloorPlan = {
+      id: Date.now().toString(),
+      name: `Floor Plan ${scannedPlans.length + 1}`,
+      imageUrl: imageData,
+      status: 'uploading',
+      scanDate: new Date()
+    };
+
+    setScannedPlans(prev => [...prev, newPlan]);
+
     try {
-      // Mock implementation - in production, this would call MagicPlan or CubiCasa API
-      await simulateFloorPlanProcessing(imageData);
+      // Upload to Cubicasa via edge function
+      const { data, error } = await supabase.functions.invoke('cubicasa-floor-plan', {
+        body: {
+          method: 'upload_image',
+          imageData,
+          propertyId: null // You can add property selection later
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        // Update plan with upload ID
+        setScannedPlans(prev => prev.map(plan => 
+          plan.id === newPlan.id 
+            ? { ...plan, status: 'processing', uploadId: data.upload_id }
+            : plan
+        ));
+
+        toast({
+          title: "Upload successful",
+          description: "Your floor plan is being processed by Cubicasa",
+        });
+
+        // Poll for completion
+        pollFloorPlanStatus(newPlan.id, data.upload_id);
+      } else {
+        throw new Error(data.error || 'Upload failed');
+      }
     } catch (error) {
       console.error('Floor plan processing failed:', error);
+      setScannedPlans(prev => prev.map(plan => 
+        plan.id === newPlan.id 
+          ? { ...plan, status: 'failed' }
+          : plan
+      ));
+      
+      toast({
+        title: "Processing failed",
+        description: "Failed to process floor plan. Please try again.",
+        variant: "destructive",
+      });
     }
     
     setIsScanning(false);
   };
 
-  const simulateFloorPlanProcessing = async (imageData: string): Promise<void> => {
-    // Simulate API processing delay
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
-    const mockPlan: ScannedFloorPlan = {
-      id: Date.now().toString(),
-      name: `Floor Plan ${scannedPlans.length + 1}`,
-      imageUrl: imageData,
-      floorPlanUrl: '/placeholder-floorplan.svg',
-      dimensions: {
-        width: Math.floor(Math.random() * 20) + 30,
-        height: Math.floor(Math.random() * 15) + 25,
-        area: Math.floor(Math.random() * 500) + 1000
-      },
-      rooms: [
-        { name: 'Living Room', area: Math.floor(Math.random() * 100) + 200 },
-        { name: 'Kitchen', area: Math.floor(Math.random() * 50) + 100 },
-        { name: 'Bedroom 1', area: Math.floor(Math.random() * 80) + 120 },
-        { name: 'Bedroom 2', area: Math.floor(Math.random() * 60) + 100 },
-        { name: 'Bathroom', area: Math.floor(Math.random() * 30) + 40 }
-      ],
-      scanDate: new Date()
+  const pollFloorPlanStatus = async (planId: string, uploadId: string) => {
+    const maxAttempts = 30; // 5 minutes with 10-second intervals
+    let attempts = 0;
+
+    const checkStatus = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('cubicasa-floor-plan', {
+          body: {
+            method: 'get_floor_plan',
+            uploadId
+          }
+        });
+
+        if (error) throw error;
+
+        if (data.status === 'completed') {
+          setScannedPlans(prev => prev.map(plan => 
+            plan.id === planId 
+              ? { 
+                  ...plan, 
+                  status: 'completed',
+                  floorPlanUrl: data.floor_plan_url,
+                  dimensions: data.measurements ? {
+                    width: data.measurements.width || 0,
+                    height: data.measurements.height || 0,
+                    area: data.measurements.area || 0
+                  } : undefined,
+                  rooms: data.rooms || []
+                }
+              : plan
+          ));
+
+          toast({
+            title: "Floor plan ready!",
+            description: "Your floor plan has been generated successfully",
+          });
+          return;
+        }
+
+        if (data.status === 'failed') {
+          setScannedPlans(prev => prev.map(plan => 
+            plan.id === planId 
+              ? { ...plan, status: 'failed' }
+              : plan
+          ));
+          return;
+        }
+
+        // Continue polling if still processing
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(checkStatus, 10000); // Check every 10 seconds
+        } else {
+          // Timeout
+          setScannedPlans(prev => prev.map(plan => 
+            plan.id === planId 
+              ? { ...plan, status: 'failed' }
+              : plan
+          ));
+        }
+      } catch (error) {
+        console.error('Status check failed:', error);
+      }
     };
-    
-    setScannedPlans(prev => [...prev, mockPlan]);
+
+    setTimeout(checkStatus, 5000); // First check after 5 seconds
   };
 
-  const handleApiKeyUpdate = () => {
-    localStorage.setItem('floorplan_api_key', apiKey);
-    console.log('Floor plan API key updated');
+  const getStatusIcon = (status: ScannedFloorPlan['status']) => {
+    switch (status) {
+      case 'uploading':
+      case 'processing':
+        return <Clock className="h-4 w-4 text-yellow-500 animate-spin" />;
+      case 'completed':
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'failed':
+        return <AlertCircle className="h-4 w-4 text-red-500" />;
+    }
+  };
+
+  const getStatusText = (status: ScannedFloorPlan['status']) => {
+    switch (status) {
+      case 'uploading':
+        return 'Uploading...';
+      case 'processing':
+        return 'Processing with Cubicasa...';
+      case 'completed':
+        return 'Completed';
+      case 'failed':
+        return 'Failed';
+    }
   };
 
   return (
     <div className="space-y-6">
-      {/* API Configuration */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <AlertCircle className="h-5 w-5 mr-2 text-orange-500" />
-            API Configuration
-          </CardTitle>
-          <CardDescription>
-            Enter your floor plan scanning service API key (MagicPlan, CubiCasa, etc.)
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex space-x-2">
-            <Input
-              type="password"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder="Enter API key for floor plan service"
-              className="flex-1"
-            />
-            <Button onClick={handleApiKeyUpdate}>
-              Save Key
-            </Button>
-          </div>
-          <p className="text-xs text-gray-500">
-            This key will be stored locally. For production apps, use Supabase secrets.
-          </p>
-        </CardContent>
-      </Card>
-
       {/* Camera Scanner */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
             <Camera className="h-6 w-6 mr-2 text-brand-blue" />
-            Live Floor Plan Scanner
+            Cubicasa Floor Plan Scanner
           </CardTitle>
           <CardDescription>
-            Use your device camera to scan rooms and generate floor plans
+            Use your device camera to scan rooms and generate professional floor plans with Cubicasa
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -160,18 +260,30 @@ const FloorPlanScanner: React.FC = () => {
           </div>
           
           <div className="flex space-x-2">
-            <Button onClick={startCamera} variant="outline" className="flex-1">
-              <Camera className="h-4 w-4 mr-2" />
-              Start Camera
-            </Button>
+            {!isCameraActive ? (
+              <Button onClick={startCamera} variant="outline" className="flex-1">
+                <Camera className="h-4 w-4 mr-2" />
+                Start Camera
+              </Button>
+            ) : (
+              <Button onClick={stopCamera} variant="outline" className="flex-1">
+                Stop Camera
+              </Button>
+            )}
             <Button 
               onClick={capturePhoto} 
-              disabled={isScanning}
+              disabled={isScanning || !isCameraActive}
               className="flex-1 bg-brand-orange hover:bg-brand-orange/90"
             >
               <Scan className="h-4 w-4 mr-2" />
               {isScanning ? 'Processing...' : 'Capture & Scan'}
             </Button>
+          </div>
+          
+          <div className="text-xs text-muted-foreground">
+            <p>• Point your camera at the room you want to scan</p>
+            <p>• Ensure good lighting for best results</p>
+            <p>• Processing may take several minutes</p>
           </div>
         </CardContent>
       </Card>
@@ -181,18 +293,18 @@ const FloorPlanScanner: React.FC = () => {
         <CardHeader>
           <CardTitle>Scanned Floor Plans</CardTitle>
           <CardDescription>
-            Generated floor plans from your room scans
+            Floor plans generated with Cubicasa AI
           </CardDescription>
         </CardHeader>
         <CardContent>
           {scannedPlans.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">
+            <p className="text-muted-foreground text-center py-8">
               No floor plans scanned yet. Use the camera above to get started.
             </p>
           ) : (
             <div className="space-y-4">
               {scannedPlans.map((plan) => (
-                <div key={plan.id} className="border rounded-lg p-4 bg-white">
+                <div key={plan.id} className="border rounded-lg p-4 bg-card">
                   <div className="flex space-x-4">
                     <img
                       src={plan.imageUrl}
@@ -200,23 +312,49 @@ const FloorPlanScanner: React.FC = () => {
                       className="w-20 h-20 object-cover rounded"
                     />
                     <div className="flex-1">
-                      <h3 className="font-medium">{plan.name}</h3>
-                      <p className="text-sm text-gray-600">
-                        {plan.dimensions.width}' × {plan.dimensions.height}' ({plan.dimensions.area} sq ft)
-                      </p>
-                      <div className="mt-2">
-                        <p className="text-xs text-gray-500">Rooms detected:</p>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {plan.rooms.map((room, index) => (
-                            <span
-                              key={index}
-                              className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded"
-                            >
-                              {room.name} ({room.area} sq ft)
-                            </span>
-                          ))}
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-medium">{plan.name}</h3>
+                        <div className="flex items-center space-x-2">
+                          {getStatusIcon(plan.status)}
+                          <span className="text-sm text-muted-foreground">
+                            {getStatusText(plan.status)}
+                          </span>
                         </div>
                       </div>
+                      
+                      {plan.dimensions && (
+                        <p className="text-sm text-muted-foreground">
+                          {plan.dimensions.width}' × {plan.dimensions.height}' ({plan.dimensions.area} sq ft)
+                        </p>
+                      )}
+                      
+                      {plan.rooms && plan.rooms.length > 0 && (
+                        <div className="mt-2">
+                          <p className="text-xs text-muted-foreground">Rooms detected:</p>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {plan.rooms.map((room, index) => (
+                              <span
+                                key={index}
+                                className="text-xs bg-primary/10 text-primary px-2 py-1 rounded"
+                              >
+                                {room.name} ({room.area} sq ft)
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {plan.floorPlanUrl && (
+                        <div className="mt-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => window.open(plan.floorPlanUrl, '_blank')}
+                          >
+                            View Floor Plan
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
