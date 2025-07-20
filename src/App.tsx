@@ -47,6 +47,7 @@ import SubscriptionSuccess from "./pages/SubscriptionSuccess";
 import IndustryRequirements from "./pages/IndustryRequirements";
 import Checklists from "./pages/Checklists";
 import Glossary from "./pages/Glossary";
+import StateRequirements from "./pages/StateRequirements";
 
 const queryClient = new QueryClient();
 
@@ -118,6 +119,7 @@ const AppContent = () => {
         <Route path="/industry-requirements" element={<IndustryRequirements />} />
         <Route path="/checklists" element={<Checklists />} />
         <Route path="/glossary" element={<Glossary />} />
+        <Route path="/state-requirements" element={<StateRequirements />} />
         
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
