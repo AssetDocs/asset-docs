@@ -29,23 +29,42 @@ serve(async (req) => {
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
     logStep("Stripe key verified");
 
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header provided");
-    logStep("Authorization header found");
-
-    const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
-    const user = userData.user;
-    if (!user?.email) throw new Error("User not authenticated or email not available");
-    logStep("User authenticated", { userId: user.id, email: user.email });
-
-    const { planType } = await req.json();
+    // Parse request body to get plan type and optional email
+    const { planType, email: providedEmail } = await req.json();
     if (!planType) throw new Error("Plan type is required");
-    logStep("Plan type received", { planType });
+    logStep("Request body parsed", { planType, providedEmail });
+
+    // Attempt to retrieve authenticated user (optional)
+    let user = null;
+    let userEmail = null;
+    
+    const authHeader = req.headers.get("Authorization");
+    if (authHeader) {
+      try {
+        const token = authHeader.replace("Bearer ", "");
+        const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
+        if (!userError && userData.user) {
+          user = userData.user;
+          userEmail = user.email;
+          logStep("Authenticated user found", { userId: user.id, email: userEmail });
+        }
+      } catch (error) {
+        logStep("No valid authentication found");
+      }
+    }
+
+    // Use provided email if no authenticated user
+    if (!userEmail && providedEmail) {
+      userEmail = providedEmail;
+      logStep("Using provided email", { email: userEmail });
+    }
+
+    if (!userEmail) {
+      throw new Error("Email is required - either through authentication or in request body");
+    }
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
     let customerId;
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
@@ -89,7 +108,7 @@ serve(async (req) => {
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
-      customer_email: customerId ? undefined : user.email,
+      customer_email: customerId ? undefined : userEmail,
       line_items: [
         {
           price_data: priceData,

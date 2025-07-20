@@ -108,16 +108,6 @@ const SubscriptionCheckout: React.FC = () => {
   const selectedPlan = planType ? planConfigs[planType as keyof typeof planConfigs] : null;
 
   useEffect(() => {
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please log in to continue with your subscription.",
-        variant: "destructive",
-      });
-      navigate('/auth');
-      return;
-    }
-
     if (!selectedPlan) {
       toast({
         title: "Plan Selection Required",
@@ -127,28 +117,31 @@ const SubscriptionCheckout: React.FC = () => {
       navigate('/pricing');
       return;
     }
-  }, [user, selectedPlan, navigate, toast]);
+  }, [selectedPlan, navigate, toast]);
 
   const onSubmit = async (data: FormData) => {
-    if (!user || !planType) return;
+    if (!planType) return;
 
     setIsLoading(true);
     try {
-      // Store customer information in profiles table
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .upsert({
-          user_id: user.id,
-          first_name: data.firstName,
-          last_name: data.lastName,
-        });
+      // Store customer information in profiles table if user is authenticated
+      if (user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert({
+            user_id: user.id,
+            first_name: data.firstName,
+            last_name: data.lastName,
+          });
 
-      if (profileError) throw profileError;
+        if (profileError) throw profileError;
+      }
 
-      // Create Stripe checkout session
+      // Create Stripe checkout session (works for both authenticated and non-authenticated users)
       const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-checkout', {
         body: { 
           planType,
+          email: data.email, // Include email for non-authenticated users
           customerInfo: {
             firstName: data.firstName,
             lastName: data.lastName,

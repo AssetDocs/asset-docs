@@ -41,16 +41,7 @@ const Pricing: React.FC = () => {
   }, [user]);
 
   const handleSubscribe = (planType: string) => {
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please log in to subscribe to a plan.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Navigate to subscription checkout page with plan type
+    // Navigate to subscription checkout page with plan type (no authentication required)
     window.location.href = `/subscription-checkout?plan=${planType}`;
   };
 
