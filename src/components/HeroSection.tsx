@@ -16,9 +16,6 @@ const HeroSection: React.FC = () => {
             <p className="text-xl mb-4 animate-slide-up opacity-90">
               Secure documentation of your property and possessions with professional-grade tools and third-party verification.
             </p>
-            <p className="text-lg mb-4 animate-slide-up opacity-85">
-              Streamline the insurance claims process with pre-documented proof of ownership, condition, and valuation.
-            </p>
             <p className="text-lg mb-8 animate-slide-up opacity-80 font-bold">
               Join thousands of property owners and businesses who trust Asset Docs to protect their valuable assets and provide peace of mind.
             </p>
