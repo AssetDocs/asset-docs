@@ -127,11 +127,6 @@ const Footer: React.FC = () => {
                     Industry Requirements
                   </Link>
                 </li>
-                <li>
-                  <Link to="/insurance-guide" className="text-gray-300 hover:text-white transition-colors text-sm">
-                    Insurance Guide
-                  </Link>
-                </li>
               </ul>
             </div>
             
