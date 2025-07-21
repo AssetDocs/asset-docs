@@ -9,6 +9,7 @@ const AIValuationSection: React.FC = () => {
     <section className="py-20 bg-white">
       <div className="container mx-auto px-4">
         <h2 className="section-title">AI-Powered Asset Identification & Valuation</h2>
+        <p className="text-center text-lg text-gray-600 mb-8 italic">(Optional feature)</p>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="order-2 lg:order-1">
             <h3 className="text-2xl font-semibold mb-4 text-brand-blue">Intelligent Asset Recognition</h3>
