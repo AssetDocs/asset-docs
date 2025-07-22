@@ -92,6 +92,7 @@ const AppContent = () => {
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/subscription-checkout" element={<SubscriptionCheckout />} />
         <Route path="/video-help" element={<VideoHelp />} />
+        <Route path="/resources" element={<Resources />} />
         
         {/* Authentication routes */}
         <Route path="/login" element={<Login />} />
@@ -116,7 +117,6 @@ const AppContent = () => {
         <Route path="/account/settings" element={<ProtectedRoute><AccountSettings /></ProtectedRoute>} />
         <Route path="/schedule-professional" element={<ProtectedRoute><ScheduleProfessional /></ProtectedRoute>} />
         <Route path="/testimonials" element={<ProtectedRoute><Testimonials /></ProtectedRoute>} />
-        <Route path="/resources" element={<ProtectedRoute><Resources /></ProtectedRoute>} />
         <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
         
         <Route path="/claims" element={<ProtectedRoute><Claims /></ProtectedRoute>} />
