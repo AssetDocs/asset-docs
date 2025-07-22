@@ -151,7 +151,67 @@ const PressNews: React.FC = () => {
       date: "2024-05-28",
       readTime: "8 min read",
       category: "Industry Report",
-      content: "The latest industry analysis shows a troubling trend: nearly half of all property insurance claims face delays or partial denials due to inadequate documentation provided by policyholders..."
+      content: "The latest industry analysis shows a troubling trend: nearly half of all property insurance claims face delays or partial denials due to inadequate documentation provided by policyholders. The study, which analyzed over 100,000 claims from 2020-2024, found that insufficient documentation costs homeowners an average of $15,000 per delayed claim. Key findings include: 62% of denied claims cite 'inadequate proof of ownership,' 45% lack sufficient condition documentation, and 38% have incomplete damage assessments. Insurance adjusters report spending 40% more time on claims with poor documentation, leading to significant delays in payouts."
+    },
+    {
+      id: 7,
+      title: "Renters Win $25,000 Settlement After Apartment Complex Fire Documentation Saves Their Case",
+      excerpt: "College students' detailed documentation of their belongings helped them secure full compensation when their apartment building burned down, proving renters can protect themselves too.",
+      author: "Emma Rodriguez",
+      date: "2024-05-20",
+      readTime: "5 min read",
+      category: "Renter Stories",
+      content: "When fire destroyed the Riverside Apartments complex, most tenants lost everything - including their security deposits and personal belongings. But three college roommates had been documenting their possessions using a simple app, taking photos and recording serial numbers. This documentation proved crucial when their renters' insurance company initially offered only $8,000 for items worth over $25,000. Armed with timestamped photos, receipts, and detailed inventories, they successfully appealed and received full compensation. 'We never thought our laptop and textbooks were worth documenting, but it saved us financially,' said junior Sarah Kim."
+    },
+    {
+      id: 8,
+      title: "Federal Emergency Management Agency Updates Documentation Requirements for Disaster Relief",
+      excerpt: "FEMA's new guidelines emphasize the critical role of pre-disaster documentation in securing federal assistance, with enhanced requirements taking effect in 2025.",
+      author: "FEMA Communications",
+      date: "2024-05-15",
+      readTime: "6 min read",
+      category: "Legal Update",
+      content: "The Federal Emergency Management Agency has announced updated documentation standards for disaster relief applications, effective January 2025. The new requirements mandate that applicants provide comprehensive pre-disaster inventories, including photographs, receipts, and condition assessments for all claimed items over $1,000. FEMA Administrator Deanne Criswell stated, 'We're seeing too many families struggle to prove their losses after disasters. These new standards will help ensure faster, more accurate assistance.' The updates include digital submission requirements, standardized inventory forms, and partnerships with documentation service providers to help families prepare before disasters strike."
+    },
+    {
+      id: 9,
+      title: "Small Business Owner Recovers $180,000 After Detailed Documentation Proves Equipment Value",
+      excerpt: "Restaurant owner Maria Santos' meticulous record-keeping saved her business when a kitchen fire destroyed her commercial equipment and a cyber attack corrupted her files.",
+      author: "Business Weekly",
+      date: "2024-05-10",
+      readTime: "7 min read",
+      category: "Case Study",
+      content: "Maria Santos thought she was being overly cautious when she started photographing every piece of equipment in her restaurant, noting model numbers, purchase dates, and conditions. When a grease fire destroyed her kitchen and a subsequent ransomware attack corrupted her digital files, that documentation became her lifeline. Her cloud-stored backup inventory helped her insurance adjuster quickly assess the $180,000 in damages. 'Without those photos and records, I would have struggled to prove what equipment I had and its condition,' Santos explained. Her thorough documentation cut her claim processing time from the typical 6 months to just 6 weeks, allowing her to reopen much sooner."
+    },
+    {
+      id: 10,
+      title: "Study: Homeowners With Digital Documentation Receive 35% Higher Insurance Payouts",
+      excerpt: "University research shows that homeowners who maintain digital asset inventories receive significantly higher insurance settlements compared to those using traditional methods.",
+      author: "Dr. James Mitchell, Insurance Research Institute",
+      date: "2024-05-05",
+      readTime: "9 min read",
+      category: "Industry Report",
+      content: "A comprehensive three-year study of 5,000 insurance claims reveals that homeowners using digital documentation platforms receive an average of 35% higher payouts than those relying on traditional methods like handwritten lists and basic photos. The research, conducted by the Insurance Research Institute, found that digital documentation reduces claim disputes by 60% and cuts processing time by an average of 8 weeks. Key factors include timestamped photos, automatic metadata capture, and integrated valuation tools. 'Digital platforms provide the granular detail and verification that adjusters need to approve claims quickly,' noted lead researcher Dr. James Mitchell. The study recommends that insurance companies incentivize digital documentation through premium discounts."
+    },
+    {
+      id: 11,
+      title: "Tornado Survivors Share How Photo Documentation Expedited Their Recovery",
+      excerpt: "Families affected by the Oklahoma tornado outbreak describe how having detailed visual records of their homes helped them navigate the insurance process and rebuild faster.",
+      author: "Disaster Recovery Network",
+      date: "2024-04-28",
+      readTime: "6 min read",
+      category: "Personal Story",
+      content: "When EF4 tornadoes tore through Oklahoma last spring, the Johnson family's home was completely destroyed. But unlike many of their neighbors, they were back in temporary housing within three weeks, thanks to comprehensive photo documentation they had maintained. 'We had photos of every room, every major item, even our recent renovations,' explained Tom Johnson. 'Our adjuster said it was the most complete claim file he'd seen.' The family's digital inventory included purchase receipts, warranty information, and condition photos taken just months before the disaster. Their neighbors, who relied on memory and scattered paperwork, faced months of delays and disputes. 'Documentation made the difference between a nightmare and a manageable recovery,' said neighbor Carol Peters, who has since started her own inventory."
+    },
+    {
+      id: 12,
+      title: "Legal Expert: Why Courts Are Increasingly Requiring Digital Evidence in Property Disputes",
+      excerpt: "Attorney specializing in insurance law explains how digital documentation standards are evolving in courtrooms and what this means for property owners.",
+      author: "Attorney Sarah Chang, Insurance Law Specialist",
+      date: "2024-04-20",
+      readTime: "8 min read",
+      category: "Legal Guide",
+      content: "As technology advances, courts are setting higher standards for property documentation in insurance disputes. Digital evidence with metadata, timestamps, and chain of custody records is increasingly favored over traditional paper documentation. Recent court decisions in California, Texas, and Florida have emphasized the importance of verifiable digital records in property damage cases. 'Judges want to see evidence that can't be easily manipulated or fabricated,' explains insurance law attorney Sarah Chang. 'A smartphone photo taken last week won't carry the same weight as a timestamped, metadata-rich image taken during regular property documentation.' Chang recommends homeowners maintain digital inventories using certified platforms that provide legally admissible documentation. The legal trend is clear: better documentation leads to better outcomes in court."
     }
   ];
 
@@ -345,7 +405,7 @@ const PressNews: React.FC = () => {
                 <Button className="w-full sm:w-auto bg-white text-brand-blue hover:bg-gray-100">
                   Start Documenting Today
                 </Button>
-                <Button variant="outline" className="w-full sm:w-auto border-white text-white hover:bg-white hover:text-brand-blue">
+                <Button className="w-full sm:w-auto bg-blue-600 text-white hover:bg-blue-700">
                   Learn More
                 </Button>
               </div>
