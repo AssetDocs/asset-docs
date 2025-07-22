@@ -125,6 +125,7 @@ const AppContent = () => {
         <Route path="/checklists" element={<Checklists />} />
         <Route path="/glossary" element={<Glossary />} />
         <Route path="/state-requirements" element={<StateRequirements />} />
+        <Route path="/press-news" element={<PressNews />} />
         
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
