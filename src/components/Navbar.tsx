@@ -3,14 +3,24 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Menu, X, Video, LogOut, User, Home } from 'lucide-react';
+import SearchBar from '@/components/SearchBar';
 
 import { useTranslation } from '@/contexts/TranslationContext';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const { translate } = useTranslation();
   const { isAuthenticated, signOut, profile } = useAuth();
+
+  const handleSearchToggle = () => {
+    setIsSearchExpanded(!isSearchExpanded);
+  };
+
+  const handleSearchClose = () => {
+    setIsSearchExpanded(false);
+  };
 
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
@@ -25,9 +35,15 @@ const Navbar: React.FC = () => {
           </Link>
           
           {/* Desktop menu */}
-          <div className="hidden md:flex items-center space-x-6">
-            {isAuthenticated ? (
-              <>
+          <div className="hidden md:flex items-center space-x-4">
+            <SearchBar
+              isExpanded={isSearchExpanded}
+              onToggle={handleSearchToggle}
+              onClose={handleSearchClose}
+            />
+            <div className="flex items-center space-x-6">
+              {isAuthenticated ? (
+                <>
                  <Link 
                    to="/account" 
                    className="flex items-center px-3 py-2 bg-brand-blue/10 text-brand-blue hover:bg-brand-blue hover:text-white transition-all rounded-md font-medium"
@@ -93,10 +109,17 @@ const Navbar: React.FC = () => {
                 </Button>
               </>
             )}
+            </div>
           </div>
           
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center gap-2">
+            <SearchBar
+              isExpanded={isSearchExpanded}
+              onToggle={handleSearchToggle}
+              onClose={handleSearchClose}
+              className="mr-2"
+            />
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="p-2 focus:outline-none"
