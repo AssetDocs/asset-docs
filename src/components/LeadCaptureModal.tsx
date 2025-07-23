@@ -51,6 +51,7 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
     howHeard: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessState, setShowSuccessState] = useState(false);
   const { toast } = useToast();
 
   const handleInputChange = (field: string, value: string) => {
@@ -92,18 +93,11 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
 
       toast({
         title: "Thank you!",
-        description: "Your information has been saved and the inventory checklist is downloading!",
+        description: "Your information has been saved and the inventory checklist is downloading! Find more valuable tools like this in your client dashboard when you start your free trial today. Limited time only!",
       });
 
-      // Reset form and close modal
-      setFormData({
-        name: '',
-        email: '',
-        city: '',
-        state: '',
-        howHeard: ''
-      });
-      onClose();
+      // Show success state with call-to-action
+      setShowSuccessState(true);
 
     } catch (error) {
       console.error('Error submitting lead:', error);
@@ -117,97 +111,153 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
     }
   };
 
+  const handleStartTrial = () => {
+    window.location.href = '/pricing';
+  };
+
+  const handleCloseModal = () => {
+    // Reset form and success state
+    setFormData({
+      name: '',
+      email: '',
+      city: '',
+      state: '',
+      howHeard: ''
+    });
+    setShowSuccessState(false);
+    onClose();
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleCloseModal}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-center text-xl font-semibold">
-            Download your free inventory checklist
-          </DialogTitle>
-          <p className="text-center text-muted-foreground text-sm">
-            by Asset Docs
-          </p>
-        </DialogHeader>
+        {!showSuccessState ? (
+          <>
+            <DialogHeader>
+              <DialogTitle className="text-center text-xl font-semibold">
+                Download your free inventory checklist
+              </DialogTitle>
+              <p className="text-center text-muted-foreground text-sm">
+                by Asset Docs
+              </p>
+            </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Full Name *</Label>
-            <Input
-              id="name"
-              type="text"
-              value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-              placeholder="Enter your full name"
-              required
-            />
-          </div>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name *</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  placeholder="Enter your full name"
+                  required
+                />
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="email">Email Address *</Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => handleInputChange('email', e.target.value)}
-              placeholder="Enter your email address"
-              required
-            />
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  placeholder="Enter your email address"
+                  required
+                />
+              </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="city">City *</Label>
-              <Input
-                id="city"
-                type="text"
-                value={formData.city}
-                onChange={(e) => handleInputChange('city', e.target.value)}
-                placeholder="Your city"
-                required
-              />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="city">City *</Label>
+                  <Input
+                    id="city"
+                    type="text"
+                    value={formData.city}
+                    onChange={(e) => handleInputChange('city', e.target.value)}
+                    placeholder="Your city"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="state">State *</Label>
+                  <Select onValueChange={(value) => handleInputChange('state', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select state" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {US_STATES.map((state) => (
+                        <SelectItem key={state} value={state}>
+                          {state}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="howHeard">How did you hear about us? *</Label>
+                <Select onValueChange={(value) => handleInputChange('howHeard', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select an option" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {HOW_HEARD_OPTIONS.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Submitting...' : 'Submit to receive your free inventory checklist'}
+              </Button>
+            </form>
+          </>
+        ) : (
+          <>
+            <DialogHeader>
+              <DialogTitle className="text-center text-xl font-semibold text-green-600">
+                Success! Your download is starting...
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="text-center space-y-4 py-4">
+              <p className="text-muted-foreground">
+                Find more valuable tools like this in your client dashboard when you start your free trial today.
+              </p>
+              <p className="text-sm font-semibold text-primary">
+                Limited time only!
+              </p>
+              
+              <div className="space-y-3">
+                <Button 
+                  onClick={handleStartTrial}
+                  className="w-full"
+                  size="lg"
+                >
+                  Start Your Free 30-Day Trial
+                </Button>
+                
+                <Button 
+                  onClick={handleCloseModal}
+                  variant="outline"
+                  className="w-full"
+                >
+                  Close
+                </Button>
+              </div>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="state">State *</Label>
-              <Select onValueChange={(value) => handleInputChange('state', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select state" />
-                </SelectTrigger>
-                <SelectContent>
-                  {US_STATES.map((state) => (
-                    <SelectItem key={state} value={state}>
-                      {state}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="howHeard">How did you hear about us? *</Label>
-            <Select onValueChange={(value) => handleInputChange('howHeard', value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select an option" />
-              </SelectTrigger>
-              <SelectContent>
-                {HOW_HEARD_OPTIONS.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <Button 
-            type="submit" 
-            className="w-full" 
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Submitting...' : 'Submit to receive your free inventory checklist'}
-          </Button>
-        </form>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );
