@@ -12,6 +12,7 @@ import VoiceNotesSection from '@/components/VoiceNotesSection';
 import DashboardTour from '@/components/DashboardTour';
 import AppDownloadButtons from '@/components/AppDownloadButtons';
 import ChecklistsAccess from '@/components/ChecklistsAccess';
+import AccountActions from '@/components/AccountActions';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -111,6 +112,7 @@ const SampleDashboard: React.FC = () => {
                   </Button>
                 </div>
               </div>
+              <AccountActions onCreateFloorPlan={handleCreateFloorPlan} />
               <ChecklistsAccess />
               <QRCodeSection />
             </TabsContent>
