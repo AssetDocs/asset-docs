@@ -344,6 +344,9 @@ const Auth: React.FC = () => {
                               </Button>
                             </div>
                           </FormControl>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            Password must be at least 8 characters with uppercase, lowercase, and special character
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}
