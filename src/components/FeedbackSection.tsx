@@ -19,7 +19,7 @@ const FeedbackSection: React.FC = () => {
             Your feedback helps us improve our service and better serve our community.
           </p>
           <Button asChild size="lg" className="bg-brand-blue hover:bg-brand-lightBlue">
-            <Link to="/feedback">Share Your Feedback</Link>
+            <Link to="/contact">Share Your Feedback</Link>
           </Button>
         </div>
       </div>
