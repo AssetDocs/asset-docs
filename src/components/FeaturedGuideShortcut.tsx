@@ -26,9 +26,6 @@ const FeaturedGuideShortcut: React.FC = () => {
                     </span>
                   </div>
                   
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                    Why Digital Asset Documentation Beats Spreadsheets + Phone Photos
-                  </h3>
                   
                   <p className="text-gray-600 mb-6 leading-relaxed">
                     Discover how modern digital documentation transforms asset management, 
