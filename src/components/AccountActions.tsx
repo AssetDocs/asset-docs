@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Home, Camera, Video, FileImage, FileText, Shield, Settings, Plus, Eye, Building } from 'lucide-react';
 import DownloadAllFilesButton from './DownloadAllFilesButton';
+import { ExportAssetsButton } from './ExportAssetsButton';
 
 interface AccountActionsProps {
   onCreateFloorPlan: () => void;
@@ -205,6 +206,24 @@ const AccountActions: React.FC<AccountActionsProps> = ({ onCreateFloorPlan }) =>
               </Link>
             </Button>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card className="hover:shadow-lg transition-shadow">
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <FileText className="h-6 w-6 mr-2 text-brand-blue" />
+            Export Assets
+          </CardTitle>
+          <CardDescription>
+            Generate a comprehensive PDF summary and download all your assets in a zip file
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ExportAssetsButton 
+            variant="default"
+            className="w-full bg-brand-green hover:bg-brand-green/90"
+          />
         </CardContent>
       </Card>
 
