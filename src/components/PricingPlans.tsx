@@ -9,7 +9,7 @@ const PricingPlans: React.FC = () => {
   const individualFeatures = {
     basic: [
       "1 property",
-      "250GB secure cloud storage",
+      "100GB secure cloud storage",
       "Photo and video uploads",
       "Document uploads", 
       "Mobile app access",
