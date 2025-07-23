@@ -11,18 +11,34 @@ import HowItWorksSection from '@/components/HowItWorksSection';
 import CTASection from '@/components/CTASection';
 import FeedbackSection from '@/components/FeedbackSection';
 import LeadCaptureModal from '@/components/LeadCaptureModal';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Index: React.FC = () => {
   const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
-    // Show the modal after a short delay when the page loads
-    const timer = setTimeout(() => {
-      setIsLeadModalOpen(true);
-    }, 10000); // 10 second delay
+    // Don't show modal if user is already logged in
+    if (user) return;
+    
+    // Check if user has already submitted the lead form
+    const hasSubmittedLead = localStorage.getItem('hasSubmittedLead');
+    if (hasSubmittedLead === 'true') return;
+    
+    // Check if this is a returning visitor (has visited before)
+    const hasVisitedBefore = localStorage.getItem('hasVisitedBefore');
+    if (!hasVisitedBefore) {
+      // Mark as visited for future visits
+      localStorage.setItem('hasVisitedBefore', 'true');
+      
+      // Show the modal after a delay for first-time visitors
+      const timer = setTimeout(() => {
+        setIsLeadModalOpen(true);
+      }, 10000); // 10 second delay
 
-    return () => clearTimeout(timer);
-  }, []);
+      return () => clearTimeout(timer);
+    }
+  }, [user]);
 
   return (
     <div className="flex flex-col min-h-screen">

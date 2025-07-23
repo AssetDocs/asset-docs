@@ -91,6 +91,9 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
       // Generate and download the PDF
       await InventoryChecklistPDFService.generateInventoryChecklistPDF();
 
+      // Mark that the user has submitted the lead form
+      localStorage.setItem('hasSubmittedLead', 'true');
+
       toast({
         title: "Thank you!",
         description: "Your information has been saved and the inventory checklist is downloading! Find more valuable tools like this in your client dashboard when you start your free trial today. Limited time only!",
