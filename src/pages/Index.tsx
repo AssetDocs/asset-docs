@@ -19,7 +19,7 @@ const Index: React.FC = () => {
     // Show the modal after a short delay when the page loads
     const timer = setTimeout(() => {
       setIsLeadModalOpen(true);
-    }, 2000); // 2 second delay
+    }, 10000); // 10 second delay
 
     return () => clearTimeout(timer);
   }, []);
