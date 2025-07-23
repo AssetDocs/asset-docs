@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,10 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar, User, Clock, Search, CheckCircle, XCircle } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 const PressNews: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('date');
+  const [selectedArticle, setSelectedArticle] = useState<any>(null);
+  const location = useLocation();
 
   const articles = [
     {
@@ -267,6 +270,83 @@ const PressNews: React.FC = () => {
   const toggleArticle = (id: number) => {
     setExpandedArticle(expandedArticle === id ? null : id);
   };
+
+  // Handle direct article access
+  useEffect(() => {
+    if (location.pathname === '/press-news/digital-documentation-guide') {
+      const featuredArticle = articles.find(article => article.featured);
+      if (featuredArticle) {
+        setSelectedArticle(featuredArticle);
+        setExpandedArticle(featuredArticle.id);
+      }
+    }
+  }, [location.pathname]);
+
+  // Show individual article if selected via direct URL
+  if (selectedArticle && location.pathname === '/press-news/digital-documentation-guide') {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <Navbar />
+        
+        <main className="flex-grow bg-gray-50 py-12">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto">
+              <Card className="shadow-lg">
+                <CardHeader className="pb-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Badge variant="secondary" className="bg-brand-blue text-white">
+                      {selectedArticle.category}
+                    </Badge>
+                    {selectedArticle.featured && (
+                      <Badge variant="outline" className="border-brand-orange text-brand-orange">
+                        Featured
+                      </Badge>
+                    )}
+                  </div>
+                  <CardTitle className="text-3xl font-bold text-gray-900 mb-4">
+                    {selectedArticle.title}
+                  </CardTitle>
+                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-1">
+                      <User className="w-4 h-4" />
+                      <span>{selectedArticle.author}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4" />
+                      <span>{new Date(selectedArticle.date).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      <span>{selectedArticle.readTime}</span>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div 
+                    className="prose max-w-none"
+                    dangerouslySetInnerHTML={{ __html: selectedArticle.content }}
+                  />
+                  <div className="mt-8 pt-6 border-t">
+                    <Button 
+                      onClick={() => {
+                        setSelectedArticle(null);
+                        window.history.pushState({}, '', '/press-news');
+                      }}
+                      variant="outline"
+                    >
+                      ← Back to All Articles
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </main>
+        
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen">

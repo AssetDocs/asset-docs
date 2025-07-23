@@ -38,7 +38,7 @@ const FeaturedGuideShortcut: React.FC = () => {
                       asChild 
                       className="bg-gradient-to-r from-brand-blue to-brand-blue/90 hover:from-brand-blue/90 hover:to-brand-blue text-white font-semibold"
                     >
-                      <Link to="/resources" className="flex items-center gap-2">
+                      <Link to="/press-news/digital-documentation-guide" className="flex items-center gap-2">
                         <span>Read the Guide</span>
                         <ArrowRight className="w-4 h-4" />
                       </Link>

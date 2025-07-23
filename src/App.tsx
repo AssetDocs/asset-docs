@@ -128,6 +128,7 @@ const AppContent = () => {
         <Route path="/glossary" element={<Glossary />} />
         <Route path="/state-requirements" element={<StateRequirements />} />
         <Route path="/press-news" element={<PressNews />} />
+        <Route path="/press-news/digital-documentation-guide" element={<PressNews />} />
         
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
