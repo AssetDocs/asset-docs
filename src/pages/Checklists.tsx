@@ -1,14 +1,19 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import SubscriptionGuard from '@/components/SubscriptionGuard';
 import { CheckCircle, Home, Building, Camera, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const Checklists = () => {
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
+    <SubscriptionGuard 
+      fallbackTitle="Asset Documentation Checklists"
+      fallbackDescription="Access comprehensive guides for documenting your valuable assets with our premium checklists."
+    >
+      <div className="min-h-screen bg-background">
+        <Navbar />
       <main className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
@@ -903,8 +908,9 @@ const Checklists = () => {
           </Card>
         </div>
       </main>
-      <Footer />
-    </div>
+        <Footer />
+      </div>
+    </SubscriptionGuard>
   );
 };
 

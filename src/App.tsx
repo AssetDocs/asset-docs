@@ -122,7 +122,7 @@ const AppContent = () => {
         <Route path="/claims" element={<ProtectedRoute><Claims /></ProtectedRoute>} />
         <Route path="/subscription-success" element={<ProtectedRoute><SubscriptionSuccess /></ProtectedRoute>} />
         <Route path="/industry-requirements" element={<IndustryRequirements />} />
-        <Route path="/checklists" element={<Checklists />} />
+        <Route path="/checklists" element={<ProtectedRoute><Checklists /></ProtectedRoute>} />
         <Route path="/glossary" element={<Glossary />} />
         <Route path="/state-requirements" element={<StateRequirements />} />
         <Route path="/press-news" element={<PressNews />} />

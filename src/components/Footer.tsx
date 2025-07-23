@@ -115,11 +115,6 @@ const Footer: React.FC = () => {
             <h3 className="text-lg font-semibold mb-4">References & Resources</h3>
             <ul className="space-y-1">
               <li>
-                <Link to="/checklists" className="text-gray-300 hover:text-white transition-colors text-sm">
-                  Checklists
-                </Link>
-              </li>
-              <li>
                 <Link to="/claims" className="text-gray-300 hover:text-white transition-colors text-sm">
                   Claims Documentation
                 </Link>
