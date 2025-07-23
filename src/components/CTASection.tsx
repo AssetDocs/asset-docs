@@ -13,7 +13,7 @@ const CTASection: React.FC = () => {
           Get started today and experience the peace of mind that comes with comprehensive asset protection.
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-4">
-          <Button asChild size="lg" className="bg-white text-brand-blue hover:bg-gray-100">
+          <Button asChild size="lg" className="bg-white text-orange-500 hover:bg-gray-100">
             <Link to="/signup">Start Your Free 30-Day Trial</Link>
           </Button>
           <ShareButton 

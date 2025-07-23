@@ -667,7 +667,7 @@ const Features: React.FC = () => {
             Join thousands of property owners, renters, and business professionals who trust Asset Docs for comprehensive asset protection.
           </p>
           <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <a href="/signup" className="bg-white text-brand-green hover:bg-gray-100 px-6 py-3 rounded-md font-medium">
+            <a href="/signup" className="bg-white text-orange-500 hover:bg-gray-100 px-6 py-3 rounded-md font-medium">
               Start Your Free Trial
             </a>
             <a href="/pricing" className="bg-transparent border-2 border-white text-white hover:bg-white/10 px-6 py-3 rounded-md font-medium">
