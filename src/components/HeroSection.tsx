@@ -24,7 +24,7 @@ const HeroSection: React.FC = () => {
               <Button asChild size="lg" className="bg-white text-brand-blue hover:bg-gray-100">
                 <Link to="/pricing">Start Your Free 30-Day Trial</Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 border-blue-300 text-white hover:from-blue-500/30 hover:to-purple-500/30 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-300">
+              <Button asChild size="lg" className="bg-white text-brand-blue hover:bg-gray-100">
                 <Link to="/sample-dashboard">View Sample Dashboard</Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="bg-transparent border-white text-white hover:bg-white/10">
