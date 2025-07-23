@@ -74,6 +74,8 @@ const EducationalResources: React.FC = () => {
                 onClick={() => {
                   if (resource.title === "Photography Best Practices") {
                     navigate('/photography-guide');
+                  } else if (resource.title === "Asset Valuation Explained") {
+                    navigate('/ai-valuation-guide');
                   }
                 }}
               >
