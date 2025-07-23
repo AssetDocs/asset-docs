@@ -1,6 +1,9 @@
 import React from 'react';
 import SubscriptionPlan from '@/components/SubscriptionPlan';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Building2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const PricingPlans: React.FC = () => {
   const individualFeatures = {
@@ -146,6 +149,22 @@ const PricingPlans: React.FC = () => {
             </div>
           </TabsContent>
         </Tabs>
+        
+        {/* Custom Package Note */}
+        <div className="mt-16 text-center bg-muted/30 rounded-lg p-8">
+          <Building2 className="h-12 w-12 text-primary mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-foreground mb-3">
+            Need Something More?
+          </h3>
+          <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
+            Are you a large management company or industry leader needing to document more than 10 properties? 
+            Or require more than 2TB of storage? We'd love to work with you to build a custom package 
+            tailored to your specific needs.
+          </p>
+          <Button asChild size="lg">
+            <Link to="/contact">Contact Us for Custom Solutions</Link>
+          </Button>
+        </div>
       </div>
     </section>
   );
