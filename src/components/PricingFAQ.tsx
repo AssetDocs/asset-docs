@@ -50,6 +50,45 @@ const PricingFAQ: React.FC = () => {
           </div>
           
           <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-xl font-semibold mb-3">How much storage do I need?</h3>
+            <p className="text-gray-600 mb-4">
+              Storage needs vary based on file types and usage. Here's a quick reference for our plans:
+            </p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-2">Storage</th>
+                    <th className="text-left py-2">Photos (3MB)</th>
+                    <th className="text-left py-2">1080p Video</th>
+                    <th className="text-left py-2">4K Video</th>
+                  </tr>
+                </thead>
+                <tbody className="text-gray-600">
+                  <tr className="border-b">
+                    <td className="py-2 font-medium">100GB</td>
+                    <td className="py-2">~33,000</td>
+                    <td className="py-2">~1.6 hours</td>
+                    <td className="py-2">~26 minutes</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="py-2 font-medium">250GB</td>
+                    <td className="py-2">~83,000</td>
+                    <td className="py-2">~4.2 hours</td>
+                    <td className="py-2">~40 minutes</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 font-medium">2TB</td>
+                    <td className="py-2">~666,000</td>
+                    <td className="py-2">~33 hours</td>
+                    <td className="py-2">~5.8 hours</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          
+          <div className="bg-white p-6 rounded-lg shadow">
             <h3 className="text-xl font-semibold mb-3">How do you determine the valuation of my items?</h3>
             <p className="text-gray-600">
               Our AI analyzes current market values from multiple sources including eBay, Amazon, specialized auction sites, and industry databases. We consider factors like item condition, rarity, brand, age, and recent sales data to provide accurate valuations. For unique or antique items, we also reference collector guides and expert appraisals to ensure comprehensive assessments.
