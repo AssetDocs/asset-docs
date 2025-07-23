@@ -9,7 +9,7 @@ import FloorPlansSection from '@/components/FloorPlansSection';
 import StorageAlert from '@/components/StorageAlert';
 import PostDamageSection from '@/components/PostDamageSection';
 import VoiceNotesSection from '@/components/VoiceNotesSection';
-import DashboardTour from '@/components/DashboardTour';
+
 import AppDownloadButtons from '@/components/AppDownloadButtons';
 import ChecklistsAccess from '@/components/ChecklistsAccess';
 import AccountActions from '@/components/AccountActions';
@@ -20,15 +20,6 @@ import { Eye, Play } from 'lucide-react';
 
 const SampleDashboard: React.FC = () => {
   const [showQRCode, setShowQRCode] = useState(false);
-  const [showTour, setShowTour] = useState(false);
-
-  const startTour = () => {
-    setShowTour(true);
-  };
-
-  const closeTour = () => {
-    setShowTour(false);
-  };
 
   const handleCreateFloorPlan = () => {
     console.log('Demo mode - Floor plan creation disabled');
@@ -53,14 +44,6 @@ const SampleDashboard: React.FC = () => {
                 <strong>Demo Dashboard</strong> - This is a sample view of the Asset Docs dashboard. 
                 Features are read-only for demonstration purposes.
               </span>
-              <Button 
-                onClick={startTour} 
-                size="sm" 
-                className="ml-4 bg-brand-blue hover:bg-brand-blue/90"
-              >
-                <Play className="h-4 w-4 mr-2" />
-                Start Guided Tour
-              </Button>
             </AlertDescription>
           </Alert>
 
@@ -139,7 +122,7 @@ const SampleDashboard: React.FC = () => {
       
       <Footer />
       
-      <DashboardTour isVisible={showTour} onClose={closeTour} />
+      
     </div>
   );
 };
