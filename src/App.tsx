@@ -50,6 +50,7 @@ import Checklists from "./pages/Checklists";
 import Glossary from "./pages/Glossary";
 import StateRequirements from "./pages/StateRequirements";
 import SubscriptionCheckout from "./pages/SubscriptionCheckout";
+import PhotographyGuide from "./pages/PhotographyGuide";
 
 const queryClient = new QueryClient();
 
@@ -129,6 +130,7 @@ const AppContent = () => {
         <Route path="/state-requirements" element={<StateRequirements />} />
         <Route path="/press-news" element={<PressNews />} />
         <Route path="/press-news/digital-documentation-guide" element={<PressNews />} />
+        <Route path="/photography-guide" element={<PhotographyGuide />} />
         
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />

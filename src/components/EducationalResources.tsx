@@ -3,15 +3,17 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Camera, FileText, AlertTriangle, Play, Download } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const EducationalResources: React.FC = () => {
+  const navigate = useNavigate();
   const resources = [
     {
       icon: Camera,
       title: "Photography Best Practices",
       description: "Learn how to capture high-quality photos that maximize AI valuation accuracy.",
       type: "Guide",
-      duration: "5 min read"
+      duration: "2 min read"
     },
     {
       icon: FileText,
@@ -67,7 +69,14 @@ const EducationalResources: React.FC = () => {
               <CardDescription className="text-base mb-4">
                 {resource.description}
               </CardDescription>
-              <Button className="w-full bg-brand-orange hover:bg-brand-orange/90">
+              <Button 
+                className="w-full bg-brand-orange hover:bg-brand-orange/90"
+                onClick={() => {
+                  if (resource.title === "Photography Best Practices") {
+                    navigate('/photography-guide');
+                  }
+                }}
+              >
                 {resource.type === "Video" ? (
                   <Play className="h-4 w-4 mr-2" />
                 ) : resource.type === "PDF Download" ? (
