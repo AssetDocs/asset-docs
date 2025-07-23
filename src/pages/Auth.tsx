@@ -406,7 +406,7 @@ const Auth: React.FC = () => {
             Terms of Service
           </Link>{' '}
           and{' '}
-          <Link to="/legal" className="text-brand-blue hover:underline">
+          <Link to="/terms" className="text-brand-blue hover:underline">
             Privacy Policy
           </Link>
         </p>
