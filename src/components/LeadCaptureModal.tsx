@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { InventoryChecklistPDFService } from '@/services/InventoryChecklistPDFService';
 
 interface LeadCaptureModalProps {
   isOpen: boolean;
@@ -86,9 +87,12 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
 
       if (error) throw error;
 
+      // Generate and download the PDF
+      await InventoryChecklistPDFService.generateInventoryChecklistPDF();
+
       toast({
         title: "Thank you!",
-        description: "Your information has been saved. The PDF download will be available soon!",
+        description: "Your information has been saved and the inventory checklist is downloading!",
       });
 
       // Reset form and close modal
