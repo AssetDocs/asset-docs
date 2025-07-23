@@ -25,7 +25,7 @@ const PricingPlans: React.FC = () => {
     premium: [
       "Up to 10 properties",
       "2TB secure cloud storage",
-      "Unlimited photo and video uploads",
+      "Photo and video uploads",
       "AI-powered item identification & valuation",
       "Floor plan scanning with live camera",
       "Mobile app access with premium features",
