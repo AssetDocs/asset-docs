@@ -21,6 +21,7 @@ import Terms from "./pages/Terms";
 import QA from "./pages/QA";
 import Welcome from "./pages/Welcome";
 import Account from "./pages/Account";
+import SampleDashboard from "./pages/SampleDashboard";
 import Properties from "./pages/Properties";
 import PropertyForm from "./pages/PropertyForm";
 import PhotoUpload from "./pages/PhotoUpload";
@@ -93,6 +94,7 @@ const AppContent = () => {
         <Route path="/subscription-checkout" element={<SubscriptionCheckout />} />
         <Route path="/video-help" element={<VideoHelp />} />
         <Route path="/resources" element={<Resources />} />
+        <Route path="/sample-dashboard" element={<SampleDashboard />} />
         
         {/* Authentication routes */}
         <Route path="/login" element={<Login />} />

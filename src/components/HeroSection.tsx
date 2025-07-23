@@ -25,6 +25,9 @@ const HeroSection: React.FC = () => {
                 <Link to="/pricing">Start Your Free 30-Day Trial</Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="bg-transparent border-white text-white hover:bg-white/10">
+                <Link to="/sample-dashboard">View Sample Dashboard</Link>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="bg-transparent border-white text-white hover:bg-white/10">
                 <Link to="/features">Learn More</Link>
               </Button>
               <ShareButton 
