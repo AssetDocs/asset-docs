@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import ChatbotInterface from '@/components/ChatbotInterface';
 import { MessageCircle, HelpCircle } from 'lucide-react';
 
@@ -23,6 +24,7 @@ interface ContactFormData {
 const Contact: React.FC = () => {
   const { toast } = useToast();
   const [showChat, setShowChat] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const form = useForm<ContactFormData>({
     defaultValues: {
       name: '',
@@ -33,13 +35,34 @@ const Contact: React.FC = () => {
     },
   });
 
-  const onSubmit = (data: ContactFormData) => {
-    console.log('Contact form submitted:', data);
-    toast({
-      title: "Message Sent",
-      description: `Thank you ${data.name}, we'll get back to you soon!`,
-    });
-    form.reset();
+  const onSubmit = async (data: ContactFormData) => {
+    setIsSubmitting(true);
+    try {
+      console.log('Contact form submitted:', data);
+      
+      const { error } = await supabase.functions.invoke('send-contact-email', {
+        body: data
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Message Sent Successfully!",
+        description: `Thank you ${data.name}, we'll get back to you soon! You should also receive a confirmation email.`,
+      });
+      form.reset();
+    } catch (error) {
+      console.error('Error sending contact email:', error);
+      toast({
+        title: "Error Sending Message",
+        description: "There was a problem sending your message. Please try again or contact us directly at info@assetdocs.net",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -195,9 +218,10 @@ const Contact: React.FC = () => {
                 
                 <Button 
                   type="submit" 
-                  className="w-full bg-brand-blue hover:bg-brand-blue/90 text-white"
+                  disabled={isSubmitting}
+                  className="w-full bg-brand-blue hover:bg-brand-blue/90 text-white disabled:opacity-50"
                 >
-                  Send Message
+                  {isSubmitting ? 'Sending...' : 'Send Message'}
                 </Button>
               </form>
             </Form>
