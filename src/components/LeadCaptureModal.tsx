@@ -244,7 +244,7 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
               <div className="space-y-3">
                 <Button 
                   onClick={handleStartTrial}
-                  className="w-full"
+                  className="w-full text-orange-500"
                   size="lg"
                 >
                   Start Your Free 30-Day Trial
