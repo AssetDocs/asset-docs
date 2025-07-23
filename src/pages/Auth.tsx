@@ -310,8 +310,13 @@ const Auth: React.FC = () => {
                       rules={{ 
                         required: "Password is required",
                         minLength: {
-                          value: 6,
-                          message: "Password must be at least 6 characters"
+                          value: 8,
+                          message: "Password must be at least 8 characters"
+                        },
+                        validate: {
+                          hasUppercase: (value) => /[A-Z]/.test(value) || "Password must contain at least one uppercase letter",
+                          hasLowercase: (value) => /[a-z]/.test(value) || "Password must contain at least one lowercase letter",
+                          hasSpecialChar: (value) => /[!@#$%^&*(),.?":{}|<>]/.test(value) || "Password must contain at least one special character (!@#$%^&*(),.?\":{}|<>)"
                         }
                       }}
                       render={({ field }) => (
