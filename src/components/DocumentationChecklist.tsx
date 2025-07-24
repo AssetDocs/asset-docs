@@ -308,21 +308,6 @@ const DocumentationChecklist: React.FC = () => {
           />
         </TabsContent>
       </Tabs>
-
-      <div className="text-center pt-8">
-        <div className="bg-blue-50 rounded-lg p-6 max-w-2xl mx-auto">
-          <h3 className="text-lg font-semibold text-blue-900 mb-2">
-            Need Professional Assistance?
-          </h3>
-          <p className="text-blue-700 mb-4">
-            Our experts can help you complete your documentation efficiently and ensure nothing is missed.
-          </p>
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-            <Calendar className="w-4 h-4 mr-2" />
-            Schedule Consultation
-          </Button>
-        </div>
-      </div>
     </div>
   );
 };

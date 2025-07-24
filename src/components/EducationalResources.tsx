@@ -101,23 +101,6 @@ const EducationalResources: React.FC = () => {
       <div id="documentation-checklist" className="mt-12">
         <DocumentationChecklist />
       </div>
-
-      <Card className="bg-orange-50 border-brand-orange">
-        <CardContent className="p-6">
-          <div className="text-center">
-            <h3 className="text-xl font-semibold text-brand-orange mb-2">
-              Need Personal Assistance?
-            </h3>
-            <p className="text-gray-700 mb-4">
-              Schedule a free consultation with our property documentation specialists. 
-              Get personalized advice for your specific situation.
-            </p>
-            <Button className="bg-brand-orange hover:bg-brand-orange/90">
-              Schedule Free Consultation
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };
