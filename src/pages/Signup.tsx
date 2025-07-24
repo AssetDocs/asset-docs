@@ -67,6 +67,17 @@ const Signup: React.FC = () => {
               </label>
             </div>
             
+            <div className="flex items-start">
+              <input
+                id="marketing"
+                type="checkbox"
+                className="h-4 w-4 text-brand-orange border-gray-300 rounded mt-1"
+              />
+              <label htmlFor="marketing" className="ml-2 text-sm text-gray-600">
+                I would like to receive marketing emails about new features, tips, and special offers
+              </label>
+            </div>
+            
             <Button type="submit" className="w-full bg-brand-orange hover:bg-brand-orange/90">
               Create Account
             </Button>

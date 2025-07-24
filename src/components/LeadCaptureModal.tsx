@@ -50,6 +50,7 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
     state: '',
     howHeard: ''
   });
+  const [marketingConsent, setMarketingConsent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessState, setShowSuccessState] = useState(false);
   const { toast } = useToast();
@@ -83,7 +84,8 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
           email: formData.email,
           city: formData.city,
           state: formData.state,
-          how_heard: formData.howHeard
+          how_heard: formData.howHeard,
+          marketing_consent: marketingConsent
         }]);
 
       if (error) throw error;
@@ -127,6 +129,7 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
       state: '',
       howHeard: ''
     });
+    setMarketingConsent(false);
     setShowSuccessState(false);
     onClose();
   };
@@ -214,6 +217,19 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="flex items-start space-x-2">
+                <input
+                  id="marketing-consent"
+                  type="checkbox"
+                  checked={marketingConsent}
+                  onChange={(e) => setMarketingConsent(e.target.checked)}
+                  className="h-4 w-4 text-brand-orange border-gray-300 rounded mt-1"
+                />
+                <Label htmlFor="marketing-consent" className="text-sm text-muted-foreground">
+                  I would like to receive marketing emails about new features, tips, and special offers
+                </Label>
               </div>
 
               <Button 
