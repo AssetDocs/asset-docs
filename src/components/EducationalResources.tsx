@@ -28,8 +28,8 @@ const EducationalResources: React.FC = () => {
       icon: AlertTriangle,
       title: "Insurance Claim Preparation",
       description: "Step-by-step guide to preparing documentation for insurance claims.",
-      type: "Video",
-      duration: "12 min watch"
+      type: "Article",
+      duration: "7 min read"
     },
     {
       icon: BookOpen,
