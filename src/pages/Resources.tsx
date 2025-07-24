@@ -1,12 +1,22 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import TrustSecuritySection from '@/components/TrustSecuritySection';
 import EducationalResources from '@/components/EducationalResources';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useSearchParams } from 'react-router-dom';
 
 const Resources: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState("education");
+
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'security') {
+      setActiveTab('security');
+    }
+  }, [searchParams]);
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
@@ -22,7 +32,7 @@ const Resources: React.FC = () => {
             </p>
           </div>
 
-          <Tabs defaultValue="education" className="space-y-8">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
             <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
               <TabsTrigger value="education">Educational Resources</TabsTrigger>
               <TabsTrigger value="security">Security & Trust</TabsTrigger>

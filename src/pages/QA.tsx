@@ -37,7 +37,10 @@ const QA: React.FC = () => {
                   AssetDocs uses enterprise-grade encryption and secure cloud storage to protect your valuable 
                   documentation. All data is encrypted both in transit and at rest, and we implement strict access 
                   controls to ensure your information remains private and secure at all times. Our security protocols 
-                  are regularly audited and updated to maintain the highest standards of data protection.
+                  are regularly audited and updated to maintain the highest standards of data protection.{' '}
+                  <a href="/resources?tab=security" className="text-brand-blue hover:text-brand-lightBlue underline">
+                    Learn more
+                  </a>
                 </AccordionContent>
               </AccordionItem>
               
