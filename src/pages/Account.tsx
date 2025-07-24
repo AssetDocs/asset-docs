@@ -14,7 +14,7 @@ import PostDamageSection from '@/components/PostDamageSection';
 import VoiceNotesSection from '@/components/VoiceNotesSection';
 import DashboardTour from '@/components/DashboardTour';
 import AppDownloadButtons from '@/components/AppDownloadButtons';
-import ChecklistsAccess from '@/components/ChecklistsAccess';
+import DocumentationChecklist from '@/components/DocumentationChecklist';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -80,7 +80,7 @@ const Account: React.FC = () => {
             <TabsContent value="overview" className="space-y-6">
               <AccountStats />
               <AccountActions onCreateFloorPlan={handleCreateFloorPlan} />
-              <ChecklistsAccess />
+              <DocumentationChecklist />
               <QRCodeSection />
             </TabsContent>
 
