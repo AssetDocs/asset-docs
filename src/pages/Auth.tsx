@@ -51,7 +51,7 @@ const Auth: React.FC = () => {
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      navigate('/properties');
+      navigate('/account/properties');
     }
   }, [user, navigate]);
 
@@ -124,7 +124,7 @@ const Auth: React.FC = () => {
           title: "Welcome Back!",
           description: "You have successfully signed in.",
         });
-        navigate('/properties');
+        navigate('/account/properties');
       }
     } catch (error: any) {
       console.error('Sign in error:', error);
