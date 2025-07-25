@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Lock, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PasswordGateProps {
   onPasswordCorrect: () => void;
@@ -15,16 +16,20 @@ const PasswordGate: React.FC<PasswordGateProps> = ({ onPasswordCorrect }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  // Simple password for construction gate
-  const correctPassword = 'assetdocs2025';
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate a brief loading state
-    setTimeout(() => {
-      if (password === correctPassword) {
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-construction-password', {
+        body: { password }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data?.valid) {
         localStorage.setItem('assetdocs-access', 'granted');
         onPasswordCorrect();
         toast({
@@ -34,13 +39,22 @@ const PasswordGate: React.FC<PasswordGateProps> = ({ onPasswordCorrect }) => {
       } else {
         toast({
           title: "Access Denied",
-          description: "Incorrect password. Please try again.",
+          description: data?.message || "Incorrect password. Please try again.",
           variant: "destructive",
         });
         setPassword('');
       }
+    } catch (error) {
+      console.error('Password verification error:', error);
+      toast({
+        title: "Error",
+        description: "Unable to verify password. Please try again.",
+        variant: "destructive",
+      });
+      setPassword('');
+    } finally {
       setIsLoading(false);
-    }, 500);
+    }
   };
 
   return (
