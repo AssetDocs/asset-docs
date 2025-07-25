@@ -185,7 +185,7 @@ const SubscriptionTab: React.FC = () => {
                 <ul className="space-y-2 text-sm text-gray-600">
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />
-                    Up to 20 properties
+                    Up to 5 properties
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />
@@ -221,7 +221,7 @@ const SubscriptionTab: React.FC = () => {
                 <ul className="space-y-2 text-sm text-gray-600">
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />
-                    Unlimited properties
+                    Up to 20 properties
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />

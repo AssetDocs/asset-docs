@@ -18,7 +18,7 @@ const PricingPlans: React.FC = () => {
     ],
     standard: [
       "30-day free trial",
-      "Up to 3 properties",
+      "Up to 5 properties",
       "500GB secure cloud storage",
       "Photo and video uploads",
       "Document uploads",
@@ -29,7 +29,7 @@ const PricingPlans: React.FC = () => {
     ],
     premium: [
       "30-day free trial",
-      "Up to 10 properties",
+      "Up to 20 properties",
       "2TB secure cloud storage",
       "Photo and video uploads",
       "Document uploads",
