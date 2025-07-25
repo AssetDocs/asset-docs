@@ -146,27 +146,31 @@ const SubscriptionTab: React.FC = () => {
                     <Badge variant="default">Current Plan</Badge>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground mb-3">Perfect for getting started with property management</p>
+                <p className="text-sm text-muted-foreground mb-3">Perfect for individuals with basic documentation needs</p>
                 <ul className="space-y-2 text-sm text-gray-600">
+                  <li className="flex items-center gap-2">
+                    <CheckIcon className="h-4 w-4 text-green-500" />
+                    30-day free trial
+                  </li>
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />
                     1 property
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />
-                    100GB secure cloud storage
+                    250GB secure cloud storage
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />
-                    Property value estimates
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="h-4 w-4 text-green-500" />
-                    Standard support
+                    Photo and video uploads
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />
                     Mobile app access
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckIcon className="h-4 w-4 text-green-500" />
+                    Email support
                   </li>
                 </ul>
               </div>
@@ -181,11 +185,15 @@ const SubscriptionTab: React.FC = () => {
                     <Badge variant="default">Current Plan</Badge>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground mb-3">Great value plan with 30-day free trial</p>
+                <p className="text-sm text-muted-foreground mb-3">Our most popular plan for comprehensive home documentation</p>
                 <ul className="space-y-2 text-sm text-gray-600">
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />
-                    Up to 5 properties
+                    30-day free trial
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckIcon className="h-4 w-4 text-green-500" />
+                    Up to 3 properties
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />
@@ -193,19 +201,19 @@ const SubscriptionTab: React.FC = () => {
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />
-                    Advanced property analytics
+                    Photo and video uploads
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />
-                    Priority support
+                    Export detailed reports
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />
-                    Document management
+                    Priority email support
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />
-                    Floor plan scanning
+                    Share with 2 trusted contacts
                   </li>
                 </ul>
               </div>
@@ -217,11 +225,15 @@ const SubscriptionTab: React.FC = () => {
                     <Badge variant="default">Current Plan</Badge>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground mb-3">Full-featured solution for serious property investors</p>
+                <p className="text-sm text-muted-foreground mb-3">Complete protection with professional documentation tools</p>
                 <ul className="space-y-2 text-sm text-gray-600">
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />
-                    Up to 20 properties
+                    30-day free trial
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckIcon className="h-4 w-4 text-green-500" />
+                    Up to 10 properties
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />
@@ -229,15 +241,19 @@ const SubscriptionTab: React.FC = () => {
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />
-                    AI-powered insights
+                    AI-powered item identification & valuation
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />
-                    24/7 premium support
+                    Floor plan scanning with live camera
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />
-                    Custom reports
+                    Priority email and phone support
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckIcon className="h-4 w-4 text-green-500" />
+                    Share with 5 trusted contacts
                   </li>
                 </ul>
               </div>
