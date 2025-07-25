@@ -104,8 +104,11 @@ const AppContent = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         
+        {/* Public FAQ route */}
+        <Route path="/qa" element={<QA />} />
+        <Route path="/testimonials" element={<Testimonials />} />
+        
         {/* Protected routes */}
-        <Route path="/qa" element={<ProtectedRoute><QA /></ProtectedRoute>} />
         <Route path="/welcome" element={<ProtectedRoute><Welcome /></ProtectedRoute>} />
         <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
         <Route path="/account/properties" element={<ProtectedRoute><Properties /></ProtectedRoute>} />
@@ -122,7 +125,6 @@ const AppContent = () => {
         <Route path="/account/insurance/new" element={<ProtectedRoute><InsuranceForm /></ProtectedRoute>} />
         <Route path="/account/settings" element={<ProtectedRoute><AccountSettings /></ProtectedRoute>} />
         <Route path="/schedule-professional" element={<ProtectedRoute><ScheduleProfessional /></ProtectedRoute>} />
-        <Route path="/testimonials" element={<ProtectedRoute><Testimonials /></ProtectedRoute>} />
         <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
         
         <Route path="/claims" element={<ProtectedRoute><Claims /></ProtectedRoute>} />
