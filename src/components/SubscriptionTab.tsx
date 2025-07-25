@@ -239,14 +239,6 @@ const SubscriptionTab: React.FC = () => {
                     <CheckIcon className="h-4 w-4 text-green-500" />
                     Custom reports
                   </li>
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="h-4 w-4 text-green-500" />
-                    API access
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="h-4 w-4 text-green-500" />
-                    White-label options
-                  </li>
                 </ul>
               </div>
             </div>
