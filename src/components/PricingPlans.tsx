@@ -11,7 +11,7 @@ const PricingPlans: React.FC = () => {
       "30-day free trial",
       "1 property",
       "100GB secure cloud storage",
-      "Photo and video uploads",
+      "Photo uploads",
       "Document uploads", 
       "Mobile app access",
       "Email support"
