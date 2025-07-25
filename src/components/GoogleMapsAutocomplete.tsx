@@ -27,16 +27,19 @@ const GoogleMapsAutocomplete: React.FC<GoogleMapsAutocompleteProps> = ({
   useEffect(() => {
     const initializeGoogleMaps = async () => {
       try {
-        const GOOGLE_MAPS_API_KEY = 'AIzaSyA3KbBfFCS4b4duF8AFWl-2q3Aq4U2ZkJM';
+        // Google Maps API key should be configured in environment variables
+        // For security, this should not be hardcoded in the client-side code
+        console.warn('Google Maps API key not configured. Please set up API key in environment variables.');
+        
+        // Temporarily disable Google Maps functionality until proper API key management is implemented
+        // const loader = new Loader({
+        //   apiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
+        //   version: 'weekly',
+        //   libraries: ['places']
+        // });
 
-        const loader = new Loader({
-          apiKey: GOOGLE_MAPS_API_KEY,
-          version: 'weekly',
-          libraries: ['places']
-        });
-
-        await loader.load();
-        setIsLoaded(true);
+        // await loader.load();
+        // setIsLoaded(true);
       } catch (error) {
         console.error('Error loading Google Maps:', error);
       }

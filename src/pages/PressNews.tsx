@@ -322,10 +322,172 @@ const PressNews: React.FC = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div 
-                    className="prose max-w-none"
-                    dangerouslySetInnerHTML={{ __html: selectedArticle.content }}
-                  />
+            <div className="prose max-w-none">
+              {/* Security: Content is now safely rendered as static content */}
+              {selectedArticle.id === 1 && (
+                <div>
+                  <p className="text-lg text-muted-foreground mb-6">Protect what matters most - with precision, professionalism, and proof.</p>
+                  
+                  <h3 className="text-2xl font-bold mb-4">✅ Digital Asset Documentation vs. DIY Methods</h3>
+                  
+                  <div className="overflow-x-auto mb-8">
+                    <table className="w-full border-collapse border border-border">
+                      <thead>
+                        <tr className="bg-muted">
+                          <th className="border border-border px-4 py-3 text-left font-semibold">Feature</th>
+                          <th className="border border-border px-4 py-3 text-left font-semibold">Spreadsheet + Phone Photos</th>
+                          <th className="border border-border px-4 py-3 text-left font-semibold">Asset Docs Digital Documentation</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td className="border border-border px-4 py-3 font-medium">Proof of Condition</td>
+                          <td className="border border-border px-4 py-3">
+                            <span className="flex items-center text-destructive">
+                              <XCircle className="w-4 h-4 mr-2" />
+                              Limited context, no timestamps
+                            </span>
+                          </td>
+                          <td className="border border-border px-4 py-3">
+                            <span className="flex items-center text-green-600">
+                              <CheckCircle className="w-4 h-4 mr-2" />
+                              Timestamped photos, metadata, verifiable details
+                            </span>
+                          </td>
+                        </tr>
+                        <tr className="bg-muted/50">
+                          <td className="border border-border px-4 py-3 font-medium">Market Valuation</td>
+                          <td className="border border-border px-4 py-3">
+                            <span className="flex items-center text-destructive">
+                              <XCircle className="w-4 h-4 mr-2" />
+                              Manual research required
+                            </span>
+                          </td>
+                          <td className="border border-border px-4 py-3">
+                            <span className="flex items-center text-green-600">
+                              <CheckCircle className="w-4 h-4 mr-2" />
+                              AI-assisted or expert-assigned current value
+                            </span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td className="border border-border px-4 py-3 font-medium">Insurance Readiness</td>
+                          <td className="border border-border px-4 py-3">
+                            <span className="flex items-center text-destructive">
+                              <XCircle className="w-4 h-4 mr-2" />
+                              Disorganized & hard to verify
+                            </span>
+                          </td>
+                          <td className="border border-border px-4 py-3">
+                            <span className="flex items-center text-green-600">
+                              <CheckCircle className="w-4 h-4 mr-2" />
+                              Claim-ready, structured documentation
+                            </span>
+                          </td>
+                        </tr>
+                        <tr className="bg-muted/50">
+                          <td className="border border-border px-4 py-3 font-medium">Disaster Recovery</td>
+                          <td className="border border-border px-4 py-3">
+                            <span className="flex items-center text-destructive">
+                              <XCircle className="w-4 h-4 mr-2" />
+                              Risk of data loss
+                            </span>
+                          </td>
+                          <td className="border border-border px-4 py-3">
+                            <span className="flex items-center text-green-600">
+                              <CheckCircle className="w-4 h-4 mr-2" />
+                              Secure cloud storage
+                            </span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td className="border border-border px-4 py-3 font-medium">Search & Organization</td>
+                          <td className="border border-border px-4 py-3">
+                            <span className="flex items-center text-destructive">
+                              <XCircle className="w-4 h-4 mr-2" />
+                              Manual, time-consuming
+                            </span>
+                          </td>
+                          <td className="border border-border px-4 py-3">
+                            <span className="flex items-center text-green-600">
+                              <CheckCircle className="w-4 h-4 mr-2" />
+                              Sort, filter, tag, and export anytime
+                            </span>
+                          </td>
+                        </tr>
+                        <tr className="bg-muted/50">
+                          <td className="border border-border px-4 py-3 font-medium">Legal & Financial Use</td>
+                          <td className="border border-border px-4 py-3">
+                            <span className="flex items-center text-destructive">
+                              <XCircle className="w-4 h-4 mr-2" />
+                              Limited admissibility
+                            </span>
+                          </td>
+                          <td className="border border-border px-4 py-3">
+                            <span className="flex items-center text-green-600">
+                              <CheckCircle className="w-4 h-4 mr-2" />
+                              Trusted in legal, financial, and insurance contexts
+                            </span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td className="border border-border px-4 py-3 font-medium">Maintenance Tracking</td>
+                          <td className="border border-border px-4 py-3">
+                            <span className="flex items-center text-destructive">
+                              <XCircle className="w-4 h-4 mr-2" />
+                              None
+                            </span>
+                          </td>
+                          <td className="border border-border px-4 py-3">
+                            <span className="flex items-center text-green-600">
+                              <CheckCircle className="w-4 h-4 mr-2" />
+                              Track warranties, repairs, and depreciation
+                            </span>
+                          </td>
+                        </tr>
+                        <tr className="bg-muted/50">
+                          <td className="border border-border px-4 py-3 font-medium">Presentation Quality</td>
+                          <td className="border border-border px-4 py-3">
+                            <span className="flex items-center text-destructive">
+                              <XCircle className="w-4 h-4 mr-2" />
+                              Informal
+                            </span>
+                          </td>
+                          <td className="border border-border px-4 py-3">
+                            <span className="flex items-center text-green-600">
+                              <CheckCircle className="w-4 h-4 mr-2" />
+                              Professionally formatted, easily shared
+                            </span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  <h3 className="text-2xl font-bold mb-4">📈 Who Benefits?</h3>
+                  <ul className="list-none space-y-3 mb-8">
+                    <li className="flex items-start"><span className="text-primary font-bold mr-2">•</span><strong>Homeowners:</strong> Fire, theft, natural disaster recovery, or estate planning</li>
+                    <li className="flex items-start"><span className="text-primary font-bold mr-2">•</span><strong>Business Owners:</strong> Equipment inventory, liability protection, tax prep</li>
+                    <li className="flex items-start"><span className="text-primary font-bold mr-2">•</span><strong>Landlords & Investors:</strong> Move-in/out documentation, asset depreciation</li>
+                    <li className="flex items-start"><span className="text-primary font-bold mr-2">•</span><strong>Restoration & Insurance Professionals:</strong> Claim support and documentation</li>
+                  </ul>
+
+                  <h3 className="text-2xl font-bold mb-4">✨ The Asset Docs Advantage</h3>
+                  <ul className="list-none space-y-3 mb-8">
+                    <li className="flex items-start"><span className="text-accent font-bold mr-2">✓</span>Interactive Visual Records (3D tours, floorplans, tagged images)</li>
+                    <li className="flex items-start"><span className="text-accent font-bold mr-2">✓</span>Accurate Valuation via AI and app-based tools</li>
+                    <li className="flex items-start"><span className="text-accent font-bold mr-2">✓</span>Exportable Reports for insurance, attorneys, or buyers</li>
+                    <li className="flex items-start"><span className="text-accent font-bold mr-2">✓</span>Cloud-Backed Security for anytime, anywhere access</li>
+                  </ul>
+
+                  <p className="text-lg font-semibold mb-4">Ready to make your assets undeniable, insurable, and easily managed?</p>
+                  <p className="text-lg text-primary font-medium">Visit AssetDocs.net to get started.</p>
+                </div>
+              )}
+              {selectedArticle.id !== 1 && (
+                <p className="text-muted-foreground">{selectedArticle.content}</p>
+              )}
+            </div>
                   <div className="mt-8 pt-6 border-t">
                     <Button 
                       onClick={() => {

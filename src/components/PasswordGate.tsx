@@ -15,7 +15,9 @@ const PasswordGate: React.FC<PasswordGateProps> = ({ onPasswordCorrect }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const correctPassword = 'AssetDocs2025';
+  // Security: Remove hardcoded password
+  // This should be handled server-side with proper authentication
+  const correctPassword = process.env.REACT_APP_ACCESS_PASSWORD || 'CHANGE_ME_IN_PRODUCTION';
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
