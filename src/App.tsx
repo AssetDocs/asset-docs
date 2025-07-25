@@ -12,6 +12,7 @@ import PasswordGate from "@/components/PasswordGate";
 
 import Index from "./pages/Index";
 import Features from "./pages/Features";
+import Scenarios from "./pages/Scenarios";
 import Pricing from "./pages/Pricing";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -88,6 +89,7 @@ const AppContent = () => {
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/features" element={<Features />} />
+        <Route path="/scenarios" element={<Scenarios />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />

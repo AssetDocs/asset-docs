@@ -51,12 +51,15 @@ const Navbar: React.FC = () => {
                    <Home className="h-4 w-4 mr-1" />
                    {translate('nav.dashboard')}
                  </Link>
-                <Link to="/features" className="text-gray-700 hover:text-brand-blue transition-colors">
-                  {translate('nav.features')}
-                </Link>
-                <Link to="/pricing" className="text-gray-700 hover:text-brand-blue transition-colors">
-                  {translate('nav.pricing')}
-                </Link>
+                 <Link to="/features" className="text-gray-700 hover:text-brand-blue transition-colors">
+                   {translate('nav.features')}
+                 </Link>
+                 <Link to="/scenarios" className="text-gray-700 hover:text-brand-blue transition-colors">
+                   Scenarios
+                 </Link>
+                 <Link to="/pricing" className="text-gray-700 hover:text-brand-blue transition-colors">
+                   {translate('nav.pricing')}
+                 </Link>
                 <Link 
                   to="/video-help" 
                   className="text-gray-700 hover:text-brand-blue transition-colors flex items-center"
@@ -85,12 +88,15 @@ const Navbar: React.FC = () => {
               </>
             ) : (
               <>
-                <Link to="/features" className="text-gray-700 hover:text-brand-blue transition-colors">
-                  {translate('nav.features')}
-                </Link>
-                <Link to="/pricing" className="text-gray-700 hover:text-brand-blue transition-colors">
-                  {translate('nav.pricing')}
-                </Link>
+                 <Link to="/features" className="text-gray-700 hover:text-brand-blue transition-colors">
+                   {translate('nav.features')}
+                 </Link>
+                 <Link to="/scenarios" className="text-gray-700 hover:text-brand-blue transition-colors">
+                   Scenarios
+                 </Link>
+                 <Link to="/pricing" className="text-gray-700 hover:text-brand-blue transition-colors">
+                   {translate('nav.pricing')}
+                 </Link>
                 <Link 
                   to="/video-help" 
                   className="text-gray-700 hover:text-brand-blue transition-colors flex items-center"
@@ -143,20 +149,27 @@ const Navbar: React.FC = () => {
                     <Home className="h-4 w-4 mr-1" />
                     {translate('nav.dashboard')}
                   </Link>
-                  <Link 
-                    to="/features" 
-                    className="text-gray-700 hover:text-brand-blue transition-colors py-2"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {translate('nav.features')}
-                  </Link>
-                  <Link 
-                    to="/pricing" 
-                    className="text-gray-700 hover:text-brand-blue transition-colors py-2"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {translate('nav.pricing')}
-                  </Link>
+                   <Link 
+                     to="/features" 
+                     className="text-gray-700 hover:text-brand-blue transition-colors py-2"
+                     onClick={() => setIsMenuOpen(false)}
+                   >
+                     {translate('nav.features')}
+                   </Link>
+                   <Link 
+                     to="/scenarios" 
+                     className="text-gray-700 hover:text-brand-blue transition-colors py-2"
+                     onClick={() => setIsMenuOpen(false)}
+                   >
+                     Scenarios
+                   </Link>
+                   <Link 
+                     to="/pricing" 
+                     className="text-gray-700 hover:text-brand-blue transition-colors py-2"
+                     onClick={() => setIsMenuOpen(false)}
+                   >
+                     {translate('nav.pricing')}
+                   </Link>
                   <Link 
                     to="/video-help" 
                     className="text-gray-700 hover:text-brand-blue transition-colors py-2 flex items-center"
@@ -188,20 +201,27 @@ const Navbar: React.FC = () => {
                 </>
               ) : (
                 <>
-                  <Link 
-                    to="/features" 
-                    className="text-gray-700 hover:text-brand-blue transition-colors py-2"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {translate('nav.features')}
-                  </Link>
-                  <Link 
-                    to="/pricing" 
-                    className="text-gray-700 hover:text-brand-blue transition-colors py-2"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {translate('nav.pricing')}
-                  </Link>
+                   <Link 
+                     to="/features" 
+                     className="text-gray-700 hover:text-brand-blue transition-colors py-2"
+                     onClick={() => setIsMenuOpen(false)}
+                   >
+                     {translate('nav.features')}
+                   </Link>
+                   <Link 
+                     to="/scenarios" 
+                     className="text-gray-700 hover:text-brand-blue transition-colors py-2"
+                     onClick={() => setIsMenuOpen(false)}
+                   >
+                     Scenarios
+                   </Link>
+                   <Link 
+                     to="/pricing" 
+                     className="text-gray-700 hover:text-brand-blue transition-colors py-2"
+                     onClick={() => setIsMenuOpen(false)}
+                   >
+                     {translate('nav.pricing')}
+                   </Link>
                   <Link 
                     to="/video-help" 
                     className="text-gray-700 hover:text-brand-blue transition-colors py-2 flex items-center"
