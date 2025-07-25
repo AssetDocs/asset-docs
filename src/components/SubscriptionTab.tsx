@@ -162,7 +162,7 @@ const SubscriptionTab: React.FC = () => {
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />
-                    Photo and video uploads
+                    Photo uploads
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />

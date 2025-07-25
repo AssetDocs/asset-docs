@@ -54,7 +54,7 @@ const Pricing: React.FC = () => {
         "30-day free trial",
         "1 property",
         "250GB secure cloud storage",
-        "Photo and video uploads",
+        "Photo uploads",
         "Mobile app access",
         "Email support"
       ],
