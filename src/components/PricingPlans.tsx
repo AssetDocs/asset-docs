@@ -8,15 +8,16 @@ import { Link } from 'react-router-dom';
 const PricingPlans: React.FC = () => {
   const individualFeatures = {
     basic: [
+      "30-day free trial",
       "1 property",
       "100GB secure cloud storage",
       "Photo and video uploads",
       "Document uploads", 
       "Mobile app access",
-      "Email support",
-      "30-day free trial"
+      "Email support"
     ],
     standard: [
+      "30-day free trial",
       "Up to 3 properties",
       "500GB secure cloud storage",
       "Photo and video uploads",
@@ -24,10 +25,10 @@ const PricingPlans: React.FC = () => {
       "Mobile app access", 
       "Export detailed reports",
       "Priority email support",
-      "Share with 2 trusted contacts",
-      "30-day free trial"
+      "Share with 2 trusted contacts"
     ],
     premium: [
+      "30-day free trial",
       "Up to 10 properties",
       "2TB secure cloud storage",
       "Photo and video uploads",
@@ -37,13 +38,13 @@ const PricingPlans: React.FC = () => {
       "Mobile app access with premium features",
       "Export comprehensive reports",
       "Priority email and phone support",
-      "Share with 5 trusted contacts",
-      "30-day free trial"
+      "Share with 5 trusted contacts"
     ]
   };
 
   const businessFeatures = {
     small: [
+      "30-day free trial",
       "50GB secure cloud storage",
       "3 user accounts",
       "Photo and video uploads",
@@ -51,10 +52,10 @@ const PricingPlans: React.FC = () => {
       "Asset tagging and inventory tracking",
       "Mobile app access for all users",
       "Export business-ready reports",
-      "Priority email support",
-      "30-day free trial"
+      "Priority email support"
     ],
     medium: [
+      "30-day free trial",
       "250GB secure cloud storage",
       "25 user accounts",
       "Unlimited photo and video uploads",
@@ -63,10 +64,10 @@ const PricingPlans: React.FC = () => {
       "Floor plan scanning with live camera",
       "Mobile app access with premium features",
       "Custom reporting templates",
-      "Priority email and phone support",
-      "30-day free trial"
+      "Priority email and phone support"
     ],
     enterprise: [
+      "30-day free trial",
       "Unlimited secure cloud storage",
       "Unlimited user accounts",
       "Custom implementation",
@@ -74,8 +75,7 @@ const PricingPlans: React.FC = () => {
       "Dedicated account manager",
       "API access for custom integrations",
       "White-label mobile app option",
-      "Custom reporting and analytics",
-      "30-day free trial"
+      "Custom reporting and analytics"
     ]
   };
 
@@ -102,12 +102,9 @@ const PricingPlans: React.FC = () => {
               />
               <SubscriptionPlan
                 title="Standard"
-                price="$8.99"
+                price="$12.99"
                 description="Our most popular plan for comprehensive home documentation."
-                features={[
-                  ...individualFeatures.standard,
-                  "🎉 6-month introductory price (reg. $12.99)"
-                ]}
+                features={individualFeatures.standard}
                 recommended={true}
                 buttonText="Start 30-Day Free Trial"
               />

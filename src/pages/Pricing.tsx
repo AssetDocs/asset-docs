@@ -51,30 +51,29 @@ const Pricing: React.FC = () => {
       price: "$8.99",
       description: "Perfect for individuals with basic documentation needs",
       features: [
+        "30-day free trial",
         "1 property",
         "250GB secure cloud storage",
         "Photo and video uploads",
         "Mobile app access",
-        "Email support",
-        "30-day free trial"
+        "Email support"
       ],
       planType: "basic",
       icon: <Shield className="h-6 w-6" />
     },
     {
       title: "Standard",
-      price: "$8.99",
+      price: "$12.99",
       description: "Our most popular plan for comprehensive home documentation",
       features: [
+        "30-day free trial",
         "Up to 3 properties",
         "500GB secure cloud storage",
         "Photo and video uploads",
         "Mobile app access",
         "Export detailed reports",
         "Priority email support",
-        "Share with 2 trusted contacts",
-        "🎉 6-month introductory price (reg. $12.99)",
-        "30-day free trial"
+        "Share with 2 trusted contacts"
       ],
       planType: "standard",
       recommended: true,
@@ -85,6 +84,7 @@ const Pricing: React.FC = () => {
       price: "$18.99",
       description: "Complete protection with professional documentation tools",
       features: [
+        "30-day free trial",
         "Up to 10 properties",
         "2TB secure cloud storage",
         "Unlimited photo and video uploads",
@@ -94,8 +94,7 @@ const Pricing: React.FC = () => {
         "Mobile app access with premium features",
         "Export comprehensive reports",
         "Priority email and phone support",
-        "Share with 5 trusted contacts",
-        "30-day free trial"
+        "Share with 5 trusted contacts"
       ],
       planType: "premium",
       icon: <Star className="h-6 w-6" />
