@@ -205,6 +205,14 @@ const SubscriptionTab: React.FC = () => {
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />
+                    AI-powered item identification & valuation
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckIcon className="h-4 w-4 text-green-500" />
+                    Floor plan scanning with live camera
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckIcon className="h-4 w-4 text-green-500" />
                     Export detailed reports
                   </li>
                   <li className="flex items-center gap-2">

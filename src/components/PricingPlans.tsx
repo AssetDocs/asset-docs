@@ -22,6 +22,8 @@ const PricingPlans: React.FC = () => {
       "500GB secure cloud storage",
       "Photo and video uploads",
       "Document uploads",
+      "AI-powered item identification & valuation",
+      "Floor plan scanning with live camera",
       "Mobile app access", 
       "Export detailed reports",
       "Priority email support",
