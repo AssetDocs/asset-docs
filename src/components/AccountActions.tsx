@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Home, Camera, Video, FileImage, FileText, Shield, Settings, Plus, Eye, Building } from 'lucide-react';
 import DownloadAllFilesButton from './DownloadAllFilesButton';
 import { ExportAssetsButton } from './ExportAssetsButton';
+import { FeatureButton } from '@/components/FeatureGuard';
 
 interface AccountActionsProps {
   onCreateFloorPlan: () => void;
@@ -74,12 +75,14 @@ const AccountActions: React.FC<AccountActionsProps> = ({ onCreateFloorPlan }) =>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            <Button asChild className="w-full bg-brand-orange hover:bg-brand-orange/90">
-              <Link to="/account/photos/upload">
-                <Plus className="h-4 w-4 mr-2" />
-                Upload Photos
-              </Link>
-            </Button>
+            <FeatureButton 
+              featureKey="photo_upload"
+              className="w-full bg-brand-orange hover:bg-brand-orange/90"
+              onClick={() => window.location.href = '/account/photos/upload'}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Upload Photos
+            </FeatureButton>
             <Button asChild variant="outline" className="w-full">
               <Link to="/account/photos">
                 <Eye className="h-4 w-4 mr-2" />
@@ -102,12 +105,14 @@ const AccountActions: React.FC<AccountActionsProps> = ({ onCreateFloorPlan }) =>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            <Button asChild className="w-full bg-brand-orange hover:bg-brand-orange/90">
-              <Link to="/account/videos/upload">
-                <Plus className="h-4 w-4 mr-2" />
-                Upload Videos
-              </Link>
-            </Button>
+            <FeatureButton 
+              featureKey="video_upload"
+              className="w-full bg-brand-orange hover:bg-brand-orange/90"
+              onClick={() => window.location.href = '/account/videos/upload'}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Upload Videos
+            </FeatureButton>
             <Button asChild variant="outline" className="w-full">
               <Link to="/account/videos">
                 <Eye className="h-4 w-4 mr-2" />
@@ -130,13 +135,14 @@ const AccountActions: React.FC<AccountActionsProps> = ({ onCreateFloorPlan }) =>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            <Button 
+            <FeatureButton 
+              featureKey="floor_plan_scanning"
               onClick={onCreateFloorPlan}
               className="w-full bg-brand-orange hover:bg-brand-orange/90"
             >
               <Building className="h-4 w-4 mr-2" />
               Create Floor Plan
-            </Button>
+            </FeatureButton>
             <Button asChild className="w-full bg-brand-blue hover:bg-brand-lightBlue">
               <Link to="/account/floorplans/upload">
                 <Plus className="h-4 w-4 mr-2" />
