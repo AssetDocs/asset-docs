@@ -118,6 +118,17 @@ serve(async (req) => {
       mode: "subscription",
       success_url: `${req.headers.get("origin")}/subscription-success`,
       cancel_url: `${req.headers.get("origin")}/pricing`,
+      // Enable automatic tax collection
+      automatic_tax: {
+        enabled: true,
+      },
+      // Collect customer's tax ID if needed for compliance
+      tax_id_collection: {
+        enabled: true,
+      },
+      // Enable customer details collection for tax calculation
+      billing_address_collection: 'required',
+      customer_creation: customerId ? undefined : 'always',
     });
 
     logStep("Checkout session created", { sessionId: session.id, url: session.url });
