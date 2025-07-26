@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar, User, Clock, Search, CheckCircle, XCircle } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 
 const PressNews: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -644,11 +644,11 @@ const PressNews: React.FC = () => {
                 Protect yourself with comprehensive property documentation before disaster strikes.
               </p>
               <div className="space-y-3 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center">
-                <Button className="w-full sm:w-auto bg-white text-brand-blue hover:bg-gray-100">
-                  Start Documenting Today
+                <Button asChild className="w-full sm:w-auto bg-white text-brand-blue hover:bg-gray-100">
+                  <Link to="/pricing">Start Documenting Today</Link>
                 </Button>
-                <Button className="w-full sm:w-auto bg-blue-600 text-white hover:bg-blue-700">
-                  Learn More
+                <Button asChild className="w-full sm:w-auto bg-blue-600 text-white hover:bg-blue-700">
+                  <Link to="/features">Learn More</Link>
                 </Button>
               </div>
             </div>
