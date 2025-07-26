@@ -127,7 +127,7 @@ const AppContent = () => {
         <Route path="/schedule-professional" element={<ProtectedRoute><ScheduleProfessional /></ProtectedRoute>} />
         <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
         
-        <Route path="/claims" element={<ProtectedRoute><Claims /></ProtectedRoute>} />
+        <Route path="/claims" element={<Claims />} />
         <Route path="/subscription-success" element={<ProtectedRoute><SubscriptionSuccess /></ProtectedRoute>} />
         <Route path="/industry-requirements" element={<IndustryRequirements />} />
         <Route path="/checklists" element={<ProtectedRoute><Checklists /></ProtectedRoute>} />
