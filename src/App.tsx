@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import useScrollToTop from "@/hooks/useScrollToTop";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { TranslationProvider } from "@/contexts/TranslationContext";
-import CustomerSupportWidget from "@/components/CustomerSupportWidget";
+
 import PasswordGate from "@/components/PasswordGate";
 
 import Index from "./pages/Index";
@@ -141,7 +141,7 @@ const AppContent = () => {
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
-      <CustomerSupportWidget />
+      
     </BrowserRouter>
   );
 };
