@@ -61,6 +61,45 @@ const Testimonials: React.FC = () => {
               </blockquote>
               <cite className="text-brand-blue font-semibold">— Business Owner</cite>
             </div>
+            
+            {/* Testimonial 4 */}
+            <div className="bg-white p-6 rounded-lg shadow">
+              <div className="flex items-center mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
+                ))}
+              </div>
+              <blockquote className="text-gray-600 mb-4">
+                "Managing rentals is tough, but with Asset Docs, tracking property condition before and after tenants is quick and easy!"
+              </blockquote>
+              <cite className="text-brand-blue font-semibold">— Susan H.</cite>
+            </div>
+            
+            {/* Testimonial 5 */}
+            <div className="bg-white p-6 rounded-lg shadow">
+              <div className="flex items-center mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
+                ))}
+              </div>
+              <blockquote className="text-gray-600 mb-4">
+                "I run a small construction company and used to worry about lost, stolen, or damaged equipment. With Asset Docs, I know exactly what I own and what it's worth—one less thing to stress about."
+              </blockquote>
+              <cite className="text-brand-blue font-semibold">— James T.</cite>
+            </div>
+            
+            {/* Testimonial 6 */}
+            <div className="bg-white p-6 rounded-lg shadow">
+              <div className="flex items-center mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
+                ))}
+              </div>
+              <blockquote className="text-gray-600 mb-4">
+                "At just $12 a month, it's a no-brainer - I spend more than that on my morning coffee and bagel"
+              </blockquote>
+              <cite className="text-brand-blue font-semibold">— Charlotte B.</cite>
+            </div>
           </div>
         </div>
       </section>
