@@ -53,6 +53,7 @@ import StateRequirements from "./pages/StateRequirements";
 import SubscriptionCheckout from "./pages/SubscriptionCheckout";
 import PhotographyGuide from "./pages/PhotographyGuide";
 import AIValuationGuide from "./pages/AIValuationGuide";
+import SocialImpact from "./pages/SocialImpact";
 
 const queryClient = new QueryClient();
 
@@ -137,6 +138,7 @@ const AppContent = () => {
         <Route path="/press-news/digital-documentation-guide" element={<PressNews />} />
         <Route path="/photography-guide" element={<PhotographyGuide />} />
         <Route path="/ai-valuation-guide" element={<AIValuationGuide />} />
+        <Route path="/social-impact" element={<SocialImpact />} />
         
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
