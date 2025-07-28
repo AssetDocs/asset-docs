@@ -11,13 +11,13 @@ const HeroSection: React.FC = () => {
         <div className="flex flex-col md:flex-row items-center justify-between">
           <div className="md:w-full mb-10 md:mb-0">
             <h1 className="text-4xl md:text-5xl font-bold mb-6 animate-fade-in">
-              Your Digital Safety Net for Asset Protection
+              Your Digital Safety Net for Asset Protection & Unexpected Events
             </h1>
             <p className="text-xl mb-4 animate-slide-up opacity-90">
-              Secure documentation of your property and possessions with professional-grade tools and third-party verification.
+              Secure, third-party documentation that helps you prepare for insurance claims, legal events, and life transitions.
             </p>
             <p className="text-lg mb-8 animate-slide-up opacity-80 font-bold">
-              Join thousands of property owners and businesses who trust Asset Docs to protect their valuable assets and provide peace of mind.
+              Trusted by thousands of homeowners, landlords, and businesses - providing control, protection, and peace of mind.
             </p>
             
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 animate-slide-up">
