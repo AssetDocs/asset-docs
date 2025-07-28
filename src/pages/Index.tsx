@@ -4,7 +4,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import HeroSection from '@/components/HeroSection';
 import AboutSection from '@/components/AboutSection';
-import FeaturedGuideShortcut from '@/components/FeaturedGuideShortcut';
+import FeaturedSection from '@/components/FeaturedSection';
 import AIValuationSection from '@/components/AIValuationSection';
 import FeaturesSection from '@/components/FeaturesSection';
 import HowItWorksSection from '@/components/HowItWorksSection';
@@ -45,7 +45,7 @@ const Index: React.FC = () => {
       <Navbar />
       <HeroSection />
       <AboutSection />
-      <FeaturedGuideShortcut />
+      <FeaturedSection />
       <AIValuationSection />
       <FeaturesSection />
       <HowItWorksSection />
