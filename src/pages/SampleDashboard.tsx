@@ -61,12 +61,12 @@ const SampleDashboard: React.FC = () => {
           </div>
 
           <Tabs defaultValue="overview" className="space-y-6" id="tabs-content">
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="floor-plans">Floor Plans</TabsTrigger>
-              <TabsTrigger value="asset-values">Asset Values</TabsTrigger>
-              <TabsTrigger value="damage">Post Damage</TabsTrigger>
-              <TabsTrigger value="voice-notes">Voice Notes</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+              <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
+              <TabsTrigger value="floor-plans" className="text-xs sm:text-sm">Floor Plans</TabsTrigger>
+              <TabsTrigger value="asset-values" className="text-xs sm:text-sm">Asset Values</TabsTrigger>
+              <TabsTrigger value="damage" className="text-xs sm:text-sm">Post Damage</TabsTrigger>
+              <TabsTrigger value="voice-notes" className="text-xs sm:text-sm">Voice Notes</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">

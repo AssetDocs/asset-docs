@@ -76,8 +76,8 @@ const AccountHeader: React.FC<AccountHeaderProps> = ({ showQRCode, onGenerateQR 
             </div>
           )}
         </div>
-        <div className="flex gap-2">
-          <Button asChild variant="outline" className="border-green-500 text-green-500">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <Button asChild variant="outline" className="border-green-500 text-green-500 w-full sm:w-auto">
             <Link to="/video-help">
               <Video className="h-4 w-4 mr-2" />
               Video Help
@@ -86,12 +86,12 @@ const AccountHeader: React.FC<AccountHeaderProps> = ({ showQRCode, onGenerateQR 
           <Button 
             onClick={onGenerateQR}
             variant="outline"
-            className="border-brand-blue text-brand-blue"
+            className="border-brand-blue text-brand-blue w-full sm:w-auto"
           >
             <QrCode className="h-4 w-4 mr-2" />
             Generate QR Code
           </Button>
-          <ShareButton className="bg-brand-blue hover:bg-brand-lightBlue" />
+          <ShareButton className="bg-brand-blue hover:bg-brand-lightBlue w-full sm:w-auto" />
         </div>
       </div>
 
