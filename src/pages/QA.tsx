@@ -141,6 +141,17 @@ const QA: React.FC = () => {
               </AccordionItem>
               
               <AccordionItem value="item-13">
+                <AccordionTrigger className="text-lg font-medium">If I have a drawer or shelf full of tools, kitchen goods, movies, etc. Do I need a photo of every item?</AccordionTrigger>
+                <AccordionContent>
+                  Apart from higher-priced or specialty items, it is not always necessary to document every individual item. 
+                  For instance, a kitchen drawer full of forks and knives, a shelf of DVDs or CDs, or a shelf of garage 
+                  tools and equipment, you'll likely only need a wide-angle photo showing the collection. You can then 
+                  manually enter the estimated value of the items shown as a whole, making the documentation process 
+                  more efficient while still maintaining adequate records for insurance purposes.
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-14">
                 <AccordionTrigger className="text-lg font-medium">What support options are available?</AccordionTrigger>
                 <AccordionContent>
                   We offer comprehensive support including 24/7 chat support, email assistance, and phone support 
