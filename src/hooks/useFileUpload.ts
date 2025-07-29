@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { StorageService, FileType } from '@/services/StorageService';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useToast } from '@/hooks/use-toast';
 
 export interface UseFileUploadOptions {
@@ -11,6 +12,7 @@ export interface UseFileUploadOptions {
 
 export const useFileUpload = (options: UseFileUploadOptions) => {
   const { user } = useAuth();
+  const { subscriptionTier } = useSubscription();
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
@@ -34,10 +36,11 @@ export const useFileUpload = (options: UseFileUploadOptions) => {
         setUploadProgress(prev => ({ ...prev, [fileKey]: 0 }));
 
         try {
-          const uploadResult = await StorageService.uploadFile(
+          const uploadResult = await StorageService.uploadFileWithValidation(
             file,
             options.bucket,
-            user.id
+            user.id,
+            subscriptionTier
           );
 
           setUploadProgress(prev => ({ ...prev, [fileKey]: 100 }));

@@ -27,6 +27,12 @@ export const SUBSCRIPTION_FEATURES: Record<string, FeatureConfig> = {
     requiredTier: 'premium',
     fallbackMessage: 'Upgrade to Premium for unlimited storage'
   },
+  storage_limits: {
+    name: 'Storage Limits',
+    description: 'Tier-based storage space allocation',
+    requiredTier: 'free',
+    fallbackMessage: 'Storage limits apply based on your subscription tier'
+  },
 
   // AI and Advanced Features
   ai_valuation: {
@@ -126,4 +132,30 @@ export const getFeaturesByTier = (tier: SubscriptionTier): FeatureConfig[] => {
   return Object.values(SUBSCRIPTION_FEATURES).filter(feature => 
     hasFeatureAccess(tier, feature.requiredTier)
   );
+};
+
+// Storage limits in bytes
+export const STORAGE_LIMITS: Record<SubscriptionTier, number | null> = {
+  free: 1024 * 1024 * 1024, // 1GB
+  basic: 250 * 1024 * 1024 * 1024, // 250GB
+  standard: 500 * 1024 * 1024 * 1024, // 500GB
+  premium: null // Unlimited
+};
+
+export const getStorageLimit = (tier: SubscriptionTier | null | undefined): number | null => {
+  if (!tier) return STORAGE_LIMITS.free;
+  return STORAGE_LIMITS[tier];
+};
+
+export const formatStorageSize = (bytes: number): string => {
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let size = bytes;
+  let unitIndex = 0;
+  
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex++;
+  }
+  
+  return `${size.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
 };

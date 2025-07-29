@@ -1,6 +1,23 @@
 import { supabase } from '@/integrations/supabase/client';
+import { getStorageLimit, formatStorageSize } from '@/config/subscriptionFeatures';
+import type { SubscriptionTier } from '@/config/subscriptionFeatures';
 
 export type FileType = 'photos' | 'videos' | 'documents' | 'floor-plans';
+
+export interface StorageUsage {
+  bucket_name: string;
+  file_count: number;
+  total_size_bytes: number;
+}
+
+export interface StorageQuota {
+  used: number;
+  limit: number | null;
+  percentage: number;
+  isUnlimited: boolean;
+  isNearLimit: boolean;
+  isOverLimit: boolean;
+}
 
 export interface UploadResult {
   url: string;
@@ -116,5 +133,106 @@ export class StorageService {
       .getPublicUrl(path);
 
     return data.publicUrl;
+  }
+
+  /**
+   * Get user's storage usage across all buckets
+   */
+  static async getUserStorageUsage(userId: string): Promise<StorageUsage[]> {
+    const { data, error } = await supabase
+      .from('storage_usage')
+      .select('bucket_name, file_count, total_size_bytes')
+      .eq('user_id', userId);
+
+    if (error) {
+      throw new Error(`Failed to get storage usage: ${error.message}`);
+    }
+
+    return data || [];
+  }
+
+  /**
+   * Get total storage usage for a user
+   */
+  static async getTotalStorageUsage(userId: string): Promise<number> {
+    const usage = await this.getUserStorageUsage(userId);
+    return usage.reduce((total, bucket) => total + bucket.total_size_bytes, 0);
+  }
+
+  /**
+   * Check storage quota for a user
+   */
+  static async getStorageQuota(userId: string, subscriptionTier: SubscriptionTier | null): Promise<StorageQuota> {
+    const totalUsed = await this.getTotalStorageUsage(userId);
+    const limit = getStorageLimit(subscriptionTier);
+    const isUnlimited = limit === null;
+    const percentage = isUnlimited ? 0 : Math.min((totalUsed / limit) * 100, 100);
+    const isNearLimit = !isUnlimited && percentage >= 80;
+    const isOverLimit = !isUnlimited && totalUsed > limit;
+
+    return {
+      used: totalUsed,
+      limit,
+      percentage,
+      isUnlimited,
+      isNearLimit,
+      isOverLimit
+    };
+  }
+
+  /**
+   * Check if user can upload a file of given size
+   */
+  static async canUploadFile(
+    userId: string, 
+    fileSize: number, 
+    subscriptionTier: SubscriptionTier | null
+  ): Promise<{ canUpload: boolean; reason?: string }> {
+    const quota = await this.getStorageQuota(userId, subscriptionTier);
+    
+    if (quota.isUnlimited) {
+      return { canUpload: true };
+    }
+
+    if (quota.limit && (quota.used + fileSize) > quota.limit) {
+      return { 
+        canUpload: false, 
+        reason: `Upload would exceed storage limit. Current usage: ${formatStorageSize(quota.used)}, Limit: ${formatStorageSize(quota.limit)}` 
+      };
+    }
+
+    return { canUpload: true };
+  }
+
+  /**
+   * Upload file with storage limit validation
+   */
+  static async uploadFileWithValidation(
+    file: File,
+    bucket: FileType,
+    userId: string,
+    subscriptionTier: SubscriptionTier | null,
+    fileName?: string
+  ): Promise<UploadResult> {
+    const validation = await this.canUploadFile(userId, file.size, subscriptionTier);
+    
+    if (!validation.canUpload) {
+      throw new Error(validation.reason || 'Upload not allowed');
+    }
+
+    return this.uploadFile(file, bucket, userId, fileName);
+  }
+
+  /**
+   * Refresh storage usage calculations for a user
+   */
+  static async refreshStorageUsage(userId: string): Promise<void> {
+    const { error } = await supabase.rpc('update_user_storage_usage', {
+      target_user_id: userId
+    });
+
+    if (error) {
+      throw new Error(`Failed to refresh storage usage: ${error.message}`);
+    }
   }
 }
