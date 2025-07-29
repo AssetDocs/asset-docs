@@ -77,6 +77,39 @@ export type Database = {
         }
         Relationships: []
       }
+      storage_usage: {
+        Row: {
+          bucket_name: string
+          created_at: string
+          file_count: number
+          id: string
+          last_calculated_at: string
+          total_size_bytes: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bucket_name: string
+          created_at?: string
+          file_count?: number
+          id?: string
+          last_calculated_at?: string
+          total_size_bytes?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bucket_name?: string
+          created_at?: string
+          file_count?: number
+          id?: string
+          last_calculated_at?: string
+          total_size_bytes?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       subscribers: {
         Row: {
           created_at: string
@@ -118,7 +151,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      calculate_user_storage_usage: {
+        Args: { target_user_id: string }
+        Returns: {
+          bucket_name: string
+          file_count: number
+          total_size_bytes: number
+        }[]
+      }
+      update_user_storage_usage: {
+        Args: { target_user_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
