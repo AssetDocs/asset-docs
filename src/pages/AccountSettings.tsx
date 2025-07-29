@@ -6,11 +6,12 @@ import ProfileTab from '@/components/ProfileTab';
 import BillingTab from '@/components/BillingTab';
 import SubscriptionTab from '@/components/SubscriptionTab';
 import NotificationsTab from '@/components/NotificationsTab';
+import CookieSettings from '@/components/CookieSettings';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, User, CreditCard, Package, Bell, Copy, Check } from 'lucide-react';
+import { ArrowLeft, User, CreditCard, Package, Bell, Copy, Check, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -84,7 +85,7 @@ const AccountSettings: React.FC = () => {
           </div>
 
           <Tabs defaultValue="profile" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="profile" className="flex items-center gap-2">
                 <User className="h-4 w-4" />
                 Profile
@@ -100,6 +101,10 @@ const AccountSettings: React.FC = () => {
               <TabsTrigger value="notifications" className="flex items-center gap-2">
                 <Bell className="h-4 w-4" />
                 Notifications
+              </TabsTrigger>
+              <TabsTrigger value="privacy" className="flex items-center gap-2">
+                <Shield className="h-4 w-4" />
+                Privacy
               </TabsTrigger>
             </TabsList>
 
@@ -117,6 +122,10 @@ const AccountSettings: React.FC = () => {
 
             <TabsContent value="notifications">
               <NotificationsTab />
+            </TabsContent>
+
+            <TabsContent value="privacy">
+              <CookieSettings />
             </TabsContent>
           </Tabs>
         </div>

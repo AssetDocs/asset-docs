@@ -6,7 +6,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import useScrollToTop from "@/hooks/useScrollToTop";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { TranslationProvider } from "@/contexts/TranslationContext";
+import CookieConsent from "@/components/CookieConsent";
 
 import PasswordGate from "@/components/PasswordGate";
 
@@ -182,7 +184,10 @@ const App = () => {
         <Sonner />
         <TranslationProvider>
           <AuthProvider>
-            <AppContent />
+            <SubscriptionProvider>
+              <AppContent />
+              <CookieConsent />
+            </SubscriptionProvider>
           </AuthProvider>
         </TranslationProvider>
       </TooltipProvider>
