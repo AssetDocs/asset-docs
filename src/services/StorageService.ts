@@ -165,10 +165,10 @@ export class StorageService {
   static async getStorageQuota(userId: string, subscriptionTier: SubscriptionTier | null): Promise<StorageQuota> {
     const totalUsed = await this.getTotalStorageUsage(userId);
     const limit = getStorageLimit(subscriptionTier);
-    const isUnlimited = limit === null;
-    const percentage = isUnlimited ? 0 : Math.min((totalUsed / limit) * 100, 100);
-    const isNearLimit = !isUnlimited && percentage >= 80;
-    const isOverLimit = !isUnlimited && totalUsed > limit;
+    const isUnlimited = false; // No more unlimited storage
+    const percentage = limit ? Math.min((totalUsed / limit) * 100, 100) : 0;
+    const isNearLimit = limit ? percentage >= 80 : false;
+    const isOverLimit = limit ? totalUsed > limit : false;
 
     return {
       used: totalUsed,
@@ -190,11 +190,14 @@ export class StorageService {
   ): Promise<{ canUpload: boolean; reason?: string }> {
     const quota = await this.getStorageQuota(userId, subscriptionTier);
     
-    if (quota.isUnlimited) {
-      return { canUpload: true };
+    if (!quota.limit) {
+      return { 
+        canUpload: false, 
+        reason: 'No subscription tier found. Please subscribe to upload files.' 
+      };
     }
 
-    if (quota.limit && (quota.used + fileSize) > quota.limit) {
+    if ((quota.used + fileSize) > quota.limit) {
       return { 
         canUpload: false, 
         reason: `Upload would exceed storage limit. Current usage: ${formatStorageSize(quota.used)}, Limit: ${formatStorageSize(quota.limit)}` 

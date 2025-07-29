@@ -1,4 +1,4 @@
-export type SubscriptionTier = 'free' | 'basic' | 'standard' | 'premium';
+export type SubscriptionTier = 'basic' | 'standard' | 'premium';
 
 export interface FeatureConfig {
   name: string;
@@ -30,7 +30,7 @@ export const SUBSCRIPTION_FEATURES: Record<string, FeatureConfig> = {
   storage_limits: {
     name: 'Storage Limits',
     description: 'Tier-based storage space allocation',
-    requiredTier: 'free',
+    requiredTier: 'basic',
     fallbackMessage: 'Storage limits apply based on your subscription tier'
   },
 
@@ -112,7 +112,6 @@ export const SUBSCRIPTION_FEATURES: Record<string, FeatureConfig> = {
 };
 
 export const getTierHierarchy = (): Record<SubscriptionTier, number> => ({
-  free: 0,
   basic: 1,
   standard: 2,
   premium: 3
@@ -122,7 +121,7 @@ export const hasFeatureAccess = (
   userTier: SubscriptionTier | null | undefined,
   requiredTier: SubscriptionTier
 ): boolean => {
-  if (!userTier) return requiredTier === 'free';
+  if (!userTier) return false;
   
   const hierarchy = getTierHierarchy();
   return hierarchy[userTier] >= hierarchy[requiredTier];
@@ -135,15 +134,14 @@ export const getFeaturesByTier = (tier: SubscriptionTier): FeatureConfig[] => {
 };
 
 // Storage limits in bytes
-export const STORAGE_LIMITS: Record<SubscriptionTier, number | null> = {
-  free: 1024 * 1024 * 1024, // 1GB
+export const STORAGE_LIMITS: Record<SubscriptionTier, number> = {
   basic: 250 * 1024 * 1024 * 1024, // 250GB
   standard: 500 * 1024 * 1024 * 1024, // 500GB
-  premium: null // Unlimited
+  premium: 2 * 1024 * 1024 * 1024 * 1024 // 2TB
 };
 
 export const getStorageLimit = (tier: SubscriptionTier | null | undefined): number | null => {
-  if (!tier) return STORAGE_LIMITS.free;
+  if (!tier) return null;
   return STORAGE_LIMITS[tier];
 };
 

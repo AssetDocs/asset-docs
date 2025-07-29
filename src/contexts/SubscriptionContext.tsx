@@ -12,7 +12,7 @@ interface SubscriptionStatus {
 
 interface SubscriptionContextType {
   subscriptionStatus: SubscriptionStatus;
-  subscriptionTier: SubscriptionTier;
+  subscriptionTier: SubscriptionTier | null;
   loading: boolean;
   hasFeature: (featureKey: string) => boolean;
   checkFeatureAccess: (featureKey: string) => { hasAccess: boolean; feature: any };
@@ -29,8 +29,8 @@ export const useSubscription = () => {
   return context;
 };
 
-const mapTierToEnum = (tier?: string): SubscriptionTier => {
-  if (!tier) return 'free';
+const mapTierToEnum = (tier?: string): SubscriptionTier | null => {
+  if (!tier) return null;
   
   switch (tier.toLowerCase()) {
     case 'basic':
@@ -41,7 +41,7 @@ const mapTierToEnum = (tier?: string): SubscriptionTier => {
     case 'enterprise':
       return 'premium';
     default:
-      return 'free';
+      return null;
   }
 };
 
