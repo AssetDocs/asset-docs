@@ -1,3 +1,5 @@
+import { supabase } from '@/integrations/supabase/client';
+
 export interface PropertyDetails {
   propertyType?: string;
   yearBuilt?: number;
@@ -5,6 +7,8 @@ export interface PropertyDetails {
   estimatedValue?: number;
   bedrooms?: number;
   bathrooms?: number;
+  confidence?: 'high' | 'medium' | 'low';
+  source?: string;
 }
 
 export interface AddressComponents {
@@ -58,22 +62,56 @@ class RealEstateDataService {
 
   async fetchPropertyDetails(address: string, addressComponents: AddressComponents): Promise<PropertyDetails> {
     try {
-      // For demo purposes, we'll generate realistic property data based on the location
-      // In a real implementation, you would use APIs like:
-      // - Rentspree API
-      // - RentData API
-      // - Attom Data API
-      // - Local MLS APIs
+      // First try to get real data from MLS API
+      const realData = await this.fetchFromMLSAPI(address, addressComponents);
+      if (realData && realData.estimatedValue) {
+        return realData;
+      }
       
+      // Fallback to mock data if API fails
+      console.log('MLS API unavailable, using generated property data');
       const mockData = this.generateMockPropertyData(addressComponents);
       
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      return mockData;
+      return {
+        ...mockData,
+        confidence: 'low',
+        source: 'Generated Data (API Unavailable)'
+      };
     } catch (error) {
       console.error('Error fetching property details:', error);
-      return {};
+      return this.generateMockPropertyData(addressComponents);
+    }
+  }
+
+  private async fetchFromMLSAPI(address: string, addressComponents: AddressComponents): Promise<PropertyDetails | null> {
+    try {
+      const { data, error } = await supabase.functions.invoke('mls-property-lookup', {
+        body: {
+          address,
+          city: addressComponents.locality,
+          state: addressComponents.administrative_area_level_1,
+          zipCode: addressComponents.postal_code,
+        }
+      });
+
+      if (error || !data) {
+        console.error('MLS API error:', error);
+        return null;
+      }
+
+      return {
+        propertyType: data.propertyType,
+        yearBuilt: data.yearBuilt,
+        squareFootage: data.squareFootage,
+        estimatedValue: data.estimatedValue,
+        bedrooms: data.bedrooms,
+        bathrooms: data.bathrooms,
+        confidence: data.confidence,
+        source: data.source
+      };
+    } catch (error) {
+      console.error('Error calling MLS API:', error);
+      return null;
     }
   }
 

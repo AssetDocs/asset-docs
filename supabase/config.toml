@@ -74,3 +74,21 @@ inspector_port = 8083
 
 [functions.send-welcome-email]
 verify_jwt = false
+
+[functions.check-subscription]
+verify_jwt = true
+
+[functions.create-checkout]
+verify_jwt = true
+
+[functions.customer-portal]
+verify_jwt = true
+
+[functions.cubicasa-floor-plan]
+verify_jwt = true
+
+[functions.mls-property-lookup]
+verify_jwt = true
+
+[functions.property-tax-lookup]
+verify_jwt = true
