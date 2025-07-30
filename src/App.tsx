@@ -154,9 +154,14 @@ const App = () => {
   const [hasAccess, setHasAccess] = useState(false);
   
   useEffect(() => {
-    // Check if user has already visited the welcome page
+    // Check current path and localStorage
+    const currentPath = window.location.pathname;
     const accessGranted = localStorage.getItem('assetdocs-access');
-    if (accessGranted === 'granted') {
+    
+    // Always show welcome page for root URL, otherwise check localStorage
+    if (currentPath === '/' || currentPath === '') {
+      setHasAccess(false);
+    } else if (accessGranted === 'granted') {
       setHasAccess(true);
     }
   }, []);

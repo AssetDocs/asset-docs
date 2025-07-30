@@ -7,6 +7,10 @@ interface WelcomePageProps {
 }
 
 const WelcomePage: React.FC<WelcomePageProps> = ({ onEnterSite }) => {
+  const handleContactUs = () => {
+    window.location.href = '/contact';
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10 p-4">
       <Card className="w-full max-w-2xl shadow-lg">
@@ -33,13 +37,23 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ onEnterSite }) => {
             </p>
           </div>
           
-          <Button 
-            onClick={onEnterSite}
-            size="lg"
-            className="px-8 py-3 text-lg"
-          >
-            Enter Site
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button 
+              onClick={onEnterSite}
+              size="lg"
+              className="px-8 py-3 text-lg"
+            >
+              Enter Site
+            </Button>
+            <Button 
+              onClick={handleContactUs}
+              variant="outline"
+              size="lg"
+              className="px-8 py-3 text-lg"
+            >
+              Contact Us
+            </Button>
+          </div>
           
           <div className="mt-8 text-center text-sm text-muted-foreground">
             <p>© 2025 AssetDocs. All rights reserved.</p>
