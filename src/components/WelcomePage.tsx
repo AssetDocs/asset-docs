@@ -1,12 +1,57 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface WelcomePageProps {
   onEnterSite: () => void;
 }
 
 const WelcomePage: React.FC<WelcomePageProps> = ({ onEnterSite }) => {
+  const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+
+  const handleEmailSubmit = async () => {
+    if (!email || !email.includes('@')) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.functions.invoke('notify-visitor-access', {
+        body: { email }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Access Granted",
+        description: "Welcome! You can now explore our site.",
+      });
+      
+      onEnterSite();
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleContactUs = () => {
     window.location.href = '/contact';
   };
@@ -37,22 +82,45 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ onEnterSite }) => {
             </p>
           </div>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              onClick={onEnterSite}
-              size="lg"
-              className="px-8 py-3 text-lg"
-            >
-              Enter Site
-            </Button>
-            <Button 
-              onClick={handleContactUs}
-              variant="outline"
-              size="lg"
-              className="px-8 py-3 text-lg"
-            >
-              Contact Us
-            </Button>
+          
+          <div className="space-y-4 mb-6">
+            <div className="text-left space-y-2">
+              <label htmlFor="email" className="text-sm font-medium text-foreground">
+                Enter your email address to access the site:
+              </label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="your.email@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleEmailSubmit();
+                  }
+                }}
+              />
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                onClick={handleEmailSubmit}
+                disabled={isLoading}
+                size="lg"
+                className="px-8 py-3 text-lg"
+              >
+                {isLoading ? 'Submitting...' : 'Enter Site'}
+              </Button>
+              <Button 
+                onClick={handleContactUs}
+                variant="outline"
+                size="lg"
+                className="px-8 py-3 text-lg"
+              >
+                Contact Us
+              </Button>
+            </div>
           </div>
           
           <div className="mt-8 text-center text-sm text-muted-foreground">
