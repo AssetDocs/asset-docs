@@ -10,7 +10,7 @@ import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { TranslationProvider } from "@/contexts/TranslationContext";
 import CookieConsent from "@/components/CookieConsent";
 
-import PasswordGate from "@/components/PasswordGate";
+import WelcomePage from "@/components/WelcomePage";
 
 import Index from "./pages/Index";
 import Features from "./pages/Features";
@@ -154,14 +154,15 @@ const App = () => {
   const [hasAccess, setHasAccess] = useState(false);
   
   useEffect(() => {
-    // Check if user has already entered the correct password
+    // Check if user has already visited the welcome page
     const accessGranted = localStorage.getItem('assetdocs-access');
     if (accessGranted === 'granted') {
       setHasAccess(true);
     }
   }, []);
 
-  const handlePasswordCorrect = () => {
+  const handleEnterSite = () => {
+    localStorage.setItem('assetdocs-access', 'granted');
     setHasAccess(true);
   };
 
@@ -171,7 +172,7 @@ const App = () => {
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <PasswordGate onPasswordCorrect={handlePasswordCorrect} />
+          <WelcomePage onEnterSite={handleEnterSite} />
         </TooltipProvider>
       </QueryClientProvider>
     );
