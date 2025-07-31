@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import PropertySelector from '@/components/PropertySelector';
 import { Building, Download, Eye, Plus, Upload } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 
 // Mock floor plan data - in production, this would come from CubiCasa API
 const mockFloorPlans = {
@@ -55,6 +56,9 @@ const mockFloorPlans = {
 const FloorPlansSection: React.FC = () => {
   const [selectedProperty, setSelectedProperty] = useState<string>('');
   const [selectedFloorPlan, setSelectedFloorPlan] = useState<string | null>(null);
+  const { subscriptionTier } = useSubscription();
+  
+  const showCubiCasa = subscriptionTier === 'basic';
 
   const currentFloorPlans = selectedProperty ? mockFloorPlans[selectedProperty as keyof typeof mockFloorPlans] || [] : [];
 
@@ -75,16 +79,18 @@ const FloorPlansSection: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-brand-blue">Floor Plans</h2>
-          <p className="text-gray-600">View and manage floor plans from CubiCasa</p>
+          <p className="text-gray-600">View and manage {showCubiCasa ? 'floor plans from CubiCasa' : 'your uploaded floor plans'}</p>
         </div>
         <div className="flex gap-2">
-          <Button 
-            onClick={handleCreateFloorPlan}
-            className="bg-brand-orange hover:bg-brand-orange/90"
-          >
-            <Building className="h-4 w-4 mr-2" />
-            Create with CubiCasa
-          </Button>
+          {showCubiCasa && (
+            <Button 
+              onClick={handleCreateFloorPlan}
+              className="bg-brand-orange hover:bg-brand-orange/90"
+            >
+              <Building className="h-4 w-4 mr-2" />
+              Create with CubiCasa
+            </Button>
+          )}
           <Button asChild variant="outline">
             <Link to="/account/floorplans/upload">
               <Upload className="h-4 w-4 mr-2" />
@@ -171,13 +177,15 @@ const FloorPlansSection: React.FC = () => {
                 <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No Floor Plans Found</h3>
                 <p className="text-gray-600 mb-4">
-                  This property doesn't have any floor plans yet. Create one with CubiCasa or upload an existing floor plan.
+                  This property doesn't have any floor plans yet. {showCubiCasa ? 'Create one with CubiCasa or upload' : 'Upload'} an existing floor plan.
                 </p>
                 <div className="flex justify-center gap-2">
-                  <Button onClick={handleCreateFloorPlan} className="bg-brand-orange hover:bg-brand-orange/90">
-                    <Building className="h-4 w-4 mr-2" />
-                    Create with CubiCasa
-                  </Button>
+                  {showCubiCasa && (
+                    <Button onClick={handleCreateFloorPlan} className="bg-brand-orange hover:bg-brand-orange/90">
+                      <Building className="h-4 w-4 mr-2" />
+                      Create with CubiCasa
+                    </Button>
+                  )}
                   <Button asChild variant="outline">
                     <Link to="/account/floorplans/upload">
                       <Upload className="h-4 w-4 mr-2" />
@@ -239,20 +247,22 @@ const FloorPlansSection: React.FC = () => {
       )}
 
       {/* CubiCasa Integration Info */}
-      <Card className="bg-blue-50 border-brand-blue/20">
-        <CardContent className="p-6">
-          <div className="flex items-start space-x-3">
-            <Building className="h-5 w-5 text-brand-blue mt-1 flex-shrink-0" />
-            <div>
-              <p className="text-sm font-medium text-brand-blue mb-1">CubiCasa Integration</p>
-              <p className="text-sm text-gray-700">
-                Create professional floor plans instantly with CubiCasa's AI-powered technology. 
-                Simply take photos with your smartphone and get accurate floor plans in minutes.
-              </p>
+      {showCubiCasa && (
+        <Card className="bg-blue-50 border-brand-blue/20">
+          <CardContent className="p-6">
+            <div className="flex items-start space-x-3">
+              <Building className="h-5 w-5 text-brand-blue mt-1 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-brand-blue mb-1">CubiCasa Integration</p>
+                <p className="text-sm text-gray-700">
+                  Create professional floor plans instantly with CubiCasa's AI-powered technology. 
+                  Simply take photos with your smartphone and get accurate floor plans in minutes.
+                </p>
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

@@ -10,9 +10,10 @@ import { FeatureButton } from '@/components/FeatureGuard';
 
 interface AccountActionsProps {
   onCreateFloorPlan: () => void;
+  showFloorPlans?: boolean;
 }
 
-const AccountActions: React.FC<AccountActionsProps> = ({ onCreateFloorPlan }) => {
+const AccountActions: React.FC<AccountActionsProps> = ({ onCreateFloorPlan, showFloorPlans = true }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <Card className="hover:shadow-lg transition-shadow">
@@ -123,41 +124,43 @@ const AccountActions: React.FC<AccountActionsProps> = ({ onCreateFloorPlan }) =>
         </CardContent>
       </Card>
 
-      <Card className="hover:shadow-lg transition-shadow">
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <FileImage className="h-6 w-6 mr-2 text-brand-blue" />
-            Floor Plans
-          </CardTitle>
-          <CardDescription>
-            Upload and manage architectural drawings and floor plans
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <FeatureButton 
-              featureKey="floor_plan_scanning"
-              onClick={onCreateFloorPlan}
-              className="w-full bg-brand-orange hover:bg-brand-orange/90"
-            >
-              <Building className="h-4 w-4 mr-2" />
-              Create Floor Plan
-            </FeatureButton>
-            <Button asChild className="w-full bg-brand-blue hover:bg-brand-lightBlue">
-              <Link to="/account/floorplans/upload">
-                <Plus className="h-4 w-4 mr-2" />
-                Upload Floor Plans
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="w-full">
-              <Link to="/account/floorplans">
-                <Eye className="h-4 w-4 mr-2" />
-                View Floor Plans
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {showFloorPlans && (
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <FileImage className="h-6 w-6 mr-2 text-brand-blue" />
+              Floor Plans
+            </CardTitle>
+            <CardDescription>
+              Upload and manage architectural drawings and floor plans
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <FeatureButton 
+                featureKey="floor_plan_scanning"
+                onClick={onCreateFloorPlan}
+                className="w-full bg-brand-orange hover:bg-brand-orange/90"
+              >
+                <Building className="h-4 w-4 mr-2" />
+                Create Floor Plan
+              </FeatureButton>
+              <Button asChild className="w-full bg-brand-blue hover:bg-brand-lightBlue">
+                <Link to="/account/floorplans/upload">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Upload Floor Plans
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="w-full">
+                <Link to="/account/floorplans">
+                  <Eye className="h-4 w-4 mr-2" />
+                  View Floor Plans
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="hover:shadow-lg transition-shadow">
         <CardHeader>

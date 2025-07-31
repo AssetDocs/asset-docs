@@ -15,12 +15,16 @@ import VoiceNotesSection from '@/components/VoiceNotesSection';
 import DashboardTour from '@/components/DashboardTour';
 import AppDownloadButtons from '@/components/AppDownloadButtons';
 import DocumentationChecklist from '@/components/DocumentationChecklist';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Account: React.FC = () => {
   const [showQRCode, setShowQRCode] = useState(false);
   const [showTour, setShowTour] = useState(false);
+  const { subscriptionTier } = useSubscription();
+  
+  const showFloorPlans = subscriptionTier !== 'basic';
 
   useEffect(() => {
     // Check if user is a new user and hasn't seen the tour
@@ -69,9 +73,9 @@ const Account: React.FC = () => {
           </div>
 
           <Tabs defaultValue="overview" className="space-y-6" id="tabs-content">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className={`grid w-full ${showFloorPlans ? 'grid-cols-5' : 'grid-cols-4'}`}>
               <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="floor-plans">Floor Plans</TabsTrigger>
+              {showFloorPlans && <TabsTrigger value="floor-plans">Floor Plans</TabsTrigger>}
               <TabsTrigger value="asset-values">Asset Values</TabsTrigger>
               <TabsTrigger value="damage">Post Damage</TabsTrigger>
               <TabsTrigger value="voice-notes">Voice Notes</TabsTrigger>
@@ -79,14 +83,16 @@ const Account: React.FC = () => {
 
             <TabsContent value="overview" className="space-y-6">
               <AccountStats />
-              <AccountActions onCreateFloorPlan={handleCreateFloorPlan} />
+              <AccountActions onCreateFloorPlan={handleCreateFloorPlan} showFloorPlans={showFloorPlans} />
               <DocumentationChecklist />
               <QRCodeSection />
             </TabsContent>
 
-            <TabsContent value="floor-plans">
-              <FloorPlansSection />
-            </TabsContent>
+            {showFloorPlans && (
+              <TabsContent value="floor-plans">
+                <FloorPlansSection />
+              </TabsContent>
+            )}
 
             <TabsContent value="asset-values">
               <AssetValuesSection />
