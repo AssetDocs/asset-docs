@@ -10,7 +10,7 @@ const PricingPlans: React.FC = () => {
     basic: [
       "30-day free trial",
       "1 property",
-      "100GB secure cloud storage",
+      "50GB secure cloud storage",
       "Photo uploads",
       "Document uploads", 
       "Mobile app access",
@@ -19,7 +19,7 @@ const PricingPlans: React.FC = () => {
     standard: [
       "30-day free trial",
       "Up to 5 properties",
-      "500GB secure cloud storage",
+      "200GB secure cloud storage",
       "Photo and video uploads",
       "Document uploads",
       "AI-powered item identification & valuation",
@@ -32,7 +32,7 @@ const PricingPlans: React.FC = () => {
     premium: [
       "30-day free trial",
       "Up to 20 properties",
-      "2TB secure cloud storage",
+      "750GB secure cloud storage",
       "Photo and video uploads",
       "Document uploads",
       "AI-powered item identification & valuation",
@@ -58,7 +58,7 @@ const PricingPlans: React.FC = () => {
     ],
     medium: [
       "30-day free trial",
-      "250GB secure cloud storage",
+      "200GB secure cloud storage",
       "25 user accounts",
       "Unlimited photo and video uploads",
       "Document uploads",

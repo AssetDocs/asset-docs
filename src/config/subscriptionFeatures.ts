@@ -135,9 +135,9 @@ export const getFeaturesByTier = (tier: SubscriptionTier): FeatureConfig[] => {
 
 // Storage limits in bytes
 export const STORAGE_LIMITS: Record<SubscriptionTier, number> = {
-  basic: 250 * 1024 * 1024 * 1024, // 250GB
-  standard: 500 * 1024 * 1024 * 1024, // 500GB
-  premium: 2 * 1024 * 1024 * 1024 * 1024 // 2TB
+  basic: 50 * 1024 * 1024 * 1024, // 50GB
+  standard: 200 * 1024 * 1024 * 1024, // 200GB
+  premium: 750 * 1024 * 1024 * 1024 // 750GB
 };
 
 export const getStorageLimit = (tier: SubscriptionTier | null | undefined): number | null => {
