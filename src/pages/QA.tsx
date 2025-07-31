@@ -58,9 +58,9 @@ const QA: React.FC = () => {
               <AccordionItem value="item-4">
                 <AccordionTrigger className="text-lg font-medium">What pricing plans are available?</AccordionTrigger>
                 <AccordionContent>
-                  AssetDocs offers flexible pricing plans to meet different needs. We provide a free 14-day trial. 
-                  Our plans include basic documentation features for individuals, premium plans with advanced AI valuation, 
-                  and professional services for high-value properties. All plans include secure cloud storage and insurance-ready documentation.
+                  <a href="/pricing" className="text-brand-blue hover:text-brand-lightBlue underline">
+                    View our pricing plans and features
+                  </a>
                 </AccordionContent>
               </AccordionItem>
               
