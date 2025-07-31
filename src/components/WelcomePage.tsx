@@ -62,7 +62,7 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ onEnterSite }) => {
         <CardContent className="p-8 text-center space-y-6">
           <div className="flex justify-center mb-6">
             <img 
-              src="/lovable-uploads/620994c0-7532-4240-a792-d1ed8973956d.png" 
+              src="/lovable-uploads/390b9c27-b850-4840-b6dd-ac89f59276df.png" 
               alt="AssetDocs Logo" 
               className="h-16 w-auto"
             />
