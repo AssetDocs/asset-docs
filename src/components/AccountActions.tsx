@@ -7,6 +7,7 @@ import { Home, Camera, Video, FileImage, FileText, Shield, Settings, Plus, Eye, 
 import DownloadAllFilesButton from './DownloadAllFilesButton';
 import { ExportAssetsButton } from './ExportAssetsButton';
 import { FeatureButton } from '@/components/FeatureGuard';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 
 interface AccountActionsProps {
   onCreateFloorPlan: () => void;
@@ -14,6 +15,9 @@ interface AccountActionsProps {
 }
 
 const AccountActions: React.FC<AccountActionsProps> = ({ onCreateFloorPlan, showFloorPlans = true }) => {
+  const { subscriptionTier } = useSubscription();
+  const canCreateFloorPlans = subscriptionTier === 'basic';
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <Card className="hover:shadow-lg transition-shadow">
@@ -137,14 +141,16 @@ const AccountActions: React.FC<AccountActionsProps> = ({ onCreateFloorPlan, show
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <FeatureButton 
-                featureKey="floor_plan_scanning"
-                onClick={onCreateFloorPlan}
-                className="w-full bg-brand-orange hover:bg-brand-orange/90"
-              >
-                <Building className="h-4 w-4 mr-2" />
-                Create Floor Plan
-              </FeatureButton>
+              {canCreateFloorPlans && (
+                <FeatureButton 
+                  featureKey="floor_plan_scanning"
+                  onClick={onCreateFloorPlan}
+                  className="w-full bg-brand-orange hover:bg-brand-orange/90"
+                >
+                  <Building className="h-4 w-4 mr-2" />
+                  Create Floor Plan
+                </FeatureButton>
+              )}
               <Button asChild className="w-full bg-brand-blue hover:bg-brand-lightBlue">
                 <Link to="/account/floorplans/upload">
                   <Plus className="h-4 w-4 mr-2" />
