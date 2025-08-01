@@ -31,7 +31,7 @@ const AccountActions: React.FC<AccountActionsProps> = ({ onCreateFloorPlan, show
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button asChild variant="outline" className="w-full">
+          <Button asChild variant="orange" className="w-full">
             <Link to="/account/settings">
               <Settings className="h-4 w-4 mr-2" />
               Manage Settings
