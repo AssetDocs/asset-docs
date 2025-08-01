@@ -16,6 +16,7 @@ import DashboardTour from '@/components/DashboardTour';
 import AppDownloadButtons from '@/components/AppDownloadButtons';
 import DocumentationChecklist from '@/components/DocumentationChecklist';
 import { useSubscription } from '@/contexts/SubscriptionContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -23,6 +24,7 @@ const Account: React.FC = () => {
   const [showQRCode, setShowQRCode] = useState(false);
   const [showTour, setShowTour] = useState(false);
   const { subscriptionTier } = useSubscription();
+  const isMobile = useIsMobile();
   
   const showFloorPlans = subscriptionTier !== 'basic';
 
@@ -73,12 +75,24 @@ const Account: React.FC = () => {
           </div>
 
           <Tabs defaultValue="overview" className="space-y-6" id="tabs-content">
-            <TabsList className={`grid w-full ${showFloorPlans ? 'grid-cols-5' : 'grid-cols-4'}`}>
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              {showFloorPlans && <TabsTrigger value="floor-plans">Floor Plans</TabsTrigger>}
-              <TabsTrigger value="asset-values">Asset Values</TabsTrigger>
-              <TabsTrigger value="damage">Post Damage</TabsTrigger>
-              <TabsTrigger value="voice-notes">Voice Notes</TabsTrigger>
+            <TabsList className={`${isMobile ? 'flex overflow-x-auto' : `grid ${showFloorPlans ? 'grid-cols-5' : 'grid-cols-4'}`} w-full`}>
+              <TabsTrigger value="overview" className={isMobile ? 'flex-shrink-0' : ''}>
+                {isMobile ? 'Home' : 'Overview'}
+              </TabsTrigger>
+              {showFloorPlans && (
+                <TabsTrigger value="floor-plans" className={isMobile ? 'flex-shrink-0' : ''}>
+                  {isMobile ? 'Plans' : 'Floor Plans'}
+                </TabsTrigger>
+              )}
+              <TabsTrigger value="asset-values" className={isMobile ? 'flex-shrink-0' : ''}>
+                {isMobile ? 'Assets' : 'Asset Values'}
+              </TabsTrigger>
+              <TabsTrigger value="damage" className={isMobile ? 'flex-shrink-0' : ''}>
+                {isMobile ? 'Damage' : 'Post Damage'}
+              </TabsTrigger>
+              <TabsTrigger value="voice-notes" className={isMobile ? 'flex-shrink-0' : ''}>
+                {isMobile ? 'Notes' : 'Voice Notes'}
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
