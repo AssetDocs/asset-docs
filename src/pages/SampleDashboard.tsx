@@ -4,7 +4,7 @@ import Footer from '@/components/Footer';
 import AssetValuesSection from '@/components/AssetValuesSection';
 import AccountHeader from '@/components/AccountHeader';
 import AccountStats from '@/components/AccountStats';
-import QRCodeSection from '@/components/QRCodeSection';
+
 import FloorPlansSection from '@/components/FloorPlansSection';
 import StorageAlert from '@/components/StorageAlert';
 import PostDamageSection from '@/components/PostDamageSection';
@@ -19,16 +19,12 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Eye, Play } from 'lucide-react';
 
 const SampleDashboard: React.FC = () => {
-  const [showQRCode, setShowQRCode] = useState(false);
+  
 
   const handleCreateFloorPlan = () => {
     console.log('Demo mode - Floor plan creation disabled');
   };
 
-  const generatePropertyQR = () => {
-    setShowQRCode(true);
-    console.log('Demo mode - QR code generation (view only)');
-  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -50,10 +46,7 @@ const SampleDashboard: React.FC = () => {
           
           
           <div id="account-header">
-            <AccountHeader 
-              showQRCode={showQRCode}
-              onGenerateQR={generatePropertyQR}
-            />
+            <AccountHeader />
           </div>
 
           <div id="storage-alert">
@@ -97,7 +90,7 @@ const SampleDashboard: React.FC = () => {
               </div>
               <AccountActions onCreateFloorPlan={handleCreateFloorPlan} />
               <ChecklistsAccess />
-              <QRCodeSection />
+              
             </TabsContent>
 
             <TabsContent value="floor-plans">

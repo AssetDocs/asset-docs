@@ -3,18 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import ShareButton from '@/components/ShareButton';
-import QRCodeGenerator from '@/components/QRCodeGenerator';
-import { QrCode, Video, Copy, Check } from 'lucide-react';
+
+import { Video, Copy, Check } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-interface AccountHeaderProps {
-  showQRCode: boolean;
-  onGenerateQR: () => void;
-}
-
-const AccountHeader: React.FC<AccountHeaderProps> = ({ showQRCode, onGenerateQR }) => {
+const AccountHeader: React.FC = () => {
   const [accountNumber, setAccountNumber] = useState<string>('');
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
@@ -83,27 +78,10 @@ const AccountHeader: React.FC<AccountHeaderProps> = ({ showQRCode, onGenerateQR 
               Video Help
             </Link>
           </Button>
-          <Button 
-            onClick={onGenerateQR}
-            variant="outline"
-            className="border-brand-blue text-brand-blue w-full sm:w-auto"
-          >
-            <QrCode className="h-4 w-4 mr-2" />
-            Generate QR Code
-          </Button>
           <ShareButton className="bg-brand-blue hover:bg-brand-lightBlue w-full sm:w-auto" />
         </div>
       </div>
 
-      {showQRCode && (
-        <div className="mb-6">
-          <QRCodeGenerator 
-            url={`${window.location.origin}/account/properties/shared`}
-            title="My Property Portfolio"
-            description="Quick access to all property documentation and asset information"
-          />
-        </div>
-      )}
     </>
   );
 };

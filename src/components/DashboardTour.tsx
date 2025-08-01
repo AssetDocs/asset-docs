@@ -19,7 +19,7 @@ const tourSteps: TourStep[] = [
   {
     target: 'account-header',
     title: 'Account Overview',
-    content: 'Here you can see your account details and quick actions like generating QR codes.',
+    content: 'Here you can see your account details and access video help resources.',
     position: 'bottom'
   },
   {

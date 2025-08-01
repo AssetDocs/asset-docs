@@ -6,7 +6,7 @@ import AssetValuesSection from '@/components/AssetValuesSection';
 import AccountHeader from '@/components/AccountHeader';
 import AccountStats from '@/components/AccountStats';
 import AccountActions from '@/components/AccountActions';
-import QRCodeSection from '@/components/QRCodeSection';
+
 import FloorPlansSection from '@/components/FloorPlansSection';
 import StorageAlert from '@/components/StorageAlert';
 
@@ -21,7 +21,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Account: React.FC = () => {
-  const [showQRCode, setShowQRCode] = useState(false);
+  
   const [showTour, setShowTour] = useState(false);
   const { subscriptionTier } = useSubscription();
   const isMobile = useIsMobile();
@@ -50,10 +50,6 @@ const Account: React.FC = () => {
     // TODO: Integrate with CubiCasa software
   };
 
-  const generatePropertyQR = () => {
-    setShowQRCode(true);
-    console.log('Generating QR code for property access');
-  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -64,10 +60,7 @@ const Account: React.FC = () => {
           
           
           <div id="account-header">
-            <AccountHeader 
-              showQRCode={showQRCode}
-              onGenerateQR={generatePropertyQR}
-            />
+            <AccountHeader />
           </div>
 
           <div id="storage-alert">
@@ -99,7 +92,7 @@ const Account: React.FC = () => {
               <AccountStats />
               <AccountActions onCreateFloorPlan={handleCreateFloorPlan} showFloorPlans={showFloorPlans} />
               <DocumentationChecklist />
-              <QRCodeSection />
+              
             </TabsContent>
 
             {showFloorPlans && (
