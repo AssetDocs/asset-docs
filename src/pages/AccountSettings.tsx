@@ -6,12 +6,13 @@ import ProfileTab from '@/components/ProfileTab';
 import BillingTab from '@/components/BillingTab';
 import SubscriptionTab from '@/components/SubscriptionTab';
 import NotificationsTab from '@/components/NotificationsTab';
+import ContributorsTab from '@/components/ContributorsTab';
 import CookieSettings from '@/components/CookieSettings';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, User, CreditCard, Package, Bell, Copy, Check, Shield } from 'lucide-react';
+import { ArrowLeft, User, CreditCard, Package, Bell, Copy, Check, Shield, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -85,7 +86,7 @@ const AccountSettings: React.FC = () => {
           </div>
 
           <Tabs defaultValue="profile" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="profile" className="flex items-center gap-2">
                 <User className="h-4 w-4" />
                 Profile
@@ -97,6 +98,10 @@ const AccountSettings: React.FC = () => {
               <TabsTrigger value="subscription" className="flex items-center gap-2">
                 <Package className="h-4 w-4" />
                 Subscription
+              </TabsTrigger>
+              <TabsTrigger value="contributors" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Contributors
               </TabsTrigger>
               <TabsTrigger value="notifications" className="flex items-center gap-2">
                 <Bell className="h-4 w-4" />
@@ -118,6 +123,10 @@ const AccountSettings: React.FC = () => {
 
             <TabsContent value="subscription">
               <SubscriptionTab />
+            </TabsContent>
+
+            <TabsContent value="contributors">
+              <ContributorsTab />
             </TabsContent>
 
             <TabsContent value="notifications">

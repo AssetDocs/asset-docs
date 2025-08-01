@@ -3,7 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Home, Camera, Video, FileImage, FileText, Shield, Settings, Plus, Eye, Building } from 'lucide-react';
+import { Home, Camera, Video, FileImage, FileText, Shield, Settings, Plus, Eye, Building, Users } from 'lucide-react';
 import DownloadAllFilesButton from './DownloadAllFilesButton';
 import { ExportAssetsButton } from './ExportAssetsButton';
 import { FeatureButton } from '@/components/FeatureGuard';
@@ -31,12 +31,20 @@ const AccountActions: React.FC<AccountActionsProps> = ({ onCreateFloorPlan, show
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button asChild variant="orange" className="w-full">
-            <Link to="/account/settings">
-              <Settings className="h-4 w-4 mr-2" />
-              Manage Settings
-            </Link>
-          </Button>
+          <div className="space-y-3">
+            <Button asChild variant="orange" className="w-full">
+              <Link to="/account/settings">
+                <Settings className="h-4 w-4 mr-2" />
+                Manage Settings
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="w-full">
+              <Link to="/account/settings?tab=contributors">
+                <Users className="h-4 w-4 mr-2" />
+                Manage Contributors
+              </Link>
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
