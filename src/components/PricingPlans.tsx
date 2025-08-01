@@ -51,7 +51,7 @@ const PricingPlans: React.FC = () => {
       "3 user accounts",
       "Photo uploads",
       "Document uploads",
-      "Asset tagging and inventory tracking",
+      "Asset inventory tracking",
       "Mobile app access for all users",
       "Export business-ready reports",
       "Priority email support"

@@ -53,7 +53,7 @@ const ScheduleProfessional: React.FC = () => {
     { id: 'lidar', name: '3D LiDAR Scanning', description: 'Precise 3D models with measurements' },
     { id: 'reports', name: 'Detailed Reports', description: 'Comprehensive documentation reports' },
     { id: 'xactimate', name: 'Xactimate ESX Files', description: 'Insurance-ready ESX file generation' },
-    { id: 'tagging', name: 'Asset Tagging', description: 'Individual item identification and cataloging' },
+    { id: 'cataloging', name: 'Asset Cataloging', description: 'Individual item identification and cataloging' },
   ];
 
   const handleServiceToggle = (serviceId: string) => {
