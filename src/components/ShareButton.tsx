@@ -18,7 +18,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({
   const { toast } = useToast();
 
   const handleShare = async () => {
-    const shareUrl = `${window.location.origin}/signup?ref=share`;
+    const shareUrl = "https://www.assetdocs.net/";
     const shareText = "Check out Asset Docs - the best way to document and protect your property and assets!";
 
     try {
