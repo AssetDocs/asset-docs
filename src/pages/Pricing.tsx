@@ -68,7 +68,7 @@ const Pricing: React.FC = () => {
       features: [
         "30-day free trial",
         "Up to 3 properties",
-        "500GB secure cloud storage",
+        "200GB secure cloud storage",
         "Photo and video uploads",
         "AI-powered item identification & valuation",
         "Floor plan scanning with live camera",
@@ -88,7 +88,7 @@ const Pricing: React.FC = () => {
       features: [
         "30-day free trial",
         "Up to 10 properties",
-        "2TB secure cloud storage",
+        "750GB secure cloud storage",
         "Unlimited photo and video uploads",
         "AI-powered item identification & valuation",
         "Floor plan scanning with live camera",

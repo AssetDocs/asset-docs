@@ -157,7 +157,7 @@ const PricingPlans: React.FC = () => {
           </h3>
           <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
             Are you a large management company or industry leader needing to document more than 10 properties? 
-            Or require more than 2TB of storage? We'd love to work with you to build a custom package 
+            Or require more than 750GB of storage? We'd love to work with you to build a custom package 
             tailored to your specific needs.
           </p>
           <Button asChild size="lg">
