@@ -56,7 +56,7 @@ const SubscriptionCheckout: React.FC = () => {
       description: "Perfect for individuals with basic documentation needs",
       features: [
         "1 property",
-        "250GB secure cloud storage",
+        "50GB secure cloud storage",
         "Photo and video uploads",
         "Mobile app access",
         "Email support",
