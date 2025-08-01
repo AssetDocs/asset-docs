@@ -82,7 +82,7 @@ const AccountActions: React.FC<AccountActionsProps> = ({ onCreateFloorPlan, show
           <div className="space-y-3">
             <FeatureButton 
               featureKey="photo_upload"
-              className="w-full bg-brand-orange hover:bg-brand-orange/90"
+              className="w-full bg-brand-blue hover:bg-brand-lightBlue"
               onClick={() => window.location.href = '/account/photos/upload'}
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -112,7 +112,7 @@ const AccountActions: React.FC<AccountActionsProps> = ({ onCreateFloorPlan, show
           <div className="space-y-3">
             <FeatureButton 
               featureKey="video_upload"
-              className="w-full bg-brand-orange hover:bg-brand-orange/90"
+              className="w-full bg-brand-blue hover:bg-brand-lightBlue"
               onClick={() => window.location.href = '/account/videos/upload'}
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -145,7 +145,7 @@ const AccountActions: React.FC<AccountActionsProps> = ({ onCreateFloorPlan, show
                 <FeatureButton 
                   featureKey="floor_plan_scanning"
                   onClick={onCreateFloorPlan}
-                  className="w-full bg-brand-orange hover:bg-brand-orange/90"
+                  className="w-full bg-brand-blue hover:bg-brand-lightBlue"
                 >
                   <Building className="h-4 w-4 mr-2" />
                   Create Floor Plan
@@ -208,7 +208,7 @@ const AccountActions: React.FC<AccountActionsProps> = ({ onCreateFloorPlan, show
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            <Button asChild className="w-full bg-brand-orange hover:bg-brand-orange/90">
+            <Button asChild className="w-full bg-brand-blue hover:bg-brand-lightBlue">
               <Link to="/account/insurance/new">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Insurance Policy
