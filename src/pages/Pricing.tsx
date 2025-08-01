@@ -55,7 +55,7 @@ const Pricing: React.FC = () => {
         "1 property",
         "50GB secure cloud storage",
         "Photo uploads",
-        "Mobile app access",
+        "Web platform access",
         "Email support"
       ],
       planType: "basic",
@@ -72,7 +72,7 @@ const Pricing: React.FC = () => {
         "Photo and video uploads",
         "AI-powered item identification & valuation",
         "Floor plan scanning with live camera",
-        "Mobile app access",
+        "Web platform access",
         "Export detailed reports",
         "Priority email support",
         "Share with 2 trusted contacts"
@@ -92,7 +92,7 @@ const Pricing: React.FC = () => {
         "Unlimited photo and video uploads",
         "AI-powered item identification & valuation",
         "Floor plan scanning with live camera",
-        "Mobile app access with premium features",
+        "Full web platform access",
         "Export comprehensive reports",
         "Priority email and phone support",
         "Share with 5 trusted contacts"

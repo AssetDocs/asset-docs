@@ -13,7 +13,7 @@ import StorageAlert from '@/components/StorageAlert';
 import PostDamageSection from '@/components/PostDamageSection';
 import VoiceNotesSection from '@/components/VoiceNotesSection';
 import DashboardTour from '@/components/DashboardTour';
-import AppDownloadButtons from '@/components/AppDownloadButtons';
+
 import DocumentationChecklist from '@/components/DocumentationChecklist';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -61,7 +61,7 @@ const Account: React.FC = () => {
       
       <div className="flex-grow py-8 px-4 bg-gray-50">
         <div className="max-w-6xl mx-auto">
-          <AppDownloadButtons />
+          
           
           <div id="account-header">
             <AccountHeader 

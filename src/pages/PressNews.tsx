@@ -95,7 +95,7 @@ const PressNews: React.FC = () => {
           <h3 class="text-2xl font-bold text-gray-900 mb-4">✨ The Asset Docs Advantage</h3>
           <ul class="list-none space-y-3 mb-8">
             <li class="flex items-start"><span class="text-blue-600 font-bold mr-2">✓</span>Interactive Visual Records (3D tours, floorplans, tagged images)</li>
-            <li class="flex items-start"><span class="text-blue-600 font-bold mr-2">✓</span>Accurate Valuation via AI and app-based tools</li>
+            <li class="flex items-start"><span class="text-blue-600 font-bold mr-2">✓</span>Accurate Valuation via AI and web-based tools</li>
             <li class="flex items-start"><span class="text-blue-600 font-bold mr-2">✓</span>Exportable Reports for insurance, attorneys, or buyers</li>
             <li class="flex items-start"><span class="text-blue-600 font-bold mr-2">✓</span>Cloud-Backed Security for anytime, anywhere access</li>
           </ul>
@@ -475,7 +475,7 @@ const PressNews: React.FC = () => {
                   <h3 className="text-2xl font-bold mb-4">✨ The Asset Docs Advantage</h3>
                   <ul className="list-none space-y-3 mb-8">
                     <li className="flex items-start"><span className="text-accent font-bold mr-2">✓</span>Interactive Visual Records (3D tours, floorplans, tagged images)</li>
-                    <li className="flex items-start"><span className="text-accent font-bold mr-2">✓</span>Accurate Valuation via AI and app-based tools</li>
+                    <li className="flex items-start"><span className="text-accent font-bold mr-2">✓</span>Accurate Valuation via AI and web-based tools</li>
                     <li className="flex items-start"><span className="text-accent font-bold mr-2">✓</span>Exportable Reports for insurance, attorneys, or buyers</li>
                     <li className="flex items-start"><span className="text-accent font-bold mr-2">✓</span>Cloud-Backed Security for anytime, anywhere access</li>
                   </ul>

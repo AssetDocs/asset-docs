@@ -243,8 +243,8 @@ const Features: React.FC = () => {
             
             <div className="bg-white p-6 rounded-lg shadow border">
               <Smartphone className="h-8 w-8 text-brand-blue mb-3" />
-              <h3 className="text-lg font-semibold mb-2">Mobile App Access</h3>
-              <p className="text-gray-600 text-sm">iOS and Android apps for on-the-go documentation and access.</p>
+              <h3 className="text-lg font-semibold mb-2">Mobile-Optimized Platform</h3>
+              <p className="text-gray-600 text-sm">Responsive web platform optimized for mobile devices and on-the-go documentation.</p>
             </div>
             
             <div className="bg-white p-6 rounded-lg shadow border">
@@ -303,7 +303,7 @@ const Features: React.FC = () => {
                     <Scan className="h-8 w-8 text-white" />
                   </div>
                   <h4 className="text-xl font-semibold mb-2">1. Scan</h4>
-                  <p className="text-white/90">Scan the property with your phone, using the CubiCasa app. It takes about 5 to 10 minutes.</p>
+                  <p className="text-white/90">Scan the property with your phone using our integrated scanning tools. It takes about 5 to 10 minutes.</p>
                 </div>
                 
                 <div className="text-center">

@@ -13,7 +13,7 @@ const HowItWorksSection: React.FC = () => {
             </div>
             <h3 className="text-xl font-semibold mb-3">Document</h3>
             <p className="text-gray-600">
-              Take photos and videos of your property and possessions using our mobile app or professional service.
+              Take photos and videos of your property and possessions using our web platform or professional service.
             </p>
           </div>
           <div className="p-6">

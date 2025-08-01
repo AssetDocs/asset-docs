@@ -10,7 +10,7 @@ import StorageAlert from '@/components/StorageAlert';
 import PostDamageSection from '@/components/PostDamageSection';
 import VoiceNotesSection from '@/components/VoiceNotesSection';
 
-import AppDownloadButtons from '@/components/AppDownloadButtons';
+
 import ChecklistsAccess from '@/components/ChecklistsAccess';
 import AccountActions from '@/components/AccountActions';
 import { Button } from '@/components/ui/button';
@@ -47,7 +47,7 @@ const SampleDashboard: React.FC = () => {
             </AlertDescription>
           </Alert>
 
-          <AppDownloadButtons />
+          
           
           <div id="account-header">
             <AccountHeader 

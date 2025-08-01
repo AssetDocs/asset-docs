@@ -13,7 +13,7 @@ const PricingPlans: React.FC = () => {
       "50GB secure cloud storage",
       "Photo uploads",
       "Document uploads", 
-      "Mobile app access",
+      "Web platform access",
       "Email support"
     ],
     standard: [
@@ -24,7 +24,7 @@ const PricingPlans: React.FC = () => {
       "Document uploads",
       "AI-powered item identification & valuation",
       "Floor plan scanning with live camera",
-      "Mobile app access", 
+      "Web platform access", 
       "Export detailed reports",
       "Priority email support",
       "Share with 2 trusted contacts"
@@ -37,7 +37,7 @@ const PricingPlans: React.FC = () => {
       "Document uploads",
       "AI-powered item identification & valuation",
       "Floor plan scanning with live camera",
-      "Mobile app access with premium features",
+      "Full web platform access",
       "Export comprehensive reports",
       "Priority email and phone support",
       "Share with 5 trusted contacts"
@@ -52,7 +52,7 @@ const PricingPlans: React.FC = () => {
       "Photo uploads",
       "Document uploads",
       "Asset inventory tracking",
-      "Mobile app access for all users",
+      "Web platform access for all users",
       "Export business-ready reports",
       "Priority email support"
     ],
@@ -64,7 +64,7 @@ const PricingPlans: React.FC = () => {
       "Document uploads",
       "AI-powered item identification & valuation",
       "Floor plan scanning with live camera",
-      "Mobile app access with premium features",
+      "Full web platform access",
       "Custom reporting templates",
       "Priority email and phone support"
     ],
@@ -76,7 +76,7 @@ const PricingPlans: React.FC = () => {
       "Document uploads",
       "Dedicated account manager",
       "API access for custom integrations",
-      "White-label mobile app option",
+      "White-label platform option",
       "Custom reporting and analytics"
     ]
   };

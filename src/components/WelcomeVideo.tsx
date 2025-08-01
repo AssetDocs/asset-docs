@@ -32,7 +32,7 @@ const WelcomeVideo: React.FC = () => {
     },
     {
       title: "Document Your Assets",
-      description: "Take photos of your possessions using our mobile app or upload existing images",
+      description: "Take photos of your possessions using our web platform or upload existing images",
       icon: Camera,
       color: "text-brand-orange"
     },

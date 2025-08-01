@@ -111,21 +111,12 @@ const QA: React.FC = () => {
                 </AccordionContent>
               </AccordionItem>
               
-              <AccordionItem value="item-10">
-                <AccordionTrigger className="text-lg font-medium">Do you offer mobile apps?</AccordionTrigger>
-                <AccordionContent>
-                  Yes! Asset Docs offers mobile apps for both iOS and Android devices. The mobile app includes all 
-                  core features like photo capture, AI identification, receipt scanning, and 3D room scanning. 
-                  You can document items on-the-go and sync everything automatically with your account. The app 
-                  works offline and syncs when you're connected to the internet.
-                </AccordionContent>
-              </AccordionItem>
               
               <AccordionItem value="item-11">
                 <AccordionTrigger className="text-lg font-medium">How do I get started with Asset Docs?</AccordionTrigger>
                 <AccordionContent>
-                  Getting started is easy! Sign up for a free 14-day trial and download our 
-                  mobile app. You can begin documenting your possessions right away by taking photos or videos. For more 
+                  Getting started is easy! Sign up for a free 14-day trial and start using our web platform. 
+                  You can begin documenting your possessions right away by taking photos or videos. For more 
                   comprehensive documentation, you can request our professional documentation service for high-value assets.
                 </AccordionContent>
               </AccordionItem>

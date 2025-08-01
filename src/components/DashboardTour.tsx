@@ -27,12 +27,6 @@ const tourSteps: TourStep[] = [
     title: 'Navigate Your Features',
     content: 'Use these tabs to access different sections: Overview, Floor Plans, Asset Values, and more.',
     position: 'top'
-  },
-  {
-    target: 'app-downloads',
-    title: 'Mobile Apps',
-    content: 'Download our mobile apps to manage your assets on the go!',
-    position: 'bottom'
   }
 ];
 
