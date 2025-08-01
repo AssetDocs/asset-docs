@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      contributors: {
+        Row: {
+          accepted_at: string | null
+          account_owner_id: string
+          contributor_email: string
+          contributor_user_id: string | null
+          created_at: string
+          id: string
+          invited_at: string
+          role: Database["public"]["Enums"]["contributor_role"]
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          account_owner_id: string
+          contributor_email: string
+          contributor_user_id?: string | null
+          created_at?: string
+          id?: string
+          invited_at?: string
+          role?: Database["public"]["Enums"]["contributor_role"]
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          account_owner_id?: string
+          contributor_email?: string
+          contributor_user_id?: string | null
+          created_at?: string
+          id?: string
+          invited_at?: string
+          role?: Database["public"]["Enums"]["contributor_role"]
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           city: string
@@ -159,13 +198,20 @@ export type Database = {
           total_size_bytes: number
         }[]
       }
+      has_contributor_access: {
+        Args: {
+          target_user_id: string
+          required_role: Database["public"]["Enums"]["contributor_role"]
+        }
+        Returns: boolean
+      }
       update_user_storage_usage: {
         Args: { target_user_id: string }
         Returns: undefined
       }
     }
     Enums: {
-      [_ in never]: never
+      contributor_role: "administrator" | "contributor" | "viewer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -292,6 +338,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      contributor_role: ["administrator", "contributor", "viewer"],
+    },
   },
 } as const
