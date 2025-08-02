@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 const Partnership: React.FC = () => {
   return (
@@ -171,6 +172,166 @@ const Partnership: React.FC = () => {
                   <span>Enhances your reputation as a full-service, client-first agent</span>
                 </li>
               </ul>
+            </CardContent>
+          </Card>
+
+          {/* Why Documentation Matters */}
+          <Card className="mb-8 border-primary/20">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">📋</span>
+                <CardTitle className="text-2xl">Why Documentation Matters</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-lg mb-4">
+                In any of these scenarios, having comprehensive pre-incident documentation through Asset Docs can:
+              </p>
+              <div className="space-y-3">
+                <div className="flex items-start gap-2">
+                  <span className="text-primary">•</span>
+                  <span>Expedite insurance claims processing</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-primary">•</span>
+                  <span>Ensure accurate settlement amounts</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-primary">•</span>
+                  <span>Provide proof of ownership and condition</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-primary">•</span>
+                  <span>Support legal proceedings if necessary</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-primary">•</span>
+                  <span>Facilitate emergency planning and recovery</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Industry Applications */}
+          <Card className="mb-8">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🏢</span>
+                <CardTitle className="text-2xl">Industry Applications</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="border-l-4 border-secondary pl-4">
+                <h3 className="text-xl font-semibold mb-2">Legal & Estate Planning</h3>
+                <p className="text-muted-foreground">
+                  Asset documentation for probate, inheritance, divorce proceedings, and legal disputes.
+                </p>
+              </div>
+
+              <div className="border-l-4 border-secondary pl-4">
+                <h3 className="text-xl font-semibold mb-2">Insurance Industry</h3>
+                <p className="text-muted-foreground">
+                  Pre-loss documentation for faster claims processing and accurate settlements.
+                </p>
+              </div>
+
+              <div className="border-l-4 border-secondary pl-4">
+                <h3 className="text-xl font-semibold mb-2">Real Estate</h3>
+                <p className="text-muted-foreground">
+                  Property condition reports, improvement documentation, and value authentication.
+                </p>
+              </div>
+
+              <div className="border-l-4 border-secondary pl-4">
+                <h3 className="text-xl font-semibold mb-2">Moving & Storage</h3>
+                <p className="text-muted-foreground">
+                  Pre-move documentation to protect against damage and loss during relocation.
+                </p>
+              </div>
+
+              <div className="border-l-4 border-secondary pl-4">
+                <h3 className="text-xl font-semibold mb-2">Property Management</h3>
+                <p className="text-muted-foreground">
+                  Comprehensive documentation for rental properties and tenant management.
+                </p>
+              </div>
+
+              <div className="border-l-4 border-secondary pl-4">
+                <h3 className="text-xl font-semibold mb-2">Financial Services</h3>
+                <p className="text-muted-foreground">
+                  Asset verification for loans, mortgages, and investment opportunities.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Our Mission */}
+          <Card className="mb-8 bg-gradient-to-r from-primary/5 to-secondary/5">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🎯</span>
+                <CardTitle className="text-2xl">Our Mission</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-lg mb-6">
+                We believe everyone deserves the confidence that comes with knowing their most precious belongings are properly documented and protected. Asset Docs transforms the traditional, tedious process of property documentation into a modern, intuitive experience that actually works when you need it most.
+              </p>
+              
+              <blockquote className="border-l-4 border-primary pl-6 py-4 bg-background/50 rounded-r-lg">
+                <p className="text-lg italic text-primary">
+                  "Because when disaster strikes, the last thing you should worry about is whether you can prove what you've lost. With Asset Docs, you're not just documenting possessions— you're securing your family's future."
+                </p>
+              </blockquote>
+            </CardContent>
+          </Card>
+
+          {/* Navigation Buttons */}
+          <Card className="mb-8">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🔗</span>
+                <CardTitle className="text-2xl">Learn More</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Button asChild variant="outline" className="h-auto py-4">
+                  <Link to="/social-impact">
+                    <div className="text-center">
+                      <div className="text-lg font-semibold">Social Impact</div>
+                      <div className="text-sm text-muted-foreground">Our community mission</div>
+                    </div>
+                  </Link>
+                </Button>
+                
+                <Button asChild variant="outline" className="h-auto py-4">
+                  <Link to="/features">
+                    <div className="text-center">
+                      <div className="text-lg font-semibold">Features</div>
+                      <div className="text-sm text-muted-foreground">Full platform overview</div>
+                    </div>
+                  </Link>
+                </Button>
+                
+                <Button asChild variant="outline" className="h-auto py-4">
+                  <Link to="/scenarios">
+                    <div className="text-center">
+                      <div className="text-lg font-semibold">Scenarios</div>
+                      <div className="text-sm text-muted-foreground">Real-world use cases</div>
+                    </div>
+                  </Link>
+                </Button>
+                
+                <Button asChild variant="outline" className="h-auto py-4">
+                  <Link to="/claims">
+                    <div className="text-center">
+                      <div className="text-lg font-semibold">Claims Documentation</div>
+                      <div className="text-sm text-muted-foreground">Insurance support</div>
+                    </div>
+                  </Link>
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
