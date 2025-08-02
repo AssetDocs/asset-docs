@@ -72,8 +72,8 @@ export const SUBSCRIPTION_FEATURES: Record<string, FeatureConfig> = {
   export_reports: {
     name: 'Export Reports',
     description: 'Export detailed property reports',
-    requiredTier: 'basic',
-    fallbackMessage: 'Upgrade to Basic to export reports'
+    requiredTier: 'standard',
+    fallbackMessage: 'Upgrade to Standard to export reports'
   },
   advanced_reporting: {
     name: 'Advanced Reporting',

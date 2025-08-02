@@ -38,7 +38,7 @@ const PricingPlans: React.FC = () => {
       "AI-powered item identification & valuation",
       "Floor plan scanning with live camera",
       "Full web platform access",
-      "Export comprehensive reports",
+      "Export detailed reports",
       "Priority email and phone support",
       "Share with 5 trusted contacts"
     ]
