@@ -368,13 +368,6 @@ const Partnership: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mt-6 text-center">
-                <Button asChild size="lg" className="text-lg px-8">
-                  <a href="mailto:info@assetdocs.net?subject=RE/MAX Partnership Discussion">
-                    Schedule a Discussion
-                  </a>
-                </Button>
-              </div>
             </CardContent>
           </Card>
         </div>
