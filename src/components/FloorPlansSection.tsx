@@ -13,7 +13,7 @@ const mockFloorPlans = {
     {
       id: 'fp1',
       name: '1st Floor Plan',
-      url: '/lovable-uploads/c2744c0b-391a-44b1-9133-004db899c866.png',
+      url: '/lovable-uploads/83de0d2b-3f43-41c0-aca2-d9b1b7571907.png',
       type: 'Main Floor',
       squareFootage: 1200,
       rooms: 6,
@@ -22,7 +22,7 @@ const mockFloorPlans = {
     {
       id: 'fp2',
       name: '2nd Floor Plan',
-      url: '/lovable-uploads/c2744c0b-391a-44b1-9133-004db899c866.png',
+      url: '/lovable-uploads/83de0d2b-3f43-41c0-aca2-d9b1b7571907.png',
       type: 'Upper Floor',
       squareFootage: 900,
       rooms: 4,
@@ -33,7 +33,7 @@ const mockFloorPlans = {
     {
       id: 'fp3',
       name: 'Vacation Home Floor Plan',
-      url: '/lovable-uploads/c2744c0b-391a-44b1-9133-004db899c866.png',
+      url: '/lovable-uploads/5f1d3000-d3f4-4d9b-8d1c-6f66ffc7aa80.png',
       type: 'Single Level',
       squareFootage: 1800,
       rooms: 8,
@@ -44,7 +44,7 @@ const mockFloorPlans = {
     {
       id: 'fp4',
       name: 'Rental Property Floor Plan',
-      url: '/lovable-uploads/c2744c0b-391a-44b1-9133-004db899c866.png',
+      url: '/lovable-uploads/1f28049c-8943-464e-8030-f9189a125df9.png',
       type: 'Single Level',
       squareFootage: 950,
       rooms: 4,
