@@ -56,6 +56,7 @@ import SubscriptionCheckout from "./pages/SubscriptionCheckout";
 import PhotographyGuide from "./pages/PhotographyGuide";
 import AIValuationGuide from "./pages/AIValuationGuide";
 import SocialImpact from "./pages/SocialImpact";
+import Partnership from "./pages/Partnership";
 
 const queryClient = new QueryClient();
 
@@ -141,6 +142,7 @@ const AppContent = () => {
         <Route path="/photography-guide" element={<PhotographyGuide />} />
         <Route path="/ai-valuation-guide" element={<AIValuationGuide />} />
         <Route path="/social-impact" element={<SocialImpact />} />
+        <Route path="/partnership" element={<Partnership />} />
         
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
