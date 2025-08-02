@@ -14,7 +14,7 @@ const HeroSection: React.FC = () => {
               Your Digital Safety Net for Asset Protection & Unexpected Events
             </h1>
             <p className="text-xl mb-4 animate-slide-up opacity-90">
-              Secure, third-party documentation that helps you prepare for insurance claims, legal events, and life transitions.
+              Secure, third-party documentation that helps you prepare for insurance claims, legal events, life transitions, and more.
             </p>
             <p className="text-lg mb-8 animate-slide-up opacity-80 font-bold">
               Trusted by thousands of homeowners, landlords, and businesses - providing control, protection, and peace of mind.
