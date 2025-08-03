@@ -2,7 +2,7 @@ import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SubscriptionPlan from '@/components/SubscriptionPlan';
-import { Gift as GiftIcon, Heart, Shield, Users } from 'lucide-react';
+import { Gift as GiftIcon, Heart, Shield, Users, Zap, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 
@@ -11,58 +11,66 @@ const Gift: React.FC = () => {
 
   const giftPlans = [
     {
-      title: "Basic Plan",
-      price: "$60",
-      description: "Perfect for protecting essential belongings and important documents",
+      title: "Basic",
+      price: "$107.88",
+      description: "Perfect for individuals with basic documentation needs",
       features: [
-        "Up to 3 properties",
-        "500MB storage per property",
-        "Basic photo organization",
+        "30-day free trial",
+        "1 property",
+        "50GB secure cloud storage",
+        "Photo uploads",
+        "Web platform access",
         "Email support",
-        "Mobile app access",
-        "Basic damage documentation"
+        "12-month gift subscription"
       ],
-      planType: "basic"
+      planType: "basic",
+      icon: <Shield className="h-6 w-6" />
     },
     {
-      title: "Standard Plan", 
-      price: "$120",
-      description: "Comprehensive protection for families with multiple properties",
+      title: "Standard",
+      price: "$155.88",
+      description: "Our most popular plan for comprehensive home documentation",
       features: [
-        "Up to 10 properties",
-        "2GB storage per property", 
-        "Advanced photo organization",
+        "30-day free trial",
+        "Up to 3 properties",
+        "200GB secure cloud storage",
+        "Photo and video uploads",
+        "AI-powered item identification & valuation",
+        "Floor plan scanning with live camera",
+        "Web platform access",
+        "Export detailed reports",
         "Priority email support",
-        "Mobile app access",
-        "Advanced damage documentation",
-        "Property valuation reports",
-        "Insurance claim assistance"
+        "Share with 2 trusted contacts",
+        "12-month gift subscription"
       ],
       planType: "standard",
-      recommended: true
+      recommended: true,
+      icon: <Zap className="h-6 w-6" />
     },
     {
-      title: "Premium Plan",
-      price: "$240", 
-      description: "Ultimate protection with premium features and priority support",
+      title: "Premium",
+      price: "$227.88",
+      description: "Complete protection with professional documentation tools",
       features: [
-        "Unlimited properties",
-        "10GB storage per property",
-        "Premium photo organization", 
-        "24/7 phone & email support",
-        "Mobile app access",
-        "Complete damage documentation",
-        "Professional property valuations",
-        "Dedicated insurance specialist",
-        "Legal document storage",
-        "Priority processing"
+        "30-day free trial",
+        "Up to 10 properties",
+        "750GB secure cloud storage",
+        "Unlimited photo and video uploads",
+        "AI-powered item identification & valuation",
+        "Floor plan scanning with live camera",
+        "Full web platform access",
+        "Export detailed reports",
+        "Priority email and phone support",
+        "Share with 5 trusted contacts",
+        "12-month gift subscription"
       ],
-      planType: "premium"
+      planType: "premium",
+      icon: <Star className="h-6 w-6" />
     }
   ];
 
   const handleGiftPurchase = (planType: string) => {
-    navigate('/subscription-checkout', { 
+    navigate('/gift-checkout', { 
       state: { 
         selectedPlan: planType,
         isGift: true,
@@ -133,16 +141,17 @@ const Gift: React.FC = () => {
 
             <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
               {giftPlans.map((plan, index) => (
-                <SubscriptionPlan
-                  key={index}
-                  title={plan.title}
-                  price={plan.price}
-                  description={plan.description}
-                  features={plan.features}
-                  recommended={plan.recommended}
-                  buttonText="Gift This Plan"
-                  onClick={() => handleGiftPurchase(plan.planType)}
-                />
+                <div key={plan.title} className={`relative ${plan.recommended ? 'transform scale-105' : ''}`}>
+                  <SubscriptionPlan
+                    title={plan.title}
+                    price={plan.price}
+                    description={plan.description}
+                    features={plan.features}
+                    recommended={plan.recommended}
+                    buttonText="Gift This Plan"
+                    onClick={() => handleGiftPurchase(plan.planType)}
+                  />
+                </div>
               ))}
             </div>
 
