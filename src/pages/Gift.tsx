@@ -12,10 +12,9 @@ const Gift: React.FC = () => {
   const giftPlans = [
     {
       title: "Basic",
-      price: "$107.88/year",
+      price: "$98.89/year",
       description: "Perfect for individuals with basic documentation needs",
       features: [
-        "30-day free trial",
         "1 property",
         "50GB secure cloud storage",
         "Photo uploads",
@@ -28,10 +27,9 @@ const Gift: React.FC = () => {
     },
     {
       title: "Standard",
-      price: "$155.88/year",
+      price: "$142.89/year",
       description: "Our most popular plan for comprehensive home documentation",
       features: [
-        "30-day free trial",
         "Up to 3 properties",
         "200GB secure cloud storage",
         "Photo and video uploads",
@@ -49,10 +47,9 @@ const Gift: React.FC = () => {
     },
     {
       title: "Premium",
-      price: "$227.88/year",
+      price: "$208.89/year",
       description: "Complete protection with professional documentation tools",
       features: [
-        "30-day free trial",
         "Up to 10 properties",
         "750GB secure cloud storage",
         "Unlimited photo and video uploads",
