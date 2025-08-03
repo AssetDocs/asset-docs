@@ -34,7 +34,7 @@ const SubscriptionPlan: React.FC<SubscriptionPlanProps> = ({
         <h3 className="text-xl font-bold">{title}</h3>
         <div className="mt-2">
           <span className="text-3xl font-bold">{price}</span>
-          {price !== 'Custom' && <span className="text-gray-600 ml-2">/month</span>}
+          {price !== 'Custom' && !price.includes('year') && <span className="text-gray-600 ml-2">/month</span>}
         </div>
         <p className="text-gray-600 mt-2">{description}</p>
       </CardHeader>

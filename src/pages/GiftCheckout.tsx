@@ -52,7 +52,7 @@ const GiftCheckout: React.FC = () => {
   const planConfigs = {
     basic: {
       title: 'Basic Plan',
-      price: '$107.88',
+      price: '$107.88/year',
       description: 'Perfect for individuals with basic documentation needs',
       features: [
         '30-day free trial',
@@ -67,7 +67,7 @@ const GiftCheckout: React.FC = () => {
     },
     standard: {
       title: 'Standard Plan',
-      price: '$155.88',
+      price: '$155.88/year',
       description: 'Our most popular plan for comprehensive home documentation',
       features: [
         '30-day free trial',
@@ -87,7 +87,7 @@ const GiftCheckout: React.FC = () => {
     },
     premium: {
       title: 'Premium Plan',
-      price: '$227.88',
+      price: '$227.88/year',
       description: 'Complete protection with professional documentation tools',
       features: [
         '30-day free trial',
