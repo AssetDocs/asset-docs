@@ -53,6 +53,72 @@ export type Database = {
         }
         Relationships: []
       }
+      gift_subscriptions: {
+        Row: {
+          amount: number | null
+          created_at: string
+          currency: string | null
+          delivery_date: string
+          gift_code: string
+          gift_message: string | null
+          id: string
+          plan_type: string
+          purchaser_email: string
+          purchaser_name: string
+          purchaser_phone: string | null
+          recipient_email: string
+          recipient_name: string
+          redeemed: boolean | null
+          redeemed_at: string | null
+          redeemed_by_user_id: string | null
+          status: string
+          stripe_session_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          currency?: string | null
+          delivery_date: string
+          gift_code: string
+          gift_message?: string | null
+          id?: string
+          plan_type: string
+          purchaser_email: string
+          purchaser_name: string
+          purchaser_phone?: string | null
+          recipient_email: string
+          recipient_name: string
+          redeemed?: boolean | null
+          redeemed_at?: string | null
+          redeemed_by_user_id?: string | null
+          status?: string
+          stripe_session_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          currency?: string | null
+          delivery_date?: string
+          gift_code?: string
+          gift_message?: string | null
+          id?: string
+          plan_type?: string
+          purchaser_email?: string
+          purchaser_name?: string
+          purchaser_phone?: string | null
+          recipient_email?: string
+          recipient_name?: string
+          redeemed?: boolean | null
+          redeemed_at?: string | null
+          redeemed_by_user_id?: string | null
+          status?: string
+          stripe_session_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           city: string

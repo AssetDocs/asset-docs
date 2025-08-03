@@ -74,26 +74,30 @@ serve(async (req) => {
 
     // Define pricing based on plan type (annual pricing for gifts)
     let priceData;
+    let amount;
     switch (planType) {
       case 'basic':
+        amount = 9889; // $98.89
         priceData = {
           currency: "usd",
           product_data: { name: "Basic Plan - 12 Month Gift Subscription" },
-          unit_amount: 10788, // $107.88 (12 months of $8.99)
+          unit_amount: amount,
         };
         break;
       case 'standard':
+        amount = 14289; // $142.89
         priceData = {
           currency: "usd",
           product_data: { name: "Standard Plan - 12 Month Gift Subscription" },
-          unit_amount: 15588, // $155.88 (12 months of $12.99)
+          unit_amount: amount,
         };
         break;
       case 'premium':
+        amount = 20889; // $208.89
         priceData = {
           currency: "usd",
           product_data: { name: "Premium Plan - 12 Month Gift Subscription" },
-          unit_amount: 22788, // $227.88 (12 months of $18.99)
+          unit_amount: amount,
         };
         break;
       default:
@@ -157,6 +161,8 @@ serve(async (req) => {
         gift_message: giftMessage || null,
         delivery_date: deliveryDate || new Date().toISOString(),
         status: 'pending',
+        amount: amount,
+        currency: 'usd',
         created_at: new Date().toISOString(),
       });
 
