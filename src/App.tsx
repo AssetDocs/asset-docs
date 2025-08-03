@@ -16,6 +16,7 @@ import Index from "./pages/Index";
 import Features from "./pages/Features";
 import Scenarios from "./pages/Scenarios";
 import Pricing from "./pages/Pricing";
+import Gift from "./pages/Gift";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Auth from "./pages/Auth";
@@ -99,6 +100,7 @@ const AppContent = () => {
         <Route path="/contact" element={<Contact />} />
         <Route path="/legal" element={<Legal />} />
         <Route path="/pricing" element={<Pricing />} />
+        <Route path="/gift" element={<Gift />} />
         <Route path="/subscription-checkout" element={<SubscriptionCheckout />} />
         <Route path="/video-help" element={<VideoHelp />} />
         <Route path="/resources" element={<Resources />} />

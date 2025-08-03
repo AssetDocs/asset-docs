@@ -60,6 +60,9 @@ const Navbar: React.FC = () => {
                  <Link to="/pricing" className="text-gray-700 hover:text-brand-blue transition-colors">
                    {translate('nav.pricing')}
                  </Link>
+                 <Link to="/gift" className="text-gray-700 hover:text-brand-blue transition-colors">
+                   Gift
+                 </Link>
                 <Link 
                   to="/video-help" 
                   className="text-gray-700 hover:text-brand-blue transition-colors flex items-center"
@@ -96,6 +99,9 @@ const Navbar: React.FC = () => {
                  </Link>
                  <Link to="/pricing" className="text-gray-700 hover:text-brand-blue transition-colors">
                    {translate('nav.pricing')}
+                 </Link>
+                 <Link to="/gift" className="text-gray-700 hover:text-brand-blue transition-colors">
+                   Gift
                  </Link>
                 <Link 
                   to="/video-help" 
