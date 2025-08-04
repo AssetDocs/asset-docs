@@ -83,7 +83,7 @@ const Partnership: React.FC = () => {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <span className="text-2xl">🤝</span>
-                <CardTitle className="text-2xl">Why Partner with RE/MAX?</CardTitle>
+                <CardTitle className="text-2xl">Why Partner with Asset Docs?</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
