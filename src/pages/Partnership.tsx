@@ -366,6 +366,14 @@ const Partnership: React.FC = () => {
                     <a href="https://www.assetdocs.net" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">www.assetdocs.net</a>
                   </p>
                 </div>
+                
+                <div className="mt-6">
+                  <Button asChild className="w-full">
+                    <a href="https://www.assetdocs.net" target="_blank" rel="noopener noreferrer">
+                      Go to Asset Docs Website
+                    </a>
+                  </Button>
+                </div>
               </div>
 
             </CardContent>
