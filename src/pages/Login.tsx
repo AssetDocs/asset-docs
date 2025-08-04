@@ -1,19 +1,32 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [giftCode, setGiftCode] = useState('');
+
+  useEffect(() => {
+    // Pre-fill gift code from URL parameter
+    const codeFromUrl = searchParams.get('giftCode');
+    if (codeFromUrl) {
+      setGiftCode(codeFromUrl);
+    }
+  }, [searchParams]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Login logic would go here
     console.log('Login form submitted');
+    if (giftCode) {
+      console.log('Gift code entered:', giftCode);
+    }
     // Redirect to account dashboard after successful login
     navigate('/account');
   };
@@ -45,6 +58,23 @@ const Login: React.FC = () => {
                 </Link>
               </div>
               <Input id="password" type="password" placeholder="•••••••••" className="input-field" required />
+            </div>
+            
+            <div>
+              <Label htmlFor="giftCode">Gift Code (Optional)</Label>
+              <Input 
+                id="giftCode" 
+                type="text" 
+                placeholder="GIFT-XXXXXXXXXXXX" 
+                className="input-field" 
+                value={giftCode}
+                onChange={(e) => setGiftCode(e.target.value.toUpperCase())}
+              />
+              {giftCode && (
+                <p className="text-sm text-green-600 mt-1">
+                  🎁 Gift code will be applied after login
+                </p>
+              )}
             </div>
             
             <div className="flex items-center">

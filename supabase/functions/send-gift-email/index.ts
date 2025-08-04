@@ -84,11 +84,12 @@ const handler = async (req: Request): Promise<Response> => {
             </div>
           </div>
           
-          <div style="margin-bottom: 30px;">
+            <div style="margin-bottom: 30px;">
             <h3 style="color: #1f2937;">How to redeem your gift:</h3>
             <ol style="color: #374151; line-height: 1.6;">
-              <li>Visit <a href="https://assetdocs.net/signup" style="color: #2563eb;">assetdocs.net/signup</a> to create your account</li>
-              <li>Enter your gift code: <strong>${giftSub.gift_code}</strong></li>
+              <li>Click the button below or visit <a href="https://assetdocs.net/login?giftCode=${giftSub.gift_code}" style="color: #2563eb;">assetdocs.net/login</a></li>
+              <li>Create an account or sign in to your existing account</li>
+              <li>Your gift code <strong>${giftSub.gift_code}</strong> will be automatically applied</li>
               <li>Start documenting and protecting your valuable assets!</li>
             </ol>
           </div>
@@ -122,7 +123,7 @@ const handler = async (req: Request): Promise<Response> => {
           </div>
           
           <div style="text-align: center; margin-top: 40px;">
-            <a href="https://assetdocs.net/signup" style="background: #2563eb; color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+            <a href="https://assetdocs.net/login?giftCode=${giftSub.gift_code}" style="background: #2563eb; color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
               Redeem Your Gift Now
             </a>
           </div>
