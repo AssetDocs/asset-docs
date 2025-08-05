@@ -9,6 +9,12 @@ verify_jwt = false
 [functions.verify-construction-password]
 verify_jwt = false
 
+[functions.send-reminder-email]
+verify_jwt = false
+
+[functions.check-gift-reminders]
+verify_jwt = false
+
 [api]
 enabled = true
 port = 54321
@@ -71,9 +77,6 @@ enabled = true
 ip_version = "ipv4"
 port = 54326
 inspector_port = 8083
-
-[functions.send-welcome-email]
-verify_jwt = false
 
 [functions.check-subscription]
 verify_jwt = true

@@ -59,6 +59,7 @@ export type Database = {
           created_at: string
           currency: string | null
           delivery_date: string
+          first_login_at: string | null
           gift_code: string
           gift_message: string | null
           id: string
@@ -71,6 +72,8 @@ export type Database = {
           redeemed: boolean | null
           redeemed_at: string | null
           redeemed_by_user_id: string | null
+          reminder_email_sent: boolean | null
+          reminder_email_sent_at: string | null
           status: string
           stripe_session_id: string | null
           updated_at: string
@@ -80,6 +83,7 @@ export type Database = {
           created_at?: string
           currency?: string | null
           delivery_date: string
+          first_login_at?: string | null
           gift_code: string
           gift_message?: string | null
           id?: string
@@ -92,6 +96,8 @@ export type Database = {
           redeemed?: boolean | null
           redeemed_at?: string | null
           redeemed_by_user_id?: string | null
+          reminder_email_sent?: boolean | null
+          reminder_email_sent_at?: string | null
           status?: string
           stripe_session_id?: string | null
           updated_at?: string
@@ -101,6 +107,7 @@ export type Database = {
           created_at?: string
           currency?: string | null
           delivery_date?: string
+          first_login_at?: string | null
           gift_code?: string
           gift_message?: string | null
           id?: string
@@ -113,6 +120,8 @@ export type Database = {
           redeemed?: boolean | null
           redeemed_at?: string | null
           redeemed_by_user_id?: string | null
+          reminder_email_sent?: boolean | null
+          reminder_email_sent_at?: string | null
           status?: string
           stripe_session_id?: string | null
           updated_at?: string
