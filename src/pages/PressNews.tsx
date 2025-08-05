@@ -18,6 +18,44 @@ const PressNews: React.FC = () => {
   const articles = [
     {
       id: 1,
+      title: "CBS 60 Minutes Exposes Insurance Fraud: Altered Estimates Lead to Underpayments",
+      excerpt: "A disturbing scandal uncovered by Merlin Law Group reveals insurance companies fraudulently altering damage estimates to underpay hurricane victims, as exposed in a yearlong CBS investigation.",
+      author: "Chip Merlin",
+      date: "2024-09-27",
+      readTime: "4 min read",
+      category: "Breaking News",
+      content: `
+        <div class="prose max-w-none">
+          <p class="text-lg text-gray-700 mb-6">The American Policyholders Association (APA) has reported that CBS 60 Minutes aired a groundbreaking story about altered estimates by claims managers, which result in underpayments to policyholders.</p>
+          
+          <h3 class="text-2xl font-bold text-gray-900 mb-4">🚨 The Investigation</h3>
+          <p class="mb-4">The APA notice states that "a disturbing scandal" uncovered by Merlin Law Group attorney Steven Bush and the APA resulted in whistleblowers reporting on insurance estimates fraudulently altered to underpay claims to hurricane victims.</p>
+          
+          <p class="mb-6">CBS 60 Minutes conducted a yearlong investigation of insurance insiders and whistleblowers who say that several insurance carriers were, in some cases, using materially altered damage reports, which resulted in drastically lower claims payments.</p>
+          
+          <h3 class="text-2xl font-bold text-gray-900 mb-4">⚖️ Industry Response</h3>
+          <p class="mb-4">This revelation is no surprise to many policyholders, public adjusters, and policyholder attorneys, who often claim this is a common practice that is rarely revealed because to do so would result in termination.</p>
+          
+          <h3 class="text-2xl font-bold text-gray-900 mb-4">🔍 Key Takeaways</h3>
+          <ul class="list-disc list-inside space-y-2 mb-6">
+            <li>Insurance companies have been systematically altering damage estimates</li>
+            <li>Whistleblowers risked their careers to expose this fraud</li>
+            <li>Hurricane victims were specifically targeted for underpayments</li>
+            <li>The practice appears to be more widespread than previously known</li>
+          </ul>
+          
+          <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <p class="text-yellow-800 font-semibold mb-2">⚠️ Protect Yourself</p>
+            <p class="text-yellow-700">This investigation highlights the critical importance of maintaining detailed, independent documentation of your property and belongings. Having comprehensive records can help protect you from fraudulent claim adjustments.</p>
+          </div>
+          
+          <p class="text-lg font-semibold text-gray-800">The investigative piece originally aired on September 29, 2024, at 7 PM EST on CBS 60 Minutes.</p>
+        </div>
+      `,
+      featured: true
+    },
+    {
+      id: 2,
       title: "Why Digital Asset Documentation Beats Spreadsheets + Phone Photos",
       excerpt: "Protect what matters most - with precision, professionalism, and proof. A comprehensive comparison of traditional DIY methods versus professional digital documentation.",
       author: "Asset Docs Team",
@@ -220,6 +258,8 @@ const PressNews: React.FC = () => {
 
   const getCategoryColor = (category: string) => {
     switch (category) {
+      case 'Breaking News':
+        return 'bg-gradient-to-r from-red-500 to-red-600 text-white';
       case 'Featured Guide':
         return 'bg-gradient-to-r from-blue-500 to-purple-600 text-white';
       case 'Legal Guide':
