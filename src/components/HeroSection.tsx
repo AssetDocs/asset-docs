@@ -10,7 +10,7 @@ const HeroSection: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row items-center justify-between">
           <div className="md:w-full mb-10 md:mb-0">
-            <h1 className="text-3xl md:text-4xl font-bold mb-6 animate-fade-in">
+            <h1 className="text-2xl md:text-3xl font-bold mb-6 animate-fade-in">
               Your Digital Safety Net for Asset Protection & Unexpected Events
             </h1>
             <p className="text-xl mb-4 animate-slide-up opacity-90">
