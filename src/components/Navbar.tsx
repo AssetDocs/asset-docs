@@ -176,6 +176,13 @@ const Navbar: React.FC = () => {
                    >
                      {translate('nav.pricing')}
                    </Link>
+                   <Link 
+                     to="/gift" 
+                     className="text-gray-700 hover:text-brand-blue transition-colors py-2"
+                     onClick={() => setIsMenuOpen(false)}
+                   >
+                     Gift
+                   </Link>
                   <Link 
                     to="/video-help" 
                     className="text-gray-700 hover:text-brand-blue transition-colors py-2 flex items-center"
@@ -227,6 +234,13 @@ const Navbar: React.FC = () => {
                      onClick={() => setIsMenuOpen(false)}
                    >
                      {translate('nav.pricing')}
+                   </Link>
+                   <Link 
+                     to="/gift" 
+                     className="text-gray-700 hover:text-brand-blue transition-colors py-2"
+                     onClick={() => setIsMenuOpen(false)}
+                   >
+                     Gift
                    </Link>
                   <Link 
                     to="/video-help" 
