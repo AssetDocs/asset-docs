@@ -15,6 +15,9 @@ verify_jwt = false
 [functions.check-gift-reminders]
 verify_jwt = false
 
+[functions.track-gift-login]
+verify_jwt = true
+
 [api]
 enabled = true
 port = 54321
