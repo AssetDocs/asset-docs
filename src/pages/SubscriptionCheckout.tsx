@@ -57,7 +57,7 @@ const SubscriptionCheckout: React.FC = () => {
       features: [
         "1 property",
         "50GB secure cloud storage",
-        "Photo and video uploads",
+        "Photo uploads only",
         "Web platform access",
         "Email support",
         "30-day free trial"
