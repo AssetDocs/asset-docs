@@ -77,7 +77,6 @@ const SubscriptionCheckout: React.FC = () => {
         "Export detailed reports",
         "Priority email support",
         "Share with 2 trusted contacts",
-        "🎉 6-month introductory price (reg. $12.99)",
         "30-day free trial"
       ],
       icon: <Zap className="h-6 w-6 text-orange-600" />,
