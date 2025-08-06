@@ -60,7 +60,17 @@ const ContributorsTab: React.FC = () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { error } = await supabase
+    // Get user's profile information for the invitation email
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('first_name, last_name')
+      .eq('user_id', user.id)
+      .single();
+
+    const inviterName = profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : user.email;
+
+    // First, create the database record
+    const { error: dbError } = await supabase
       .from('contributors')
       .insert({
         account_owner_id: user.id,
@@ -68,8 +78,8 @@ const ContributorsTab: React.FC = () => {
         role: role,
       });
 
-    if (error) {
-      if (error.code === '23505') {
+    if (dbError) {
+      if (dbError.code === '23505') {
         toast({
           title: "Error",
           description: "This email is already invited as a contributor",
@@ -82,16 +92,46 @@ const ContributorsTab: React.FC = () => {
           variant: "destructive",
         });
       }
-    } else {
-      toast({
-        title: "Success",
-        description: "Contributor invitation sent successfully",
-      });
-      setEmail('');
-      setRole('viewer');
-      fetchContributors();
+      setLoading(false);
+      return;
     }
 
+    // Then, send the invitation email
+    try {
+      const { error: emailError } = await supabase.functions.invoke('send-contributor-invitation', {
+        body: {
+          contributor_email: email,
+          contributor_role: role,
+          inviter_name: inviterName || 'AssetDocs User',
+          inviter_email: user.email,
+        },
+      });
+
+      if (emailError) {
+        console.error('Email sending error:', emailError);
+        toast({
+          title: "Warning",
+          description: "Contributor added but invitation email failed to send",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Contributor invitation sent successfully",
+        });
+      }
+    } catch (error) {
+      console.error('Error sending invitation email:', error);
+      toast({
+        title: "Warning", 
+        description: "Contributor added but invitation email failed to send",
+        variant: "destructive",
+      });
+    }
+
+    setEmail('');
+    setRole('viewer');
+    fetchContributors();
     setLoading(false);
   };
 
