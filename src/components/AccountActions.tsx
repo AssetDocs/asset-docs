@@ -16,7 +16,6 @@ interface AccountActionsProps {
 
 const AccountActions: React.FC<AccountActionsProps> = ({ onCreateFloorPlan, showFloorPlans = true }) => {
   const { subscriptionTier } = useSubscription();
-  const canCreateFloorPlans = subscriptionTier === 'basic';
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -126,6 +125,14 @@ const AccountActions: React.FC<AccountActionsProps> = ({ onCreateFloorPlan, show
               <Plus className="h-4 w-4 mr-2" />
               Upload Videos
             </FeatureButton>
+            {subscriptionTier === 'basic' && (
+              <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                <p className="text-sm text-orange-800">
+                  📹 Video uploads are available for Standard and Premium subscriptions. 
+                  <Link to="/pricing" className="underline font-medium ml-1">Upgrade now</Link>
+                </p>
+              </div>
+            )}
             <Button asChild variant="outline" className="w-full">
               <Link to="/account/videos">
                 <Eye className="h-4 w-4 mr-2" />
@@ -149,16 +156,14 @@ const AccountActions: React.FC<AccountActionsProps> = ({ onCreateFloorPlan, show
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {canCreateFloorPlans && (
-                <FeatureButton 
-                  featureKey="floor_plan_scanning"
-                  onClick={onCreateFloorPlan}
-                  className="w-full bg-brand-blue hover:bg-brand-lightBlue"
-                >
-                  <Building className="h-4 w-4 mr-2" />
-                  Create Floor Plan
-                </FeatureButton>
-              )}
+              <FeatureButton 
+                featureKey="floor_plan_creation"
+                onClick={onCreateFloorPlan}
+                className="w-full bg-brand-blue hover:bg-brand-lightBlue"
+              >
+                <Building className="h-4 w-4 mr-2" />
+                Create Floor Plan
+              </FeatureButton>
               <Button asChild className="w-full bg-brand-blue hover:bg-brand-lightBlue">
                 <Link to="/account/floorplans/upload">
                   <Plus className="h-4 w-4 mr-2" />

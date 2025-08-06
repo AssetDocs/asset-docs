@@ -31,10 +31,10 @@ export const ExportAssetsButton: React.FC<ExportAssetsButtonProps> = ({
       return;
     }
 
-    if (!hasFeature('export_reports')) {
+    if (!hasFeature('export_assets')) {
       toast({
         title: "Premium Feature",
-        description: "Upgrade to Basic plan to export your assets.",
+        description: "Upgrade to Standard or Premium to export your assets.",
         variant: "destructive"
       });
       window.location.href = '/pricing';
@@ -56,7 +56,7 @@ export const ExportAssetsButton: React.FC<ExportAssetsButtonProps> = ({
     }
   };
 
-  const hasExportAccess = hasFeature('export_reports');
+  const hasExportAccess = hasFeature('export_assets');
 
   return (
     <Button
@@ -65,7 +65,7 @@ export const ExportAssetsButton: React.FC<ExportAssetsButtonProps> = ({
       variant={variant}
       size={size}
       className={className}
-      title={!hasExportAccess ? 'Upgrade to Basic plan to export assets' : undefined}
+      title={!hasExportAccess ? 'Upgrade to Standard or Premium to export assets' : undefined}
     >
       {!hasExportAccess && <Download className="mr-2 h-4 w-4" />}
       {isExporting ? (

@@ -18,8 +18,8 @@ export const SUBSCRIPTION_FEATURES: Record<string, FeatureConfig> = {
   video_upload: {
     name: 'Video Upload', 
     description: 'Upload and manage property videos',
-    requiredTier: 'basic',
-    fallbackMessage: 'Upgrade to Basic to upload videos'
+    requiredTier: 'standard',
+    fallbackMessage: 'Upgrade to Standard or Premium to upload videos'
   },
   unlimited_storage: {
     name: 'Unlimited Storage',
@@ -40,6 +40,12 @@ export const SUBSCRIPTION_FEATURES: Record<string, FeatureConfig> = {
     description: 'AI-powered item identification and valuation',
     requiredTier: 'basic',
     fallbackMessage: 'Upgrade to Basic to access AI-powered valuations'
+  },
+  floor_plan_creation: {
+    name: 'Create Floor Plan',
+    description: 'Create floor plans with CubiCasa',
+    requiredTier: 'standard',
+    fallbackMessage: 'Upgrade to Standard or Premium to create floor plans'
   },
   floor_plan_scanning: {
     name: 'Floor Plan Scanning',
@@ -69,6 +75,12 @@ export const SUBSCRIPTION_FEATURES: Record<string, FeatureConfig> = {
   },
 
   // Export and Reporting
+  export_assets: {
+    name: 'Export Assets',
+    description: 'Export comprehensive asset summary and download files',
+    requiredTier: 'standard',
+    fallbackMessage: 'Upgrade to Standard or Premium to export assets'
+  },
   export_reports: {
     name: 'Export Reports',
     description: 'Export detailed property reports',
