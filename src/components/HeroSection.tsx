@@ -10,9 +10,12 @@ const HeroSection: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
           <div className="lg:w-2/3 mb-10 lg:mb-0">
-            <h1 className="text-2xl md:text-3xl font-bold mb-6 animate-fade-in">
+            <h1 className="text-2xl md:text-3xl font-bold mb-4 animate-fade-in">
               Your Digital Safety Net for Asset Protection & Unexpected Events
             </h1>
+            <p className="text-lg font-semibold mb-6 animate-fade-in text-white/90 italic">
+              The Trusted Standard in Property Protection
+            </p>
             <p className="text-xl mb-4 animate-slide-up opacity-90">
               Secure, third-party documentation that helps you prepare for insurance claims, legal events, life transitions, and more.
             </p>
