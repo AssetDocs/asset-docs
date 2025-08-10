@@ -25,8 +25,6 @@ const StorageBreakdownCard: React.FC<StorageBreakdownCardProps> = ({ className }
         return <FileVideo className="h-4 w-4" />;
       case 'documents':
         return <FileText className="h-4 w-4" />;
-      case 'floor-plans':
-        return <Building className="h-4 w-4" />;
       default:
         return <FileText className="h-4 w-4" />;
     }
@@ -40,8 +38,6 @@ const StorageBreakdownCard: React.FC<StorageBreakdownCardProps> = ({ className }
         return 'Videos';
       case 'documents':
         return 'Documents';
-      case 'floor-plans':
-        return 'Floor Plans';
       default:
         return bucketName;
     }

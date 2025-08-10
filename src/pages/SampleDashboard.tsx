@@ -21,9 +21,6 @@ import { Eye, Play } from 'lucide-react';
 const SampleDashboard: React.FC = () => {
   
 
-  const handleCreateFloorPlan = () => {
-    console.log('Demo mode - Floor plan creation disabled');
-  };
 
 
   return (
@@ -67,13 +64,6 @@ const SampleDashboard: React.FC = () => {
               <div className="bg-white rounded-lg border p-6">
                 <h3 className="text-lg font-semibold mb-4">Quick Actions (Demo Mode)</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Button 
-                    onClick={handleCreateFloorPlan}
-                    disabled
-                    className="bg-gray-100 text-gray-500 cursor-not-allowed"
-                  >
-                    Create Floor Plan (Demo)
-                  </Button>
                   <Button 
                     disabled
                     className="bg-gray-100 text-gray-500 cursor-not-allowed"

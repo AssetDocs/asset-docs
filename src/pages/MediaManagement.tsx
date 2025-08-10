@@ -35,7 +35,7 @@ import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
 import PropertyVideos from '@/components/PropertyVideos';
 import PropertyDocuments from '@/components/PropertyDocuments';
-import PropertyFloorPlans from '@/components/PropertyFloorPlans';
+
 import CreateFolderModal from '@/components/CreateFolderModal';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 
@@ -88,23 +88,6 @@ const mockDocuments = [
   }
 ];
 
-const mockFloorPlans = [
-  {
-    id: 1,
-    name: "Main Floor Plan",
-    uploadDate: "2024-06-15"
-  },
-  {
-    id: 2,
-    name: "Second Floor Layout",
-    uploadDate: "2024-06-12"
-  },
-  {
-    id: 3,
-    name: "Basement Blueprint",
-    uploadDate: "2024-06-10"
-  }
-];
 
 const mockInsuranceInfo = [
   {
@@ -143,7 +126,7 @@ const MediaManagement: React.FC = () => {
   const navigate = useNavigate();
   const [videos] = useState(mockVideos);
   const [documents] = useState(mockDocuments);
-  const [floorPlans] = useState(mockFloorPlans);
+  
   const [insuranceInfo] = useState(mockInsuranceInfo);
   const [sortBy, setSortBy] = useState<SortOption>('date-desc');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -203,7 +186,6 @@ const MediaManagement: React.FC = () => {
   const getTabCounts = () => ({
     videos: videos.length,
     documents: documents.length,
-    floorPlans: floorPlans.length,
     insurance: insuranceInfo.length
   });
 
@@ -233,7 +215,7 @@ const MediaManagement: React.FC = () => {
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900">Media Management</h1>
                   <p className="text-gray-600 mt-1">
-                    Manage your videos, documents, floor plans, and insurance information
+                    Manage your videos, documents, and insurance information
                   </p>
                 </div>
               </div>
@@ -307,7 +289,7 @@ const MediaManagement: React.FC = () => {
           <Card>
             <CardContent className="p-6">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-4 mb-6">
+                <TabsList className="grid w-full grid-cols-3 mb-6">
                   <TabsTrigger value="videos" className="flex items-center">
                     <Video className="h-4 w-4 mr-1" />
                     Videos ({tabCounts.videos})
@@ -315,10 +297,6 @@ const MediaManagement: React.FC = () => {
                   <TabsTrigger value="documents" className="flex items-center">
                     <FileText className="h-4 w-4 mr-1" />
                     Documents ({tabCounts.documents})
-                  </TabsTrigger>
-                  <TabsTrigger value="floorplans" className="flex items-center">
-                    <FileImage className="h-4 w-4 mr-1" />
-                    Floor Plans ({tabCounts.floorPlans})
                   </TabsTrigger>
                   <TabsTrigger value="insurance" className="flex items-center">
                     <Shield className="h-4 w-4 mr-1" />
@@ -346,15 +324,6 @@ const MediaManagement: React.FC = () => {
                   <PropertyDocuments documents={documents} />
                 </TabsContent>
 
-                <TabsContent value="floorplans">
-                  <div className="mb-4">
-                    <h3 className="text-lg font-semibold mb-2">Floor Plans</h3>
-                    <p className="text-muted-foreground text-sm">
-                      View and manage property blueprints and floor plan layouts
-                    </p>
-                  </div>
-                  <PropertyFloorPlans floorPlans={floorPlans} />
-                </TabsContent>
 
                 <TabsContent value="insurance">
                   <div className="mb-4">

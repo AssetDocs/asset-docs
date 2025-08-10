@@ -41,18 +41,6 @@ export const SUBSCRIPTION_FEATURES: Record<string, FeatureConfig> = {
     requiredTier: 'basic',
     fallbackMessage: 'Upgrade to Basic to access AI-powered valuations'
   },
-  floor_plan_creation: {
-    name: 'Create Floor Plan',
-    description: 'Create floor plans with CubiCasa',
-    requiredTier: 'standard',
-    fallbackMessage: 'Upgrade to Standard or Premium to create floor plans'
-  },
-  floor_plan_scanning: {
-    name: 'Floor Plan Scanning',
-    description: 'Live camera floor plan scanning',
-    requiredTier: 'basic',
-    fallbackMessage: 'Upgrade to Basic to scan floor plans with your camera'
-  },
   advanced_ai: {
     name: 'Advanced AI Features',
     description: 'Premium AI analysis and insights',

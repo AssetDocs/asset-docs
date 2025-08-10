@@ -283,47 +283,6 @@ const Features: React.FC = () => {
               <p className="text-gray-600 text-sm">Download reports and documentation in multiple formats.</p>
             </div>
           </div>
-          
-          {/* CubiCasa Floor Plans Feature */}
-          <div className="mt-12">
-            <div className="bg-gradient-to-r from-brand-blue to-brand-lightBlue text-white p-8 rounded-lg shadow-lg">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h3 className="text-2xl font-bold mb-2">CubiCasa Floor Plans</h3>
-                  <p className="text-lg opacity-90">Professional floor plans in 12-24 hours</p>
-                </div>
-                <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
-                  Standard & Premium Only
-                </Badge>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center">
-                  <div className="bg-white/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                    <Scan className="h-8 w-8 text-white" />
-                  </div>
-                  <h4 className="text-xl font-semibold mb-2">1. Scan</h4>
-                  <p className="text-white/90">Scan the property with your phone using our integrated scanning tools. It takes about 5 to 10 minutes.</p>
-                </div>
-                
-                <div className="text-center">
-                  <div className="bg-white/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                    <Upload className="h-8 w-8 text-white" />
-                  </div>
-                  <h4 className="text-xl font-semibold mb-2">2. Upload</h4>
-                  <p className="text-white/90">Scans are saved on your device, upload on-site or back in the office and place your order.</p>
-                </div>
-                
-                <div className="text-center">
-                  <div className="bg-white/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                    <CheckCircle className="h-8 w-8 text-white" />
-                  </div>
-                  <h4 className="text-xl font-semibold mb-2">3. Receive</h4>
-                  <p className="text-white/90">Receive your ready-to-use floor plan within 12-24h and add the file to your dashboard.</p>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
       

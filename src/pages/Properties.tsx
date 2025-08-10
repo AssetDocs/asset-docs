@@ -37,10 +37,7 @@ const mockProperties = [
       { id: 2, name: "Home Inspection Report", type: "PDF", uploadDate: "2024-05-25" },
       { id: 3, name: "Insurance Policy", type: "PDF", uploadDate: "2024-06-01" }
     ],
-    floorPlans: [
-      { id: 1, name: "First Floor Plan", uploadDate: "2024-06-05" },
-      { id: 2, name: "Second Floor Plan", uploadDate: "2024-06-05" }
-    ]
+    floorPlans: []
   },
   {
     id: 2,

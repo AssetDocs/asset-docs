@@ -27,15 +27,6 @@ const VideoHelp: React.FC = () => {
       thumbnail: "/placeholder.svg"
     },
     {
-      id: 3,
-      title: "Using CubiCasa Integration",
-      description: "Create professional floor plans instantly with CubiCasa's AI-powered technology.",
-      duration: "7:15",
-      icon: Building,
-      category: "Floor Plans",
-      thumbnail: "/placeholder.svg"
-    },
-    {
       id: 4,
       title: "Uploading Photos for Asset Documentation",
       description: "Best practices for photographing your assets and uploading them for AI analysis.",

@@ -23,8 +23,7 @@ const PricingPlans: React.FC = () => {
       "Photo and video uploads",
       "Document uploads",
       "AI-powered item identification & valuation",
-      "Floor plan scanning with live camera",
-      "Web platform access", 
+      "Web platform access",
       "Export detailed reports",
       "Priority email support",
       "Share with 2 trusted contacts"
@@ -36,7 +35,6 @@ const PricingPlans: React.FC = () => {
       "Photo and video uploads",
       "Document uploads",
       "AI-powered item identification & valuation",
-      "Floor plan scanning with live camera",
       "Full web platform access",
       "Export detailed reports",
       "Priority email and phone support",
@@ -63,7 +61,6 @@ const PricingPlans: React.FC = () => {
       "Unlimited photo and video uploads",
       "Document uploads",
       "AI-powered item identification & valuation",
-      "Floor plan scanning with live camera",
       "Full web platform access",
       "Custom reporting templates",
       "Priority email and phone support"

@@ -45,10 +45,6 @@ const Partnership: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-green-500">✅</span>
-                  <span>Detailed floor plans with measurements</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-green-500">✅</span>
                   <span>Secure photo-based home inventory tools</span>
                 </div>
                 <div className="flex items-center gap-2">
