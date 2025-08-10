@@ -41,23 +41,18 @@ const HeroSection: React.FC = () => {
             </div>
           </div>
           
-          {/* Gift Invitation Box */}
+          {/* YouTube Video */}
           <div className="lg:w-1/3">
-            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-6 text-center animate-fade-in">
-              <div className="mb-4">
-                <div className="inline-flex items-center justify-center w-12 h-12 bg-white/20 rounded-full mb-3">
-                  <span className="text-2xl">🎁</span>
-                </div>
+            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-4 animate-fade-in">
+              <div className="aspect-video">
+                <iframe 
+                  src="https://www.youtube.com/embed/y8Eil2PmfMc" 
+                  title="Asset Docs Introduction Video"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                  allowFullScreen
+                  className="w-full h-full rounded-lg"
+                />
               </div>
-              <h3 className="text-xl font-bold mb-3 text-white">
-                Give the Gift of Protection and Peace of Mind
-              </h3>
-              <p className="text-white/80 mb-4 text-sm">
-                Share the security of comprehensive asset documentation with someone you care about.
-              </p>
-              <Button asChild className="bg-white text-brand-blue hover:bg-gray-100 w-full">
-                <Link to="/gift">Give a Gift Subscription</Link>
-              </Button>
             </div>
           </div>
         </div>
