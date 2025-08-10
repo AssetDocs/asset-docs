@@ -125,11 +125,11 @@ const AppContent = () => {
         <Route path="/photo-gallery" element={<ProtectedRoute><PhotoGallery /></ProtectedRoute>} />
         <Route path="/account/videos" element={<ProtectedRoute><Videos /></ProtectedRoute>} />
         <Route path="/account/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
-        <Route path="/account/floorplans" element={<ProtectedRoute><FloorPlans /></ProtectedRoute>} />
+        
         <Route path="/account/insurance" element={<ProtectedRoute><Insurance /></ProtectedRoute>} />
         <Route path="/account/photos/upload" element={<ProtectedRoute><PhotoUpload /></ProtectedRoute>} />
         <Route path="/account/videos/upload" element={<ProtectedRoute><VideoUpload /></ProtectedRoute>} />
-        <Route path="/account/floorplans/upload" element={<ProtectedRoute><FloorPlanUpload /></ProtectedRoute>} />
+        
         <Route path="/account/insurance/new" element={<ProtectedRoute><InsuranceForm /></ProtectedRoute>} />
         <Route path="/account/settings" element={<ProtectedRoute><AccountSettings /></ProtectedRoute>} />
         <Route path="/schedule-professional" element={<ProtectedRoute><ScheduleProfessional /></ProtectedRoute>} />
