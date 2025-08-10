@@ -1,0 +1,298 @@
+import React, { useState, useRef } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Upload, FileImage, X, Save, ArrowLeft, Camera } from 'lucide-react';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import { useNavigate } from 'react-router-dom';
+import FloorPlanScanner from '@/components/FloorPlanScanner';
+
+interface UploadedFloorPlan {
+  id: string;
+  file: File;
+  preview: string;
+  name: string;
+  description: string;
+  floor: string;
+  propertySection: string;
+}
+
+const FloorPlanUpload: React.FC = () => {
+  const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
+  const [uploadedPlans, setUploadedPlans] = useState<UploadedFloorPlan[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    setSelectedFiles(files);
+  };
+
+  const processFloorPlans = async () => {
+    if (!selectedFiles) return;
+    
+    setIsProcessing(true);
+    const newPlans: UploadedFloorPlan[] = [];
+
+    for (let i = 0; i < selectedFiles.length; i++) {
+      const file = selectedFiles[i];
+      const preview = URL.createObjectURL(file);
+      
+      newPlans.push({
+        id: `plan-${Date.now()}-${i}`,
+        file,
+        preview,
+        name: file.name.split('.')[0],
+        description: '',
+        floor: '',
+        propertySection: ''
+      });
+    }
+
+    setUploadedPlans(prev => [...prev, ...newPlans]);
+    setSelectedFiles(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    setIsProcessing(false);
+  };
+
+  const updatePlanValue = (id: string, field: string, value: string) => {
+    setUploadedPlans(prev => 
+      prev.map(plan => 
+        plan.id === id 
+          ? { ...plan, [field]: value }
+          : plan
+      )
+    );
+  };
+
+  const removePlan = (id: string) => {
+    setUploadedPlans(prev => prev.filter(plan => plan.id !== id));
+  };
+
+  const savePlans = async () => {
+    // Here you would typically save to your backend/database
+    console.log('Saving floor plans:', uploadedPlans);
+    
+    // For now, just navigate back
+    navigate('/account/floorplans');
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+      <Navbar />
+      
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-8">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/account/floorplans')}
+            className="p-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-brand-blue mb-2">Floor Plans & Scanning</h1>
+            <p className="text-gray-600">Upload floor plan images and PDFs or use live scanning</p>
+          </div>
+        </div>
+
+        <Tabs defaultValue="upload" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="upload" className="flex items-center gap-2">
+              <Upload className="h-4 w-4" />
+              Upload Files
+            </TabsTrigger>
+            <TabsTrigger value="scanner" className="flex items-center gap-2">
+              <Camera className="h-4 w-4" />
+              Live Scanner
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="upload" className="space-y-6">
+            {/* File Upload Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Upload Floor Plans</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    accept="image/*,.pdf"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  
+                  <FileImage className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium mb-2">Select Floor Plan Files</h3>
+                  <p className="text-gray-600 mb-4">
+                    Upload images (PNG, JPG) or PDF files of your floor plans
+                  </p>
+                  
+                  <Button 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="bg-brand-blue hover:bg-brand-blue/90"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Choose Files
+                  </Button>
+                </div>
+
+                {selectedFiles && (
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium">Selected Files ({selectedFiles.length})</h4>
+                      <Button 
+                        onClick={processFloorPlans}
+                        disabled={isProcessing}
+                        className="bg-brand-orange hover:bg-brand-orange/90"
+                      >
+                        {isProcessing ? 'Processing...' : 'Process Floor Plans'}
+                      </Button>
+                    </div>
+                    <div className="space-y-1">
+                      {Array.from(selectedFiles).map((file, index) => (
+                        <div key={index} className="flex items-center gap-2 text-sm">
+                          <FileImage className="h-4 w-4 text-brand-blue" />
+                          <span>{file.name}</span>
+                          <Badge variant="secondary">{(file.size / 1024 / 1024).toFixed(1)} MB</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Floor Plan Details */}
+            {uploadedPlans.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Floor Plan Details ({uploadedPlans.length})</CardTitle>
+                    <Button 
+                      onClick={savePlans}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <Save className="h-4 w-4 mr-2" />
+                      Save All Plans
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {uploadedPlans.map((plan) => (
+                    <div key={plan.id} className="border rounded-lg p-4">
+                      <div className="flex gap-4">
+                        {/* Preview */}
+                        <div className="w-32 h-24 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
+                          <img 
+                            src={plan.preview} 
+                            alt={plan.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        
+                        {/* Details Form */}
+                        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor={`name-${plan.id}`}>Plan Name</Label>
+                            <Input
+                              id={`name-${plan.id}`}
+                              value={plan.name}
+                              onChange={(e) => updatePlanValue(plan.id, 'name', e.target.value)}
+                              placeholder="Enter floor plan name"
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor={`floor-${plan.id}`}>Floor/Level</Label>
+                            <Select 
+                              value={plan.floor} 
+                              onValueChange={(value) => updatePlanValue(plan.id, 'floor', value)}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select floor" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="basement">Basement</SelectItem>
+                                <SelectItem value="ground">Ground Floor</SelectItem>
+                                <SelectItem value="1st">1st Floor</SelectItem>
+                                <SelectItem value="2nd">2nd Floor</SelectItem>
+                                <SelectItem value="3rd">3rd Floor</SelectItem>
+                                <SelectItem value="attic">Attic</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor={`section-${plan.id}`}>Property Section</Label>
+                            <Select 
+                              value={plan.propertySection} 
+                              onValueChange={(value) => updatePlanValue(plan.id, 'propertySection', value)}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select section" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="main">Main House</SelectItem>
+                                <SelectItem value="garage">Garage</SelectItem>
+                                <SelectItem value="basement">Basement</SelectItem>
+                                <SelectItem value="addition">Addition</SelectItem>
+                                <SelectItem value="outbuilding">Outbuilding</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div className="md:col-span-2">
+                            <Label htmlFor={`description-${plan.id}`}>Description (Optional)</Label>
+                            <Textarea
+                              id={`description-${plan.id}`}
+                              value={plan.description}
+                              onChange={(e) => updatePlanValue(plan.id, 'description', e.target.value)}
+                              placeholder="Add notes about this floor plan..."
+                              rows={2}
+                            />
+                          </div>
+                        </div>
+                        
+                        {/* Remove Button */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removePlan(plan.id)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="scanner">
+            <FloorPlanScanner />
+          </TabsContent>
+        </Tabs>
+      </div>
+      
+      <Footer />
+    </div>
+  );
+};
+
+export default FloorPlanUpload;

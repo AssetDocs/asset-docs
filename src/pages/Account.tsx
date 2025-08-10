@@ -7,7 +7,7 @@ import AccountHeader from '@/components/AccountHeader';
 import AccountStats from '@/components/AccountStats';
 import AccountActions from '@/components/AccountActions';
 
-import FloorPlansSection from '@/components/FloorPlansSection';
+
 import StorageAlert from '@/components/StorageAlert';
 
 import PostDamageSection from '@/components/PostDamageSection';
@@ -45,10 +45,6 @@ const Account: React.FC = () => {
     localStorage.setItem('hasSeenDashboardTour', 'true');
   };
 
-  const handleCreateFloorPlan = () => {
-    console.log('Create Floor Plan clicked - will connect to CubiCasa');
-    // TODO: Integrate with CubiCasa software
-  };
 
 
   return (
@@ -68,15 +64,10 @@ const Account: React.FC = () => {
           </div>
 
           <Tabs defaultValue="overview" className="space-y-6" id="tabs-content">
-            <TabsList className={`${isMobile ? 'flex overflow-x-auto' : `grid ${showFloorPlans ? 'grid-cols-5' : 'grid-cols-4'}`} w-full`}>
+            <TabsList className={`${isMobile ? 'flex overflow-x-auto' : 'grid grid-cols-4'} w-full`}>
               <TabsTrigger value="overview" className={isMobile ? 'flex-shrink-0' : ''}>
                 {isMobile ? 'Home' : 'Overview'}
               </TabsTrigger>
-              {showFloorPlans && (
-                <TabsTrigger value="floor-plans" className={isMobile ? 'flex-shrink-0' : ''}>
-                  {isMobile ? 'Plans' : 'Floor Plans'}
-                </TabsTrigger>
-              )}
               <TabsTrigger value="asset-values" className={isMobile ? 'flex-shrink-0' : ''}>
                 {isMobile ? 'Assets' : 'Asset Values'}
               </TabsTrigger>
@@ -90,16 +81,11 @@ const Account: React.FC = () => {
 
             <TabsContent value="overview" className="space-y-6">
               <AccountStats />
-              <AccountActions onCreateFloorPlan={handleCreateFloorPlan} showFloorPlans={showFloorPlans} />
+              <AccountActions />
               <DocumentationChecklist />
               
             </TabsContent>
 
-            {showFloorPlans && (
-              <TabsContent value="floor-plans">
-                <FloorPlansSection />
-              </TabsContent>
-            )}
 
             <TabsContent value="asset-values">
               <AssetValuesSection />

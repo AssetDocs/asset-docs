@@ -25,7 +25,7 @@ const tourSteps: TourStep[] = [
   {
     target: 'tabs-content',
     title: 'Navigate Your Features',
-    content: 'Use these tabs to access different sections: Overview, Floor Plans, Asset Values, and more.',
+    content: 'Use these tabs to access different sections: Overview, Asset Values, and more.',
     position: 'top'
   }
 ];

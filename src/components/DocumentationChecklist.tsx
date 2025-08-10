@@ -46,7 +46,7 @@ const DocumentationChecklist: React.FC = () => {
       items: [
         { id: "h6", text: "Complete exterior photos (all sides, roof, foundation)" },
         { id: "h7", text: "Interior photos of each room (multiple angles)" },
-        { id: "h8", text: "Floor plans or architectural drawings" },
+        
         { id: "h9", text: "Recent inspection reports (home, pest, radon)" },
         { id: "h10", text: "HVAC system documentation and maintenance records" }
       ]

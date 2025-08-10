@@ -5,7 +5,7 @@ import AssetValuesSection from '@/components/AssetValuesSection';
 import AccountHeader from '@/components/AccountHeader';
 import AccountStats from '@/components/AccountStats';
 
-import FloorPlansSection from '@/components/FloorPlansSection';
+
 import StorageAlert from '@/components/StorageAlert';
 import PostDamageSection from '@/components/PostDamageSection';
 import VoiceNotesSection from '@/components/VoiceNotesSection';
@@ -54,9 +54,9 @@ const SampleDashboard: React.FC = () => {
           </div>
 
           <Tabs defaultValue="overview" className="space-y-6" id="tabs-content">
-            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
               <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
-              <TabsTrigger value="floor-plans" className="text-xs sm:text-sm">Floor Plans</TabsTrigger>
+              
               <TabsTrigger value="asset-values" className="text-xs sm:text-sm">Asset Values</TabsTrigger>
               <TabsTrigger value="damage" className="text-xs sm:text-sm">Post Damage</TabsTrigger>
               <TabsTrigger value="voice-notes" className="text-xs sm:text-sm">Voice Notes</TabsTrigger>
@@ -88,14 +88,11 @@ const SampleDashboard: React.FC = () => {
                   </Button>
                 </div>
               </div>
-              <AccountActions onCreateFloorPlan={handleCreateFloorPlan} />
+              <AccountActions />
               <ChecklistsAccess />
               
             </TabsContent>
 
-            <TabsContent value="floor-plans">
-              <FloorPlansSection />
-            </TabsContent>
 
             <TabsContent value="asset-values">
               <AssetValuesSection />

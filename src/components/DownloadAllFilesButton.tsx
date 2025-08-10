@@ -60,7 +60,7 @@ const DownloadAllFilesButton: React.FC = () => {
           Download All Files
         </CardTitle>
         <CardDescription>
-          Download all your uploaded photos, videos, documents, and floor plans as a ZIP file
+          Download all your uploaded photos, videos, and documents as a ZIP file
         </CardDescription>
       </CardHeader>
       <CardContent>

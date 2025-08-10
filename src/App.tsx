@@ -31,7 +31,7 @@ import Properties from "./pages/Properties";
 import PropertyForm from "./pages/PropertyForm";
 import PhotoUpload from "./pages/PhotoUpload";
 import VideoUpload from "./pages/VideoUpload";
-import FloorPlanUpload from "./pages/FloorPlanUpload";
+
 import InsuranceForm from "./pages/InsuranceForm";
 import ScheduleProfessional from "./pages/ScheduleProfessional";
 import About from "./pages/About";
@@ -45,7 +45,7 @@ import AccountSettings from "./pages/AccountSettings";
 import PhotoGallery from "./pages/PhotoGallery";
 import Videos from "./pages/Videos";
 import Documents from "./pages/Documents";
-import FloorPlans from "./pages/FloorPlans";
+
 import Insurance from "./pages/Insurance";
 import Claims from "./pages/Claims";
 import Legal from "./pages/Legal";

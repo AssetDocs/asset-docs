@@ -9,12 +9,9 @@ import { ExportAssetsButton } from './ExportAssetsButton';
 import { FeatureButton } from '@/components/FeatureGuard';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 
-interface AccountActionsProps {
-  onCreateFloorPlan: () => void;
-  showFloorPlans?: boolean;
-}
+interface AccountActionsProps {}
 
-const AccountActions: React.FC<AccountActionsProps> = ({ onCreateFloorPlan, showFloorPlans = true }) => {
+const AccountActions: React.FC<AccountActionsProps> = () => {
   const { subscriptionTier } = useSubscription();
 
   return (
@@ -143,43 +140,6 @@ const AccountActions: React.FC<AccountActionsProps> = ({ onCreateFloorPlan, show
         </CardContent>
       </Card>
 
-      {showFloorPlans && (
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <FileImage className="h-6 w-6 mr-2 text-brand-blue" />
-              Floor Plans
-            </CardTitle>
-            <CardDescription>
-              Upload and manage architectural drawings and floor plans
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <FeatureButton 
-                featureKey="floor_plan_creation"
-                onClick={onCreateFloorPlan}
-                className="w-full bg-brand-blue hover:bg-brand-lightBlue"
-              >
-                <Building className="h-4 w-4 mr-2" />
-                Create Floor Plan
-              </FeatureButton>
-              <Button asChild className="w-full bg-brand-blue hover:bg-brand-lightBlue">
-                <Link to="/account/floorplans/upload">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Upload Floor Plans
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="w-full">
-                <Link to="/account/floorplans">
-                  <Eye className="h-4 w-4 mr-2" />
-                  View Floor Plans
-                </Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       <Card className="hover:shadow-lg transition-shadow">
         <CardHeader>

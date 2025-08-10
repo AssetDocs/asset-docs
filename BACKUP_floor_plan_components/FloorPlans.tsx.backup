@@ -1,0 +1,490 @@
+import React, { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ArrowLeft, Search, Plus, Upload, Grid, List, FileImage, Eye, Download, MoreVertical, FolderOpen, Folder } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
+import CreateFolderModal from '@/components/CreateFolderModal';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+
+type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc';
+type ViewMode = 'grid' | 'list';
+
+interface FloorPlan {
+  id: number;
+  name: string;
+  type: 'Architectural' | 'Survey' | 'As-Built' | 'Concept';
+  size: string;
+  uploadDate: string;
+  folderId: number | null;
+  tags: string[];
+}
+
+interface Folder {
+  id: number;
+  name: string;
+  color: string;
+  floorPlanCount: number;
+}
+
+// Mock data
+const mockFloorPlans: FloorPlan[] = [
+  {
+    id: 1,
+    name: "Main Floor Plan",
+    type: "Architectural",
+    size: "2.4 MB",
+    uploadDate: "2024-01-15",
+    folderId: 1,
+    tags: ["residential", "2-story"]
+  },
+  {
+    id: 2,
+    name: "Second Floor Plan",
+    type: "Architectural", 
+    size: "1.8 MB",
+    uploadDate: "2024-01-15",
+    folderId: 1,
+    tags: ["residential", "2-story"]
+  },
+  {
+    id: 3,
+    name: "Basement Plan",
+    type: "As-Built",
+    size: "3.1 MB", 
+    uploadDate: "2024-01-20",
+    folderId: null,
+    tags: ["basement", "storage"]
+  },
+  {
+    id: 4,
+    name: "Site Survey",
+    type: "Survey",
+    size: "5.2 MB",
+    uploadDate: "2024-02-01",
+    folderId: 2,
+    tags: ["survey", "property-lines"]
+  }
+];
+
+const mockFolders: Folder[] = [
+  { id: 1, name: "Main Residence", color: "blue", floorPlanCount: 2 },
+  { id: 2, name: "Property Survey", color: "green", floorPlanCount: 1 },
+  { id: 3, name: "Renovations", color: "orange", floorPlanCount: 0 }
+];
+
+const FloorPlans: React.FC = () => {
+  const navigate = useNavigate();
+  const [floorPlans, setFloorPlans] = useState<FloorPlan[]>(mockFloorPlans);
+  const [folders, setFolders] = useState<Folder[]>(mockFolders);
+  const [selectedFolder, setSelectedFolder] = useState<number | null>(null);
+  const [sortBy, setSortBy] = useState<SortOption>('date-desc');
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedFloorPlans, setSelectedFloorPlans] = useState<number[]>([]);
+  const [createFolderModalOpen, setCreateFolderModalOpen] = useState(false);
+
+  const handleBack = () => {
+    navigate(-1);
+  };
+
+  // Filter floor plans based on search term and selected folder
+  const filteredFloorPlans = floorPlans.filter(plan => {
+    const matchesSearch = plan.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         plan.type.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFolder = selectedFolder === null || plan.folderId === selectedFolder;
+    return matchesSearch && matchesFolder;
+  });
+
+  // Sort floor plans
+  const sortedFloorPlans = [...filteredFloorPlans].sort((a, b) => {
+    switch (sortBy) {
+      case 'date-desc':
+        return new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime();
+      case 'date-asc':
+        return new Date(a.uploadDate).getTime() - new Date(b.uploadDate).getTime();
+      case 'name-asc':
+        return a.name.localeCompare(b.name);
+      case 'name-desc':
+        return b.name.localeCompare(a.name);
+      default:
+        return 0;
+    }
+  });
+
+  const toggleFloorPlanSelection = (floorPlanId: number) => {
+    setSelectedFloorPlans(prev => 
+      prev.includes(floorPlanId)
+        ? prev.filter(id => id !== floorPlanId)
+        : [...prev, floorPlanId]
+    );
+  };
+
+  const handleMoveFloorPlans = (targetFolderId: number | null) => {
+    setFloorPlans(prev => 
+      prev.map(plan => 
+        selectedFloorPlans.includes(plan.id)
+          ? { ...plan, folderId: targetFolderId }
+          : plan
+      )
+    );
+    setSelectedFloorPlans([]);
+  };
+
+  const handleCreateFolder = (name: string, color: string) => {
+    const newFolder: Folder = {
+      id: Math.max(...folders.map(f => f.id), 0) + 1,
+      name,
+      color,
+      floorPlanCount: 0
+    };
+    setFolders(prev => [...prev, newFolder]);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+      <Navbar />
+      <div className="container mx-auto px-4 py-6">
+        <DashboardBreadcrumb />
+        
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" onClick={handleBack} className="p-2">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold text-brand-blue">Floor Plans</h1>
+              <p className="text-gray-600">Manage your architectural drawings and floor plans</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline"
+              onClick={() => navigate('/account/floorplans/upload')}
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              Upload
+            </Button>
+            <Button 
+              onClick={() => setCreateFolderModalOpen(true)}
+              className="bg-brand-blue hover:bg-brand-blue/90"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              New Folder
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex gap-6">
+          {/* Sidebar - Folders */}
+          <div className="w-64 space-y-4">
+            <Card>
+              <CardContent className="p-4">
+                <h3 className="font-semibold mb-3">Folders</h3>
+                
+                <button
+                  onClick={() => setSelectedFolder(null)}
+                  className={`w-full flex items-center gap-3 p-2 rounded-lg text-left hover:bg-gray-50 ${
+                    selectedFolder === null ? 'bg-blue-50 text-brand-blue' : ''
+                  }`}
+                >
+                  <FolderOpen className="h-4 w-4" />
+                  <span>All Floor Plans</span>
+                  <Badge variant="secondary" className="ml-auto">
+                    {floorPlans.length}
+                  </Badge>
+                </button>
+
+                <div className="space-y-1 mt-2">
+                  {folders.map((folder) => (
+                    <button
+                      key={folder.id}
+                      onClick={() => setSelectedFolder(folder.id)}
+                      className={`w-full flex items-center gap-3 p-2 rounded-lg text-left hover:bg-gray-50 ${
+                        selectedFolder === folder.id ? 'bg-blue-50 text-brand-blue' : ''
+                      }`}
+                    >
+                      <Folder className={`h-4 w-4 text-${folder.color}-500`} />
+                      <span className="flex-1">{folder.name}</span>
+                      <Badge variant="secondary">
+                        {floorPlans.filter(p => p.folderId === folder.id).length}
+                      </Badge>
+                    </button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Main Content */}
+          <div className="flex-1 space-y-4">
+            {/* Controls */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between gap-4">
+                  {/* Search */}
+                  <div className="relative flex-1 max-w-md">
+                    <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <Input
+                      placeholder="Search floor plans..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+
+                  {/* Sort and View Mode */}
+                  <div className="flex items-center gap-2">
+                    <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
+                      <SelectTrigger className="w-48">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="date-desc">Newest First</SelectItem>
+                        <SelectItem value="date-asc">Oldest First</SelectItem>
+                        <SelectItem value="name-asc">Name A-Z</SelectItem>
+                        <SelectItem value="name-desc">Name Z-A</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    <div className="flex border rounded-md">
+                      <Button
+                        variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => setViewMode('grid')}
+                        className="rounded-r-none"
+                      >
+                        <Grid className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant={viewMode === 'list' ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => setViewMode('list')}
+                        className="rounded-l-none"
+                      >
+                        <List className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {selectedFloorPlans.length > 0 && (
+                  <div className="mt-4 p-3 bg-blue-50 rounded-lg flex items-center justify-between">
+                    <span className="text-sm font-medium">
+                      {selectedFloorPlans.length} floor plan{selectedFloorPlans.length > 1 ? 's' : ''} selected
+                    </span>
+                    <div className="flex gap-2">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="sm" variant="outline">
+                            Move to Folder
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem onClick={() => handleMoveFloorPlans(null)}>
+                            No Folder
+                          </DropdownMenuItem>
+                          {folders.map((folder) => (
+                            <DropdownMenuItem 
+                              key={folder.id}
+                              onClick={() => handleMoveFloorPlans(folder.id)}
+                            >
+                              {folder.name}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => setSelectedFloorPlans([])}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Floor Plans Grid/List */}
+            <Card>
+              <CardContent className="p-6">
+                {sortedFloorPlans.length === 0 ? (
+                  <div className="text-center py-12">
+                    <FileImage className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-lg font-medium mb-2">No floor plans found</h3>
+                    <p className="text-gray-600 mb-4">
+                      {searchTerm || selectedFolder 
+                        ? 'Try adjusting your search or filter criteria'
+                        : 'Upload your first floor plan to get started'
+                      }
+                    </p>
+                    {!searchTerm && !selectedFolder && (
+                      <Button 
+                        onClick={() => navigate('/account/floorplans/upload')}
+                        className="bg-brand-blue hover:bg-brand-blue/90"
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload Floor Plans
+                      </Button>
+                    )}
+                  </div>
+                ) : viewMode === 'grid' ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {sortedFloorPlans.map((floorPlan) => (
+                      <Card key={floorPlan.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                        <div className="relative">
+                          <div className="aspect-video bg-gray-200 flex items-center justify-center">
+                            <FileImage className="h-8 w-8 text-gray-400" />
+                          </div>
+                          
+                          <div className="absolute top-2 left-2">
+                            <Checkbox
+                              checked={selectedFloorPlans.includes(floorPlan.id)}
+                              onCheckedChange={() => toggleFloorPlanSelection(floorPlan.id)}
+                            />
+                          </div>
+                          
+                          <div className="absolute top-2 right-2">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 bg-white/80">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem>
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  View
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                  <Download className="h-4 w-4 mr-2" />
+                                  Download
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </div>
+
+                        <CardContent className="p-3">
+                          <div className="flex items-start justify-between mb-2">
+                            <h4 className="font-medium text-sm truncate flex-1">{floorPlan.name}</h4>
+                            <Badge variant="secondary" className="text-xs ml-2">
+                              {floorPlan.type}
+                            </Badge>
+                          </div>
+                          
+                          <p className="text-xs text-gray-500 mb-2">
+                            {floorPlan.size} • {formatDate(floorPlan.uploadDate)}
+                          </p>
+
+                          {floorPlan.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mb-2">
+                              {floorPlan.tags.slice(0, 2).map((tag) => (
+                                <Badge key={tag} variant="outline" className="text-xs px-1 py-0">
+                                  {tag}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+
+                          <div className="flex gap-1">
+                            <Button size="sm" variant="outline" className="flex-1 text-xs">
+                              <Eye className="h-3 w-3 mr-1" />
+                              View
+                            </Button>
+                            <Button size="sm" variant="outline" className="flex-1 text-xs">
+                              <Download className="h-3 w-3 mr-1" />
+                              Download
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {sortedFloorPlans.map((floorPlan) => (
+                      <div key={floorPlan.id} className="flex items-center gap-4 p-3 border rounded-lg hover:bg-gray-50">
+                        <Checkbox
+                          checked={selectedFloorPlans.includes(floorPlan.id)}
+                          onCheckedChange={() => toggleFloorPlanSelection(floorPlan.id)}
+                        />
+                        
+                        <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center flex-shrink-0">
+                          <FileImage className="h-5 w-5 text-gray-400" />
+                        </div>
+                        
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-medium truncate">{floorPlan.name}</h4>
+                            <Badge variant="secondary" className="text-xs">
+                              {floorPlan.type}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-500">
+                            {floorPlan.size} • Uploaded {formatDate(floorPlan.uploadDate)}
+                          </p>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <Button size="sm" variant="outline">
+                            <Eye className="h-4 w-4 mr-1" />
+                            View
+                          </Button>
+                          <Button size="sm" variant="outline">
+                            <Download className="h-4 w-4 mr-1" />
+                            Download
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem>Edit Details</DropdownMenuItem>
+                              <DropdownMenuItem>Move to Folder</DropdownMenuItem>
+                              <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+
+      <CreateFolderModal
+        isOpen={createFolderModalOpen}
+        onClose={() => setCreateFolderModalOpen(false)}
+        onCreateFolder={handleCreateFolder}
+      />
+      
+      <Footer />
+    </div>
+  );
+};
+
+export default FloorPlans;

@@ -27,8 +27,6 @@ const DashboardBreadcrumb: React.FC<DashboardBreadcrumbProps> = ({
     '/account/photos/upload': 'Upload Photos',
     '/account/videos': 'Video Gallery',
     '/account/videos/upload': 'Upload Videos',
-    '/account/floorplans': 'Floor Plans',
-    '/account/floorplans/upload': 'Upload Floor Plans',
     '/account/documents': 'Documents',
     '/account/documents/upload': 'Upload Documents',
     '/account/insurance': 'Insurance',
