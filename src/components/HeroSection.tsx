@@ -45,13 +45,19 @@ const HeroSection: React.FC = () => {
           <div className="lg:w-1/3">
             <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-4 animate-fade-in">
               <div className="aspect-video">
-                <iframe 
-                  src="https://www.youtube.com/embed/eWD5xUjU_48" 
-                  title="Asset Docs Introduction Video"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                  allowFullScreen
-                  className="w-full h-full rounded-lg"
-                />
+                <video 
+                  controls
+                  preload="metadata"
+                  poster="/lovable-uploads/video-poster.jpg" 
+                  className="w-full h-full rounded-lg object-cover"
+                >
+                  <source src="/path/to/your/video.mp4" type="video/mp4" />
+                  <source src="/path/to/your/video.webm" type="video/webm" />
+                  <p className="text-white/80">
+                    Your browser doesn't support HTML5 video. 
+                    <a href="/path/to/your/video.mp4" className="underline">Download the video</a> instead.
+                  </p>
+                </video>
               </div>
             </div>
           </div>
