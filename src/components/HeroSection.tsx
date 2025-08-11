@@ -46,7 +46,7 @@ const HeroSection: React.FC = () => {
             <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-4 animate-fade-in">
               <div className="aspect-video">
                 <iframe 
-                  src="https://www.youtube.com/embed/PeP5SznIL4M" 
+                  src="https://www.youtube.com/embed/eWD5xUjU_48" 
                   title="Asset Docs Introduction Video"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                   allowFullScreen
