@@ -269,6 +269,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -281,6 +305,20 @@ export type Database = {
           file_count: number
           total_size_bytes: number
         }[]
+      }
+      has_any_app_role: {
+        Args: {
+          target_user_id: string
+          allowed_roles: Database["public"]["Enums"]["app_role"][]
+        }
+        Returns: boolean
+      }
+      has_app_role: {
+        Args: {
+          target_user_id: string
+          required_role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: boolean
       }
       has_contributor_access: {
         Args: {
@@ -295,6 +333,7 @@ export type Database = {
       }
     }
     Enums: {
+      app_role: "admin" | "sales" | "marketing" | "viewer"
       contributor_role: "administrator" | "contributor" | "viewer"
     }
     CompositeTypes: {
@@ -423,6 +462,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "sales", "marketing", "viewer"],
       contributor_role: ["administrator", "contributor", "viewer"],
     },
   },
