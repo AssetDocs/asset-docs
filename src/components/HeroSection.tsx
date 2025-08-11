@@ -48,14 +48,12 @@ const HeroSection: React.FC = () => {
                 <video 
                   controls
                   preload="metadata"
-                  poster="/lovable-uploads/video-poster.jpg" 
                   className="w-full h-full rounded-lg object-cover"
                 >
-                  <source src="/path/to/your/video.mp4" type="video/mp4" />
-                  <source src="/path/to/your/video.webm" type="video/webm" />
+                  <source src="/Asset Docs Intro 2.mp4" type="video/mp4" />
                   <p className="text-white/80">
                     Your browser doesn't support HTML5 video. 
-                    <a href="/path/to/your/video.mp4" className="underline">Download the video</a> instead.
+                    <a href="/Asset Docs Intro 2.mp4" className="underline">Download the video</a> instead.
                   </p>
                 </video>
               </div>
