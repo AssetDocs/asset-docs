@@ -41,45 +41,21 @@ const HeroSection: React.FC = () => {
             </div>
           </div>
           
-          {/* Video Section */}
+          {/* YouTube Video */}
           <div className="lg:w-1/3">
             <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-4 animate-fade-in">
               <div className="aspect-video">
-                {/* Try multiple video sources */}
-                <video 
-                  controls
-                  preload="metadata"
-                  className="w-full h-full rounded-lg object-cover"
-                  onError={(e) => {
-                    console.error('Video load error:', e);
-                    // Try to show a fallback message
-                  }}
-                  onLoadStart={() => console.log('Video loading started')}
-                  poster="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQwIiBoZWlnaHQ9IjM2MCIgdmlld0JveD0iMCAwIDY0MCAzNjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI2NDAiIGhlaWdodD0iMzYwIiBmaWxsPSIjMzMzIi8+CjxwYXRoIGQ9Ik0zMjAgMTgwTDM3MCAyMTBMMzIwIDI0MFYxODBaIiBmaWxsPSJ3aGl0ZSIvPgo8dGV4dCB4PSIzMjAiIHk9IjI3MCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNiI+QXNzZXQgRG9jcyBJbnRybzwvdGV4dD4KPHN2Zz4K"
-                >
-                  {/* Try the current path first */}
-                  <source src="/AssetDocsIntro2.mp4" type="video/mp4" />
-                  {/* Try the original path as fallback */}
-                  <source src="/Asset%20Docs%20Intro%202.mp4" type="video/mp4" />
-                  
-                  {/* Fallback content */}
-                  <div className="flex items-center justify-center h-full bg-gray-800 rounded-lg">
-                    <div className="text-center text-white/80">
-                      <div className="text-4xl mb-2">▶</div>
-                      <p className="text-sm">Asset Docs Intro Video</p>
-                      <p className="text-xs mt-2">
-                        <a 
-                          href="https://maaemedia.pixieset.com/assetdocsintro/" 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="underline hover:text-white"
-                        >
-                          View on Pixieset
-                        </a>
-                      </p>
-                    </div>
-                  </div>
-                </video>
+                <iframe 
+                  width="100%" 
+                  height="100%" 
+                  src="https://www.youtube.com/embed/eWD5xUjU_48?si=iRBnqtAIjgJweOX4" 
+                  title="YouTube video player" 
+                  frameBorder="0" 
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                  referrerPolicy="strict-origin-when-cross-origin" 
+                  allowFullScreen
+                  className="w-full h-full rounded-lg"
+                />
               </div>
             </div>
           </div>
