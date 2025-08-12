@@ -49,11 +49,13 @@ const HeroSection: React.FC = () => {
                   controls
                   preload="metadata"
                   className="w-full h-full rounded-lg object-cover"
+                  onError={(e) => console.error('Video load error:', e)}
+                  onLoadStart={() => console.log('Video loading started')}
                 >
-                  <source src="/Asset Docs Intro 2.mp4" type="video/mp4" />
+                  <source src="/Asset%20Docs%20Intro%202.mp4" type="video/mp4" />
                   <p className="text-white/80">
                     Your browser doesn't support HTML5 video. 
-                    <a href="/Asset Docs Intro 2.mp4" className="underline">Download the video</a> instead.
+                    <a href="/Asset%20Docs%20Intro%202.mp4" className="underline">Download the video</a> instead.
                   </p>
                 </video>
               </div>
