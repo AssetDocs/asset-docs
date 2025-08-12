@@ -1,4 +1,6 @@
 
+import { supabase } from "@/integrations/supabase/client";
+
 // AI Analysis Service for photo valuation using OpenAI Vision API
 export interface AIAnalysisResult {
   name: string;
@@ -12,73 +14,26 @@ export interface AIAnalysisResult {
 }
 
 class AIAnalysisService {
-  private apiKey: string | null = null;
-
-  constructor() {
-    // In production, this would come from Supabase secrets
-    this.apiKey = localStorage.getItem('openai_api_key');
-  }
-
   async analyzeImage(file: File): Promise<AIAnalysisResult> {
-    if (!this.apiKey) {
-      // Fallback to mock analysis if no API key
-      return this.mockAnalysis(file);
-    }
-
     try {
       const base64Image = await this.fileToBase64(file);
       
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o',
-          messages: [
-            {
-              role: 'system',
-              content: `You are an expert appraiser. Analyze the image and provide a JSON response with:
-              - name: specific item name
-              - description: detailed description
-              - estimatedValue: estimated dollar value (number only)
-              - confidence: confidence level 0-100
-              - category: item category
-              - condition: condition assessment
-              - brand: brand name if visible
-              - model: model if identifiable`
-            },
-            {
-              role: 'user',
-              content: [
-                {
-                  type: 'text',
-                  text: 'Please analyze this item and provide valuation information in JSON format.'
-                },
-                {
-                  type: 'image_url',
-                  image_url: {
-                    url: base64Image
-                  }
-                }
-              ]
-            }
-          ],
-          max_tokens: 500,
-          temperature: 0.3
-        })
+      const { data, error } = await supabase.functions.invoke('analyze-photo', {
+        body: { base64Image }
       });
 
-      const data = await response.json();
-      const content = data.choices[0].message.content;
-      
-      try {
-        return JSON.parse(content);
-      } catch {
-        // Fallback if JSON parsing fails
+      if (error) {
+        console.error('Edge function error:', error);
         return this.mockAnalysis(file);
       }
+
+      // If the response contains an error field, it's a structured error response
+      if (data.error) {
+        console.error('Analysis error:', data.error);
+        return this.mockAnalysis(file);
+      }
+
+      return data as AIAnalysisResult;
     } catch (error) {
       console.error('AI Analysis failed:', error);
       return this.mockAnalysis(file);
@@ -122,8 +77,9 @@ class AIAnalysisService {
   }
 
   setApiKey(key: string) {
-    this.apiKey = key;
-    localStorage.setItem('openai_api_key', key);
+    // API key is now managed through Supabase secrets
+    // This method is kept for backward compatibility
+    console.log('API key is now managed through Supabase secrets');
   }
 }
 
