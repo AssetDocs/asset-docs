@@ -31,6 +31,7 @@ import Properties from "./pages/Properties";
 import PropertyForm from "./pages/PropertyForm";
 import PhotoUpload from "./pages/PhotoUpload";
 import VideoUpload from "./pages/VideoUpload";
+import Inventory from "./pages/Inventory";
 
 import InsuranceForm from "./pages/InsuranceForm";
 import ScheduleProfessional from "./pages/ScheduleProfessional";
@@ -127,6 +128,8 @@ const AppContent = () => {
         <Route path="/account/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
         
         <Route path="/account/insurance" element={<ProtectedRoute><Insurance /></ProtectedRoute>} />
+        <Route path="/photo-upload" element={<ProtectedRoute><PhotoUpload /></ProtectedRoute>} />
+        <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
         <Route path="/account/photos/upload" element={<ProtectedRoute><PhotoUpload /></ProtectedRoute>} />
         <Route path="/account/videos/upload" element={<ProtectedRoute><VideoUpload /></ProtectedRoute>} />
         

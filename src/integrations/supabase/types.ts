@@ -128,6 +128,75 @@ export type Database = {
         }
         Relationships: []
       }
+      items: {
+        Row: {
+          ai_generated: boolean | null
+          brand: string | null
+          category: string | null
+          condition: string | null
+          confidence: number | null
+          created_at: string
+          description: string | null
+          estimated_value: number | null
+          id: string
+          is_manual_entry: boolean | null
+          item_type: string | null
+          location: string | null
+          model: string | null
+          name: string
+          photo_path: string | null
+          photo_url: string | null
+          property_id: string | null
+          property_upgrade: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_generated?: boolean | null
+          brand?: string | null
+          category?: string | null
+          condition?: string | null
+          confidence?: number | null
+          created_at?: string
+          description?: string | null
+          estimated_value?: number | null
+          id?: string
+          is_manual_entry?: boolean | null
+          item_type?: string | null
+          location?: string | null
+          model?: string | null
+          name: string
+          photo_path?: string | null
+          photo_url?: string | null
+          property_id?: string | null
+          property_upgrade?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_generated?: boolean | null
+          brand?: string | null
+          category?: string | null
+          condition?: string | null
+          confidence?: number | null
+          created_at?: string
+          description?: string | null
+          estimated_value?: number | null
+          id?: string
+          is_manual_entry?: boolean | null
+          item_type?: string | null
+          location?: string | null
+          model?: string | null
+          name?: string
+          photo_path?: string | null
+          photo_url?: string | null
+          property_id?: string | null
+          property_upgrade?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           city: string
@@ -190,6 +259,62 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      receipts: {
+        Row: {
+          created_at: string
+          file_size: number | null
+          id: string
+          item_id: string
+          merchant_name: string | null
+          notes: string | null
+          purchase_amount: number | null
+          purchase_date: string | null
+          receipt_name: string
+          receipt_path: string
+          receipt_url: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_size?: number | null
+          id?: string
+          item_id: string
+          merchant_name?: string | null
+          notes?: string | null
+          purchase_amount?: number | null
+          purchase_date?: string | null
+          receipt_name: string
+          receipt_path: string
+          receipt_url: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          file_size?: number | null
+          id?: string
+          item_id?: string
+          merchant_name?: string | null
+          notes?: string | null
+          purchase_amount?: number | null
+          purchase_date?: string | null
+          receipt_name?: string
+          receipt_path?: string
+          receipt_url?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receipts_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       storage_usage: {
         Row: {

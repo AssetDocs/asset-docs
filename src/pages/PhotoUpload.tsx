@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { aiAnalysisService } from '@/components/AIAnalysisService';
 import { StorageService } from '@/services/StorageService';
+import { ItemService } from '@/services/ItemService';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -171,7 +172,7 @@ const PhotoUpload: React.FC = () => {
     if (!user?.id) {
       toast({
         title: "Authentication required",
-        description: "Please log in to save your photos.",
+        description: "Please log in to save your items.",
         variant: "destructive",
       });
       return;
@@ -180,53 +181,61 @@ const PhotoUpload: React.FC = () => {
     setIsSaving(true);
     
     try {
-      const savedItems = [];
-      
-      // Upload files with photos to Supabase Storage
+      // Upload files to storage and save item details
       for (const item of uploadedItems) {
+        let photoUrl = '';
+        let photoPath = '';
+
+        // Upload file if it exists
         if (item.file) {
-          try {
-            const uploadResult = await StorageService.uploadFile(
-              item.file,
-              'photos',
-              user.id,
-              `${item.name.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.${item.file.name.split('.').pop()}`
-            );
-            
-            const savedItem = {
-              ...item,
-              url: uploadResult.url,
-              path: uploadResult.path,
-              file: undefined // Remove file object after upload
-            };
-            savedItems.push(savedItem);
-          } catch (error) {
-            console.error('Failed to upload file:', item.name, error);
-            toast({
-              title: "Upload failed",
-              description: `Failed to upload ${item.name}. Please try again.`,
-              variant: "destructive",
-            });
-          }
-        } else {
-          // Manual entries without files
-          savedItems.push(item);
+          const uploadResult = await StorageService.uploadFile(
+            item.file,
+            'photos',
+            user.id,
+            `${item.name.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.${item.file.name.split('.').pop()}`
+          );
+          photoUrl = uploadResult.url;
+          photoPath = uploadResult.path;
         }
+
+        // Save item to database
+        await ItemService.createItem({
+          user_id: user.id,
+          name: item.name || 'Untitled Item',
+          description: item.description,
+          estimated_value: item.estimatedValue,
+          category: item.category,
+          item_type: item.itemType,
+          property_upgrade: item.propertyUpgrade,
+          property_id: item.propertyId,
+          location: item.location,
+          condition: item.condition,
+          brand: item.brand,
+          model: item.model,
+          photo_url: photoUrl,
+          photo_path: photoPath,
+          ai_generated: item.aiGenerated,
+          confidence: item.confidence,
+          is_manual_entry: item.isManualEntry
+        });
       }
 
-      console.log('Items saved to storage:', savedItems);
-      
       toast({
-        title: "Success!",
-        description: `${savedItems.length} items saved successfully.`,
+        title: "Items saved successfully!",
+        description: `${uploadedItems.length} item(s) have been saved to your inventory.`,
       });
+
+      // Clear the form
+      setSelectedFiles([]);
+      setUploadedItems([]);
       
-      navigate('/account/photos');
+      // Navigate to inventory page
+      navigate('/inventory');
     } catch (error) {
       console.error('Error saving items:', error);
       toast({
         title: "Save failed",
-        description: "Failed to save items. Please try again.",
+        description: "There was an error saving your items. Please try again.",
         variant: "destructive",
       });
     } finally {
