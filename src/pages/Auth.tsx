@@ -457,6 +457,15 @@ const Auth: React.FC = () => {
                       {isLoading ? 'Creating Account...' : 'Create Account'}
                     </Button>
 
+                    <div className="text-center mt-3">
+                      <p className="text-sm text-green-600 font-medium">
+                        🎉 Your 30-day free trial starts here
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        No credit card required to get started
+                      </p>
+                    </div>
+
                     {/* Subscription Promotion Section - Only in Sign Up */}
                     <div className="mt-6 p-4 bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg border border-primary/20">
                       <div className="text-center">
