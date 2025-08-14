@@ -32,6 +32,9 @@
     --orange: 30 100% 50%;
     --orange-foreground: 210 40% 98%;
 
+    --yellow: 45 98% 65%;
+    --yellow-foreground: 45 10% 20%;
+
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
@@ -75,6 +78,9 @@
 
     --orange: 30 100% 50%;
     --orange-foreground: 210 40% 98%;
+
+    --yellow: 45 98% 65%;
+    --yellow-foreground: 45 10% 20%;
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;

@@ -76,7 +76,7 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ onEnterSite }) => {
             Comprehensive protection and documentation services for homeowners, renters, business owners, landlords, and more.
           </p>
           
-          <div className="bg-accent/10 rounded-lg p-6 mb-8">
+          <div className="bg-yellow/20 border-2 border-yellow rounded-lg p-6 mb-8">
             <p className="text-muted-foreground">
               This website is still under construction. However, feel free to browse around and learn more about the services we offer. Please reach out with any questions you may have.
             </p>
