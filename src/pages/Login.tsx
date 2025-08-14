@@ -93,6 +93,22 @@ const Login: React.FC = () => {
             </Button>
           </form>
           
+          {/* Subscription Promotion Section */}
+          <div className="mt-8 p-4 bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg border border-primary/20">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-primary mb-2">
+                Ready for Full Access?
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Are you ready to access all of the features Asset Docs has to offer? 
+                Click here to subscribe and start your free 30-day trial.
+              </p>
+              <Button asChild variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+                <Link to="/pricing">View Subscription Plans</Link>
+              </Button>
+            </div>
+          </div>
+          
           <div className="mt-6 text-center">
             <p className="text-gray-600">
               Don't have an account?{" "}
