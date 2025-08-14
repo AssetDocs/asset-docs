@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import useScrollToTop from "@/hooks/useScrollToTop";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
@@ -18,7 +18,6 @@ import Scenarios from "./pages/Scenarios";
 import Pricing from "./pages/Pricing";
 import Gift from "./pages/Gift";
 import GiftCheckout from "./pages/GiftCheckout";
-import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -94,7 +93,6 @@ const AppContent = () => {
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<Index />} />
-        <Route path="/auth" element={<Auth />} />
         <Route path="/features" element={<Features />} />
         <Route path="/scenarios" element={<Scenarios />} />
         <Route path="/terms" element={<Terms />} />
@@ -110,8 +108,9 @@ const AppContent = () => {
         <Route path="/sample-dashboard" element={<SampleDashboard />} />
         
         {/* Authentication routes */}
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={<Navigate to="/auth" replace />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/auth" element={<Auth />} />
         
         {/* Public FAQ route */}
         <Route path="/qa" element={<QA />} />

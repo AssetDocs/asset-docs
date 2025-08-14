@@ -68,7 +68,7 @@ const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({
             <CardDescription>Please sign in to access this feature</CardDescription>
           </CardHeader>
           <CardContent>
-            <Link to="/login">
+            <Link to="/auth">
               <Button className="w-full">Sign In</Button>
             </Link>
           </CardContent>
