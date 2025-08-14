@@ -45,41 +45,67 @@ const handler = async (req: Request): Promise<Response> => {
           </p>
           
           <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
-            Thank you for joining Asset Docs! We're excited to help you protect and organize your valuable assets with our secure digital documentation platform.
+            We're thrilled to have you join the Asset Docs community! You're now part of a growing network of homeowners, renters, and business owners who are taking control of their asset protection and documentation.
           </p>
           
+          <div style="background: #f0f9ff; padding: 20px; border-radius: 8px; margin: 30px 0; border-left: 4px solid #1e40af;">
+            <h2 style="color: #1e40af; font-size: 20px; margin-top: 0;">🎉 Your 30-Day Free Trial Starts Now!</h2>
+            <p style="color: #1e3a8a; margin: 0; font-size: 16px;">
+              No credit card required - explore all these features during your trial period.
+            </p>
+          </div>
+          
           <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 30px 0;">
-            <h2 style="color: #1e40af; font-size: 20px; margin-top: 0;">🚀 Get Started with These Steps:</h2>
-            <ul style="color: #666; line-height: 1.8; padding-left: 20px;">
-              <li><strong>Complete your profile:</strong> Add your personal information and preferences</li>
-              <li><strong>Add your first property:</strong> Start documenting your home or business assets</li>
-              <li><strong>Upload photos & documents:</strong> Secure your important files in the cloud</li>
-              <li><strong>Explore AI features:</strong> Let our AI help identify and value your items</li>
-              <li><strong>Set up storage preferences:</strong> Organize your assets with custom folders</li>
+            <h3 style="color: #10b981; font-size: 18px; margin-top: 0;">✅ What's Included in Your Free Trial:</h3>
+            <ul style="color: #666; line-height: 1.8; padding-left: 20px; margin: 10px 0;">
+              <li><strong>Account Settings:</strong> Personalize your profile and preferences</li>
+              <li><strong>Property Profiles:</strong> Create detailed profiles for all your properties</li>
+              <li><strong>Photo Upload & Management:</strong> Secure cloud storage for your asset photos</li>
             </ul>
+          </div>
+          
+          <div style="background: #fef2f2; padding: 20px; border-radius: 8px; margin: 30px 0; border-left: 4px solid #ef4444;">
+            <h3 style="color: #dc2626; font-size: 18px; margin-top: 0;">🔒 Premium Features (Available After Subscription):</h3>
+            <ul style="color: #666; line-height: 1.8; padding-left: 20px; margin: 10px 0;">
+              <li><strong>Video Upload & Management:</strong> Store and organize video documentation</li>
+              <li><strong>Document Storage:</strong> Secure storage for receipts, warranties, and contracts</li>
+              <li><strong>Insurance Information:</strong> Comprehensive insurance tracking and management</li>
+              <li><strong>Export Assets:</strong> Download your data in various formats</li>
+              <li><strong>Download Files:</strong> Access all your stored files offline</li>
+            </ul>
+          </div>
+          
+          <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 30px 0;">
+            <h3 style="color: #1e40af; font-size: 18px; margin-top: 0;">📚 Helpful Resources:</h3>
+            <div style="display: flex; flex-wrap: wrap; gap: 15px; margin: 15px 0;">
+              <a href="${req.headers.get("origin") || 'https://assetdocs.net'}/video-help" style="color: #1e40af; text-decoration: none; padding: 8px 16px; background: #e0f2fe; border-radius: 5px; font-size: 14px;">📹 Video Help</a>
+              <a href="${req.headers.get("origin") || 'https://assetdocs.net'}/resources" style="color: #1e40af; text-decoration: none; padding: 8px 16px; background: #e0f2fe; border-radius: 5px; font-size: 14px;">📖 Resources</a>
+              <a href="${req.headers.get("origin") || 'https://assetdocs.net'}/social-impact" style="color: #1e40af; text-decoration: none; padding: 8px 16px; background: #e0f2fe; border-radius: 5px; font-size: 14px;">🌍 Social Impact</a>
+              <a href="${req.headers.get("origin") || 'https://assetdocs.net'}/qa" style="color: #1e40af; text-decoration: none; padding: 8px 16px; background: #e0f2fe; border-radius: 5px; font-size: 14px;">❓ Q&A</a>
+            </div>
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
             <a href="${req.headers.get("origin") || 'https://assetdocs.net'}/account" 
-               style="background: #1e40af; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
-              Access Your Dashboard
+               style="background: #1e40af; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block; font-size: 16px;">
+              Start Your Free Trial Now
             </a>
           </div>
           
           <div style="background: #ecfdf5; border-left: 4px solid #10b981; padding: 15px; margin: 30px 0;">
-            <h3 style="color: #065f46; margin-top: 0; font-size: 16px;">💡 Pro Tip:</h3>
+            <h3 style="color: #065f46; margin-top: 0; font-size: 16px;">💡 Getting Started Tip:</h3>
             <p style="color: #047857; margin: 0; font-size: 14px;">
-              Start by documenting your most valuable items first. Our AI can help identify and estimate values automatically!
+              Begin by adding your most valuable items and take advantage of our AI-powered identification and valuation features!
             </p>
           </div>
           
           <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
-            If you have any questions or need assistance getting started, don't hesitate to reach out to our support team at 
+            Questions? Need help getting started? Our support team is here to help at 
             <a href="mailto:info@assetdocs.net" style="color: #1e40af;">info@assetdocs.net</a>.
           </p>
           
           <p style="color: #666; margin-bottom: 30px;">
-            Welcome aboard!<br>
+            Welcome to your digital safety net!<br>
             <strong>The Asset Docs Team</strong>
           </p>
           
