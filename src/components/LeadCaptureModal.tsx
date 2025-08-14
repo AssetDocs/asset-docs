@@ -117,7 +117,7 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
   };
 
   const handleStartTrial = () => {
-    window.location.href = '/pricing';
+    window.location.href = '/login';
   };
 
   const handleCloseModal = () => {
