@@ -111,11 +111,26 @@ const QA: React.FC = () => {
                 </AccordionContent>
               </AccordionItem>
               
+              <AccordionItem value="item-10">
+                <AccordionTrigger className="text-lg font-medium">What is included in my 30-day free trial?</AccordionTrigger>
+                <AccordionContent>
+                  Your free 30-day trial includes Account Settings, Property Profiles, and Photo upload and management. 
+                  What's not included are premium features such as:
+                  <ul className="list-disc list-inside mt-2 ml-4 space-y-1">
+                    <li>Video upload and management</li>
+                    <li>Document storage</li>
+                    <li>Insurance Information</li>
+                    <li>Export Assets</li>
+                    <li>Download Files</li>
+                  </ul>
+                  <p className="mt-2">You can upgrade to access all premium features at any time during or after your trial.</p>
+                </AccordionContent>
+              </AccordionItem>
               
               <AccordionItem value="item-11">
                 <AccordionTrigger className="text-lg font-medium">How do I get started with Asset Docs?</AccordionTrigger>
                 <AccordionContent>
-                  Getting started is easy! Sign up for a free 14-day trial and start using our web platform. 
+                  Getting started is easy! Sign up for a free 30-day trial and start using our web platform. 
                   You can begin documenting your possessions right away by taking photos or videos. For more 
                   comprehensive documentation, you can request our professional documentation service for high-value assets.
                 </AccordionContent>
