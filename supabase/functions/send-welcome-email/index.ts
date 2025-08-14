@@ -61,6 +61,7 @@ const handler = async (req: Request): Promise<Response> => {
               <li><strong>Account Settings:</strong> Personalize your profile and preferences</li>
               <li><strong>Property Profiles:</strong> Create detailed profiles for all your properties</li>
               <li><strong>Photo Upload & Management:</strong> Secure cloud storage for your asset photos</li>
+              <li><strong>Asset Valuation:</strong> AI-powered identification and valuation of your items</li>
             </ul>
           </div>
           
@@ -72,6 +73,8 @@ const handler = async (req: Request): Promise<Response> => {
               <li><strong>Insurance Information:</strong> Comprehensive insurance tracking and management</li>
               <li><strong>Export Assets:</strong> Download your data in various formats</li>
               <li><strong>Download Files:</strong> Access all your stored files offline</li>
+              <li><strong>Post Damage Reporting:</strong> Document and report damage claims</li>
+              <li><strong>Voice Notes:</strong> Audio recording and management features</li>
             </ul>
           </div>
           

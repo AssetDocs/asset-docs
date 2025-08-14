@@ -114,7 +114,7 @@ const QA: React.FC = () => {
               <AccordionItem value="item-10">
                 <AccordionTrigger className="text-lg font-medium">What is included in my 30-day free trial?</AccordionTrigger>
                 <AccordionContent>
-                  Your free 30-day trial includes Account Settings, Property Profiles, and Photo upload and management. 
+                  Your free 30-day trial includes Account Settings, Property Profiles, Photo upload and management, and Asset Valuation. 
                   What's not included are premium features such as:
                   <ul className="list-disc list-inside mt-2 ml-4 space-y-1">
                     <li>Video upload and management</li>
@@ -122,6 +122,8 @@ const QA: React.FC = () => {
                     <li>Insurance Information</li>
                     <li>Export Assets</li>
                     <li>Download Files</li>
+                    <li>Post damage reporting</li>
+                    <li>Voice notes</li>
                   </ul>
                   <p className="mt-2">You can upgrade to access all premium features at any time during or after your trial.</p>
                 </AccordionContent>
