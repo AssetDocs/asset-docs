@@ -38,9 +38,9 @@ const Login: React.FC = () => {
       <div className="flex-grow flex items-center justify-center py-12 px-4">
         <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md border border-gray-200">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-brand-blue mb-2">Welcome Back</h1>
+            <h1 className="text-3xl font-bold text-brand-blue mb-2">Welcome</h1>
             <p className="text-gray-600">
-              Sign in to access your secure documentation
+              Create an account to access your dashboard
             </p>
           </div>
           
