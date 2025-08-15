@@ -34,6 +34,27 @@ serve(async (req) => {
     { auth: { persistSession: false } }
   );
 
+  // Get authenticated user if present (for purchaser_user_id)
+  let purchaserUserId = null;
+  const authHeader = req.headers.get('Authorization');
+  if (authHeader) {
+    const userSupabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      { auth: { persistSession: false } }
+    );
+    
+    try {
+      const { data: { user } } = await userSupabaseClient.auth.getUser(
+        authHeader.replace('Bearer ', '')
+      );
+      purchaserUserId = user?.id || null;
+      logStep("Authenticated purchaser found", { purchaserUserId });
+    } catch (error) {
+      logStep("No authenticated purchaser found", error);
+    }
+  }
+
   try {
     logStep("Function started");
 
@@ -156,6 +177,7 @@ serve(async (req) => {
         purchaser_email: purchaserEmail,
         purchaser_name: purchaserName,
         purchaser_phone: purchaserPhone || null,
+        purchaser_user_id: purchaserUserId, // Add purchaser user ID for security
         recipient_email: recipientEmail,
         recipient_name: recipientName,
         gift_message: giftMessage || null,

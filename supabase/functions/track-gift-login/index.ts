@@ -46,13 +46,14 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Update first_login_at if it's not already set
+    // Update first_login_at and set recipient_user_id if not already set
     if (!giftSub.first_login_at) {
       const { error: updateError } = await supabase
         .from('gift_subscriptions')
         .update({
           first_login_at: new Date().toISOString(),
-          redeemed_by_user_id: user_id
+          redeemed_by_user_id: user_id,
+          recipient_user_id: user_id // Set recipient_user_id for secure access
         })
         .eq('id', giftSub.id);
 

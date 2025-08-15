@@ -67,8 +67,10 @@ export type Database = {
           purchaser_email: string
           purchaser_name: string
           purchaser_phone: string | null
+          purchaser_user_id: string | null
           recipient_email: string
           recipient_name: string
+          recipient_user_id: string | null
           redeemed: boolean | null
           redeemed_at: string | null
           redeemed_by_user_id: string | null
@@ -91,8 +93,10 @@ export type Database = {
           purchaser_email: string
           purchaser_name: string
           purchaser_phone?: string | null
+          purchaser_user_id?: string | null
           recipient_email: string
           recipient_name: string
+          recipient_user_id?: string | null
           redeemed?: boolean | null
           redeemed_at?: string | null
           redeemed_by_user_id?: string | null
@@ -115,8 +119,10 @@ export type Database = {
           purchaser_email?: string
           purchaser_name?: string
           purchaser_phone?: string | null
+          purchaser_user_id?: string | null
           recipient_email?: string
           recipient_name?: string
+          recipient_user_id?: string | null
           redeemed?: boolean | null
           redeemed_at?: string | null
           redeemed_by_user_id?: string | null
