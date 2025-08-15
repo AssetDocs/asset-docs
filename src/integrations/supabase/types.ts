@@ -446,6 +446,10 @@ export type Database = {
           total_size_bytes: number
         }[]
       }
+      claim_gift_subscription: {
+        Args: { p_gift_code: string }
+        Returns: Json
+      }
       has_any_app_role: {
         Args: {
           allowed_roles: Database["public"]["Enums"]["app_role"][]
