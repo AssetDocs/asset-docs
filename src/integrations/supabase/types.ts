@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -204,8 +204,11 @@ export type Database = {
           email: string
           how_heard: string
           id: string
+          ip_address: unknown | null
           name: string
           state: string
+          submitted_at: string | null
+          user_agent: string | null
         }
         Insert: {
           city: string
@@ -213,8 +216,11 @@ export type Database = {
           email: string
           how_heard: string
           id?: string
+          ip_address?: unknown | null
           name: string
           state: string
+          submitted_at?: string | null
+          user_agent?: string | null
         }
         Update: {
           city?: string
@@ -222,8 +228,11 @@ export type Database = {
           email?: string
           how_heard?: string
           id?: string
+          ip_address?: unknown | null
           name?: string
           state?: string
+          submitted_at?: string | null
+          user_agent?: string | null
         }
         Relationships: []
       }
@@ -433,22 +442,22 @@ export type Database = {
       }
       has_any_app_role: {
         Args: {
-          target_user_id: string
           allowed_roles: Database["public"]["Enums"]["app_role"][]
+          target_user_id: string
         }
         Returns: boolean
       }
       has_app_role: {
         Args: {
-          target_user_id: string
           required_role: Database["public"]["Enums"]["app_role"]
+          target_user_id: string
         }
         Returns: boolean
       }
       has_contributor_access: {
         Args: {
-          target_user_id: string
           required_role: Database["public"]["Enums"]["contributor_role"]
+          target_user_id: string
         }
         Returns: boolean
       }

@@ -48,7 +48,8 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
     email: '',
     city: '',
     state: '',
-    howHeard: ''
+    howHeard: '',
+    honeypot: '' // Hidden field to catch bots
   });
   const [marketingConsent, setMarketingConsent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -77,18 +78,26 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase
-        .from('leads')
-        .insert([{
+      const { data, error } = await supabase.functions.invoke('submit-lead', {
+        body: {
           name: formData.name,
           email: formData.email,
           city: formData.city,
           state: formData.state,
           how_heard: formData.howHeard,
-          marketing_consent: marketingConsent
-        }]);
+          marketing_consent: marketingConsent,
+          honeypot: formData.honeypot
+        }
+      });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error response:', error);
+        throw new Error(error.message || 'Failed to submit lead');
+      }
+
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to submit lead');
+      }
 
       // Generate and download the PDF
       await InventoryChecklistPDFService.generateInventoryChecklistPDF();
@@ -104,11 +113,11 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
       // Show success state with call-to-action
       setShowSuccessState(true);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting lead:', error);
       toast({
         title: "Error",
-        description: "There was an error saving your information. Please try again.",
+        description: error.message || "There was an error saving your information. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -127,7 +136,8 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
       email: '',
       city: '',
       state: '',
-      howHeard: ''
+      howHeard: '',
+      honeypot: ''
     });
     setMarketingConsent(false);
     setShowSuccessState(false);
@@ -149,6 +159,19 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
             </DialogHeader>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Honeypot field - hidden from users but visible to bots */}
+              <div className="hidden">
+                <Label htmlFor="website">Website (leave blank)</Label>
+                <Input
+                  id="website"
+                  type="text"
+                  value={formData.honeypot}
+                  onChange={(e) => handleInputChange('honeypot', e.target.value)}
+                  tabIndex={-1}
+                  autoComplete="off"
+                />
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name *</Label>
                 <Input

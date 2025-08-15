@@ -1,5 +1,8 @@
 project_id = "leotcbfpqiekgkgumecn"
 
+[functions.submit-lead]
+verify_jwt = false
+
 [functions.analyze-photo]
 verify_jwt = true
 
