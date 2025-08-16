@@ -14,7 +14,7 @@ const CTASection: React.FC = () => {
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-4">
           <Button asChild size="lg" className="bg-white text-orange-500 hover:bg-gray-100">
-            <Link to="/auth">Start Your Free 30-Day Trial</Link>
+            <a href="https://asset-docs.outseta.com/auth?widgetMode=register#o-anonymous">Start Your Free 30-Day Trial</a>
           </Button>
           <ShareButton 
             variant="outline" 

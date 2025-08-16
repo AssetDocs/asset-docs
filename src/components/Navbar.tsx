@@ -71,22 +71,20 @@ const Navbar: React.FC = () => {
                   {translate('nav.videoHelp')}
                 </Link>
                 <div className="flex items-center space-x-4">
-                  <Link 
-                    to="/account/settings" 
+                  <a 
+                    href="https://asset-docs.outseta.com/profile#o-authenticated" 
                     className="flex items-center text-gray-700 hover:text-brand-blue transition-colors"
                   >
                     <User className="h-4 w-4 mr-1" />
                      {profile?.first_name || translate('nav.account')}
-                  </Link>
-                  <Button 
-                    onClick={signOut}
-                    variant="outline"
-                    size="sm"
-                    className="text-gray-700 hover:text-red-600"
+                  </a>
+                  <a 
+                    href="http://www.assetdoc.net/#o-logout-link"
+                    className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3 text-gray-700 hover:text-red-600"
                   >
                     <LogOut className="h-4 w-4 mr-1" />
                      {translate('nav.signOut')}
-                  </Button>
+                  </a>
                 </div>
               </>
             ) : (
@@ -110,12 +108,12 @@ const Navbar: React.FC = () => {
                   <Video className="h-4 w-4 mr-1" />
                   {translate('nav.videoHelp')}
                 </Link>
-                <Link 
-                  to="/auth" 
+                <a 
+                  href="https://asset-docs.outseta.com/auth?widgetMode=login#o-anonymous" 
                   className="px-3 py-2 border border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white transition-colors rounded-md"
                 >
                   {translate('nav.login')}
-                </Link>
+                </a>
                 <Button asChild className="bg-brand-orange hover:bg-brand-orange/90">
                    <Link to="/pricing">{translate('nav.getStarted')}</Link>
                 </Button>
@@ -191,26 +189,22 @@ const Navbar: React.FC = () => {
                     <Video className="h-4 w-4 mr-1" />
                     {translate('nav.videoHelp')}
                   </Link>
-                  <Link 
-                    to="/account/settings" 
+                  <a 
+                    href="https://asset-docs.outseta.com/profile#o-authenticated" 
                     className="text-gray-700 hover:text-brand-blue transition-colors py-2 flex items-center"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <User className="h-4 w-4 mr-1" />
                     {profile?.first_name || translate('nav.account')}
-                  </Link>
-                  <Button 
-                    onClick={() => {
-                      signOut();
-                      setIsMenuOpen(false);
-                    }}
-                    variant="outline"
-                    size="sm"
-                    className="text-gray-700 hover:text-red-600 w-fit"
+                  </a>
+                  <a 
+                    href="http://www.assetdoc.net/#o-logout-link"
+                    className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3 text-gray-700 hover:text-red-600 w-fit"
+                    onClick={() => setIsMenuOpen(false)}
                   >
                     <LogOut className="h-4 w-4 mr-1" />
                     {translate('nav.signOut')}
-                  </Button>
+                  </a>
                 </>
               ) : (
                 <>
@@ -250,13 +244,13 @@ const Navbar: React.FC = () => {
                     <Video className="h-4 w-4 mr-1" />
                     {translate('nav.videoHelp')}
                   </Link>
-                  <Link 
-                    to="/auth" 
+                  <a 
+                    href="https://asset-docs.outseta.com/auth?widgetMode=login#o-anonymous" 
                     className="px-3 py-2 border border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white transition-colors rounded-md inline-block"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     {translate('nav.login')}
-                  </Link>
+                  </a>
                   <Button 
                     asChild 
                     className="bg-brand-orange hover:bg-brand-orange/90 w-fit"

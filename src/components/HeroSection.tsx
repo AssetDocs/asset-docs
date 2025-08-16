@@ -25,7 +25,7 @@ const HeroSection: React.FC = () => {
             
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 animate-slide-up">
               <Button asChild size="lg" className="bg-white text-orange-500 hover:bg-gray-100">
-                <Link to="/auth">Start Your Free 30-Day Trial</Link>
+                <a href="https://asset-docs.outseta.com/auth?widgetMode=register#o-anonymous">Start Your Free 30-Day Trial</a>
               </Button>
               <Button asChild size="lg" className="bg-white text-brand-blue hover:bg-gray-100">
                 <Link to="/sample-dashboard">View Sample Dashboard</Link>

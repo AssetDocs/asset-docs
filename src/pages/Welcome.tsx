@@ -34,7 +34,7 @@ const Welcome: React.FC = () => {
             
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Button asChild size="lg" className="bg-brand-blue hover:bg-brand-lightBlue">
-                <Link to="/auth">Continue to Login</Link>
+                <a href="https://asset-docs.outseta.com/auth?widgetMode=login#o-anonymous">Continue to Login</a>
               </Button>
               
               <Button asChild size="lg" variant="outline" className="border-brand-blue text-brand-blue">

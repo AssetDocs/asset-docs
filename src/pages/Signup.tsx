@@ -281,9 +281,9 @@ const Signup: React.FC = () => {
           <div className="mt-6 text-center">
             <p className="text-gray-600">
               Already have an account?{" "}
-              <Link to="/auth" className="text-brand-blue hover:underline">
+              <a href="https://asset-docs.outseta.com/auth?widgetMode=login#o-anonymous" className="text-brand-blue hover:underline">
                 Log in here
-              </Link>
+              </a>
             </p>
           </div>
         </div>

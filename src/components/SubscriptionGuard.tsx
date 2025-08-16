@@ -68,9 +68,9 @@ const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({
             <CardDescription>Please sign in to access this feature</CardDescription>
           </CardHeader>
           <CardContent>
-            <Link to="/auth">
+            <a href="https://asset-docs.outseta.com/auth?widgetMode=login#o-anonymous">
               <Button className="w-full">Sign In</Button>
-            </Link>
+            </a>
           </CardContent>
         </Card>
       </div>
