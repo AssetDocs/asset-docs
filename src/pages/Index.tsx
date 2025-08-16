@@ -45,6 +45,26 @@ const Index: React.FC = () => {
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <HeroSection />
+      
+      {/* Outseta Sign-up Embed */}
+      <section className="py-12 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="max-w-2xl mx-auto text-center">
+            <h2 className="text-2xl font-bold mb-4 text-gray-900">Get Started Today</h2>
+            <p className="text-lg text-gray-600 mb-8">Join thousands of property owners protecting their assets</p>
+            <div className="bg-white rounded-lg shadow-lg p-8">
+              <div data-o-auth="1"
+                   data-widget-mode="register"
+                   data-plan-uid="7ma6VJQE"
+                   data-plan-payment-term="month"
+                   data-skip-plan-options="true"
+                   data-mode="embed">
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
       <AboutSection />
       <GiftSection />
       <FeaturedSection />
