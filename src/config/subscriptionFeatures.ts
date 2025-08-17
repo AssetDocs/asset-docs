@@ -108,6 +108,20 @@ export const SUBSCRIPTION_FEATURES: Record<string, FeatureConfig> = {
     description: 'Create and customize your own checklists',
     requiredTier: 'standard',
     fallbackMessage: 'Upgrade to Standard to create custom checklists'
+  },
+
+  // Voice Notes and Damage Features
+  voice_notes: {
+    name: 'Voice Notes',
+    description: 'Record voice notes for items with sentimental or historical significance',
+    requiredTier: 'standard',
+    fallbackMessage: 'Upgrade to Standard to access voice notes feature'
+  },
+  post_damage_reports: {
+    name: 'Post Damage Reports',
+    description: 'Generate comprehensive damage reports with photos and videos',
+    requiredTier: 'standard',
+    fallbackMessage: 'Upgrade to Standard to access damage reporting feature'
   }
 };
 

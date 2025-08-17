@@ -201,6 +201,22 @@ const VoiceNotesSection: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Voice Notes Purpose Note */}
+      <Card className="bg-blue-50 border-blue-200">
+        <CardContent className="pt-6">
+          <div className="text-center space-y-2">
+            <h3 className="font-semibold text-blue-900">Voice Notes Purpose</h3>
+            <p className="text-blue-800 text-sm">
+              Use voice notes for items that need <strong>Clarifications & Details</strong>, have <strong>sentimental or historical significance</strong>, 
+              <strong> emotional value</strong>, or contain <strong>practical notes for future use</strong>.
+            </p>
+            <p className="text-blue-700 text-xs italic">
+              Photos show what it looks like • Videos show what it does • Voice notes tell why it matters
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Recording Section */}
       <Card>
         <CardHeader>

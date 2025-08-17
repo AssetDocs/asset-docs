@@ -4,7 +4,7 @@ import Footer from '@/components/Footer';
 import { Link } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Camera, Shield, Lock, FileImage, BarChart, Clock, Home, Building, Briefcase, Scale, Truck, Users, TrendingUp, Heart, Handshake, MapPin, Smartphone, Cloud, Share2, FileText, DollarSign, UserCheck, Globe, Calculator, ClipboardList, ShieldCheck, Timer, Archive, Download, GraduationCap, Car, Plane, Anchor, Factory, Stethoscope, HardHat, Church, Palette, Hammer, Trash2, Scan, Upload, CheckCircle } from 'lucide-react';
+import { Camera, Shield, Lock, FileImage, BarChart, Clock, Home, Building, Briefcase, Scale, Truck, Users, TrendingUp, Heart, Handshake, MapPin, Smartphone, Cloud, Share2, FileText, DollarSign, UserCheck, Globe, Calculator, ClipboardList, ShieldCheck, Timer, Archive, Download, GraduationCap, Car, Plane, Anchor, Factory, Stethoscope, HardHat, Church, Palette, Hammer, Trash2, Scan, Upload, CheckCircle, AlertTriangle } from 'lucide-react';
 
 const Features: React.FC = () => {
   return (
@@ -80,6 +80,20 @@ const Features: React.FC = () => {
                   <h3 className="text-xl font-semibold mb-2">Insurance Claims</h3>
                   <p className="text-gray-600">Streamlined claims process with pre-documented proof of ownership and condition.</p>
                 </div>
+
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="h-8 w-8 bg-brand-blue text-white rounded-lg flex items-center justify-center text-sm font-bold">♪</span>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">Voice Notes</h3>
+                  <p className="text-gray-600">Add voice recordings to capture sentimental value, historical significance, and important details that photos can't convey.</p>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <AlertTriangle className="h-8 w-8 text-brand-blue mb-3" />
+                  <h3 className="text-xl font-semibold mb-2">Post Damage Documentation</h3>
+                  <p className="text-gray-600">Comprehensive damage recording with photos, videos, and detailed reports for insurance claims.</p>
+                </div>
               </div>
             </TabsContent>
             
@@ -127,6 +141,20 @@ const Features: React.FC = () => {
                   <Shield className="h-8 w-8 text-brand-blue mb-3" />
                   <h3 className="text-xl font-semibold mb-2">Insurance Support</h3>
                   <p className="text-gray-600">Detailed records for renter's insurance claims and coverage verification.</p>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="h-8 w-8 bg-brand-blue text-white rounded-lg flex items-center justify-center text-sm font-bold">♪</span>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">Voice Notes</h3>
+                  <p className="text-gray-600">Record important details about personal belongings, their history, and emotional significance for comprehensive documentation.</p>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <AlertTriangle className="h-8 w-8 text-brand-blue mb-3" />
+                  <h3 className="text-xl font-semibold mb-2">Post Damage Documentation</h3>
+                  <p className="text-gray-600">Document rental property damage with detailed reports to protect your security deposit and personal property.</p>
                 </div>
               </div>
             </TabsContent>
@@ -176,6 +204,20 @@ const Features: React.FC = () => {
                   <h3 className="text-xl font-semibold mb-2">Disaster Recovery</h3>
                   <p className="text-gray-600">Essential documentation for business continuity and insurance claims.</p>
                 </div>
+
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="h-8 w-8 bg-brand-blue text-white rounded-lg flex items-center justify-center text-sm font-bold">♪</span>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">Voice Notes</h3>
+                  <p className="text-gray-600">Capture business asset history, operational details, and critical information that supplements visual documentation.</p>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <AlertTriangle className="h-8 w-8 text-brand-blue mb-3" />
+                  <h3 className="text-xl font-semibold mb-2">Post Damage Documentation</h3>
+                  <p className="text-gray-600">Professional damage documentation with comprehensive reports for business insurance and continuity planning.</p>
+                </div>
               </div>
             </TabsContent>
             
@@ -223,6 +265,20 @@ const Features: React.FC = () => {
                   <Users className="h-8 w-8 text-brand-blue mb-3" />
                   <h3 className="text-xl font-semibold mb-2">Tenant Communication</h3>
                   <p className="text-gray-600">Share property documentation and maintenance records with tenants securely.</p>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="h-8 w-8 bg-brand-blue text-white rounded-lg flex items-center justify-center text-sm font-bold">♪</span>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">Voice Notes</h3>
+                  <p className="text-gray-600">Record property maintenance history, tenant interactions, and important property details for comprehensive records.</p>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <AlertTriangle className="h-8 w-8 text-brand-blue mb-3" />
+                  <h3 className="text-xl font-semibold mb-2">Post Damage Documentation</h3>
+                  <p className="text-gray-600">Detailed damage tracking and reporting for property management, insurance claims, and tenant relations.</p>
                 </div>
               </div>
             </TabsContent>

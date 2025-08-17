@@ -73,6 +73,8 @@ const Pricing: React.FC = () => {
         "AI-powered item identification & valuation",
         "Web platform access",
         "Export detailed reports",
+        "Voice notes for item details",
+        "Post damage documentation",
         "Priority email support",
         "Share with 2 trusted contacts"
       ],
@@ -91,7 +93,9 @@ const Pricing: React.FC = () => {
         "Unlimited photo and video uploads",
         "AI-powered item identification & valuation",
         "Full web platform access",
-        "Export detailed reports",
+        "Voice notes for item details",
+        "Post damage documentation",
+        "Export detailed reports", 
         "Priority email and phone support",
         "Share with 5 trusted contacts"
       ],

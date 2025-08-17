@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PropertySelector from '@/components/PropertySelector';
 import ManualDamageEntry from '@/components/ManualDamageEntry';
+import jsPDF from 'jspdf';
+import { useToast } from '@/hooks/use-toast';
 import { 
   AlertTriangle, 
   Camera, 
@@ -40,6 +42,7 @@ interface DamageVideo {
 
 const PostDamageSection: React.FC = () => {
   const [selectedPropertyId, setSelectedPropertyId] = useState('');
+  const { toast } = useToast();
   
   // Mock data - in a real app, this would come from your backend
   const [damagePhotos] = useState<DamagePhoto[]>([
@@ -88,6 +91,108 @@ const PostDamageSection: React.FC = () => {
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  const generateDamageReport = () => {
+    if (!selectedPropertyId) {
+      toast({
+        title: "Property Required",
+        description: "Please select a property before generating a damage report.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const pdf = new jsPDF();
+      
+      // Header
+      pdf.setFontSize(20);
+      pdf.text('Property Damage Report', 20, 20);
+      
+      pdf.setFontSize(12);
+      pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 30);
+      pdf.text(`Property ID: ${selectedPropertyId}`, 20, 40);
+      
+      let yPosition = 60;
+      
+      // Damage Photos Section
+      if (damagePhotos.length > 0) {
+        pdf.setFontSize(16);
+        pdf.text('Damage Photos', 20, yPosition);
+        yPosition += 10;
+        
+        damagePhotos.forEach((photo, index) => {
+          pdf.setFontSize(10);
+          pdf.text(`${index + 1}. ${photo.name}`, 30, yPosition);
+          yPosition += 5;
+          pdf.text(`   Location: ${photo.location}`, 30, yPosition);
+          yPosition += 5;
+          pdf.text(`   Damage Type: ${photo.damageType}`, 30, yPosition);
+          yPosition += 5;
+          pdf.text(`   Severity: ${photo.severity}`, 30, yPosition);
+          yPosition += 5;
+          pdf.text(`   Date: ${formatDate(photo.uploadDate)}`, 30, yPosition);
+          yPosition += 10;
+          
+          if (yPosition > 270) {
+            pdf.addPage();
+            yPosition = 20;
+          }
+        });
+      }
+      
+      // Damage Videos Section
+      if (damageVideos.length > 0) {
+        pdf.setFontSize(16);
+        pdf.text('Damage Videos', 20, yPosition);
+        yPosition += 10;
+        
+        damageVideos.forEach((video, index) => {
+          pdf.setFontSize(10);
+          pdf.text(`${index + 1}. ${video.name}`, 30, yPosition);
+          yPosition += 5;
+          pdf.text(`   Location: ${video.location}`, 30, yPosition);
+          yPosition += 5;
+          pdf.text(`   Damage Type: ${video.damageType}`, 30, yPosition);
+          yPosition += 5;
+          pdf.text(`   Severity: ${video.severity}`, 30, yPosition);
+          yPosition += 5;
+          pdf.text(`   Duration: ${video.duration}`, 30, yPosition);
+          yPosition += 5;
+          pdf.text(`   Date: ${formatDate(video.uploadDate)}`, 30, yPosition);
+          yPosition += 10;
+          
+          if (yPosition > 270) {
+            pdf.addPage();
+            yPosition = 20;
+          }
+        });
+      }
+      
+      // Summary
+      pdf.addPage();
+      pdf.setFontSize(16);
+      pdf.text('Summary', 20, 20);
+      pdf.setFontSize(10);
+      pdf.text(`Total Damage Photos: ${damagePhotos.length}`, 30, 35);
+      pdf.text(`Total Damage Videos: ${damageVideos.length}`, 30, 45);
+      pdf.text(`Most Common Damage Type: Water Damage`, 30, 55);
+      pdf.text(`Report Generated: ${new Date().toLocaleString()}`, 30, 65);
+      
+      pdf.save(`Damage_Report_${selectedPropertyId}_${new Date().toISOString().split('T')[0]}.pdf`);
+      
+      toast({
+        title: "Report Generated",
+        description: "Damage report has been downloaded successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate damage report. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -195,12 +300,6 @@ const PostDamageSection: React.FC = () => {
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <p className="text-sm text-gray-600">Recent damage photos</p>
-                    <Button asChild variant="outline" size="sm">
-                      <Link to="/account/damage/photos">
-                        <Eye className="h-4 w-4 mr-2" />
-                        View All Photos
-                      </Link>
-                    </Button>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {damagePhotos.slice(0, 4).map((photo) => (
@@ -253,12 +352,6 @@ const PostDamageSection: React.FC = () => {
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <p className="text-sm text-gray-600">Recent damage videos</p>
-                    <Button asChild variant="outline" size="sm">
-                      <Link to="/account/damage/videos">
-                        <Eye className="h-4 w-4 mr-2" />
-                        View All Videos
-                      </Link>
-                    </Button>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {damageVideos.slice(0, 4).map((video) => (
@@ -314,11 +407,9 @@ const PostDamageSection: React.FC = () => {
                 <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-600 mb-2">Damage Reports</h3>
                 <p className="text-gray-500 mb-4">Generate comprehensive damage reports for insurance claims</p>
-                <Button asChild disabled={!selectedPropertyId}>
-                  <Link to="/account/damage/report">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Generate Damage Report
-                  </Link>
+                <Button onClick={generateDamageReport} disabled={!selectedPropertyId}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Generate Damage Report
                 </Button>
               </div>
             </TabsContent>
@@ -327,23 +418,9 @@ const PostDamageSection: React.FC = () => {
           {/* Quick Actions */}
           <div className="pt-4 border-t">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <Button asChild variant="outline" size="sm" disabled={!selectedPropertyId}>
-                <Link to="/account/damage/report">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Generate Damage Report
-                </Link>
-              </Button>
-              <Button asChild variant="outline" size="sm">
-                <Link to="/account/damage/photos">
-                  <Eye className="h-4 w-4 mr-2" />
-                  View All Damage Photos
-                </Link>
-              </Button>
-              <Button asChild variant="outline" size="sm">
-                <Link to="/account/damage/videos">
-                  <Eye className="h-4 w-4 mr-2" />
-                  View All Damage Videos
-                </Link>
+              <Button variant="outline" size="sm" onClick={generateDamageReport} disabled={!selectedPropertyId}>
+                <FileText className="h-4 w-4 mr-2" />
+                Generate Damage Report
               </Button>
             </div>
           </div>

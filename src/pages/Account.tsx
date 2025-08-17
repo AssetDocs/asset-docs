@@ -13,6 +13,7 @@ import StorageAlert from '@/components/StorageAlert';
 import PostDamageSection from '@/components/PostDamageSection';
 import VoiceNotesSection from '@/components/VoiceNotesSection';
 import DashboardTour from '@/components/DashboardTour';
+import { FeatureGuard } from '@/components/FeatureGuard';
 
 import DocumentationChecklist from '@/components/DocumentationChecklist';
 import { useSubscription } from '@/contexts/SubscriptionContext';
@@ -92,11 +93,15 @@ const Account: React.FC = () => {
             </TabsContent>
 
             <TabsContent value="damage">
-              <PostDamageSection />
+              <FeatureGuard featureKey="post_damage_reports">
+                <PostDamageSection />
+              </FeatureGuard>
             </TabsContent>
 
             <TabsContent value="voice-notes">
-              <VoiceNotesSection />
+              <FeatureGuard featureKey="voice_notes">
+                <VoiceNotesSection />
+              </FeatureGuard>
             </TabsContent>
 
           </Tabs>
