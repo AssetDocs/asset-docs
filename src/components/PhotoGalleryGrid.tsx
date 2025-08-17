@@ -103,14 +103,29 @@ const PhotoGalleryGrid: React.FC<PhotoGalleryGridProps> = ({
                 </div>
 
                 <div className="flex gap-2 flex-shrink-0">
-                  <Button size="sm" variant="outline">
-                    <Eye className="h-4 w-4 mr-1" />
-                    View
-                  </Button>
-                  <Button size="sm" variant="outline">
-                    <Download className="h-4 w-4 mr-1" />
-                    Download
-                  </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => window.open(photo.url, '_blank')}
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              View
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => {
+                                const link = document.createElement('a');
+                                link.href = photo.url;
+                                link.download = photo.filename;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                              }}
+                            >
+                              <Download className="h-4 w-4 mr-1" />
+                              Download
+                            </Button>
                   <Button 
                     size="sm" 
                     variant="destructive" 
@@ -156,11 +171,26 @@ const PhotoGalleryGrid: React.FC<PhotoGalleryGridProps> = ({
             </div>
 
             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-              <Button size="sm" variant="secondary">
+              <Button 
+                size="sm" 
+                variant="secondary"
+                onClick={() => window.open(photo.url, '_blank')}
+              >
                 <Eye className="h-4 w-4 mr-1" />
                 View
               </Button>
-              <Button size="sm" variant="secondary">
+              <Button 
+                size="sm" 
+                variant="secondary"
+                onClick={() => {
+                  const link = document.createElement('a');
+                  link.href = photo.url;
+                  link.download = photo.filename;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }}
+              >
                 <Download className="h-4 w-4 mr-1" />
                 Download
               </Button>

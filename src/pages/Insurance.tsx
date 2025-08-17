@@ -8,7 +8,7 @@ import {
   ArrowLeft,
   Shield,
   Plus,
-  FolderPlus,
+  
   Search,
   SortAsc,
   SortDesc,
@@ -30,7 +30,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useNavigate } from 'react-router-dom';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
-import CreateFolderModal from '@/components/CreateFolderModal';
+
 
 // Mock data for demonstration
 const mockInsurancePolicies = [
@@ -84,26 +84,6 @@ const mockInsurancePolicies = [
   }
 ];
 
-const mockFolders = [
-  {
-    id: 1,
-    name: "Property Insurance",
-    policyCount: 6,
-    color: "blue"
-  },
-  {
-    id: 2,
-    name: "Liability Coverage", 
-    policyCount: 3,
-    color: "green"
-  },
-  {
-    id: 3,
-    name: "Claims History",
-    policyCount: 2,
-    color: "red"
-  }
-];
 
 type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'premium-desc' | 'premium-asc';
 type ViewMode = 'grid' | 'list';
@@ -111,33 +91,21 @@ type ViewMode = 'grid' | 'list';
 const Insurance: React.FC = () => {
   const navigate = useNavigate();
   const [policies, setPolicies] = useState(mockInsurancePolicies);
-  const [folders, setFolders] = useState(mockFolders);
-  const [selectedFolder, setSelectedFolder] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('date-desc');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPolicies, setSelectedPolicies] = useState<number[]>([]);
-  const [showCreateFolder, setShowCreateFolder] = useState(false);
 
   const handleBack = () => {
-    if (selectedFolder) {
-      setSelectedFolder(null);
-    } else {
-      navigate('/account');
-    }
+    navigate('/account');
   };
-
-  const currentFolderName = selectedFolder 
-    ? folders.find(f => f.id === selectedFolder)?.name || 'Insurance'
-    : 'All Insurance Policies';
 
   const filteredPolicies = policies.filter(policy => {
     const matchesSearch = policy.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          policy.provider.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          policy.policyNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          policy.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesFolder = selectedFolder ? policy.folderId === selectedFolder : true;
-    return matchesSearch && matchesFolder;
+    return matchesSearch;
   });
 
   const sortedPolicies = [...filteredPolicies].sort((a, b) => {
@@ -167,25 +135,6 @@ const Insurance: React.FC = () => {
     );
   };
 
-  const handleMovePolicies = (targetFolderId: number | null) => {
-    setPolicies(prev => prev.map(policy => 
-      selectedPolicies.includes(policy.id) 
-        ? { ...policy, folderId: targetFolderId }
-        : policy
-    ));
-    setSelectedPolicies([]);
-  };
-
-  const handleCreateFolder = (name: string, color: string) => {
-    const newFolder = {
-      id: folders.length + 1,
-      name,
-      policyCount: 0,
-      color
-    };
-    setFolders(prev => [...prev, newFolder]);
-    setShowCreateFolder(false);
-  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -230,7 +179,7 @@ const Insurance: React.FC = () => {
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 flex items-center">
                   <Shield className="h-6 w-6 mr-2 text-brand-blue" />
-                  {currentFolderName}
+                  Insurance Policies
                 </h1>
                 <p className="text-sm text-gray-500">
                   {sortedPolicies.length} polic{sortedPolicies.length !== 1 ? 'ies' : 'y'} 
@@ -240,14 +189,6 @@ const Insurance: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <Button 
-                onClick={() => setShowCreateFolder(true)}
-                variant="outline"
-                size="sm"
-              >
-                <FolderPlus className="h-4 w-4 mr-1" />
-                New Folder
-              </Button>
               <Button asChild size="sm">
                 <a href="/account/insurance/new">
                   <Plus className="h-4 w-4 mr-1" />
@@ -319,48 +260,9 @@ const Insurance: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* Folders Sidebar */}
-            <div className="lg:col-span-1">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Folders</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <Button
-                      variant={selectedFolder === null ? "default" : "ghost"}
-                      className="w-full justify-start"
-                      onClick={() => setSelectedFolder(null)}
-                    >
-                      <Shield className="h-4 w-4 mr-2" />
-                      All Policies
-                      <Badge variant="secondary" className="ml-auto">
-                        {policies.length}
-                      </Badge>
-                    </Button>
-                    
-                    {folders.map((folder) => (
-                      <Button
-                        key={folder.id}
-                        variant={selectedFolder === folder.id ? "default" : "ghost"}
-                        className="w-full justify-start"
-                        onClick={() => setSelectedFolder(folder.id)}
-                      >
-                        <div className={`w-3 h-3 rounded-full mr-2 bg-${folder.color}-500`} />
-                        {folder.name}
-                        <Badge variant="secondary" className="ml-auto">
-                          {policies.filter(p => p.folderId === folder.id).length}
-                        </Badge>
-                      </Button>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
+          <div className="w-full">
             {/* Policies Grid */}
-            <div className="lg:col-span-3">
+            <div className="w-full">
               {viewMode === 'grid' ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {sortedPolicies.map((policy) => (
@@ -472,12 +374,6 @@ const Insurance: React.FC = () => {
         </div>
       </div>
 
-      <CreateFolderModal 
-        isOpen={showCreateFolder}
-        onClose={() => setShowCreateFolder(false)}
-        onCreateFolder={handleCreateFolder}
-      />
-      
       <Footer />
     </div>
   );

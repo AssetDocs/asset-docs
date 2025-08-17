@@ -98,14 +98,31 @@ const VideoGalleryGrid: React.FC<VideoGalleryGridProps> = ({
                   <Badge variant="outline" className="text-xs">
                     {video.propertyName}
                   </Badge>
-                  <div className="flex gap-1">
-                    <Button size="sm" variant="outline" className="h-7 px-2">
-                      <Eye className="h-3 w-3" />
-                    </Button>
-                    <Button size="sm" variant="outline" className="h-7 px-2">
-                      <Download className="h-3 w-3" />
-                    </Button>
-                  </div>
+                   <div className="flex gap-1">
+                     <Button 
+                       size="sm" 
+                       variant="outline" 
+                       className="h-7 px-2"
+                       onClick={() => window.open(video.url, '_blank')}
+                     >
+                       <Eye className="h-3 w-3" />
+                     </Button>
+                     <Button 
+                       size="sm" 
+                       variant="outline" 
+                       className="h-7 px-2"
+                       onClick={() => {
+                         const link = document.createElement('a');
+                         link.href = video.url;
+                         link.download = video.filename;
+                         document.body.appendChild(link);
+                         link.click();
+                         document.body.removeChild(link);
+                       }}
+                     >
+                       <Download className="h-3 w-3" />
+                     </Button>
+                   </div>
                 </div>
               </div>
             </CardContent>
@@ -148,14 +165,31 @@ const VideoGalleryGrid: React.FC<VideoGalleryGridProps> = ({
               </Badge>
               
               <div className="flex gap-2 mt-3">
-                <Button size="sm" variant="outline" className="flex-1">
-                  <Eye className="h-3 w-3 mr-1" />
-                  Watch
-                </Button>
-                <Button size="sm" variant="outline" className="flex-1">
-                  <Download className="h-3 w-3 mr-1" />
-                  Download
-                </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="flex-1"
+                            onClick={() => window.open(video.url, '_blank')}
+                          >
+                            <Eye className="h-3 w-3 mr-1" />
+                            Watch
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="flex-1"
+                            onClick={() => {
+                              const link = document.createElement('a');
+                              link.href = video.url;
+                              link.download = video.filename;
+                              document.body.appendChild(link);
+                              link.click();
+                              document.body.removeChild(link);
+                            }}
+                          >
+                            <Download className="h-3 w-3 mr-1" />
+                            Download
+                          </Button>
               </div>
             </div>
           </CardContent>
