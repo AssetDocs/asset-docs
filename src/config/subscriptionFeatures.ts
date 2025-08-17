@@ -48,6 +48,19 @@ export const SUBSCRIPTION_FEATURES: Record<string, FeatureConfig> = {
     fallbackMessage: 'Upgrade to Premium for advanced AI features'
   },
 
+  // Download and Export Features
+  export_assets: {
+    name: 'Export Assets',
+    description: 'Export your asset inventory to various formats (CSV, PDF, etc.)',
+    requiredTier: 'standard',
+    fallbackMessage: 'Upgrade to Standard or Premium to export your asset inventory.',
+  },
+  download_all_files: {
+    name: 'Download All Files',
+    description: 'Bulk download all your photos, videos, and documents',
+    requiredTier: 'basic',
+  },
+
   // Property Management
   multiple_properties: {
     name: 'Multiple Properties',
@@ -63,12 +76,6 @@ export const SUBSCRIPTION_FEATURES: Record<string, FeatureConfig> = {
   },
 
   // Export and Reporting
-  export_assets: {
-    name: 'Export Assets',
-    description: 'Export comprehensive asset summary and download files',
-    requiredTier: 'standard',
-    fallbackMessage: 'Upgrade to Standard or Premium to export assets'
-  },
   export_reports: {
     name: 'Export Reports',
     description: 'Export detailed property reports',

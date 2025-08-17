@@ -100,6 +100,23 @@ const Features: React.FC = () => {
                   <h3 className="text-xl font-semibold mb-2">Assets</h3>
                   <p className="text-gray-600">Comprehensive asset tracking with photos, receipts, and valuations for complete property and personal inventory management.</p>
                 </div>
+
+                <div className="bg-white p-6 rounded-lg shadow relative">
+                  <div className="flex items-center gap-2 mb-3">
+                    <FileText className="h-8 w-8 text-brand-blue" />
+                    <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200 text-xs">
+                      Standard & Premium
+                    </Badge>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">Export Assets</h3>
+                  <p className="text-gray-600">Export your complete asset inventory to CSV, PDF, or other formats for insurance, legal, or personal use.</p>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <Download className="h-8 w-8 text-brand-blue mb-3" />
+                  <h3 className="text-xl font-semibold mb-2">Download All Files</h3>
+                  <p className="text-gray-600">Bulk download all your photos, videos, documents, and files for backup or external storage purposes.</p>
+                </div>
               </div>
             </TabsContent>
             
@@ -167,6 +184,23 @@ const Features: React.FC = () => {
                   <Archive className="h-8 w-8 text-brand-blue mb-3" />
                   <h3 className="text-xl font-semibold mb-2">Assets</h3>
                   <p className="text-gray-600">Document your personal belongings and valuable items with comprehensive asset tracking for rental insurance and protection.</p>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow relative">
+                  <div className="flex items-center gap-2 mb-3">
+                    <FileText className="h-8 w-8 text-brand-blue" />
+                    <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200 text-xs">
+                      Standard & Premium
+                    </Badge>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">Export Assets</h3>
+                  <p className="text-gray-600">Export your personal property inventory for insurance claims, legal documentation, or moving purposes.</p>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <Download className="h-8 w-8 text-brand-blue mb-3" />
+                  <h3 className="text-xl font-semibold mb-2">Download All Files</h3>
+                  <p className="text-gray-600">Download all your documentation and files for personal backup or sharing with landlords, insurance, or legal representatives.</p>
                 </div>
               </div>
             </TabsContent>
@@ -236,6 +270,23 @@ const Features: React.FC = () => {
                   <h3 className="text-xl font-semibold mb-2">Assets</h3>
                   <p className="text-gray-600">Complete business asset management including equipment, inventory, and infrastructure tracking for financing, compliance, and insurance purposes.</p>
                 </div>
+
+                <div className="bg-white p-6 rounded-lg shadow relative">
+                  <div className="flex items-center gap-2 mb-3">
+                    <FileText className="h-8 w-8 text-brand-blue" />
+                    <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200 text-xs">
+                      Standard & Premium
+                    </Badge>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">Export Assets</h3>
+                  <p className="text-gray-600">Export business asset inventories for accounting, insurance, loan applications, and regulatory compliance reporting.</p>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <Download className="h-8 w-8 text-brand-blue mb-3" />
+                  <h3 className="text-xl font-semibold mb-2">Download All Files</h3>
+                  <p className="text-gray-600">Bulk download all business documentation for backup, compliance audits, or sharing with stakeholders and partners.</p>
+                </div>
               </div>
             </TabsContent>
             
@@ -303,6 +354,23 @@ const Features: React.FC = () => {
                   <Archive className="h-8 w-8 text-brand-blue mb-3" />
                   <h3 className="text-xl font-semibold mb-2">Assets</h3>
                   <p className="text-gray-600">Multi-property asset management with comprehensive tracking of appliances, fixtures, and tenant belongings for effective property management.</p>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow relative">
+                  <div className="flex items-center gap-2 mb-3">
+                    <FileText className="h-8 w-8 text-brand-blue" />
+                    <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200 text-xs">
+                      Standard & Premium
+                    </Badge>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">Export Assets</h3>
+                  <p className="text-gray-600">Export property asset inventories for insurance, tax documentation, property sales, and tenant move-in/out reports.</p>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <Download className="h-8 w-8 text-brand-blue mb-3" />
+                  <h3 className="text-xl font-semibold mb-2">Download All Files</h3>
+                  <p className="text-gray-600">Download complete property documentation for backup, legal proceedings, or sharing with tenants and property management teams.</p>
                 </div>
               </div>
             </TabsContent>
