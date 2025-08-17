@@ -41,13 +41,8 @@ const Pricing: React.FC = () => {
   }, [user]);
 
   const handleSubscribe = (planType: string) => {
-    const planUrls: Record<string, string> = {
-      basic: 'https://asset-docs.outseta.com/auth?widgetMode=register&planUid=7ma6VJQE&planPaymentTerm=month&skipPlanOptions=true#o-anonymous',
-      standard: 'https://asset-docs.outseta.com/auth?widgetMode=register&planUid=496LOlmX&planPaymentTerm=month&skipPlanOptions=true#o-anonymous',
-      premium: 'https://asset-docs.outseta.com/auth?widgetMode=register&planUid=y9q4G3QA&planPaymentTerm=month&skipPlanOptions=true#o-anonymous'
-    };
-    
-    window.location.href = planUrls[planType] || planUrls.basic;
+    // Navigate to subscription checkout page with plan type (no authentication required)
+    window.location.href = `/subscription-checkout?plan=${planType}`;
   };
 
   const plans = [

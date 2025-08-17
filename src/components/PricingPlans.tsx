@@ -98,7 +98,6 @@ const PricingPlans: React.FC = () => {
                 description="Perfect for individuals with basic documentation needs."
                 features={individualFeatures.basic}
                 buttonText="Start 30-Day Free Trial"
-                onClick={() => window.location.href = 'https://asset-docs.outseta.com/auth?widgetMode=register&planUid=7ma6VJQE&planPaymentTerm=month&skipPlanOptions=true#o-anonymous'}
               />
               <SubscriptionPlan
                 title="Standard"
@@ -107,7 +106,6 @@ const PricingPlans: React.FC = () => {
                 features={individualFeatures.standard}
                 recommended={true}
                 buttonText="Start 30-Day Free Trial"
-                onClick={() => window.location.href = 'https://asset-docs.outseta.com/auth?widgetMode=register&planUid=496LOlmX&planPaymentTerm=month&skipPlanOptions=true#o-anonymous'}
               />
               <SubscriptionPlan
                 title="Premium"
@@ -115,7 +113,6 @@ const PricingPlans: React.FC = () => {
                 description="Complete protection with professional documentation tools."
                 features={individualFeatures.premium}
                 buttonText="Start 30-Day Free Trial"
-                onClick={() => window.location.href = 'https://asset-docs.outseta.com/auth?widgetMode=register&planUid=y9q4G3QA&planPaymentTerm=month&skipPlanOptions=true#o-anonymous'}
               />
             </div>
           </TabsContent>
