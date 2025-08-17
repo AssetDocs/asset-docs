@@ -55,7 +55,7 @@ export const FeatureGuard: React.FC<FeatureGuardProps> = ({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Link to="/pricing">
+        <Link to="/account-settings?tab=subscription">
           <Button size="sm" className="w-full">
             <Lock className="h-4 w-4 mr-2" />
             Upgrade Plan
@@ -120,7 +120,7 @@ export const FeatureButton: React.FC<FeatureButtonProps> = ({
       onClick();
     } else if (!hasAccess) {
       // Could show a toast or redirect to pricing
-      window.location.href = '/pricing';
+      window.location.href = '/account-settings?tab=subscription';
     }
   };
 

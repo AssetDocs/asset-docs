@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, User, CreditCard, Package, Bell, Copy, Check, Shield, Users } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -21,6 +21,16 @@ const AccountSettings: React.FC = () => {
   const [accountNumber, setAccountNumber] = useState<string>('');
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
+  const location = useLocation();
+  
+  // Get default tab from URL parameters
+  const getDefaultTab = () => {
+    const urlParams = new URLSearchParams(location.search);
+    const tab = urlParams.get('tab');
+    return ['profile', 'billing', 'subscription', 'contributors', 'notifications', 'privacy'].includes(tab || '') 
+      ? tab || 'profile' 
+      : 'profile';
+  };
 
   useEffect(() => {
     const fetchAccountNumber = async () => {
@@ -85,7 +95,7 @@ const AccountSettings: React.FC = () => {
             )}
           </div>
 
-          <Tabs defaultValue="profile" className="space-y-6">
+          <Tabs defaultValue={getDefaultTab()} className="space-y-6">
             <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="profile" className="flex items-center gap-2">
                 <User className="h-4 w-4" />

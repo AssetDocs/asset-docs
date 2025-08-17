@@ -94,6 +94,12 @@ const Features: React.FC = () => {
                   <h3 className="text-xl font-semibold mb-2">Post Damage Documentation</h3>
                   <p className="text-gray-600">Comprehensive damage recording with photos, videos, and detailed reports for insurance claims.</p>
                 </div>
+
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <Archive className="h-8 w-8 text-brand-blue mb-3" />
+                  <h3 className="text-xl font-semibold mb-2">Assets</h3>
+                  <p className="text-gray-600">Comprehensive asset tracking with photos, receipts, and valuations for complete property and personal inventory management.</p>
+                </div>
               </div>
             </TabsContent>
             
@@ -155,6 +161,12 @@ const Features: React.FC = () => {
                   <AlertTriangle className="h-8 w-8 text-brand-blue mb-3" />
                   <h3 className="text-xl font-semibold mb-2">Post Damage Documentation</h3>
                   <p className="text-gray-600">Document rental property damage with detailed reports to protect your security deposit and personal property.</p>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <Archive className="h-8 w-8 text-brand-blue mb-3" />
+                  <h3 className="text-xl font-semibold mb-2">Assets</h3>
+                  <p className="text-gray-600">Document your personal belongings and valuable items with comprehensive asset tracking for rental insurance and protection.</p>
                 </div>
               </div>
             </TabsContent>
@@ -218,6 +230,12 @@ const Features: React.FC = () => {
                   <h3 className="text-xl font-semibold mb-2">Post Damage Documentation</h3>
                   <p className="text-gray-600">Professional damage documentation with comprehensive reports for business insurance and continuity planning.</p>
                 </div>
+
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <Archive className="h-8 w-8 text-brand-blue mb-3" />
+                  <h3 className="text-xl font-semibold mb-2">Assets</h3>
+                  <p className="text-gray-600">Complete business asset management including equipment, inventory, and infrastructure tracking for financing, compliance, and insurance purposes.</p>
+                </div>
               </div>
             </TabsContent>
             
@@ -279,6 +297,12 @@ const Features: React.FC = () => {
                   <AlertTriangle className="h-8 w-8 text-brand-blue mb-3" />
                   <h3 className="text-xl font-semibold mb-2">Post Damage Documentation</h3>
                   <p className="text-gray-600">Detailed damage tracking and reporting for property management, insurance claims, and tenant relations.</p>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <Archive className="h-8 w-8 text-brand-blue mb-3" />
+                  <h3 className="text-xl font-semibold mb-2">Assets</h3>
+                  <p className="text-gray-600">Multi-property asset management with comprehensive tracking of appliances, fixtures, and tenant belongings for effective property management.</p>
                 </div>
               </div>
             </TabsContent>
