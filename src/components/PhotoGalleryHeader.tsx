@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -14,7 +15,8 @@ import {
   List,
   FolderPlus,
   Move,
-  Trash2
+  Trash2,
+  Upload
 } from 'lucide-react';
 import { 
   DropdownMenu,
@@ -101,7 +103,13 @@ const PhotoGalleryHeader: React.FC<PhotoGalleryHeaderProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-          <Button onClick={onCreateFolder} className="bg-brand-blue hover:bg-brand-lightBlue">
+          <Button asChild className="bg-brand-blue hover:bg-brand-lightBlue">
+            <Link to="/photo-upload">
+              <Upload className="h-4 w-4 mr-2" />
+              Upload Photos
+            </Link>
+          </Button>
+          <Button onClick={onCreateFolder} variant="outline">
             <FolderPlus className="h-4 w-4 mr-2" />
             New Folder
           </Button>

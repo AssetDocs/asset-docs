@@ -1,38 +1,34 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import PropertySelector from '@/components/PropertySelector';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, AlertTriangle, Camera, Upload, MapPin, Calendar } from 'lucide-react';
-
-interface DamagePhoto {
-  id: string;
-  file: File;
-  name: string;
-  description: string;
-  location: string;
-  damageType: string;
-  severity: 'minor' | 'moderate' | 'severe';
-  propertyId: string;
-  dateOccurred: string;
-}
+import { Textarea } from '@/components/ui/textarea';
+import PropertySelector from '@/components/PropertySelector';
+import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
+import { ArrowLeft, Upload, Camera, Save } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const DamagePhotoUpload: React.FC = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [damagePhotos, setDamagePhotos] = useState<DamagePhoto[]>([]);
-  const [defaultPropertyId, setDefaultPropertyId] = useState('');
+  const [uploadData, setUploadData] = useState({
+    propertyId: '',
+    damageType: '',
+    severity: 'moderate' as 'minor' | 'moderate' | 'severe',
+    location: '',
+    description: '',
+    dateOccurred: new Date().toISOString().split('T')[0]
+  });
 
   const damageTypes = [
     'Water Damage',
-    'Fire Damage',
+    'Fire Damage', 
     'Storm Damage',
     'Structural Damage',
     'Vandalism',
@@ -40,51 +36,41 @@ const DamagePhotoUpload: React.FC = () => {
     'Appliance Failure',
     'Plumbing Issues',
     'Electrical Issues',
+    'HVAC Issues',
+    'Roof Damage',
+    'Foundation Issues',
     'Other'
   ];
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const files = Array.from(e.target.files);
-      setSelectedFiles([...selectedFiles, ...files]);
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      const files = Array.from(event.target.files);
+      setSelectedFiles(files);
     }
   };
 
-  const processPhotos = () => {
-    const newPhotos: DamagePhoto[] = selectedFiles.map(file => ({
-      id: Date.now().toString() + Math.random().toString(),
-      file,
-      name: file.name.replace(/\.[^/.]+$/, ""),
-      description: '',
-      location: '',
-      damageType: '',
-      severity: 'moderate' as const,
-      propertyId: defaultPropertyId,
-      dateOccurred: new Date().toISOString().split('T')[0]
-    }));
+  const handleUpload = () => {
+    if (selectedFiles.length === 0 || !uploadData.propertyId || !uploadData.damageType) {
+      toast({
+        title: "Missing Information",
+        description: "Please select files, property, and damage type before uploading.",
+        variant: "destructive"
+      });
+      return;
+    }
 
-    setDamagePhotos([...damagePhotos, ...newPhotos]);
-    setSelectedFiles([]);
+    // Simulate upload process
+    toast({
+      title: "Photos Uploaded",
+      description: `Successfully uploaded ${selectedFiles.length} damage photos.`,
+    });
+
+    // Navigate back to post damage section
+    navigate('/account#post-damage');
   };
 
-  const updatePhotoValue = (id: string, field: string, value: string) => {
-    setDamagePhotos(photos =>
-      photos.map(photo =>
-        photo.id === id 
-          ? { ...photo, [field]: value }
-          : photo
-      )
-    );
-  };
-
-  const removePhoto = (id: string) => {
-    setDamagePhotos(photos => photos.filter(photo => photo.id !== id));
-  };
-
-  const savePhotos = () => {
-    console.log('Saving damage photos:', damagePhotos);
-    // Here you would save to your backend/database
-    navigate('/account?tab=damage');
+  const handleBack = () => {
+    navigate('/account#post-damage');
   };
 
   return (
@@ -92,231 +78,144 @@ const DamagePhotoUpload: React.FC = () => {
       <Navbar />
       
       <div className="flex-grow py-8 px-4 bg-gray-50">
-        <div className="max-w-6xl mx-auto">
-          <div className="mb-6">
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate('/account?tab=damage')}
-              className="mb-4"
-            >
+        <div className="max-w-4xl mx-auto">
+          <DashboardBreadcrumb />
+          
+          <div className="flex items-center mb-6">
+            <Button variant="ghost" onClick={handleBack} className="mr-4">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Post Damage Documentation
+              Back to Post Damage
             </Button>
-            <h1 className="text-3xl font-bold text-red-600 mb-2 flex items-center">
-              <AlertTriangle className="h-8 w-8 mr-3" />
-              Upload Damage Photos
-            </h1>
-            <p className="text-gray-600">Document property damage with photos for insurance claims and repairs</p>
           </div>
 
-          {/* Default Settings */}
-          <Card className="mb-6">
+          <Card>
             <CardHeader>
-              <CardTitle>Default Settings</CardTitle>
+              <CardTitle className="flex items-center">
+                <Camera className="h-6 w-6 mr-2 text-red-600" />
+                Upload Damage Photos
+              </CardTitle>
               <CardDescription>
-                Set default property for all damage photos
+                Upload photos documenting property damage for insurance and repair purposes
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-6">
+              {/* File Selection */}
               <div className="space-y-2">
-                <Label>Default Property</Label>
-                <PropertySelector
-                  value={defaultPropertyId}
-                  onChange={setDefaultPropertyId}
-                  placeholder="Select property where damage occurred"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Upload Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Camera className="h-6 w-6 mr-2 text-red-600" />
-                  Photo Upload
-                </CardTitle>
-                <CardDescription>
-                  Upload photos showing property damage
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="damage-photos">Select Damage Photos</Label>
-                  <Input
-                    id="damage-photos"
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={handleFileSelect}
-                    className="mt-2"
-                  />
+                <Label>Select Photos</Label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                  <Camera className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <div className="space-y-2">
+                    <p className="text-lg font-medium">Select damage photos to upload</p>
+                    <p className="text-sm text-gray-500">Choose multiple photos (JPG, PNG)</p>
+                    <Input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleFileSelect}
+                      className="max-w-xs mx-auto"
+                    />
+                  </div>
                 </div>
-
                 {selectedFiles.length > 0 && (
-                  <div>
-                    <p className="text-sm text-gray-600 mb-2">
-                      {selectedFiles.length} photo(s) selected
-                    </p>
-                    <div className="grid grid-cols-2 gap-2">
+                  <div className="mt-4">
+                    <p className="text-sm font-medium mb-2">Selected Photos ({selectedFiles.length}):</p>
+                    <div className="space-y-1">
                       {selectedFiles.map((file, index) => (
-                        <div key={index} className="relative">
-                          <img
-                            src={URL.createObjectURL(file)}
-                            alt={file.name}
-                            className="w-full h-20 object-cover rounded border"
-                          />
-                          <p className="text-xs truncate mt-1">{file.name}</p>
+                        <div key={index} className="text-sm text-gray-600 bg-gray-100 px-3 py-2 rounded">
+                          {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
                         </div>
                       ))}
                     </div>
-                    
-                    <Button 
-                      onClick={processPhotos}
-                      className="w-full mt-4 bg-red-600 hover:bg-red-700"
-                    >
-                      <Upload className="h-4 w-4 mr-2" />
-                      Process Damage Photos
-                    </Button>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
 
-            {/* Photo Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <AlertTriangle className="h-6 w-6 mr-2 text-red-600" />
-                  Damage Details
-                </CardTitle>
-                <CardDescription>
-                  Add damage information to your photos
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {damagePhotos.length === 0 ? (
-                  <p className="text-gray-500 text-center py-8">
-                    Upload photos to add damage details here
-                  </p>
-                ) : (
-                  <div className="space-y-4 max-h-96 overflow-y-auto">
-                    {damagePhotos.map((photo) => (
-                      <div key={photo.id} className="border rounded-lg p-4 bg-white">
-                        <div className="space-y-3">
-                          <div className="flex items-center">
-                            <img
-                              src={URL.createObjectURL(photo.file)}
-                              alt={photo.name}
-                              className="w-16 h-16 object-cover rounded mr-3"
-                            />
-                            <div className="flex-1">
-                              <Input
-                                value={photo.name}
-                                onChange={(e) => updatePhotoValue(photo.id, 'name', e.target.value)}
-                                placeholder="Damage photo title"
-                                className="text-sm"
-                              />
-                            </div>
-                          </div>
-                          
-                          <div className="grid grid-cols-2 gap-2">
-                            <div className="space-y-2">
-                              <Label className="text-xs">Damage Type</Label>
-                              <Select 
-                                value={photo.damageType} 
-                                onValueChange={(value) => updatePhotoValue(photo.id, 'damageType', value)}
-                              >
-                                <SelectTrigger className="text-sm">
-                                  <SelectValue placeholder="Select damage type" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {damageTypes.map((type) => (
-                                    <SelectItem key={type} value={type}>{type}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            
-                            <div className="space-y-2">
-                              <Label className="text-xs">Severity</Label>
-                              <Select 
-                                value={photo.severity} 
-                                onValueChange={(value) => updatePhotoValue(photo.id, 'severity', value)}
-                              >
-                                <SelectTrigger className="text-sm">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="minor">Minor</SelectItem>
-                                  <SelectItem value="moderate">Moderate</SelectItem>
-                                  <SelectItem value="severe">Severe</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-                          
-                          <div className="grid grid-cols-2 gap-2">
-                            <div className="space-y-2">
-                              <Label className="text-xs">Location</Label>
-                              <Input
-                                value={photo.location}
-                                onChange={(e) => updatePhotoValue(photo.id, 'location', e.target.value)}
-                                placeholder="Room/area"
-                                className="text-sm"
-                              />
-                            </div>
-                            
-                            <div className="space-y-2">
-                              <Label className="text-xs">Date Occurred</Label>
-                              <Input
-                                type="date"
-                                value={photo.dateOccurred}
-                                onChange={(e) => updatePhotoValue(photo.id, 'dateOccurred', e.target.value)}
-                                className="text-sm"
-                              />
-                            </div>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label className="text-xs">Description</Label>
-                            <Textarea
-                              value={photo.description}
-                              onChange={(e) => updatePhotoValue(photo.id, 'description', e.target.value)}
-                              placeholder="Describe the damage, cause, and any relevant details"
-                              rows={2}
-                              className="text-sm"
-                            />
-                          </div>
-                          
-                          <div className="flex justify-end">
-                            <Button
-                              onClick={() => removePhoto(photo.id)}
-                              variant="destructive"
-                              size="sm"
-                              className="text-xs"
-                            >
-                              Remove
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                
-                {damagePhotos.length > 0 && (
-                  <Button 
-                    onClick={savePhotos}
-                    className="w-full mt-4 bg-red-600 hover:bg-red-700"
+              {/* Damage Details */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Property</Label>
+                  <PropertySelector
+                    value={uploadData.propertyId}
+                    onChange={(value) => setUploadData({...uploadData, propertyId: value})}
+                    placeholder="Select property"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Damage Type</Label>
+                  <Select 
+                    value={uploadData.damageType} 
+                    onValueChange={(value) => setUploadData({...uploadData, damageType: value})}
                   >
-                    Save All Damage Photos
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select damage type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {damageTypes.map((type) => (
+                        <SelectItem key={type} value={type}>{type}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Severity</Label>
+                  <Select 
+                    value={uploadData.severity} 
+                    onValueChange={(value) => setUploadData({...uploadData, severity: value as 'minor' | 'moderate' | 'severe'})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="minor">Minor</SelectItem>
+                      <SelectItem value="moderate">Moderate</SelectItem>
+                      <SelectItem value="severe">Severe</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Location</Label>
+                  <Input
+                    value={uploadData.location}
+                    onChange={(e) => setUploadData({...uploadData, location: e.target.value})}
+                    placeholder="Room/area where damage occurred"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Date Occurred</Label>
+                  <Input
+                    type="date"
+                    value={uploadData.dateOccurred}
+                    onChange={(e) => setUploadData({...uploadData, dateOccurred: e.target.value})}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Description</Label>
+                <Textarea
+                  value={uploadData.description}
+                  onChange={(e) => setUploadData({...uploadData, description: e.target.value})}
+                  placeholder="Describe the damage shown in these photos..."
+                  rows={3}
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <Button onClick={handleUpload} className="bg-red-600 hover:bg-red-700">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload Photos
+                </Button>
+                <Button onClick={handleBack} variant="outline">
+                  Cancel
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
       

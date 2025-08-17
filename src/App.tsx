@@ -60,6 +60,8 @@ import PhotographyGuide from "./pages/PhotographyGuide";
 import AIValuationGuide from "./pages/AIValuationGuide";
 import SocialImpact from "./pages/SocialImpact";
 import Partnership from "./pages/Partnership";
+import DamagePhotoUpload from "./pages/DamagePhotoUpload";
+import DamageVideoUpload from "./pages/DamageVideoUpload";
 
 const queryClient = new QueryClient();
 
@@ -133,6 +135,8 @@ const AppContent = () => {
         <Route path="/account/photos/upload" element={<ProtectedRoute><PhotoUpload /></ProtectedRoute>} />
         <Route path="/account/videos/upload" element={<ProtectedRoute><VideoUpload /></ProtectedRoute>} />
         <Route path="/account/documents/upload" element={<ProtectedRoute><DocumentUpload /></ProtectedRoute>} />
+        <Route path="/damage/photos/upload" element={<ProtectedRoute><DamagePhotoUpload /></ProtectedRoute>} />
+        <Route path="/damage/videos/upload" element={<ProtectedRoute><DamageVideoUpload /></ProtectedRoute>} />
         
         <Route path="/account/insurance/new" element={<ProtectedRoute><InsuranceForm /></ProtectedRoute>} />
         <Route path="/account/settings" element={<ProtectedRoute><AccountSettings /></ProtectedRoute>} />

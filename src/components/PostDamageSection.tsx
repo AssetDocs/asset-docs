@@ -129,28 +129,22 @@ const PostDamageSection: React.FC = () => {
           </Card>
 
           {/* Quick Upload Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button asChild className="h-16 bg-red-600 hover:bg-red-700">
-              <Link to="/account/damage/photos/upload">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Button asChild className="h-16 bg-red-600 hover:bg-red-700" disabled={!selectedPropertyId}>
+              <Link to={selectedPropertyId ? "/damage/photos/upload" : "#"}>
                 <div className="flex flex-col items-center">
                   <Camera className="h-6 w-6 mb-1" />
                   <span>Upload Damage Photos</span>
                 </div>
               </Link>
             </Button>
-            <Button asChild className="h-16 bg-red-600 hover:bg-red-700">
-              <Link to="/account/damage/videos/upload">
+            <Button asChild className="h-16 bg-red-600 hover:bg-red-700" disabled={!selectedPropertyId}>
+              <Link to={selectedPropertyId ? "/damage/videos/upload" : "#"}>
                 <div className="flex flex-col items-center">
                   <Video className="h-6 w-6 mb-1" />
                   <span>Upload Damage Videos</span>
                 </div>
               </Link>
-            </Button>
-            <Button className="h-16 bg-orange-600 hover:bg-orange-700" disabled={!selectedPropertyId}>
-              <div className="flex flex-col items-center">
-                <Edit className="h-6 w-6 mb-1" />
-                <span>Add Manual Entry</span>
-              </div>
             </Button>
           </div>
 

@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import PropertySelector from '@/components/PropertySelector';
 import { AlertTriangle, Plus, Save } from 'lucide-react';
 
@@ -18,6 +19,15 @@ interface ManualDamageEntry {
   propertyId: string;
   dateOccurred: string;
   estimatedCost: string;
+  insuranceCompany: string;
+  policyNumber: string;
+  claimNumber: string;
+  contactName: string;
+  contactPhone: string;
+  contactEmail: string;
+  emergencyServices: boolean;
+  repairsNeeded: string;
+  priorityLevel: 'low' | 'medium' | 'high' | 'urgent';
 }
 
 const ManualDamageEntry: React.FC = () => {
@@ -32,7 +42,16 @@ const ManualDamageEntry: React.FC = () => {
     severity: 'moderate',
     propertyId: '',
     dateOccurred: new Date().toISOString().split('T')[0],
-    estimatedCost: ''
+    estimatedCost: '',
+    insuranceCompany: '',
+    policyNumber: '',
+    claimNumber: '',
+    contactName: '',
+    contactPhone: '',
+    contactEmail: '',
+    emergencyServices: false,
+    repairsNeeded: '',
+    priorityLevel: 'medium'
   });
 
   const damageTypes = [
@@ -67,7 +86,16 @@ const ManualDamageEntry: React.FC = () => {
         severity: 'moderate',
         propertyId: '',
         dateOccurred: new Date().toISOString().split('T')[0],
-        estimatedCost: ''
+        estimatedCost: '',
+        insuranceCompany: '',
+        policyNumber: '',
+        claimNumber: '',
+        contactName: '',
+        contactPhone: '',
+        contactEmail: '',
+        emergencyServices: false,
+        repairsNeeded: '',
+        priorityLevel: 'medium'
       });
       setShowNewEntry(false);
       console.log('Manual damage entry added:', entry);
@@ -208,6 +236,109 @@ const ManualDamageEntry: React.FC = () => {
                   placeholder="Detailed description of the damage, cause, and any relevant information"
                   rows={3}
                 />
+              </div>
+
+              {/* Insurance Information Section */}
+              <div className="border-t pt-4">
+                <h4 className="text-lg font-medium mb-4 text-orange-600">Insurance Information</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Insurance Company</Label>
+                    <Input
+                      value={newEntry.insuranceCompany}
+                      onChange={(e) => setNewEntry({...newEntry, insuranceCompany: e.target.value})}
+                      placeholder="Insurance provider name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Policy Number</Label>
+                    <Input
+                      value={newEntry.policyNumber}
+                      onChange={(e) => setNewEntry({...newEntry, policyNumber: e.target.value})}
+                      placeholder="Insurance policy number"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Claim Number (if filed)</Label>
+                    <Input
+                      value={newEntry.claimNumber}
+                      onChange={(e) => setNewEntry({...newEntry, claimNumber: e.target.value})}
+                      placeholder="Insurance claim number"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Priority Level</Label>
+                    <Select 
+                      value={newEntry.priorityLevel} 
+                      onValueChange={(value) => setNewEntry({...newEntry, priorityLevel: value as 'low' | 'medium' | 'high' | 'urgent'})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Low</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="urgent">Urgent</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact Information Section */}
+              <div className="border-t pt-4">
+                <h4 className="text-lg font-medium mb-4 text-blue-600">Contact Information</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label>Contact Name</Label>
+                    <Input
+                      value={newEntry.contactName}
+                      onChange={(e) => setNewEntry({...newEntry, contactName: e.target.value})}
+                      placeholder="Primary contact person"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Contact Phone</Label>
+                    <Input
+                      value={newEntry.contactPhone}
+                      onChange={(e) => setNewEntry({...newEntry, contactPhone: e.target.value})}
+                      placeholder="Phone number"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Contact Email</Label>
+                    <Input
+                      value={newEntry.contactEmail}
+                      onChange={(e) => setNewEntry({...newEntry, contactEmail: e.target.value})}
+                      placeholder="Email address"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Additional Details Section */}
+              <div className="border-t pt-4">
+                <h4 className="text-lg font-medium mb-4 text-green-600">Additional Details</h4>
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="emergencyServices"
+                      checked={newEntry.emergencyServices}
+                      onCheckedChange={(checked) => setNewEntry({...newEntry, emergencyServices: Boolean(checked)})}
+                    />
+                    <Label htmlFor="emergencyServices">Emergency services were called</Label>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Repairs Needed</Label>
+                    <Textarea
+                      value={newEntry.repairsNeeded}
+                      onChange={(e) => setNewEntry({...newEntry, repairsNeeded: e.target.value})}
+                      placeholder="List of repairs or actions needed to address the damage"
+                      rows={2}
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="flex gap-2">

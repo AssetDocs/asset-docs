@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { DollarSign, TrendingUp, Package, Home } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { DollarSign, TrendingUp, Package, Home, ToggleLeft, ToggleRight } from 'lucide-react';
 import { PropertyValuation, propertyValuationService } from '@/services/PropertyValuationService';
 import PropertyValuesSection from '@/components/PropertyValuesSection';
 
@@ -18,6 +19,7 @@ const mockPersonalAssetData = [
 const AssetValuesSection: React.FC = () => {
   const [propertyValuations, setPropertyValuations] = useState<PropertyValuation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showIndividualProperties, setShowIndividualProperties] = useState(false);
 
   useEffect(() => {
     loadPropertyData();
@@ -71,6 +73,18 @@ const AssetValuesSection: React.FC = () => {
 
   return (
     <div className="space-y-8">
+      {/* Property View Toggle */}
+      <div className="flex justify-end">
+        <Button
+          variant="outline"
+          onClick={() => setShowIndividualProperties(!showIndividualProperties)}
+          className="flex items-center gap-2"
+        >
+          {showIndividualProperties ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
+          {showIndividualProperties ? 'Show Combined View' : 'Show Individual Properties'}
+        </Button>
+      </div>
+
       {/* Enhanced Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
@@ -160,8 +174,43 @@ const AssetValuesSection: React.FC = () => {
 
       {/* Property Values Detailed Section */}
       <div>
-        <h3 className="text-xl font-semibold mb-4 text-brand-blue">Property Details</h3>
-        <PropertyValuesSection />
+        <h3 className="text-xl font-semibold mb-4 text-brand-blue">
+          {showIndividualProperties ? 'Individual Property Details' : 'Combined Property Summary'}
+        </h3>
+        {showIndividualProperties ? (
+          <PropertyValuesSection />
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle>Total Real Estate Portfolio</CardTitle>
+              <CardDescription>
+                Combined value of all properties in your portfolio
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-brand-blue">
+                    ${totalPropertyValue.toLocaleString()}
+                  </div>
+                  <div className="text-sm text-gray-600">Total Portfolio Value</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-brand-blue">
+                    {propertyValuations.length}
+                  </div>
+                  <div className="text-sm text-gray-600">Properties</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-brand-blue">
+                    ${Math.round(totalPropertyValue / Math.max(propertyValuations.length, 1)).toLocaleString()}
+                  </div>
+                  <div className="text-sm text-gray-600">Avg Property Value</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
