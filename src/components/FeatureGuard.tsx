@@ -136,3 +136,6 @@ export const FeatureButton: React.FC<FeatureButtonProps> = ({
     </Button>
   );
 };
+
+// Default export for backward compatibility
+export default FeatureGuard;
