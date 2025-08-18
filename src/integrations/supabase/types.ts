@@ -435,7 +435,93 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      purchaser_gift_view: {
+        Row: {
+          amount: number | null
+          created_at: string | null
+          currency: string | null
+          delivery_date: string | null
+          gift_message: string | null
+          id: string | null
+          plan_type: string | null
+          recipient_email: string | null
+          recipient_name: string | null
+          redeemed: boolean | null
+          redeemed_at: string | null
+          status: string | null
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string | null
+          currency?: string | null
+          delivery_date?: string | null
+          gift_message?: string | null
+          id?: string | null
+          plan_type?: string | null
+          recipient_email?: string | null
+          recipient_name?: string | null
+          redeemed?: boolean | null
+          redeemed_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string | null
+          currency?: string | null
+          delivery_date?: string | null
+          gift_message?: string | null
+          id?: string | null
+          plan_type?: string | null
+          recipient_email?: string | null
+          recipient_name?: string | null
+          redeemed?: boolean | null
+          redeemed_at?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
+      recipient_gift_view: {
+        Row: {
+          amount: number | null
+          created_at: string | null
+          delivery_date: string | null
+          gift_code: string | null
+          gift_message: string | null
+          id: string | null
+          plan_type: string | null
+          purchaser_name: string | null
+          redeemed: boolean | null
+          redeemed_at: string | null
+          status: string | null
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string | null
+          delivery_date?: string | null
+          gift_code?: string | null
+          gift_message?: string | null
+          id?: string | null
+          plan_type?: string | null
+          purchaser_name?: string | null
+          redeemed?: boolean | null
+          redeemed_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string | null
+          delivery_date?: string | null
+          gift_code?: string | null
+          gift_message?: string | null
+          id?: string | null
+          plan_type?: string | null
+          purchaser_name?: string | null
+          redeemed?: boolean | null
+          redeemed_at?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       calculate_user_storage_usage: {
@@ -449,6 +535,50 @@ export type Database = {
       claim_gift_subscription: {
         Args: { p_gift_code: string }
         Returns: Json
+      }
+      get_claimable_gift: {
+        Args: { p_gift_code: string }
+        Returns: {
+          delivery_date: string
+          gift_message: string
+          id: string
+          plan_type: string
+          purchaser_name: string
+          status: string
+        }[]
+      }
+      get_purchaser_gifts: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          amount: number | null
+          created_at: string | null
+          currency: string | null
+          delivery_date: string | null
+          gift_message: string | null
+          id: string | null
+          plan_type: string | null
+          recipient_email: string | null
+          recipient_name: string | null
+          redeemed: boolean | null
+          redeemed_at: string | null
+          status: string | null
+        }[]
+      }
+      get_recipient_gifts: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          amount: number | null
+          created_at: string | null
+          delivery_date: string | null
+          gift_code: string | null
+          gift_message: string | null
+          id: string | null
+          plan_type: string | null
+          purchaser_name: string | null
+          redeemed: boolean | null
+          redeemed_at: string | null
+          status: string | null
+        }[]
       }
       has_any_app_role: {
         Args: {
