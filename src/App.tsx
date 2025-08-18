@@ -14,6 +14,7 @@ import WelcomePage from "@/components/WelcomePage";
 
 import Index from "./pages/Index";
 import Features from "./pages/Features";
+import FeaturesList from "./components/FeaturesList";
 import Scenarios from "./pages/Scenarios";
 import Pricing from "./pages/Pricing";
 import Gift from "./pages/Gift";
@@ -97,6 +98,7 @@ const AppContent = () => {
         {/* Public routes */}
         <Route path="/" element={<Index />} />
         <Route path="/features" element={<Features />} />
+        <Route path="/features-list" element={<FeaturesList />} />
         <Route path="/scenarios" element={<Scenarios />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/about" element={<About />} />
