@@ -10,7 +10,8 @@ import {
   Eye,
   Download,
   Clock,
-  HardDrive
+  HardDrive,
+  Trash2
 } from 'lucide-react';
 
 interface VideoData {
@@ -34,13 +35,15 @@ interface VideoGalleryGridProps {
   viewMode: ViewMode;
   selectedVideos: number[];
   onVideoSelect: (videoId: number) => void;
+  onDeleteVideo?: (videoId: number) => void;
 }
 
 const VideoGalleryGrid: React.FC<VideoGalleryGridProps> = ({
   videos,
   viewMode,
   selectedVideos,
-  onVideoSelect
+  onVideoSelect,
+  onDeleteVideo
 }) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -122,6 +125,16 @@ const VideoGalleryGrid: React.FC<VideoGalleryGridProps> = ({
                      >
                        <Download className="h-3 w-3" />
                      </Button>
+                     {onDeleteVideo && (
+                       <Button 
+                         size="sm" 
+                         variant="destructive" 
+                         className="h-7 px-2"
+                         onClick={() => onDeleteVideo(video.id)}
+                       >
+                         <Trash2 className="h-3 w-3" />
+                       </Button>
+                     )}
                    </div>
                 </div>
               </div>
@@ -164,7 +177,7 @@ const VideoGalleryGrid: React.FC<VideoGalleryGridProps> = ({
                 {video.propertyName}
               </Badge>
               
-              <div className="flex gap-2 mt-3">
+               <div className="flex gap-2 mt-3">
                           <Button 
                             size="sm" 
                             variant="outline" 
@@ -190,7 +203,16 @@ const VideoGalleryGrid: React.FC<VideoGalleryGridProps> = ({
                             <Download className="h-3 w-3 mr-1" />
                             Download
                           </Button>
-              </div>
+                          {onDeleteVideo && (
+                            <Button 
+                              size="sm" 
+                              variant="destructive" 
+                              onClick={() => onDeleteVideo(video.id)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          )}
+               </div>
             </div>
           </CardContent>
         </Card>

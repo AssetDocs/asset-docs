@@ -8,7 +8,6 @@ import {
   ArrowLeft,
   Shield,
   Plus,
-  
   Search,
   SortAsc,
   SortDesc,
@@ -20,7 +19,9 @@ import {
   Download,
   Move,
   Trash2,
-  FileText
+  FileText,
+  CheckSquare,
+  Square
 } from 'lucide-react';
 import { 
   DropdownMenu,
@@ -30,6 +31,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useNavigate } from 'react-router-dom';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 
 
 // Mock data for demonstration
@@ -95,6 +97,9 @@ const Insurance: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPolicies, setSelectedPolicies] = useState<number[]>([]);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [policyToDelete, setPolicyToDelete] = useState<number | null>(null);
+  const [bulkDeleteMode, setBulkDeleteMode] = useState(false);
 
   const handleBack = () => {
     navigate('/account');
@@ -133,6 +138,44 @@ const Insurance: React.FC = () => {
         ? prev.filter(id => id !== policyId)
         : [...prev, policyId]
     );
+  };
+
+  const selectAll = () => {
+    setSelectedPolicies(sortedPolicies.map(policy => policy.id));
+  };
+
+  const unselectAll = () => {
+    setSelectedPolicies([]);
+  };
+
+  const handleDeletePolicy = (policyId: number) => {
+    setPolicyToDelete(policyId);
+    setBulkDeleteMode(false);
+    setShowDeleteDialog(true);
+  };
+
+  const handleBulkDelete = () => {
+    setBulkDeleteMode(true);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = () => {
+    if (bulkDeleteMode) {
+      setPolicies(prev => prev.filter(policy => !selectedPolicies.includes(policy.id)));
+      setSelectedPolicies([]);
+    } else if (policyToDelete) {
+      setPolicies(prev => prev.filter(policy => policy.id !== policyToDelete));
+      setSelectedPolicies(prev => prev.filter(id => id !== policyToDelete));
+    }
+    setShowDeleteDialog(false);
+    setPolicyToDelete(null);
+    setBulkDeleteMode(false);
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteDialog(false);
+    setPolicyToDelete(null);
+    setBulkDeleteMode(false);
   };
 
 
@@ -189,6 +232,31 @@ const Insurance: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2">
+              <Button 
+                onClick={selectedPolicies.length === sortedPolicies.length ? unselectAll : selectAll} 
+                variant="outline" 
+                size="sm"
+              >
+                {selectedPolicies.length === sortedPolicies.length ? (
+                  <>
+                    <Square className="h-4 w-4 mr-2" />
+                    Unselect All
+                  </>
+                ) : (
+                  <>
+                    <CheckSquare className="h-4 w-4 mr-2" />
+                    Select All
+                  </>
+                )}
+              </Button>
+              
+              {selectedPolicies.length > 0 && (
+                <Button onClick={handleBulkDelete} variant="destructive" size="sm">
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete ({selectedPolicies.length})
+                </Button>
+              )}
+
               <Button asChild size="sm">
                 <a href="/account/insurance/new">
                   <Plus className="h-4 w-4 mr-1" />
@@ -320,6 +388,13 @@ const Insurance: React.FC = () => {
                             <FileText className="h-3 w-3 mr-1" />
                             Details
                           </Button>
+                          <Button 
+                            size="sm" 
+                            variant="destructive"
+                            onClick={() => handleDeletePolicy(policy.id)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -361,6 +436,13 @@ const Insurance: React.FC = () => {
                                 <FileText className="h-4 w-4 mr-1" />
                                 Details
                               </Button>
+                              <Button 
+                                size="sm" 
+                                variant="destructive"
+                                onClick={() => handleDeletePolicy(policy.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             </div>
                           </div>
                         </div>
@@ -375,6 +457,14 @@ const Insurance: React.FC = () => {
       </div>
 
       <Footer />
+      
+      <DeleteConfirmationDialog
+        isOpen={showDeleteDialog}
+        onClose={cancelDelete}
+        onConfirm={confirmDelete}
+        title={bulkDeleteMode ? "Delete Selected Policies" : "Delete Policy"}
+        itemCount={bulkDeleteMode ? selectedPolicies.length : 1}
+      />
     </div>
   );
 };

@@ -16,7 +16,10 @@ import {
   Grid3X3,
   List,
   Move,
-  Clock
+  Clock,
+  Trash2,
+  CheckSquare,
+  Square
 } from 'lucide-react';
 import { 
   DropdownMenu,
@@ -51,6 +54,9 @@ interface VideoGalleryHeaderProps {
   onViewModeChange: (mode: ViewMode) => void;
   onCreateFolder: () => void;
   onMoveVideos: (folderId: number | null) => void;
+  onBulkDelete: () => void;
+  onSelectAll: () => void;
+  onUnselectAll: () => void;
   folders: Folder[];
 }
 
@@ -67,6 +73,9 @@ const VideoGalleryHeader: React.FC<VideoGalleryHeaderProps> = ({
   onViewModeChange,
   onCreateFolder,
   onMoveVideos,
+  onBulkDelete,
+  onSelectAll,
+  onUnselectAll,
   folders
 }) => {
   const navigate = useNavigate();
@@ -133,6 +142,24 @@ const VideoGalleryHeader: React.FC<VideoGalleryHeaderProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
+          <Button 
+            onClick={selectedCount === videoCount ? onUnselectAll : onSelectAll} 
+            variant="outline" 
+            size="sm"
+          >
+            {selectedCount === videoCount ? (
+              <>
+                <Square className="h-4 w-4 mr-2" />
+                Unselect All
+              </>
+            ) : (
+              <>
+                <CheckSquare className="h-4 w-4 mr-2" />
+                Select All
+              </>
+            )}
+          </Button>
+
           {selectedCount > 0 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -152,6 +179,13 @@ const VideoGalleryHeader: React.FC<VideoGalleryHeaderProps> = ({
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+          )}
+
+          {selectedCount > 0 && (
+            <Button onClick={onBulkDelete} variant="destructive" size="sm">
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete ({selectedCount})
+            </Button>
           )}
 
           <Button 

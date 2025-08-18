@@ -4,34 +4,13 @@ import Footer from '@/components/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  ArrowLeft,
-  Video,
-  Plus,
-  FolderPlus,
-  Search,
-  SortAsc,
-  SortDesc,
-  Calendar,
-  Type,
-  Grid3X3,
-  List,
-  Eye,
-  Download,
-  Move,
-  Trash2,
-  Clock
-} from 'lucide-react';
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
+import { Video } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import CreateFolderModal from '@/components/CreateFolderModal';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
+import VideoGalleryHeader from '@/components/VideoGalleryHeader';
+import VideoGalleryGrid from '@/components/VideoGalleryGrid';
 
 // Mock data for demonstration
 const mockVideos = [
@@ -80,24 +59,30 @@ const mockFolders = [
   {
     id: 1,
     name: "Interior Videos",
-    videoCount: 15,
+    description: "Videos of interior spaces",
+    photoCount: 15,
+    createdDate: "2024-06-01",
     color: "blue"
   },
   {
     id: 2,
     name: "Exterior Videos", 
-    videoCount: 8,
+    description: "Videos of exterior areas",
+    photoCount: 8,
+    createdDate: "2024-06-02",
     color: "green"
   },
   {
     id: 3,
     name: "Property Tours",
-    videoCount: 12,
+    description: "Complete property walkthroughs",
+    photoCount: 12,
+    createdDate: "2024-06-03",
     color: "purple"
   }
 ];
 
-type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'size-desc' | 'size-asc';
+type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'size-desc' | 'size-asc' | 'duration-desc' | 'duration-asc';
 type ViewMode = 'grid' | 'list';
 
 const Videos: React.FC = () => {
@@ -160,6 +145,14 @@ const Videos: React.FC = () => {
     );
   };
 
+  const selectAllVideos = () => {
+    setSelectedVideos(sortedVideos.map(video => video.id));
+  };
+
+  const unselectAllVideos = () => {
+    setSelectedVideos([]);
+  };
+
   const handleMoveVideos = (targetFolderId: number | null) => {
     setVideos(prev => prev.map(video => 
       selectedVideos.includes(video.id) 
@@ -173,7 +166,9 @@ const Videos: React.FC = () => {
     const newFolder = {
       id: folders.length + 1,
       name,
-      videoCount: 0,
+      description: `Created on ${new Date().toLocaleDateString()}`,
+      photoCount: 0,
+      createdDate: new Date().toISOString().split('T')[0],
       color
     };
     setFolders(prev => [...prev, newFolder]);
@@ -212,14 +207,6 @@ const Videos: React.FC = () => {
     setBulkDeleteMode(false);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
@@ -228,114 +215,24 @@ const Videos: React.FC = () => {
         <div className="max-w-7xl mx-auto">
           <DashboardBreadcrumb />
           
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
-            <div className="flex items-center mb-4 sm:mb-0">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleBack}
-                className="mr-4"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-                  <Video className="h-6 w-6 mr-2 text-brand-blue" />
-                  {currentFolderName}
-                </h1>
-                <p className="text-sm text-gray-500">
-                  {sortedVideos.length} video{sortedVideos.length !== 1 ? 's' : ''} 
-                  {selectedVideos.length > 0 && ` • ${selectedVideos.length} selected`}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button 
-                onClick={() => setShowCreateFolder(true)}
-                variant="outline"
-                size="sm"
-              >
-                <FolderPlus className="h-4 w-4 mr-1" />
-                New Folder
-              </Button>
-              <Button asChild size="sm">
-                <a href="/account/videos/upload">
-                  <Plus className="h-4 w-4 mr-1" />
-                  Upload Videos
-                </a>
-              </Button>
-              {selectedVideos.length > 0 && (
-                <Button onClick={handleBulkDelete} variant="destructive" size="sm">
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete ({selectedVideos.length})
-                </Button>
-              )}
-            </div>
-          </div>
-
-          {/* Search and Controls */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <input
-                type="text"
-                placeholder="Search videos..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent"
-              />
-            </div>
-            
-            <div className="flex gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <SortAsc className="h-4 w-4 mr-1" />
-                    Sort
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => setSortBy('date-desc')}>
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Newest First
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortBy('date-asc')}>
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Oldest First
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortBy('name-asc')}>
-                    <Type className="h-4 w-4 mr-2" />
-                    Name A-Z
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortBy('name-desc')}>
-                    <Type className="h-4 w-4 mr-2" />
-                    Name Z-A
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <div className="flex border border-gray-300 rounded-md overflow-hidden">
-                <Button
-                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('grid')}
-                  className="rounded-none"
-                >
-                  <Grid3X3 className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === 'list' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('list')}
-                  className="rounded-none"
-                >
-                  <List className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
+          <VideoGalleryHeader
+            onBack={handleBack}
+            currentFolderName={currentFolderName}
+            videoCount={sortedVideos.length}
+            selectedCount={selectedVideos.length}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            onCreateFolder={() => setShowCreateFolder(true)}
+            onMoveVideos={handleMoveVideos}
+            onBulkDelete={handleBulkDelete}
+            onSelectAll={selectAllVideos}
+            onUnselectAll={unselectAllVideos}
+            folders={folders}
+          />
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Folders Sidebar */}
@@ -379,100 +276,13 @@ const Videos: React.FC = () => {
 
             {/* Videos Grid */}
             <div className="lg:col-span-3">
-              {viewMode === 'grid' ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {sortedVideos.map((video) => (
-                    <Card key={video.id} className="hover:shadow-lg transition-shadow cursor-pointer">
-                      <div className="aspect-video bg-gray-200 flex items-center justify-center relative">
-                        <Video className="h-8 w-8 text-gray-400" />
-                        <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
-                          {video.duration}
-                        </div>
-                      </div>
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="font-medium text-sm line-clamp-2">{video.name}</h3>
-                          <input
-                            type="checkbox"
-                            checked={selectedVideos.includes(video.id)}
-                            onChange={() => toggleVideoSelection(video.id)}
-                            className="h-4 w-4"
-                          />
-                        </div>
-                        <p className="text-xs text-gray-500 mb-2">
-                          {video.size} • {video.duration}
-                        </p>
-                        <p className="text-xs text-gray-400 mb-3">
-                          {formatDate(video.uploadDate)}
-                        </p>
-                        <div className="flex gap-1">
-                          <Button size="sm" variant="outline" className="flex-1">
-                            <Eye className="h-3 w-3 mr-1" />
-                            Watch
-                          </Button>
-                          <Button size="sm" variant="outline" className="flex-1">
-                            <Download className="h-3 w-3 mr-1" />
-                            Download
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="destructive"
-                            onClick={() => handleDeleteVideo(video.id)}
-                            className="px-2"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {sortedVideos.map((video) => (
-                    <Card key={video.id} className="hover:shadow-sm transition-shadow">
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <input
-                              type="checkbox"
-                              checked={selectedVideos.includes(video.id)}
-                              onChange={() => toggleVideoSelection(video.id)}
-                              className="h-4 w-4 mr-3"
-                            />
-                            <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center mr-3">
-                              <Video className="h-4 w-4 text-blue-600" />
-                            </div>
-                            <div>
-                              <h3 className="font-medium">{video.name}</h3>
-                              <p className="text-sm text-gray-500">
-                                {video.duration} • {video.size} • {formatDate(video.uploadDate)}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button size="sm" variant="outline">
-                              <Eye className="h-4 w-4 mr-1" />
-                              Watch
-                            </Button>
-                            <Button size="sm" variant="outline">
-                              <Download className="h-4 w-4 mr-1" />
-                              Download
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              variant="destructive"
-                              onClick={() => handleDeleteVideo(video.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
+              <VideoGalleryGrid
+                videos={sortedVideos}
+                viewMode={viewMode}
+                selectedVideos={selectedVideos}
+                onVideoSelect={toggleVideoSelection}
+                onDeleteVideo={handleDeleteVideo}
+              />
             </div>
           </div>
         </div>

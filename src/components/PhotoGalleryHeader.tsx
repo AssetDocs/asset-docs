@@ -16,7 +16,9 @@ import {
   FolderPlus,
   Move,
   Trash2,
-  Upload
+  Upload,
+  CheckSquare,
+  Square
 } from 'lucide-react';
 import { 
   DropdownMenu,
@@ -43,6 +45,8 @@ interface PhotoGalleryHeaderProps {
   onCreateFolder: () => void;
   onMovePhotos: (folderId: number | null) => void;
   onBulkDelete: () => void;
+  onSelectAll: () => void;
+  onUnselectAll: () => void;
   folders: Array<{
     id: number;
     name: string;
@@ -67,6 +71,8 @@ const PhotoGalleryHeader: React.FC<PhotoGalleryHeaderProps> = ({
   onCreateFolder,
   onMovePhotos,
   onBulkDelete,
+  onSelectAll,
+  onUnselectAll,
   folders
 }) => {
   const getSortLabel = (sort: SortOption) => {
@@ -139,12 +145,32 @@ const PhotoGalleryHeader: React.FC<PhotoGalleryHeaderProps> = ({
             </DropdownMenu>
           )}
 
-          {selectedCount > 0 && (
-            <Button onClick={onBulkDelete} variant="destructive" size="sm">
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete ({selectedCount})
+          <div className="flex items-center gap-2">
+            <Button 
+              onClick={selectedCount === photoCount ? onUnselectAll : onSelectAll} 
+              variant="outline" 
+              size="sm"
+            >
+              {selectedCount === photoCount ? (
+                <>
+                  <Square className="h-4 w-4 mr-2" />
+                  Unselect All
+                </>
+              ) : (
+                <>
+                  <CheckSquare className="h-4 w-4 mr-2" />
+                  Select All
+                </>
+              )}
             </Button>
-          )}
+            
+            {selectedCount > 0 && (
+              <Button onClick={onBulkDelete} variant="destructive" size="sm">
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete ({selectedCount})
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 

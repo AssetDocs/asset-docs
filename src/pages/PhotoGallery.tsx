@@ -210,6 +210,14 @@ const PhotoGallery: React.FC = () => {
     );
   };
 
+  const selectAllPhotos = () => {
+    setSelectedPhotos(filteredAndSortedPhotos.map(photo => photo.id));
+  };
+
+  const unselectAllPhotos = () => {
+    setSelectedPhotos([]);
+  };
+
 
   const handleDeletePhoto = (photoId: number) => {
     setPhotoToDelete(photoId);
@@ -269,6 +277,8 @@ const PhotoGallery: React.FC = () => {
             onCreateFolder={() => setShowCreateFolder(true)}
             onMovePhotos={handleMovePhotos}
             onBulkDelete={handleBulkDelete}
+            onSelectAll={selectAllPhotos}
+            onUnselectAll={unselectAllPhotos}
             folders={folders}
           />
 
