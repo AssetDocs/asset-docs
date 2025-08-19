@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,8 +10,10 @@ import {
   Download,
   Calendar,
   HardDrive,
-  Trash2
+  Trash2,
+  Paperclip
 } from 'lucide-react';
+import AttachDocumentModal from './AttachDocumentModal';
 
 type ViewMode = 'grid' | 'list';
 
@@ -43,6 +45,13 @@ const PhotoGalleryGrid: React.FC<PhotoGalleryGridProps> = ({
   onPhotoSelect,
   onDeletePhoto
 }) => {
+  const [attachModalOpen, setAttachModalOpen] = useState(false);
+  const [selectedPhotoForAttach, setSelectedPhotoForAttach] = useState<{ id: number; name: string } | null>(null);
+
+  const handleAttachDocument = (photoId: number, photoName: string) => {
+    setSelectedPhotoForAttach({ id: photoId, name: photoName });
+    setAttachModalOpen(true);
+  };
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -126,6 +135,14 @@ const PhotoGalleryGrid: React.FC<PhotoGalleryGridProps> = ({
                               <Download className="h-4 w-4 mr-1" />
                               Download
                             </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleAttachDocument(photo.id, photo.name)}
+                            >
+                              <Paperclip className="h-4 w-4 mr-1" />
+                              Attach
+                            </Button>
                   <Button 
                     size="sm" 
                     variant="destructive" 
@@ -143,8 +160,9 @@ const PhotoGalleryGrid: React.FC<PhotoGalleryGridProps> = ({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-      {photos.map((photo) => (
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {photos.map((photo) => (
         <Card key={photo.id} className="overflow-hidden group">
           <div className="relative">
             <div className="aspect-square bg-gray-200 flex items-center justify-center">
@@ -170,14 +188,13 @@ const PhotoGalleryGrid: React.FC<PhotoGalleryGridProps> = ({
               </Button>
             </div>
 
-            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
               <Button 
                 size="sm" 
                 variant="secondary"
                 onClick={() => window.open(photo.url, '_blank')}
               >
-                <Eye className="h-4 w-4 mr-1" />
-                View
+                <Eye className="h-4 w-4" />
               </Button>
               <Button 
                 size="sm" 
@@ -191,8 +208,14 @@ const PhotoGalleryGrid: React.FC<PhotoGalleryGridProps> = ({
                   document.body.removeChild(link);
                 }}
               >
-                <Download className="h-4 w-4 mr-1" />
-                Download
+                <Download className="h-4 w-4" />
+              </Button>
+              <Button 
+                size="sm" 
+                variant="secondary"
+                onClick={() => handleAttachDocument(photo.id, photo.name)}
+              >
+                <Paperclip className="h-4 w-4" />
               </Button>
             </div>
           </div>
@@ -228,6 +251,19 @@ const PhotoGalleryGrid: React.FC<PhotoGalleryGridProps> = ({
         </Card>
       ))}
     </div>
+      
+      {selectedPhotoForAttach && (
+        <AttachDocumentModal
+          isOpen={attachModalOpen}
+          onClose={() => {
+            setAttachModalOpen(false);
+            setSelectedPhotoForAttach(null);
+          }}
+          photoId={selectedPhotoForAttach.id}
+          photoName={selectedPhotoForAttach.name}
+        />
+      )}
+    </>
   );
 };
 
