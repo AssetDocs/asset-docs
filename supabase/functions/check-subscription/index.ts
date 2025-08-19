@@ -47,7 +47,26 @@ serve(async (req) => {
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     
     if (customers.data.length === 0) {
-      logStep("No customer found, updating unsubscribed state");
+      logStep("No customer found, checking trial status");
+      
+      // Check if user is in 30-day trial period
+      const { data: profileData } = await supabaseClient
+        .from("profiles")
+        .select("created_at")
+        .eq("user_id", user.id)
+        .single();
+      
+      const now = new Date();
+      const trialEnd = new Date(profileData?.created_at || user.created_at);
+      trialEnd.setDate(trialEnd.getDate() + 30);
+      const isInTrial = now < trialEnd;
+      
+      logStep("Trial status calculated", { 
+        createdAt: profileData?.created_at || user.created_at, 
+        trialEnd: trialEnd.toISOString(), 
+        isInTrial 
+      });
+      
       await supabaseClient.from("subscribers").upsert({
         email: user.email,
         user_id: user.id,
@@ -57,7 +76,12 @@ serve(async (req) => {
         subscription_end: null,
         updated_at: new Date().toISOString(),
       }, { onConflict: 'email' });
-      return new Response(JSON.stringify({ subscribed: false }), {
+      
+      return new Response(JSON.stringify({ 
+        subscribed: false,
+        is_trial: isInTrial,
+        trial_end: isInTrial ? trialEnd.toISOString() : null
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
@@ -106,11 +130,31 @@ serve(async (req) => {
       updated_at: new Date().toISOString(),
     }, { onConflict: 'email' });
 
-    logStep("Updated database with subscription info", { subscribed: hasActiveSub, subscriptionTier });
+    // Check trial status even for users with Stripe customers but no active subscription
+    let isInTrial = false;
+    let trialEndDate = null;
+    
+    if (!hasActiveSub) {
+      const { data: profileData } = await supabaseClient
+        .from("profiles")
+        .select("created_at")
+        .eq("user_id", user.id)
+        .single();
+      
+      const now = new Date();
+      const trialEnd = new Date(profileData?.created_at || user.created_at);
+      trialEnd.setDate(trialEnd.getDate() + 30);
+      isInTrial = now < trialEnd;
+      trialEndDate = isInTrial ? trialEnd.toISOString() : null;
+    }
+
+    logStep("Updated database with subscription info", { subscribed: hasActiveSub, subscriptionTier, isInTrial });
     return new Response(JSON.stringify({
       subscribed: hasActiveSub,
       subscription_tier: subscriptionTier,
-      subscription_end: subscriptionEnd
+      subscription_end: subscriptionEnd,
+      is_trial: isInTrial,
+      trial_end: trialEndDate
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

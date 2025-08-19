@@ -8,12 +8,15 @@ interface SubscriptionStatus {
   subscribed: boolean;
   subscription_tier?: string;
   subscription_end?: string;
+  is_trial?: boolean;
+  trial_end?: string;
 }
 
 interface SubscriptionContextType {
   subscriptionStatus: SubscriptionStatus;
   subscriptionTier: SubscriptionTier | null;
   loading: boolean;
+  isInTrial: boolean;
   hasFeature: (featureKey: string) => boolean;
   checkFeatureAccess: (featureKey: string) => { hasAccess: boolean; feature: any };
   refreshSubscription: () => Promise<void>;
@@ -52,6 +55,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [loading, setLoading] = useState(true);
 
   const subscriptionTier = mapTierToEnum(subscriptionStatus.subscription_tier);
+  const isInTrial = subscriptionStatus.is_trial || false;
 
   const checkSubscription = async () => {
     if (!user) {
@@ -81,7 +85,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const feature = SUBSCRIPTION_FEATURES[featureKey];
     if (!feature) return true; // If feature doesn't exist in config, allow access
     
-    return hasFeatureAccess(subscriptionTier, feature.requiredTier);
+    return hasFeatureAccess(subscriptionTier, feature.requiredTier, isInTrial);
   };
 
   const checkFeatureAccess = (featureKey: string) => {
@@ -90,7 +94,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
       return { hasAccess: true, feature: null };
     }
     
-    const hasAccess = hasFeatureAccess(subscriptionTier, feature.requiredTier);
+    const hasAccess = hasFeatureAccess(subscriptionTier, feature.requiredTier, isInTrial);
     return { hasAccess, feature };
   };
 
@@ -107,6 +111,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     subscriptionStatus,
     subscriptionTier,
     loading,
+    isInTrial,
     hasFeature,
     checkFeatureAccess,
     refreshSubscription,

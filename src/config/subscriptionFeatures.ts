@@ -140,8 +140,12 @@ export const getTierHierarchy = (): Record<SubscriptionTier, number> => ({
 
 export const hasFeatureAccess = (
   userTier: SubscriptionTier | null | undefined,
-  requiredTier: SubscriptionTier
+  requiredTier: SubscriptionTier,
+  isInTrial?: boolean
 ): boolean => {
+  // If user is in trial, they get premium access to all features
+  if (isInTrial) return true;
+  
   if (!userTier) return false;
   
   const hierarchy = getTierHierarchy();
