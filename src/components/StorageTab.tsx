@@ -20,16 +20,16 @@ const StorageTab: React.FC = () => {
       case 'basic':
         return {
           tier: 'Standard',
-          storage: '200GB',
+          storage: '50GB',
           price: '$19.99/month',
-          benefits: ['200GB storage', 'Multiple properties', 'Priority support']
+          benefits: ['50GB storage', 'Multiple properties', 'Priority support']
         };
       case 'standard':
         return {
           tier: 'Premium',
-          storage: '750GB',
+          storage: '500GB',
           price: '$39.99/month',
-          benefits: ['750GB storage', 'Advanced AI', 'Professional services']
+          benefits: ['500GB storage', 'Advanced AI', 'Professional services']
         };
       default:
         return null;

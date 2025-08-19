@@ -173,22 +173,22 @@ const PricingFAQ: React.FC = () => {
                     </thead>
                     <tbody className="text-gray-600">
                       <tr className="border-b">
+                        <td className="py-2 font-medium">10GB</td>
+                        <td className="py-2">~3,300</td>
+                        <td className="py-2">~0.17 hours (10 min)</td>
+                        <td className="py-2">~2.6 minutes</td>
+                      </tr>
+                      <tr className="border-b">
                         <td className="py-2 font-medium">50GB</td>
                         <td className="py-2">~16,600</td>
                         <td className="py-2">~0.83 hours (50 min)</td>
                         <td className="py-2">~13 minutes</td>
                       </tr>
-                      <tr className="border-b">
-                        <td className="py-2 font-medium">200GB</td>
-                        <td className="py-2">~66,600</td>
-                        <td className="py-2">~3.3 hours</td>
-                        <td className="py-2">~53 minutes</td>
-                      </tr>
                       <tr>
-                        <td className="py-2 font-medium">750GB</td>
-                        <td className="py-2">~250,000</td>
-                        <td className="py-2">~12.5 hours</td>
-                        <td className="py-2">~3.3 hours</td>
+                        <td className="py-2 font-medium">500GB</td>
+                        <td className="py-2">~166,000</td>
+                        <td className="py-2">~8.3 hours</td>
+                        <td className="py-2">~2.2 hours</td>
                       </tr>
                     </tbody>
                   </table>

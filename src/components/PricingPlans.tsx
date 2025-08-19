@@ -10,7 +10,7 @@ const PricingPlans: React.FC = () => {
     basic: [
       "30-day free trial",
       "1 property",
-      "50GB secure cloud storage",
+      "10GB secure cloud storage",
       "Photo uploads",
       "Document uploads", 
       "Web platform access",
@@ -19,7 +19,7 @@ const PricingPlans: React.FC = () => {
     standard: [
       "30-day free trial",
       "Up to 5 properties",
-      "200GB secure cloud storage",
+      "50GB secure cloud storage",
       "Photo and video uploads",
       "Document uploads",
       "AI-powered item identification & valuation",
@@ -31,7 +31,7 @@ const PricingPlans: React.FC = () => {
     premium: [
       "30-day free trial",
       "Up to 20 properties",
-      "750GB secure cloud storage",
+      "500GB secure cloud storage",
       "Photo and video uploads",
       "Document uploads",
       "AI-powered item identification & valuation",
@@ -45,7 +45,7 @@ const PricingPlans: React.FC = () => {
   const businessFeatures = {
     small: [
       "30-day free trial",
-      "50GB secure cloud storage",
+      "10GB secure cloud storage",
       "3 user accounts",
       "Photo uploads",
       "Document uploads",
@@ -56,7 +56,7 @@ const PricingPlans: React.FC = () => {
     ],
     medium: [
       "30-day free trial",
-      "200GB secure cloud storage",
+      "50GB secure cloud storage",
       "25 user accounts",
       "Unlimited photo and video uploads",
       "Document uploads",
@@ -154,7 +154,7 @@ const PricingPlans: React.FC = () => {
           </h3>
           <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
             Are you a large management company or industry leader needing to document more than 10 properties? 
-            Or require more than 750GB of storage? We'd love to work with you to build a custom package 
+            Or require more than 500GB of storage? We'd love to work with you to build a custom package 
             tailored to your specific needs.
           </p>
           <Button asChild size="lg">

@@ -259,7 +259,7 @@ const FeaturesList: React.FC = () => {
                 <CardHeader>
                   <Badge variant="outline" className="w-fit mb-2">Basic Tier</Badge>
                   <CardTitle>Basic Features</CardTitle>
-                  <CardDescription>50GB Storage</CardDescription>
+                  <CardDescription>10GB Storage</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ul className="text-sm space-y-1">
@@ -277,7 +277,7 @@ const FeaturesList: React.FC = () => {
                 <CardHeader>
                   <Badge variant="outline" className="bg-amber-100 text-amber-800 w-fit mb-2">Standard Tier</Badge>
                   <CardTitle>Standard Features</CardTitle>
-                  <CardDescription>200GB Storage</CardDescription>
+                  <CardDescription>50GB Storage</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ul className="text-sm space-y-1">
@@ -297,7 +297,7 @@ const FeaturesList: React.FC = () => {
                 <CardHeader>
                   <Badge variant="outline" className="bg-purple-100 text-purple-800 w-fit mb-2">Premium Tier</Badge>
                   <CardTitle>Premium Features</CardTitle>
-                  <CardDescription>750GB Storage</CardDescription>
+                  <CardDescription>500GB Storage</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ul className="text-sm space-y-1">
