@@ -158,7 +158,7 @@ const SubscriptionTab: React.FC = () => {
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />
-                    50GB secure cloud storage
+                    10GB secure cloud storage
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />
@@ -197,7 +197,7 @@ const SubscriptionTab: React.FC = () => {
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />
-                    200GB secure cloud storage
+                    50GB secure cloud storage
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />
@@ -241,7 +241,7 @@ const SubscriptionTab: React.FC = () => {
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />
-                    750GB secure cloud storage
+                    500GB secure cloud storage
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />

@@ -56,7 +56,7 @@ const SubscriptionCheckout: React.FC = () => {
       description: "Perfect for individuals with basic documentation needs",
       features: [
         "1 property",
-        "50GB secure cloud storage",
+        "10GB secure cloud storage",
         "Photo uploads only",
         "Web platform access",
         "Email support",
@@ -71,7 +71,7 @@ const SubscriptionCheckout: React.FC = () => {
       description: "Our most popular plan for comprehensive home documentation",
       features: [
         "Up to 3 properties",
-        "200GB secure cloud storage",
+        "50GB secure cloud storage",
         "Photo and video uploads",
         "Web platform access",
         "Export detailed reports",
@@ -88,7 +88,7 @@ const SubscriptionCheckout: React.FC = () => {
       description: "Complete protection with professional documentation tools",
       features: [
         "Up to 10 properties",
-        "750GB secure cloud storage",
+        "500GB secure cloud storage",
         "Unlimited photo and video uploads",
         "Professional asset cataloging",
         "AI-powered item identification & valuation",
