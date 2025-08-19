@@ -519,6 +519,10 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: undefined
       }
+      validate_service_role_context: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "sales" | "marketing" | "viewer"
