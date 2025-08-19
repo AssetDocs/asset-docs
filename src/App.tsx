@@ -9,6 +9,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { TranslationProvider } from "@/contexts/TranslationContext";
 import CookieConsent from "@/components/CookieConsent";
+import { TrialPromoModal } from "@/components/TrialPromoModal";
 
 import WelcomePage from "@/components/WelcomePage";
 
@@ -209,6 +210,7 @@ const App = () => {
             <SubscriptionProvider>
               <AppContent />
               <CookieConsent />
+              <TrialPromoModal />
             </SubscriptionProvider>
           </AuthProvider>
         </TranslationProvider>
