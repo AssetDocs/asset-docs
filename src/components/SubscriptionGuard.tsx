@@ -92,7 +92,7 @@ const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({
             <p className="text-sm text-muted-foreground">
               Upgrade to a premium plan to access this feature and unlock all the tools you need for comprehensive asset documentation.
             </p>
-            <Link to="/account-settings?tab=subscription">
+            <Link to="/account/settings?tab=subscription">
               <Button className="w-full">View Pricing Plans</Button>
             </Link>
           </CardContent>
