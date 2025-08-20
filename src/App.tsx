@@ -163,6 +163,8 @@ const AppContent = () => {
         <Route path="*" element={<NotFound />} />
       </Routes>
       
+      {/* Global modals that need router context */}
+      <TrialPromoModal />
     </BrowserRouter>
   );
 };
@@ -210,7 +212,6 @@ const App = () => {
             <SubscriptionProvider>
               <AppContent />
               <CookieConsent />
-              <TrialPromoModal />
             </SubscriptionProvider>
           </AuthProvider>
         </TranslationProvider>
