@@ -46,9 +46,14 @@ const FeaturesSection: React.FC = () => {
           />
         </div>
         <div className="mt-12 text-center">
-          <Button asChild size="lg" className="bg-brand-blue hover:bg-brand-lightBlue">
-            <Link to="/features">{translate('features.viewAll')}</Link>
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button asChild size="lg" className="bg-brand-blue hover:bg-brand-lightBlue">
+              <Link to="/features">{translate('features.viewAll')}</Link>
+            </Button>
+            <Button asChild size="lg" variant="outline">
+              <Link to="/sample-dashboard">View Sample Dashboard</Link>
+            </Button>
+          </div>
         </div>
       </div>
     </section>
