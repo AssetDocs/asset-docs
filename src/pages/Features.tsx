@@ -258,8 +258,8 @@ const Features: React.FC = () => {
                 
                 <div className="bg-white p-6 rounded-lg shadow">
                   <ClipboardList className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Inventory Management</h3>
-                  <p className="text-gray-600">Comprehensive inventory tracking for equipment, supplies, and assets.</p>
+                  <h3 className="text-xl font-semibold mb-2">Inventory Documentation</h3>
+                  <p className="text-gray-600">Comprehensive inventory documentation for equipment, supplies, and assets.</p>
                 </div>
                 
                 <div className="bg-white p-6 rounded-lg shadow">
