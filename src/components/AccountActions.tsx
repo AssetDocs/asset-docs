@@ -28,17 +28,35 @@ const AccountActions: React.FC<AccountActionsProps> = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            <Button asChild variant="orange" className="w-full">
-              <Link to="/account/settings">
-                <Settings className="h-4 w-4 mr-2" />
-                Manage Settings
-              </Link>
+            <Button 
+              onClick={() => {
+                const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
+                if (isOnSampleDashboard) {
+                  alert('AssetDocs.net says\n\nDemo: This allows you to update your profile, security settings, and preferences.');
+                  return;
+                }
+                window.location.href = '/account/settings';
+              }}
+              variant="orange" 
+              className="w-full"
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              Manage Settings
             </Button>
-            <Button asChild variant="outline" className="w-full">
-              <Link to="/account/settings?tab=contributors">
-                <Users className="h-4 w-4 mr-2" />
-                Manage Contributors
-              </Link>
+            <Button 
+              onClick={() => {
+                const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
+                if (isOnSampleDashboard) {
+                  alert('AssetDocs.net says\n\nDemo: This allows you to add and manage users who can help document your assets.');
+                  return;
+                }
+                window.location.href = '/account/settings?tab=contributors';
+              }}
+              variant="outline" 
+              className="w-full"
+            >
+              <Users className="h-4 w-4 mr-2" />
+              Manage Contributors
             </Button>
           </div>
         </CardContent>
@@ -56,17 +74,34 @@ const AccountActions: React.FC<AccountActionsProps> = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            <Button asChild className="w-full bg-brand-blue hover:bg-brand-lightBlue">
-              <Link to="/account/properties/new">
-                <Plus className="h-4 w-4 mr-2" />
-                Create New Property
-              </Link>
+            <Button 
+              onClick={() => {
+                const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
+                if (isOnSampleDashboard) {
+                  alert('AssetDocs.net says\n\nDemo: This allows you to create new property profiles with square footage, room details, and property information.');
+                  return;
+                }
+                window.location.href = '/account/properties/new';
+              }}
+              className="w-full bg-brand-blue hover:bg-brand-lightBlue"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Create New Property
             </Button>
-            <Button asChild variant="outline" className="w-full">
-              <Link to="/account/properties">
-                <Eye className="h-4 w-4 mr-2" />
-                View All Properties
-              </Link>
+            <Button 
+              onClick={() => {
+                const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
+                if (isOnSampleDashboard) {
+                  alert('AssetDocs.net says\n\nDemo: This allows you to view and manage all your documented properties.');
+                  return;
+                }
+                window.location.href = '/account/properties';
+              }}
+              variant="outline" 
+              className="w-full"
+            >
+              <Eye className="h-4 w-4 mr-2" />
+              View All Properties
             </Button>
           </div>
         </CardContent>
@@ -84,19 +119,34 @@ const AccountActions: React.FC<AccountActionsProps> = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            <FeatureButton 
-              featureKey="photo_upload"
+            <Button
+              onClick={() => {
+                const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
+                if (isOnSampleDashboard) {
+                  alert('AssetDocs.net says\n\nDemo: This allows you to upload photos and get AI-powered value estimates for your items.');
+                  return;
+                }
+                window.location.href = '/account/photos/upload';
+              }}
               className="w-full bg-brand-blue hover:bg-brand-lightBlue"
-              onClick={() => window.location.href = '/account/photos/upload'}
             >
               <Plus className="h-4 w-4 mr-2" />
               Upload Photos
-            </FeatureButton>
-            <Button asChild variant="outline" className="w-full">
-              <Link to="/account/photos">
-                <Eye className="h-4 w-4 mr-2" />
-                View Photo Gallery
-              </Link>
+            </Button>
+            <Button 
+              onClick={() => {
+                const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
+                if (isOnSampleDashboard) {
+                  alert('AssetDocs.net says\n\nDemo: This allows you to view, organize, download, and categorize your uploaded photos.');
+                  return;
+                }
+                window.location.href = '/account/photos';
+              }}
+              variant="outline" 
+              className="w-full"
+            >
+              <Eye className="h-4 w-4 mr-2" />
+              View Photo Gallery
             </Button>
           </div>
         </CardContent>
@@ -114,27 +164,34 @@ const AccountActions: React.FC<AccountActionsProps> = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            <FeatureButton 
-              featureKey="video_upload"
+            <Button
+              onClick={() => {
+                const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
+                if (isOnSampleDashboard) {
+                  alert('AssetDocs.net says\n\nDemo: This allows you to upload and manage video recordings of your property and belongings.');
+                  return;
+                }
+                window.location.href = '/account/videos/upload';
+              }}
               className="w-full bg-brand-blue hover:bg-brand-lightBlue"
-              onClick={() => window.location.href = '/account/videos/upload'}
             >
               <Plus className="h-4 w-4 mr-2" />
               Upload Videos
-            </FeatureButton>
-            {subscriptionTier === 'basic' && (
-              <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                <p className="text-sm text-orange-800">
-                  📹 Video uploads are available for Standard and Premium subscriptions. 
-                  <Link to="/pricing" className="underline font-medium ml-1">Upgrade now</Link>
-                </p>
-              </div>
-            )}
-            <Button asChild variant="outline" className="w-full">
-              <Link to="/account/videos">
-                <Eye className="h-4 w-4 mr-2" />
-                View Videos
-              </Link>
+            </Button>
+            <Button 
+              onClick={() => {
+                const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
+                if (isOnSampleDashboard) {
+                  alert('AssetDocs.net says\n\nDemo: This allows you to view, watch, download, and categorize your uploaded videos.');
+                  return;
+                }
+                window.location.href = '/account/videos';
+              }}
+              variant="outline" 
+              className="w-full"
+            >
+              <Eye className="h-4 w-4 mr-2" />
+              View Videos
             </Button>
           </div>
         </CardContent>
@@ -153,17 +210,34 @@ const AccountActions: React.FC<AccountActionsProps> = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            <Button asChild className="w-full bg-brand-blue hover:bg-brand-lightBlue">
-              <Link to="/account/documents/upload">
-                <Plus className="h-4 w-4 mr-2" />
-                Upload Documents
-              </Link>
+            <Button 
+              onClick={() => {
+                const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
+                if (isOnSampleDashboard) {
+                  alert('AssetDocs.net says\n\nDemo: This allows you to store PDFs, receipts, warranties, licenses, titles, and other important documents.');
+                  return;
+                }
+                window.location.href = '/account/documents/upload';
+              }}
+              className="w-full bg-brand-blue hover:bg-brand-lightBlue"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Upload Documents
             </Button>
-            <Button asChild variant="outline" className="w-full">
-              <Link to="/account/documents">
-                <Eye className="h-4 w-4 mr-2" />
-                View Documents
-              </Link>
+            <Button 
+              onClick={() => {
+                const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
+                if (isOnSampleDashboard) {
+                  alert('AssetDocs.net says\n\nDemo: This allows you to view, organize, download, and manage your stored documents.');
+                  return;
+                }
+                window.location.href = '/account/documents';
+              }}
+              variant="outline" 
+              className="w-full"
+            >
+              <Eye className="h-4 w-4 mr-2" />
+              View Documents
             </Button>
           </div>
         </CardContent>
@@ -181,17 +255,34 @@ const AccountActions: React.FC<AccountActionsProps> = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            <Button asChild className="w-full bg-brand-blue hover:bg-brand-lightBlue">
-              <Link to="/account/insurance/new">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Insurance Policy
-              </Link>
+            <Button 
+              onClick={() => {
+                const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
+                if (isOnSampleDashboard) {
+                  alert('AssetDocs.net says\n\nDemo: This allows you to add and manage insurance policies, claims, and related documentation.');
+                  return;
+                }
+                window.location.href = '/account/insurance/new';
+              }}
+              className="w-full bg-brand-blue hover:bg-brand-lightBlue"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Insurance Policy
             </Button>
-            <Button asChild variant="outline" className="w-full">
-              <Link to="/account/insurance">
-                <Eye className="h-4 w-4 mr-2" />
-                View Insurance
-              </Link>
+            <Button 
+              onClick={() => {
+                const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
+                if (isOnSampleDashboard) {
+                  alert('AssetDocs.net says\n\nDemo: This allows you to view and manage your insurance policies and claims.');
+                  return;
+                }
+                window.location.href = '/account/insurance';
+              }}
+              variant="outline" 
+              className="w-full"
+            >
+              <Eye className="h-4 w-4 mr-2" />
+              View Insurance
             </Button>
           </div>
         </CardContent>
@@ -213,7 +304,7 @@ const AccountActions: React.FC<AccountActionsProps> = () => {
               // Mock export for sample dashboard
               const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
               if (isOnSampleDashboard) {
-                alert('Demo: This would export your complete asset summary as a PDF and ZIP file.');
+                alert('AssetDocs.net says\n\nDemo: This would export your complete asset summary as a PDF and ZIP file.');
                 return;
               }
             }}

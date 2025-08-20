@@ -235,21 +235,43 @@ const PostDamageSection: React.FC = () => {
 
           {/* Quick Upload Actions */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Button asChild className="h-16 bg-red-600 hover:bg-red-700" disabled={!selectedPropertyId}>
-              <Link to={selectedPropertyId ? "/damage/photos/upload" : "#"}>
-                <div className="flex flex-col items-center">
-                  <Camera className="h-6 w-6 mb-1" />
-                  <span>Upload Damage Photos</span>
-                </div>
-              </Link>
+            <Button 
+              onClick={() => {
+                const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
+                if (isOnSampleDashboard) {
+                  alert('AssetDocs.net says\n\nDemo: This allows you to upload and document property damage with photos for insurance claims.');
+                  return;
+                }
+                if (selectedPropertyId) {
+                  window.location.href = '/damage/photos/upload';
+                }
+              }}
+              className="h-16 bg-red-600 hover:bg-red-700" 
+              disabled={!selectedPropertyId}
+            >
+              <div className="flex flex-col items-center">
+                <Camera className="h-6 w-6 mb-1" />
+                <span>Upload Damage Photos</span>
+              </div>
             </Button>
-            <Button asChild className="h-16 bg-red-600 hover:bg-red-700" disabled={!selectedPropertyId}>
-              <Link to={selectedPropertyId ? "/damage/videos/upload" : "#"}>
-                <div className="flex flex-col items-center">
-                  <Video className="h-6 w-6 mb-1" />
-                  <span>Upload Damage Videos</span>
-                </div>
-              </Link>
+            <Button 
+              onClick={() => {
+                const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
+                if (isOnSampleDashboard) {
+                  alert('AssetDocs.net says\n\nDemo: This allows you to upload and document property damage with videos for insurance claims.');
+                  return;
+                }
+                if (selectedPropertyId) {
+                  window.location.href = '/damage/videos/upload';
+                }
+              }}
+              className="h-16 bg-red-600 hover:bg-red-700" 
+              disabled={!selectedPropertyId}
+            >
+              <div className="flex flex-col items-center">
+                <Video className="h-6 w-6 mb-1" />
+                <span>Upload Damage Videos</span>
+              </div>
             </Button>
           </div>
 
@@ -289,11 +311,19 @@ const PostDamageSection: React.FC = () => {
                   <Camera className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-600 mb-2">No damage photos yet</h3>
                   <p className="text-gray-500 mb-4">Start documenting property damage by uploading photos</p>
-                  <Button asChild disabled={!selectedPropertyId}>
-                    <Link to="/account/damage/photos/upload">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Upload First Photo
-                    </Link>
+                  <Button 
+                    onClick={() => {
+                      const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
+                      if (isOnSampleDashboard) {
+                        alert('AssetDocs.net says\n\nDemo: This allows you to upload your first damage photo to start documenting property damage.');
+                        return;
+                      }
+                      window.location.href = '/account/damage/photos/upload';
+                    }}
+                    disabled={!selectedPropertyId}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Upload First Photo
                   </Button>
                 </div>
               ) : (
@@ -341,11 +371,19 @@ const PostDamageSection: React.FC = () => {
                   <Video className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-600 mb-2">No damage videos yet</h3>
                   <p className="text-gray-500 mb-4">Create video walkthroughs of property damage</p>
-                  <Button asChild disabled={!selectedPropertyId}>
-                    <Link to="/account/damage/videos/upload">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Upload First Video
-                    </Link>
+                  <Button 
+                    onClick={() => {
+                      const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
+                      if (isOnSampleDashboard) {
+                        alert('AssetDocs.net says\n\nDemo: This allows you to upload your first damage video to create video walkthroughs of property damage.');
+                        return;
+                      }
+                      window.location.href = '/account/damage/videos/upload';
+                    }}
+                    disabled={!selectedPropertyId}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Upload First Video
                   </Button>
                 </div>
               ) : (
@@ -407,7 +445,17 @@ const PostDamageSection: React.FC = () => {
                 <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-600 mb-2">Damage Reports</h3>
                 <p className="text-gray-500 mb-4">Generate comprehensive damage reports for insurance claims</p>
-                <Button onClick={generateDamageReport} disabled={!selectedPropertyId}>
+                <Button 
+                  onClick={() => {
+                    const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
+                    if (isOnSampleDashboard) {
+                      alert('AssetDocs.net says\n\nDemo: This would generate comprehensive damage reports for insurance claims with photos, videos, and details.');
+                      return;
+                    }
+                    generateDamageReport();
+                  }}
+                  disabled={!selectedPropertyId}
+                >
                   <FileText className="h-4 w-4 mr-2" />
                   Generate Damage Report
                 </Button>
@@ -418,7 +466,19 @@ const PostDamageSection: React.FC = () => {
           {/* Quick Actions */}
           <div className="pt-4 border-t">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <Button variant="outline" size="sm" onClick={generateDamageReport} disabled={!selectedPropertyId}>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => {
+                  const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
+                  if (isOnSampleDashboard) {
+                    alert('AssetDocs.net says\n\nDemo: This would generate comprehensive damage reports for insurance claims with photos, videos, and details.');
+                    return;
+                  }
+                  generateDamageReport();
+                }}
+                disabled={!selectedPropertyId}
+              >
                 <FileText className="h-4 w-4 mr-2" />
                 Generate Damage Report
               </Button>

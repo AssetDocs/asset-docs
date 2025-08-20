@@ -23,12 +23,20 @@ const ChecklistsAccess: React.FC = () => {
             Access detailed checklists for documenting your home and business assets, 
             organized by category with photography tips and documentation best practices.
           </p>
-          <Link to="/checklists">
-            <Button className="w-full">
-              <CheckSquare className="h-4 w-4 mr-2" />
-              Access Checklists
-            </Button>
-          </Link>
+          <Button 
+            onClick={() => {
+              const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
+              if (isOnSampleDashboard) {
+                alert('AssetDocs.net says\n\nDemo: This provides comprehensive guides for documenting your valuable assets organized by category with photography tips.');
+                return;
+              }
+              window.location.href = '/checklists';
+            }}
+            className="w-full"
+          >
+            <CheckSquare className="h-4 w-4 mr-2" />
+            Access Checklists
+          </Button>
         </CardContent>
       </Card>
     </FeatureGuard>

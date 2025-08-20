@@ -77,7 +77,14 @@ const AssetValuesSection: React.FC = () => {
       <div className="flex justify-end">
         <Button
           variant="outline"
-          onClick={() => setShowIndividualProperties(!showIndividualProperties)}
+          onClick={() => {
+            const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
+            if (isOnSampleDashboard) {
+              alert('AssetDocs.net says\n\nDemo: This toggles between combined asset view and individual property details view.');
+              return;
+            }
+            setShowIndividualProperties(!showIndividualProperties);
+          }}
           className="flex items-center gap-2"
         >
           {showIndividualProperties ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}

@@ -10,6 +10,12 @@ const DownloadAllFilesButton: React.FC = () => {
   const { toast } = useToast();
 
   const handleDownloadAll = async () => {
+    const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
+    if (isOnSampleDashboard) {
+      alert('AssetDocs.net says\n\nDemo: This would download all your uploaded photos, videos, and documents as a ZIP file for backup or data portability.');
+      return;
+    }
+    
     setIsDownloading(true);
     
     try {

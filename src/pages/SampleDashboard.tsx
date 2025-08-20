@@ -65,16 +65,16 @@ const SampleDashboard: React.FC = () => {
                 <h3 className="text-lg font-semibold mb-4">Quick Actions (Demo Mode)</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Button 
-                    disabled
-                    className="bg-gray-100 text-gray-500 cursor-not-allowed"
+                    onClick={() => alert('AssetDocs.net says\n\nDemo: This would allow you to upload photos and get AI-powered value estimates for your items.')}
+                    className="bg-brand-blue hover:bg-brand-lightBlue text-white"
                   >
-                    Upload Photos (Demo)
+                    Upload Photos
                   </Button>
                   <Button 
-                    disabled
-                    className="bg-gray-100 text-gray-500 cursor-not-allowed"
+                    onClick={() => alert('AssetDocs.net says\n\nDemo: This would allow you to create new property profiles with square footage and room details.')}
+                    className="bg-brand-blue hover:bg-brand-lightBlue text-white"
                   >
-                    Add Property (Demo)
+                    Add Property
                   </Button>
                 </div>
               </div>

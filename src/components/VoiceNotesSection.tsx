@@ -197,7 +197,7 @@ const VoiceNotesSection: React.FC = () => {
     });
   };
 
-  const categories = ['General', 'Family Heirlooms', 'Collectibles', 'Priceless Items', 'Insurance', 'Memories'];
+  const categories = ['General', 'Family Heirlooms', 'Collectibles', 'Priceless Items', 'Insurance', 'Memories', 'Other'];
 
   return (
     <div className="space-y-6">
@@ -245,7 +245,14 @@ const VoiceNotesSection: React.FC = () => {
 
           <div className="flex items-center gap-4">
             <Button
-              onClick={isRecording ? stopRecording : startRecording}
+              onClick={() => {
+                const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
+                if (isOnSampleDashboard) {
+                  alert('AssetDocs.net says\n\nDemo: This would allow you to record voice notes for items with sentimental value, historical significance, or important details.');
+                  return;
+                }
+                isRecording ? stopRecording() : startRecording();
+              }}
               variant={isRecording ? "destructive" : "default"}
               size="lg"
               className="flex items-center gap-2"
@@ -280,7 +287,17 @@ const VoiceNotesSection: React.FC = () => {
                 placeholder="Your speech will appear here..."
                 className="min-h-[100px]"
               />
-              <Button onClick={() => saveVoiceNote()} className="w-full">
+              <Button 
+                onClick={() => {
+                  const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
+                  if (isOnSampleDashboard) {
+                    alert('AssetDocs.net says\n\nDemo: This would save your voice note with transcription for future reference.');
+                    return;
+                  }
+                  saveVoiceNote();
+                }}
+                className="w-full"
+              >
                 <Save className="h-4 w-4 mr-2" />
                 Save Note
               </Button>
