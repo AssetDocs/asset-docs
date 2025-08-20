@@ -208,10 +208,21 @@ const AccountActions: React.FC<AccountActionsProps> = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ExportAssetsButton 
+          <Button 
+            onClick={() => {
+              // Mock export for sample dashboard
+              const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
+              if (isOnSampleDashboard) {
+                alert('Demo: This would export your complete asset summary as a PDF and ZIP file.');
+                return;
+              }
+            }}
             variant="default"
             className="w-full bg-brand-green hover:bg-brand-green/90"
-          />
+          >
+            <FileText className="mr-2 h-4 w-4" />
+            Export Assets
+          </Button>
         </CardContent>
       </Card>
 
