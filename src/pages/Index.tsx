@@ -6,7 +6,6 @@ import HeroSection from '@/components/HeroSection';
 import AboutSection from '@/components/AboutSection';
 import GiftSection from '@/components/GiftSection';
 import FeaturedSection from '@/components/FeaturedSection';
-import AIValuationSection from '@/components/AIValuationSection';
 import FeaturesSection from '@/components/FeaturesSection';
 import HowItWorksSection from '@/components/HowItWorksSection';
 import CTASection from '@/components/CTASection';
@@ -48,7 +47,6 @@ const Index: React.FC = () => {
       <AboutSection />
       <GiftSection />
       <FeaturedSection />
-      <AIValuationSection />
       <FeaturesSection />
       <HowItWorksSection />
       <CTASection />

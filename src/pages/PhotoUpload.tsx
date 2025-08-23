@@ -3,12 +3,12 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import AIConfigurationCard from '@/components/PhotoUpload/AIConfigurationCard';
+
 import UploadSection from '@/components/PhotoUpload/UploadSection';
 import ItemDetailsSection from '@/components/PhotoUpload/ItemDetailsSection';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
-import { aiAnalysisService } from '@/components/AIAnalysisService';
+
 import { StorageService } from '@/services/StorageService';
 import { ItemService } from '@/services/ItemService';
 import { useAuth } from '@/contexts/AuthContext';
@@ -21,17 +21,11 @@ interface UploadedItem {
   name: string;
   description: string;
   estimatedValue: number;
-  aiGenerated: boolean;
   category: string;
   itemType: string;
   propertyUpgrade?: string;
   propertyId: string;
   location: string;
-  confidence?: number;
-  condition?: string;
-  brand?: string;
-  model?: string;
-  useAI: boolean;
   isManualEntry?: boolean;
 }
 
@@ -41,10 +35,8 @@ const PhotoUpload: React.FC = () => {
   const { toast } = useToast();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadedItems, setUploadedItems] = useState<UploadedItem[]>([]);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [apiKey, setApiKey] = useState(localStorage.getItem('openai_api_key') || '');
-  const [defaultUseAI, setDefaultUseAI] = useState(true);
   const [defaultPropertyId, setDefaultPropertyId] = useState('');
   const [defaultItemType, setDefaultItemType] = useState('');
   const [defaultCategory, setDefaultCategory] = useState('');
@@ -57,78 +49,30 @@ const PhotoUpload: React.FC = () => {
   };
 
   const processItems = async () => {
-    setIsAnalyzing(true);
+    setIsProcessing(true);
     const newItems: UploadedItem[] = [];
 
     for (const file of selectedFiles) {
       const preview = URL.createObjectURL(file);
       
-      if (defaultUseAI && apiKey) {
-        try {
-          const aiResult = await aiAnalysisService.analyzeImage(file);
-          
-          const item: UploadedItem = {
-            id: Date.now().toString() + Math.random().toString(),
-            file,
-            preview,
-            name: aiResult.name,
-            description: aiResult.description,
-            estimatedValue: aiResult.estimatedValue,
-            aiGenerated: true,
-            category: defaultCategory || aiResult.category,
-            itemType: defaultItemType || aiResult.category,
-            propertyId: defaultPropertyId,
-            location: '',
-            confidence: aiResult.confidence,
-            condition: aiResult.condition,
-            brand: aiResult.brand,
-            model: aiResult.model,
-            useAI: true
-          };
-          
-          newItems.push(item);
-        } catch (error) {
-          console.error('AI analysis failed for file:', file.name, error);
-          // Fallback to basic item structure
-          const basicItem: UploadedItem = {
-            id: Date.now().toString() + Math.random().toString(),
-            file,
-            preview,
-            name: file.name.replace(/\.[^/.]+$/, ""),
-            description: '',
-            estimatedValue: 0,
-            aiGenerated: false,
-            category: defaultCategory || 'Uncategorized',
-            itemType: defaultItemType || 'Other',
-            propertyId: defaultPropertyId,
-            location: '',
-            useAI: false
-          };
-          newItems.push(basicItem);
-        }
-      } else {
-        // Create basic item without AI analysis
-        const basicItem: UploadedItem = {
-          id: Date.now().toString() + Math.random().toString(),
-          file,
-          preview,
-          name: file.name.replace(/\.[^/.]+$/, ""),
-          description: '',
-          estimatedValue: 0,
-          aiGenerated: false,
-          category: defaultCategory || 'Manual Entry',
-          itemType: defaultItemType || 'Other',
-          propertyId: defaultPropertyId,
-          location: '',
-          useAI: false
-        };
-        newItems.push(basicItem);
-      }
+      const basicItem: UploadedItem = {
+        id: Date.now().toString() + Math.random().toString(),
+        file,
+        preview,
+        name: file.name.replace(/\.[^/.]+$/, ""),
+        description: '',
+        estimatedValue: 0,
+        category: defaultCategory || 'Manual Entry',
+        itemType: defaultItemType || 'Other',
+        propertyId: defaultPropertyId,
+        location: ''
+      };
+      newItems.push(basicItem);
     }
 
     setUploadedItems([...uploadedItems, ...newItems]);
     setSelectedFiles([]);
-    setIsAnalyzing(false);
+    setIsProcessing(false);
   };
 
   const addManualEntry = () => {
@@ -137,28 +81,21 @@ const PhotoUpload: React.FC = () => {
       name: '',
       description: '',
       estimatedValue: 0,
-      aiGenerated: false,
       category: defaultCategory || '',
       itemType: defaultItemType || 'Other',
       propertyId: defaultPropertyId,
       location: '',
-      useAI: false,
       isManualEntry: true
     };
 
     setUploadedItems([...uploadedItems, manualItem]);
   };
 
-  const handleApiKeyUpdate = () => {
-    aiAnalysisService.setApiKey(apiKey);
-    console.log('OpenAI API key updated');
-  };
-
   const updateItemValue = (id: string, field: string, value: string | number | boolean) => {
     setUploadedItems(items =>
       items.map(item =>
         item.id === id 
-          ? { ...item, [field]: value, aiGenerated: false }
+          ? { ...item, [field]: value }
           : item
       )
     );
@@ -209,13 +146,8 @@ const PhotoUpload: React.FC = () => {
           property_upgrade: item.propertyUpgrade,
           property_id: item.propertyId,
           location: item.location,
-          condition: item.condition,
-          brand: item.brand,
-          model: item.model,
           photo_url: photoUrl,
           photo_path: photoPath,
-          ai_generated: item.aiGenerated,
-          confidence: item.confidence,
           is_manual_entry: item.isManualEntry
         });
       }
@@ -259,22 +191,8 @@ const PhotoUpload: React.FC = () => {
               Back to Dashboard
             </Button>
             <h1 className="text-3xl font-bold text-brand-blue mb-2">Upload Photos</h1>
-            <p className="text-gray-600">Upload photos of your items and get AI-powered value estimates</p>
+            <p className="text-gray-600">Upload photos of your items and document them with estimated values</p>
           </div>
-
-          <AIConfigurationCard
-            apiKey={apiKey}
-            setApiKey={setApiKey}
-            defaultUseAI={defaultUseAI}
-            setDefaultUseAI={setDefaultUseAI}
-            defaultPropertyId={defaultPropertyId}
-            setDefaultPropertyId={setDefaultPropertyId}
-            defaultItemType={defaultItemType}
-            setDefaultItemType={setDefaultItemType}
-            defaultCategory={defaultCategory}
-            setDefaultCategory={setDefaultCategory}
-            onApiKeyUpdate={handleApiKeyUpdate}
-          />
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <UploadSection
@@ -282,7 +200,7 @@ const PhotoUpload: React.FC = () => {
               onFileSelect={handleFileSelect}
               onProcessItems={processItems}
               onAddManualEntry={addManualEntry}
-              isAnalyzing={isAnalyzing}
+              isAnalyzing={isProcessing}
             />
 
             <ItemDetailsSection

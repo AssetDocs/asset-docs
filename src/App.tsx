@@ -59,7 +59,7 @@ import Glossary from "./pages/Glossary";
 import StateRequirements from "./pages/StateRequirements";
 import SubscriptionCheckout from "./pages/SubscriptionCheckout";
 import PhotographyGuide from "./pages/PhotographyGuide";
-import AIValuationGuide from "./pages/AIValuationGuide";
+
 import SocialImpact from "./pages/SocialImpact";
 import Partnership from "./pages/Partnership";
 import DamagePhotoUpload from "./pages/DamagePhotoUpload";
@@ -155,7 +155,7 @@ const AppContent = () => {
         <Route path="/press-news" element={<PressNews />} />
         <Route path="/press-news/digital-documentation-guide" element={<PressNews />} />
         <Route path="/photography-guide" element={<PhotographyGuide />} />
-        <Route path="/ai-valuation-guide" element={<AIValuationGuide />} />
+        
         <Route path="/social-impact" element={<SocialImpact />} />
         <Route path="/partnership" element={<Partnership />} />
         

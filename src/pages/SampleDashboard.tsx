@@ -65,7 +65,7 @@ const SampleDashboard: React.FC = () => {
                 <h3 className="text-lg font-semibold mb-4">Quick Actions (Demo Mode)</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Button 
-                    onClick={() => alert('AssetDocs.net says\n\nDemo: This would allow you to upload photos and get AI-powered value estimates for your items.')}
+                    onClick={() => alert('AssetDocs.net says\n\nDemo: This would allow you to upload photos and document your items with estimated values.')}
                     className="bg-brand-blue hover:bg-brand-lightBlue text-white"
                   >
                     Upload Photos

@@ -114,7 +114,7 @@ const AccountActions: React.FC<AccountActionsProps> = () => {
             Photo Management
           </CardTitle>
           <CardDescription>
-            Upload photos and get AI-powered value estimates for your items
+            Upload photos and document your items with estimated values
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -123,7 +123,7 @@ const AccountActions: React.FC<AccountActionsProps> = () => {
               onClick={() => {
                 const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
                 if (isOnSampleDashboard) {
-                  alert('AssetDocs.net says\n\nDemo: This allows you to upload photos and get AI-powered value estimates for your items.');
+                  alert('AssetDocs.net says\n\nDemo: This allows you to upload photos and document your items with estimated values.');
                   return;
                 }
                 window.location.href = '/account/photos/upload';

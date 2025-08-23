@@ -16,17 +16,11 @@ interface UploadedItem {
   name: string;
   description: string;
   estimatedValue: number;
-  aiGenerated: boolean;
   category: string;
   itemType: string;
   propertyUpgrade?: string;
   propertyId: string;
   location: string;
-  confidence?: number;
-  condition?: string;
-  brand?: string;
-  model?: string;
-  useAI: boolean;
   isManualEntry?: boolean;
 }
 
@@ -106,9 +100,6 @@ const ItemDetailsSection: React.FC<ItemDetailsSectionProps> = ({
                             placeholder="Select item type"
                           />
                           
-                          <div className="text-xs text-gray-600">
-                            <span className="font-medium">Category:</span> {item.category}
-                          </div>
                         </div>
                         
                         {item.itemType === 'Property Upgrades' && (
@@ -121,13 +112,16 @@ const ItemDetailsSection: React.FC<ItemDetailsSectionProps> = ({
                       </div>
                       
                       <div className="flex space-x-2">
-                        <Input
-                          type="number"
-                          value={item.estimatedValue}
-                          onChange={(e) => onUpdateItemValue(item.id, 'estimatedValue', Number(e.target.value))}
-                          placeholder="Value ($)"
-                          className="text-sm"
-                        />
+                        <div className="flex items-center space-x-2 flex-1">
+                          <DollarSign className="h-4 w-4 text-gray-500" />
+                          <Input
+                            type="number"
+                            value={item.estimatedValue}
+                            onChange={(e) => onUpdateItemValue(item.id, 'estimatedValue', Number(e.target.value))}
+                            placeholder="Estimated Market Value ($)"
+                            className="text-sm"
+                          />
+                        </div>
                         <div className="flex items-center space-x-2 flex-1">
                           <MapPin className="h-4 w-4 text-gray-500" />
                           <Input
@@ -152,16 +146,6 @@ const ItemDetailsSection: React.FC<ItemDetailsSectionProps> = ({
                           {item.isManualEntry && (
                             <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
                               Manual Entry
-                            </span>
-                          )}
-                          {item.aiGenerated && (
-                            <span className="text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded">
-                              AI Generated
-                            </span>
-                          )}
-                          {item.confidence && (
-                            <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">
-                              {item.confidence}% confidence
                             </span>
                           )}
                         </div>

@@ -21,15 +21,6 @@ const QA: React.FC = () => {
           
           <div className="mb-10">
             <Accordion type="single" collapsible className="mb-8">
-              <AccordionItem value="item-1">
-                <AccordionTrigger className="text-lg font-medium">How does the AI valuation system work?</AccordionTrigger>
-                <AccordionContent>
-                  Our AI technology automatically identifies items in your uploaded images and assigns an estimated 
-                  market value based on current pricing data. The system uses computer vision to recognize objects, 
-                  cross-references them with pricing databases, and provides an accurate valuation that can be used 
-                  for insurance, estate planning, or financial records.
-                </AccordionContent>
-              </AccordionItem>
               
               <AccordionItem value="item-2">
                 <AccordionTrigger className="text-lg font-medium">How secure is my property documentation?</AccordionTrigger>
@@ -64,15 +55,6 @@ const QA: React.FC = () => {
                 </AccordionContent>
               </AccordionItem>
               
-              <AccordionItem value="item-5">
-                <AccordionTrigger className="text-lg font-medium">How accurate are the AI valuations?</AccordionTrigger>
-                <AccordionContent>
-                  Our AI valuation system provides estimates based on current market data and comparable sales. 
-                  While highly accurate for most common items, valuations should be considered estimates for 
-                  insurance and planning purposes. For high-value items like fine art, jewelry, or antiques, 
-                  we recommend professional appraisals which can be coordinated through our platform.
-                </AccordionContent>
-              </AccordionItem>
               
               <AccordionItem value="item-6">
                 <AccordionTrigger className="text-lg font-medium">Can I use Asset Docs for insurance claims?</AccordionTrigger>
@@ -103,7 +85,7 @@ const QA: React.FC = () => {
                 <AccordionTrigger className="text-lg font-medium">What types of assets can I document?</AccordionTrigger>
                 <AccordionContent>
                   Asset Docs supports documentation of virtually any physical asset, including electronics, furniture, 
-                  artwork, jewelry, collectibles, appliances, vehicles, and real estate. Our AI is trained to identify 
+                  artwork, jewelry, collectibles, appliances, vehicles, and real estate. Our system helps you organize 
                   and categorize thousands of different items.
                 </AccordionContent>
               </AccordionItem>
@@ -111,7 +93,7 @@ const QA: React.FC = () => {
               <AccordionItem value="item-10">
                 <AccordionTrigger className="text-lg font-medium">What is included in my 30-day free trial?</AccordionTrigger>
                 <AccordionContent>
-                  Your free 30-day trial includes Account Settings, Property Profiles, Photo upload and management, and Asset Valuation. 
+                  Your free 30-day trial includes Account Settings, Property Profiles, Photo upload and management, and Asset Management. 
                   What's not included are premium features such as:
                   <ul className="list-disc list-inside mt-2 ml-4 space-y-1">
                     <li>Video upload and management</li>
@@ -172,7 +154,7 @@ const QA: React.FC = () => {
                 onClick={() => setShowChat(!showChat)} 
                 className="bg-brand-blue hover:bg-brand-lightBlue"
               >
-                {showChat ? 'Close Chat' : 'Open AI Chat Assistant'}
+                {showChat ? 'Close Chat' : 'Open Chat Assistant'}
               </Button>
             </div>
             
