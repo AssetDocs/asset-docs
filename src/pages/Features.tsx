@@ -20,11 +20,6 @@ const Features: React.FC = () => {
             Comprehensive protection and documentation services for homeowners, renters, business owners, landlords, and more.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
-            <Link to="/features-list">
-              <Button variant="secondary" size="lg">
-                Technical Feature Overview
-              </Button>
-            </Link>
             <Link to="/pricing">
               <Button variant="outline" size="lg" className="bg-white/10 text-white border-white/20 hover:bg-white/20">
                 View Pricing

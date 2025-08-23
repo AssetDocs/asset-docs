@@ -102,6 +102,11 @@ const Footer: React.FC = () => {
                     Social Impact
                   </Link>
                 </li>
+                <li>
+                  <Link to="/features-list" className="text-gray-300 hover:text-white transition-colors text-sm">
+                    Technical
+                  </Link>
+                </li>
               </ul>
             </div>
             
