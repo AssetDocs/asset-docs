@@ -66,12 +66,9 @@ const Account: React.FC = () => {
           </div>
 
           <Tabs defaultValue="overview" className="space-y-6" id="tabs-content">
-            <TabsList className={`${isMobile ? 'flex overflow-x-auto' : 'grid grid-cols-5'} w-full`}>
+            <TabsList className={`${isMobile ? 'flex overflow-x-auto' : 'grid grid-cols-4'} w-full`}>
               <TabsTrigger value="overview" className={isMobile ? 'flex-shrink-0' : ''}>
                 {isMobile ? 'Home' : 'Overview'}
-              </TabsTrigger>
-              <TabsTrigger value="manual-entry" className={isMobile ? 'flex-shrink-0' : ''}>
-                {isMobile ? 'Manual' : 'Manual Entry'}
               </TabsTrigger>
               <TabsTrigger value="asset-values" className={isMobile ? 'flex-shrink-0' : ''}>
                 {isMobile ? 'Assets' : 'Asset Values'}
@@ -87,11 +84,8 @@ const Account: React.FC = () => {
             <TabsContent value="overview" className="space-y-6">
               <AccountStats />
               <AccountActions />
-              <DocumentationChecklist />
-            </TabsContent>
-
-            <TabsContent value="manual-entry">
               <ManualEntrySection />
+              <DocumentationChecklist />
             </TabsContent>
 
 
