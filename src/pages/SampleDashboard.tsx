@@ -13,6 +13,7 @@ import VoiceNotesSection from '@/components/VoiceNotesSection';
 
 import ChecklistsAccess from '@/components/ChecklistsAccess';
 import AccountActions from '@/components/AccountActions';
+import ManualEntrySection from '@/components/ManualEntrySection';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -60,25 +61,32 @@ const SampleDashboard: React.FC = () => {
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
+              {/* First Row */}
               <AccountStats />
-              <div className="bg-white rounded-lg border p-6">
-                <h3 className="text-lg font-semibold mb-4">Quick Actions (Demo Mode)</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Button 
-                    onClick={() => alert('AssetDocs.net says\n\nDemo: This would allow you to upload photos and document your items with estimated values.')}
-                    className="bg-brand-blue hover:bg-brand-lightBlue text-white"
-                  >
-                    Upload Photos
-                  </Button>
-                  <Button 
-                    onClick={() => alert('AssetDocs.net says\n\nDemo: This would allow you to create new property profiles with square footage and room details.')}
-                    className="bg-brand-blue hover:bg-brand-lightBlue text-white"
-                  >
-                    Add Property
-                  </Button>
+              
+              {/* Second Row */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="bg-white rounded-lg border p-6">
+                  <h3 className="text-lg font-semibold mb-4">Quick Actions (Demo Mode)</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Button 
+                      onClick={() => alert('AssetDocs.net says\n\nDemo: This would allow you to upload photos and document your items with estimated values.')}
+                      className="bg-brand-blue hover:bg-brand-lightBlue text-white"
+                    >
+                      Upload Photos
+                    </Button>
+                    <Button 
+                      onClick={() => alert('AssetDocs.net says\n\nDemo: This would allow you to create new property profiles with square footage and room details.')}
+                      className="bg-brand-blue hover:bg-brand-lightBlue text-white"
+                    >
+                      Add Property
+                    </Button>
+                  </div>
                 </div>
+                <ManualEntrySection />
               </div>
-              <AccountActions />
+
+              {/* Third Row */}
               <ChecklistsAccess />
               
             </TabsContent>
