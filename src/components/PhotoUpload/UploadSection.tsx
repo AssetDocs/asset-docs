@@ -4,13 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Camera, Upload, Zap, Plus, Image, Smartphone } from 'lucide-react';
+import { Camera, Upload, Zap, Image, Smartphone } from 'lucide-react';
 
 interface UploadSectionProps {
   selectedFiles: File[];
   onFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onProcessItems: () => void;
-  onAddManualEntry: () => void;
   isAnalyzing: boolean;
 }
 
@@ -18,7 +17,6 @@ const UploadSection: React.FC<UploadSectionProps> = ({
   selectedFiles,
   onFileSelect,
   onProcessItems,
-  onAddManualEntry,
   isAnalyzing
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -145,19 +143,6 @@ const UploadSection: React.FC<UploadSectionProps> = ({
           </div>
         )}
 
-        <div className="border-t pt-4">
-          <Button 
-            onClick={onAddManualEntry}
-            variant="outline"
-            className="w-full"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Manual Entry
-          </Button>
-          <p className="text-xs text-gray-500 mt-2 text-center">
-            Add items without photos or videos
-          </p>
-        </div>
       </CardContent>
     </Card>
   );

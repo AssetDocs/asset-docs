@@ -75,21 +75,6 @@ const PhotoUpload: React.FC = () => {
     setIsProcessing(false);
   };
 
-  const addManualEntry = () => {
-    const manualItem: UploadedItem = {
-      id: Date.now().toString() + Math.random().toString(),
-      name: '',
-      description: '',
-      estimatedValue: 0,
-      category: defaultCategory || '',
-      itemType: defaultItemType || 'Other',
-      propertyId: defaultPropertyId,
-      location: '',
-      isManualEntry: true
-    };
-
-    setUploadedItems([...uploadedItems, manualItem]);
-  };
 
   const updateItemValue = (id: string, field: string, value: string | number | boolean) => {
     setUploadedItems(items =>
@@ -199,7 +184,6 @@ const PhotoUpload: React.FC = () => {
               selectedFiles={selectedFiles}
               onFileSelect={handleFileSelect}
               onProcessItems={processItems}
-              onAddManualEntry={addManualEntry}
               isAnalyzing={isProcessing}
             />
 

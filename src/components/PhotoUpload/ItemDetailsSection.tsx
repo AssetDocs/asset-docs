@@ -111,14 +111,14 @@ const ItemDetailsSection: React.FC<ItemDetailsSectionProps> = ({
                         )}
                       </div>
                       
-                      <div className="flex space-x-2">
+                       <div className="flex space-x-2">
                         <div className="flex items-center space-x-2 flex-1">
                           <DollarSign className="h-4 w-4 text-gray-500" />
                           <Input
                             type="number"
-                            value={item.estimatedValue}
+                            value={item.estimatedValue || ''}
                             onChange={(e) => onUpdateItemValue(item.id, 'estimatedValue', Number(e.target.value))}
-                            placeholder="Estimated Market Value ($)"
+                            placeholder="Valuation (not purchase price)"
                             className="text-sm"
                           />
                         </div>
@@ -140,6 +140,20 @@ const ItemDetailsSection: React.FC<ItemDetailsSectionProps> = ({
                         rows={3}
                         className="text-sm"
                       />
+                      
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Attachments</label>
+                        <Input
+                          type="file"
+                          multiple
+                          accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                          className="text-sm"
+                          placeholder="Attach receipts, warranties, etc."
+                        />
+                        <p className="text-xs text-gray-500">
+                          Attach receipts, warranties, or other documents
+                        </p>
+                      </div>
                       
                       <div className="flex justify-between items-center">
                         <div className="flex space-x-2">
