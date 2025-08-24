@@ -113,144 +113,151 @@ const ManualEntrySection: React.FC = () => {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <FileText className="h-6 w-6 mr-2 text-brand-blue" />
-          Manual Entry
-        </CardTitle>
-        <CardDescription>
-          Add items to your inventory without photos
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <Button
-          onClick={addManualEntry}
-          variant="outline"
-          className="w-full border-2 border-dashed border-brand-blue/30 hover:border-brand-blue/50 hover:bg-brand-blue/5"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add Manual Entry
-        </Button>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <Card className="hover:shadow-lg transition-shadow">
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <FileText className="h-6 w-6 mr-2 text-brand-blue" />
+            Manual Entry
+          </CardTitle>
+          <CardDescription>
+            Add items to your inventory without photos
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <Button
+              onClick={addManualEntry}
+              className="w-full bg-brand-blue hover:bg-brand-lightBlue"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Manual Entry
+            </Button>
+            {manualItems.length > 0 && (
+              <Button 
+                onClick={saveItems}
+                disabled={isSaving}
+                variant="outline"
+                className="w-full"
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Save All Entries'
+                )}
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
-        {manualItems.length > 0 && (
+      {manualItems.length > 0 && (
+        <div className="md:col-span-2 lg:col-span-3">
           <div className="space-y-4 max-h-96 overflow-y-auto">
             {manualItems.map((item) => (
-              <div key={item.id} className="border rounded-lg p-4 bg-white">
-                <div className="space-y-3">
-                  <div className="space-y-2">
-                    <Input
-                      value={item.name}
-                      onChange={(e) => updateItemValue(item.id, 'name', e.target.value)}
-                      placeholder="Item name"
-                      className="text-sm"
-                    />
-                    
+              <Card key={item.id} className="border bg-white">
+                <CardContent className="p-4">
+                  <div className="space-y-3">
                     <div className="space-y-2">
-                      <PropertySelector
-                        value={item.propertyId}
-                        onChange={(value) => updateItemValue(item.id, 'propertyId', value)}
-                        placeholder="Select property"
-                      />
-                      
-                      <ItemTypeSelector
-                        value={item.itemType}
-                        onChange={(itemType) => updateItemValue(item.id, 'itemType', itemType)}
-                        onCategoryChange={(category) => updateItemValue(item.id, 'category', category)}
-                        placeholder="Select item type"
-                      />
-                      
-                      {item.itemType === 'Property Upgrades' && (
-                        <PropertyUpgradeSelector
-                          value={item.propertyUpgrade || ''}
-                          onChange={(value) => updateItemValue(item.id, 'propertyUpgrade', value)}
-                          placeholder="Select upgrade type"
-                        />
-                      )}
-                    </div>
-                    
-                    <div className="flex space-x-2">
-                      <div className="flex items-center space-x-2 flex-1">
-                        <DollarSign className="h-4 w-4 text-gray-500" />
-                        <Input
-                          type="number"
-                          value={item.estimatedValue || ''}
-                          onChange={(e) => updateItemValue(item.id, 'estimatedValue', Number(e.target.value))}
-                          placeholder="Valuation (not purchase price)"
-                          className="text-sm"
-                        />
-                      </div>
-                      <div className="flex items-center space-x-2 flex-1">
-                        <MapPin className="h-4 w-4 text-gray-500" />
-                        <Input
-                          value={item.location}
-                          onChange={(e) => updateItemValue(item.id, 'location', e.target.value)}
-                          placeholder="Room/Location"
-                          className="text-sm"
-                        />
-                      </div>
-                    </div>
-                    
-                    <Textarea
-                      value={item.description}
-                      onChange={(e) => updateItemValue(item.id, 'description', e.target.value)}
-                      placeholder="Detailed description"
-                      rows={3}
-                      className="text-sm"
-                    />
-                    
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-700">Attachments</label>
                       <Input
-                        type="file"
-                        multiple
-                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                        value={item.name}
+                        onChange={(e) => updateItemValue(item.id, 'name', e.target.value)}
+                        placeholder="Item name"
                         className="text-sm"
-                        placeholder="Attach receipts, warranties, etc."
                       />
-                      <p className="text-xs text-gray-500">
-                        Attach receipts, warranties, or other documents
-                      </p>
-                    </div>
-                    
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
-                        Manual Entry
-                      </span>
-                      <Button
-                        onClick={() => removeItem(item.id)}
-                        variant="destructive"
-                        size="sm"
-                        className="text-xs"
-                      >
-                        Remove
-                      </Button>
+                      
+                      <div className="space-y-2">
+                        <PropertySelector
+                          value={item.propertyId}
+                          onChange={(value) => updateItemValue(item.id, 'propertyId', value)}
+                          placeholder="Select property"
+                        />
+                        
+                        <ItemTypeSelector
+                          value={item.itemType}
+                          onChange={(itemType) => updateItemValue(item.id, 'itemType', itemType)}
+                          onCategoryChange={(category) => updateItemValue(item.id, 'category', category)}
+                          placeholder="Select item type"
+                        />
+                        
+                        {item.itemType === 'Property Upgrades' && (
+                          <PropertyUpgradeSelector
+                            value={item.propertyUpgrade || ''}
+                            onChange={(value) => updateItemValue(item.id, 'propertyUpgrade', value)}
+                            placeholder="Select upgrade type"
+                          />
+                        )}
+                      </div>
+                      
+                      <div className="flex space-x-2">
+                        <div className="flex items-center space-x-2 flex-1">
+                          <DollarSign className="h-4 w-4 text-gray-500" />
+                          <Input
+                            type="number"
+                            value={item.estimatedValue || ''}
+                            onChange={(e) => updateItemValue(item.id, 'estimatedValue', Number(e.target.value))}
+                            placeholder="Valuation (not purchase price)"
+                            className="text-sm"
+                          />
+                        </div>
+                        <div className="flex items-center space-x-2 flex-1">
+                          <MapPin className="h-4 w-4 text-gray-500" />
+                          <Input
+                            value={item.location}
+                            onChange={(e) => updateItemValue(item.id, 'location', e.target.value)}
+                            placeholder="Room/Location"
+                            className="text-sm"
+                          />
+                        </div>
+                      </div>
+                      
+                      <Textarea
+                        value={item.description}
+                        onChange={(e) => updateItemValue(item.id, 'description', e.target.value)}
+                        placeholder="Detailed description"
+                        rows={3}
+                        className="text-sm"
+                      />
+                      
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Attachments</label>
+                        <Input
+                          type="file"
+                          multiple
+                          accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                          className="text-sm"
+                          placeholder="Attach receipts, warranties, etc."
+                        />
+                        <p className="text-xs text-gray-500">
+                          Attach receipts, warranties, or other documents
+                        </p>
+                      </div>
+                      
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
+                          Manual Entry
+                        </span>
+                        <Button
+                          onClick={() => removeItem(item.id)}
+                          variant="destructive"
+                          size="sm"
+                          className="text-xs"
+                        >
+                          Remove
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
-        )}
-        
-        {manualItems.length > 0 && (
-          <Button 
-            onClick={saveItems}
-            disabled={isSaving}
-            className="w-full mt-4 bg-brand-blue hover:bg-brand-lightBlue"
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Saving to Storage...
-              </>
-            ) : (
-              'Save All Manual Entries'
-            )}
-          </Button>
-        )}
-      </CardContent>
-    </Card>
+        </div>
+      )}
+    </div>
   );
 };
 
