@@ -91,7 +91,6 @@ const SubscriptionCheckout: React.FC = () => {
         "500GB secure cloud storage",
         "Unlimited photo and video uploads",
         "Professional asset cataloging",
-        "AI-powered item identification & valuation",
         "Full web platform access",
         "Export comprehensive reports",
         "Priority email and phone support",

@@ -22,7 +22,6 @@ const PricingPlans: React.FC = () => {
       "50GB secure cloud storage",
       "Photo and video uploads",
       "Document uploads",
-      "AI-powered item identification & valuation",
       "Web platform access",
       "Export detailed reports",
       "Priority email support",
@@ -34,7 +33,6 @@ const PricingPlans: React.FC = () => {
       "500GB secure cloud storage",
       "Photo and video uploads",
       "Document uploads",
-      "AI-powered item identification & valuation",
       "Full web platform access",
       "Export detailed reports",
       "Priority email and phone support",
@@ -60,7 +58,6 @@ const PricingPlans: React.FC = () => {
       "25 user accounts",
       "Unlimited photo and video uploads",
       "Document uploads",
-      "AI-powered item identification & valuation",
       "Full web platform access",
       "Custom reporting templates",
       "Priority email and phone support"
