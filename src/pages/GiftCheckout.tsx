@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -26,6 +27,9 @@ const formSchema = z.object({
   recipientEmail: z.string().email('Invalid recipient email address'),
   giftMessage: z.string().optional(),
   deliveryDate: z.string().optional(),
+  agreeToTerms: z.boolean().refine(val => val === true, {
+    message: 'You must agree to the Terms of Service to continue',
+  }),
 });
 
 const GiftCheckout: React.FC = () => {
@@ -46,6 +50,7 @@ const GiftCheckout: React.FC = () => {
       recipientEmail: '',
       giftMessage: '',
       deliveryDate: '',
+      agreeToTerms: false,
     },
   });
 
@@ -310,6 +315,44 @@ const GiftCheckout: React.FC = () => {
                           )}
                         />
                       </div>
+
+                      <FormField
+                        control={form.control}
+                        name="agreeToTerms"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel className="text-sm">
+                                I agree to the{' '}
+                                <a 
+                                  href="/terms" 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-primary hover:underline"
+                                >
+                                  Terms of Service
+                                </a>
+                                {' '}and{' '}
+                                <a 
+                                  href="/legal" 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-primary hover:underline"
+                                >
+                                  Privacy Policy
+                                </a>
+                              </FormLabel>
+                              <FormMessage />
+                            </div>
+                          </FormItem>
+                        )}
+                      />
 
                       <Button 
                         type="submit" 
