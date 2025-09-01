@@ -59,26 +59,6 @@ const FeaturesList: React.FC = () => {
                 </CardContent>
               </Card>
 
-              {/* AI Features */}
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center gap-2 mb-2">
-                    <BarChart className="h-6 w-6 text-primary" />
-                    <Badge variant="secondary">AI</Badge>
-                  </div>
-                  <CardTitle>AI Asset Recognition</CardTitle>
-                  <CardDescription>Automated item identification and valuation</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ul className="text-sm space-y-1">
-                    <li>• Smart item recognition</li>
-                    <li>• Automated valuation estimates</li>
-                    <li>• Receipt integration and OCR</li>
-                    <li>• Category auto-assignment</li>
-                    <li>• Market value tracking</li>
-                  </ul>
-                </CardContent>
-              </Card>
 
               {/* Document Management */}
               <Card>
@@ -453,7 +433,6 @@ const FeaturesList: React.FC = () => {
                       <h4 className="font-semibold mb-2">Asset Management:</h4>
                       <ul className="text-sm space-y-1">
                         <li>• Upload photos/videos</li>
-                        <li>• AI asset recognition</li>
                         <li>• Manual asset entry</li>
                         <li>• Receipt upload</li>
                         <li>• Value estimation</li>
