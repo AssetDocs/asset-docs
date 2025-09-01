@@ -64,6 +64,7 @@ import SocialImpact from "./pages/SocialImpact";
 import Partnership from "./pages/Partnership";
 import DamagePhotoUpload from "./pages/DamagePhotoUpload";
 import DamageVideoUpload from "./pages/DamageVideoUpload";
+import AwarenessGuide from "./pages/AwarenessGuide";
 
 const queryClient = new QueryClient();
 
@@ -158,6 +159,7 @@ const AppContent = () => {
         
         <Route path="/social-impact" element={<SocialImpact />} />
         <Route path="/partnership" element={<Partnership />} />
+        <Route path="/awareness-guide" element={<AwarenessGuide />} />
         
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />

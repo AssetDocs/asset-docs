@@ -136,6 +136,11 @@ const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
+                <Link to="/awareness-guide" className="text-gray-300 hover:text-white transition-colors text-sm">
+                  Asset Docs Awareness Guide
+                </Link>
+              </li>
+              <li>
                 <Link to="/claims" className="text-gray-300 hover:text-white transition-colors text-sm">
                   Claims Documentation
                 </Link>
