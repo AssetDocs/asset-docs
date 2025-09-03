@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar, User, Clock, Search, CheckCircle, XCircle } from 'lucide-react';
+import DOMPurify from 'dompurify';
 import { useLocation, Link } from 'react-router-dom';
 
 const PressNews: React.FC = () => {
