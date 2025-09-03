@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Lock, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import SecureStorage from '@/utils/secureStorage';
 
 interface PasswordGateProps {
   onPasswordCorrect: () => void;
@@ -30,7 +31,7 @@ const PasswordGate: React.FC<PasswordGateProps> = ({ onPasswordCorrect }) => {
       }
 
       if (data?.valid) {
-        localStorage.setItem('assetdocs-access', 'granted');
+        SecureStorage.setTemporaryAccess('assetdocs-access', 'granted');
         onPasswordCorrect();
         toast({
           title: "Access Granted",

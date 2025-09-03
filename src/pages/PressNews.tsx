@@ -642,7 +642,7 @@ const PressNews: React.FC = () => {
                     {expandedArticle === article.id && (
                       <div className="mb-6 border-t pt-6">
                         {article.content.includes('<div class="prose') ? (
-                          <div dangerouslySetInnerHTML={{ __html: article.content }} />
+                          <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(article.content) }} />
                         ) : (
                           <p className="text-gray-700 leading-relaxed">{article.content}</p>
                         )}
