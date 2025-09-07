@@ -253,7 +253,7 @@ const SubscriptionTab: React.FC = () => {
             
             <div className="mt-6 p-4 bg-muted/50 rounded-lg border">
               <h4 className="font-semibold mb-3">Storage Add-On</h4>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-sm font-medium">Additional Storage</p>
                   <p className="text-xs text-muted-foreground">+50 GB storage upgrade</p>
@@ -263,6 +263,16 @@ const SubscriptionTab: React.FC = () => {
                   <p className="text-xs text-muted-foreground">per add-on</p>
                 </div>
               </div>
+              <Button 
+                size="sm" 
+                className="w-full"
+                onClick={() => {
+                  // TODO: Implement storage add-on purchase
+                  window.open('/pricing', '_blank');
+                }}
+              >
+                Purchase Storage Add-On
+              </Button>
             </div>
           </div>
           
