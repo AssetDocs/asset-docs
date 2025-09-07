@@ -6,6 +6,7 @@ import { Lock, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import SecureStorage from '@/utils/secureStorage';
+import RateLimiter from '@/utils/rateLimiter';
 
 interface PasswordGateProps {
   onPasswordCorrect: () => void;
@@ -21,6 +22,22 @@ const PasswordGate: React.FC<PasswordGateProps> = ({ onPasswordCorrect }) => {
     e.preventDefault();
     setIsLoading(true);
 
+    // Get client IP for rate limiting (fallback to a constant for same-device limits)
+    const identifier = 'construction-access';
+    
+    // Check rate limiting
+    const rateLimitResult = RateLimiter.recordAttempt(identifier, 'password-attempt', 5, 15);
+    if (rateLimitResult.blocked) {
+      const resetTime = new Date(rateLimitResult.resetTime);
+      toast({
+        title: "Too Many Attempts",
+        description: `Access blocked. Try again after ${resetTime.toLocaleTimeString()}`,
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const { data, error } = await supabase.functions.invoke('verify-construction-password', {
         body: { password }
@@ -31,16 +48,21 @@ const PasswordGate: React.FC<PasswordGateProps> = ({ onPasswordCorrect }) => {
       }
 
       if (data?.valid) {
-        SecureStorage.setTemporaryAccess('assetdocs-access', 'granted');
+        // Clear rate limit on successful access
+        RateLimiter.clearRateLimit(identifier, 'password-attempt');
+        await SecureStorage.setTemporaryAccess('assetdocs-access', 'granted');
         onPasswordCorrect();
         toast({
           title: "Access Granted",
           description: "Welcome to AssetDocs!",
         });
       } else {
+        const attemptsRemaining = rateLimitResult.attemptsRemaining;
         toast({
           title: "Access Denied",
-          description: data?.message || "Incorrect password. Please try again.",
+          description: attemptsRemaining > 0 
+            ? `Incorrect password. ${attemptsRemaining} attempts remaining.`
+            : "Incorrect password.",
           variant: "destructive",
         });
         setPassword('');

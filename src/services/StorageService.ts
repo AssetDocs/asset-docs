@@ -1,6 +1,8 @@
 import { supabase } from '@/integrations/supabase/client';
 import { getStorageLimit, formatStorageSize } from '@/config/subscriptionFeatures';
 import type { SubscriptionTier } from '@/config/subscriptionFeatures';
+import FileValidator, { type FileValidationOptions } from '@/utils/fileValidator';
+import RateLimiter from '@/utils/rateLimiter';
 
 export type FileType = 'photos' | 'videos' | 'documents' | 'floor-plans';
 
@@ -26,8 +28,35 @@ export interface UploadResult {
 }
 
 export class StorageService {
+  private static readonly FILE_VALIDATION_OPTIONS: Record<FileType, FileValidationOptions> = {
+    'photos': {
+      maxFileSize: 10 * 1024 * 1024, // 10MB
+      allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+      allowedExtensions: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+      checkMagicBytes: true
+    },
+    'videos': {
+      maxFileSize: 100 * 1024 * 1024, // 100MB
+      allowedMimeTypes: ['video/mp4', 'video/quicktime', 'video/x-msvideo'],
+      allowedExtensions: ['mp4', 'mov', 'avi'],
+      checkMagicBytes: true
+    },
+    'documents': {
+      maxFileSize: 25 * 1024 * 1024, // 25MB
+      allowedMimeTypes: ['application/pdf', 'text/plain', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+      allowedExtensions: ['pdf', 'txt', 'doc', 'docx'],
+      checkMagicBytes: true
+    },
+    'floor-plans': {
+      maxFileSize: 15 * 1024 * 1024, // 15MB
+      allowedMimeTypes: ['image/jpeg', 'image/png', 'application/pdf'],
+      allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
+      checkMagicBytes: true
+    }
+  };
+
   /**
-   * Upload a file to a specific bucket
+   * Upload a file to a specific bucket with security validation
    */
   static async uploadFile(
     file: File,
@@ -35,9 +64,25 @@ export class StorageService {
     userId: string,
     fileName?: string
   ): Promise<UploadResult> {
+    // Check rate limiting for uploads
+    const rateLimitResult = RateLimiter.recordAttempt(userId, `upload-${bucket}`, 10, 1);
+    if (rateLimitResult.blocked) {
+      const resetTime = new Date(rateLimitResult.resetTime);
+      throw new Error(`Upload rate limit exceeded. Try again after ${resetTime.toLocaleTimeString()}`);
+    }
+
+    // Validate file security
+    const validationOptions = this.FILE_VALIDATION_OPTIONS[bucket];
+    const validation = await FileValidator.validateFile(file, validationOptions);
+    
+    if (!validation.isValid) {
+      throw new Error(`File validation failed: ${validation.errors.join(', ')}`);
+    }
+
     const timestamp = Date.now();
-    const fileExt = file.name.split('.').pop();
-    const finalFileName = fileName || `${timestamp}-${file.name}`;
+    const fileExt = file.name.split('.').pop()?.toLowerCase();
+    const sanitizedFileName = this.sanitizeFileName(fileName || file.name);
+    const finalFileName = `${timestamp}-${sanitizedFileName}`;
     const path = `${userId}/${finalFileName}`;
 
     const { data, error } = await supabase.storage
@@ -60,6 +105,17 @@ export class StorageService {
       path: data.path,
       fullPath: data.fullPath
     };
+  }
+
+  /**
+   * Sanitize filename to prevent security issues
+   */
+  private static sanitizeFileName(fileName: string): string {
+    // Remove or replace dangerous characters
+    return fileName
+      .replace(/[^a-zA-Z0-9.-]/g, '_') // Replace special chars with underscore
+      .replace(/\.{2,}/g, '.') // Replace multiple dots with single dot
+      .substring(0, 100); // Limit length
   }
 
   /**

@@ -3,6 +3,7 @@ import { StorageService, FileType } from '@/services/StorageService';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useToast } from '@/hooks/use-toast';
+import RateLimiter from '@/utils/rateLimiter';
 
 export interface UseFileUploadOptions {
   bucket: FileType;
@@ -22,6 +23,18 @@ export const useFileUpload = (options: UseFileUploadOptions) => {
       toast({
         title: "Authentication required",
         description: "Please log in to upload files.",
+        variant: "destructive",
+      });
+      return [];
+    }
+
+    // Check upload rate limiting
+    const rateLimitResult = RateLimiter.recordAttempt(user.id, `bulk-upload-${options.bucket}`, 3, 5);
+    if (rateLimitResult.blocked) {
+      const resetTime = new Date(rateLimitResult.resetTime);
+      toast({
+        title: "Upload rate limit exceeded",
+        description: `Too many upload attempts. Try again after ${resetTime.toLocaleTimeString()}`,
         variant: "destructive",
       });
       return [];
@@ -52,9 +65,14 @@ export const useFileUpload = (options: UseFileUploadOptions) => {
         } catch (error) {
           console.error(`Failed to upload ${file.name}:`, error);
           setUploadProgress(prev => ({ ...prev, [fileKey]: -1 })); // -1 indicates error
+          
+          // Sanitize error message for security
+          const errorMessage = error instanceof Error ? error.message : 'Upload failed';
+          const sanitizedMessage = errorMessage.includes('rate limit') ? errorMessage : `Failed to upload ${file.name}`;
+          
           toast({
             title: "Upload failed",
-            description: `Failed to upload ${file.name}`,
+            description: sanitizedMessage,
             variant: "destructive",
           });
         }
@@ -72,9 +90,13 @@ export const useFileUpload = (options: UseFileUploadOptions) => {
     } catch (error) {
       const errorObj = error as Error;
       options.onError?.(errorObj);
+      
+      // Sanitize error message
+      const sanitizedMessage = errorObj.message.includes('rate limit') ? errorObj.message : 'An error occurred during upload.';
+      
       toast({
         title: "Upload failed",
-        description: "An error occurred during upload.",
+        description: sanitizedMessage,
         variant: "destructive",
       });
       return [];
