@@ -149,15 +149,25 @@ const StorageQuotaCard: React.FC<StorageQuotaCardProps> = ({ className }) => {
           </p>
         ) : (
           <div className="text-sm text-muted-foreground">
-            <p>{quota.percentage.toFixed(1)}% of your storage limit used</p>
-            {quota.isNearLimit && (
+            <div className="flex items-center justify-between mb-2">
+              <span>Storage Usage</span>
+              <span className="text-lg font-semibold text-foreground">
+                {quota.percentage.toFixed(1)}%
+              </span>
+            </div>
+            {quota.percentage >= 90 && (
               <p className="text-yellow-600 font-medium mt-1">
-                Consider upgrading your plan for more storage space.
+                ⚠️ Consider upgrading your plan for more storage space.
+              </p>
+            )}
+            {quota.percentage >= 80 && quota.percentage < 90 && (
+              <p className="text-orange-600 font-medium mt-1">
+                📊 You're approaching your storage limit.
               </p>
             )}
             {quota.isOverLimit && (
               <p className="text-destructive font-medium mt-1">
-                You've exceeded your storage limit. Some features may be restricted.
+                🚫 You've exceeded your storage limit. Some features may be restricted.
               </p>
             )}
           </div>

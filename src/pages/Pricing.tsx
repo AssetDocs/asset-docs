@@ -68,7 +68,7 @@ const Pricing: React.FC = () => {
       features: [
         "30-day free trial",
         "Up to 3 properties",
-        "50GB secure cloud storage",
+        "25GB secure cloud storage",
         "Photo and video uploads",
         "Web platform access",
         "Export detailed reports",
@@ -84,11 +84,11 @@ const Pricing: React.FC = () => {
     {
       title: "Premium",
       price: "$18.99",
-      description: "Complete protection with professional documentation tools",
+      description: "Best suited for estate managers, multiple-property owners, or businesses",
       features: [
         "30-day free trial",
         "Up to 10 properties",
-        "500GB secure cloud storage",
+        "100GB secure cloud storage",
         "Unlimited photo and video uploads",
         "Full web platform access",
         "Voice notes for item details",
@@ -144,6 +144,16 @@ const Pricing: React.FC = () => {
                 />
               </div>
             ))}
+          </div>
+          
+          {/* Storage Add-ons */}
+          <div className="mt-12 text-center">
+            <h3 className="text-xl font-semibold mb-4">Need More Storage?</h3>
+            <div className="bg-muted/30 rounded-lg p-6 max-w-md mx-auto">
+              <p className="text-muted-foreground mb-3">Add extra storage to any plan</p>
+              <div className="text-lg font-semibold">+50GB Storage Add-on</div>
+              <div className="text-2xl font-bold text-primary">$5/month</div>
+            </div>
           </div>
 
           {user && subscriptionStatus.subscribed && (

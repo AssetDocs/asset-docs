@@ -19,7 +19,7 @@ const PricingPlans: React.FC = () => {
     standard: [
       "30-day free trial",
       "Up to 5 properties",
-      "50GB secure cloud storage",
+      "25GB secure cloud storage",
       "Photo and video uploads",
       "Document uploads",
       "Web platform access",
@@ -30,13 +30,14 @@ const PricingPlans: React.FC = () => {
     premium: [
       "30-day free trial",
       "Up to 20 properties",
-      "500GB secure cloud storage",
+      "100GB secure cloud storage",
       "Photo and video uploads",
       "Document uploads",
       "Full web platform access",
       "Export detailed reports",
       "Priority email and phone support",
-      "Share with 5 trusted contacts"
+      "Share with 5 trusted contacts",
+      "Best suited for estate managers, multiple-property owners, or businesses"
     ]
   };
 
@@ -107,10 +108,20 @@ const PricingPlans: React.FC = () => {
               <SubscriptionPlan
                 title="Premium"
                 price="$18.99"
-                description="Complete protection with professional documentation tools."
+                description="Best suited for estate managers, multiple-property owners, or businesses."
                 features={individualFeatures.premium}
                 buttonText="Start 30-Day Free Trial"
               />
+            </div>
+            
+            {/* Storage Add-ons for Individual */}
+            <div className="mt-12 text-center">
+              <h3 className="text-xl font-semibold mb-4">Need More Storage?</h3>
+              <div className="bg-muted/30 rounded-lg p-6 max-w-md mx-auto">
+                <p className="text-muted-foreground mb-3">Add extra storage to any plan</p>
+                <div className="text-lg font-semibold">+50GB Storage Add-on</div>
+                <div className="text-2xl font-bold text-primary">$5/month</div>
+              </div>
             </div>
           </TabsContent>
           
@@ -139,6 +150,16 @@ const PricingPlans: React.FC = () => {
                 features={businessFeatures.enterprise}
                 buttonText="Start 30-Day Free Trial"
               />
+            </div>
+            
+            {/* Storage Add-ons for Business */}
+            <div className="mt-12 text-center">
+              <h3 className="text-xl font-semibold mb-4">Need More Storage?</h3>
+              <div className="bg-muted/30 rounded-lg p-6 max-w-md mx-auto">
+                <p className="text-muted-foreground mb-3">Add extra storage to any plan</p>
+                <div className="text-lg font-semibold">+50GB Storage Add-on</div>
+                <div className="text-2xl font-bold text-primary">$5/month</div>
+              </div>
             </div>
           </TabsContent>
         </Tabs>
