@@ -197,7 +197,7 @@ const SubscriptionTab: React.FC = () => {
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />
-                    50GB secure cloud storage
+                    25GB secure cloud storage
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />
@@ -225,7 +225,7 @@ const SubscriptionTab: React.FC = () => {
                     <Badge variant="default">Current Plan</Badge>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground mb-3">Complete protection with professional documentation tools</p>
+                <p className="text-sm text-muted-foreground mb-3">Best suited for estate managers, multiple-property owners, or businesses</p>
                 <ul className="space-y-2 text-sm text-gray-600">
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />
@@ -237,7 +237,7 @@ const SubscriptionTab: React.FC = () => {
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />
-                    500GB secure cloud storage
+                    100GB secure cloud storage
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4 text-green-500" />
@@ -248,6 +248,20 @@ const SubscriptionTab: React.FC = () => {
                     Share with 5 trusted contacts
                   </li>
                 </ul>
+              </div>
+            </div>
+            
+            <div className="mt-6 p-4 bg-muted/50 rounded-lg border">
+              <h4 className="font-semibold mb-3">Storage Add-On</h4>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">Additional Storage</p>
+                  <p className="text-xs text-muted-foreground">+50 GB storage upgrade</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold">$5/month</p>
+                  <p className="text-xs text-muted-foreground">per add-on</p>
+                </div>
               </div>
             </div>
           </div>
