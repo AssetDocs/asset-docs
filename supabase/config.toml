@@ -79,6 +79,11 @@ enable_signup = true
 double_confirm_changes = false
 enable_confirmations = true
 
+[auth.hook.send_email]
+enabled = true
+uri = "https://leotcbfpqiekgkgumecn.supabase.co/functions/v1/send-auth-email"
+secrets = ["RESEND_API_KEY"]
+
 [auth.jwt]
 [auth.jwt.template]
 email_verified = true
@@ -109,4 +114,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.send-verification-email]
+verify_jwt = false
+
+[functions.send-auth-email]
 verify_jwt = false
