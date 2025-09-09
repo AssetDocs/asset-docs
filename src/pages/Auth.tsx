@@ -99,7 +99,8 @@ const Auth: React.FC = () => {
           title: "Account Created Successfully!",
           description: "Please check your email to verify your account before signing in.",
         });
-        signUpForm.reset();
+        // Redirect to email verification page
+        navigate('/email-verification');
       }
     } catch (error: any) {
       console.error('Sign up error:', error);
@@ -125,12 +126,13 @@ const Auth: React.FC = () => {
             description: "The email or password you entered is incorrect. Please try again.",
             variant: "destructive",
           });
-        } else if (error.message.includes('Email not confirmed')) {
+        } else if (error.message === 'email_not_verified') {
           toast({
             title: "Email Not Verified",
             description: "Please check your email and click the verification link before signing in.",
             variant: "destructive",
           });
+          navigate('/email-verification');
         } else {
           throw error;
         }

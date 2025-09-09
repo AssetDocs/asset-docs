@@ -18,6 +18,9 @@ verify_jwt = false
 [functions.send-reminder-email]
 verify_jwt = false
 
+[functions.send-verification-email]
+verify_jwt = false
+
 [functions.check-gift-reminders]
 verify_jwt = false
 
@@ -74,11 +77,11 @@ enable_signup = true
 [auth.email]
 enable_signup = true
 double_confirm_changes = false
-enable_confirmations = false
+enable_confirmations = true
 
 [auth.jwt]
 [auth.jwt.template]
-email_verified = false
+email_verified = true
 phone_verified = true
 
 [edge_runtime]
@@ -104,3 +107,6 @@ verify_jwt = true
 
 [functions.property-tax-lookup]
 verify_jwt = true
+
+[functions.send-verification-email]
+verify_jwt = false

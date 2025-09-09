@@ -22,6 +22,7 @@ import Gift from "./pages/Gift";
 import GiftCheckout from "./pages/GiftCheckout";
 import Signup from "./pages/Signup";
 import Auth from "./pages/Auth";
+import EmailVerification from "./pages/EmailVerification";
 import NotFound from "./pages/NotFound";
 import Terms from "./pages/Terms";
 import QA from "./pages/QA";
@@ -118,6 +119,7 @@ const AppContent = () => {
         <Route path="/login" element={<Navigate to="/auth" replace />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/email-verification" element={<EmailVerification />} />
         
         {/* Public FAQ route */}
         <Route path="/qa" element={<QA />} />
