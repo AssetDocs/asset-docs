@@ -73,12 +73,12 @@ enable_signup = true
 
 [auth.email]
 enable_signup = true
-double_confirm_changes = true
-enable_confirmations = true
+double_confirm_changes = false
+enable_confirmations = false
 
 [auth.jwt]
 [auth.jwt.template]
-email_verified = true
+email_verified = false
 phone_verified = true
 
 [edge_runtime]
