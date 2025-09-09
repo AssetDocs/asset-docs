@@ -39,8 +39,19 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Auth email request:", { 
       email: user.email, 
       action: email_data.email_action_type,
-      user_id: user.id 
+      user_id: user.id,
+      redirect_to: email_data.redirect_to 
     });
+
+    // Validate required fields
+    if (!user.email || !email_data.email_action_type || !email_data.token_hash) {
+      throw new Error("Missing required fields in auth email request");
+    }
+
+    // Check if Resend API key is configured
+    if (!Deno.env.get("RESEND_API_KEY")) {
+      throw new Error("RESEND_API_KEY environment variable is not configured");
+    }
 
     const displayName = user.user_metadata?.first_name || "Valued User";
     const confirmationUrl = `${email_data.site_url}/auth/callback?token_hash=${email_data.token_hash}&type=${email_data.email_action_type}&redirect_to=${encodeURIComponent(email_data.redirect_to || "/account")}`;
@@ -70,7 +81,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const emailResponse = await resend.emails.send({
-      from: "Asset Docs <onboarding@resend.dev>",
+      from: "Asset Docs <noreply@assetdocs.net>",
       to: [user.email],
       subject,
       html,
