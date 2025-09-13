@@ -24,6 +24,7 @@ import GiftCheckout from "./pages/GiftCheckout";
 import Auth from "./pages/Auth";
 import EmailVerification from "./pages/EmailVerification";
 import AuthCallback from "./pages/AuthCallback";
+import VerifyEmail from "./pages/VerifyEmail";
 import NotFound from "./pages/NotFound";
 import Terms from "./pages/Terms";
 import QA from "./pages/QA";
@@ -122,6 +123,7 @@ const AppContent = () => {
         <Route path="/auth" element={<Auth />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/email-verification" element={<EmailVerification />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         
         {/* Public FAQ route */}
         <Route path="/qa" element={<QA />} />

@@ -36,6 +36,8 @@ const SubscriptionCheckout: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [submittedEmail, setSubmittedEmail] = useState('');
   
   // Get plan info from URL params or state
   const searchParams = new URLSearchParams(location.search);
@@ -126,42 +128,25 @@ const SubscriptionCheckout: React.FC = () => {
 
     setIsLoading(true);
     try {
-      // Store customer information in profiles table if user is authenticated
-      if (user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .upsert({
-            user_id: user.id,
-            first_name: data.firstName,
-            last_name: data.lastName,
-          });
-
-        if (profileError) throw profileError;
-      }
-
-      // Create Stripe checkout session (works for both authenticated and non-authenticated users)
-      const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-checkout', {
+      // Send verification email
+      const { error: emailError } = await supabase.functions.invoke('send-verification-email', {
         body: { 
-          planType,
-          email: data.email, // Include email for non-authenticated users
-          customerInfo: {
-            firstName: data.firstName,
-            lastName: data.lastName,
-            phone: data.phone,
-            heardAbout: data.heardAbout,
-          }
+          email: data.email,
+          verification_url: `${window.location.origin}/verify-email?email=${encodeURIComponent(data.email)}&plan=${planType}&firstName=${encodeURIComponent(data.firstName)}&lastName=${encodeURIComponent(data.lastName)}&phone=${encodeURIComponent(data.phone)}&heardAbout=${encodeURIComponent(data.heardAbout)}`,
+          first_name: data.firstName
         },
       });
       
-      if (checkoutError) throw checkoutError;
+      if (emailError) throw emailError;
       
-      // Redirect to Stripe checkout
-      window.location.href = checkoutData.url;
+      // Show email verification screen
+      setSubmittedEmail(data.email);
+      setShowEmailVerification(true);
     } catch (error) {
-      console.error('Error processing checkout:', error);
+      console.error('Error sending verification email:', error);
       toast({
         title: "Error",
-        description: "Failed to process your subscription. Please try again.",
+        description: "Failed to send verification email. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -178,6 +163,63 @@ const SubscriptionCheckout: React.FC = () => {
             <h1 className="text-2xl font-bold mb-4">Loading...</h1>
           </div>
         </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Show email verification screen
+  if (showEmailVerification) {
+    return (
+      <div className="flex flex-col min-h-screen bg-background">
+        <Navbar />
+        
+        <main className="flex-1 py-12">
+          <div className="container mx-auto px-4 max-w-2xl">
+            <div className="text-center">
+              <div className="mb-8">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckIcon className="h-8 w-8 text-primary" />
+                </div>
+                <h1 className="text-3xl font-bold mb-4">You're almost done!</h1>
+                <p className="text-lg text-muted-foreground mb-2">Check your email.</p>
+                <p className="text-muted-foreground">
+                  We've sent a verification link to <strong>{submittedEmail}</strong>
+                </p>
+              </div>
+              
+              <Card className="text-left">
+                <CardContent className="pt-6">
+                  <h3 className="font-semibold mb-3">What happens next?</h3>
+                  <ol className="space-y-2 text-sm text-muted-foreground">
+                    <li className="flex items-start gap-2">
+                      <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-semibold flex-shrink-0 mt-0.5">1</span>
+                      Check your email inbox (and spam folder)
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-semibold flex-shrink-0 mt-0.5">2</span>
+                      Click the verification link in the email
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-semibold flex-shrink-0 mt-0.5">3</span>
+                      Complete your payment to start your free trial
+                    </li>
+                  </ol>
+                </CardContent>
+              </Card>
+              
+              <div className="mt-8">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowEmailVerification(false)}
+                >
+                  Go Back to Form
+                </Button>
+              </div>
+            </div>
+          </div>
+        </main>
+        
         <Footer />
       </div>
     );
@@ -330,7 +372,7 @@ const SubscriptionCheckout: React.FC = () => {
                       className="w-full" 
                       disabled={isLoading}
                     >
-                      {isLoading ? "Processing..." : "Continue to Payment"}
+                      {isLoading ? "Processing..." : "Continue"}
                     </Button>
                   </form>
                 </Form>
