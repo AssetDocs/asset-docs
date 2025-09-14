@@ -99,8 +99,8 @@ const Auth: React.FC = () => {
           title: "Account Created Successfully!",
           description: "Please check your email to verify your account before signing in.",
         });
-        // Redirect to email verification page
-        navigate('/email-verification');
+        // Redirect to account settings subscription page
+        navigate('/account/settings?tab=subscription');
       }
     } catch (error: any) {
       console.error('Sign up error:', error);
@@ -490,16 +490,6 @@ const Auth: React.FC = () => {
           </CardContent>
         </Card>
         
-        <p className="text-center text-sm text-gray-600 mt-4">
-          By creating an account, you agree to our{' '}
-          <Link to="/terms" className="text-brand-blue hover:underline">
-            Terms of Service
-          </Link>{' '}
-          and{' '}
-          <Link to="/terms" className="text-brand-blue hover:underline">
-            Privacy Policy
-          </Link>
-        </p>
       </div>
     </div>
   );

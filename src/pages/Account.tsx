@@ -15,6 +15,7 @@ import { FeatureGuard } from '@/components/FeatureGuard';
 import DocumentationChecklist from '@/components/DocumentationChecklist';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useAuth } from '@/contexts/AuthContext';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,6 +32,35 @@ import {
   Eye, 
   Users 
 } from 'lucide-react';
+
+// Welcome Message Component
+const WelcomeMessage: React.FC = () => {
+  const { profile, user } = useAuth();
+  
+  const getDisplayName = () => {
+    if (profile?.first_name) {
+      return profile.first_name;
+    }
+    if (user?.user_metadata?.first_name) {
+      return user.user_metadata.first_name;
+    }
+    if (user?.email) {
+      return user.email.split('@')[0];
+    }
+    return 'User';
+  };
+
+  return (
+    <div className="bg-gradient-to-r from-brand-blue to-brand-lightBlue p-6 rounded-lg text-white">
+      <h1 className="text-2xl font-bold">
+        Welcome, {getDisplayName()}!
+      </h1>
+      <p className="text-brand-blue/80 mt-1">
+        Manage your assets and documentation from your dashboard
+      </p>
+    </div>
+  );
+};
 
 const Account: React.FC = () => {
   
@@ -66,6 +96,11 @@ const Account: React.FC = () => {
       <div className="flex-grow py-8 px-4 bg-gray-50">
         <div className="max-w-6xl mx-auto">
           
+          
+          {/* Welcome Message */}
+          <div className="mb-6">
+            <WelcomeMessage />
+          </div>
           
           <div id="account-header">
             <AccountHeader />
