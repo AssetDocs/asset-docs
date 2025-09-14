@@ -3,16 +3,69 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
-import { CheckIcon, ExternalLink } from 'lucide-react';
+import { CheckIcon, ExternalLink, CreditCard, Shield, Star, Zap } from 'lucide-react';
+
+// Plan configurations
+const planConfigs = {
+  basic: {
+    title: "Basic",
+    price: "$8.99",
+    description: "Perfect for individuals with basic documentation needs",
+    features: [
+      "1 property",
+      "10GB secure cloud storage", 
+      "Photo uploads",
+      "Web platform access",
+      "Email support",
+      "30-day free trial"
+    ],
+    icon: <Shield className="h-6 w-6 text-blue-600" />,
+    recommended: false
+  },
+  standard: {
+    title: "Standard", 
+    price: "$12.99",
+    description: "Our most popular plan for comprehensive home documentation",
+    features: [
+      "Up to 3 properties",
+      "25GB secure cloud storage",
+      "Photo and video uploads", 
+      "Export detailed reports",
+      "Priority email support",
+      "Share with 2 trusted contacts",
+      "30-day free trial"
+    ],
+    icon: <Zap className="h-6 w-6 text-orange-600" />,
+    recommended: true
+  },
+  premium: {
+    title: "Premium",
+    price: "$18.99", 
+    description: "Best suited for estate managers, multiple-property owners, or businesses",
+    features: [
+      "Up to 10 properties",
+      "100GB secure cloud storage",
+      "Priority email and phone support",
+      "Share with 5 trusted contacts",
+      "30-day free trial"
+    ],
+    icon: <Star className="h-6 w-6 text-purple-600" />,
+    recommended: false
+  }
+};
 
 const SubscriptionTab: React.FC = () => {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<keyof typeof planConfigs>('standard');
   const [subscriptionStatus, setSubscriptionStatus] = useState<{
     subscribed: boolean;
     subscription_tier?: string;
@@ -57,6 +110,157 @@ const SubscriptionTab: React.FC = () => {
     }
   };
 
+  const handleStartSubscription = async () => {
+    if (!user || !profile) {
+      toast({
+        title: "Error",
+        description: "User information not found. Please try logging out and back in.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: {
+          planType: selectedPlan,
+          firstName: profile.first_name || user.user_metadata?.first_name || '',
+          lastName: profile.last_name || user.user_metadata?.last_name || '',
+          email: user.email,
+          phone: user.user_metadata?.phone || '',
+          heardAbout: 'existing-user'
+        }
+      });
+
+      if (error) throw error;
+
+      // Redirect to Stripe checkout
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.error('Error creating checkout:', error);
+      toast({
+        title: "Error",
+        description: "Failed to start subscription process. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // If user is not subscribed, show checkout form
+  if (!subscriptionStatus.subscribed) {
+    const currentPlan = planConfigs[selectedPlan];
+    
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Complete Your Subscription</CardTitle>
+            <CardDescription>
+              Choose your plan and enter your payment information to get started
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Plan Selection */}
+            <div>
+              <Label htmlFor="plan-select" className="text-base font-semibold">Select Your Plan</Label>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
+                {Object.entries(planConfigs).map(([key, plan]) => (
+                  <div
+                    key={key}
+                    className={`relative p-4 border rounded-lg cursor-pointer transition-all ${
+                      selectedPlan === key
+                        ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
+                        : 'border-gray-200 hover:border-gray-300'
+                    } ${plan.recommended ? 'border-2 border-brand-orange' : ''}`}
+                    onClick={() => setSelectedPlan(key as keyof typeof planConfigs)}
+                  >
+                    {plan.recommended && (
+                      <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
+                        <span className="bg-brand-orange text-white px-3 py-1 rounded-full text-xs font-medium">
+                          Recommended
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2 mb-2 mt-2">
+                      {plan.icon}
+                      <h3 className="font-semibold">{plan.title}</h3>
+                    </div>
+                    <div className="text-2xl font-bold mb-2">
+                      {plan.price}
+                      <span className="text-sm font-normal text-muted-foreground">/month</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-3">{plan.description}</p>
+                    <ul className="space-y-1">
+                      {plan.features.slice(0, 4).map((feature, index) => (
+                        <li key={index} className="flex items-center gap-2 text-sm">
+                          <CheckIcon className="h-4 w-4 text-green-500 flex-shrink-0" />
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* User Information Display */}
+            <div className="bg-muted/50 p-4 rounded-lg">
+              <h4 className="font-semibold mb-3">Account Information</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <Label className="text-muted-foreground">Name</Label>
+                  <p className="font-medium">
+                    {profile?.first_name || user?.user_metadata?.first_name || ''} {profile?.last_name || user?.user_metadata?.last_name || ''}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Email</Label>
+                  <p className="font-medium">{user?.email}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Selected Plan Summary */}
+            <Card className="border-primary/20 bg-primary/5">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-3 mb-4">
+                  {currentPlan.icon}
+                  <div>
+                    <h4 className="font-semibold">{currentPlan.title} Plan</h4>
+                    <p className="text-sm text-muted-foreground">{currentPlan.description}</p>
+                  </div>
+                </div>
+                <div className="text-3xl font-bold mb-4">
+                  {currentPlan.price}
+                  <span className="text-lg font-normal text-muted-foreground">/month</span>
+                </div>
+                <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 mb-4">
+                  <p className="text-primary font-semibold text-sm">🎉 Start with a 30-day free trial</p>
+                  <p className="text-xs text-muted-foreground">No charges until after your trial ends. Cancel anytime.</p>
+                </div>
+                <Button 
+                  onClick={handleStartSubscription}
+                  disabled={isLoading}
+                  className="w-full"
+                  size="lg"
+                >
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  {isLoading ? 'Processing...' : 'Start Free Trial & Enter Payment Info'}
+                </Button>
+              </CardContent>
+            </Card>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // If user is subscribed, show subscription management
   return (
     <div className="space-y-6">
       <Card>
@@ -67,224 +271,36 @@ const SubscriptionTab: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {subscriptionStatus.subscribed ? (
-            <div className="p-4 border rounded-lg bg-green-50 border-green-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="text-lg font-semibold text-green-700">
-                      {subscriptionStatus.subscription_tier} Plan
-                    </h3>
-                    <Badge variant="secondary" className="bg-green-100 text-green-700">Active</Badge>
-                  </div>
-                  <p className="text-gray-600">
-                    {subscriptionStatus.subscription_tier === 'Basic' && '$8.99/month'}
-                    {subscriptionStatus.subscription_tier === 'Standard' && '$12.99/month'}
-                    {subscriptionStatus.subscription_tier === 'Premium' && '$18.99/month'}
+          <div className="p-4 border rounded-lg bg-green-50 border-green-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="text-lg font-semibold text-green-700">
+                    {subscriptionStatus.subscription_tier} Plan
+                  </h3>
+                  <Badge variant="secondary" className="bg-green-100 text-green-700">Active</Badge>
+                </div>
+                <p className="text-gray-600">
+                  {subscriptionStatus.subscription_tier === 'basic' && '$8.99/month'}
+                  {subscriptionStatus.subscription_tier === 'standard' && '$12.99/month'}
+                  {subscriptionStatus.subscription_tier === 'premium' && '$18.99/month'}
+                </p>
+                {subscriptionStatus.subscription_end && (
+                  <p className="text-sm text-gray-500">
+                    Next billing: {new Date(subscriptionStatus.subscription_end).toLocaleDateString()}
                   </p>
-                  {subscriptionStatus.subscription_end && (
-                    <p className="text-sm text-gray-500">
-                      Next billing: {new Date(subscriptionStatus.subscription_end).toLocaleDateString()}
-                    </p>
-                  )}
-                  {subscriptionStatus.subscription_tier === 'Standard' && (
-                    <p className="text-xs text-green-600 font-medium">
-                      Includes 30-day free trial
-                    </p>
-                  )}
-                </div>
-                <Button 
-                  variant="outline" 
-                  onClick={handleManageSubscription}
-                  disabled={isLoading}
-                >
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  {isLoading ? 'Loading...' : 'Manage'}
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="p-4 border rounded-lg bg-yellow-50 border-yellow-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold text-yellow-700">No Active Subscription</h3>
-                  <p className="text-gray-600">Subscribe to unlock premium features</p>
-                </div>
-                <Link to="/pricing">
-                  <Button>
-                    View Plans
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Subscription Features</CardTitle>
-          <CardDescription>
-            {subscriptionStatus.subscribed 
-              ? `Features included in your ${subscriptionStatus.subscription_tier} plan`
-              : 'See what you get with each subscription plan'
-            }
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 text-center">
-              <p className="text-primary font-semibold">🎉 Start with a 30-day free trial</p>
-              <p className="text-sm text-muted-foreground">No long-term contract. Cancel anytime</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className={`p-4 border rounded-lg ${subscriptionStatus.subscription_tier === 'Basic' ? 'border-primary bg-primary/5' : ''}`}>
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold">Basic - $8.99/month</h3>
-                  {subscriptionStatus.subscription_tier === 'Basic' && (
-                    <Badge variant="default">Current Plan</Badge>
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground mb-3">Perfect for individuals with basic documentation needs</p>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="h-4 w-4 text-green-500" />
-                    30-day free trial
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="h-4 w-4 text-green-500" />
-                    1 property
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="h-4 w-4 text-green-500" />
-                    10GB secure cloud storage
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="h-4 w-4 text-green-500" />
-                    Photo uploads
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="h-4 w-4 text-green-500" />
-                    Web platform access
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="h-4 w-4 text-green-500" />
-                    Email support
-                  </li>
-                </ul>
-              </div>
-              
-              <div className={`p-4 border rounded-lg relative ${subscriptionStatus.subscription_tier === 'Standard' ? 'border-primary bg-primary/5' : 'border-brand-orange'}`}>
-                <div className="absolute top-0 right-0 bg-brand-orange text-white px-3 py-1 rounded-bl-lg text-xs font-medium">
-                  Recommended
-                </div>
-                <div className="flex items-center justify-between mb-2 mt-6">
-                  <h3 className="font-semibold">Standard - $12.99/month</h3>
-                  {subscriptionStatus.subscription_tier === 'Standard' && (
-                    <Badge variant="default">Current Plan</Badge>
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground mb-3">Our most popular plan for comprehensive home documentation</p>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="h-4 w-4 text-green-500" />
-                    30-day free trial
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="h-4 w-4 text-green-500" />
-                    Up to 3 properties
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="h-4 w-4 text-green-500" />
-                    25GB secure cloud storage
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="h-4 w-4 text-green-500" />
-                    Photo and video uploads
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="h-4 w-4 text-green-500" />
-                    Export detailed reports
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="h-4 w-4 text-green-500" />
-                    Priority email support
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="h-4 w-4 text-green-500" />
-                    Share with 2 trusted contacts
-                  </li>
-                </ul>
-              </div>
-              
-              <div className={`p-4 border rounded-lg ${subscriptionStatus.subscription_tier === 'Premium' ? 'border-primary bg-primary/5' : ''}`}>
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold">Premium - $18.99/month</h3>
-                  {subscriptionStatus.subscription_tier === 'Premium' && (
-                    <Badge variant="default">Current Plan</Badge>
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground mb-3">Best suited for estate managers, multiple-property owners, or businesses</p>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="h-4 w-4 text-green-500" />
-                    30-day free trial
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="h-4 w-4 text-green-500" />
-                    Up to 10 properties
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="h-4 w-4 text-green-500" />
-                    100GB secure cloud storage
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="h-4 w-4 text-green-500" />
-                    Priority email and phone support
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="h-4 w-4 text-green-500" />
-                    Share with 5 trusted contacts
-                  </li>
-                </ul>
-              </div>
-            </div>
-            
-            <div className="mt-6 p-4 bg-muted/50 rounded-lg border">
-              <h4 className="font-semibold mb-3">Storage Add-On</h4>
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <p className="text-sm font-medium">Additional Storage</p>
-                  <p className="text-xs text-muted-foreground">+50 GB storage upgrade</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-semibold">$5/month</p>
-                  <p className="text-xs text-muted-foreground">per add-on</p>
-                </div>
+                )}
               </div>
               <Button 
-                size="sm" 
-                className="w-full"
-                onClick={() => {
-                  // TODO: Implement storage add-on purchase
-                  window.open('/pricing', '_blank');
-                }}
+                variant="outline" 
+                onClick={handleManageSubscription}
+                disabled={isLoading}
               >
-                Purchase Storage Add-On
+                <ExternalLink className="h-4 w-4 mr-2" />
+                {isLoading ? 'Loading...' : 'Manage'}
               </Button>
             </div>
           </div>
-          
-          {!subscriptionStatus.subscribed && (
-            <div className="mt-6 text-center">
-              <Link to="/pricing">
-                <Button size="lg">
-                  Choose Your Plan
-                </Button>
-              </Link>
-            </div>
-          )}
         </CardContent>
       </Card>
 
