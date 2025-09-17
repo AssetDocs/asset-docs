@@ -14,7 +14,7 @@ const CTASection: React.FC = () => {
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-4">
           <Button asChild size="lg" className="bg-white text-orange-500 hover:bg-gray-100">
-            <Link to="/pricing">Start Your Free 30-Day Trial</Link>
+            <Link to="/signup">Start Your Free 30-Day Trial</Link>
           </Button>
           <ShareButton 
             variant="outline" 
