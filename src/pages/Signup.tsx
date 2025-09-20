@@ -262,11 +262,6 @@ const Signup: React.FC = () => {
                   {isLoading ? 'Creating Account...' : 'Create Account'}
                 </Button>
 
-                <div className="text-center mt-3">
-                  <p className="text-sm text-green-600 font-medium">
-                    🎉 Your 30-day free trial starts here
-                  </p>
-                </div>
 
                 <div className="text-center mt-4">
                   <p className="text-sm text-muted-foreground">
