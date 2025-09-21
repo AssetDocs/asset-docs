@@ -1,10 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import PricingHero from '@/components/PricingHero';
-import PricingFAQ from '@/components/PricingFAQ';
-import PricingContactCTA from '@/components/PricingContactCTA';
 import SubscriptionPlan from '@/components/SubscriptionPlan';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,37 +9,61 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { CheckIcon, Zap, Shield, Star } from 'lucide-react';
 
-const Pricing: React.FC = () => {
+const CompletePricing: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [subscriptionStatus, setSubscriptionStatus] = useState<{
-    subscribed: boolean;
-    subscription_tier?: string;
-    subscription_end?: string;
-  }>({ subscribed: false });
+  const location = useLocation();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Get user info from URL params
+  const searchParams = new URLSearchParams(location.search);
+  const email = searchParams.get('email');
+  const firstName = searchParams.get('firstName');
+  const lastName = searchParams.get('lastName');
+  const phone = searchParams.get('phone');
+  const heardAbout = searchParams.get('heardAbout');
 
-  const checkSubscription = async () => {
-    if (!user) return;
-    
+  const handleSubscribe = async (planType: string) => {
+    if (!email) {
+      toast({
+        title: "Error",
+        description: "Missing required information. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('check-subscription');
-      if (error) throw error;
-      setSubscriptionStatus(data);
+      // Create Stripe checkout session
+      const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-checkout', {
+        body: { 
+          planType,
+          email,
+          customerInfo: {
+            firstName: firstName || '',
+            lastName: lastName || '',
+            phone: phone || '',
+            heardAbout: heardAbout || '',
+          }
+        },
+      });
+      
+      if (checkoutError) throw checkoutError;
+      
+      // Redirect to Stripe checkout
+      window.location.href = checkoutData.url;
     } catch (error) {
-      console.error('Error checking subscription:', error);
+      console.error('Error processing checkout:', error);
+      toast({
+        title: "Error",
+        description: "Failed to process your subscription. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
-  };
-
-  useEffect(() => {
-    if (user) {
-      checkSubscription();
-    }
-  }, [user]);
-
-  const handleSubscribe = (planType: string) => {
-    // Navigate to signup page for contact information
-    window.location.href = `/signup?plan=${planType}`;
   };
 
   const plans = [
@@ -105,7 +126,25 @@ const Pricing: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
-      <PricingHero />
+      
+      {/* Hero Section */}
+      <section className="py-16 bg-gradient-to-b from-primary/10 to-background">
+        <div className="container mx-auto px-4 text-center">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckIcon className="h-8 w-8 text-green-600" />
+          </div>
+          <h1 className="text-4xl font-bold mb-4">Complete Your Subscription</h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-6">
+            Your email has been verified! Choose your plan and complete your billing information to get started.
+          </p>
+          {email && (
+            <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 max-w-md mx-auto">
+              <p className="text-primary font-semibold">✅ Email Verified: {email}</p>
+              <p className="text-sm text-muted-foreground">Ready to start your 30-day free trial</p>
+            </div>
+          )}
+        </div>
+      </section>
       
       {/* Subscription Plans Section */}
       <section className="py-16 bg-secondary/5">
@@ -124,22 +163,13 @@ const Pricing: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {plans.map((plan) => (
               <div key={plan.title} className={`relative ${plan.recommended ? 'transform scale-105' : ''}`}>
-                {subscriptionStatus.subscribed && subscriptionStatus.subscription_tier === plan.title && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-4 py-1 rounded-full text-sm font-medium">
-                    Current Plan
-                  </div>
-                )}
                 <SubscriptionPlan
                   title={plan.title}
                   price={plan.price}
                   description={plan.description}
                   features={plan.features}
                   recommended={plan.recommended}
-                  buttonText={
-                    subscriptionStatus.subscribed && subscriptionStatus.subscription_tier === plan.title 
-                      ? "Current Plan" 
-                      : isLoading ? "Processing..." : "Get Started"
-                  }
+                  buttonText={isLoading ? "Processing..." : "Choose Plan"}
                   onClick={() => handleSubscribe(plan.planType)}
                 />
               </div>
@@ -155,40 +185,12 @@ const Pricing: React.FC = () => {
               <div className="text-2xl font-bold text-primary">$5/month</div>
             </div>
           </div>
-
-          {user && subscriptionStatus.subscribed && (
-            <div className="text-center mt-8">
-              <p className="text-muted-foreground mb-4">
-                Current subscription expires: {subscriptionStatus.subscription_end ? new Date(subscriptionStatus.subscription_end).toLocaleDateString() : 'N/A'}
-              </p>
-              <Button 
-                variant="outline" 
-                onClick={async () => {
-                  try {
-                    const { data, error } = await supabase.functions.invoke('customer-portal');
-                    if (error) throw error;
-                    window.open(data.url, '_blank');
-                  } catch (error) {
-                    toast({
-                      title: "Error",
-                      description: "Failed to open customer portal. Please try again.",
-                      variant: "destructive",
-                    });
-                  }
-                }}
-              >
-                Manage Subscription
-              </Button>
-            </div>
-          )}
         </div>
       </section>
       
-      <PricingFAQ />
-      <PricingContactCTA />
       <Footer />
     </div>
   );
 };
 
-export default Pricing;
+export default CompletePricing;

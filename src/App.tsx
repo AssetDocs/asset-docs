@@ -26,6 +26,7 @@ import Signup from "./pages/Signup";
 import EmailVerification from "./pages/EmailVerification";
 import AuthCallback from "./pages/AuthCallback";
 import VerifyEmail from "./pages/VerifyEmail";
+import CompletePricing from "./pages/CompletePricing";
 import NotFound from "./pages/NotFound";
 import Terms from "./pages/Terms";
 import QA from "./pages/QA";
@@ -126,6 +127,7 @@ const AppContent = () => {
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/email-verification" element={<EmailVerification />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/complete-pricing" element={<CompletePricing />} />
         
         {/* Public FAQ route */}
         <Route path="/qa" element={<QA />} />

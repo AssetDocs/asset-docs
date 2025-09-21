@@ -42,43 +42,17 @@ const VerifyEmail: React.FC = () => {
     verifyEmail();
   }, []);
 
-  const proceedToPayment = async () => {
-    if (!planType || !email) {
-      toast({
-        title: "Error",
-        description: "Missing required information. Please try again.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      // Create Stripe checkout session
-      const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-checkout', {
-        body: { 
-          planType,
-          email,
-          customerInfo: {
-            firstName: firstName || '',
-            lastName: lastName || '',
-            phone: phone || '',
-            heardAbout: heardAbout || '',
-          }
-        },
-      });
-      
-      if (checkoutError) throw checkoutError;
-      
-      // Redirect to Stripe checkout
-      window.location.href = checkoutData.url;
-    } catch (error) {
-      console.error('Error processing checkout:', error);
-      toast({
-        title: "Error",
-        description: "Failed to process your subscription. Please try again.",
-        variant: "destructive",
-      });
-    }
+  const proceedToPayment = () => {
+    // Redirect to the complete pricing page with user info
+    const params = new URLSearchParams({
+      email: email || '',
+      firstName: firstName || '',
+      lastName: lastName || '',
+      phone: phone || '',
+      heardAbout: heardAbout || '',
+    });
+    
+    navigate(`/complete-pricing?${params.toString()}`);
   };
 
   if (isVerifying) {
@@ -159,7 +133,7 @@ const VerifyEmail: React.FC = () => {
               size="lg"
               className="w-full max-w-sm"
             >
-              Complete Payment Setup
+              Choose Your Plan
             </Button>
             
             <p className="text-xs text-muted-foreground mt-4">
