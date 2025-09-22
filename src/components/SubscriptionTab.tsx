@@ -160,11 +160,11 @@ const SubscriptionTab: React.FC = () => {
 
     setIsDeleting(true);
     try {
-      // Delete user's data first
-      const { error: deleteError } = await supabase.auth.admin.deleteUser(user.id);
+      // Call the delete-account edge function
+      const { data, error } = await supabase.functions.invoke('delete-account');
       
-      if (deleteError) {
-        throw deleteError;
+      if (error) {
+        throw error;
       }
 
       // Sign out the user
