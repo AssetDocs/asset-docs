@@ -64,7 +64,44 @@ Deno.serve(async (req) => {
       )
     }
 
-    console.log('[DELETE-ACCOUNT] Deleting user data for:', user.id);
+    console.log('[DELETE-ACCOUNT] Verifying user permissions for:', user.id);
+
+    // Check if user is trying to delete an account they only have contributor access to
+    const { data: contributorCheck, error: contributorError } = await supabaseAdmin
+      .from('contributors')
+      .select('account_owner_id, role')
+      .eq('contributor_user_id', user.id)
+      .neq('account_owner_id', user.id);
+
+    if (contributorError) {
+      console.log('[DELETE-ACCOUNT] Error checking contributor status:', contributorError);
+    }
+
+    // If user is a contributor to other accounts but trying to delete this account,
+    // they can only delete if this is their own account (they are the owner)
+    if (contributorCheck && contributorCheck.length > 0) {
+      console.log('[DELETE-ACCOUNT] User is a contributor to other accounts, verifying ownership');
+      
+      // Double-check that this user actually owns this account by checking if they have any data
+      const { data: profileCheck } = await supabaseAdmin
+        .from('profiles')
+        .select('user_id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!profileCheck) {
+        console.log('[DELETE-ACCOUNT] User does not own this account');
+        return new Response(
+          JSON.stringify({ error: 'Only account owners can delete accounts. Contributors cannot delete the main account.' }),
+          { 
+            status: 403, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
+      }
+    }
+
+    console.log('[DELETE-ACCOUNT] User verified as account owner, proceeding with deletion');
 
     // Delete user's data from all tables (you may need to add more tables here)
     const tablesToClean = [

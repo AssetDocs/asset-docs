@@ -70,11 +70,34 @@ const SubscriptionTab: React.FC = () => {
   const [selectedPlan, setSelectedPlan] = useState<keyof typeof planConfigs>('standard');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isContributor, setIsContributor] = useState(false);
   const [subscriptionStatus, setSubscriptionStatus] = useState<{
     subscribed: boolean;
     subscription_tier?: string;
     subscription_end?: string;
   }>({ subscribed: false });
+
+  const checkIfContributor = async () => {
+    if (!user) return;
+    
+    try {
+      // Check if user is a contributor to someone else's account
+      const { data, error } = await supabase
+        .from('contributors')
+        .select('account_owner_id, role')
+        .eq('contributor_user_id', user.id)
+        .neq('account_owner_id', user.id);
+
+      if (error) {
+        console.error('Error checking contributor status:', error);
+        return;
+      }
+
+      setIsContributor(data && data.length > 0);
+    } catch (error) {
+      console.error('Error checking contributor status:', error);
+    }
+  };
 
   const checkSubscription = async () => {
     if (!user) return;
@@ -91,6 +114,7 @@ const SubscriptionTab: React.FC = () => {
   useEffect(() => {
     if (user) {
       checkSubscription();
+      checkIfContributor();
     }
   }, [user]);
 
@@ -296,31 +320,33 @@ const SubscriptionTab: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Delete Account Section */}
-        <Card className="border-destructive/20">
-          <CardHeader>
-            <CardTitle className="text-destructive">Danger Zone</CardTitle>
-            <CardDescription>
-              Permanently delete your account and all associated data
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Once you delete your account, there is no going back. This action cannot be undone.
-              </p>
-              <Button 
-                variant="destructive" 
-                onClick={() => setShowDeleteDialog(true)}
-                disabled={isDeleting}
-                className="w-full"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                {isDeleting ? 'Deleting Account...' : 'Delete Account'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Delete Account Section - Only show for account owners */}
+        {!isContributor && (
+          <Card className="border-destructive/20">
+            <CardHeader>
+              <CardTitle className="text-destructive">Danger Zone</CardTitle>
+              <CardDescription>
+                Permanently delete your account and all associated data
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Once you delete your account, there is no going back. This action cannot be undone.
+                </p>
+                <Button 
+                  variant="destructive" 
+                  onClick={() => setShowDeleteDialog(true)}
+                  disabled={isDeleting}
+                  className="w-full"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  {isDeleting ? 'Deleting Account...' : 'Delete Account'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Delete Confirmation Dialog */}
         <DeleteConfirmationDialog
@@ -404,6 +430,43 @@ const SubscriptionTab: React.FC = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Delete Account Section - Only show for account owners */}
+      {!isContributor && (
+        <Card className="border-destructive/20">
+          <CardHeader>
+            <CardTitle className="text-destructive">Danger Zone</CardTitle>
+            <CardDescription>
+              Permanently delete your account and all associated data
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Once you delete your account, there is no going back. This action cannot be undone.
+              </p>
+              <Button 
+                variant="destructive" 
+                onClick={() => setShowDeleteDialog(true)}
+                disabled={isDeleting}
+                className="w-full"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {isDeleting ? 'Deleting Account...' : 'Delete Account'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        isOpen={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        onConfirm={handleDeleteAccount}
+        title="Delete Account"
+        description="Are you sure you want to delete your account? You will no longer be able to login and access your dashboard or its contents. All your data will be permanently removed and this action cannot be undone."
+      />
     </div>
   );
 };
