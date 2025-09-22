@@ -70,8 +70,8 @@ const EmailVerificationNotice: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-lg bg-white shadow-2xl">
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-8 z-50">
+      <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-white shadow-2xl">
         <CardHeader className="text-center pb-4">
           <div className="flex items-center justify-center gap-3 mb-4">
             <Mail className="h-8 w-8 text-orange-500" />
