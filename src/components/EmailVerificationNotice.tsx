@@ -21,10 +21,12 @@ const EmailVerificationNotice: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Don't show the notice if user is email verified
+  // Only show the notice if user exists but email is not verified
   if (!user || user.email_confirmed_at) {
     return null;
   }
+
+  console.log('EmailVerificationNotice: User exists but email not verified', { user, email_confirmed_at: user.email_confirmed_at });
 
   const signInForm = useForm<SignInFormData>({
     defaultValues: {
