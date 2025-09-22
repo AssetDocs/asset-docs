@@ -59,7 +59,7 @@ interface PropertyFormData {
 interface PropertyManagementProps {
   properties: Property[];
   onPropertyUpdate: (properties: Property[]) => void;
-  selectedProperty: Property;
+  selectedProperty: Property | null;
   onPropertySelect: (property: Property) => void;
 }
 
@@ -147,9 +147,13 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
     const updatedProperties = properties.filter(p => p.id !== propertyId);
     onPropertyUpdate(updatedProperties);
     
-    // If the deleted property was selected, select the first remaining property
-    if (selectedProperty.id === propertyId && updatedProperties.length > 0) {
-      onPropertySelect(updatedProperties[0]);
+    // If the deleted property was selected, select the first remaining property or null
+    if (selectedProperty?.id === propertyId) {
+      if (updatedProperties.length > 0) {
+        onPropertySelect(updatedProperties[0]);
+      } else {
+        onPropertySelect(null);
+      }
     }
     
     toast({
@@ -185,7 +189,7 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
       onPropertyUpdate(updatedProperties);
       
       // Update selected property if it was the one being edited
-      if (selectedProperty.id === editingProperty.id) {
+      if (selectedProperty?.id === editingProperty.id) {
         onPropertySelect({ ...selectedProperty, ...propertyData });
       }
       
@@ -334,14 +338,32 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
         </Dialog>
       </div>
 
-      {properties.map((property) => (
-        <Card 
-          key={property.id}
-          className={`cursor-pointer transition-all hover:shadow-md ${
-            selectedProperty.id === property.id ? 'ring-2 ring-primary' : ''
-          }`}
-          onClick={() => onPropertySelect(property)}
-        >
+      {properties.length === 0 ? (
+        <Card className="p-8 text-center text-gray-500">
+          <div className="flex flex-col items-center gap-4">
+            <Home className="h-12 w-12 text-gray-300" />
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No Properties Added</h3>
+              <p className="text-gray-600 mb-4">Start by adding your first property to get organized.</p>
+              <Button 
+                onClick={() => setIsAddDialogOpen(true)}
+                className="bg-primary hover:bg-primary/90"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Your First Property
+              </Button>
+            </div>
+          </div>
+        </Card>
+      ) : (
+        properties.map((property) => (
+          <Card 
+            key={property.id}
+            className={`cursor-pointer transition-all hover:shadow-md ${
+              selectedProperty?.id === property.id ? 'ring-2 ring-primary' : ''
+            }`}
+            onClick={() => onPropertySelect(property)}
+          >
           <CardHeader className="pb-3">
             <div className="flex justify-between items-start">
               <div className="flex-1">
@@ -491,7 +513,8 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
             </div>
           </CardContent>
         </Card>
-      ))}
+        ))
+      )}
     </div>
   );
 };
