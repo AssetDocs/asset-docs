@@ -1,37 +1,172 @@
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Mail, CheckCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
+import { Mail, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
+
+interface SignInFormData {
+  email: string;
+  password: string;
+}
 
 const EmailVerificationNotice: React.FC = () => {
-  const { user } = useAuth();
+  const { user, signIn } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Don't show the notice if user is email verified
   if (!user || user.email_confirmed_at) {
     return null;
   }
 
+  const signInForm = useForm<SignInFormData>({
+    defaultValues: {
+      email: user.email || '',
+      password: '',
+    },
+  });
+
+  const onSignIn = async (data: SignInFormData) => {
+    setIsLoading(true);
+    try {
+      const { error } = await signIn(data.email, data.password);
+
+      if (error) {
+        if (error.message.includes('Invalid login credentials')) {
+          toast({
+            title: "Invalid Credentials",
+            description: "The password you entered is incorrect. Please try again.",
+            variant: "destructive",
+          });
+        } else {
+          throw error;
+        }
+      } else {
+        toast({
+          title: "Welcome Back!",
+          description: "Please complete your subscription to continue.",
+        });
+        navigate('/complete-pricing');
+      }
+    } catch (error: any) {
+      console.error('Sign in error:', error);
+      toast({
+        title: "Sign In Failed",
+        description: error.message || "An error occurred during sign in. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <Card className="mb-6 border-orange-200 bg-orange-50">
-      <CardContent className="pt-6">
-        <div className="flex items-start gap-3">
-          <Mail className="h-5 w-5 text-orange-500 mt-0.5 flex-shrink-0" />
-          <div className="flex-1">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <Card className="w-full max-w-lg bg-white shadow-2xl">
+        <CardHeader className="text-center pb-4">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <Mail className="h-8 w-8 text-orange-500" />
+            <CheckCircle className="h-8 w-8 text-orange-500" />
+          </div>
+          <CardTitle className="text-2xl font-bold text-orange-800">
+            Verify Your Email & Complete Setup
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Email Verification Notice */}
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
             <h3 className="font-semibold text-orange-800 mb-2">
               Check your inbox to verify your email address
             </h3>
             <p className="text-orange-700 text-sm">
-              Once verified, you will be redirected to complete your subscription. 
-              Please check your email and click the verification link to continue.
+              Once verified, sign in below to complete your subscription. 
+              Please check your email and click the verification link first.
             </p>
             <p className="text-orange-600 text-xs mt-2">
               Don't see the email? Check your spam folder or contact support.
             </p>
           </div>
-          <CheckCircle className="h-5 w-5 text-orange-500" />
-        </div>
-      </CardContent>
-    </Card>
+
+          {/* Sign In Form */}
+          <div>
+            <h4 className="font-semibold text-gray-800 mb-4">
+              After verifying your email, sign in to continue:
+            </h4>
+            <Form {...signInForm}>
+              <form onSubmit={signInForm.handleSubmit(onSignIn)} className="space-y-4">
+                <FormField
+                  control={signInForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="email"
+                          disabled
+                          className="bg-gray-50"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={signInForm.control}
+                  name="password"
+                  rules={{ required: "Password is required" }}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input 
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Enter your password"
+                            {...field}
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                   )}
+                  />
+                  
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-orange-600 hover:bg-orange-700"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'Signing In...' : 'Sign In & Complete Subscription'}
+                  </Button>
+               </form>
+             </Form>
+           </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
