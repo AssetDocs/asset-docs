@@ -295,6 +295,41 @@ const SubscriptionTab: React.FC = () => {
             </Card>
           </CardContent>
         </Card>
+
+        {/* Delete Account Section */}
+        <Card className="border-destructive/20">
+          <CardHeader>
+            <CardTitle className="text-destructive">Danger Zone</CardTitle>
+            <CardDescription>
+              Permanently delete your account and all associated data
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Once you delete your account, there is no going back. This action cannot be undone.
+              </p>
+              <Button 
+                variant="destructive" 
+                onClick={() => setShowDeleteDialog(true)}
+                disabled={isDeleting}
+                className="w-full"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {isDeleting ? 'Deleting Account...' : 'Delete Account'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Delete Confirmation Dialog */}
+        <DeleteConfirmationDialog
+          isOpen={showDeleteDialog}
+          onClose={() => setShowDeleteDialog(false)}
+          onConfirm={handleDeleteAccount}
+          title="Delete Account"
+          description="Are you sure you want to delete your account? You will no longer be able to login and access your dashboard or its contents. All your data will be permanently removed and this action cannot be undone."
+        />
       </div>
     );
   }
@@ -369,41 +404,6 @@ const SubscriptionTab: React.FC = () => {
           </CardContent>
         </Card>
       )}
-
-      {/* Delete Account Section */}
-      <Card className="border-destructive/20">
-        <CardHeader>
-          <CardTitle className="text-destructive">Danger Zone</CardTitle>
-          <CardDescription>
-            Permanently delete your account and all associated data
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Once you delete your account, there is no going back. This action cannot be undone.
-            </p>
-            <Button 
-              variant="destructive" 
-              onClick={() => setShowDeleteDialog(true)}
-              disabled={isDeleting}
-              className="w-full"
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              {isDeleting ? 'Deleting Account...' : 'Delete Account'}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Delete Confirmation Dialog */}
-      <DeleteConfirmationDialog
-        isOpen={showDeleteDialog}
-        onClose={() => setShowDeleteDialog(false)}
-        onConfirm={handleDeleteAccount}
-        title="Delete Account"
-        description="Are you sure you want to delete your account? You will no longer be able to login and access your dashboard or its contents. All your data will be permanently removed and this action cannot be undone."
-      />
     </div>
   );
 };
