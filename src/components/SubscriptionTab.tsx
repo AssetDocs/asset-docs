@@ -9,8 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Link } from 'react-router-dom';
-import { CheckIcon, ExternalLink, CreditCard, Shield, Star, Zap } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { CheckIcon, ExternalLink, CreditCard, Shield, Star, Zap, Trash2 } from 'lucide-react';
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 
 // Plan configurations
 const planConfigs = {
@@ -63,9 +64,12 @@ const planConfigs = {
 
 const SubscriptionTab: React.FC = () => {
   const { toast } = useToast();
-  const { user, profile } = useAuth();
+  const { user, profile, signOut } = useAuth();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<keyof typeof planConfigs>('standard');
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [subscriptionStatus, setSubscriptionStatus] = useState<{
     subscribed: boolean;
     subscription_tier?: string;
@@ -148,6 +152,41 @@ const SubscriptionTab: React.FC = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+
+    setIsDeleting(true);
+    try {
+      // Delete user's data first
+      const { error: deleteError } = await supabase.auth.admin.deleteUser(user.id);
+      
+      if (deleteError) {
+        throw deleteError;
+      }
+
+      // Sign out the user
+      await signOut();
+      
+      toast({
+        title: "Account Deleted",
+        description: "Your account has been permanently deleted.",
+      });
+      
+      // Redirect to home page
+      navigate('/');
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete account. Please contact support for assistance.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
     }
   };
 
@@ -330,6 +369,41 @@ const SubscriptionTab: React.FC = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Delete Account Section */}
+      <Card className="border-destructive/20">
+        <CardHeader>
+          <CardTitle className="text-destructive">Danger Zone</CardTitle>
+          <CardDescription>
+            Permanently delete your account and all associated data
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Once you delete your account, there is no going back. This action cannot be undone.
+            </p>
+            <Button 
+              variant="destructive" 
+              onClick={() => setShowDeleteDialog(true)}
+              disabled={isDeleting}
+              className="w-full"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              {isDeleting ? 'Deleting Account...' : 'Delete Account'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        isOpen={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        onConfirm={handleDeleteAccount}
+        title="Delete Account"
+        description="Are you sure you want to delete your account? You will no longer be able to login and access your dashboard or its contents. All your data will be permanently removed and this action cannot be undone."
+      />
     </div>
   );
 };
