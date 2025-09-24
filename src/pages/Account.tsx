@@ -8,6 +8,7 @@ import AccountStats from '@/components/AccountStats';
 import AccountActions from '@/components/AccountActions';
 import ManualEntrySection from '@/components/ManualEntrySection';
 import StorageAlert from '@/components/StorageAlert';
+import StorageDashboard from '@/components/StorageDashboard';
 import PostDamageSection from '@/components/PostDamageSection';
 import VoiceNotesSection from '@/components/VoiceNotesSection';
 import DashboardTour from '@/components/DashboardTour';
@@ -106,8 +107,8 @@ const Account: React.FC = () => {
             <AccountHeader />
           </div>
 
-          <div id="storage-alert">
-            <StorageAlert />
+          <div id="storage-dashboard" className="mb-6">
+            <StorageDashboard />
           </div>
 
           <Tabs defaultValue="overview" className="space-y-6" id="tabs-content">
