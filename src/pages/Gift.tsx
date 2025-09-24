@@ -12,12 +12,14 @@ const Gift: React.FC = () => {
   const giftPlans = [
     {
       title: "Basic",
-      price: "$98.89/year",
+      price: "$107.88/year",
       description: "Perfect for individuals with basic documentation needs",
       features: [
+        "30-day free trial",
         "1 property",
         "10GB secure cloud storage",
         "Photo uploads",
+        "Document uploads", 
         "Web platform access",
         "Email support",
         "12-month gift subscription"
@@ -27,12 +29,14 @@ const Gift: React.FC = () => {
     },
     {
       title: "Standard",
-      price: "$142.89/year",
+      price: "$155.88/year",
       description: "Our most popular plan for comprehensive home documentation",
       features: [
-        "Up to 3 properties",
-        "50GB secure cloud storage",
+        "30-day free trial",
+        "Up to 5 properties",
+        "25GB secure cloud storage",
         "Photo and video uploads",
+        "Document uploads",
         "Web platform access",
         "Export detailed reports",
         "Priority email support",
@@ -45,16 +49,19 @@ const Gift: React.FC = () => {
     },
     {
       title: "Premium",
-      price: "$208.89/year",
-      description: "Complete protection with professional documentation tools",
+      price: "$227.88/year",
+      description: "Best suited for estate managers, multiple-property owners, or businesses",
       features: [
-        "Up to 10 properties",
-        "500GB secure cloud storage",
-        "Unlimited photo and video uploads",
+        "30-day free trial",
+        "Up to 20 properties",
+        "100GB secure cloud storage",
+        "Photo and video uploads",
+        "Document uploads",
         "Full web platform access",
         "Export detailed reports",
         "Priority email and phone support",
         "Share with 5 trusted contacts",
+        "Best suited for estate managers, multiple-property owners, or businesses",
         "12-month gift subscription"
       ],
       planType: "premium",
