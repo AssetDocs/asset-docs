@@ -73,8 +73,7 @@ serve(async (req) => {
       purchaserPhone,
       recipientEmail,
       recipientName,
-      giftMessage,
-      deliveryDate
+      giftMessage
     } = giftData;
 
     if (!purchaserEmail || !recipientEmail) {
@@ -152,7 +151,6 @@ serve(async (req) => {
         recipient_email: recipientEmail,
         recipient_name: recipientName,
         gift_message: giftMessage || '',
-        delivery_date: deliveryDate || new Date().toISOString(),
       },
       // Enable automatic tax collection
       automatic_tax: {
@@ -181,7 +179,7 @@ serve(async (req) => {
         recipient_email: recipientEmail,
         recipient_name: recipientName,
         gift_message: giftMessage || null,
-        delivery_date: deliveryDate || new Date().toISOString(),
+        delivery_date: new Date().toISOString(),
         status: 'pending',
         amount: amount,
         currency: 'usd',

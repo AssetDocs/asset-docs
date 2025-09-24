@@ -20,6 +20,8 @@ import Scenarios from "./pages/Scenarios";
 import Pricing from "./pages/Pricing";
 import Gift from "./pages/Gift";
 import GiftCheckout from "./pages/GiftCheckout";
+import GiftSuccess from "./pages/GiftSuccess";
+import GiftClaim from "./pages/GiftClaim";
 
 import Auth from "./pages/Auth";
 import Signup from "./pages/Signup";
@@ -114,6 +116,8 @@ const AppContent = () => {
         <Route path="/pricing" element={<Pricing />} />
           <Route path="/gift" element={<Gift />} />
           <Route path="/gift-checkout" element={<GiftCheckout />} />
+          <Route path="/gift-success" element={<GiftSuccess />} />
+          <Route path="/gift-claim" element={<GiftClaim />} />
         <Route path="/subscription-checkout" element={<SubscriptionCheckout />} />
         <Route path="/video-help" element={<VideoHelp />} />
         <Route path="/resources" element={<Resources />} />

@@ -23,9 +23,6 @@ const GiftSection: React.FC = () => {
             <Button asChild size="lg" className="bg-white text-brand-blue hover:bg-gray-100">
               <Link to="/gift">Give a Gift Subscription</Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="bg-transparent border-white text-white hover:bg-white/10">
-              <Link to="/pricing">View Gift Options</Link>
-            </Button>
           </div>
         </div>
       </div>

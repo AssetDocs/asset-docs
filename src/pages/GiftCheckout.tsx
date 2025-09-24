@@ -26,7 +26,6 @@ const formSchema = z.object({
   recipientLastName: z.string().min(2, 'Recipient last name must be at least 2 characters'),
   recipientEmail: z.string().email('Invalid recipient email address'),
   giftMessage: z.string().optional(),
-  deliveryDate: z.string().optional(),
   agreeToTerms: z.boolean().refine(val => val === true, {
     message: 'You must agree to the Terms of Service to continue',
   }),
@@ -49,7 +48,6 @@ const GiftCheckout: React.FC = () => {
       recipientLastName: '',
       recipientEmail: '',
       giftMessage: '',
-      deliveryDate: '',
       agreeToTerms: false,
     },
   });
@@ -126,7 +124,6 @@ const GiftCheckout: React.FC = () => {
             recipientEmail: values.recipientEmail,
             recipientName: `${values.recipientFirstName} ${values.recipientLastName}`,
             giftMessage: values.giftMessage,
-            deliveryDate: values.deliveryDate || new Date().toISOString(),
           }
         },
       });
@@ -290,23 +287,6 @@ const GiftCheckout: React.FC = () => {
                                 <Textarea 
                                   placeholder="Write a personal message for your gift..."
                                   className="resize-none"
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="deliveryDate"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Delivery Date (Optional)</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  type="date" 
-                                  min={new Date().toISOString().split('T')[0]}
                                   {...field}
                                 />
                               </FormControl>
