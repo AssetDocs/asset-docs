@@ -17,6 +17,7 @@ import DocumentationChecklist from '@/components/DocumentationChecklist';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
+import EmailVerificationNotice from '@/components/EmailVerificationNotice';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -93,6 +94,8 @@ const Account: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
+      
+      <EmailVerificationNotice />
       
       <div className="flex-grow py-8 px-4 bg-gray-50">
         <div className="max-w-6xl mx-auto">
