@@ -62,7 +62,6 @@ const GiftCheckout: React.FC = () => {
         '1 property',
         '10GB secure cloud storage',
         'Photo uploads',
-        'Document uploads', 
         'Web platform access',
         'Email support',
         '12-month gift subscription'
@@ -75,12 +74,13 @@ const GiftCheckout: React.FC = () => {
       description: 'Our most popular plan for comprehensive home documentation',
       features: [
         '30-day free trial',
-        'Up to 5 properties',
+        'Up to 3 properties',
         '25GB secure cloud storage',
         'Photo and video uploads',
-        'Document uploads',
         'Web platform access',
         'Export detailed reports',
+        'Voice notes for item details',
+        'Post damage documentation',
         'Priority email support',
         'Share with 2 trusted contacts',
         '12-month gift subscription'
@@ -94,15 +94,15 @@ const GiftCheckout: React.FC = () => {
       description: 'Best suited for estate managers, multiple-property owners, or businesses',
       features: [
         '30-day free trial',
-        'Up to 20 properties',
+        'Up to 10 properties',
         '100GB secure cloud storage',
-        'Photo and video uploads',
-        'Document uploads',
+        'Unlimited photo and video uploads',
         'Full web platform access',
+        'Voice notes for item details',
+        'Post damage documentation',
         'Export detailed reports',
         'Priority email and phone support',
         'Share with 5 trusted contacts',
-        'Best suited for estate managers, multiple-property owners, or businesses',
         '12-month gift subscription'
       ],
       icon: <Star className="h-8 w-8" />,
