@@ -74,6 +74,18 @@ export const SUBSCRIPTION_FEATURES: Record<string, FeatureConfig> = {
     requiredTier: 'standard',
     fallbackMessage: 'Upgrade to Standard to share property access'
   },
+  property_limits: {
+    name: 'Property Limits',
+    description: 'Number of properties you can manage',
+    requiredTier: 'basic',
+    fallbackMessage: 'Upgrade to manage more properties'
+  },
+  contributor_limits: {
+    name: 'Contributor Limits',
+    description: 'Number of contributors you can invite',
+    requiredTier: 'standard',
+    fallbackMessage: 'Upgrade to Standard to invite contributors'
+  },
 
   // Export and Reporting
   export_reports: {
@@ -181,4 +193,82 @@ export const formatStorageSize = (bytes: number): string => {
   }
   
   return `${size.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
+};
+
+// Property limits by tier
+export const PROPERTY_LIMITS: Record<SubscriptionTier, number> = {
+  basic: 1,
+  standard: 3,
+  premium: 10
+};
+
+// Contributor limits by tier
+export const CONTRIBUTOR_LIMITS: Record<SubscriptionTier, number> = {
+  basic: 0,
+  standard: 2,
+  premium: 5
+};
+
+export const getPropertyLimit = (tier: SubscriptionTier | null | undefined): number => {
+  if (!tier) return 0;
+  return PROPERTY_LIMITS[tier];
+};
+
+export const getContributorLimit = (tier: SubscriptionTier | null | undefined): number => {
+  if (!tier) return 0;
+  return CONTRIBUTOR_LIMITS[tier];
+};
+
+export const checkPropertyLimit = (
+  currentCount: number,
+  userTier: SubscriptionTier | null | undefined,
+  isInTrial?: boolean
+): { canAdd: boolean; limit: number; message?: string } => {
+  // If user is in trial, they get premium access
+  const effectiveTier = isInTrial ? 'premium' : userTier;
+  const limit = getPropertyLimit(effectiveTier);
+  const canAdd = currentCount < limit;
+  
+  if (!canAdd) {
+    const upgradeMessage = !userTier || userTier === 'basic' 
+      ? 'Upgrade to Standard to manage up to 3 properties, or Premium for up to 10 properties.'
+      : userTier === 'standard'
+      ? 'Upgrade to Premium to manage up to 10 properties.'
+      : 'You have reached the maximum number of properties for your plan.';
+    
+    return {
+      canAdd: false,
+      limit,
+      message: upgradeMessage
+    };
+  }
+  
+  return { canAdd: true, limit };
+};
+
+export const checkContributorLimit = (
+  currentCount: number,
+  userTier: SubscriptionTier | null | undefined,
+  isInTrial?: boolean
+): { canAdd: boolean; limit: number; message?: string } => {
+  // If user is in trial, they get premium access
+  const effectiveTier = isInTrial ? 'premium' : userTier;
+  const limit = getContributorLimit(effectiveTier);
+  const canAdd = currentCount < limit;
+  
+  if (!canAdd) {
+    const upgradeMessage = !userTier || userTier === 'basic'
+      ? 'Upgrade to Standard to invite up to 2 contributors, or Premium for up to 5 contributors.'
+      : userTier === 'standard'
+      ? 'Upgrade to Premium to invite up to 5 contributors.'
+      : 'You have reached the maximum number of contributors for your plan.';
+    
+    return {
+      canAdd: false,
+      limit,
+      message: upgradeMessage
+    };
+  }
+  
+  return { canAdd: true, limit };
 };

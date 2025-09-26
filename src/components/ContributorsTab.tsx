@@ -9,6 +9,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { UserPlus, Trash2, Mail, Shield, Eye, Users } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useSubscription } from '@/contexts/SubscriptionContext';
+import { checkContributorLimit } from '@/config/subscriptionFeatures';
 
 interface Contributor {
   id: string;
@@ -26,6 +28,7 @@ const ContributorsTab: React.FC = () => {
   const [role, setRole] = useState<'administrator' | 'contributor' | 'viewer'>('viewer');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { subscriptionStatus, isInTrial } = useSubscription();
 
   useEffect(() => {
     fetchContributors();
@@ -55,6 +58,22 @@ const ContributorsTab: React.FC = () => {
 
   const inviteContributor = async () => {
     if (!email || !role) return;
+
+    // Check contributor limits
+    const limitCheck = checkContributorLimit(
+      contributors.length,
+      subscriptionStatus?.subscription_tier as any,
+      isInTrial
+    );
+    
+    if (!limitCheck.canAdd) {
+      toast({
+        title: "Contributor Limit Reached",
+        description: limitCheck.message,
+        variant: "destructive",
+      });
+      return;
+    }
 
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
@@ -229,6 +248,15 @@ const ContributorsTab: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Show current usage and limits */}
+          <div className="bg-muted/30 rounded-lg p-3 mb-4">
+            <p className="text-sm text-muted-foreground">
+              Contributors: {contributors.length} of {checkContributorLimit(0, subscriptionStatus?.subscription_tier as any, isInTrial).limit}
+              {!subscriptionStatus?.subscription_tier && (
+                <span className="ml-2 text-destructive">• Upgrade to invite contributors</span>
+              )}
+            </p>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <Label htmlFor="email">Email Address</Label>

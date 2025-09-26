@@ -12,6 +12,8 @@ import { Plus, Home, MapPin, Edit3, Trash2, Loader2 } from "lucide-react";
 import GoogleMapsAutocomplete from './GoogleMapsAutocomplete';
 import RealEstateDataService from '@/services/RealEstateDataService';
 import { useToast } from '@/hooks/use-toast';
+import { useSubscription } from '@/contexts/SubscriptionContext';
+import { checkPropertyLimit } from '@/config/subscriptionFeatures';
 
 interface Property {
   id: number;
@@ -70,6 +72,7 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
   onPropertySelect
 }) => {
   const { toast } = useToast();
+  const { subscriptionStatus, isInTrial } = useSubscription();
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [formData, setFormData] = useState<PropertyFormData>({
@@ -162,8 +165,46 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
     });
   };
 
+  const handleAddProperty = () => {
+    // Check property limits before opening dialog
+    const limitCheck = checkPropertyLimit(
+      properties.length,
+      subscriptionStatus?.subscription_tier as any,
+      isInTrial
+    );
+    
+    if (!limitCheck.canAdd) {
+      toast({
+        title: "Property Limit Reached",
+        description: limitCheck.message,
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsAddDialogOpen(true);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Double-check property limits for new properties (not edits)
+    if (!editingProperty) {
+      const limitCheck = checkPropertyLimit(
+        properties.length,
+        subscriptionStatus?.subscription_tier as any,
+        isInTrial
+      );
+      
+      if (!limitCheck.canAdd) {
+        toast({
+          title: "Property Limit Reached",
+          description: limitCheck.message,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
     
     const propertyData = {
       name: formData.name,
@@ -224,10 +265,18 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold text-gray-800">Properties ({properties.length})</h2>
+        <div>
+          <h2 className="text-xl font-semibold text-gray-800">Properties ({properties.length})</h2>
+          <p className="text-sm text-muted-foreground">
+            {checkPropertyLimit(0, subscriptionStatus?.subscription_tier as any, isInTrial).limit} properties allowed on your plan
+          </p>
+        </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-primary hover:bg-primary/90">
+            <Button 
+              className="bg-primary hover:bg-primary/90"
+              onClick={handleAddProperty}
+            >
               <Plus className="h-4 w-4 mr-2" />
               Add Property
             </Button>
@@ -346,7 +395,7 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
               <h3 className="text-lg font-medium text-gray-900 mb-2">No Properties Added</h3>
               <p className="text-gray-600 mb-4">Start by adding your first property to get organized.</p>
               <Button 
-                onClick={() => setIsAddDialogOpen(true)}
+                onClick={handleAddProperty}
                 className="bg-primary hover:bg-primary/90"
               >
                 <Plus className="h-4 w-4 mr-2" />
