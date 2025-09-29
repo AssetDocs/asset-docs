@@ -104,8 +104,8 @@ const handler = async (req: Request): Promise<Response> => {
                   break;
                 }
               }
-            } catch (pmError) {
-              logStep("Error retrieving payment method", { error: pmError.message });
+            } catch (pmError: unknown) {
+              logStep("Error retrieving payment method", { error: pmError instanceof Error ? pmError.message : String(pmError) });
               hasPaymentFailure = true;
               break;
             }
@@ -119,7 +119,7 @@ const handler = async (req: Request): Promise<Response> => {
             status: "open"
           });
 
-          const failedInvoices = invoices.data.filter(invoice => 
+          const failedInvoices = invoices.data.filter((invoice: any) => 
             invoice.status === "open" && 
             invoice.attempt_count > 0 &&
             invoice.next_payment_attempt
@@ -194,7 +194,7 @@ const handler = async (req: Request): Promise<Response> => {
         results.errors++;
         logStep("Error processing subscriber", { 
           email: subscriber.email, 
-          error: error.message 
+          error: error instanceof Error ? error.message : String(error)
         });
       }
     }
@@ -209,10 +209,10 @@ const handler = async (req: Request): Promise<Response> => {
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
-  } catch (error) {
-    logStep("ERROR in check-payment-failures", { message: error.message });
+  } catch (error: unknown) {
+    logStep("ERROR in check-payment-failures", { message: error instanceof Error ? error.message : String(error) });
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : String(error) }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

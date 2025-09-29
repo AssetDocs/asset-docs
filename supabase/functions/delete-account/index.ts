@@ -46,7 +46,7 @@ Deno.serve(async (req) => {
     }
 
     // Set the auth header for the client
-    supabaseClient.auth.setSession = () => Promise.resolve({ data: { session: null }, error: null })
+    supabaseClient.auth.setSession = () => Promise.resolve({ data: { user: null, session: null }, error: null })
     
     // Get the user from the JWT token
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser(
