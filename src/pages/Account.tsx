@@ -18,6 +18,7 @@ import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
 import EmailVerificationNotice from '@/components/EmailVerificationNotice';
+import { StripeTestPanel } from '@/components/StripeTestPanel';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

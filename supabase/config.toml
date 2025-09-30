@@ -118,3 +118,12 @@ verify_jwt = false
 
 [functions.send-auth-email]
 verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.payment-history]
+verify_jwt = true
+
+[functions.create-gift-checkout]
+verify_jwt = false
