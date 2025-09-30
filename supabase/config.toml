@@ -122,6 +122,9 @@ verify_jwt = false
 [functions.stripe-webhook]
 verify_jwt = false
 
+[functions.send-subscription-welcome-email]
+verify_jwt = false
+
 [functions.payment-history]
 verify_jwt = true
 

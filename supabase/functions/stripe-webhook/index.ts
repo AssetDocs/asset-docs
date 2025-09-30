@@ -150,7 +150,16 @@ async function handleSubscriptionChange(supabase: any, subscription: Stripe.Subs
   // Find user by email
   const { data: user } = await supabase.auth.admin.getUserByEmail(customer.email);
   
+  let isNewSubscription = false;
+
   if (user?.user) {
+    // Check if subscriber already exists
+    const { data: existingSubscriber } = await supabase
+      .from('subscribers')
+      .select('*')
+      .eq('user_id', user.user.id)
+      .single();
+
     // Update or create subscriber record
     const { error } = await supabase
       .from('subscribers')
@@ -170,6 +179,31 @@ async function handleSubscriptionChange(supabase: any, subscription: Stripe.Subs
       logStep('Error updating subscriber', error);
     } else {
       logStep('Subscriber updated successfully');
+      
+      // If this is a new subscription (first time subscriber) and it's active, send welcome email
+      if (!existingSubscriber && isActive && eventType === 'customer.subscription.created') {
+        isNewSubscription = true;
+        logStep('Triggering welcome email for new subscription', { email: customer.email });
+        
+        try {
+          const { error: emailError } = await supabase.functions.invoke('send-subscription-welcome-email', {
+            body: {
+              email: customer.email,
+              subscription_tier: tier,
+              trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
+              current_period_end: new Date(subscription.current_period_end * 1000).toISOString()
+            }
+          });
+
+          if (emailError) {
+            logStep('Error sending welcome email', emailError);
+          } else {
+            logStep('Welcome email sent successfully to', { email: customer.email });
+          }
+        } catch (error) {
+          logStep('Failed to send welcome email', error);
+        }
+      }
     }
   }
 }
