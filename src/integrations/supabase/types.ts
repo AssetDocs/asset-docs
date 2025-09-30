@@ -490,6 +490,9 @@ export type Database = {
           subscribed: boolean
           subscription_end: string | null
           subscription_tier: string | null
+          trial_end: string | null
+          trial_reminder_sent: boolean | null
+          trial_reminder_sent_at: string | null
           updated_at: string
           user_id: string
         }
@@ -504,6 +507,9 @@ export type Database = {
           subscribed?: boolean
           subscription_end?: string | null
           subscription_tier?: string | null
+          trial_end?: string | null
+          trial_reminder_sent?: boolean | null
+          trial_reminder_sent_at?: string | null
           updated_at?: string
           user_id: string
         }
@@ -518,6 +524,9 @@ export type Database = {
           subscribed?: boolean
           subscription_end?: string | null
           subscription_tier?: string | null
+          trial_end?: string | null
+          trial_reminder_sent?: boolean | null
+          trial_reminder_sent_at?: string | null
           updated_at?: string
           user_id?: string
         }
