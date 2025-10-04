@@ -70,35 +70,38 @@ const EmailVerificationNotice: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-8 z-50">
-      <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-white shadow-2xl">
-        <CardHeader className="text-center pb-4">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Mail className="h-8 w-8 text-orange-500" />
-            <CheckCircle className="h-8 w-8 text-orange-500" />
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center p-4 sm:p-8 z-50 backdrop-blur-sm">
+      <Card className="w-full max-w-5xl h-auto max-h-[95vh] overflow-y-auto bg-white shadow-2xl border-4 border-orange-500">
+        <CardHeader className="text-center pb-6 pt-8">
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <Mail className="h-12 w-12 text-orange-500" />
+            <CheckCircle className="h-12 w-12 text-orange-500" />
           </div>
-          <CardTitle className="text-2xl font-bold text-orange-800">
+          <CardTitle className="text-3xl sm:text-4xl font-bold text-orange-800 mb-2">
             Verify Your Email & Complete Setup
           </CardTitle>
+          <p className="text-lg text-orange-600 mt-2">
+            Action Required to Continue
+          </p>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-8 px-6 sm:px-8 pb-8">
           {/* Email Verification Notice */}
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-            <h3 className="font-semibold text-orange-800 mb-2">
-              Check your inbox to verify your email address
+          <div className="bg-orange-50 border-2 border-orange-300 rounded-lg p-6 sm:p-8">
+            <h3 className="text-xl sm:text-2xl font-bold text-orange-800 mb-4">
+              📧 Check your inbox to verify your email address
             </h3>
-            <p className="text-orange-700 text-sm">
+            <p className="text-orange-700 text-base sm:text-lg mb-3">
               Once verified, sign in below to complete your subscription. 
               Please check your email and click the verification link first.
             </p>
-            <p className="text-orange-600 text-xs mt-2">
-              Don't see the email? Check your spam folder or contact support.
+            <p className="text-orange-600 text-sm sm:text-base font-medium">
+              ⚠️ Don't see the email? Check your spam folder or contact support.
             </p>
           </div>
 
           {/* Sign In Form */}
-          <div>
-            <h4 className="font-semibold text-gray-800 mb-4">
+          <div className="bg-gray-50 rounded-lg p-6 sm:p-8 border-2 border-gray-200">
+            <h4 className="text-xl font-bold text-gray-800 mb-6">
               After verifying your email, sign in to continue:
             </h4>
             <Form {...signInForm}>
@@ -158,7 +161,7 @@ const EmailVerificationNotice: React.FC = () => {
                   
                   <Button 
                     type="submit" 
-                    className="w-full bg-orange-600 hover:bg-orange-700"
+                    className="w-full bg-orange-600 hover:bg-orange-700 text-lg py-6"
                     disabled={isLoading}
                   >
                     {isLoading ? 'Signing In...' : 'Sign In & Complete Subscription'}
