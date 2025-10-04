@@ -30,7 +30,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send verification email
     const emailResponse = await resend.emails.send({
-      from: "Asset Docs <onboarding@resend.dev>",
+      from: "Asset Docs <noreply@assetdocs.net>",
       to: [email],
       subject: "Verify your email to complete your subscription",
       html: `
