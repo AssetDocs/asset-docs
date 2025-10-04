@@ -5,32 +5,62 @@ import { Button } from '@/components/ui/button';
 import { DollarSign, TrendingUp, Package, Home, ToggleLeft, ToggleRight } from 'lucide-react';
 import { PropertyValuation, propertyValuationService } from '@/services/PropertyValuationService';
 import PropertyValuesSection from '@/components/PropertyValuesSection';
+import { ItemService } from '@/services/ItemService';
+import { supabase } from '@/integrations/supabase/client';
 
-// Mock data for personal assets - in a real app, this would come from your database
-const mockPersonalAssetData = [
-  { category: 'Electronics', value: 12500, color: '#0EA5E9' },
-  { category: 'Furniture', value: 8200, color: '#10B981' },
-  { category: 'Jewelry & Watches', value: 15600, color: '#F59E0B' },
-  { category: 'Appliances', value: 6800, color: '#EF4444' },
-  { category: 'Art & Collectibles', value: 3200, color: '#8B5CF6' },
-  { category: 'Tools & Equipment', value: 1950, color: '#F97316' }
+// Asset categories with colors
+const assetCategories = [
+  { category: 'Electronics', color: '#0EA5E9' },
+  { category: 'Furniture', color: '#10B981' },
+  { category: 'Jewelry & Watches', color: '#F59E0B' },
+  { category: 'Appliances', color: '#EF4444' },
+  { category: 'Art & Collectibles', color: '#8B5CF6' },
+  { category: 'Tools & Equipment', color: '#F97316' }
 ];
 
 const AssetValuesSection: React.FC = () => {
   const [propertyValuations, setPropertyValuations] = useState<PropertyValuation[]>([]);
+  const [personalAssetData, setPersonalAssetData] = useState<Array<{category: string, value: number, color: string}>>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showIndividualProperties, setShowIndividualProperties] = useState(false);
 
   useEffect(() => {
-    loadPropertyData();
+    loadAllData();
   }, []);
 
-  const loadPropertyData = async () => {
+  const loadAllData = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      // Load property valuations
       const valuations = await propertyValuationService.getAllPropertyValuations();
       setPropertyValuations(valuations);
+
+      // Load items and calculate values by category
+      const items = await ItemService.getUserItems(user.id);
+      
+      // Group items by category and sum values
+      const categoryValues = new Map<string, number>();
+      items.forEach(item => {
+        const category = item.category || 'Other';
+        const value = Number(item.estimated_value) || 0;
+        categoryValues.set(category, (categoryValues.get(category) || 0) + value);
+      });
+
+      // Create asset data array from actual data
+      const assetData = assetCategories.map(cat => ({
+        category: cat.category,
+        value: categoryValues.get(cat.category) || 0,
+        color: cat.color
+      })).filter(item => item.value > 0); // Only show categories with values
+
+      setPersonalAssetData(assetData);
     } catch (error) {
-      console.error('Error loading property valuations:', error);
+      console.error('Error loading asset data:', error);
     } finally {
       setIsLoading(false);
     }
@@ -41,15 +71,15 @@ const AssetValuesSection: React.FC = () => {
   
   // Combine personal assets with real estate
   const combinedAssetData = [
-    ...mockPersonalAssetData,
+    ...personalAssetData,
     { 
       category: 'Real Estate', 
       value: totalPropertyValue, 
       color: '#059669' 
     }
-  ];
+  ].filter(item => item.value > 0); // Only show items with values
 
-  const totalPersonalAssets = mockPersonalAssetData.reduce((sum, item) => sum + item.value, 0);
+  const totalPersonalAssets = personalAssetData.reduce((sum, item) => sum + item.value, 0);
   const totalAllAssets = totalPersonalAssets + totalPropertyValue;
 
   if (isLoading) {
