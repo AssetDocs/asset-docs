@@ -135,25 +135,42 @@ const SubscriptionCheckout: React.FC = () => {
 
     setIsLoading(true);
     try {
-      // Send verification email
-      const { error: emailError } = await supabase.functions.invoke('send-verification-email', {
-        body: { 
-          email: data.email,
-          verification_url: `${window.location.origin}/verify-email?email=${encodeURIComponent(data.email)}&plan=${planType}&firstName=${encodeURIComponent(data.firstName)}&lastName=${encodeURIComponent(data.lastName)}&phone=${encodeURIComponent(data.phone)}&heardAbout=${encodeURIComponent(data.heardAbout)}`,
-          first_name: data.firstName
-        },
+      // Create the redirect URL with all necessary parameters
+      const redirectParams = new URLSearchParams({
+        email: data.email,
+        plan: planType,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phone: data.phone,
+        heardAbout: data.heardAbout,
+      });
+      const redirectUrl = `${window.location.origin}/complete-pricing?${redirectParams.toString()}`;
+
+      // Sign up user with Supabase
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            first_name: data.firstName,
+            last_name: data.lastName,
+            phone: data.phone,
+            heard_about: data.heardAbout,
+          }
+        }
       });
       
-      if (emailError) throw emailError;
+      if (signUpError) throw signUpError;
       
       // Show email verification screen
       setSubmittedEmail(data.email);
       setShowEmailVerification(true);
-    } catch (error) {
-      console.error('Error sending verification email:', error);
+    } catch (error: any) {
+      console.error('Error creating account:', error);
       toast({
         title: "Error",
-        description: "Failed to send verification email. Please try again.",
+        description: error.message || "Failed to create account. Please try again.",
         variant: "destructive",
       });
     } finally {

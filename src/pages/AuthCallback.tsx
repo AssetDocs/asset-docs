@@ -59,8 +59,12 @@ const AuthCallback = () => {
         }
 
         // Redirect to the specified URL or default to account
-        const redirectUrl = redirect_to || '/account';
-        navigate(redirectUrl, { replace: true });
+        if (redirect_to) {
+          // Use window.location for external redirects to preserve query params
+          window.location.href = redirect_to;
+        } else {
+          navigate('/account', { replace: true });
+        }
 
       } catch (error: any) {
         console.error('Auth callback failed:', error);
