@@ -117,18 +117,7 @@ const VerifyEmail: React.FC = () => {
               Great! Your email has been verified. Now let's complete your subscription.
             </p>
             
-            <Card className="text-left mb-8">
-              <CardContent className="pt-6">
-                <h3 className="font-semibold mb-3">Subscription Details</h3>
-                <div className="space-y-2 text-sm">
-                  <p><strong>Plan:</strong> {planType?.charAt(0).toUpperCase() + planType?.slice(1)}</p>
-                  <p><strong>Email:</strong> {email}</p>
-                  <p><strong>Trial Period:</strong> 30 days free</p>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Button 
+            <Button
               onClick={proceedToPayment}
               size="lg"
               className="w-full max-w-sm"
