@@ -9,7 +9,6 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { TranslationProvider } from "@/contexts/TranslationContext";
 import CookieConsent from "@/components/CookieConsent";
-import { TrialPromoModal } from "@/components/TrialPromoModal";
 
 import WelcomePage from "@/components/WelcomePage";
 
@@ -178,9 +177,6 @@ const AppContent = () => {
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
-      
-      {/* Global modals that need router context */}
-      <TrialPromoModal />
     </BrowserRouter>
   );
 };
