@@ -128,7 +128,6 @@ serve(async (req) => {
       },
       // Enable customer details collection for tax calculation
       billing_address_collection: 'required',
-      customer_creation: customerId ? undefined : 'always',
     });
 
     logStep("Checkout session created", { sessionId: session.id, url: session.url });
