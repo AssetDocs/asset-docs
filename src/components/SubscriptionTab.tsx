@@ -139,7 +139,7 @@ const SubscriptionTab: React.FC = () => {
   };
 
   const handleStartSubscription = async () => {
-    if (!user || !profile) {
+    if (!user) {
       toast({
         title: "Error",
         description: "User information not found. Please try logging out and back in.",
@@ -152,12 +152,7 @@ const SubscriptionTab: React.FC = () => {
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: {
-          planType: selectedPlan,
-          firstName: profile.first_name || user.user_metadata?.first_name || '',
-          lastName: profile.last_name || user.user_metadata?.last_name || '',
-          email: user.email,
-          phone: user.user_metadata?.phone || '',
-          heardAbout: 'existing-user'
+          planType: selectedPlan
         }
       });
 

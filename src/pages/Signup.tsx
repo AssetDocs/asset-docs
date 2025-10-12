@@ -71,8 +71,8 @@ const Signup: React.FC = () => {
           title: "Account Created Successfully!",
           description: "Please check your email to verify your account before signing in.",
         });
-        // Redirect to account settings subscription page
-        navigate('/account/settings?tab=subscription');
+        // Redirect to welcome page with email verification notice
+        navigate('/welcome');
       }
     } catch (error: any) {
       console.error('Sign up error:', error);
