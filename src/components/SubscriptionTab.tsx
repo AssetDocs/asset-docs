@@ -150,9 +150,15 @@ const SubscriptionTab: React.FC = () => {
 
     setIsLoading(true);
     try {
+      // Get the current session to pass the auth token
+      const { data: sessionData } = await supabase.auth.getSession();
+      
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: {
           planType: selectedPlan
+        },
+        headers: {
+          Authorization: `Bearer ${sessionData.session?.access_token}`
         }
       });
 
