@@ -58,10 +58,13 @@ const AuthCallback = () => {
             break;
         }
 
-        // Redirect to the specified URL or default to account
+        // Redirect to the specified URL or default to subscription tab after signup
         if (redirect_to) {
           // Use window.location for external redirects to preserve query params
           window.location.href = redirect_to;
+        } else if (type === 'signup' || type === 'email_change_confirm_new') {
+          // Redirect to subscription tab after email verification
+          navigate('/account-settings?tab=subscription', { replace: true });
         } else {
           navigate('/account', { replace: true });
         }
