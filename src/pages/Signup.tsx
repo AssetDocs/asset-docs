@@ -67,10 +67,6 @@ const Signup: React.FC = () => {
           throw error;
         }
       } else {
-        toast({
-          title: "Account Created Successfully!",
-          description: "Please check your email to verify your account before signing in.",
-        });
         // Redirect to welcome page with email verification notice
         navigate('/welcome');
       }

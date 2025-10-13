@@ -44,28 +44,6 @@ const Welcome: React.FC = () => {
               </p>
             </div>
             
-            <div className="mt-8">
-              <p className="text-lg mb-6">
-                Ready to secure your property documentation?
-              </p>
-              
-              <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <Button asChild size="lg" className="bg-brand-blue hover:bg-brand-lightBlue">
-                  <Link to="/login">Continue to Login</Link>
-                </Button>
-                
-                <Button asChild size="lg" variant="outline" className="border-brand-blue text-brand-blue">
-                  <Link to="/features">Learn More About Features</Link>
-                </Button>
-                
-                <Button asChild size="lg" variant="outline" className="border-green-500 text-green-500">
-                  <Link to="/video-help">
-                    <Video className="h-4 w-4 mr-2" />
-                    Watch Video Tutorials
-                  </Link>
-                </Button>
-              </div>
-            </div>
           </div>
         </div>
       </div>
