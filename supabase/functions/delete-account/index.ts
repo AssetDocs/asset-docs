@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
       if (!profileCheck) {
         console.log('[DELETE-ACCOUNT] User does not own this account');
         return new Response(
-          JSON.stringify({ error: 'Only account owners can delete accounts. Contributors cannot delete the main account.' }),
+          JSON.stringify({ error: 'Access denied. Insufficient permissions.' }),
           { 
             status: 403, 
             headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -139,9 +139,13 @@ Deno.serve(async (req) => {
     const { error: deleteUserError } = await supabaseAdmin.auth.admin.deleteUser(user.id);
 
     if (deleteUserError) {
-      console.log('[DELETE-ACCOUNT] Error deleting user:', deleteUserError);
+      const errorId = crypto.randomUUID();
+      console.log('[DELETE-ACCOUNT] Error deleting user:', { errorId, error: deleteUserError });
       return new Response(
-        JSON.stringify({ error: 'Failed to delete user account' }),
+        JSON.stringify({ 
+          error: 'Account deletion failed. Please try again.',
+          errorId 
+        }),
         { 
           status: 500, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -160,9 +164,13 @@ Deno.serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('[DELETE-ACCOUNT] ERROR in delete-account:', error);
+    const errorId = crypto.randomUUID();
+    console.error('[DELETE-ACCOUNT] ERROR in delete-account:', { errorId, error });
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ 
+        error: 'An error occurred. Please try again.',
+        errorId 
+      }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

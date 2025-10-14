@@ -123,9 +123,13 @@ serve(async (req) => {
 
   } catch (error) {
     const err = error as Error;
-    logStep('ERROR in stripe-webhook', { message: err.message });
+    const errorId = crypto.randomUUID();
+    logStep('ERROR in stripe-webhook', { errorId, message: err.message, stack: err.stack });
     return new Response(
-      JSON.stringify({ error: err.message }),
+      JSON.stringify({ 
+        error: 'Webhook processing failed',
+        errorId 
+      }),
       { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

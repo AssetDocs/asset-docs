@@ -92,6 +92,33 @@ export type Database = {
         }
         Relationships: []
       }
+      gift_claim_attempts: {
+        Row: {
+          attempted_at: string | null
+          attempted_email: string
+          gift_code: string
+          id: string
+          ip_address: unknown | null
+          success: boolean | null
+        }
+        Insert: {
+          attempted_at?: string | null
+          attempted_email: string
+          gift_code: string
+          id?: string
+          ip_address?: unknown | null
+          success?: boolean | null
+        }
+        Update: {
+          attempted_at?: string | null
+          attempted_email?: string
+          gift_code?: string
+          id?: string
+          ip_address?: unknown | null
+          success?: boolean | null
+        }
+        Relationships: []
+      }
       gift_subscriptions: {
         Row: {
           amount: number | null
@@ -569,6 +596,10 @@ export type Database = {
           total_size_bytes: number
         }[]
       }
+      check_gift_claim_rate_limit: {
+        Args: { p_email: string; p_gift_code: string; p_ip_address: unknown }
+        Returns: Json
+      }
       claim_gift_subscription: {
         Args: { p_gift_code: string }
         Returns: Json
@@ -582,6 +613,13 @@ export type Database = {
           plan_type: string
           purchaser_name: string
           status: string
+        }[]
+      }
+      get_claimable_gift_preview: {
+        Args: { p_gift_code: string }
+        Returns: {
+          delivery_date: string
+          has_gift: boolean
         }[]
       }
       get_purchaser_gifts: {
