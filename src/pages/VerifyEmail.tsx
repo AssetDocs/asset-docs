@@ -43,16 +43,8 @@ const VerifyEmail: React.FC = () => {
   }, []);
 
   const proceedToPayment = () => {
-    // Redirect to the complete pricing page with user info
-    const params = new URLSearchParams({
-      email: email || '',
-      firstName: firstName || '',
-      lastName: lastName || '',
-      phone: phone || '',
-      heardAbout: heardAbout || '',
-    });
-    
-    navigate(`/complete-pricing?${params.toString()}`);
+    // Redirect to account settings subscription tab
+    navigate('/account/settings?tab=subscription', { replace: true });
   };
 
   if (isVerifying) {
