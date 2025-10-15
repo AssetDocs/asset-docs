@@ -117,7 +117,7 @@ serve(async (req) => {
       ],
       mode: "subscription",
       success_url: `${req.headers.get("origin")}/subscription-success`,
-      cancel_url: `${req.headers.get("origin")}/pricing`,
+      cancel_url: `${req.headers.get("origin")}/account-settings?tab=subscription`,
       // Enable automatic tax collection
       automatic_tax: {
         enabled: true,
