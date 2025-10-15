@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -9,12 +10,23 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-interface ContributorInvitationRequest {
-  contributor_email: string;
-  contributor_role: string;
-  inviter_name: string;
-  inviter_email: string;
-}
+// Validation schema for contributor invitation
+const contributorInvitationSchema = z.object({
+  contributor_email: z.string().email().max(255),
+  contributor_role: z.enum(['administrator', 'contributor', 'viewer']),
+  inviter_name: z.string().trim().min(1).max(100),
+  inviter_email: z.string().email().max(255)
+});
+
+// Helper function to escape HTML
+const escapeHtml = (str: string): string => {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+};
 
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
@@ -23,18 +35,26 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    const body = await req.json();
+    
+    // Validate input data
+    const validatedData = contributorInvitationSchema.parse(body);
+    
     const { 
       contributor_email, 
       contributor_role, 
       inviter_name, 
       inviter_email 
-    }: ContributorInvitationRequest = await req.json();
+    } = validatedData;
+    
+    // Escape HTML for safe email rendering
+    const safeInviterName = escapeHtml(inviter_name);
+    const safeRole = escapeHtml(contributor_role);
 
     console.log("Sending contributor invitation:", {
       contributor_email,
       contributor_role,
-      inviter_name,
-      inviter_email
+      inviter_name
     });
 
     // Get role description
@@ -69,11 +89,11 @@ const handler = async (req: Request): Promise<Response> => {
             <h2 style="color: #111827; margin-bottom: 20px;">You've been invited to collaborate!</h2>
             
             <p style="color: #374151; line-height: 1.6; margin-bottom: 20px;">
-              Hello! <strong>${inviter_name}</strong> (${inviter_email}) has invited you to access their AssetDocs account as a <strong>${contributor_role}</strong>.
+              Hello! <strong>${safeInviterName}</strong> (${inviter_email}) has invited you to access their AssetDocs account as a <strong>${safeRole}</strong>.
             </p>
             
             <div style="background-color: #f3f4f6; padding: 20px; border-radius: 6px; margin: 20px 0;">
-              <h3 style="color: #1f2937; margin: 0 0 10px 0; font-size: 16px;">Your Role: ${contributor_role.charAt(0).toUpperCase() + contributor_role.slice(1)}</h3>
+              <h3 style="color: #1f2937; margin: 0 0 10px 0; font-size: 16px;">Your Role: ${safeRole.charAt(0).toUpperCase() + safeRole.slice(1)}</h3>
               <p style="color: #4b5563; margin: 0; font-size: 14px;">${roleDescription}</p>
             </div>
             
@@ -114,10 +134,18 @@ const handler = async (req: Request): Promise<Response> => {
       },
     });
   } catch (error: any) {
-    console.error("Error in send-contributor-invitation function:", error);
+    const errorId = crypto.randomUUID();
+    console.error("Error in send-contributor-invitation function:", { errorId, message: error.message });
+    
+    let userMessage = "Failed to send invitation. Please try again.";
+    if (error instanceof z.ZodError) {
+      userMessage = "Invalid input data. Please check your information.";
+    }
+    
     return new Response(
       JSON.stringify({ 
-        error: error.message,
+        error: userMessage,
+        errorId,
         success: false 
       }),
       {

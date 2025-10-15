@@ -28,6 +28,15 @@ serve(async (req) => {
     if (!stripeSecretKey || !supabaseUrl || !supabaseServiceKey) {
       throw new Error('Missing required environment variables');
     }
+    
+    // SECURITY: Webhook secret is required for signature verification
+    if (!webhookSecret) {
+      logStep('ERROR: STRIPE_WEBHOOK_SECRET is not configured');
+      return new Response('Webhook secret not configured', { 
+        status: 500,
+        headers: corsHeaders 
+      });
+    }
 
     const stripe = new Stripe(stripeSecretKey, {
       apiVersion: '2023-10-16',
@@ -38,22 +47,28 @@ serve(async (req) => {
     const signature = req.headers.get('stripe-signature');
     const body = await req.text();
 
+    // SECURITY: Require signature header
+    if (!signature) {
+      logStep('ERROR: Missing stripe-signature header');
+      return new Response('Missing signature', { 
+        status: 400,
+        headers: corsHeaders 
+      });
+    }
+
     let event: Stripe.Event;
 
-    // Verify webhook signature if webhook secret is provided
-    if (webhookSecret && signature) {
-      try {
-        event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-        logStep('Webhook signature verified');
-      } catch (err) {
-        const error = err as Error;
-        logStep('Webhook signature verification failed', { error: error.message });
-        return new Response('Webhook signature verification failed', { status: 400 });
-      }
-    } else {
-      // Parse the event directly if no webhook secret
-      event = JSON.parse(body);
-      logStep('Processing webhook without signature verification');
+    // SECURITY: Always verify webhook signature
+    try {
+      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+      logStep('Webhook signature verified');
+    } catch (err) {
+      const error = err as Error;
+      logStep('Webhook signature verification failed', { error: error.message });
+      return new Response('Invalid signature', { 
+        status: 400,
+        headers: corsHeaders 
+      });
     }
 
     logStep('Processing event', { type: event.type, id: event.id });

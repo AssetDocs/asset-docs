@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,13 +13,29 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CREATE-GIFT-CHECKOUT] ${step}${detailsStr}`);
 };
 
-// Generate a unique gift code
+// Validation schema for gift data
+const giftDataSchema = z.object({
+  purchaserEmail: z.string().email().max(255),
+  purchaserName: z.string().trim().min(1).max(100),
+  purchaserPhone: z.string().max(20).optional(),
+  recipientEmail: z.string().email().max(255),
+  recipientName: z.string().trim().min(1).max(100),
+  giftMessage: z.string().max(1000).optional()
+});
+
+// Generate a cryptographically secure gift code
 const generateGiftCode = () => {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const randomBytes = new Uint8Array(16); // 128 bits
+  crypto.getRandomValues(randomBytes);
+  
+  // Use base32 for better human readability (avoids 0/O, 1/I confusion)
+  const base32Chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let result = '';
-  for (let i = 0; i < 12; i++) {
-    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  
+  for (let i = 0; i < 20; i++) {
+    result += base32Chars[randomBytes[i % 16] % base32Chars.length];
   }
+  
   return `GIFT-${result}`;
 };
 
@@ -63,9 +80,22 @@ serve(async (req) => {
     logStep("Stripe key verified");
 
     // Parse request body to get plan type and gift data
-    const { planType, giftData } = await req.json();
-    if (!planType || !giftData) throw new Error("Plan type and gift data are required");
-    logStep("Request body parsed", { planType, giftData });
+    const body = await req.json();
+    const { planType, giftData } = body;
+    
+    if (!planType || !giftData) {
+      throw new Error("Plan type and gift data are required");
+    }
+    
+    // Validate plan type
+    const validPlanTypes = ['basic', 'standard', 'premium'];
+    if (!validPlanTypes.includes(planType)) {
+      throw new Error("Invalid plan type");
+    }
+    
+    // Validate gift data with zod
+    const validatedGiftData = giftDataSchema.parse(giftData);
+    logStep("Request body parsed and validated", { planType });
 
     const {
       purchaserEmail,
@@ -74,11 +104,7 @@ serve(async (req) => {
       recipientEmail,
       recipientName,
       giftMessage
-    } = giftData;
-
-    if (!purchaserEmail || !recipientEmail) {
-      throw new Error("Purchaser and recipient emails are required");
-    }
+    } = validatedGiftData;
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
     
@@ -199,8 +225,21 @@ serve(async (req) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in create-gift-checkout", { message: errorMessage });
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    const errorId = crypto.randomUUID();
+    logStep("ERROR in create-gift-checkout", { errorId, message: errorMessage });
+    
+    // Return user-friendly error message
+    let userMessage = "Gift checkout failed. Please try again.";
+    if (error instanceof z.ZodError) {
+      userMessage = "Invalid input data. Please check your information.";
+    } else if (errorMessage.includes("Plan type")) {
+      userMessage = "Invalid subscription plan selected.";
+    }
+    
+    return new Response(JSON.stringify({ 
+      error: userMessage,
+      errorId 
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
