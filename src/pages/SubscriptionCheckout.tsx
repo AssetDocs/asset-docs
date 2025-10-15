@@ -135,16 +135,8 @@ const SubscriptionCheckout: React.FC = () => {
 
     setIsLoading(true);
     try {
-      // Create the redirect URL with all necessary parameters
-      const redirectParams = new URLSearchParams({
-        email: data.email,
-        plan: planType,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        phone: data.phone,
-        heardAbout: data.heardAbout,
-      });
-      const redirectUrl = `${window.location.origin}/complete-pricing?${redirectParams.toString()}`;
+      // Redirect to account settings subscription tab after email verification
+      const redirectUrl = `${window.location.origin}/account-settings?tab=subscription`;
 
       // Sign up user with Supabase
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
