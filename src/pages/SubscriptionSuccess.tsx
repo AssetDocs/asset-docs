@@ -43,7 +43,7 @@ const SubscriptionSuccess: React.FC = () => {
   };
 
   const handleGoToDashboard = () => {
-    navigate('/properties');
+    navigate('/account');
   };
 
   return (
