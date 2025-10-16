@@ -110,31 +110,41 @@ const PhotoUpload: React.FC = () => {
 
         // Upload file if it exists
         if (item.file) {
-          const uploadResult = await StorageService.uploadFile(
-            item.file,
-            'photos',
-            user.id,
-            `${item.name.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.${item.file.name.split('.').pop()}`
-          );
-          photoUrl = uploadResult.url;
-          photoPath = uploadResult.path;
+          try {
+            const uploadResult = await StorageService.uploadFile(
+              item.file,
+              'photos',
+              user.id,
+              `${item.name.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.${item.file.name.split('.').pop()}`
+            );
+            photoUrl = uploadResult.url;
+            photoPath = uploadResult.path;
+          } catch (uploadError) {
+            console.error('Error uploading file:', uploadError);
+            throw new Error(`Failed to upload photo for ${item.name}: ${uploadError instanceof Error ? uploadError.message : 'Unknown error'}`);
+          }
         }
 
         // Save item to database
-        await ItemService.createItem({
-          user_id: user.id,
-          name: item.name || 'Untitled Item',
-          description: item.description,
-          estimated_value: item.estimatedValue,
-          category: item.category,
-          item_type: item.itemType,
-          property_upgrade: item.propertyUpgrade,
-          property_id: item.propertyId,
-          location: item.location,
-          photo_url: photoUrl,
-          photo_path: photoPath,
-          is_manual_entry: item.isManualEntry
-        });
+        try {
+          await ItemService.createItem({
+            user_id: user.id,
+            name: item.name || 'Untitled Item',
+            description: item.description,
+            estimated_value: item.estimatedValue,
+            category: item.category,
+            item_type: item.itemType,
+            property_upgrade: item.propertyUpgrade,
+            property_id: item.propertyId,
+            location: item.location,
+            photo_url: photoUrl,
+            photo_path: photoPath,
+            is_manual_entry: item.isManualEntry
+          });
+        } catch (dbError) {
+          console.error('Error saving item to database:', dbError);
+          throw new Error(`Failed to save item ${item.name}: ${dbError instanceof Error ? dbError.message : 'Unknown error'}`);
+        }
       }
 
       toast({
@@ -150,9 +160,10 @@ const PhotoUpload: React.FC = () => {
       navigate('/inventory');
     } catch (error) {
       console.error('Error saving items:', error);
+      const errorMessage = error instanceof Error ? error.message : 'There was an error saving your items. Please try again.';
       toast({
         title: "Save failed",
-        description: "There was an error saving your items. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
