@@ -368,69 +368,66 @@ const SubscriptionTab: React.FC = () => {
         <CardHeader>
           <CardTitle>Current Subscription</CardTitle>
           <CardDescription>
-            Manage your subscription plan and billing
+            View your subscription plan details
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="p-4 border rounded-lg bg-green-50 border-green-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <h3 className="text-lg font-semibold text-green-700">
-                    {subscriptionStatus.subscription_tier} Plan
-                  </h3>
-                  <Badge variant="secondary" className="bg-green-100 text-green-700">Active</Badge>
-                </div>
-                <p className="text-gray-600">
-                  {subscriptionStatus.subscription_tier === 'basic' && '$8.99/month'}
-                  {subscriptionStatus.subscription_tier === 'standard' && '$12.99/month'}
-                  {subscriptionStatus.subscription_tier === 'premium' && '$18.99/month'}
-                </p>
-                {subscriptionStatus.subscription_end && (
-                  <p className="text-sm text-gray-500">
-                    Next billing: {new Date(subscriptionStatus.subscription_end).toLocaleDateString()}
+          <div className="space-y-4">
+            <div className="p-4 border rounded-lg bg-green-50 border-green-200">
+              <div className="flex items-center gap-2 mb-3">
+                <h3 className="text-lg font-semibold text-green-700">
+                  {subscriptionStatus.subscription_tier} Plan
+                </h3>
+                <Badge variant="secondary" className="bg-green-100 text-green-700">Active</Badge>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm text-muted-foreground">Monthly Price</Label>
+                  <p className="text-lg font-semibold text-gray-700">
+                    {subscriptionStatus.subscription_tier === 'basic' && '$8.99'}
+                    {subscriptionStatus.subscription_tier === 'standard' && '$12.99'}
+                    {subscriptionStatus.subscription_tier === 'premium' && '$18.99'}
+                    <span className="text-sm font-normal">/month</span>
                   </p>
+                </div>
+                {subscriptionStatus.subscription_end && (
+                  <div>
+                    <Label className="text-sm text-muted-foreground">Next Billing Date</Label>
+                    <p className="text-lg font-semibold text-gray-700">
+                      {new Date(subscriptionStatus.subscription_end).toLocaleDateString()}
+                    </p>
+                  </div>
                 )}
               </div>
-              <Button 
-                variant="outline" 
-                onClick={handleManageSubscription}
-                disabled={isLoading}
-              >
-                <ExternalLink className="h-4 w-4 mr-2" />
-                {isLoading ? 'Loading...' : 'Manage'}
-              </Button>
             </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="font-semibold text-blue-900 mb-2">Plan Features</h4>
+              <ul className="space-y-1">
+                {planConfigs[subscriptionStatus.subscription_tier?.toLowerCase() as keyof typeof planConfigs]?.features.map((feature, index) => (
+                  <li key={index} className="flex items-center gap-2 text-sm text-blue-800">
+                    <CheckIcon className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <Button 
+              variant="outline" 
+              onClick={handleManageSubscription}
+              disabled={isLoading}
+              className="w-full"
+            >
+              <ExternalLink className="h-4 w-4 mr-2" />
+              {isLoading ? 'Loading...' : 'Manage Billing & Subscription in Stripe'}
+            </Button>
+            <p className="text-sm text-gray-500 text-center">
+              Update payment methods, view invoices, change plans, or cancel subscription
+            </p>
           </div>
         </CardContent>
       </Card>
-
-      {subscriptionStatus.subscribed && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Subscription Management</CardTitle>
-            <CardDescription>
-              Manage your billing and subscription settings
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <Button 
-                variant="outline" 
-                onClick={handleManageSubscription}
-                disabled={isLoading}
-                className="w-full"
-              >
-                <ExternalLink className="h-4 w-4 mr-2" />
-                {isLoading ? 'Loading...' : 'Open Billing Portal'}
-              </Button>
-              <p className="text-sm text-gray-500 text-center">
-                Update payment methods, view invoices, and manage your subscription
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Delete Account Section - Only show for account owners */}
       {!isContributor && (
