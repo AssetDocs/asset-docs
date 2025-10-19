@@ -28,7 +28,7 @@ const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
   itemCount = 1
 }) => {
   const defaultDescription = itemCount === 1 
-    ? "Do you want to permanently delete this item? It cannot be undone."
+    ? "Do you want to permanently delete this item? This cannot be undone."
     : `Do you want to permanently delete these ${itemCount} items? This cannot be undone.`;
 
   return (

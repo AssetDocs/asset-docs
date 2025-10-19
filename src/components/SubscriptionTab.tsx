@@ -355,7 +355,7 @@ const SubscriptionTab: React.FC = () => {
           onClose={() => setShowDeleteDialog(false)}
           onConfirm={handleDeleteAccount}
           title="Delete Account"
-          description="Are you sure you want to delete your account? You will no longer be able to login and access your dashboard or its contents. All your data will be permanently removed and this action cannot be undone."
+          description="Are you sure you want to delete your account? You will no longer be able to login and access your dashboard or its contents. This will end your subscription. All your data will be permanently removed, and this action cannot be undone."
         />
       </div>
     );
@@ -376,25 +376,24 @@ const SubscriptionTab: React.FC = () => {
             {/* Current Plan Display */}
             <div className="p-4 border rounded-lg bg-green-50 border-green-200">
               <div className="flex items-center gap-2 mb-3">
-                <h3 className="text-lg font-semibold text-green-700">
+                <h3 className="text-lg font-semibold text-green-800">
                   {subscriptionStatus.subscription_tier} Plan
                 </h3>
-                <Badge variant="secondary" className="bg-green-100 text-green-700">Active</Badge>
+                <Badge variant="secondary" className="bg-green-600 text-white border-green-700">Active</Badge>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm text-muted-foreground">Monthly Price</Label>
-                  <p className="text-lg font-semibold text-gray-700">
-                    {subscriptionStatus.subscription_tier === 'basic' && '$8.99'}
-                    {subscriptionStatus.subscription_tier === 'standard' && '$12.99'}
-                    {subscriptionStatus.subscription_tier === 'premium' && '$18.99'}
-                    <span className="text-sm font-normal">/month</span>
+                  <Label className="text-sm text-gray-600">Monthly Price</Label>
+                  <p className="text-lg font-semibold text-gray-800">
+                    {subscriptionStatus.subscription_tier?.toLowerCase() === 'basic' && '$8.99/mo'}
+                    {subscriptionStatus.subscription_tier?.toLowerCase() === 'standard' && '$12.99/mo'}
+                    {subscriptionStatus.subscription_tier?.toLowerCase() === 'premium' && '$18.99/mo'}
                   </p>
                 </div>
                 {subscriptionStatus.subscription_end && (
                   <div>
-                    <Label className="text-sm text-muted-foreground">Next Billing Date</Label>
-                    <p className="text-lg font-semibold text-gray-700">
+                    <Label className="text-sm text-gray-600">Next Billing Date</Label>
+                    <p className="text-lg font-semibold text-gray-800">
                       {new Date(subscriptionStatus.subscription_end).toLocaleDateString()}
                     </p>
                   </div>
@@ -465,7 +464,10 @@ const SubscriptionTab: React.FC = () => {
                           variant={plan.recommended ? "default" : "outline"}
                           size="sm"
                           className="w-full"
-                          onClick={handleManageSubscription}
+                          onClick={async () => {
+                            setSelectedPlan(key as keyof typeof planConfigs);
+                            await handleStartSubscription();
+                          }}
                           disabled={isLoading}
                         >
                           {isLoading ? 'Loading...' : 'Change to This Plan'}
@@ -517,7 +519,7 @@ const SubscriptionTab: React.FC = () => {
         onClose={() => setShowDeleteDialog(false)}
         onConfirm={handleDeleteAccount}
         title="Delete Account"
-        description="Are you sure you want to delete your account? You will no longer be able to login and access your dashboard or its contents. All your data will be permanently removed and this action cannot be undone."
+        description="Are you sure you want to delete your account? You will no longer be able to login and access your dashboard or its contents. This will end your subscription. All your data will be permanently removed, and this action cannot be undone."
       />
     </div>
   );

@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.51.0'
+import Stripe from 'https://esm.sh/stripe@14.21.0'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,6 +14,11 @@ Deno.serve(async (req) => {
 
   try {
     console.log('[DELETE-ACCOUNT] Function started');
+
+    // Initialize Stripe
+    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
+      apiVersion: '2023-10-16',
+    });
 
     // Create Supabase client with service role key for admin operations
     const supabaseAdmin = createClient(
@@ -103,8 +109,36 @@ Deno.serve(async (req) => {
 
     console.log('[DELETE-ACCOUNT] User verified as account owner, proceeding with deletion');
 
-    // Delete user's data from all tables (you may need to add more tables here)
+    // Get the user's Stripe customer ID to cancel subscriptions
+    const { data: subscriber } = await supabaseAdmin
+      .from('subscribers')
+      .select('stripe_customer_id')
+      .eq('user_id', user.id)
+      .single();
+
+    // Cancel all active Stripe subscriptions
+    if (subscriber?.stripe_customer_id) {
+      try {
+        console.log('[DELETE-ACCOUNT] Canceling Stripe subscriptions for customer:', subscriber.stripe_customer_id);
+        
+        const subscriptions = await stripe.subscriptions.list({
+          customer: subscriber.stripe_customer_id,
+          status: 'active',
+        });
+
+        for (const subscription of subscriptions.data) {
+          await stripe.subscriptions.cancel(subscription.id);
+          console.log('[DELETE-ACCOUNT] Canceled subscription:', subscription.id);
+        }
+      } catch (stripeError) {
+        console.log('[DELETE-ACCOUNT] Error canceling Stripe subscriptions:', stripeError);
+        // Continue with deletion even if Stripe cancellation fails
+      }
+    }
+
+    // Delete user's data from all tables
     const tablesToClean = [
+      'subscribers',
       'profiles',
       'properties', 
       'property_photos',
@@ -114,7 +148,8 @@ Deno.serve(async (req) => {
       'item_photos',
       'damage_reports',
       'gift_purchases',
-      'visitor_accesses'
+      'visitor_accesses',
+      'receipts'
     ];
 
     // Delete data from each table
