@@ -368,11 +368,12 @@ const SubscriptionTab: React.FC = () => {
         <CardHeader>
           <CardTitle>Current Subscription</CardTitle>
           <CardDescription>
-            View your subscription plan details
+            View and change your subscription plan
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-6">
+            {/* Current Plan Display */}
             <div className="p-4 border rounded-lg bg-green-50 border-green-200">
               <div className="flex items-center gap-2 mb-3">
                 <h3 className="text-lg font-semibold text-green-700">
@@ -401,8 +402,9 @@ const SubscriptionTab: React.FC = () => {
               </div>
             </div>
 
+            {/* Plan Features */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-semibold text-blue-900 mb-2">Plan Features</h4>
+              <h4 className="font-semibold text-blue-900 mb-2">Current Plan Features</h4>
               <ul className="space-y-1">
                 {planConfigs[subscriptionStatus.subscription_tier?.toLowerCase() as keyof typeof planConfigs]?.features.map((feature, index) => (
                   <li key={index} className="flex items-center gap-2 text-sm text-blue-800">
@@ -413,18 +415,70 @@ const SubscriptionTab: React.FC = () => {
               </ul>
             </div>
 
-            <Button 
-              variant="outline" 
-              onClick={handleManageSubscription}
-              disabled={isLoading}
-              className="w-full"
-            >
-              <ExternalLink className="h-4 w-4 mr-2" />
-              {isLoading ? 'Loading...' : 'Manage Billing & Subscription in Stripe'}
-            </Button>
-            <p className="text-sm text-gray-500 text-center">
-              Update payment methods, view invoices, change plans, or cancel subscription
-            </p>
+            {/* Change Plan Options */}
+            <div className="space-y-3">
+              <h4 className="font-semibold">Change Your Plan</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {Object.entries(planConfigs).map(([key, plan]) => {
+                  const isCurrentPlan = subscriptionStatus.subscription_tier?.toLowerCase() === key;
+                  return (
+                    <div
+                      key={key}
+                      className={`relative p-4 border rounded-lg ${
+                        isCurrentPlan
+                          ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
+                          : 'border-gray-200'
+                      } ${plan.recommended ? 'border-2 border-brand-orange' : ''}`}
+                    >
+                      {isCurrentPlan && (
+                        <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
+                          <span className="bg-green-600 text-white px-3 py-1 rounded-full text-xs font-medium">
+                            Current Plan
+                          </span>
+                        </div>
+                      )}
+                      {plan.recommended && !isCurrentPlan && (
+                        <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
+                          <span className="bg-brand-orange text-white px-3 py-1 rounded-full text-xs font-medium">
+                            Recommended
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2 mb-2 mt-2">
+                        {plan.icon}
+                        <h3 className="font-semibold">{plan.title}</h3>
+                      </div>
+                      <div className="text-2xl font-bold mb-2">
+                        {plan.price}
+                        <span className="text-sm font-normal text-muted-foreground">/month</span>
+                      </div>
+                      <ul className="space-y-1 mb-3">
+                        {plan.features.slice(0, 4).map((feature, index) => (
+                          <li key={index} className="flex items-center gap-2 text-xs">
+                            <CheckIcon className="h-3 w-3 text-green-500 flex-shrink-0" />
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
+                      {!isCurrentPlan && (
+                        <Button 
+                          variant={plan.recommended ? "default" : "outline"}
+                          size="sm"
+                          className="w-full"
+                          onClick={handleManageSubscription}
+                          disabled={isLoading}
+                        >
+                          {isLoading ? 'Loading...' : 'Change to This Plan'}
+                        </Button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-sm text-muted-foreground text-center">
+                Click "Change to This Plan" to modify your subscription through Stripe
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
