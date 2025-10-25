@@ -123,7 +123,7 @@ serve(async (req) => {
     let amount;
     switch (planType) {
       case 'basic':
-        amount = 9889; // $98.89
+        amount = 10788; // $107.88
         priceData = {
           currency: "usd",
           product_data: { name: "Basic Plan - 12 Month Gift Subscription" },
@@ -131,7 +131,7 @@ serve(async (req) => {
         };
         break;
       case 'standard':
-        amount = 14289; // $142.89
+        amount = 15588; // $155.88
         priceData = {
           currency: "usd",
           product_data: { name: "Standard Plan - 12 Month Gift Subscription" },
@@ -139,7 +139,7 @@ serve(async (req) => {
         };
         break;
       case 'premium':
-        amount = 20889; // $208.89
+        amount = 22788; // $227.88
         priceData = {
           currency: "usd",
           product_data: { name: "Premium Plan - 12 Month Gift Subscription" },
