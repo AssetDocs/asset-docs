@@ -7,37 +7,29 @@ import { Link } from 'react-router-dom';
 
 const PricingPlans: React.FC = () => {
   const individualFeatures = {
-    basic: [
-      "30-day free trial",
-      "1 property",
-      "10GB secure cloud storage",
-      "Photo uploads",
-      "Document uploads", 
-      "Web platform access",
-      "Email support"
-    ],
     standard: [
       "30-day free trial",
-      "Up to 5 properties",
+      "Up to 3 properties",
       "25GB secure cloud storage",
-      "Photo and video uploads",
-      "Document uploads",
-      "Web platform access",
+      "Unlimited photo and video uploads",
+      "Full web platform access",
+      "Voice notes for item details",
+      "Post damage documentation",
       "Export detailed reports",
-      "Priority email support",
-      "Share with 2 trusted contacts"
+      "Email support",
+      "Share with 3 trusted contacts"
     ],
     premium: [
       "30-day free trial",
-      "Up to 20 properties",
+      "Unlimited properties",
       "100GB secure cloud storage",
-      "Photo and video uploads",
-      "Document uploads",
+      "Unlimited photo and video uploads",
       "Full web platform access",
+      "Voice notes for item details",
+      "Post damage documentation",
       "Export detailed reports",
-      "Priority email and phone support",
-      "Share with 5 trusted contacts",
-      "Best suited for estate managers, multiple-property owners, or businesses"
+      "Email support",
+      "Share with 3 trusted contacts"
     ]
   };
 
@@ -89,26 +81,19 @@ const PricingPlans: React.FC = () => {
           
           {/* Individual Plans */}
           <TabsContent value="individual">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
               <SubscriptionPlan
-                title="Basic"
-                price="$8.99"
-                description="Perfect for individuals with basic documentation needs."
-                features={individualFeatures.basic}
-                buttonText="Start 30-Day Free Trial"
-              />
-              <SubscriptionPlan
-                title="Standard"
+                title="Standard (Homeowner Plan)"
                 price="$12.99"
-                description="Our most popular plan for comprehensive home documentation."
+                description="Our most popular plan for comprehensive home documentation"
                 features={individualFeatures.standard}
                 recommended={true}
                 buttonText="Start 30-Day Free Trial"
               />
               <SubscriptionPlan
-                title="Premium"
+                title="Premium (Professional Plan)"
                 price="$18.99"
-                description="Best suited for estate managers, multiple-property owners, or businesses."
+                description="Best suited for estate managers, multiple-property owners, or businesses"
                 features={individualFeatures.premium}
                 buttonText="Start 30-Day Free Trial"
               />

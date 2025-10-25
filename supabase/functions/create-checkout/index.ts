@@ -76,18 +76,10 @@ serve(async (req) => {
     // Define pricing based on plan type
     let priceData;
     switch (planType) {
-      case 'basic':
-        priceData = {
-          currency: "usd",
-          product_data: { name: "Basic Plan" },
-          unit_amount: 899, // $8.99
-          recurring: { interval: "month" },
-        };
-        break;
       case 'standard':
         priceData = {
           currency: "usd",
-          product_data: { name: "Standard Plan" },
+          product_data: { name: "Standard Plan (Homeowner Plan)" },
           unit_amount: 1299, // $12.99
           recurring: { interval: "month" },
         };
@@ -95,7 +87,7 @@ serve(async (req) => {
       case 'premium':
         priceData = {
           currency: "usd",
-          product_data: { name: "Premium Plan" },
+          product_data: { name: "Premium Plan (Professional Plan)" },
           unit_amount: 1899, // $18.99
           recurring: { interval: "month" },
         };

@@ -17,22 +17,20 @@ const StorageTab: React.FC = () => {
 
   const getUpgradeRecommendation = () => {
     switch (subscriptionTier) {
-      case 'basic':
-        return {
-          tier: 'Standard',
-          storage: '50GB',
-          price: '$19.99/month',
-          benefits: ['50GB storage', 'Multiple properties', 'Priority support']
-        };
       case 'standard':
         return {
           tier: 'Premium',
-          storage: '500GB',
-          price: '$39.99/month',
-          benefits: ['500GB storage', 'Advanced AI', 'Professional services']
+          storage: '100GB',
+          price: '$18.99/month',
+          benefits: ['100GB storage', 'Unlimited properties', 'Priority support']
         };
       default:
-        return null;
+        return {
+          tier: 'Premium',
+          storage: '100GB',
+          price: '$18.99/month',
+          benefits: ['100GB storage', 'Unlimited properties', 'Priority support']
+        };
     }
   };
 

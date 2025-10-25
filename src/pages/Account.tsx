@@ -71,7 +71,7 @@ const Account: React.FC = () => {
   const { subscriptionTier } = useSubscription();
   const isMobile = useIsMobile();
   
-  const showFloorPlans = subscriptionTier !== 'basic';
+  const showFloorPlans = true; // All subscription tiers now have access to floor plans
 
   useEffect(() => {
     // Check if user is a new user and hasn't seen the tour

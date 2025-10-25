@@ -64,51 +64,39 @@ const SubscriptionCheckout: React.FC = () => {
 
   // Plan configurations
   const planConfigs = {
-    basic: {
-      title: "Basic",
-      price: "$8.99",
-      description: "Perfect for individuals with basic documentation needs",
-      features: [
-        "1 property",
-        "10GB secure cloud storage",
-        "Photo uploads only",
-        "Web platform access",
-        "Email support",
-        "30-day free trial"
-      ],
-      icon: <Shield className="h-6 w-6 text-blue-600" />,
-      recommended: false
-    },
     standard: {
-      title: "Standard",
-      price: "$8.99",
+      title: "Standard (Homeowner Plan)",
+      price: "$12.99",
       description: "Our most popular plan for comprehensive home documentation",
       features: [
         "Up to 3 properties",
         "25GB secure cloud storage",
-        "Photo and video uploads",
-        "Web platform access",
+        "Unlimited photo and video uploads",
+        "Full web platform access",
+        "Voice notes for item details",
+        "Post damage documentation",
         "Export detailed reports",
-        "Priority email support",
-        "Share with 2 trusted contacts",
+        "Email support",
+        "Share with 3 trusted contacts",
         "30-day free trial"
       ],
       icon: <Zap className="h-6 w-6 text-orange-600" />,
       recommended: true
     },
     premium: {
-      title: "Premium",
+      title: "Premium (Professional Plan)",
       price: "$18.99",
       description: "Best suited for estate managers, multiple-property owners, or businesses",
       features: [
-        "Up to 10 properties",
+        "Unlimited properties",
         "100GB secure cloud storage",
         "Unlimited photo and video uploads",
-        "Professional asset cataloging",
         "Full web platform access",
-        "Export comprehensive reports",
-        "Priority email and phone support",
-        "Share with 5 trusted contacts",
+        "Voice notes for item details",
+        "Post damage documentation",
+        "Export detailed reports",
+        "Email support",
+        "Share with 3 trusted contacts",
         "30-day free trial"
       ],
       icon: <Star className="h-6 w-6 text-purple-600" />,

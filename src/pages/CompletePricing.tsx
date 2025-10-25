@@ -68,55 +68,40 @@ const CompletePricing: React.FC = () => {
 
   const plans = [
     {
-      title: "Basic",
-      price: "$8.99",
-      description: "Perfect for individuals with basic documentation needs",
-      features: [
-        "30-day free trial",
-        "1 property",
-        "10GB secure cloud storage",
-        "Photo uploads",
-        "Web platform access",
-        "Email support"
-      ],
-      planType: "basic",
-      icon: <Shield className="h-6 w-6" />
-    },
-    {
-      title: "Standard",
+      title: "Standard (Homeowner Plan)",
       price: "$12.99",
       description: "Our most popular plan for comprehensive home documentation",
       features: [
         "30-day free trial",
         "Up to 3 properties",
         "25GB secure cloud storage",
-        "Photo and video uploads",
-        "Web platform access",
-        "Export detailed reports",
+        "Unlimited photo and video uploads",
+        "Full web platform access",
         "Voice notes for item details",
         "Post damage documentation",
-        "Priority email support",
-        "Share with 2 trusted contacts"
+        "Export detailed reports",
+        "Email support",
+        "Share with 3 trusted contacts"
       ],
       planType: "standard",
       recommended: true,
       icon: <Zap className="h-6 w-6" />
     },
     {
-      title: "Premium",
+      title: "Premium (Professional Plan)",
       price: "$18.99",
       description: "Best suited for estate managers, multiple-property owners, or businesses",
       features: [
         "30-day free trial",
-        "Up to 10 properties",
+        "Unlimited properties",
         "100GB secure cloud storage",
         "Unlimited photo and video uploads",
         "Full web platform access",
         "Voice notes for item details",
         "Post damage documentation",
-        "Export detailed reports", 
-        "Priority email and phone support",
-        "Share with 5 trusted contacts"
+        "Export detailed reports",
+        "Email support",
+        "Share with 3 trusted contacts"
       ],
       planType: "premium",
       icon: <Star className="h-6 w-6" />
@@ -160,7 +145,7 @@ const CompletePricing: React.FC = () => {
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {plans.map((plan) => (
               <div key={plan.title} className={`relative ${plan.recommended ? 'transform scale-105' : ''}`}>
                 <SubscriptionPlan

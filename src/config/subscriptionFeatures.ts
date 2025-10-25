@@ -1,4 +1,4 @@
-export type SubscriptionTier = 'basic' | 'standard' | 'premium';
+export type SubscriptionTier = 'standard' | 'premium';
 
 export interface FeatureConfig {
   name: string;
@@ -12,8 +12,8 @@ export const SUBSCRIPTION_FEATURES: Record<string, FeatureConfig> = {
   photo_upload: {
     name: 'Photo Upload',
     description: 'Upload and manage property photos',
-    requiredTier: 'basic',
-    fallbackMessage: 'Upgrade to Basic to start uploading photos'
+    requiredTier: 'standard',
+    fallbackMessage: 'Upgrade to Standard to start uploading photos'
   },
   video_upload: {
     name: 'Video Upload', 
@@ -30,7 +30,7 @@ export const SUBSCRIPTION_FEATURES: Record<string, FeatureConfig> = {
   storage_limits: {
     name: 'Storage Limits',
     description: 'Tier-based storage space allocation',
-    requiredTier: 'basic',
+    requiredTier: 'standard',
     fallbackMessage: 'Storage limits apply based on your subscription tier'
   },
 
@@ -38,8 +38,8 @@ export const SUBSCRIPTION_FEATURES: Record<string, FeatureConfig> = {
   ai_valuation: {
     name: 'AI Valuation',
     description: 'AI-powered item identification and valuation',
-    requiredTier: 'basic',
-    fallbackMessage: 'Upgrade to Basic to access AI-powered valuations'
+    requiredTier: 'standard',
+    fallbackMessage: 'Upgrade to Standard to access AI-powered valuations'
   },
   advanced_ai: {
     name: 'Advanced AI Features',
@@ -58,7 +58,7 @@ export const SUBSCRIPTION_FEATURES: Record<string, FeatureConfig> = {
   download_all_files: {
     name: 'Download All Files',
     description: 'Bulk download all your photos, videos, and documents',
-    requiredTier: 'basic',
+    requiredTier: 'standard',
   },
 
   // Property Management
@@ -77,7 +77,7 @@ export const SUBSCRIPTION_FEATURES: Record<string, FeatureConfig> = {
   property_limits: {
     name: 'Property Limits',
     description: 'Number of properties you can manage',
-    requiredTier: 'basic',
+    requiredTier: 'standard',
     fallbackMessage: 'Upgrade to manage more properties'
   },
   contributor_limits: {
@@ -119,8 +119,8 @@ export const SUBSCRIPTION_FEATURES: Record<string, FeatureConfig> = {
   documentation_checklists: {
     name: 'Documentation Checklists',
     description: 'Access comprehensive documentation checklists',
-    requiredTier: 'basic',
-    fallbackMessage: 'Upgrade to Basic to access documentation checklists'
+    requiredTier: 'standard',
+    fallbackMessage: 'Upgrade to Standard to access documentation checklists'
   },
   custom_checklists: {
     name: 'Custom Checklists',
@@ -145,9 +145,8 @@ export const SUBSCRIPTION_FEATURES: Record<string, FeatureConfig> = {
 };
 
 export const getTierHierarchy = (): Record<SubscriptionTier, number> => ({
-  basic: 1,
-  standard: 2,
-  premium: 3
+  standard: 1,
+  premium: 2
 });
 
 export const hasFeatureAccess = (
@@ -172,7 +171,6 @@ export const getFeaturesByTier = (tier: SubscriptionTier): FeatureConfig[] => {
 
 // Storage limits in bytes
 export const STORAGE_LIMITS: Record<SubscriptionTier, number> = {
-  basic: 10 * 1024 * 1024 * 1024, // 10GB
   standard: 25 * 1024 * 1024 * 1024, // 25GB
   premium: 100 * 1024 * 1024 * 1024 // 100GB
 };
@@ -197,16 +195,14 @@ export const formatStorageSize = (bytes: number): string => {
 
 // Property limits by tier
 export const PROPERTY_LIMITS: Record<SubscriptionTier, number> = {
-  basic: 1,
   standard: 3,
-  premium: 10
+  premium: 999999 // Unlimited
 };
 
 // Contributor limits by tier
 export const CONTRIBUTOR_LIMITS: Record<SubscriptionTier, number> = {
-  basic: 0,
-  standard: 2,
-  premium: 5
+  standard: 3,
+  premium: 3
 };
 
 export const getPropertyLimit = (tier: SubscriptionTier | null | undefined): number => {
@@ -230,10 +226,8 @@ export const checkPropertyLimit = (
   const canAdd = currentCount < limit;
   
   if (!canAdd) {
-    const upgradeMessage = !userTier || userTier === 'basic' 
-      ? 'Upgrade to Standard to manage up to 3 properties, or Premium for up to 10 properties.'
-      : userTier === 'standard'
-      ? 'Upgrade to Premium to manage up to 10 properties.'
+    const upgradeMessage = userTier === 'standard'
+      ? 'Upgrade to Premium for unlimited properties.'
       : 'You have reached the maximum number of properties for your plan.';
     
     return {
@@ -257,16 +251,10 @@ export const checkContributorLimit = (
   const canAdd = currentCount < limit;
   
   if (!canAdd) {
-    const upgradeMessage = !userTier || userTier === 'basic'
-      ? 'Upgrade to Standard to invite up to 2 contributors, or Premium for up to 5 contributors.'
-      : userTier === 'standard'
-      ? 'Upgrade to Premium to invite up to 5 contributors.'
-      : 'You have reached the maximum number of contributors for your plan.';
-    
     return {
       canAdd: false,
       limit,
-      message: upgradeMessage
+      message: 'You have reached the maximum number of contributors for your plan.'
     };
   }
   

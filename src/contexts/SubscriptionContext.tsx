@@ -36,15 +36,13 @@ const mapTierToEnum = (tier?: string): SubscriptionTier | null => {
   if (!tier) return null;
   
   switch (tier.toLowerCase()) {
-    case 'basic':
-      return 'basic';
     case 'standard':
       return 'standard';
     case 'premium':
     case 'enterprise':
       return 'premium';
     default:
-      return null;
+      return 'standard'; // Default to standard instead of null
   }
 };
 
