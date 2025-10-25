@@ -88,7 +88,7 @@ serve(async (req) => {
     }
     
     // Validate plan type
-    const validPlanTypes = ['basic', 'standard', 'premium'];
+    const validPlanTypes = ['standard', 'premium'];
     if (!validPlanTypes.includes(planType)) {
       throw new Error("Invalid plan type");
     }
@@ -122,14 +122,6 @@ serve(async (req) => {
     let priceData;
     let amount;
     switch (planType) {
-      case 'basic':
-        amount = 10788; // $107.88
-        priceData = {
-          currency: "usd",
-          product_data: { name: "Basic Plan - 12 Month Gift Subscription" },
-          unit_amount: amount,
-        };
-        break;
       case 'standard':
         amount = 15588; // $155.88
         priceData = {

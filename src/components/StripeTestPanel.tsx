@@ -83,10 +83,10 @@ export const StripeTestPanel = () => {
       });
     }
 
-    // Test 4: Basic checkout session creation (without completing payment)
+    // Test 4: Standard checkout session creation (without completing payment)
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { planType: 'basic' }
+        body: { planType: 'standard' }
       });
       results.push({
         test: 'Checkout Session Creation',

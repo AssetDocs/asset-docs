@@ -65,7 +65,7 @@ const ChatbotInterface: React.FC = () => {
     
     // Simple response logic based on keywords
     if (normalizedInput.includes('pricing') || normalizedInput.includes('cost') || normalizedInput.includes('price')) {
-      return "AssetDocs offers several pricing tiers starting at $9.99/month for our Basic plan. Our Premium plan is $19.99/month and includes AI valuation and third-party verification. For business or enterprise solutions, we offer custom pricing. You can view all pricing details on our Pricing page.";
+      return "AssetDocs offers two pricing tiers: our Standard (Homeowner) plan at $12.99/month for up to 3 properties with 25GB storage, and our Premium (Professional) plan at $18.99/month for unlimited properties with 100GB storage. Both plans include a 30-day free trial and comprehensive asset documentation features. You can view all pricing details on our Pricing page.";
     }
     
     if (normalizedInput.includes('ai') || normalizedInput.includes('valuation') || normalizedInput.includes('value')) {

@@ -11,36 +11,20 @@ const Gift: React.FC = () => {
 
   const giftPlans = [
     {
-      title: "Basic",
-      price: "$107.88/year",
-      description: "Perfect for individuals with basic documentation needs",
-      features: [
-        "30-day free trial",
-        "1 property",
-        "10GB secure cloud storage",
-        "Photo uploads",
-        "Web platform access",
-        "Email support",
-        "12-month gift subscription"
-      ],
-      planType: "basic",
-      icon: <Shield className="h-6 w-6" />
-    },
-    {
-      title: "Standard",
+      title: "Standard (Homeowner Plan)",
       price: "$155.88/year",
       description: "Our most popular plan for comprehensive home documentation",
       features: [
         "30-day free trial",
         "Up to 3 properties",
         "25GB secure cloud storage",
-        "Photo and video uploads",
-        "Web platform access",
-        "Export detailed reports",
+        "Unlimited photo and video uploads",
+        "Full web platform access",
         "Voice notes for item details",
         "Post damage documentation",
-        "Priority email support",
-        "Share with 2 trusted contacts",
+        "Export detailed reports",
+        "Email support",
+        "Share with 3 trusted contacts",
         "12-month gift subscription"
       ],
       planType: "standard",
@@ -48,20 +32,20 @@ const Gift: React.FC = () => {
       icon: <Zap className="h-6 w-6" />
     },
     {
-      title: "Premium",
+      title: "Premium (Professional Plan)",
       price: "$227.88/year",
       description: "Best suited for estate managers, multiple-property owners, or businesses",
       features: [
         "30-day free trial",
-        "Up to 10 properties",
+        "Unlimited properties",
         "100GB secure cloud storage",
         "Unlimited photo and video uploads",
         "Full web platform access",
         "Voice notes for item details",
         "Post damage documentation",
         "Export detailed reports",
-        "Priority email and phone support",
-        "Share with 5 trusted contacts",
+        "Email support",
+        "Share with 3 trusted contacts",
         "12-month gift subscription"
       ],
       planType: "premium",
