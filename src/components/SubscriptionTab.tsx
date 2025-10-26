@@ -270,6 +270,13 @@ const SubscriptionTab: React.FC = () => {
               </div>
             </div>
 
+            {/* Storage Add-on */}
+            <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg p-4 text-center">
+              <p className="text-base font-semibold text-foreground">
+                Need more space? Add 50 GB for just $9.99/month.
+              </p>
+            </div>
+
             {/* User Information Display */}
             <div className="bg-muted/50 p-4 rounded-lg">
               <h4 className="font-semibold mb-3">Account Information</h4>
@@ -469,6 +476,13 @@ const SubscriptionTab: React.FC = () => {
               </div>
               <p className="text-sm text-muted-foreground text-center">
                 Click "Change to This Plan" to modify your subscription through Stripe
+              </p>
+            </div>
+
+            {/* Storage Add-on */}
+            <div className="mt-6 bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg p-4 text-center">
+              <p className="text-base font-semibold text-foreground">
+                Need more space? Add 50 GB for just $9.99/month.
               </p>
             </div>
           </div>

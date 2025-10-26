@@ -148,6 +148,15 @@ const Pricing: React.FC = () => {
             </div>
           </div>
 
+          {/* Storage Add-on */}
+          <div className="mt-8 max-w-2xl mx-auto">
+            <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg p-6 text-center">
+              <p className="text-lg font-semibold text-foreground mb-2">
+                Need more space? Add 50 GB for just $9.99/month.
+              </p>
+            </div>
+          </div>
+
           {user && subscriptionStatus.subscribed && (
             <div className="text-center mt-8">
               <p className="text-muted-foreground mb-4">
