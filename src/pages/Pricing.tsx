@@ -175,6 +175,76 @@ const Pricing: React.FC = () => {
           )}
         </div>
       </section>
+
+      {/* Gift Subscriptions Section */}
+      <section className="py-16 bg-gradient-to-b from-secondary/5 to-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <div className="flex justify-center mb-6">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full">
+                <span className="text-3xl">🎁</span>
+              </div>
+            </div>
+            <h2 className="text-3xl font-bold mb-4">Give the Gift of Protection and Peace of Mind</h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Help your loved ones protect their most valuable assets with Asset Docs. 
+              A thoughtful gift that provides lasting security and organization for their properties and belongings.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <SubscriptionPlan
+              title="Standard (Homeowner Plan)"
+              price="$155.88/year"
+              description="Our most popular plan for comprehensive home documentation"
+              features={[
+                "Up to 3 properties",
+                "25GB secure cloud storage"
+              ]}
+              buttonText="Gift This Plan"
+              onClick={() => window.location.href = '/gift-checkout?plan=standard'}
+            />
+            <SubscriptionPlan
+              title="Premium (Professional Plan)"
+              price="$227.88/year"
+              description="Best suited for estate managers, multiple-property owners, or businesses"
+              features={[
+                "Unlimited properties",
+                "100GB secure cloud storage"
+              ]}
+              buttonText="Gift This Plan"
+              onClick={() => window.location.href = '/gift-checkout?plan=premium'}
+            />
+          </div>
+
+          {/* Common Features for Gift Plans */}
+          <div className="mt-12 max-w-4xl mx-auto">
+            <div className="bg-muted/30 rounded-lg p-8">
+              <h3 className="text-xl font-semibold text-center mb-6">Included in Both Gift Plans</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+                {commonFeatures.map((feature, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <div className="h-5 w-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                      <svg className="h-3 w-3 text-primary" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                        <path d="M5 13l4 4L19 7"></path>
+                      </svg>
+                    </div>
+                    <span className="text-foreground">{feature}</span>
+                  </div>
+                ))}
+                <div className="flex items-center gap-2">
+                  <div className="h-5 w-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                    <svg className="h-3 w-3 text-primary" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                      <path d="M5 13l4 4L19 7"></path>
+                    </svg>
+                  </div>
+                  <span className="text-foreground">12-month gift subscription</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
       
       <PricingFAQ />
       <PricingContactCTA />
