@@ -12,10 +12,9 @@ const Gift: React.FC = () => {
   const giftPlans = [
     {
       title: "Standard (Homeowner Plan)",
-      price: "$155.88/year",
+      price: "$155.88 - 1 year",
       description: "Our most popular plan for comprehensive home documentation",
       features: [
-        "30-day free trial",
         "Up to 3 properties",
         "25GB secure cloud storage",
         "Unlimited photo and video uploads",
@@ -33,10 +32,9 @@ const Gift: React.FC = () => {
     },
     {
       title: "Premium (Professional Plan)",
-      price: "$227.88/year",
+      price: "$227.88 - 1 year",
       description: "Best suited for estate managers, multiple-property owners, or businesses",
       features: [
-        "30-day free trial",
         "Unlimited properties",
         "100GB secure cloud storage",
         "Unlimited photo and video uploads",

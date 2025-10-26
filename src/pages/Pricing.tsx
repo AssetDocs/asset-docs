@@ -204,7 +204,7 @@ const Pricing: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             <SubscriptionPlan
               title="Standard (Homeowner Plan)"
-              price="$155.88/year"
+              price="$155.88 - 1 year"
               description="Our most popular plan for comprehensive home documentation"
               features={[
                 "Up to 3 properties",
@@ -215,7 +215,7 @@ const Pricing: React.FC = () => {
             />
             <SubscriptionPlan
               title="Premium (Professional Plan)"
-              price="$227.88/year"
+              price="$227.88 - 1 year"
               description="Best suited for estate managers, multiple-property owners, or businesses"
               features={[
                 "Unlimited properties",
@@ -231,7 +231,7 @@ const Pricing: React.FC = () => {
             <div className="bg-muted/30 rounded-lg p-8">
               <h3 className="text-xl font-semibold text-center mb-6">Included in Both Gift Plans</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
-                {commonFeatures.map((feature, index) => (
+                {commonFeatures.filter(feature => feature !== "30-day free trial").map((feature, index) => (
                   <div key={index} className="flex items-center gap-2">
                     <div className="h-5 w-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
                       <svg className="h-3 w-3 text-primary" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
