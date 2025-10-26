@@ -70,18 +70,9 @@ const SubscriptionCheckout: React.FC = () => {
       description: "Our most popular plan for comprehensive home documentation",
       features: [
         "Up to 3 properties",
-        "25GB secure cloud storage",
-        "Unlimited photo and video uploads",
-        "Full web platform access",
-        "Voice notes for item details",
-        "Post damage documentation",
-        "Export detailed reports",
-        "Email support",
-        "Share with 3 trusted contacts",
-        "30-day free trial"
+        "25GB secure cloud storage"
       ],
-      icon: <Zap className="h-6 w-6 text-orange-600" />,
-      recommended: true
+      icon: <Zap className="h-6 w-6 text-orange-600" />
     },
     premium: {
       title: "Premium (Professional Plan)",
@@ -89,20 +80,22 @@ const SubscriptionCheckout: React.FC = () => {
       description: "Best suited for estate managers, multiple-property owners, or businesses",
       features: [
         "Unlimited properties",
-        "100GB secure cloud storage",
-        "Unlimited photo and video uploads",
-        "Full web platform access",
-        "Voice notes for item details",
-        "Post damage documentation",
-        "Export detailed reports",
-        "Email support",
-        "Share with 3 trusted contacts",
-        "30-day free trial"
+        "100GB secure cloud storage"
       ],
-      icon: <Star className="h-6 w-6 text-purple-600" />,
-      recommended: false
+      icon: <Star className="h-6 w-6 text-purple-600" />
     }
   };
+
+  const commonFeatures = [
+    "30-day free trial",
+    "Photo and video uploads",
+    "Full web platform access",
+    "Voice notes for item details",
+    "Post damage documentation",
+    "Export detailed reports",
+    "Email support",
+    "Share with 3 trusted contacts"
+  ];
 
   const selectedPlan = planType ? planConfigs[planType as keyof typeof planConfigs] : null;
 
@@ -412,19 +405,12 @@ const SubscriptionCheckout: React.FC = () => {
             </Card>
 
             {/* Plan Summary */}
-            <Card className={`${selectedPlan.recommended ? 'border-2 border-primary' : ''}`}>
+            <Card>
               <CardHeader>
                 <div className="flex items-center gap-3">
                   {selectedPlan.icon}
                   <div>
-                    <CardTitle className="flex items-center gap-2">
-                      {selectedPlan.title}
-                      {selectedPlan.recommended && (
-                        <span className="bg-primary text-primary-foreground px-2 py-1 rounded-full text-xs">
-                          Recommended
-                        </span>
-                      )}
-                    </CardTitle>
+                    <CardTitle>{selectedPlan.title}</CardTitle>
                     <p className="text-muted-foreground text-sm">{selectedPlan.description}</p>
                   </div>
                 </div>
@@ -444,6 +430,19 @@ const SubscriptionCheckout: React.FC = () => {
                       </li>
                     ))}
                   </ul>
+                  
+                  {/* Common Features */}
+                  <div className="mt-4 pt-4 border-t">
+                    <h4 className="font-semibold mb-2">Plus all these features:</h4>
+                    <ul className="space-y-2">
+                      {commonFeatures.map((feature, index) => (
+                        <li key={index} className="flex items-start gap-2">
+                          <CheckIcon className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                          <span className="text-sm">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
 
                 <div className="mt-6 p-4 bg-muted rounded-lg">

@@ -21,18 +21,9 @@ const planConfigs = {
     description: "Our most popular plan for comprehensive home documentation",
     features: [
       "Up to 3 properties",
-      "25GB secure cloud storage",
-      "Unlimited photo and video uploads",
-      "Full web platform access",
-      "Voice notes for item details",
-      "Post damage documentation", 
-      "Export detailed reports",
-      "Email support",
-      "Share with 3 trusted contacts",
-      "30-day free trial"
+      "25GB secure cloud storage"
     ],
-    icon: <Zap className="h-6 w-6 text-orange-600" />,
-    recommended: true
+    icon: <Zap className="h-6 w-6 text-orange-600" />
   },
   premium: {
     title: "Premium (Professional Plan)",
@@ -40,20 +31,22 @@ const planConfigs = {
     description: "Best suited for estate managers, multiple-property owners, or businesses",
     features: [
       "Unlimited properties",
-      "100GB secure cloud storage",
-      "Unlimited photo and video uploads",
-      "Full web platform access",
-      "Voice notes for item details",
-      "Post damage documentation",
-      "Export detailed reports",
-      "Email support",
-      "Share with 3 trusted contacts",
-      "30-day free trial"
+      "100GB secure cloud storage"
     ],
-    icon: <Star className="h-6 w-6 text-purple-600" />,
-    recommended: false
+    icon: <Star className="h-6 w-6 text-purple-600" />
   }
 };
+
+const commonFeatures = [
+  "30-day free trial",
+  "Photo and video uploads",
+  "Full web platform access",
+  "Voice notes for item details",
+  "Post damage documentation",
+  "Export detailed reports",
+  "Email support",
+  "Share with 3 trusted contacts"
+];
 
 const SubscriptionTab: React.FC = () => {
   const { toast } = useToast();
@@ -233,17 +226,10 @@ const SubscriptionTab: React.FC = () => {
                       selectedPlan === key
                         ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
                         : 'border-gray-200 hover:border-gray-300'
-                    } ${plan.recommended ? 'border-2 border-brand-orange' : ''}`}
+                    }`}
                     onClick={() => setSelectedPlan(key as keyof typeof planConfigs)}
                   >
-                    {plan.recommended && (
-                      <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
-                        <span className="bg-brand-orange text-white px-3 py-1 rounded-full text-xs font-medium">
-                          Recommended
-                        </span>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-2 mb-2 mt-2">
+                    <div className="flex items-center gap-2 mb-2">
                       {plan.icon}
                       <h3 className="font-semibold">{plan.title}</h3>
                     </div>
@@ -253,7 +239,7 @@ const SubscriptionTab: React.FC = () => {
                     </div>
                     <p className="text-sm text-muted-foreground mb-3">{plan.description}</p>
                     <ul className="space-y-1">
-                      {plan.features.slice(0, 4).map((feature, index) => (
+                      {plan.features.map((feature, index) => (
                         <li key={index} className="flex items-center gap-2 text-sm">
                           <CheckIcon className="h-4 w-4 text-green-500 flex-shrink-0" />
                           {feature}
@@ -262,6 +248,25 @@ const SubscriptionTab: React.FC = () => {
                     </ul>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            {/* Common Features */}
+            <div className="mt-6">
+              <div className="bg-muted/30 rounded-lg p-6">
+                <h4 className="font-semibold text-center mb-4">Included in Both Plans</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
+                  {commonFeatures.map((feature, index) => (
+                    <div key={index} className="flex items-center gap-2 text-sm">
+                      <div className="h-4 w-4 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                        <svg className="h-2.5 w-2.5 text-primary" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                          <path d="M5 13l4 4L19 7"></path>
+                        </svg>
+                      </div>
+                      <span className="text-foreground">{feature}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -419,7 +424,7 @@ const SubscriptionTab: React.FC = () => {
                         isCurrentPlan
                           ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
                           : 'border-gray-200'
-                      } ${plan.recommended ? 'border-2 border-brand-orange' : ''}`}
+                      }`}
                     >
                       {isCurrentPlan && (
                         <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
@@ -428,14 +433,7 @@ const SubscriptionTab: React.FC = () => {
                           </span>
                         </div>
                       )}
-                      {plan.recommended && !isCurrentPlan && (
-                        <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
-                          <span className="bg-brand-orange text-white px-3 py-1 rounded-full text-xs font-medium">
-                            Recommended
-                          </span>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-2 mb-2 mt-2">
+                      <div className="flex items-center gap-2 mb-2">
                         {plan.icon}
                         <h3 className="font-semibold">{plan.title}</h3>
                       </div>
@@ -444,7 +442,7 @@ const SubscriptionTab: React.FC = () => {
                         <span className="text-sm font-normal text-muted-foreground">/month</span>
                       </div>
                       <ul className="space-y-1 mb-3">
-                        {plan.features.slice(0, 4).map((feature, index) => (
+                        {plan.features.map((feature, index) => (
                           <li key={index} className="flex items-center gap-2 text-xs">
                             <CheckIcon className="h-3 w-3 text-green-500 flex-shrink-0" />
                             {feature}
@@ -453,7 +451,7 @@ const SubscriptionTab: React.FC = () => {
                       </ul>
                       {!isCurrentPlan && (
                         <Button 
-                          variant={plan.recommended ? "default" : "outline"}
+                          variant="outline"
                           size="sm"
                           className="w-full"
                           onClick={async () => {
