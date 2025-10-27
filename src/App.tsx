@@ -72,6 +72,7 @@ import DamagePhotoUpload from "./pages/DamagePhotoUpload";
 import DamageVideoUpload from "./pages/DamageVideoUpload";
 import AwarenessGuide from "./pages/AwarenessGuide";
 import AssetDocumentation from "./pages/AssetDocumentation";
+import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient();
 
@@ -175,6 +176,7 @@ const AppContent = () => {
         <Route path="/partnership" element={<Partnership />} />
         <Route path="/awareness-guide" element={<AwarenessGuide />} />
         <Route path="/asset-documentation" element={<AssetDocumentation />} />
+        <Route path="/admin" element={<Admin />} />
         
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
