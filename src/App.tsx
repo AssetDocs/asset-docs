@@ -73,6 +73,7 @@ import DamageVideoUpload from "./pages/DamageVideoUpload";
 import AwarenessGuide from "./pages/AwarenessGuide";
 import AssetDocumentation from "./pages/AssetDocumentation";
 import Admin from "./pages/Admin";
+import CompassPartnership from "./pages/CompassPartnership";
 
 const queryClient = new QueryClient();
 
@@ -177,6 +178,7 @@ const AppContent = () => {
         <Route path="/awareness-guide" element={<AwarenessGuide />} />
         <Route path="/asset-documentation" element={<AssetDocumentation />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/admin/compass-partnership" element={<CompassPartnership />} />
         
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />

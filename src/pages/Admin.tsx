@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import SecureStorage from '@/utils/secureStorage';
 import AdminPasswordGate from '@/components/AdminPasswordGate';
-import { LogOut, Shield, Users, Database, Settings } from 'lucide-react';
+import { LogOut, Shield, Users, Database, Settings, Handshake } from 'lucide-react';
 
 const Admin = () => {
   const [hasAccess, setHasAccess] = useState(false);
@@ -101,6 +101,19 @@ const Admin = () => {
             <CardContent>
               <Button className="w-full" variant="secondary" disabled>
                 Coming Soon
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <Handshake className="w-8 h-8 mb-2 text-primary" />
+              <CardTitle>Compass Partnership</CardTitle>
+              <CardDescription>View strategic partnership proposal</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button className="w-full" onClick={() => navigate('/admin/compass-partnership')}>
+                View Presentation
               </Button>
             </CardContent>
           </Card>
