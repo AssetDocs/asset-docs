@@ -22,20 +22,17 @@ const QA: React.FC = () => {
           <div className="mb-10">
             <Accordion type="single" collapsible className="mb-8">
               
-              <AccordionItem value="item-2">
+              <AccordionItem value="item-1">
                 <AccordionTrigger className="text-lg font-medium">How secure is my property documentation?</AccordionTrigger>
                 <AccordionContent>
                   Asset Docs uses enterprise-grade encryption and secure cloud storage to protect your valuable 
                   documentation. All data is encrypted both in transit and at rest, and we implement strict access 
                   controls to ensure your information remains private and secure at all times. Our security protocols 
-                  are regularly audited and updated to maintain the highest standards of data protection.{' '}
-                  <a href="/resources?tab=security" className="text-brand-blue hover:text-brand-lightBlue underline">
-                    Learn more
-                  </a>
+                  are regularly audited and updated to maintain the highest standards of data protection.
                 </AccordionContent>
               </AccordionItem>
               
-              <AccordionItem value="item-3">
+              <AccordionItem value="item-2">
                 <AccordionTrigger className="text-lg font-medium">Can I use Asset Docs for inventory management or business operations?</AccordionTrigger>
                 <AccordionContent>
                   No, Asset Docs is specifically designed for property documentation and insurance protection, not 
@@ -46,17 +43,7 @@ const QA: React.FC = () => {
                 </AccordionContent>
               </AccordionItem>
               
-              <AccordionItem value="item-4">
-                <AccordionTrigger className="text-lg font-medium">What pricing plans are available?</AccordionTrigger>
-                <AccordionContent>
-                  <a href="/pricing" className="text-brand-blue hover:text-brand-lightBlue underline">
-                    View our pricing plans and features
-                  </a>
-                </AccordionContent>
-              </AccordionItem>
-              
-              
-              <AccordionItem value="item-6">
+              <AccordionItem value="item-3">
                 <AccordionTrigger className="text-lg font-medium">Can I use Asset Docs for insurance claims?</AccordionTrigger>
                 <AccordionContent>
                   Yes! Asset Docs is specifically designed to help with insurance claims. Our third-party verification 
@@ -66,49 +53,33 @@ const QA: React.FC = () => {
                 </AccordionContent>
               </AccordionItem>
               
-              <AccordionItem value="item-7">
+              <AccordionItem value="item-4">
                 <AccordionTrigger className="text-lg font-medium">Is my data backed up and what happens if I cancel?</AccordionTrigger>
                 <AccordionContent>
                   Yes, all your data is automatically backed up across multiple secure data centers with 99.9% uptime. 
-                  If you cancel your subscription, you'll have 90 days to download all your documentation and data. 
+                  If you cancel your subscription, you'll have 90 days to download all your documentation and data.
                 </AccordionContent>
               </AccordionItem>
               
-              <AccordionItem value="item-8">
+              <AccordionItem value="item-5">
                 <AccordionTrigger className="text-lg font-medium">How does receipt integration work?</AccordionTrigger>
                 <AccordionContent>
-                  When you upload photos of your possessions, you can also upload associated purchase receipts, warranties, etc. creating a comprehensive record that includes both visual documentation and proof of purchase.
+                  When you upload photos of your possessions, you can also upload associated receipts. Our system 
+                  will automatically match receipts with the correct items in your inventory. The system recognizes 
+                  product information from receipts and links them to corresponding items, creating a comprehensive 
+                  record that includes both visual documentation and proof of purchase.
                 </AccordionContent>
               </AccordionItem>
               
-              <AccordionItem value="item-9">
+              <AccordionItem value="item-6">
                 <AccordionTrigger className="text-lg font-medium">What types of assets can I document?</AccordionTrigger>
                 <AccordionContent>
                   Asset Docs supports documentation of virtually any physical asset, including electronics, furniture, 
-                  artwork, jewelry, collectibles, appliances, vehicles, and real estate. Our system helps you organize 
-                  and categorize thousands of different items.
+                  artwork, jewelry, collectibles, appliances, vehicles, and real estate.
                 </AccordionContent>
               </AccordionItem>
               
-              <AccordionItem value="item-10">
-                <AccordionTrigger className="text-lg font-medium">What is included in my 30-day free trial?</AccordionTrigger>
-                <AccordionContent>
-                  Your free 30-day trial includes Account Settings, Property Profiles, Photo upload and management, and Asset Management. 
-                  What's not included are premium features such as:
-                  <ul className="list-disc list-inside mt-2 ml-4 space-y-1">
-                    <li>Video upload and management</li>
-                    <li>Document storage</li>
-                    <li>Insurance Information</li>
-                    <li>Export Assets</li>
-                    <li>Download Files</li>
-                    <li>Post damage reporting</li>
-                    <li>Voice notes</li>
-                  </ul>
-                  <p className="mt-2">You can upgrade to access all premium features at any time during or after your trial.</p>
-                </AccordionContent>
-              </AccordionItem>
-              
-              <AccordionItem value="item-11">
+              <AccordionItem value="item-7">
                 <AccordionTrigger className="text-lg font-medium">How do I get started with Asset Docs?</AccordionTrigger>
                 <AccordionContent>
                   Getting started is easy! Sign up for a free 30-day trial and start using our web platform. 
@@ -117,7 +88,7 @@ const QA: React.FC = () => {
                 </AccordionContent>
               </AccordionItem>
               
-              <AccordionItem value="item-12">
+              <AccordionItem value="item-8">
                 <AccordionTrigger className="text-lg font-medium">Can I share my documentation with others?</AccordionTrigger>
                 <AccordionContent>
                   Yes, Asset Docs allows you to securely share selected documentation with specified parties, such as 
@@ -127,7 +98,7 @@ const QA: React.FC = () => {
                 </AccordionContent>
               </AccordionItem>
               
-              <AccordionItem value="item-13">
+              <AccordionItem value="item-9">
                 <AccordionTrigger className="text-lg font-medium">If I have a drawer or shelf full of tools, kitchen goods, movies, etc. Do I need a photo of every item?</AccordionTrigger>
                 <AccordionContent>
                   Apart from higher-priced or specialty items, it is not always necessary to document every individual item. 
@@ -138,12 +109,84 @@ const QA: React.FC = () => {
                 </AccordionContent>
               </AccordionItem>
               
-              <AccordionItem value="item-14">
+              <AccordionItem value="item-10">
                 <AccordionTrigger className="text-lg font-medium">What support options are available?</AccordionTrigger>
                 <AccordionContent>
                   We offer comprehensive support including a 24/7 chat feature and email assistance. We also 
                   provide video tutorials and resource information under the References section in the footer, 
                   to help you get the most out of Asset Docs.
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-11">
+                <AccordionTrigger className="text-lg font-medium">Can I cancel my subscription at any time?</AccordionTrigger>
+                <AccordionContent>
+                  Yes, you can cancel your subscription at any time. Your documentation will remain accessible until the end of your billing period.
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-12">
+                <AccordionTrigger className="text-lg font-medium">Is there a free trial available?</AccordionTrigger>
+                <AccordionContent>
+                  Yes, we offer a 30-day free trial for both Standard and Premium plans.
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-13">
+                <AccordionTrigger className="text-lg font-medium">What is included in my 30-day free trial?</AccordionTrigger>
+                <AccordionContent>
+                  Your 30-day free trial includes full access to all features with no limitations:
+                  <ul className="list-disc list-inside mt-2 ml-4 space-y-1">
+                    <li>Photo and video uploads</li>
+                    <li>Full web platform access</li>
+                    <li>Voice notes for item details</li>
+                    <li>Post damage documentation</li>
+                    <li>Export detailed reports</li>
+                    <li>Email support</li>
+                    <li>Share with 3 trusted contacts</li>
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-14">
+                <AccordionTrigger className="text-lg font-medium">Can I upgrade or downgrade my plan?</AccordionTrigger>
+                <AccordionContent>
+                  Yes, you can change your plan at any time. When upgrading, you'll have immediate access to new features. When downgrading, changes take effect at the end of your billing cycle.
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-15">
+                <AccordionTrigger className="text-lg font-medium">How much storage do I need?</AccordionTrigger>
+                <AccordionContent>
+                  <p className="mb-4">
+                    Storage needs vary based on file types and usage. Here's a quick reference for our plans:
+                  </p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left py-2">Storage</th>
+                          <th className="text-left py-2">Photos (3MB)</th>
+                          <th className="text-left py-2">1080p Video</th>
+                          <th className="text-left py-2">4K Video</th>
+                        </tr>
+                      </thead>
+                      <tbody className="text-gray-600">
+                        <tr className="border-b">
+                          <td className="py-2 font-medium">25GB</td>
+                          <td className="py-2">~8,300</td>
+                          <td className="py-2">~0.42 hours (25 min)</td>
+                          <td className="py-2">~6.5 minutes</td>
+                        </tr>
+                        <tr>
+                          <td className="py-2 font-medium">100GB</td>
+                          <td className="py-2">~33,300</td>
+                          <td className="py-2">~1.67 hours (100 min)</td>
+                          <td className="py-2">~26 minutes</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
