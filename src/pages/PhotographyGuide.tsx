@@ -30,7 +30,7 @@ const PhotographyGuide: React.FC = () => {
               <Camera className="h-8 w-8 text-brand-blue" />
               <div>
                 <h1 className="text-3xl font-bold text-brand-blue">
-                  How to Capture High-Quality Photos for Accurate AI Valuation
+                  How to Capture High-Quality Photos for Asset Documentation
                 </h1>
                 <div className="flex items-center gap-4 mt-2 text-gray-500">
                   <span className="bg-brand-lightBlue/20 text-brand-blue px-3 py-1 rounded text-sm font-medium">
@@ -42,7 +42,7 @@ const PhotographyGuide: React.FC = () => {
             </div>
             
             <p className="text-lg text-gray-600">
-              Ensure your assets are documented with clarity and precision to get the most accurate valuation from AI tools:
+              Ensure your assets are documented with clarity and precision for insurance and planning purposes:
             </p>
           </div>
 
@@ -120,10 +120,10 @@ const PhotographyGuide: React.FC = () => {
           {/* Key Takeaways */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center text-brand-blue">
-                <Camera className="h-6 w-6 mr-3" />
-                Key Takeaways for High-Quality AI-Friendly Photos
-              </CardTitle>
+                <CardTitle className="flex items-center text-brand-blue">
+                  <Camera className="h-6 w-6 mr-3" />
+                  Key Takeaways for High-Quality Documentation Photos
+                </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid md:grid-cols-2 gap-6">

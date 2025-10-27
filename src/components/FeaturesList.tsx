@@ -244,7 +244,6 @@ const FeaturesList: React.FC = () => {
                 <CardContent>
                   <ul className="text-sm space-y-1">
                     <li>• Photo upload & gallery</li>
-                    <li>• Basic AI valuation</li>
                     <li>• Document upload</li>
                     <li>• Single property</li>
                     <li>• Download all files</li>

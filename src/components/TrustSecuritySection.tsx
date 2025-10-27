@@ -18,7 +18,7 @@ const TrustSecuritySection: React.FC = () => {
     {
       icon: Award,
       title: "Professional Insurance",
-      description: "Our AI valuations are backed by professional liability insurance up to $1M."
+      description: "Our platform is backed by professional liability insurance up to $1M for your peace of mind."
     },
     {
       icon: CheckCircle,

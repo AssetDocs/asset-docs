@@ -13,7 +13,7 @@ const EducationalResources: React.FC = () => {
     {
       icon: Camera,
       title: "Photography Best Practices",
-      description: "Learn how to capture high-quality photos that maximize AI valuation accuracy.",
+      description: "Learn how to capture high-quality photos for comprehensive asset documentation.",
       type: "Guide",
       duration: "2 min read"
     },
@@ -34,7 +34,7 @@ const EducationalResources: React.FC = () => {
     {
       icon: BookOpen,
       title: "Asset Valuation Explained",
-      description: "Understanding how our AI determines values and what factors matter most.",
+      description: "Understanding how to document and value your assets for insurance and planning.",
       type: "Article",
       duration: "8 min read"
     }

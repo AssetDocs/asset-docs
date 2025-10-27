@@ -9,16 +9,6 @@ const PricingFAQ: React.FC = () => {
         <h2 className="section-title">Frequently Asked Questions</h2>
         <div className="max-w-4xl mx-auto">
           <Accordion type="single" collapsible>
-            <AccordionItem value="item-1">
-              <AccordionTrigger className="text-lg font-medium">How does the AI valuation system work?</AccordionTrigger>
-              <AccordionContent>
-                Our AI technology automatically identifies items in your uploaded images and assigns an estimated 
-                market value based on current pricing data. The system uses computer vision to recognize objects, 
-                cross-references them with pricing databases, and provides an accurate valuation that can be used 
-                for insurance, estate planning, or financial records.
-              </AccordionContent>
-            </AccordionItem>
-            
             <AccordionItem value="item-2">
               <AccordionTrigger className="text-lg font-medium">How secure is my property documentation?</AccordionTrigger>
               <AccordionContent>
@@ -37,16 +27,6 @@ const PricingFAQ: React.FC = () => {
                 create comprehensive documentation of their personal assets for insurance claims, estate planning, 
                 and financial records. For business inventory management, we recommend using dedicated inventory 
                 management software that is designed for tracking business assets and operations.
-              </AccordionContent>
-            </AccordionItem>
-            
-            <AccordionItem value="item-4">
-              <AccordionTrigger className="text-lg font-medium">How accurate are the AI valuations?</AccordionTrigger>
-              <AccordionContent>
-                Our AI valuation system provides estimates based on current market data and comparable sales. 
-                While highly accurate for most common items, valuations should be considered estimates for 
-                insurance and planning purposes. For high-value items like fine art, jewelry, or antiques, 
-                we recommend professional appraisals which can be coordinated through our platform.
               </AccordionContent>
             </AccordionItem>
             
@@ -82,8 +62,7 @@ const PricingFAQ: React.FC = () => {
               <AccordionTrigger className="text-lg font-medium">What types of assets can I document?</AccordionTrigger>
               <AccordionContent>
                 Asset Docs supports documentation of virtually any physical asset, including electronics, furniture, 
-                artwork, jewelry, collectibles, appliances, vehicles, and real estate. Our AI is trained to identify 
-                and categorize thousands of different items.
+                artwork, jewelry, collectibles, appliances, vehicles, and real estate.
               </AccordionContent>
             </AccordionItem>
             
@@ -145,13 +124,6 @@ const PricingFAQ: React.FC = () => {
               <AccordionTrigger className="text-lg font-medium">Can I upgrade or downgrade my plan?</AccordionTrigger>
               <AccordionContent>
                 Yes, you can change your plan at any time. When upgrading, you'll have immediate access to new features. When downgrading, changes take effect at the end of your billing cycle.
-              </AccordionContent>
-            </AccordionItem>
-            
-            <AccordionItem value="item-17">
-              <AccordionTrigger className="text-lg font-medium">What if I don't want AI to scan my photos?</AccordionTrigger>
-              <AccordionContent>
-                You have complete control over your privacy. You can choose between having AI valuation turned on or off at any time in your account settings.
               </AccordionContent>
             </AccordionItem>
             

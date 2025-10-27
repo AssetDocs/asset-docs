@@ -139,14 +139,6 @@ const searchableContent: SearchResult[] = [
     category: 'help',
     keywords: ['photography', 'photos', 'tips', 'guide', 'camera']
   },
-  {
-    id: 'ai-valuation-guide',
-    title: 'AI Valuation Guide',
-    description: 'How AI valuation works',
-    path: '/ai-valuation-guide',
-    category: 'help',
-    keywords: ['ai', 'valuation', 'artificial intelligence', 'estimates']
-  },
   
   // Account Features
   {

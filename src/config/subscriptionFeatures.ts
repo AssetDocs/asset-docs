@@ -34,18 +34,12 @@ export const SUBSCRIPTION_FEATURES: Record<string, FeatureConfig> = {
     fallbackMessage: 'Storage limits apply based on your subscription tier'
   },
 
-  // AI and Advanced Features
-  ai_valuation: {
-    name: 'AI Valuation',
-    description: 'AI-powered item identification and valuation',
-    requiredTier: 'standard',
-    fallbackMessage: 'Upgrade to Standard to access AI-powered valuations'
-  },
-  advanced_ai: {
-    name: 'Advanced AI Features',
-    description: 'Premium AI analysis and insights',
+  // Advanced Features
+  advanced_features: {
+    name: 'Advanced Features',
+    description: 'Premium analysis and insights',
     requiredTier: 'premium',
-    fallbackMessage: 'Upgrade to Premium for advanced AI features'
+    fallbackMessage: 'Upgrade to Premium for advanced features'
   },
 
   // Download and Export Features

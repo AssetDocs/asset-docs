@@ -55,11 +55,11 @@ const VideoHelp: React.FC = () => {
     },
     {
       id: 7,
-      title: "AI Valuation and Asset Recognition",
-      description: "Understanding how our AI identifies and values your assets automatically.",
+      title: "Asset Documentation Best Practices",
+      description: "Learn the best practices for documenting and valuing your assets.",
       duration: "6:10",
       icon: Settings,
-      category: "AI Features",
+      category: "Documentation",
       thumbnail: "/placeholder.svg"
     },
     {

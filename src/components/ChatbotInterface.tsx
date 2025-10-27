@@ -68,8 +68,8 @@ const ChatbotInterface: React.FC = () => {
       return "AssetDocs offers two pricing tiers: our Standard (Homeowner) plan at $12.99/month for up to 3 properties with 25GB storage, and our Premium (Professional) plan at $18.99/month for unlimited properties with 100GB storage. Both plans include a 30-day free trial and comprehensive asset documentation features. You can view all pricing details on our Pricing page.";
     }
     
-    if (normalizedInput.includes('ai') || normalizedInput.includes('valuation') || normalizedInput.includes('value')) {
-      return "Our AI valuation system uses computer vision to identify items in your photos and assigns current market values based on extensive price databases. The AI can recognize thousands of items including electronics, furniture, art, jewelry, and collectibles. For unique items, you can also manually input values or upload professional appraisals.";
+    if (normalizedInput.includes('value') || normalizedInput.includes('valuation')) {
+      return "You can document your items with photos and manually input values or upload professional appraisals. This creates a comprehensive inventory for insurance and planning purposes.";
     }
     
     if (normalizedInput.includes('secure') || normalizedInput.includes('security') || normalizedInput.includes('privacy')) {
@@ -101,7 +101,7 @@ const ChatbotInterface: React.FC = () => {
     }
     
     // Default response
-    return "I don't have specific information about that. Could you try phrasing your question differently? I'm happy to help with questions about our asset documentation, AI valuation, security features, or subscription plans.";
+    return "I don't have specific information about that. Could you try phrasing your question differently? I'm happy to help with questions about our asset documentation, security features, or subscription plans.";
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
