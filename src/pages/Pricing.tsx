@@ -99,16 +99,16 @@ const Pricing: React.FC = () => {
             <h2 className="text-3xl font-bold mb-8">Choose Your Plan</h2>
             
             <Tabs defaultValue="for-you" className="w-full">
-              <TabsList className="inline-flex h-auto p-1 mb-12 bg-muted/50">
+              <TabsList className="inline-flex h-auto p-1 mb-12 bg-muted/50 border-2 border-orange-500 shadow-lg">
                 <TabsTrigger 
                   value="for-you" 
-                  className="px-8 py-3 text-base data-[state=active]:bg-background"
+                  className="px-8 py-3 text-base data-[state=active]:bg-background data-[state=active]:text-foreground"
                 >
                   For You
                 </TabsTrigger>
                 <TabsTrigger 
                   value="gift" 
-                  className="px-8 py-3 text-base data-[state=active]:bg-background"
+                  className="px-8 py-3 text-base data-[state=active]:bg-background data-[state=active]:text-foreground"
                 >
                   <Gift className="h-4 w-4 mr-2" />
                   As a Gift
