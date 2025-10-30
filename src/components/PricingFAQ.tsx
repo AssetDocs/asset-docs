@@ -44,7 +44,7 @@ const PricingFAQ: React.FC = () => {
               <AccordionTrigger className="text-lg font-medium">Is my data backed up and what happens if I cancel?</AccordionTrigger>
               <AccordionContent>
                 Yes, all your data is automatically backed up across multiple secure data centers with 99.9% uptime. 
-                If you cancel your subscription, you'll have 90 days to download all your documentation and data.
+                If you cancel your subscription, you'll have until the end of your billing cycle to download all your documentation and data.
               </AccordionContent>
             </AccordionItem>
             
@@ -52,8 +52,7 @@ const PricingFAQ: React.FC = () => {
               <AccordionTrigger className="text-lg font-medium">How does receipt integration work?</AccordionTrigger>
               <AccordionContent>
                 When you upload photos of your possessions, you can also upload associated receipts. Our system 
-                will automatically match receipts with the correct items in your inventory. The AI recognizes 
-                product information from receipts and links them to corresponding items, creating a comprehensive 
+                will automatically match receipts with the correct items in your inventory, creating a comprehensive 
                 record that includes both visual documentation and proof of purchase.
               </AccordionContent>
             </AccordionItem>
@@ -70,9 +69,8 @@ const PricingFAQ: React.FC = () => {
             <AccordionItem value="item-10">
               <AccordionTrigger className="text-lg font-medium">How do I get started with Asset Docs?</AccordionTrigger>
               <AccordionContent>
-                Getting started is easy! Sign up for a free 14-day trial and start using our web platform. 
-                You can begin documenting your possessions right away by taking photos or videos. For more 
-                comprehensive documentation, you can request our professional documentation service for high-value assets.
+                Getting started is easy! Sign up for a free 30-day trial and start using our web platform. 
+                You can begin documenting your possessions right away by taking photos, videos, and uploading documents.
               </AccordionContent>
             </AccordionItem>
             
@@ -131,7 +129,6 @@ const PricingFAQ: React.FC = () => {
                   <li>Post damage documentation</li>
                   <li>Export detailed reports</li>
                   <li>Email support</li>
-                  <li>Share with 3 trusted contacts</li>
                 </ul>
               </AccordionContent>
             </AccordionItem>
