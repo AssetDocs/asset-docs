@@ -19,7 +19,7 @@ export type Database = {
           action: string
           created_at: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           new_values: Json | null
           old_values: Json | null
           record_id: string | null
@@ -31,7 +31,7 @@ export type Database = {
           action: string
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_values?: Json | null
           old_values?: Json | null
           record_id?: string | null
@@ -43,7 +43,7 @@ export type Database = {
           action?: string
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_values?: Json | null
           old_values?: Json | null
           record_id?: string | null
@@ -98,7 +98,7 @@ export type Database = {
           attempted_email: string
           gift_code: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           success: boolean | null
         }
         Insert: {
@@ -106,7 +106,7 @@ export type Database = {
           attempted_email: string
           gift_code: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           success?: boolean | null
         }
         Update: {
@@ -114,7 +114,7 @@ export type Database = {
           attempted_email?: string
           gift_code?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           success?: boolean | null
         }
         Relationships: []
@@ -276,7 +276,7 @@ export type Database = {
           email: string
           how_heard: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           name: string
           state: string
           submitted_at: string | null
@@ -288,7 +288,7 @@ export type Database = {
           email: string
           how_heard: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           name: string
           state: string
           submitted_at?: string | null
@@ -300,7 +300,7 @@ export type Database = {
           email?: string
           how_heard?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           name?: string
           state?: string
           submitted_at?: string | null
@@ -600,10 +600,7 @@ export type Database = {
         Args: { p_email: string; p_gift_code: string; p_ip_address: unknown }
         Returns: Json
       }
-      claim_gift_subscription: {
-        Args: { p_gift_code: string }
-        Returns: Json
-      }
+      claim_gift_subscription: { Args: { p_gift_code: string }; Returns: Json }
       get_claimable_gift: {
         Args: { p_gift_code: string }
         Returns: {
@@ -623,7 +620,7 @@ export type Database = {
         }[]
       }
       get_purchaser_gifts: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           amount: number
           created_at: string
@@ -640,7 +637,7 @@ export type Database = {
         }[]
       }
       get_recipient_gifts: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           amount: number
           created_at: string
@@ -680,10 +677,7 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: undefined
       }
-      validate_service_role_context: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      validate_service_role_context: { Args: never; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "sales" | "marketing" | "viewer"
