@@ -52,7 +52,8 @@ import PressNews from "./pages/PressNews";
 import Resources from "./pages/Resources";
 import Feedback from "./pages/Feedback";
 import VideoHelp from "./pages/VideoHelp";
-import AccountSettings from "./pages/AccountSettings";
+import OutsetaProfile from "./pages/OutsetaProfile";
+import AccountSettingsLegacy from "./pages/AccountSettingsLegacy";
 import PhotoGallery from "./pages/PhotoGallery";
 import Videos from "./pages/Videos";
 import Documents from "./pages/Documents";
@@ -163,7 +164,8 @@ const AppContent = () => {
         <Route path="/damage/videos/upload" element={<ProtectedRoute><DamageVideoUpload /></ProtectedRoute>} />
         
         <Route path="/account/insurance/new" element={<ProtectedRoute><InsuranceForm /></ProtectedRoute>} />
-        <Route path="/account/settings" element={<ProtectedRoute><AccountSettings /></ProtectedRoute>} />
+        <Route path="/account/settings" element={<ProtectedRoute><OutsetaProfile /></ProtectedRoute>} />
+        <Route path="/account/settings-legacy" element={<ProtectedRoute><AccountSettingsLegacy /></ProtectedRoute>} />
         <Route path="/schedule-professional" element={<ProtectedRoute><ScheduleProfessional /></ProtectedRoute>} />
         <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
         
