@@ -14,6 +14,8 @@ import { Label } from '@/components/ui/label';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { toast } from '@/hooks/use-toast';
 import { MessageSquare } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useState } from 'react';
 
 const feedbackSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -30,6 +32,8 @@ const feedbackSchema = z.object({
 type FeedbackFormData = z.infer<typeof feedbackSchema>;
 
 const Feedback: React.FC = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const form = useForm<FeedbackFormData>({
     resolver: zodResolver(feedbackSchema),
     defaultValues: {
@@ -43,13 +47,38 @@ const Feedback: React.FC = () => {
     },
   });
 
-  const onSubmit = (data: FeedbackFormData) => {
-    console.log('Feedback submitted:', data);
-    toast({
-      title: "Thank you for your feedback!",
-      description: "We appreciate your input and will review it carefully.",
-    });
-    form.reset();
+  const onSubmit = async (data: FeedbackFormData) => {
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase.functions.invoke('send-feedback-email', {
+        body: {
+          name: data.name,
+          email: data.email,
+          phone: data.phone || '',
+          hearAboutUs: data.hearAboutUs,
+          currentUser: data.currentUser,
+          npsScore: data.npsScore,
+          improvement: data.improvement,
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Thank you for your feedback!",
+        description: "We appreciate your input and will review it carefully.",
+      });
+      form.reset();
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit feedback. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -213,8 +242,12 @@ const Feedback: React.FC = () => {
                 )}
               />
 
-              <Button type="submit" className="w-full bg-brand-blue hover:bg-brand-lightBlue">
-                Submit Feedback
+              <Button 
+                type="submit" 
+                className="w-full bg-brand-blue hover:bg-brand-lightBlue"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Submitting...' : 'Submit Feedback'}
               </Button>
             </form>
           </Form>
