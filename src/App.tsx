@@ -22,7 +22,8 @@ import GiftCheckout from "./pages/GiftCheckout";
 import GiftSuccess from "./pages/GiftSuccess";
 import GiftClaim from "./pages/GiftClaim";
 
-import Auth from "./pages/Auth";
+import OutsetaAuth from "./pages/OutsetaAuth";
+import AuthLegacy from "./pages/AuthLegacy";
 import OutsetaSignup from "./pages/OutsetaSignup";
 import SignupLegacy from "./pages/SignupLegacy";
 import EmailVerification from "./pages/EmailVerification";
@@ -96,7 +97,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   if (!isAuthenticated) {
-    return <Auth />;
+    return <OutsetaAuth />;
   }
   
   return <>{children}</>;
@@ -131,7 +132,8 @@ const AppContent = () => {
         <Route path="/signup" element={<OutsetaSignup />} />
         <Route path="/signup-legacy" element={<SignupLegacy />} />
         
-        <Route path="/auth" element={<Auth />} />
+        <Route path="/auth" element={<OutsetaAuth />} />
+        <Route path="/auth-legacy" element={<AuthLegacy />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/email-verification" element={<EmailVerification />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
