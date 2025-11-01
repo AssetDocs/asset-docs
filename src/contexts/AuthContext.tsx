@@ -127,8 +127,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    // Redirect to home page after logout
-    window.location.href = '/';
+    // Redirect to Outseta logout page
+    window.location.href = 'https://assetdocs.net/#o-logout-link';
   };
 
   const isAuthenticated = !!user;
