@@ -23,7 +23,8 @@ import GiftSuccess from "./pages/GiftSuccess";
 import GiftClaim from "./pages/GiftClaim";
 
 import Auth from "./pages/Auth";
-import Signup from "./pages/Signup";
+import OutsetaSignup from "./pages/OutsetaSignup";
+import SignupLegacy from "./pages/SignupLegacy";
 import EmailVerification from "./pages/EmailVerification";
 import AuthCallback from "./pages/AuthCallback";
 import VerifyEmail from "./pages/VerifyEmail";
@@ -127,7 +128,8 @@ const AppContent = () => {
         
         {/* Authentication routes */}
         <Route path="/login" element={<Navigate to="/auth" replace />} />
-        <Route path="/signup" element={<Signup />} />
+        <Route path="/signup" element={<OutsetaSignup />} />
+        <Route path="/signup-legacy" element={<SignupLegacy />} />
         
         <Route path="/auth" element={<Auth />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
