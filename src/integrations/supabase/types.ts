@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      activities: {
+        Row: {
+          contact_id: string | null
+          created_at: string | null
+          created_by: string | null
+          done: boolean | null
+          due_at: string | null
+          id: string
+          summary: string | null
+          type: string
+        }
+        Insert: {
+          contact_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          done?: boolean | null
+          due_at?: string | null
+          id?: string
+          summary?: string | null
+          type: string
+        }
+        Update: {
+          contact_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          done?: boolean | null
+          due_at?: string | null
+          id?: string
+          summary?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activities_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: string
@@ -53,6 +94,77 @@ export type Database = {
         }
         Relationships: []
       }
+      companies: {
+        Row: {
+          created_at: string | null
+          domain: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          domain?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          domain?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      contacts: {
+        Row: {
+          company_id: string | null
+          created_at: string | null
+          email: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          lifecycle: string | null
+          owner_id: string | null
+          phone: string | null
+          source: string | null
+          user_id: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string | null
+          email: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          lifecycle?: string | null
+          owner_id?: string | null
+          phone?: string | null
+          source?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string | null
+          email?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          lifecycle?: string | null
+          owner_id?: string | null
+          phone?: string | null
+          source?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contributors: {
         Row: {
           accepted_at: string | null
@@ -89,6 +201,102 @@ export type Database = {
           role?: Database["public"]["Enums"]["contributor_role"]
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      deals: {
+        Row: {
+          close_date: string | null
+          company_id: string | null
+          contact_id: string | null
+          created_at: string | null
+          currency: string | null
+          id: string
+          owner_id: string | null
+          stage: string
+          title: string
+          value_cents: number | null
+        }
+        Insert: {
+          close_date?: string | null
+          company_id?: string | null
+          contact_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          owner_id?: string | null
+          stage?: string
+          title: string
+          value_cents?: number | null
+        }
+        Update: {
+          close_date?: string | null
+          company_id?: string | null
+          contact_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          owner_id?: string | null
+          stage?: string
+          title?: string
+          value_cents?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deals_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          anon_id: string | null
+          event: string
+          id: number
+          ip: unknown
+          occurred_at: string | null
+          path: string | null
+          props: Json | null
+          referrer: string | null
+          ua: string | null
+          user_id: string | null
+          utm: Json | null
+        }
+        Insert: {
+          anon_id?: string | null
+          event: string
+          id?: number
+          ip?: unknown
+          occurred_at?: string | null
+          path?: string | null
+          props?: Json | null
+          referrer?: string | null
+          ua?: string | null
+          user_id?: string | null
+          utm?: Json | null
+        }
+        Update: {
+          anon_id?: string | null
+          event?: string
+          id?: number
+          ip?: unknown
+          occurred_at?: string | null
+          path?: string | null
+          props?: Json | null
+          referrer?: string | null
+          ua?: string | null
+          user_id?: string | null
+          utm?: Json | null
         }
         Relationships: []
       }
@@ -576,6 +784,44 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      tickets: {
+        Row: {
+          contact_id: string | null
+          created_at: string | null
+          id: string
+          priority: string | null
+          status: string
+          subject: string
+          updated_at: string | null
+        }
+        Insert: {
+          contact_id?: string | null
+          created_at?: string | null
+          id?: string
+          priority?: string | null
+          status?: string
+          subject: string
+          updated_at?: string | null
+        }
+        Update: {
+          contact_id?: string | null
+          created_at?: string | null
+          id?: string
+          priority?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tickets_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
