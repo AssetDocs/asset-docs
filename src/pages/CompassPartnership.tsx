@@ -162,7 +162,7 @@ const CompassPartnership = () => {
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">1</div>
                   <div>
                     <p className="font-medium">Compass agent enrolls a client</p>
-                    <p className="text-sm text-muted-foreground">Via CRM integration or Outseta invite</p>
+                    <p className="text-sm text-muted-foreground">Via CRM integration or direct invite</p>
                   </div>
                 </div>
                 <div className="flex gap-3 items-start">
@@ -314,7 +314,7 @@ const CompassPartnership = () => {
                 <tbody>
                   <tr className="border-b">
                     <td className="p-3 font-medium">Authentication / Billing</td>
-                    <td className="p-3">Outseta + Compass SSO</td>
+                    <td className="p-3">Supabase Auth + Stripe + Compass SSO</td>
                     <td className="p-3 text-muted-foreground">Seamless onboarding</td>
                   </tr>
                   <tr className="border-b">

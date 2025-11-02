@@ -13,9 +13,14 @@ const TrialCTASection: React.FC = () => {
           <p className="text-xl mb-8 text-muted-foreground max-w-2xl mx-auto">
             Start documenting and securing your valuable possessions today with our comprehensive platform.
           </p>
-          <Button asChild size="lg" className="px-12 py-6 text-lg">
-            <Link to="/signup">Start Your Free 30-Day Trial</Link>
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Button asChild size="lg" className="px-12 py-6 text-lg w-full sm:w-auto">
+              <Link to="/signup">Start Your Free 30-Day Trial</Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
+              <Link to="/pricing">View Pricing</Link>
+            </Button>
+          </div>
         </div>
       </div>
     </section>
