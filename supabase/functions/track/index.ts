@@ -11,13 +11,6 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  if (req.method !== "POST") {
-    return new Response(JSON.stringify({ ok: false, error: "Method not allowed" }), {
-      status: 405,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
-  }
-
   try {
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -26,16 +19,16 @@ serve(async (req) => {
 
     const { event, props, path, referrer, utm, occurred_at } = await req.json();
 
-    console.log('Track event:', { event, path });
-
-    // Try to resolve user from Supabase auth token
+    // Try to resolve user from auth token if provided
     let user_id: string | null = null;
-    const auth = req.headers.get("authorization");
-    if (auth?.startsWith("Bearer ")) {
-      const token = auth.split(" ")[1];
+    const authHeader = req.headers.get("authorization");
+    if (authHeader?.startsWith("Bearer ")) {
+      const token = authHeader.split(" ")[1];
       const { data } = await supabase.auth.getUser(token);
       user_id = data.user?.id ?? null;
     }
+
+    console.log('Tracking event:', { event, user_id, path });
 
     const { error } = await supabase.from("events").insert({
       user_id,
@@ -43,32 +36,24 @@ serve(async (req) => {
       props: props || {},
       path,
       referrer,
-      utm: utm || {},
+      utm,
       occurred_at: occurred_at || new Date().toISOString()
     });
 
     if (error) {
-      console.error('Event insert error:', error);
+      console.error('Event tracking error:', error);
       throw error;
     }
 
-    console.log('Event tracked successfully');
-
     return new Response(
       JSON.stringify({ ok: true }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
+      { headers: { ...corsHeaders, "content-type": "application/json" }, status: 200 }
     );
   } catch (e) {
     console.error('Track error:', e);
     return new Response(
       JSON.stringify({ ok: false, error: e.message }),
-      {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
+      { headers: { ...corsHeaders, "content-type": "application/json" }, status: 400 }
     );
   }
 });

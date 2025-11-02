@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from '@/integrations/supabase/client';
 
 export async function track(event: string, props: Record<string, any> = {}) {
   try {
@@ -13,20 +13,21 @@ export async function track(event: string, props: Record<string, any> = {}) {
       occurred_at: new Date().toISOString()
     };
 
-    const headers: Record<string, string> = {
+    const headers: HeadersInit = {
       "content-type": "application/json"
     };
 
-    // Add auth token if user is logged in
+    // Add auth token if available
     if (session?.access_token) {
       headers["authorization"] = `Bearer ${session.access_token}`;
     }
 
-    await supabase.functions.invoke('track', {
-      body,
-      headers
+    await fetch(`https://leotcbfpqiekgkgumecn.supabase.co/functions/v1/track`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body)
     });
   } catch (error) {
-    console.error('Track error:', error);
+    console.error('Tracking error:', error);
   }
 }

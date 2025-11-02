@@ -136,3 +136,9 @@ verify_jwt = false
 
 [functions.check-trial-reminders]
 verify_jwt = false
+
+[functions.lead-capture]
+verify_jwt = false
+
+[functions.track]
+verify_jwt = false

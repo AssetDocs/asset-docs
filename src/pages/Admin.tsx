@@ -107,6 +107,19 @@ const Admin = () => {
 
           <Card>
             <CardHeader>
+              <Database className="w-8 h-8 mb-2 text-primary" />
+              <CardTitle>CRM</CardTitle>
+              <CardDescription>Customer relationship management dashboard</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button className="w-full" onClick={() => navigate('/admin/crm')}>
+                View CRM
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
               <Handshake className="w-8 h-8 mb-2 text-primary" />
               <CardTitle>Compass Partnership</CardTitle>
               <CardDescription>View strategic partnership proposal</CardDescription>

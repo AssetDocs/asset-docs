@@ -11,22 +11,15 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  if (req.method !== "POST") {
-    return new Response(JSON.stringify({ ok: false, error: "Method not allowed" }), {
-      status: 405,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
-  }
-
   try {
-    const { email, first_name, last_name, phone, company, utm, referrer } = await req.json();
-
-    console.log('Lead capture request:', { email, first_name, last_name, company });
-
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
+
+    const { email, first_name, last_name, phone, company, utm, referrer } = await req.json();
+
+    console.log('Processing lead capture:', { email, company });
 
     // Upsert company if provided
     let company_id: string | null = null;
@@ -70,26 +63,18 @@ serve(async (req) => {
       anon_id: crypto.randomUUID(),
       props: { first_name, last_name, phone, company },
       referrer,
-      utm: utm || {}
+      utm
     });
-
-    console.log('Lead captured successfully:', contact?.id);
 
     return new Response(
       JSON.stringify({ ok: true, contact_id: contact?.id }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
+      { headers: { ...corsHeaders, "content-type": "application/json" }, status: 200 }
     );
   } catch (e) {
     console.error('Lead capture error:', e);
     return new Response(
       JSON.stringify({ ok: false, error: e.message }),
-      {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
+      { headers: { ...corsHeaders, "content-type": "application/json" }, status: 400 }
     );
   }
 });

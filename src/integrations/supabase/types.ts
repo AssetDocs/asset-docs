@@ -865,6 +865,23 @@ export type Database = {
         Returns: Json
       }
       claim_gift_subscription: { Args: { p_gift_code: string }; Returns: Json }
+      get_activation_funnel: {
+        Args: never
+        Returns: {
+          activated: number
+          activation_rate_pct: number
+          signups: number
+          wk: string
+        }[]
+      }
+      get_at_risk_customers: {
+        Args: never
+        Returns: {
+          email: string
+          last_activity: string
+          plan_id: string
+        }[]
+      }
       get_claimable_gift: {
         Args: { p_gift_code: string }
         Returns: {
@@ -881,6 +898,13 @@ export type Database = {
         Returns: {
           delivery_date: string
           has_gift: boolean
+        }[]
+      }
+      get_leads_by_source: {
+        Args: never
+        Returns: {
+          count: number
+          source: string
         }[]
       }
       get_purchaser_gifts: {
