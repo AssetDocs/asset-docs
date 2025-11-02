@@ -20,11 +20,14 @@ const Welcome: React.FC = () => {
               <CheckCircle2 className="w-10 h-10 text-primary-foreground" />
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-              Welcome to AssetDocs! 🎉
+              Welcome to Asset Docs
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Congratulations on taking proactive steps to protect your assets and minimize your risks. 
-              You've made an excellent decision for your future security!
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-4">
+              Thank you for taking proactive steps to protect your assets and minimize your risks. 
+              You've made an excellent decision for your future security.
+            </p>
+            <p className="text-lg font-medium text-primary max-w-2xl mx-auto">
+              Please check your email to confirm your account and complete the registration process.
             </p>
           </div>
 
