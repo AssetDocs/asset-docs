@@ -10,6 +10,7 @@ import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { TranslationProvider } from "@/contexts/TranslationContext";
 import CookieConsent from "@/components/CookieConsent";
 import MobileCTA from "@/components/MobileCTA";
+import { supabase } from "@/integrations/supabase/client";
 
 import WelcomePage from "@/components/WelcomePage";
 
@@ -84,11 +85,37 @@ const ScrollToTopWrapper = () => {
   return null;
 };
 
-// Protected Route Component
+// Protected Route Component with Subscription Guard
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, user } = useAuth();
+  const [checkingSubscription, setCheckingSubscription] = useState(true);
+  const [hasSubscription, setHasSubscription] = useState(false);
   
-  if (loading) {
+  useEffect(() => {
+    const checkSubscription = async () => {
+      if (!user) {
+        setCheckingSubscription(false);
+        return;
+      }
+
+      try {
+        const { data } = await supabase.functions.invoke('check-subscription');
+        if (data?.subscribed) {
+          setHasSubscription(true);
+        }
+      } catch (error) {
+        console.error('Error checking subscription:', error);
+      } finally {
+        setCheckingSubscription(false);
+      }
+    };
+
+    if (user) {
+      checkSubscription();
+    }
+  }, [user]);
+  
+  if (loading || checkingSubscription) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
@@ -98,6 +125,16 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   
   if (!isAuthenticated) {
     return <Auth />;
+  }
+
+  // Check if email is verified
+  if (user && !user.email_confirmed_at) {
+    return <Navigate to="/welcome" replace />;
+  }
+
+  // Check if user has subscription
+  if (!hasSubscription) {
+    return <Navigate to="/subscription-success" replace />;
   }
   
   return <>{children}</>;

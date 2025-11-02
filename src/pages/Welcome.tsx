@@ -1,18 +1,45 @@
 
-import React from 'react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Video, BookOpen, CheckCircle2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { supabase } from '@/integrations/supabase/client';
 
 const Welcome: React.FC = () => {
+  const navigate = useNavigate();
+
+  // Prevent back navigation
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      e.preventDefault();
+      window.history.pushState(null, '', window.location.pathname);
+    };
+
+    window.history.pushState(null, '', window.location.pathname);
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+
+  // Check email verification status
+  const checkEmailStatus = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user?.email_confirmed_at) {
+      navigate('/subscription-success');
+    }
+  };
+
+  useEffect(() => {
+    const interval = setInterval(checkEmailStatus, 3000);
+    return () => clearInterval(interval);
+  }, [navigate]);
+
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5">
-      <Navbar />
-      
-      <div className="flex-grow flex items-center justify-center py-12 px-4">
+    <div className="fixed inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5 overflow-y-auto">
+      <div className="flex items-center justify-center min-h-screen py-12 px-4">
         <div className="max-w-4xl w-full">
           {/* Welcome Hero */}
           <div className="text-center mb-8">
@@ -31,9 +58,19 @@ const Welcome: React.FC = () => {
             </p>
           </div>
 
-          {/* Resources Grid */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <Card className="hover:shadow-lg transition-shadow">
+          {/* Email Verification Notice */}
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-400 dark:border-yellow-600 rounded-lg p-6 mb-6">
+            <p className="text-center text-yellow-900 dark:text-yellow-100 font-medium">
+              ⏳ Checking email verification status...
+            </p>
+            <p className="text-center text-sm text-yellow-800 dark:text-yellow-200 mt-2">
+              Once you verify your email, you'll be automatically redirected to complete your subscription.
+            </p>
+          </div>
+
+          {/* Resources Info (read-only) */}
+          <div className="grid md:grid-cols-2 gap-6 opacity-60">
+            <Card>
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
                   <div className="bg-accent/20 p-3 rounded-lg">
@@ -43,20 +80,15 @@ const Welcome: React.FC = () => {
                     <h3 className="text-lg font-semibold text-foreground mb-2">
                       Video Help Center
                     </h3>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Watch step-by-step tutorials to make the most of AssetDocs features.
+                    <p className="text-sm text-muted-foreground">
+                      Watch step-by-step tutorials to make the most of Asset Docs features.
                     </p>
-                    <Link to="/video-help">
-                      <Button variant="outline" size="sm">
-                        Watch Tutorials
-                      </Button>
-                    </Link>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-lg transition-shadow">
+            <Card>
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
                   <div className="bg-secondary/20 p-3 rounded-lg">
@@ -66,30 +98,23 @@ const Welcome: React.FC = () => {
                     <h3 className="text-lg font-semibold text-foreground mb-2">
                       Resources & Guides
                     </h3>
-                    <p className="text-sm text-muted-foreground mb-3">
+                    <p className="text-sm text-muted-foreground">
                       Explore our comprehensive library of guides and reference materials.
                     </p>
-                    <Link to="/resources">
-                      <Button variant="outline" size="sm">
-                        Browse Resources
-                      </Button>
-                    </Link>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Quick tip */}
+          {/* Next Steps */}
           <div className="mt-8 text-center">
             <p className="text-sm text-muted-foreground">
-              💡 <strong>Pro Tip:</strong> Start by adding your first property and uploading photos of your most valuable items.
+              📧 <strong>Next Step:</strong> Check your email inbox and click the verification link to continue.
             </p>
           </div>
         </div>
       </div>
-      
-      <Footer />
     </div>
   );
 };
