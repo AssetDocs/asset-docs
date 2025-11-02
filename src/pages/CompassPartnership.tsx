@@ -21,7 +21,7 @@ const CompassPartnership = () => {
           <div className="flex items-center justify-center gap-4 mb-6">
             <div className="text-3xl font-bold text-primary">Compass</div>
             <span className="text-3xl text-muted-foreground">×</span>
-            <div className="text-3xl font-bold text-primary">AssetDocs</div>
+            <div className="text-3xl font-bold text-primary">Asset Docs</div>
           </div>
           <p className="text-xl text-muted-foreground font-semibold">
             Empowering Homeowners with Verified Digital Home Records
@@ -38,13 +38,13 @@ const CompassPartnership = () => {
             <div>
               <h3 className="font-semibold text-lg mb-2">Objective</h3>
               <p className="text-foreground">
-                Forge a partnership between Compass and AssetDocs to provide Compass clients with verified, AI-enhanced digital property records — a value-add that extends Compass's client relationship beyond the transaction.
+                Forge a partnership between Compass and Asset Docs to provide Compass clients with verified, AI-enhanced digital property records — a value-add that extends Compass's client relationship beyond the transaction.
               </p>
             </div>
             <div>
               <h3 className="font-semibold text-lg mb-2">Vision</h3>
               <p className="text-foreground">
-                Every Compass-represented homebuyer or seller receives a personalized <span className="font-bold text-primary">"Digital Home Record"</span> — powered by AssetDocs — that stores 3D documentation, floorplans, AI-generated valuations, and photo verification. This becomes a Compass-branded lifetime resource for homeowners, reinforcing Compass as the trusted partner in property ownership, protection, and resale readiness.
+                Every Compass-represented homebuyer or seller receives a personalized <span className="font-bold text-primary">"Digital Home Record"</span> — powered by Asset Docs — that stores 3D documentation, floorplans, AI-generated valuations, and photo verification. This becomes a Compass-branded lifetime resource for homeowners, reinforcing Compass as the trusted partner in property ownership, protection, and resale readiness.
               </p>
             </div>
           </CardContent>
@@ -54,11 +54,11 @@ const CompassPartnership = () => {
         <Card className="mb-8">
           <CardHeader>
             <Home className="w-8 h-8 mb-2 text-primary" />
-            <CardTitle className="text-2xl">About AssetDocs</CardTitle>
+            <CardTitle className="text-2xl">About Asset Docs</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-foreground">
-              AssetDocs is a third-party verification and property-documentation platform built for insurers, real-estate professionals, and homeowners. It enables users to create interactive 3D property records, AI-assisted valuations, and secure digital archives of home assets for:
+              Asset Docs is a third-party verification and property-documentation platform built for insurers, real-estate professionals, and homeowners. It enables users to create interactive 3D property records, AI-assisted valuations, and secure digital archives of home assets for:
             </p>
             <ul className="list-disc list-inside space-y-2 text-muted-foreground ml-4">
               <li>Insurance claims and disaster recovery</li>
@@ -101,14 +101,14 @@ const CompassPartnership = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-foreground">
-              Compass's tech-driven philosophy aligns perfectly with AssetDocs' mission. By integrating AssetDocs into Compass's ecosystem:
+              Compass's tech-driven philosophy aligns perfectly with Asset Docs' mission. By integrating Asset Docs into Compass's ecosystem:
             </p>
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="border-b">
                     <th className="text-left p-3 font-semibold bg-muted">Compass Priority</th>
-                    <th className="text-left p-3 font-semibold bg-muted">AssetDocs Solution</th>
+                    <th className="text-left p-3 font-semibold bg-muted">Asset Docs Solution</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -144,14 +144,14 @@ const CompassPartnership = () => {
             <Gift className="w-8 h-8 mb-2 text-primary" />
             <CardTitle className="text-2xl">Partnership Concept: "Compass Home Record Program"</CardTitle>
             <CardDescription className="text-base">
-              Tagline: "Your Compass Home Record — powered by AssetDocs."
+              Tagline: "Your Compass Home Record — powered by Asset Docs."
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="p-4 bg-primary/10 rounded-lg">
               <h3 className="font-semibold text-lg mb-2">Core Concept</h3>
               <p className="text-foreground">
-                Every Compass client receives a <span className="font-bold text-primary">free year of AssetDocs property protection service</span> as part of their home purchase experience—positioning Compass as a brand that protects clients long after closing.
+                Every Compass client receives a <span className="font-bold text-primary">free year of Asset Docs property protection service</span> as part of their home purchase experience—positioning Compass as a brand that protects clients long after closing.
               </p>
             </div>
             
@@ -168,7 +168,7 @@ const CompassPartnership = () => {
                 <div className="flex gap-3 items-start">
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">2</div>
                   <div>
-                    <p className="font-medium">AssetDocs auto-creates a Digital Home Record</p>
+                    <p className="font-medium">Asset Docs auto-creates a Digital Home Record</p>
                     <ul className="text-sm text-muted-foreground list-disc list-inside mt-1">
                       <li>MLS listing data (via Compass IDX/API)</li>
                       <li>Property photos and floorplans</li>
@@ -180,7 +180,7 @@ const CompassPartnership = () => {
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">3</div>
                   <div>
                     <p className="font-medium">Client receives branded welcome email</p>
-                    <p className="text-sm text-muted-foreground italic">"Your Digital Home Record, powered by Compass and AssetDocs."</p>
+                    <p className="text-sm text-muted-foreground italic">"Your Digital Home Record, powered by Compass and Asset Docs."</p>
                   </div>
                 </div>
                 <div className="flex gap-3 items-start">
@@ -281,12 +281,12 @@ const CompassPartnership = () => {
                   </tr>
                   <tr className="border-b">
                     <td className="p-3 font-semibold">Agent Add-On</td>
-                    <td className="p-3">Agents optionally gift AssetDocs access to clients as a personal brand gesture</td>
+                    <td className="p-3">Agents optionally gift Asset Docs access to clients as a personal brand gesture</td>
                     <td className="p-3 font-medium">$99 retail / $69 agent price</td>
                   </tr>
                   <tr>
                     <td className="p-3 font-semibold">Enterprise Partnership</td>
-                    <td className="p-3">Compass integrates AssetDocs API directly into its proprietary platform</td>
+                    <td className="p-3">Compass integrates Asset Docs API directly into its proprietary platform</td>
                     <td className="p-3 font-medium">Custom licensing model</td>
                   </tr>
                 </tbody>
@@ -334,7 +334,7 @@ const CompassPartnership = () => {
                   </tr>
                   <tr>
                     <td className="p-3 font-medium">Branding</td>
-                    <td className="p-3">Compass x AssetDocs co-brand</td>
+                    <td className="p-3">Compass x Asset Docs co-brand</td>
                     <td className="p-3 text-muted-foreground">Consistent white-label experience</td>
                   </tr>
                 </tbody>
@@ -343,7 +343,7 @@ const CompassPartnership = () => {
             <div className="p-4 bg-muted rounded-lg">
               <p className="font-semibold mb-2">API Integration Option:</p>
               <p className="text-sm text-muted-foreground">
-                AssetDocs can integrate via Compass's Bridge API or RESO Web API to automatically pull recent listings and populate property data.
+                Asset Docs can integrate via Compass's Bridge API or RESO Web API to automatically pull recent listings and populate property data.
               </p>
             </div>
           </CardContent>
@@ -485,7 +485,7 @@ const CompassPartnership = () => {
           </CardHeader>
           <CardContent>
             <p className="text-foreground mb-4">
-              Compass may allow AssetDocs to pull their own MLS listing data for verified comparable properties (comps), significantly enhancing valuation model accuracy.
+              Compass may allow Asset Docs to pull their own MLS listing data for verified comparable properties (comps), significantly enhancing valuation model accuracy.
             </p>
             <div className="p-4 bg-primary/10 rounded-lg">
               <p className="font-semibold mb-2">Result:</p>
@@ -505,7 +505,7 @@ const CompassPartnership = () => {
           <CardContent>
             <div className="space-y-2">
               <p className="text-lg font-semibold">Michael Lewis</p>
-              <p className="text-muted-foreground">Founder, AssetDocs</p>
+              <p className="text-muted-foreground">Founder, Asset Docs</p>
               <div className="flex items-center gap-2 mt-4">
                 <Mail className="w-4 h-4 text-primary" />
                 <a href="mailto:info@assetdocs.net" className="text-primary hover:underline">info@assetdocs.net</a>
