@@ -166,6 +166,47 @@ async function handleSubscriptionChange(supabase: any, subscription: Stripe.Subs
   const planStatus = subscription.status;
   const currentPeriodEnd = subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : null;
   
+  // Check if this is a storage add-on subscription
+  const isStorageAddon = subscription.metadata?.type === 'storage_addon';
+  
+  if (isStorageAddon) {
+    // Handle storage add-on separately
+    const storageAmountGb = parseInt(subscription.metadata?.storage_amount_gb || '50');
+    
+    const { data: user } = await supabase.auth.admin.getUserByEmail(customer.email);
+    
+    if (user?.user) {
+      // Get current storage quota
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('storage_quota_gb')
+        .eq('user_id', user.user.id)
+        .single();
+      
+      const currentQuota = profile?.storage_quota_gb || 5;
+      const newQuota = currentQuota + storageAmountGb;
+      
+      // Update profile with additional storage
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          storage_quota_gb: newQuota,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.user.id);
+      
+      if (profileError) {
+        logStep('Error updating storage quota', profileError);
+      } else {
+        logStep('Storage quota updated successfully', { 
+          previousQuota: currentQuota, 
+          newQuota: newQuota 
+        });
+      }
+    }
+    return;
+  }
+  
   // Determine plan limits based on price
   const { propertyLimit, storageQuotaGb, tier } = getPlanLimits(priceId);
 

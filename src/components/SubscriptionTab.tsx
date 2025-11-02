@@ -101,8 +101,19 @@ const SubscriptionTab: React.FC = () => {
     if (user) {
       checkSubscription();
       checkIfContributor();
+      
+      // Check for storage add-on success
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('storage_added') === 'true') {
+        toast({
+          title: "Storage Added Successfully!",
+          description: "Your additional 50GB storage has been activated.",
+        });
+        // Clear the URL parameter
+        window.history.replaceState({}, '', window.location.pathname + '?tab=subscription');
+      }
     }
-  }, [user]);
+  }, [user, toast]);
 
   const handleManageSubscription = async () => {
     setIsLoading(true);
@@ -201,6 +212,44 @@ const SubscriptionTab: React.FC = () => {
     }
   };
 
+  const handleAddStorage = async () => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "User information not found. Please try logging out and back in.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      
+      const { data, error } = await supabase.functions.invoke('add-storage', {
+        headers: {
+          Authorization: `Bearer ${sessionData.session?.access_token}`
+        }
+      });
+
+      if (error) throw error;
+
+      // Redirect to Stripe checkout
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.error('Error adding storage:', error);
+      toast({
+        title: "Error",
+        description: "Failed to start storage upgrade process. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // If user is not subscribed, show checkout form
   if (!subscriptionStatus.subscribed) {
     const currentPlan = planConfigs[selectedPlan];
@@ -271,10 +320,24 @@ const SubscriptionTab: React.FC = () => {
             </div>
 
             {/* Storage Add-on */}
-            <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg p-4 text-center">
-              <p className="text-base font-semibold text-foreground">
-                Need more space? Add 50 GB for just $9.99/month.
-              </p>
+            <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-base font-semibold text-foreground mb-1">
+                    Need more space? Add 50 GB for just $9.99/month.
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Expand your storage capacity for more photos, videos, and documents.
+                  </p>
+                </div>
+                <Button
+                  onClick={handleAddStorage}
+                  disabled={isLoading}
+                  className="ml-4"
+                >
+                  {isLoading ? 'Processing...' : 'Add Storage'}
+                </Button>
+              </div>
             </div>
 
             {/* User Information Display */}
@@ -480,10 +543,24 @@ const SubscriptionTab: React.FC = () => {
             </div>
 
             {/* Storage Add-on */}
-            <div className="mt-6 bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg p-4 text-center">
-              <p className="text-base font-semibold text-foreground">
-                Need more space? Add 50 GB for just $9.99/month.
-              </p>
+            <div className="mt-6 bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-base font-semibold text-foreground mb-1">
+                    Need more space? Add 50 GB for just $9.99/month.
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Expand your storage capacity for more photos, videos, and documents.
+                  </p>
+                </div>
+                <Button
+                  onClick={handleAddStorage}
+                  disabled={isLoading}
+                  className="ml-4"
+                >
+                  {isLoading ? 'Processing...' : 'Add Storage'}
+                </Button>
+              </div>
             </div>
           </div>
         </CardContent>
