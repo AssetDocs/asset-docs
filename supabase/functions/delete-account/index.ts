@@ -139,6 +139,8 @@ Deno.serve(async (req) => {
     // Delete user's data from all tables
     const tablesToClean = [
       'subscribers',
+      'contacts',
+      'contributors',
       'profiles',
       'properties', 
       'property_photos',
@@ -149,7 +151,8 @@ Deno.serve(async (req) => {
       'damage_reports',
       'gift_purchases',
       'visitor_accesses',
-      'receipts'
+      'receipts',
+      'storage_usage'
     ];
 
     // Delete data from each table
