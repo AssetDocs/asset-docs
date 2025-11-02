@@ -20,6 +20,7 @@ const giftDataSchema = z.object({
   purchaserPhone: z.string().max(20).optional(),
   recipientEmail: z.string().email().max(255),
   recipientName: z.string().trim().min(1).max(100),
+  deliveryDate: z.string(),
   giftMessage: z.string().max(1000).optional()
 });
 
@@ -103,6 +104,7 @@ serve(async (req) => {
       purchaserPhone,
       recipientEmail,
       recipientName,
+      deliveryDate,
       giftMessage
     } = validatedGiftData;
 
@@ -168,6 +170,7 @@ serve(async (req) => {
         purchaser_phone: purchaserPhone || '',
         recipient_email: recipientEmail,
         recipient_name: recipientName,
+        delivery_date: deliveryDate,
         gift_message: giftMessage || '',
       },
       // Enable automatic tax collection
@@ -181,6 +184,11 @@ serve(async (req) => {
       // Enable customer details collection for tax calculation
       billing_address_collection: 'required',
       customer_creation: customerId ? undefined : 'always',
+      // Update customer name automatically for existing customers
+      customer_update: customerId ? {
+        name: 'auto',
+        address: 'auto'
+      } : undefined,
     });
 
     // Store gift information in database for later processing
@@ -197,7 +205,7 @@ serve(async (req) => {
         recipient_email: recipientEmail,
         recipient_name: recipientName,
         gift_message: giftMessage || null,
-        delivery_date: new Date().toISOString(),
+        delivery_date: new Date(deliveryDate).toISOString(),
         status: 'pending',
         amount: amount,
         currency: 'usd',

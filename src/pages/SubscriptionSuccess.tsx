@@ -1,49 +1,62 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle, Mail, PlayCircle, ArrowRight, LayoutDashboard } from 'lucide-react';
+import { CheckCircle, Mail } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 const SubscriptionSuccess: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [emailVerified, setEmailVerified] = useState(false);
-  const [showNextSteps, setShowNextSteps] = useState(false);
+  const [searchParams] = useSearchParams();
+  const { toast } = useToast();
+  const [isCreatingCheckout, setIsCreatingCheckout] = useState(false);
+  
+  const planType = searchParams.get('plan') || 'standard';
 
-  // Refresh subscription status when user lands on this page
+  // Initiate Stripe checkout after email verification
   useEffect(() => {
-    if (user) {
-      const refreshSubscription = async () => {
+    const initiateCheckout = async () => {
+      if (user && user.email_confirmed_at && !isCreatingCheckout) {
+        setIsCreatingCheckout(true);
+        
         try {
-          await supabase.functions.invoke('check-subscription');
-        } catch (error) {
-          console.error('Error refreshing subscription:', error);
+          const { data, error } = await supabase.functions.invoke('create-checkout', {
+            body: { planType }
+          });
+
+          if (error) throw error;
+          
+          if (data?.url) {
+            // Redirect to Stripe checkout
+            window.location.href = data.url;
+          } else {
+            throw new Error('No checkout URL returned');
+          }
+        } catch (error: any) {
+          console.error('Error creating checkout:', error);
+          toast({
+            title: "Error",
+            description: "Failed to create checkout session. Please try again from your account settings.",
+            variant: "destructive",
+          });
+          // Redirect to account settings on error
+          navigate('/account-settings?tab=subscription');
         }
-      };
-      
-      // Small delay to ensure Stripe has processed the subscription
-      setTimeout(refreshSubscription, 2000);
-      
-      // Check if user email is confirmed
-      if (user.email_confirmed_at) {
-        setEmailVerified(true);
-        setShowNextSteps(true);
       }
-    }
-  }, [user]);
+    };
+
+    initiateCheckout();
+  }, [user, planType, isCreatingCheckout, navigate, toast]);
 
   const handleEmailVerificationComplete = () => {
-    setEmailVerified(true);
-    setShowNextSteps(true);
-  };
-
-  const handleGoToDashboard = () => {
-    navigate('/account');
+    // Refresh the page to trigger checkout
+    window.location.reload();
   };
 
   return (
@@ -52,135 +65,64 @@ const SubscriptionSuccess: React.FC = () => {
       
       <div className="flex-1 bg-secondary/5 py-16">
         <div className="container mx-auto px-4 max-w-2xl">
-          <Card className="text-center">
-            <CardHeader>
-              <div className="flex justify-center mb-4">
-                <CheckCircle className="h-16 w-16 text-green-500" />
-              </div>
-              <CardTitle className="text-2xl text-green-700">Subscription Successful!</CardTitle>
-              <CardDescription className="text-lg">
-                Welcome to your new subscription plan
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <p className="text-muted-foreground">
-                  Your subscription has been successfully activated. You now have access to all the premium features included in your plan.
-                </p>
-                
-                {/* Email Verification Step */}
-                {!emailVerified && user && !user.email_confirmed_at && (
-                  <Alert className="border-blue-200 bg-blue-50">
-                    <Mail className="h-4 w-4" />
-                    <AlertDescription className="text-left">
-                      <div className="space-y-3">
-                        <div>
-                          <strong className="text-blue-800">Important: Check Your Email</strong>
-                          <p className="text-blue-700 mt-1">
-                            We've sent a verification email to <strong>{user.email}</strong>. 
-                            Please check your inbox and click the verification link to complete your account setup.
-                          </p>
-                        </div>
-                        <div className="text-sm text-blue-600">
-                          <p>• Check your spam/junk folder if you don't see the email</p>
-                          <p>• The verification link will activate your full account access</p>
-                        </div>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={handleEmailVerificationComplete}
-                          className="mt-2"
-                        >
-                          I've Verified My Email
-                        </Button>
-                      </div>
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                {/* Next Steps - Show after email verification or if already verified */}
-                {(emailVerified || (user && user.email_confirmed_at) || showNextSteps) && (
-                  <div className="space-y-4">
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                      <h3 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
-                        <CheckCircle className="h-5 w-5" />
-                        Welcome to Asset Docs! Here's what to do next:
-                      </h3>
-                      
-                      <div className="space-y-4">
-                        {/* Step 1: Dashboard */}
-                        <div className="bg-white rounded-lg p-4 border border-green-200">
-                          <div className="flex items-start gap-3">
-                            <div className="bg-green-100 rounded-full p-2 flex-shrink-0">
-                              <LayoutDashboard className="h-5 w-5 text-green-600" />
-                            </div>
-                            <div className="flex-1">
-                              <h4 className="font-semibold text-green-800">Step 1: Access Your Dashboard</h4>
-                              <p className="text-sm text-green-700 mt-1">
-                                Start by exploring your personal dashboard where you can manage properties, upload photos, and track your assets.
-                              </p>
-                              <Button 
-                                onClick={handleGoToDashboard}
-                                className="mt-2 bg-green-600 hover:bg-green-700"
-                                size="sm"
-                              >
-                                Go to Dashboard <ArrowRight className="h-4 w-4 ml-1" />
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Step 2: Video Help */}
-                        <div className="bg-white rounded-lg p-4 border border-green-200">
-                          <div className="flex items-start gap-3">
-                            <div className="bg-blue-100 rounded-full p-2 flex-shrink-0">
-                              <PlayCircle className="h-5 w-5 text-blue-600" />
-                            </div>
-                            <div className="flex-1">
-                              <h4 className="font-semibold text-blue-800">Step 2: Watch Video Tutorials</h4>
-                              <p className="text-sm text-blue-700 mt-1">
-                                Get familiar with Asset Docs by watching our comprehensive video guides. Learn how to set up your account, upload photos, and use advanced features.
-                              </p>
-                              <Link to="/video-help">
-                                <Button 
-                                  variant="outline" 
-                                  className="mt-2 border-blue-200 text-blue-600 hover:bg-blue-50"
-                                  size="sm"
-                                >
-                                  <PlayCircle className="h-4 w-4 mr-1" />
-                                  Watch Video Help
-                                </Button>
-                              </Link>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Quick Actions */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <Link to="/account">
-                        <Button variant="outline" size="lg" className="w-full">
-                          Manage Subscription
-                        </Button>
-                      </Link>
-                      <Link to="/photo-upload">
-                        <Button variant="outline" size="lg" className="w-full">
-                          Start Uploading Photos
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                )}
-                
-                <div className="text-center">
-                  <Link to="/" className="text-primary hover:underline">
-                    Return to Home
-                  </Link>
+          {isCreatingCheckout ? (
+            <Card className="text-center">
+              <CardContent className="py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <h2 className="text-xl font-semibold mb-2">Setting Up Your Subscription</h2>
+                <p className="text-muted-foreground">Redirecting you to secure payment...</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="text-center">
+              <CardHeader>
+                <div className="flex justify-center mb-4">
+                  <CheckCircle className="h-16 w-16 text-green-500" />
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+                <CardTitle className="text-2xl text-green-700">Email Verified!</CardTitle>
+                <CardDescription className="text-lg">
+                  Please complete your payment to activate your subscription
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <p className="text-muted-foreground">
+                    Your email has been verified. You will be redirected to complete your subscription payment shortly.
+                  </p>
+                  
+                  {/* Email Verification Step */}
+                  {user && !user.email_confirmed_at && (
+                    <Alert className="border-blue-200 bg-blue-50">
+                      <Mail className="h-4 w-4" />
+                      <AlertDescription className="text-left">
+                        <div className="space-y-3">
+                          <div>
+                            <strong className="text-blue-800">Important: Check Your Email</strong>
+                            <p className="text-blue-700 mt-1">
+                              We've sent a verification email to <strong>{user.email}</strong>. 
+                              Please check your inbox and click the verification link to complete your account setup.
+                            </p>
+                          </div>
+                          <div className="text-sm text-blue-600">
+                            <p>• Check your spam/junk folder if you don't see the email</p>
+                            <p>• The verification link will activate your subscription checkout</p>
+                          </div>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={handleEmailVerificationComplete}
+                            className="mt-2"
+                          >
+                            I've Verified My Email
+                          </Button>
+                        </div>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
       

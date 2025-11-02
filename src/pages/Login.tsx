@@ -6,11 +6,20 @@ import { Label } from '@/components/ui/label';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { Eye, EyeOff } from 'lucide-react';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [giftCode, setGiftCode] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { signIn, user } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
     // Pre-fill gift code from URL parameter
@@ -20,15 +29,47 @@ const Login: React.FC = () => {
     }
   }, [searchParams]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Login logic would go here
-    console.log('Login form submitted');
-    if (giftCode) {
-      console.log('Gift code entered:', giftCode);
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate('/account');
     }
-    // Redirect to account dashboard after successful login
-    navigate('/account');
+  }, [user, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const { error } = await signIn(email, password);
+      
+      if (error) {
+        toast({
+          title: "Login Failed",
+          description: error.message || "Invalid email or password. Please try again.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Login Successful",
+          description: "Welcome back!",
+        });
+        // Redirect with gift code if present
+        if (giftCode) {
+          navigate(`/gift-claim?code=${giftCode}`);
+        } else {
+          navigate('/account');
+        }
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "An unexpected error occurred.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -47,7 +88,15 @@ const Login: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <Label htmlFor="email">Email Address</Label>
-              <Input id="email" type="email" placeholder="john@example.com" className="input-field" required />
+              <Input 
+                id="email" 
+                type="email" 
+                placeholder="john@example.com" 
+                className="input-field" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required 
+              />
             </div>
             
             <div>
@@ -57,7 +106,30 @@ const Login: React.FC = () => {
                   Forgot password?
                 </Link>
               </div>
-              <Input id="password" type="password" placeholder="•••••••••" className="input-field" required />
+              <div className="relative">
+                <Input 
+                  id="password" 
+                  type={showPassword ? "text" : "password"} 
+                  placeholder="•••••••••" 
+                  className="input-field pr-10" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required 
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
             </div>
             
             <div>
@@ -88,9 +160,22 @@ const Login: React.FC = () => {
               </label>
             </div>
             
-            <Button type="submit" className="w-full bg-brand-orange hover:bg-brand-orange/90">
-              Sign In
+            <Button 
+              type="submit" 
+              className="w-full bg-brand-orange hover:bg-brand-orange/90"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Signing In...' : 'Sign In'}
             </Button>
+            
+            <div className="text-center mt-4">
+              <p className="text-sm text-muted-foreground">
+                Don't have an account?{' '}
+                <Link to="/signup" className="text-brand-blue hover:underline font-medium">
+                  Sign up here
+                </Link>
+              </p>
+            </div>
           </form>
           
           {/* Subscription Promotion Section */}

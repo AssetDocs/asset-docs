@@ -124,6 +124,11 @@ serve(async (req) => {
       },
       // Enable customer details collection for tax calculation
       billing_address_collection: 'required',
+      // Update customer name automatically for existing customers
+      customer_update: customerId ? {
+        name: 'auto',
+        address: 'auto'
+      } : undefined,
     });
 
     logStep("Checkout session created", { sessionId: session.id, url: session.url });

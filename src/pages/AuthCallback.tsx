@@ -58,13 +58,17 @@ const AuthCallback = () => {
             break;
         }
 
-        // Redirect to the specified URL or default to subscription tab after signup
+        // Redirect to the specified URL or default to subscription checkout after signup
         if (redirect_to) {
           // Use window.location for external redirects to preserve query params
           window.location.href = redirect_to;
         } else if (type === 'signup' || type === 'email_change_confirm_new') {
-          // Redirect to subscription tab after email verification
-          navigate('/account-settings?tab=subscription', { replace: true });
+          // Get plan type from session storage if available
+          const planType = sessionStorage.getItem('selectedPlanType') || 'standard';
+          sessionStorage.removeItem('selectedPlanType'); // Clean up
+          
+          // Redirect to subscription success page which will initiate Stripe checkout
+          navigate(`/subscription-success?plan=${planType}`, { replace: true });
         } else {
           navigate('/account', { replace: true });
         }

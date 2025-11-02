@@ -25,6 +25,7 @@ const formSchema = z.object({
   recipientFirstName: z.string().min(2, 'Recipient first name must be at least 2 characters'),
   recipientLastName: z.string().min(2, 'Recipient last name must be at least 2 characters'),
   recipientEmail: z.string().email('Invalid recipient email address'),
+  deliveryDate: z.string().min(1, 'Please select a delivery date'),
   giftMessage: z.string().optional(),
   agreeToTerms: z.boolean().refine(val => val === true, {
     message: 'You must agree to the Terms of Service to continue',
@@ -47,6 +48,7 @@ const GiftCheckout: React.FC = () => {
       recipientFirstName: '',
       recipientLastName: '',
       recipientEmail: '',
+      deliveryDate: '',
       giftMessage: '',
       agreeToTerms: false,
     },
@@ -116,6 +118,7 @@ const GiftCheckout: React.FC = () => {
             recipientEmail: values.recipientEmail,
             recipientName: `${values.recipientFirstName} ${values.recipientLastName}`,
             giftMessage: values.giftMessage,
+            deliveryDate: values.deliveryDate,
           }
         },
       });
@@ -264,6 +267,23 @@ const GiftCheckout: React.FC = () => {
                               <FormLabel>Recipient Email</FormLabel>
                               <FormControl>
                                 <Input type="email" placeholder="jane@example.com" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="deliveryDate"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Gift Delivery Date</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="date" 
+                                  min={new Date().toISOString().split('T')[0]}
+                                  {...field} 
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>

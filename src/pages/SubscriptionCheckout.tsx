@@ -116,8 +116,11 @@ const SubscriptionCheckout: React.FC = () => {
 
     setIsLoading(true);
     try {
-      // Redirect to account settings subscription tab after email verification
-      const redirectUrl = `${window.location.origin}/account-settings?tab=subscription`;
+      // Store plan type in session storage for after email verification
+      sessionStorage.setItem('selectedPlanType', planType);
+      
+      // Redirect to subscription success page after email verification
+      const redirectUrl = `${window.location.origin}/auth-callback`;
 
       // Sign up user with Supabase
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
