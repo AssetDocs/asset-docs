@@ -22,10 +22,8 @@ import GiftCheckout from "./pages/GiftCheckout";
 import GiftSuccess from "./pages/GiftSuccess";
 import GiftClaim from "./pages/GiftClaim";
 
-import OutsetaAuth from "./pages/OutsetaAuth";
-import AuthLegacy from "./pages/AuthLegacy";
-import OutsetaSignup from "./pages/OutsetaSignup";
-import SignupLegacy from "./pages/SignupLegacy";
+import Auth from "./pages/AuthLegacy";
+import Signup from "./pages/SignupLegacy";
 import EmailVerification from "./pages/EmailVerification";
 import AuthCallback from "./pages/AuthCallback";
 import VerifyEmail from "./pages/VerifyEmail";
@@ -52,8 +50,7 @@ import PressNews from "./pages/PressNews";
 import Resources from "./pages/Resources";
 import Feedback from "./pages/Feedback";
 import VideoHelp from "./pages/VideoHelp";
-import OutsetaProfile from "./pages/OutsetaProfile";
-import AccountSettingsLegacy from "./pages/AccountSettingsLegacy";
+import AccountSettings from "./pages/AccountSettings";
 import PhotoGallery from "./pages/PhotoGallery";
 import Videos from "./pages/Videos";
 import Documents from "./pages/Documents";
@@ -98,7 +95,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   if (!isAuthenticated) {
-    return <OutsetaAuth />;
+    return <Auth />;
   }
   
   return <>{children}</>;
@@ -130,11 +127,8 @@ const AppContent = () => {
         
         {/* Authentication routes */}
         <Route path="/login" element={<Navigate to="/auth" replace />} />
-        <Route path="/signup" element={<OutsetaSignup />} />
-        <Route path="/signup-legacy" element={<SignupLegacy />} />
-        
-        <Route path="/auth" element={<OutsetaAuth />} />
-        <Route path="/auth-legacy" element={<AuthLegacy />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/auth" element={<Auth />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/email-verification" element={<EmailVerification />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
@@ -164,8 +158,7 @@ const AppContent = () => {
         <Route path="/damage/videos/upload" element={<ProtectedRoute><DamageVideoUpload /></ProtectedRoute>} />
         
         <Route path="/account/insurance/new" element={<ProtectedRoute><InsuranceForm /></ProtectedRoute>} />
-        <Route path="/account/settings" element={<ProtectedRoute><OutsetaProfile /></ProtectedRoute>} />
-        <Route path="/account/settings-legacy" element={<ProtectedRoute><AccountSettingsLegacy /></ProtectedRoute>} />
+        <Route path="/account/settings" element={<ProtectedRoute><AccountSettings /></ProtectedRoute>} />
         <Route path="/schedule-professional" element={<ProtectedRoute><ScheduleProfessional /></ProtectedRoute>} />
         <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
         
@@ -194,38 +187,6 @@ const AppContent = () => {
 };
 
 const App = () => {
-  const [hasAccess, setHasAccess] = useState(false);
-  
-  useEffect(() => {
-    // Check current path and localStorage
-    const currentPath = window.location.pathname;
-    const accessGranted = localStorage.getItem('assetdocs-access');
-    
-    // Always show welcome page for root URL, otherwise check localStorage
-    if (currentPath === '/' || currentPath === '') {
-      setHasAccess(false);
-    } else if (accessGranted === 'granted') {
-      setHasAccess(true);
-    }
-  }, []);
-
-  const handleEnterSite = () => {
-    localStorage.setItem('assetdocs-access', 'granted');
-    setHasAccess(true);
-  };
-
-  if (!hasAccess) {
-    return (
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <WelcomePage onEnterSite={handleEnterSite} />
-        </TooltipProvider>
-      </QueryClientProvider>
-    );
-  }
-
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
