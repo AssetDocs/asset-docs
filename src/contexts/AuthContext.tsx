@@ -18,7 +18,7 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
-  signUp: (email: string, password: string, firstName?: string, lastName?: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, firstName?: string, lastName?: string) => Promise<{ error: any; data?: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   isAuthenticated: boolean;
@@ -83,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signUp = async (email: string, password: string, firstName?: string, lastName?: string) => {
-    const redirectUrl = `${window.location.origin}/account-settings?tab=subscription`;
+    const redirectUrl = `${window.location.origin}/auth/callback?type=signup&redirect_to=/welcome`;
     
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -97,23 +97,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     });
     
-    // Send verification email if signup was successful
-    if (!error && data.user) {
-      try {
-        await supabase.functions.invoke('send-verification-email', {
-          body: {
-            email: email,
-            verification_url: `${window.location.origin}/verify-email?token=${data.session?.access_token}`,
-            first_name: firstName
-          }
-        });
-      } catch (emailError) {
-        console.error('Error sending verification email:', emailError);
-        // Don't fail the signup if email fails
-      }
-    }
-    
-    return { error };
+    return { error, data };
   };
 
   const signIn = async (email: string, password: string) => {
