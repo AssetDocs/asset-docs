@@ -358,9 +358,15 @@ export type Database = {
           account_number: string | null
           avatar_url: string | null
           created_at: string
+          current_period_end: string | null
           first_name: string | null
           id: string
           last_name: string | null
+          plan_id: string | null
+          plan_status: string | null
+          property_limit: number | null
+          storage_quota_gb: number | null
+          stripe_customer_id: string | null
           updated_at: string
           user_id: string
         }
@@ -368,9 +374,15 @@ export type Database = {
           account_number?: string | null
           avatar_url?: string | null
           created_at?: string
+          current_period_end?: string | null
           first_name?: string | null
           id?: string
           last_name?: string | null
+          plan_id?: string | null
+          plan_status?: string | null
+          property_limit?: number | null
+          storage_quota_gb?: number | null
+          stripe_customer_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -378,9 +390,15 @@ export type Database = {
           account_number?: string | null
           avatar_url?: string | null
           created_at?: string
+          current_period_end?: string | null
           first_name?: string | null
           id?: string
           last_name?: string | null
+          plan_id?: string | null
+          plan_status?: string | null
+          property_limit?: number | null
+          storage_quota_gb?: number | null
+          stripe_customer_id?: string | null
           updated_at?: string
           user_id?: string
         }

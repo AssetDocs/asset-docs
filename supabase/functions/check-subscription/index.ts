@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
@@ -26,145 +25,98 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
-    logStep("Stripe key verified");
-
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header provided");
     logStep("Authorization header found");
 
     const token = authHeader.replace("Bearer ", "");
-    logStep("Authenticating user with token");
-    
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
     if (userError) throw new Error(`Authentication error: ${userError.message}`);
     const user = userData.user;
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    
-    if (customers.data.length === 0) {
-      logStep("No customer found, checking trial status");
-      
-      // Check if user is in 30-day trial period
-      const { data: profileData } = await supabaseClient
-        .from("profiles")
-        .select("created_at")
-        .eq("user_id", user.id)
-        .single();
-      
-      const now = new Date();
-      const trialEnd = new Date(profileData?.created_at || user.created_at);
-      trialEnd.setDate(trialEnd.getDate() + 30);
-      const isInTrial = now < trialEnd;
-      
-      logStep("Trial status calculated", { 
-        createdAt: profileData?.created_at || user.created_at, 
-        trialEnd: trialEnd.toISOString(), 
-        isInTrial 
-      });
-      
-      await supabaseClient.from("subscribers").upsert({
-        email: user.email,
-        user_id: user.id,
-        stripe_customer_id: null,
-        subscribed: false,
-        subscription_tier: null,
-        subscription_end: null,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'email' });
-      
-      return new Response(JSON.stringify({ 
-        subscribed: false,
-        is_trial: isInTrial,
-        trial_end: isInTrial ? trialEnd.toISOString() : null
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
+    // Get profile with subscription data
+    const { data: profile, error: profileError } = await supabaseClient
+      .from("profiles")
+      .select("*")
+      .eq("user_id", user.id)
+      .single();
+
+    if (profileError) {
+      logStep("Error fetching profile", profileError);
+      throw new Error("Failed to fetch user profile");
     }
 
-    const customerId = customers.data[0].id;
-    logStep("Found Stripe customer", { customerId });
-
-    const subscriptions = await stripe.subscriptions.list({
-      customer: customerId,
-      status: "active",
-      limit: 1,
+    logStep("Profile fetched", { 
+      planStatus: profile?.plan_status,
+      planId: profile?.plan_id,
+      propertyLimit: profile?.property_limit,
+      storageQuotaGb: profile?.storage_quota_gb
     });
-    const hasActiveSub = subscriptions.data.length > 0;
-    let subscriptionTier = null;
-    let subscriptionEnd = null;
 
-    if (hasActiveSub) {
-      const subscription = subscriptions.data[0];
-      subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-      logStep("Active subscription found", { subscriptionId: subscription.id, endDate: subscriptionEnd });
-      
-      const priceId = subscription.items.data[0].price.id;
-      const price = await stripe.prices.retrieve(priceId);
-      const amount = price.unit_amount || 0;
-      
-      if (amount <= 899) {
-        subscriptionTier = "Basic";
-      } else if (amount <= 1299) {
-        subscriptionTier = "Standard";
-      } else {
-        subscriptionTier = "Premium";
-      }
-      logStep("Determined subscription tier", { priceId, amount, subscriptionTier });
-    } else {
-      logStep("No active subscription found");
-    }
-
-    await supabaseClient.from("subscribers").upsert({
-      email: user.email,
-      user_id: user.id,
-      stripe_customer_id: customerId,
-      subscribed: hasActiveSub,
-      subscription_tier: subscriptionTier,
-      subscription_end: subscriptionEnd,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: 'email' });
-
-    // Check trial status even for users with Stripe customers but no active subscription
+    // Check if user has an active subscription
+    const isSubscribed = profile?.plan_status === 'active' || profile?.plan_status === 'trialing';
+    
+    // Check trial status for users without active subscription
     let isInTrial = false;
     let trialEndDate = null;
     
-    if (!hasActiveSub) {
-      const { data: profileData } = await supabaseClient
-        .from("profiles")
-        .select("created_at")
-        .eq("user_id", user.id)
-        .single();
-      
+    if (!isSubscribed) {
       const now = new Date();
-      const trialEnd = new Date(profileData?.created_at || user.created_at);
+      const trialEnd = new Date(profile?.created_at || user.created_at);
       trialEnd.setDate(trialEnd.getDate() + 30);
       isInTrial = now < trialEnd;
       trialEndDate = isInTrial ? trialEnd.toISOString() : null;
+      
+      logStep("Trial status calculated", { 
+        createdAt: profile?.created_at || user.created_at, 
+        trialEnd: trialEnd.toISOString(), 
+        isInTrial 
+      });
     }
 
-    logStep("Updated database with subscription info", { subscribed: hasActiveSub, subscriptionTier, isInTrial });
-    return new Response(JSON.stringify({
-      subscribed: hasActiveSub,
+    // Determine tier from plan_id or fallback to basic
+    let subscriptionTier = 'basic';
+    if (profile?.plan_id) {
+      const planLower = profile.plan_id.toLowerCase();
+      if (planLower.includes('premium') || planLower.includes('professional')) {
+        subscriptionTier = 'premium';
+      } else if (planLower.includes('standard') || planLower.includes('homeowner')) {
+        subscriptionTier = 'standard';
+      }
+    }
+
+    const response = {
+      subscribed: isSubscribed,
       subscription_tier: subscriptionTier,
-      subscription_end: subscriptionEnd,
+      subscription_end: profile?.current_period_end,
+      plan_status: profile?.plan_status || 'inactive',
+      property_limit: profile?.property_limit || 1,
+      storage_quota_gb: profile?.storage_quota_gb || 5,
       is_trial: isInTrial,
       trial_end: trialEndDate
-    }), {
+    };
+
+    logStep("Returning subscription status", response);
+    
+    return new Response(JSON.stringify(response), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR in check-subscription", { message: errorMessage });
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    return new Response(JSON.stringify({ 
+      error: errorMessage,
+      subscribed: false,
+      subscription_tier: 'basic',
+      plan_status: 'inactive',
+      property_limit: 1,
+      storage_quota_gb: 5
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
+      status: 200, // Return 200 with default values instead of 500
     });
   }
 });

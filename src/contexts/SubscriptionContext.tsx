@@ -8,6 +8,9 @@ interface SubscriptionStatus {
   subscribed: boolean;
   subscription_tier?: string;
   subscription_end?: string;
+  plan_status?: string;
+  property_limit?: number;
+  storage_quota_gb?: number;
   is_trial?: boolean;
   trial_end?: string;
 }
@@ -17,6 +20,8 @@ interface SubscriptionContextType {
   subscriptionTier: SubscriptionTier | null;
   loading: boolean;
   isInTrial: boolean;
+  propertyLimit: number;
+  storageQuotaGb: number;
   hasFeature: (featureKey: string) => boolean;
   checkFeatureAccess: (featureKey: string) => { hasAccess: boolean; feature: any };
   refreshSubscription: () => Promise<void>;
@@ -54,6 +59,8 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const subscriptionTier = mapTierToEnum(subscriptionStatus.subscription_tier);
   const isInTrial = subscriptionStatus.is_trial || false;
+  const propertyLimit = subscriptionStatus.property_limit || 1;
+  const storageQuotaGb = subscriptionStatus.storage_quota_gb || 5;
 
   const checkSubscription = async () => {
     if (!user) {
@@ -110,6 +117,8 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     subscriptionTier,
     loading,
     isInTrial,
+    propertyLimit,
+    storageQuotaGb,
     hasFeature,
     checkFeatureAccess,
     refreshSubscription,

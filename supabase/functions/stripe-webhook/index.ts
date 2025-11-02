@@ -162,66 +162,81 @@ async function handleSubscriptionChange(supabase: any, subscription: Stripe.Subs
     return;
   }
 
-  const tier = getSubscriptionTier(subscription);
-  const isActive = subscription.status === 'active';
-  const subscriptionEnd = subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : null;
+  const priceId = subscription.items.data[0]?.price?.id || '';
+  const planStatus = subscription.status;
+  const currentPeriodEnd = subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : null;
+  
+  // Determine plan limits based on price
+  const { propertyLimit, storageQuotaGb, tier } = getPlanLimits(priceId);
 
   // Find user by email
   const { data: user } = await supabase.auth.admin.getUserByEmail(customer.email);
   
-  let isNewSubscription = false;
-
   if (user?.user) {
-    // Check if subscriber already exists
-    const { data: existingSubscriber } = await supabase
-      .from('subscribers')
-      .select('*')
+    // Check if profile exists with subscription
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('stripe_customer_id, plan_status')
       .eq('user_id', user.user.id)
       .single();
 
-    // Update or create subscriber record
-    const { error } = await supabase
+    const isNewSubscription = !existingProfile?.stripe_customer_id && (planStatus === 'active' || planStatus === 'trialing');
+
+    // Update profile with subscription data
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({
+        stripe_customer_id: subscription.customer,
+        plan_id: priceId,
+        plan_status: planStatus,
+        current_period_end: currentPeriodEnd?.toISOString(),
+        property_limit: propertyLimit,
+        storage_quota_gb: storageQuotaGb,
+        updated_at: new Date().toISOString()
+      })
+      .eq('user_id', user.user.id);
+
+    if (profileError) {
+      logStep('Error updating profile', profileError);
+    } else {
+      logStep('Profile updated successfully');
+    }
+
+    // Also maintain backwards compatibility with subscribers table
+    const { error: subscriberError } = await supabase
       .from('subscribers')
       .upsert({
         user_id: user.user.id,
         email: customer.email,
         stripe_customer_id: subscription.customer,
-        subscribed: isActive,
+        subscribed: planStatus === 'active' || planStatus === 'trialing',
         subscription_tier: tier,
-        subscription_end: subscriptionEnd?.toISOString(),
+        subscription_end: currentPeriodEnd?.toISOString(),
         updated_at: new Date().toISOString()
       }, {
         onConflict: 'user_id'
       });
 
-    if (error) {
-      logStep('Error updating subscriber', error);
-    } else {
-      logStep('Subscriber updated successfully');
-      
-      // If this is a new subscription (first time subscriber) and it's active, send welcome email
-      if (!existingSubscriber && isActive && eventType === 'customer.subscription.created') {
-        isNewSubscription = true;
-        logStep('Triggering welcome email for new subscription', { email: customer.email });
-        
-        try {
-          const { error: emailError } = await supabase.functions.invoke('send-subscription-welcome-email', {
-            body: {
-              email: customer.email,
-              subscription_tier: tier,
-              trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
-              current_period_end: new Date(subscription.current_period_end * 1000).toISOString()
-            }
-          });
+    if (subscriberError) {
+      logStep('Error updating subscriber (backwards compat)', subscriberError);
+    }
 
-          if (emailError) {
-            logStep('Error sending welcome email', emailError);
-          } else {
-            logStep('Welcome email sent successfully to', { email: customer.email });
+    // Send welcome email for new subscriptions
+    if (isNewSubscription) {
+      logStep('Triggering welcome email for new subscription', { email: customer.email });
+      
+      try {
+        await supabase.functions.invoke('send-subscription-welcome-email', {
+          body: {
+            email: customer.email,
+            subscription_tier: tier,
+            trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
+            current_period_end: currentPeriodEnd?.toISOString()
           }
-        } catch (error) {
-          logStep('Failed to send welcome email', error);
-        }
+        });
+        logStep('Welcome email sent successfully');
+      } catch (error) {
+        logStep('Failed to send welcome email', error);
       }
     }
   }
@@ -230,7 +245,24 @@ async function handleSubscriptionChange(supabase: any, subscription: Stripe.Subs
 async function handleSubscriptionDeleted(supabase: any, subscription: Stripe.Subscription) {
   logStep('Handling subscription deletion', { subscriptionId: subscription.id });
 
-  const { error } = await supabase
+  // Update profile
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .update({
+      plan_status: 'canceled',
+      current_period_end: new Date().toISOString(),
+      property_limit: 1,
+      storage_quota_gb: 5,
+      updated_at: new Date().toISOString()
+    })
+    .eq('stripe_customer_id', subscription.customer);
+
+  if (profileError) {
+    logStep('Error updating profile for deleted subscription', profileError);
+  }
+
+  // Update subscribers table for backwards compatibility
+  const { error: subscriberError } = await supabase
     .from('subscribers')
     .update({
       subscribed: false,
@@ -239,8 +271,8 @@ async function handleSubscriptionDeleted(supabase: any, subscription: Stripe.Sub
     })
     .eq('stripe_customer_id', subscription.customer);
 
-  if (error) {
-    logStep('Error updating deleted subscription', error);
+  if (subscriberError) {
+    logStep('Error updating subscriber for deleted subscription', subscriberError);
   }
 }
 
@@ -265,8 +297,21 @@ async function handlePaymentSucceeded(supabase: any, invoice: Stripe.Invoice) {
 async function handlePaymentFailed(supabase: any, invoice: Stripe.Invoice) {
   logStep('Handling payment failure', { invoiceId: invoice.id });
   
-  // Mark for payment failure handling
-  const { error } = await supabase
+  // Update profile with past_due status
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .update({
+      plan_status: 'past_due',
+      updated_at: new Date().toISOString()
+    })
+    .eq('stripe_customer_id', invoice.customer);
+
+  if (profileError) {
+    logStep('Error updating profile for payment failure', profileError);
+  }
+
+  // Update subscribers table for backwards compatibility
+  const { error: subscriberError } = await supabase
     .from('subscribers')
     .update({
       last_payment_failure_check: new Date().toISOString(),
@@ -274,8 +319,8 @@ async function handlePaymentFailed(supabase: any, invoice: Stripe.Invoice) {
     })
     .eq('stripe_customer_id', invoice.customer);
 
-  if (error) {
-    logStep('Error updating payment failure', error);
+  if (subscriberError) {
+    logStep('Error updating subscriber for payment failure', subscriberError);
   }
 }
 
@@ -295,14 +340,33 @@ async function handleCheckoutCompleted(supabase: any, session: Stripe.Checkout.S
   }
 }
 
-function getSubscriptionTier(subscription: Stripe.Subscription): string {
-  if (!subscription.items?.data?.[0]?.price?.unit_amount) return 'basic';
+function getPlanLimits(priceId: string): { propertyLimit: number; storageQuotaGb: number; tier: string } {
+  // Map Stripe price IDs to plan limits
+  // Standard plans: 3 properties, 25GB
+  // Premium plans: unlimited properties (-1), 100GB
   
-  const amount = subscription.items.data[0].price.unit_amount;
+  const priceLower = priceId.toLowerCase();
   
-  if (amount >= 4999) return 'premium';
-  if (amount >= 2999) return 'standard'; 
-  return 'basic';
+  if (priceLower.includes('premium') || priceLower.includes('professional')) {
+    return {
+      propertyLimit: -1, // -1 means unlimited
+      storageQuotaGb: 100,
+      tier: 'premium'
+    };
+  } else if (priceLower.includes('standard') || priceLower.includes('homeowner')) {
+    return {
+      propertyLimit: 3,
+      storageQuotaGb: 25,
+      tier: 'standard'
+    };
+  }
+  
+  // Fallback to basic/free tier
+  return {
+    propertyLimit: 1,
+    storageQuotaGb: 5,
+    tier: 'basic'
+  };
 }
 
 async function getCustomerEmail(customerId: string) {
