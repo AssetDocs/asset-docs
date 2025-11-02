@@ -4,7 +4,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Home, Video, BookOpen, Shield, CheckCircle2 } from 'lucide-react';
+import { Video, BookOpen, CheckCircle2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
 const Welcome: React.FC = () => {
@@ -27,25 +27,6 @@ const Welcome: React.FC = () => {
               You've made an excellent decision for your future security!
             </p>
           </div>
-
-          {/* Main CTA Card */}
-          <Card className="mb-8 border-2 border-primary/20 shadow-xl">
-            <CardContent className="p-8 text-center">
-              <Shield className="w-16 h-16 text-primary mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-foreground mb-3">
-                Your Dashboard Awaits
-              </h2>
-              <p className="text-muted-foreground mb-6 max-w-xl mx-auto">
-                Start documenting your assets, uploading photos, and building your comprehensive property protection portfolio.
-              </p>
-              <Link to="/inventory">
-                <Button size="lg" className="text-lg px-8 py-6 h-auto">
-                  <Home className="mr-2 h-5 w-5" />
-                  Go to Dashboard
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
 
           {/* Resources Grid */}
           <div className="grid md:grid-cols-2 gap-6">
