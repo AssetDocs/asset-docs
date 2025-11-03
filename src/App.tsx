@@ -86,14 +86,14 @@ const ScrollToTopWrapper = () => {
 };
 
 // Protected Route Component with Subscription Guard
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children: React.ReactNode; skipSubscriptionCheck?: boolean }) => {
   const { isAuthenticated, loading, user } = useAuth();
-  const [checkingSubscription, setCheckingSubscription] = useState(true);
+  const [checkingSubscription, setCheckingSubscription] = useState(!skipSubscriptionCheck);
   const [hasSubscription, setHasSubscription] = useState(false);
   
   useEffect(() => {
     const checkSubscription = async () => {
-      if (!user) {
+      if (!user || skipSubscriptionCheck) {
         setCheckingSubscription(false);
         return;
       }
@@ -113,7 +113,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     if (user) {
       checkSubscription();
     }
-  }, [user]);
+  }, [user, skipSubscriptionCheck]);
   
   if (loading || checkingSubscription) {
     return (
@@ -127,13 +127,13 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Auth />;
   }
 
-  // Check if email is verified
-  if (user && !user.email_confirmed_at) {
+  // Check if email is verified (unless on the welcome or subscription pages)
+  if (!skipSubscriptionCheck && user && !user.email_confirmed_at) {
     return <Navigate to="/welcome" replace />;
   }
 
-  // Check if user has subscription
-  if (!hasSubscription) {
+  // Check if user has subscription (unless skipping the check)
+  if (!skipSubscriptionCheck && !hasSubscription) {
     return <Navigate to="/subscription-success" replace />;
   }
   
@@ -178,7 +178,8 @@ const AppContent = () => {
         <Route path="/testimonials" element={<Testimonials />} />
         
         {/* Protected routes */}
-        <Route path="/welcome" element={<ProtectedRoute><Welcome /></ProtectedRoute>} />
+        <Route path="/welcome" element={<ProtectedRoute skipSubscriptionCheck={true}><Welcome /></ProtectedRoute>} />
+        <Route path="/subscription-success" element={<ProtectedRoute skipSubscriptionCheck={true}><SubscriptionSuccess /></ProtectedRoute>} />
         <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
         <Route path="/account/properties" element={<ProtectedRoute><Properties /></ProtectedRoute>} />
         <Route path="/account/properties/new" element={<ProtectedRoute><PropertyForm /></ProtectedRoute>} />
@@ -202,7 +203,6 @@ const AppContent = () => {
         <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
         
         <Route path="/claims" element={<Claims />} />
-        <Route path="/subscription-success" element={<ProtectedRoute><SubscriptionSuccess /></ProtectedRoute>} />
         <Route path="/industry-requirements" element={<IndustryRequirements />} />
         <Route path="/checklists" element={<ProtectedRoute><Checklists /></ProtectedRoute>} />
         <Route path="/glossary" element={<Glossary />} />

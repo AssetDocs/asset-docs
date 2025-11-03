@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -18,6 +16,21 @@ const SubscriptionSuccess: React.FC = () => {
   const [isCreatingCheckout, setIsCreatingCheckout] = useState(false);
   
   const planType = searchParams.get('plan') || 'standard';
+
+  // Prevent back navigation
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      e.preventDefault();
+      window.history.pushState(null, '', window.location.pathname);
+    };
+
+    window.history.pushState(null, '', window.location.pathname);
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
 
   // Initiate Stripe checkout after email verification
   useEffect(() => {
@@ -60,11 +73,9 @@ const SubscriptionSuccess: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Navbar />
-      
-      <div className="flex-1 bg-secondary/5 py-16">
-        <div className="container mx-auto px-4 max-w-2xl">
+    <div className="fixed inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5 overflow-y-auto">
+      <div className="flex items-center justify-center min-h-screen py-12 px-4">
+        <div className="max-w-2xl w-full">
           {isCreatingCheckout ? (
             <Card className="text-center">
               <CardContent className="py-12">
@@ -125,8 +136,6 @@ const SubscriptionSuccess: React.FC = () => {
           )}
         </div>
       </div>
-      
-      <Footer />
     </div>
   );
 };
