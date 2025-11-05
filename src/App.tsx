@@ -91,16 +91,22 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
   const [checkingSubscription, setCheckingSubscription] = useState(!skipSubscriptionCheck);
   const [hasSubscription, setHasSubscription] = useState(false);
   
+  // Testing whitelist - bypass all restrictions for this email
+  const isTestingEmail = user?.email === 'michaeljlewis2@gmail.com';
+  
   useEffect(() => {
     const checkSubscription = async () => {
-      if (!user || skipSubscriptionCheck) {
+      if (!user || skipSubscriptionCheck || isTestingEmail) {
         setCheckingSubscription(false);
+        if (isTestingEmail) {
+          setHasSubscription(true);
+        }
         return;
       }
 
       try {
         const { data } = await supabase.functions.invoke('check-subscription');
-        if (data?.subscribed) {
+        if (data?.subscribed || data?.is_trial) {
           setHasSubscription(true);
         }
       } catch (error) {
@@ -113,7 +119,7 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
     if (user) {
       checkSubscription();
     }
-  }, [user, skipSubscriptionCheck]);
+  }, [user, skipSubscriptionCheck, isTestingEmail]);
   
   if (loading || checkingSubscription) {
     return (
@@ -125,6 +131,11 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
   
   if (!isAuthenticated) {
     return <Auth />;
+  }
+
+  // Testing email bypasses all checks
+  if (isTestingEmail) {
+    return <>{children}</>;
   }
 
   // Check if email is verified (unless on the welcome or subscription pages)

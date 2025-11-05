@@ -108,8 +108,8 @@ serve(async (req) => {
         },
       ],
       mode: "subscription",
-      success_url: `${req.headers.get("origin")}/subscription-success`,
-      cancel_url: `${req.headers.get("origin")}/account-settings?tab=subscription`,
+      success_url: `${req.headers.get("origin")}/account?payment_success=true`,
+      cancel_url: `${req.headers.get("origin")}/pricing`,
       // 30-day free trial before first payment
       subscription_data: {
         trial_period_days: 30,

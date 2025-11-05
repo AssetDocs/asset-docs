@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import AssetValuesSection from '@/components/AssetValuesSection';
@@ -19,6 +20,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
 import EmailVerificationNotice from '@/components/EmailVerificationNotice';
 import { StripeTestPanel } from '@/components/StripeTestPanel';
+import { useToast } from '@/hooks/use-toast';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -66,12 +68,25 @@ const WelcomeMessage: React.FC = () => {
 };
 
 const Account: React.FC = () => {
-  
+  const [searchParams] = useSearchParams();
+  const { toast } = useToast();
   const [showTour, setShowTour] = useState(false);
   const { subscriptionTier } = useSubscription();
   const isMobile = useIsMobile();
   
   const showFloorPlans = true; // All subscription tiers now have access to floor plans
+
+  // Show success message if redirected from successful payment
+  useEffect(() => {
+    if (searchParams.get('payment_success') === 'true') {
+      toast({
+        title: "Payment Successful!",
+        description: "Your subscription has been activated. Welcome aboard!",
+      });
+      // Clear the URL parameter
+      window.history.replaceState({}, '', '/account');
+    }
+  }, [searchParams, toast]);
 
   useEffect(() => {
     // Check if user is a new user and hasn't seen the tour
