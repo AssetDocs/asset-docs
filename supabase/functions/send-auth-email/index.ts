@@ -80,22 +80,45 @@ const handler = async (req: Request): Promise<Response> => {
         throw new Error(`Unsupported email action type: ${email_data.email_action_type}`);
     }
 
-    const emailResponse = await resend.emails.send({
-      from: "Asset Docs <noreply@assetdocs.net>",
-      to: [user.email],
-      subject,
-      html,
-    });
+    // Send email with a hard timeout to avoid Supabase 5s hook timeouts
+    const sendPromise = resend.emails
+      .send({
+        from: "Asset Docs <noreply@assetdocs.net>",
+        to: [user.email],
+        subject,
+        html,
+      })
+      .then((resp) => {
+        console.log("Auth email sent successfully:", resp);
+        return { ok: true } as const;
+      })
+      .catch((err) => {
+        console.error("Resend send() failed:", err);
+        return { ok: false, error: String(err?.message || err) } as const;
+      });
 
-    console.log("Auth email sent successfully:", emailResponse);
+    const timeoutMs = 4500; // keep under GoTrue 5s limit
+    const timeoutPromise = new Promise<{ ok: true; timeout: true }>((resolve) =>
+      setTimeout(() => resolve({ ok: true, timeout: true }), timeoutMs)
+    );
 
-    return new Response(JSON.stringify({ success: true, message: "Auth email sent successfully" }), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        ...corsHeaders,
-      },
-    });
+    const result = await Promise.race([sendPromise, timeoutPromise]);
+
+    // Always return 200 quickly so signup never fails due to email delays
+    return new Response(
+      JSON.stringify({
+        success: true,
+        queued: "timeout" in (result as any) ? true : false,
+        note: "Email send initiated",
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          ...corsHeaders,
+        },
+      }
+    );
   } catch (error: any) {
     console.error("Error in send-auth-email function:", error);
     return new Response(
