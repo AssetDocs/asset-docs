@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,125 +29,95 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useNavigate } from 'react-router-dom';
 import PhotoGalleryHeader from '@/components/PhotoGalleryHeader';
-import PhotoGalleryGrid from '@/components/PhotoGalleryGrid';
+import MediaGalleryGrid from '@/components/MediaGalleryGrid';
 import PhotoGalleryFolders from '@/components/PhotoGalleryFolders';
 import CreateFolderModal from '@/components/CreateFolderModal';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
+import { PropertyService, PropertyFile } from '@/services/PropertyService';
+import { useToast } from '@/hooks/use-toast';
+import { useProperties } from '@/hooks/useProperties';
 
-// Mock data for demonstration
-const mockPhotos = [
-  {
-    id: 1,
-    name: "Living Room",
-    filename: "living-room-001.jpg",
-    url: "/placeholder.svg",
-    uploadDate: "2024-06-15",
-    size: "2.4 MB",
-    propertyId: 1,
-    propertyName: "Main Residence",
-    folderId: null,
-    tags: ["interior", "living room"]
-  },
-  {
-    id: 2,
-    name: "Kitchen",
-    filename: "kitchen-modern.jpg",
-    url: "/placeholder.svg",
-    uploadDate: "2024-06-12",
-    size: "1.8 MB",
-    propertyId: 1,
-    propertyName: "Main Residence",
-    folderId: 1,
-    tags: ["interior", "kitchen"]
-  },
-  {
-    id: 3,
-    name: "Master Bedroom",
-    filename: "bedroom-master.jpg",
-    url: "/placeholder.svg",
-    uploadDate: "2024-06-10",
-    size: "3.1 MB",
-    propertyId: 1,
-    propertyName: "Main Residence",
-    folderId: 1,
-    tags: ["interior", "bedroom"]
-  },
-  {
-    id: 4,
-    name: "Exterior View",
-    filename: "exterior-front.jpg",
-    url: "/placeholder.svg",
-    uploadDate: "2024-06-08",
-    size: "4.2 MB",
-    propertyId: 2,
-    propertyName: "Vacation Cabin",
-    folderId: 2,
-    tags: ["exterior", "front view"]
-  },
-  {
-    id: 5,
-    name: "Lake View",
-    filename: "lake-view-sunset.jpg",
-    url: "/placeholder.svg",
-    uploadDate: "2024-06-05",
-    size: "3.8 MB",
-    propertyId: 2,
-    propertyName: "Vacation Cabin",
-    folderId: null,
-    tags: ["exterior", "lake", "view"]
-  }
-];
+type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'size-desc' | 'size-asc';
+type ViewMode = 'grid' | 'list';
 
 const mockFolders = [
   {
     id: 1,
     name: "Interior Photos",
-    description: "All interior shots of the main residence",
-    photoCount: 2,
+    description: "All interior shots",
+    photoCount: 0,
     createdDate: "2024-06-01",
     color: "blue"
-  },
-  {
-    id: 2,
-    name: "Cabin Exteriors",
-    description: "External views of the vacation cabin",
-    photoCount: 1,
-    createdDate: "2024-06-02",
-    color: "green"
   }
 ];
 
-type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'size-desc' | 'size-asc';
-type ViewMode = 'grid' | 'list';
-
 const PhotoGallery: React.FC = () => {
   const navigate = useNavigate();
-  const [photos, setPhotos] = useState(mockPhotos);
+  const { toast } = useToast();
+  const { properties } = useProperties();
+  const [photos, setPhotos] = useState<PropertyFile[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [folders, setFolders] = useState(mockFolders);
   const [selectedFolder, setSelectedFolder] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('date-desc');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedPhotos, setSelectedPhotos] = useState<number[]>([]);
+  const [selectedPhotos, setSelectedPhotos] = useState<string[]>([]);
   const [showCreateFolder, setShowCreateFolder] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [photoToDelete, setPhotoToDelete] = useState<number | null>(null);
+  const [photoToDelete, setPhotoToDelete] = useState<string | null>(null);
   const [bulkDeleteMode, setBulkDeleteMode] = useState(false);
+
+  useEffect(() => {
+    fetchPhotos();
+  }, []);
+
+  const fetchPhotos = async () => {
+    setIsLoading(true);
+    try {
+      const files = await PropertyService.getAllUserFiles('photo');
+      setPhotos(files);
+    } catch (error) {
+      console.error('Error fetching photos:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load photos",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleBack = () => {
     navigate('/account');
   };
 
+  const getPropertyName = (propertyId: string) => {
+    const property = properties.find(p => p.id === propertyId);
+    return property?.name || 'Unknown Property';
+  };
+
+  const formatFileSize = (bytes: number | null) => {
+    if (!bytes) return '0 B';
+    const mb = bytes / (1024 * 1024);
+    return mb >= 1 ? `${mb.toFixed(1)} MB` : `${(bytes / 1024).toFixed(1)} KB`;
+  };
+
+  const transformedPhotos = photos.map(photo => ({
+    id: photo.id,
+    name: photo.file_name,
+    url: photo.file_url,
+    uploadDate: photo.created_at,
+    size: formatFileSize(photo.file_size),
+    propertyName: getPropertyName(photo.property_id)
+  }));
+
   const filteredAndSortedPhotos = React.useMemo(() => {
-    let filtered = photos.filter(photo => {
-      const matchesSearch = photo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           photo.filename.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           photo.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-      
-      const matchesFolder = selectedFolder === null || photo.folderId === selectedFolder;
-      
-      return matchesSearch && matchesFolder;
+    let filtered = transformedPhotos.filter(photo => {
+      const matchesSearch = photo.name.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesSearch;
     });
 
     filtered.sort((a, b) => {
@@ -161,17 +130,13 @@ const PhotoGallery: React.FC = () => {
           return a.name.localeCompare(b.name);
         case 'name-desc':
           return b.name.localeCompare(a.name);
-        case 'size-desc':
-          return parseFloat(b.size) - parseFloat(a.size);
-        case 'size-asc':
-          return parseFloat(a.size) - parseFloat(b.size);
         default:
           return 0;
       }
     });
 
     return filtered;
-  }, [photos, searchTerm, selectedFolder, sortBy]);
+  }, [transformedPhotos, searchTerm, sortBy]);
 
   const handleCreateFolder = (name: string, color: string) => {
     const newFolder = {
@@ -187,22 +152,11 @@ const PhotoGallery: React.FC = () => {
   };
 
   const handleMovePhotos = (folderId: number | null) => {
-    setPhotos(photos.map(photo => 
-      selectedPhotos.includes(photo.id) 
-        ? { ...photo, folderId }
-        : photo
-    ));
-    
-    // Update folder photo counts
-    setFolders(folders.map(folder => ({
-      ...folder,
-      photoCount: photos.filter(p => p.folderId === folder.id).length
-    })));
-    
+    // TODO: Implement folder functionality
     setSelectedPhotos([]);
   };
 
-  const togglePhotoSelection = (photoId: number) => {
+  const togglePhotoSelection = (photoId: string) => {
     setSelectedPhotos(prev => 
       prev.includes(photoId) 
         ? prev.filter(id => id !== photoId)
@@ -218,8 +172,7 @@ const PhotoGallery: React.FC = () => {
     setSelectedPhotos([]);
   };
 
-
-  const handleDeletePhoto = (photoId: number) => {
+  const handleDeletePhoto = (photoId: string) => {
     setPhotoToDelete(photoId);
     setBulkDeleteMode(false);
     setShowDeleteDialog(true);
@@ -232,17 +185,51 @@ const PhotoGallery: React.FC = () => {
     }
   }, [selectedPhotos.length]);
 
-  const confirmDelete = () => {
-    if (bulkDeleteMode) {
-      setPhotos(prev => prev.filter(photo => !selectedPhotos.includes(photo.id)));
+  const confirmDelete = async () => {
+    try {
+      if (bulkDeleteMode) {
+        // Delete multiple photos
+        const deletePromises = selectedPhotos.map(photoId => {
+          const photo = photos.find(p => p.id === photoId);
+          if (photo) {
+            return PropertyService.deletePropertyFile(photo.id, photo.file_path, photo.bucket_name);
+          }
+          return Promise.resolve(false);
+        });
+        
+        await Promise.all(deletePromises);
+        toast({
+          title: "Success",
+          description: `${selectedPhotos.length} photo(s) deleted successfully`
+        });
+      } else if (photoToDelete) {
+        // Delete single photo
+        const photo = photos.find(p => p.id === photoToDelete);
+        if (photo) {
+          const success = await PropertyService.deletePropertyFile(photo.id, photo.file_path, photo.bucket_name);
+          if (success) {
+            toast({
+              title: "Success",
+              description: "Photo deleted successfully"
+            });
+          }
+        }
+      }
+      
+      await fetchPhotos(); // Refresh the list
       setSelectedPhotos([]);
-    } else if (photoToDelete) {
-      setPhotos(prev => prev.filter(photo => photo.id !== photoToDelete));
-      setSelectedPhotos(prev => prev.filter(id => id !== photoToDelete));
+    } catch (error) {
+      console.error('Error deleting photo(s):', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete photo(s)",
+        variant: "destructive"
+      });
+    } finally {
+      setShowDeleteDialog(false);
+      setPhotoToDelete(null);
+      setBulkDeleteMode(false);
     }
-    setShowDeleteDialog(false);
-    setPhotoToDelete(null);
-    setBulkDeleteMode(false);
   };
 
   const cancelDelete = () => {
@@ -287,17 +274,24 @@ const PhotoGallery: React.FC = () => {
               folders={folders}
               selectedFolder={selectedFolder}
               onFolderSelect={setSelectedFolder}
-              photos={photos}
+              photos={[]}
             />
 
             <div className="lg:col-span-3">
-              <PhotoGalleryGrid 
-                photos={filteredAndSortedPhotos}
-                viewMode={viewMode}
-                selectedPhotos={selectedPhotos}
-                onPhotoSelect={togglePhotoSelection}
-                onDeletePhoto={handleDeletePhoto}
-              />
+              {isLoading ? (
+                <Card className="p-12 text-center">
+                  <p className="text-gray-500">Loading photos...</p>
+                </Card>
+              ) : (
+                <MediaGalleryGrid 
+                  files={filteredAndSortedPhotos}
+                  viewMode={viewMode}
+                  selectedFiles={selectedPhotos}
+                  onFileSelect={togglePhotoSelection}
+                  onDeleteFile={handleDeletePhoto}
+                  mediaType="photo"
+                />
+              )}
             </div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,84 +30,61 @@ import {
 import { useNavigate } from 'react-router-dom';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import CreateFolderModal from '@/components/CreateFolderModal';
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
+import MediaGalleryGrid from '@/components/MediaGalleryGrid';
+import { PropertyService, PropertyFile } from '@/services/PropertyService';
+import { useToast } from '@/hooks/use-toast';
+import { useProperties } from '@/hooks/useProperties';
 
-// Mock data for demonstration
-const mockDocuments = [
-  {
-    id: 1,
-    name: "Home Insurance Policy",
-    filename: "home-insurance-2024.pdf",
-    type: "PDF",
-    url: "/placeholder.svg",
-    uploadDate: "2024-06-15",
-    size: "1.2 MB",
-    propertyId: 1,
-    propertyName: "Main Residence",
-    folderId: null,
-    tags: ["insurance", "policy"]
-  },
-  {
-    id: 2,
-    name: "Property Deed",
-    filename: "property-deed.pdf", 
-    type: "PDF",
-    url: "/placeholder.svg",
-    uploadDate: "2024-06-14",
-    size: "850 KB",
-    propertyId: 1,
-    propertyName: "Main Residence",
-    folderId: 1,
-    tags: ["legal", "deed"]
-  },
-  {
-    id: 3,
-    name: "Appliance Warranty",
-    filename: "refrigerator-warranty.pdf",
-    type: "PDF",
-    url: "/placeholder.svg",
-    uploadDate: "2024-06-13",
-    size: "520 KB",
-    propertyId: 1,
-    propertyName: "Main Residence",
-    folderId: 2,
-    tags: ["warranty", "appliance"]
-  }
-];
+type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'size-desc' | 'size-asc';
+type ViewMode = 'grid' | 'list';
 
 const mockFolders = [
   {
     id: 1,
     name: "Legal Documents",
-    documentCount: 5,
+    documentCount: 0,
     color: "blue"
-  },
-  {
-    id: 2,
-    name: "Warranties", 
-    documentCount: 8,
-    color: "green"
-  },
-  {
-    id: 3,
-    name: "Insurance",
-    documentCount: 3,
-    color: "red"
   }
 ];
 
-type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'size-desc' | 'size-asc';
-type ViewMode = 'grid' | 'list';
-
 const Documents: React.FC = () => {
   const navigate = useNavigate();
-  const [documents, setDocuments] = useState(mockDocuments);
+  const { toast } = useToast();
+  const { properties } = useProperties();
+  const [documents, setDocuments] = useState<PropertyFile[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [folders, setFolders] = useState(mockFolders);
   const [selectedFolder, setSelectedFolder] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('date-desc');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedDocuments, setSelectedDocuments] = useState<number[]>([]);
+  const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
   const [showCreateFolder, setShowCreateFolder] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [documentToDelete, setDocumentToDelete] = useState<string | null>(null);
+  const [bulkDeleteMode, setBulkDeleteMode] = useState(false);
+
+  useEffect(() => {
+    fetchDocuments();
+  }, []);
+
+  const fetchDocuments = async () => {
+    setIsLoading(true);
+    try {
+      const files = await PropertyService.getAllUserFiles('document');
+      setDocuments(files);
+    } catch (error) {
+      console.error('Error fetching documents:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load documents",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleBack = () => {
     if (selectedFolder) {
@@ -117,15 +94,34 @@ const Documents: React.FC = () => {
     }
   };
 
+  const getPropertyName = (propertyId: string) => {
+    const property = properties.find(p => p.id === propertyId);
+    return property?.name || 'Unknown Property';
+  };
+
+  const formatFileSize = (bytes: number | null) => {
+    if (!bytes) return '0 B';
+    const mb = bytes / (1024 * 1024);
+    return mb >= 1 ? `${mb.toFixed(1)} MB` : `${(bytes / 1024).toFixed(1)} KB`;
+  };
+
+  const transformedDocuments = documents.map(doc => ({
+    id: doc.id,
+    name: doc.file_name,
+    url: doc.file_url,
+    uploadDate: doc.created_at,
+    size: formatFileSize(doc.file_size),
+    propertyName: getPropertyName(doc.property_id),
+    type: doc.file_name.split('.').pop()?.toUpperCase() || 'FILE'
+  }));
+
   const currentFolderName = selectedFolder 
     ? folders.find(f => f.id === selectedFolder)?.name || 'Documents'
     : 'All Documents';
 
-  const filteredDocuments = documents.filter(document => {
-    const matchesSearch = document.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         document.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesFolder = selectedFolder ? document.folderId === selectedFolder : true;
-    return matchesSearch && matchesFolder;
+  const filteredDocuments = transformedDocuments.filter(document => {
+    const matchesSearch = document.name.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
   });
 
   const sortedDocuments = [...filteredDocuments].sort((a, b) => {
@@ -138,16 +134,12 @@ const Documents: React.FC = () => {
         return a.name.localeCompare(b.name);
       case 'name-desc':
         return b.name.localeCompare(a.name);
-      case 'size-desc':
-        return parseFloat(b.size) - parseFloat(a.size);
-      case 'size-asc':
-        return parseFloat(a.size) - parseFloat(b.size);
       default:
         return 0;
     }
   });
 
-  const toggleDocumentSelection = (documentId: number) => {
+  const toggleDocumentSelection = (documentId: string) => {
     setSelectedDocuments(prev => 
       prev.includes(documentId) 
         ? prev.filter(id => id !== documentId)
@@ -155,13 +147,83 @@ const Documents: React.FC = () => {
     );
   };
 
-  const handleMoveDocuments = (targetFolderId: number | null) => {
-    setDocuments(prev => prev.map(document => 
-      selectedDocuments.includes(document.id) 
-        ? { ...document, folderId: targetFolderId }
-        : document
-    ));
+  const selectAllDocuments = () => {
+    setSelectedDocuments(sortedDocuments.map(doc => doc.id));
+  };
+
+  const unselectAllDocuments = () => {
     setSelectedDocuments([]);
+  };
+
+  const handleMoveDocuments = (targetFolderId: number | null) => {
+    // TODO: Implement folder functionality
+    setSelectedDocuments([]);
+  };
+
+  const handleDeleteDocument = (documentId: string) => {
+    setDocumentToDelete(documentId);
+    setBulkDeleteMode(false);
+    setShowDeleteDialog(true);
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedDocuments.length > 0) {
+      setBulkDeleteMode(true);
+      setShowDeleteDialog(true);
+    }
+  };
+
+  const confirmDelete = async () => {
+    try {
+      if (bulkDeleteMode) {
+        // Delete multiple documents
+        const deletePromises = selectedDocuments.map(documentId => {
+          const document = documents.find(d => d.id === documentId);
+          if (document) {
+            return PropertyService.deletePropertyFile(document.id, document.file_path, document.bucket_name);
+          }
+          return Promise.resolve(false);
+        });
+        
+        await Promise.all(deletePromises);
+        toast({
+          title: "Success",
+          description: `${selectedDocuments.length} document(s) deleted successfully`
+        });
+      } else if (documentToDelete) {
+        // Delete single document
+        const document = documents.find(d => d.id === documentToDelete);
+        if (document) {
+          const success = await PropertyService.deletePropertyFile(document.id, document.file_path, document.bucket_name);
+          if (success) {
+            toast({
+              title: "Success",
+              description: "Document deleted successfully"
+            });
+          }
+        }
+      }
+      
+      await fetchDocuments(); // Refresh the list
+      setSelectedDocuments([]);
+    } catch (error) {
+      console.error('Error deleting document(s):', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete document(s)",
+        variant: "destructive"
+      });
+    } finally {
+      setShowDeleteDialog(false);
+      setDocumentToDelete(null);
+      setBulkDeleteMode(false);
+    }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteDialog(false);
+    setDocumentToDelete(null);
+    setBulkDeleteMode(false);
   };
 
   const handleCreateFolder = (name: string, color: string) => {
@@ -246,6 +308,32 @@ const Documents: React.FC = () => {
             </div>
             
             <div className="flex gap-2">
+              {selectedDocuments.length > 0 && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={selectAllDocuments}
+                  >
+                    Select All
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={unselectAllDocuments}
+                  >
+                    Unselect All
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleBulkDelete}
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Delete ({selectedDocuments.length})
+                  </Button>
+                </>
+              )}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm">
@@ -325,7 +413,7 @@ const Documents: React.FC = () => {
                         <div className={`w-3 h-3 rounded-full mr-2 bg-${folder.color}-500`} />
                         {folder.name}
                         <Badge variant="secondary" className="ml-auto">
-                          {documents.filter(d => d.folderId === folder.id).length}
+                          0
                         </Badge>
                       </Button>
                     ))}
@@ -336,81 +424,19 @@ const Documents: React.FC = () => {
 
             {/* Documents Grid */}
             <div className="lg:col-span-3">
-              {viewMode === 'grid' ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {sortedDocuments.map((document) => (
-                    <Card key={document.id} className="hover:shadow-lg transition-shadow cursor-pointer">
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                            <FileText className="h-6 w-6 text-red-600" />
-                          </div>
-                          <input
-                            type="checkbox"
-                            checked={selectedDocuments.includes(document.id)}
-                            onChange={() => toggleDocumentSelection(document.id)}
-                            className="h-4 w-4"
-                          />
-                        </div>
-                        <h3 className="font-medium text-sm mb-1 line-clamp-2">{document.name}</h3>
-                        <p className="text-xs text-gray-500 mb-2">
-                          {document.type} • {document.size}
-                        </p>
-                        <p className="text-xs text-gray-400 mb-3">
-                          {formatDate(document.uploadDate)}
-                        </p>
-                        <div className="flex gap-1">
-                          <Button size="sm" variant="outline" className="flex-1">
-                            <Eye className="h-3 w-3 mr-1" />
-                            View
-                          </Button>
-                          <Button size="sm" variant="outline" className="flex-1">
-                            <Download className="h-3 w-3 mr-1" />
-                            Download
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+              {isLoading ? (
+                <Card className="p-12 text-center">
+                  <p className="text-gray-500">Loading documents...</p>
+                </Card>
               ) : (
-                <div className="space-y-2">
-                  {sortedDocuments.map((document) => (
-                    <Card key={document.id} className="hover:shadow-sm transition-shadow">
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <input
-                              type="checkbox"
-                              checked={selectedDocuments.includes(document.id)}
-                              onChange={() => toggleDocumentSelection(document.id)}
-                              className="h-4 w-4 mr-3"
-                            />
-                            <div className="w-8 h-8 bg-red-100 rounded flex items-center justify-center mr-3">
-                              <FileText className="h-4 w-4 text-red-600" />
-                            </div>
-                            <div>
-                              <h3 className="font-medium">{document.name}</h3>
-                              <p className="text-sm text-gray-500">
-                                {document.type} • {document.size} • {formatDate(document.uploadDate)}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button size="sm" variant="outline">
-                              <Eye className="h-4 w-4 mr-1" />
-                              View
-                            </Button>
-                            <Button size="sm" variant="outline">
-                              <Download className="h-4 w-4 mr-1" />
-                              Download
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                <MediaGalleryGrid
+                  files={sortedDocuments}
+                  viewMode={viewMode}
+                  selectedFiles={selectedDocuments}
+                  onFileSelect={toggleDocumentSelection}
+                  onDeleteFile={handleDeleteDocument}
+                  mediaType="document"
+                />
               )}
             </div>
           </div>
@@ -421,6 +447,14 @@ const Documents: React.FC = () => {
         isOpen={showCreateFolder}
         onClose={() => setShowCreateFolder(false)}
         onCreateFolder={handleCreateFolder}
+      />
+
+      <DeleteConfirmationDialog
+        isOpen={showDeleteDialog}
+        onClose={cancelDelete}
+        onConfirm={confirmDelete}
+        title={bulkDeleteMode ? "Delete Documents" : "Delete Document"}
+        itemCount={bulkDeleteMode ? selectedDocuments.length : 1}
       />
       
       <Footer />

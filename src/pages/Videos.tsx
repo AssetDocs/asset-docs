@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,94 +10,62 @@ import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import CreateFolderModal from '@/components/CreateFolderModal';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import VideoGalleryHeader from '@/components/VideoGalleryHeader';
-import VideoGalleryGrid from '@/components/VideoGalleryGrid';
+import MediaGalleryGrid from '@/components/MediaGalleryGrid';
+import { PropertyService, PropertyFile } from '@/services/PropertyService';
+import { useToast } from '@/hooks/use-toast';
+import { useProperties } from '@/hooks/useProperties';
 
-// Mock data for demonstration
-const mockVideos = [
-  {
-    id: 1,
-    name: "Living Room Walkthrough",
-    filename: "living-room-tour.mp4",
-    url: "/placeholder.svg",
-    uploadDate: "2024-06-15",
-    duration: "3:45",
-    size: "45.2 MB",
-    propertyId: 1,
-    propertyName: "Main Residence",
-    folderId: null,
-    tags: ["interior", "living room"]
-  },
-  {
-    id: 2,
-    name: "Kitchen Details",
-    filename: "kitchen-appliances.mp4", 
-    url: "/placeholder.svg",
-    uploadDate: "2024-06-14",
-    duration: "2:15",
-    size: "28.7 MB",
-    propertyId: 1,
-    propertyName: "Main Residence",
-    folderId: 1,
-    tags: ["interior", "kitchen", "appliances"]
-  },
-  {
-    id: 3,
-    name: "Exterior Overview",
-    filename: "exterior-walkthrough.mp4",
-    url: "/placeholder.svg",
-    uploadDate: "2024-06-13",
-    duration: "5:30",
-    size: "67.8 MB",
-    propertyId: 2,
-    propertyName: "Vacation Home",
-    folderId: null,
-    tags: ["exterior", "landscape"]
-  }
-];
+type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'size-desc' | 'size-asc' | 'duration-desc' | 'duration-asc';
+type ViewMode = 'grid' | 'list';
 
 const mockFolders = [
   {
     id: 1,
     name: "Interior Videos",
     description: "Videos of interior spaces",
-    photoCount: 15,
+    photoCount: 0,
     createdDate: "2024-06-01",
     color: "blue"
-  },
-  {
-    id: 2,
-    name: "Exterior Videos", 
-    description: "Videos of exterior areas",
-    photoCount: 8,
-    createdDate: "2024-06-02",
-    color: "green"
-  },
-  {
-    id: 3,
-    name: "Property Tours",
-    description: "Complete property walkthroughs",
-    photoCount: 12,
-    createdDate: "2024-06-03",
-    color: "purple"
   }
 ];
 
-type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'size-desc' | 'size-asc' | 'duration-desc' | 'duration-asc';
-type ViewMode = 'grid' | 'list';
-
 const Videos: React.FC = () => {
   const navigate = useNavigate();
-  const [videos, setVideos] = useState(mockVideos);
+  const { toast } = useToast();
+  const { properties } = useProperties();
+  const [videos, setVideos] = useState<PropertyFile[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [folders, setFolders] = useState(mockFolders);
   const [selectedFolder, setSelectedFolder] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('date-desc');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedVideos, setSelectedVideos] = useState<number[]>([]);
+  const [selectedVideos, setSelectedVideos] = useState<string[]>([]);
   const [showCreateFolder, setShowCreateFolder] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [videoToDelete, setVideoToDelete] = useState<number | null>(null);
+  const [videoToDelete, setVideoToDelete] = useState<string | null>(null);
   const [bulkDeleteMode, setBulkDeleteMode] = useState(false);
+
+  useEffect(() => {
+    fetchVideos();
+  }, []);
+
+  const fetchVideos = async () => {
+    setIsLoading(true);
+    try {
+      const files = await PropertyService.getAllUserFiles('video');
+      setVideos(files);
+    } catch (error) {
+      console.error('Error fetching videos:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load videos",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleBack = () => {
     if (selectedFolder) {
@@ -107,15 +75,34 @@ const Videos: React.FC = () => {
     }
   };
 
+  const getPropertyName = (propertyId: string) => {
+    const property = properties.find(p => p.id === propertyId);
+    return property?.name || 'Unknown Property';
+  };
+
+  const formatFileSize = (bytes: number | null) => {
+    if (!bytes) return '0 B';
+    const mb = bytes / (1024 * 1024);
+    return mb >= 1 ? `${mb.toFixed(1)} MB` : `${(bytes / 1024).toFixed(1)} KB`;
+  };
+
+  const transformedVideos = videos.map(video => ({
+    id: video.id,
+    name: video.file_name,
+    url: video.file_url,
+    uploadDate: video.created_at,
+    size: formatFileSize(video.file_size),
+    propertyName: getPropertyName(video.property_id),
+    duration: '--:--' // TODO: Store duration in database
+  }));
+
   const currentFolderName = selectedFolder 
     ? folders.find(f => f.id === selectedFolder)?.name || 'Videos'
     : 'All Videos';
 
-  const filteredVideos = videos.filter(video => {
-    const matchesSearch = video.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         video.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesFolder = selectedFolder ? video.folderId === selectedFolder : true;
-    return matchesSearch && matchesFolder;
+  const filteredVideos = transformedVideos.filter(video => {
+    const matchesSearch = video.name.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
   });
 
   const sortedVideos = [...filteredVideos].sort((a, b) => {
@@ -128,16 +115,12 @@ const Videos: React.FC = () => {
         return a.name.localeCompare(b.name);
       case 'name-desc':
         return b.name.localeCompare(a.name);
-      case 'size-desc':
-        return parseFloat(b.size) - parseFloat(a.size);
-      case 'size-asc':
-        return parseFloat(a.size) - parseFloat(b.size);
       default:
         return 0;
     }
   });
 
-  const toggleVideoSelection = (videoId: number) => {
+  const toggleVideoSelection = (videoId: string) => {
     setSelectedVideos(prev => 
       prev.includes(videoId) 
         ? prev.filter(id => id !== videoId)
@@ -154,11 +137,7 @@ const Videos: React.FC = () => {
   };
 
   const handleMoveVideos = (targetFolderId: number | null) => {
-    setVideos(prev => prev.map(video => 
-      selectedVideos.includes(video.id) 
-        ? { ...video, folderId: targetFolderId }
-        : video
-    ));
+    // TODO: Implement folder functionality
     setSelectedVideos([]);
   };
 
@@ -175,7 +154,7 @@ const Videos: React.FC = () => {
     setShowCreateFolder(false);
   };
 
-  const handleDeleteVideo = (videoId: number) => {
+  const handleDeleteVideo = (videoId: string) => {
     setVideoToDelete(videoId);
     setBulkDeleteMode(false);
     setShowDeleteDialog(true);
@@ -188,17 +167,51 @@ const Videos: React.FC = () => {
     }
   };
 
-  const confirmDelete = () => {
-    if (bulkDeleteMode) {
-      setVideos(prev => prev.filter(video => !selectedVideos.includes(video.id)));
+  const confirmDelete = async () => {
+    try {
+      if (bulkDeleteMode) {
+        // Delete multiple videos
+        const deletePromises = selectedVideos.map(videoId => {
+          const video = videos.find(v => v.id === videoId);
+          if (video) {
+            return PropertyService.deletePropertyFile(video.id, video.file_path, video.bucket_name);
+          }
+          return Promise.resolve(false);
+        });
+        
+        await Promise.all(deletePromises);
+        toast({
+          title: "Success",
+          description: `${selectedVideos.length} video(s) deleted successfully`
+        });
+      } else if (videoToDelete) {
+        // Delete single video
+        const video = videos.find(v => v.id === videoToDelete);
+        if (video) {
+          const success = await PropertyService.deletePropertyFile(video.id, video.file_path, video.bucket_name);
+          if (success) {
+            toast({
+              title: "Success",
+              description: "Video deleted successfully"
+            });
+          }
+        }
+      }
+      
+      await fetchVideos(); // Refresh the list
       setSelectedVideos([]);
-    } else if (videoToDelete) {
-      setVideos(prev => prev.filter(video => video.id !== videoToDelete));
-      setSelectedVideos(prev => prev.filter(id => id !== videoToDelete));
+    } catch (error) {
+      console.error('Error deleting video(s):', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete video(s)",
+        variant: "destructive"
+      });
+    } finally {
+      setShowDeleteDialog(false);
+      setVideoToDelete(null);
+      setBulkDeleteMode(false);
     }
-    setShowDeleteDialog(false);
-    setVideoToDelete(null);
-    setBulkDeleteMode(false);
   };
 
   const cancelDelete = () => {
@@ -265,7 +278,7 @@ const Videos: React.FC = () => {
                         <div className={`w-3 h-3 rounded-full mr-2 bg-${folder.color}-500`} />
                         {folder.name}
                         <Badge variant="secondary" className="ml-auto">
-                          {videos.filter(v => v.folderId === folder.id).length}
+                          0
                         </Badge>
                       </Button>
                     ))}
@@ -276,13 +289,20 @@ const Videos: React.FC = () => {
 
             {/* Videos Grid */}
             <div className="lg:col-span-3">
-              <VideoGalleryGrid
-                videos={sortedVideos}
-                viewMode={viewMode}
-                selectedVideos={selectedVideos}
-                onVideoSelect={toggleVideoSelection}
-                onDeleteVideo={handleDeleteVideo}
-              />
+              {isLoading ? (
+                <Card className="p-12 text-center">
+                  <p className="text-gray-500">Loading videos...</p>
+                </Card>
+              ) : (
+                <MediaGalleryGrid
+                  files={sortedVideos}
+                  viewMode={viewMode}
+                  selectedFiles={selectedVideos}
+                  onFileSelect={toggleVideoSelection}
+                  onDeleteFile={handleDeleteVideo}
+                  mediaType="video"
+                />
+              )}
             </div>
           </div>
         </div>
