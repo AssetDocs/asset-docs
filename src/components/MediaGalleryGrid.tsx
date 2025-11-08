@@ -167,7 +167,7 @@ const MediaGalleryGrid: React.FC<MediaGalleryGridProps> = ({
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       {files.map((file) => (
         <Card key={file.id} className="overflow-hidden group hover:shadow-lg transition-shadow">
-          <div className={`relative ${mediaType === 'video' ? 'aspect-video' : 'aspect-square'} bg-gray-200 flex items-center justify-center`}>
+          <div className={`relative ${mediaType === 'video' ? 'aspect-video' : 'aspect-square'} bg-gray-200 flex items-center justify-center overflow-hidden`}>
             {mediaType === 'video' ? (
               <>
                 <Play className="h-12 w-12 text-gray-400" />
@@ -177,6 +177,12 @@ const MediaGalleryGrid: React.FC<MediaGalleryGridProps> = ({
                   </div>
                 )}
               </>
+            ) : mediaType === 'photo' && file.url ? (
+              <img 
+                src={file.url} 
+                alt={file.name} 
+                className="w-full h-full object-cover"
+              />
             ) : (
               <Icon className="h-12 w-12 text-gray-400" />
             )}

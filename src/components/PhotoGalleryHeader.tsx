@@ -115,10 +115,6 @@ const PhotoGalleryHeader: React.FC<PhotoGalleryHeaderProps> = ({
               Upload Photos
             </Link>
           </Button>
-          <Button onClick={onCreateFolder} variant="outline">
-            <FolderPlus className="h-4 w-4 mr-2" />
-            New Folder
-          </Button>
           
           {selectedCount > 0 && (
             <DropdownMenu>

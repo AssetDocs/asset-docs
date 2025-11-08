@@ -270,12 +270,35 @@ const PhotoGallery: React.FC = () => {
           />
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <PhotoGalleryFolders 
-              folders={folders}
-              selectedFolder={selectedFolder}
-              onFolderSelect={setSelectedFolder}
-              photos={[]}
-            />
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <Camera className="h-5 w-5" />
+                    Photo Organization
+                  </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium mb-2">Folders</h3>
+                  <Button
+                    onClick={() => setShowCreateFolder(true)}
+                    variant="outline"
+                    className="w-full justify-start border-2 border-dashed"
+                  >
+                    <FolderPlus className="h-4 w-4 mr-2" />
+                    New Folder
+                  </Button>
+                  <PhotoGalleryFolders 
+                    folders={folders}
+                    selectedFolder={selectedFolder}
+                    onFolderSelect={setSelectedFolder}
+                    photos={[]}
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
             <div className="lg:col-span-3">
               {isLoading ? (

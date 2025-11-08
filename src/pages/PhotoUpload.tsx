@@ -3,172 +3,75 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-
-import UploadSection from '@/components/PhotoUpload/UploadSection';
-import ItemDetailsSection from '@/components/PhotoUpload/ItemDetailsSection';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
-
-import { StorageService } from '@/services/StorageService';
-import { ItemService } from '@/services/ItemService';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ArrowLeft, Camera, Upload, Loader2, X, Image as ImageIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-
-interface UploadedItem {
-  id: string;
-  file?: File;
-  preview?: string;
-  name: string;
-  description: string;
-  estimatedValue: number;
-  category: string;
-  itemType: string;
-  propertyUpgrade?: string;
-  propertyId: string;
-  location: string;
-  isManualEntry?: boolean;
-}
+import { useProperties } from '@/hooks/useProperties';
+import { usePropertyFiles } from '@/hooks/usePropertyFiles';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 
 const PhotoUpload: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { properties } = useProperties();
+  const { subscriptionTier } = useSubscription();
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string>('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [uploadedItems, setUploadedItems] = useState<UploadedItem[]>([]);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [defaultPropertyId, setDefaultPropertyId] = useState('');
-  const [defaultItemType, setDefaultItemType] = useState('');
-  const [defaultCategory, setDefaultCategory] = useState('');
+  const [previews, setPreviews] = useState<string[]>([]);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const cameraInputRef = React.useRef<HTMLInputElement>(null);
+  const { uploadFiles, isUploading } = usePropertyFiles(selectedPropertyId || null, 'photo');
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
       setSelectedFiles([...selectedFiles, ...files]);
-    }
-  };
-
-  const processItems = async () => {
-    setIsProcessing(true);
-    const newItems: UploadedItem[] = [];
-
-    for (const file of selectedFiles) {
-      const preview = URL.createObjectURL(file);
       
-      const basicItem: UploadedItem = {
-        id: Date.now().toString() + Math.random().toString(),
-        file,
-        preview,
-        name: file.name.replace(/\.[^/.]+$/, ""),
-        description: '',
-        estimatedValue: 0,
-        category: defaultCategory || 'Manual Entry',
-        itemType: defaultItemType || 'Other',
-        propertyId: defaultPropertyId,
-        location: ''
-      };
-      newItems.push(basicItem);
+      // Create previews
+      const newPreviews = files.map(file => URL.createObjectURL(file));
+      setPreviews([...previews, ...newPreviews]);
     }
-
-    setUploadedItems([...uploadedItems, ...newItems]);
-    setSelectedFiles([]);
-    setIsProcessing(false);
   };
 
-
-  const updateItemValue = (id: string, field: string, value: string | number | boolean) => {
-    setUploadedItems(items =>
-      items.map(item =>
-        item.id === id 
-          ? { ...item, [field]: value }
-          : item
-      )
-    );
+  const removeFile = (index: number) => {
+    URL.revokeObjectURL(previews[index]);
+    setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
+    setPreviews(previews.filter((_, i) => i !== index));
   };
 
-  const removeItem = (id: string) => {
-    setUploadedItems(items => items.filter(item => item.id !== id));
-  };
-
-  const saveItems = async () => {
-    if (!user?.id) {
+  const handleUpload = async () => {
+    if (!selectedPropertyId) {
       toast({
-        title: "Authentication required",
-        description: "Please log in to save your items.",
+        title: "Select a property",
+        description: "Please select a property before uploading photos.",
         variant: "destructive",
       });
       return;
     }
 
-    setIsSaving(true);
-    
-    try {
-      // Upload files to storage and save item details
-      for (const item of uploadedItems) {
-        let photoUrl = '';
-        let photoPath = '';
-
-        // Upload file if it exists
-        if (item.file) {
-          try {
-            const uploadResult = await StorageService.uploadFile(
-              item.file,
-              'photos',
-              user.id,
-              `${item.name.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.${item.file.name.split('.').pop()}`
-            );
-            photoUrl = uploadResult.url;
-            photoPath = uploadResult.path;
-          } catch (uploadError) {
-            console.error('Error uploading file:', uploadError);
-            throw new Error(`Failed to upload photo for ${item.name}: ${uploadError instanceof Error ? uploadError.message : 'Unknown error'}`);
-          }
-        }
-
-        // Save item to database
-        try {
-          await ItemService.createItem({
-            user_id: user.id,
-            name: item.name || 'Untitled Item',
-            description: item.description,
-            estimated_value: item.estimatedValue,
-            category: item.category,
-            item_type: item.itemType,
-            property_upgrade: item.propertyUpgrade,
-            property_id: item.propertyId,
-            location: item.location,
-            photo_url: photoUrl,
-            photo_path: photoPath,
-            is_manual_entry: item.isManualEntry
-          });
-        } catch (dbError) {
-          console.error('Error saving item to database:', dbError);
-          throw new Error(`Failed to save item ${item.name}: ${dbError instanceof Error ? dbError.message : 'Unknown error'}`);
-        }
-      }
-
+    if (selectedFiles.length === 0) {
       toast({
-        title: "Items saved successfully!",
-        description: `${uploadedItems.length} item(s) have been saved to your inventory.`,
-      });
-
-      // Clear the form
-      setSelectedFiles([]);
-      setUploadedItems([]);
-      
-      // Navigate to inventory page
-      navigate('/inventory');
-    } catch (error) {
-      console.error('Error saving items:', error);
-      const errorMessage = error instanceof Error ? error.message : 'There was an error saving your items. Please try again.';
-      toast({
-        title: "Save failed",
-        description: errorMessage,
+        title: "No files selected",
+        description: "Please select at least one photo to upload.",
         variant: "destructive",
       });
-    } finally {
-      setIsSaving(false);
+      return;
     }
+
+    await uploadFiles(selectedFiles);
+    
+    // Clear selections
+    setSelectedFiles([]);
+    previews.forEach(preview => URL.revokeObjectURL(preview));
+    setPreviews([]);
+    
+    // Navigate to photo gallery
+    navigate('/photo-gallery');
   };
 
   return (
@@ -176,7 +79,7 @@ const PhotoUpload: React.FC = () => {
       <Navbar />
       
       <div className="flex-grow py-8 px-4 bg-gray-50">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           <div className="mb-6">
             <Button 
               variant="ghost" 
@@ -187,25 +90,136 @@ const PhotoUpload: React.FC = () => {
               Back to Dashboard
             </Button>
             <h1 className="text-3xl font-bold text-brand-blue mb-2">Upload Photos</h1>
-            <p className="text-gray-600">Upload photos of your items and document them with estimated values</p>
+            <p className="text-gray-600">Upload photos to your property gallery</p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <UploadSection
-              selectedFiles={selectedFiles}
-              onFileSelect={handleFileSelect}
-              onProcessItems={processItems}
-              isAnalyzing={isProcessing}
-            />
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Camera className="h-6 w-6 mr-2 text-brand-blue" />
+                Property Photo Upload
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Property Selector */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Select Property</label>
+                <Select value={selectedPropertyId} onValueChange={setSelectedPropertyId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a property..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {properties.map((property) => (
+                      <SelectItem key={property.id} value={property.id}>
+                        {property.name} - {property.address}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <ItemDetailsSection
-              uploadedItems={uploadedItems}
-              onUpdateItemValue={updateItemValue}
-              onRemoveItem={removeItem}
-              onSaveItems={saveItems}
-              isSaving={isSaving}
-            />
-          </div>
+              {/* Hidden file inputs */}
+              <Input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              
+              <Input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+
+              {/* Upload Options */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Button
+                  onClick={() => cameraInputRef.current?.click()}
+                  variant="outline"
+                  className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-dashed border-brand-blue/30 hover:border-brand-blue/50 hover:bg-brand-blue/5"
+                  disabled={!selectedPropertyId}
+                >
+                  <Camera className="h-6 w-6 text-brand-blue" />
+                  <div className="text-center">
+                    <div className="font-medium text-sm">Take Photo</div>
+                    <div className="text-xs text-gray-500">Use camera</div>
+                  </div>
+                </Button>
+
+                <Button
+                  onClick={() => fileInputRef.current?.click()}
+                  variant="outline"
+                  className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-dashed border-brand-blue/30 hover:border-brand-blue/50 hover:bg-brand-blue/5"
+                  disabled={!selectedPropertyId}
+                >
+                  <ImageIcon className="h-6 w-6 text-brand-blue" />
+                  <div className="text-center">
+                    <div className="font-medium text-sm">Choose Photos</div>
+                    <div className="text-xs text-gray-500">From gallery</div>
+                  </div>
+                </Button>
+              </div>
+
+              {/* Selected Files Preview */}
+              {selectedFiles.length > 0 && (
+                <div className="space-y-4">
+                  <p className="text-sm font-medium">
+                    {selectedFiles.length} photo{selectedFiles.length !== 1 ? 's' : ''} selected
+                  </p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {selectedFiles.map((file, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={previews[index]}
+                          alt={file.name}
+                          className="w-full h-32 object-cover rounded-lg border"
+                        />
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="absolute top-2 right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => removeFile(index)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                        <p className="text-xs truncate mt-1">{file.name}</p>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <Button 
+                    onClick={handleUpload}
+                    disabled={isUploading || !selectedPropertyId}
+                    className="w-full bg-brand-orange hover:bg-brand-orange/90"
+                  >
+                    {isUploading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload Photos to Gallery
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+
+              {!selectedPropertyId && (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Please select a property to start uploading photos
+                </p>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
       

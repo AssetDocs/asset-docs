@@ -55,7 +55,6 @@ const UploadSection: React.FC<UploadSectionProps> = ({
         <Input
           ref={cameraInputRef}
           type="file"
-          multiple
           accept="image/*"
           capture="environment"
           onChange={onFileSelect}
