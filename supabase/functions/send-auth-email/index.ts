@@ -54,7 +54,9 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const displayName = user.user_metadata?.first_name || "Valued User";
-    const confirmationUrl = `${email_data.site_url}/auth/callback?token_hash=${email_data.token_hash}&type=${email_data.email_action_type}&redirect_to=${encodeURIComponent(email_data.redirect_to || "/account")}`;
+    // Use the actual app domain instead of Supabase's site_url
+    const appUrl = "https://assetdocs.net";
+    const confirmationUrl = `${appUrl}/auth/callback?token_hash=${email_data.token_hash}&type=${email_data.email_action_type}&redirect_to=${encodeURIComponent(email_data.redirect_to || "/account")}`;
 
     let subject = "";
     let html = "";
