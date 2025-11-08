@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -14,40 +13,8 @@ import RealEstateDataService from '@/services/RealEstateDataService';
 import { useToast } from '@/hooks/use-toast';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { checkPropertyLimit } from '@/config/subscriptionFeatures';
-
-interface Property {
-  id: number;
-  name: string;
-  address: string;
-  type: string;
-  squareFootage: number;
-  yearBuilt: number;
-  estimatedValue: number;
-  lastUpdated: string;
-  photos: Array<{
-    id: number;
-    name: string;
-    url: string;
-    uploadDate: string;
-  }>;
-  videos: Array<{
-    id: number;
-    name: string;
-    duration: string;
-    uploadDate: string;
-  }>;
-  documents: Array<{
-    id: number;
-    name: string;
-    type: string;
-    uploadDate: string;
-  }>;
-  floorPlans: Array<{
-    id: number;
-    name: string;
-    uploadDate: string;
-  }>;
-}
+import { useProperties } from '@/hooks/useProperties';
+import { Property } from '@/services/PropertyService';
 
 interface PropertyFormData {
   name: string;
@@ -59,20 +26,17 @@ interface PropertyFormData {
 }
 
 interface PropertyManagementProps {
-  properties: Property[];
-  onPropertyUpdate: (properties: Property[]) => void;
-  selectedProperty: Property | null;
-  onPropertySelect: (property: Property) => void;
+  onPropertySelect: (property: Property | null) => void;
+  selectedPropertyId: string | null;
 }
 
 const PropertyManagement: React.FC<PropertyManagementProps> = ({
-  properties,
-  onPropertyUpdate,
-  selectedProperty,
-  onPropertySelect
+  onPropertySelect,
+  selectedPropertyId
 }) => {
-  const { toast } = useToast();
+  const { properties, isLoading, addProperty, updateProperty, deleteProperty } = useProperties();
   const { subscriptionStatus, isInTrial } = useSubscription();
+  const { toast } = useToast();
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [formData, setFormData] = useState<PropertyFormData>({
@@ -140,29 +104,19 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
       name: property.name,
       address: property.address,
       type: property.type,
-      squareFootage: property.squareFootage.toString(),
-      yearBuilt: property.yearBuilt.toString(),
-      estimatedValue: property.estimatedValue.toString()
+      squareFootage: property.square_footage?.toString() || '',
+      yearBuilt: property.year_built?.toString() || '',
+      estimatedValue: property.estimated_value?.toString() || ''
     });
   };
 
-  const handleDelete = (propertyId: number) => {
-    const updatedProperties = properties.filter(p => p.id !== propertyId);
-    onPropertyUpdate(updatedProperties);
+  const handleDelete = async (propertyId: string) => {
+    const success = await deleteProperty(propertyId);
     
-    // If the deleted property was selected, select the first remaining property or null
-    if (selectedProperty?.id === propertyId) {
-      if (updatedProperties.length > 0) {
-        onPropertySelect(updatedProperties[0]);
-      } else {
-        onPropertySelect(null);
-      }
+    // If the deleted property was selected, clear selection
+    if (success && selectedPropertyId === propertyId) {
+      onPropertySelect(null);
     }
-    
-    toast({
-      title: "Property Deleted",
-      description: "The property has been successfully removed.",
-    });
   };
 
   const handleAddProperty = () => {
@@ -185,7 +139,7 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
     setIsAddDialogOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Double-check property limits for new properties (not edits)
@@ -197,11 +151,6 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
       );
       
       if (!limitCheck.canAdd) {
-        toast({
-          title: "Property Limit Reached",
-          description: limitCheck.message,
-          variant: "destructive",
-        });
         return;
       }
     }
@@ -210,53 +159,22 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
       name: formData.name,
       address: formData.address,
       type: formData.type,
-      squareFootage: parseInt(formData.squareFootage) || 0,
-      yearBuilt: parseInt(formData.yearBuilt) || new Date().getFullYear(),
-      estimatedValue: parseInt(formData.estimatedValue) || 0,
-      lastUpdated: new Date().toISOString().split('T')[0],
-      photos: [],
-      videos: [],
-      documents: [],
-      floorPlans: []
+      square_footage: parseInt(formData.squareFootage) || null,
+      year_built: parseInt(formData.yearBuilt) || null,
+      estimated_value: parseFloat(formData.estimatedValue) || null,
     };
 
     if (editingProperty) {
-      // Update existing property
-      const updatedProperties = properties.map(p => 
-        p.id === editingProperty.id 
-          ? { ...p, ...propertyData }
-          : p
-      );
-      onPropertyUpdate(updatedProperties);
-      
-      // Update selected property if it was the one being edited
-      if (selectedProperty?.id === editingProperty.id) {
-        onPropertySelect({ ...selectedProperty, ...propertyData });
+      const updated = await updateProperty(editingProperty.id, propertyData);
+      if (updated) {
+        setEditingProperty(null);
       }
-      
-      toast({
-        title: "Property Updated",
-        description: "The property has been successfully updated.",
-      });
-      
-      setEditingProperty(null);
     } else {
-      // Add new property
-      const newProperty = {
-        id: Math.max(...properties.map(p => p.id), 0) + 1,
-        ...propertyData
-      };
-      
-      const updatedProperties = [...properties, newProperty];
-      onPropertyUpdate(updatedProperties);
-      onPropertySelect(newProperty);
-      
-      toast({
-        title: "Property Added",
-        description: "The new property has been successfully created.",
-      });
-      
-      setIsAddDialogOpen(false);
+      const newProperty = await addProperty(propertyData);
+      if (newProperty) {
+        onPropertySelect(newProperty);
+        setIsAddDialogOpen(false);
+      }
     }
     
     resetForm();
@@ -387,7 +305,11 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
         </Dialog>
       </div>
 
-      {properties.length === 0 ? (
+      {isLoading ? (
+        <Card className="p-8 text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+        </Card>
+      ) : properties.length === 0 ? (
         <Card className="p-8 text-center text-gray-500">
           <div className="flex flex-col items-center gap-4">
             <Home className="h-12 w-12 text-gray-300" />
@@ -409,7 +331,7 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
           <Card 
             key={property.id}
             className={`cursor-pointer transition-all hover:shadow-md ${
-              selectedProperty?.id === property.id ? 'ring-2 ring-primary' : ''
+              selectedPropertyId === property.id ? 'ring-2 ring-primary' : ''
             }`}
             onClick={() => onPropertySelect(property)}
           >
@@ -558,7 +480,9 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
           <CardContent className="pt-0">
             <div className="flex justify-between items-center text-sm text-muted-foreground">
               <span>{property.type}</span>
-              <Badge variant="secondary">{formatCurrency(property.estimatedValue)}</Badge>
+              {property.estimated_value && (
+                <Badge variant="secondary">{formatCurrency(property.estimated_value)}</Badge>
+              )}
             </div>
           </CardContent>
         </Card>

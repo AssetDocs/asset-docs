@@ -311,7 +311,7 @@ const MediaManagement: React.FC = () => {
                       Manage your property video walkthroughs and documentation
                     </p>
                   </div>
-                  <PropertyVideos videos={videos} />
+                  <PropertyVideos propertyId={null} />
                 </TabsContent>
 
                 <TabsContent value="documents">
@@ -321,7 +321,7 @@ const MediaManagement: React.FC = () => {
                       Store and organize important property documents and records
                     </p>
                   </div>
-                  <PropertyDocuments documents={documents} />
+                  <PropertyDocuments propertyId={null} />
                 </TabsContent>
 
 

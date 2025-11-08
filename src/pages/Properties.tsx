@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -11,29 +10,22 @@ import PropertyHeader from '@/components/PropertyHeader';
 import PropertySummary from '@/components/PropertySummary';
 import EmailVerificationNotice from '@/components/EmailVerificationNotice';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
-
-// Empty properties array - users must add their own properties
-const mockProperties: any[] = [];
+import { useProperties } from '@/hooks/useProperties';
+import { Property } from '@/services/PropertyService';
 
 const Properties: React.FC = () => {
   const navigate = useNavigate();
-  const [properties, setProperties] = useState(mockProperties);
-  const [selectedProperty, setSelectedProperty] = useState<any>(null);
+  const { properties } = useProperties();
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
+
+  const selectedProperty = properties.find(p => p.id === selectedPropertyId) || null;
 
   const handleViewPhotoGallery = () => {
     navigate('/account/photos');
   };
 
-  const handlePropertyUpdate = (updatedProperties: typeof mockProperties) => {
-    setProperties(updatedProperties);
-  };
-
-  const handleSelectedPropertyUpdate = (updatedProperty: typeof mockProperties[0]) => {
-    const updatedProperties = properties.map(prop => 
-      prop.id === updatedProperty.id ? updatedProperty : prop
-    );
-    setProperties(updatedProperties);
-    setSelectedProperty(updatedProperty);
+  const handlePropertySelect = (property: Property | null) => {
+    setSelectedPropertyId(property?.id || null);
   };
 
   return (
@@ -67,10 +59,8 @@ const Properties: React.FC = () => {
             {/* Property Management */}
             <div className="lg:col-span-1">
               <PropertyManagement
-                properties={properties}
-                onPropertyUpdate={handlePropertyUpdate}
-                selectedProperty={selectedProperty}
-                onPropertySelect={setSelectedProperty}
+                onPropertySelect={handlePropertySelect}
+                selectedPropertyId={selectedPropertyId}
               />
             </div>
 
@@ -78,12 +68,9 @@ const Properties: React.FC = () => {
             <div className="lg:col-span-2">
               {selectedProperty ? (
                 <Card>
-                  <PropertyHeader 
-                    property={selectedProperty} 
-                    onPropertyUpdate={handleSelectedPropertyUpdate}
-                  />
+                  <PropertyHeader property={selectedProperty} />
                   <CardContent>
-                    <PropertySummary property={selectedProperty} />
+                    <PropertySummary propertyId={selectedProperty.id} />
                   </CardContent>
                 </Card>
               ) : (
