@@ -2,12 +2,15 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { CheckCircle2 } from 'lucide-react';
 
 const AuthCallback = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(false);
 
   useEffect(() => {
     const handleAuthCallback = async () => {
@@ -36,41 +39,33 @@ const AuthCallback = () => {
         console.log('Auth callback successful:', data);
 
         // Show success message based on the type
-        switch (type) {
-          case 'signup':
-          case 'email_change_confirm_new':
-            toast({
-              title: "Email Verified!",
-              description: "Your email has been successfully verified. Welcome to Asset Docs!",
-            });
-            break;
-          case 'recovery':
-            toast({
-              title: "Password Reset",
-              description: "You can now set a new password for your account.",
-            });
-            break;
-          case 'magiclink':
-            toast({
-              title: "Signed In!",
-              description: "You've been successfully signed in with your magic link.",
-            });
-            break;
-        }
-
-        // Redirect to the specified URL or default to subscription checkout after signup
-        if (redirect_to) {
-          // Use window.location for external redirects to preserve query params
-          window.location.href = redirect_to;
-        } else if (type === 'signup' || type === 'email_change_confirm_new') {
-          // Get plan type from session storage if available
-          const planType = sessionStorage.getItem('selectedPlanType') || 'standard';
-          sessionStorage.removeItem('selectedPlanType'); // Clean up
-          
-          // Redirect to subscription success page which will initiate Stripe checkout
-          navigate(`/subscription-success?plan=${planType}`, { replace: true });
+        if (type === 'signup' || type === 'email_change_confirm_new') {
+          // Show welcome screen for signup
+          setShowWelcome(true);
+          setLoading(false);
         } else {
-          navigate('/account', { replace: true });
+          // For other types, show toast and redirect
+          switch (type) {
+            case 'recovery':
+              toast({
+                title: "Password Reset",
+                description: "You can now set a new password for your account.",
+              });
+              break;
+            case 'magiclink':
+              toast({
+                title: "Signed In!",
+                description: "You've been successfully signed in with your magic link.",
+              });
+              break;
+          }
+
+          // Redirect for non-signup types
+          if (redirect_to) {
+            window.location.href = redirect_to;
+          } else {
+            navigate('/account', { replace: true });
+          }
         }
 
       } catch (error: any) {
@@ -92,6 +87,12 @@ const AuthCallback = () => {
     handleAuthCallback();
   }, [searchParams, navigate, toast]);
 
+  const handleContinue = () => {
+    const planType = sessionStorage.getItem('selectedPlanType') || 'standard';
+    sessionStorage.removeItem('selectedPlanType');
+    navigate(`/subscription-success?plan=${planType}`, { replace: true });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -99,6 +100,42 @@ const AuthCallback = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <h2 className="text-xl font-semibold text-foreground">Processing Authentication...</h2>
           <p className="text-muted-foreground">Please wait while we verify your request.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (showWelcome) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10 p-4">
+        <div className="max-w-2xl w-full text-center space-y-8">
+          <div className="w-20 h-20 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center mx-auto shadow-lg">
+            <CheckCircle2 className="w-10 h-10 text-primary-foreground" />
+          </div>
+          
+          <div className="space-y-4">
+            <h1 className="text-4xl md:text-5xl font-bold text-foreground">
+              Welcome to Asset Docs!
+            </h1>
+            <p className="text-xl text-muted-foreground">
+              Your email has been successfully verified. Thank you for taking proactive steps to protect your assets and minimize your risks.
+            </p>
+            <p className="text-lg font-medium text-primary">
+              You've made an excellent decision for your future security.
+            </p>
+          </div>
+
+          <Button 
+            size="lg" 
+            onClick={handleContinue}
+            className="text-lg px-8 py-6"
+          >
+            Continue to Subscription
+          </Button>
+
+          <p className="text-sm text-muted-foreground">
+            We'll help you choose the perfect plan for your needs
+          </p>
         </div>
       </div>
     );
