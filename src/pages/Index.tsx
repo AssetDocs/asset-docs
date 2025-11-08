@@ -3,6 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import UnderConstructionBanner from '@/components/UnderConstructionBanner';
 import HeroSection from '@/components/HeroSection';
 import AboutSection from '@/components/AboutSection';
 import TrialCTASection from '@/components/TrialCTASection';
@@ -16,6 +17,7 @@ import FeedbackSection from '@/components/FeedbackSection';
 const Index: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen">
+      <UnderConstructionBanner />
       <Navbar />
       <HeroSection />
       <AboutSection />
