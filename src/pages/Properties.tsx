@@ -18,6 +18,13 @@ const Properties: React.FC = () => {
   const { properties } = useProperties();
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
 
+  // Auto-select first property when properties are loaded
+  React.useEffect(() => {
+    if (properties.length > 0 && !selectedPropertyId) {
+      setSelectedPropertyId(properties[0].id);
+    }
+  }, [properties, selectedPropertyId]);
+
   const selectedProperty = properties.find(p => p.id === selectedPropertyId) || null;
 
   const handleViewPhotoGallery = () => {
@@ -66,14 +73,7 @@ const Properties: React.FC = () => {
 
             {/* Property Details */}
             <div className="lg:col-span-2">
-              {selectedProperty ? (
-                <Card>
-                  <PropertyHeader property={selectedProperty} />
-                  <CardContent>
-                    <PropertySummary propertyId={selectedProperty.id} />
-                  </CardContent>
-                </Card>
-              ) : (
+              {properties.length === 0 ? (
                 <Card>
                   <CardContent className="p-8 text-center text-gray-500">
                     <div className="flex flex-col items-center gap-4">
@@ -88,7 +88,14 @@ const Properties: React.FC = () => {
                     </div>
                   </CardContent>
                 </Card>
-              )}
+              ) : selectedProperty ? (
+                <Card>
+                  <PropertyHeader property={selectedProperty} />
+                  <CardContent>
+                    <PropertySummary propertyId={selectedProperty.id} />
+                  </CardContent>
+                </Card>
+              ) : null}
             </div>
           </div>
         </div>
