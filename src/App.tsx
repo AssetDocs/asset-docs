@@ -188,8 +188,10 @@ const AppContent = () => {
         <Route path="/qa" element={<QA />} />
         <Route path="/testimonials" element={<Testimonials />} />
         
+        {/* Welcome page - public to allow unverified users to see it */}
+        <Route path="/welcome" element={<Welcome />} />
+        
         {/* Protected routes */}
-        <Route path="/welcome" element={<ProtectedRoute skipSubscriptionCheck={true}><Welcome /></ProtectedRoute>} />
         <Route path="/subscription-success" element={<ProtectedRoute skipSubscriptionCheck={true}><SubscriptionSuccess /></ProtectedRoute>} />
         <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
         <Route path="/account/properties" element={<ProtectedRoute><Properties /></ProtectedRoute>} />
