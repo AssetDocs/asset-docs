@@ -612,6 +612,95 @@ export type Database = {
         }
         Relationships: []
       }
+      properties: {
+        Row: {
+          address: string
+          created_at: string | null
+          estimated_value: number | null
+          id: string
+          last_updated: string | null
+          name: string
+          square_footage: number | null
+          type: string
+          updated_at: string | null
+          user_id: string
+          year_built: number | null
+        }
+        Insert: {
+          address: string
+          created_at?: string | null
+          estimated_value?: number | null
+          id?: string
+          last_updated?: string | null
+          name: string
+          square_footage?: number | null
+          type: string
+          updated_at?: string | null
+          user_id: string
+          year_built?: number | null
+        }
+        Update: {
+          address?: string
+          created_at?: string | null
+          estimated_value?: number | null
+          id?: string
+          last_updated?: string | null
+          name?: string
+          square_footage?: number | null
+          type?: string
+          updated_at?: string | null
+          user_id?: string
+          year_built?: number | null
+        }
+        Relationships: []
+      }
+      property_files: {
+        Row: {
+          bucket_name: string
+          created_at: string | null
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string
+          file_url: string
+          id: string
+          property_id: string
+          user_id: string
+        }
+        Insert: {
+          bucket_name: string
+          created_at?: string | null
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type: string
+          file_url: string
+          id?: string
+          property_id: string
+          user_id: string
+        }
+        Update: {
+          bucket_name?: string
+          created_at?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string
+          file_url?: string
+          id?: string
+          property_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_files_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rate_limits: {
         Row: {
           action: string
