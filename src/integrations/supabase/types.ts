@@ -602,6 +602,7 @@ export type Database = {
           created_at: string
           current_period_end: string | null
           first_name: string | null
+          household_income: string | null
           id: string
           last_name: string | null
           phone: string | null
@@ -620,6 +621,7 @@ export type Database = {
           created_at?: string
           current_period_end?: string | null
           first_name?: string | null
+          household_income?: string | null
           id?: string
           last_name?: string | null
           phone?: string | null
@@ -638,6 +640,7 @@ export type Database = {
           created_at?: string
           current_period_end?: string | null
           first_name?: string | null
+          household_income?: string | null
           id?: string
           last_name?: string | null
           phone?: string | null
