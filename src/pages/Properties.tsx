@@ -91,9 +91,6 @@ const Properties: React.FC = () => {
               ) : selectedProperty ? (
                 <Card>
                   <PropertyHeader property={selectedProperty} />
-                  <CardContent>
-                    <PropertySummary propertyId={selectedProperty.id} />
-                  </CardContent>
                 </Card>
               ) : null}
             </div>
