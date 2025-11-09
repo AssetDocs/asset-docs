@@ -31,13 +31,12 @@ interface PasswordEntry {
 }
 
 const MASTER_PASSWORD_HASH_KEY = 'assetdocs_master_password_hash';
-const SESSION_MASTER_PASSWORD_KEY = 'assetdocs_session_master_password';
 
 const PasswordCatalog: React.FC = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [passwords, setPasswords] = useState<PasswordEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [showPasswords, setShowPasswords] = useState<{ [key: string]: boolean }>({});
   const [masterPasswordModal, setMasterPasswordModal] = useState<{ isOpen: boolean; isSetup: boolean }>({
     isOpen: false,
@@ -54,32 +53,15 @@ const PasswordCatalog: React.FC = () => {
     notes: '',
   });
 
-  useEffect(() => {
-    if (user) {
-      initializeMasterPassword();
-    }
-  }, [user]);
-
-  const initializeMasterPassword = () => {
-    // Check if master password is already set up
+  const handleUnlockClick = () => {
     const storedHash = localStorage.getItem(MASTER_PASSWORD_HASH_KEY);
     
     if (!storedHash) {
-      // First time setup
+      // First time - need to setup master password
       setMasterPasswordModal({ isOpen: true, isSetup: true });
-      setLoading(false);
     } else {
-      // Check if we have a session password
-      const sessionPassword = sessionStorage.getItem(SESSION_MASTER_PASSWORD_KEY);
-      if (sessionPassword) {
-        setSessionMasterPassword(sessionPassword);
-        setIsUnlocked(true);
-        fetchPasswords(sessionPassword);
-      } else {
-        // Need to unlock
-        setMasterPasswordModal({ isOpen: true, isSetup: false });
-        setLoading(false);
-      }
+      // Already setup - need to enter password
+      setMasterPasswordModal({ isOpen: true, isSetup: false });
     }
   };
 
@@ -90,7 +72,6 @@ const PasswordCatalog: React.FC = () => {
       // Setup new master password
       const hash = await createPasswordVerificationHash(password);
       localStorage.setItem(MASTER_PASSWORD_HASH_KEY, hash);
-      sessionStorage.setItem(SESSION_MASTER_PASSWORD_KEY, password);
       setSessionMasterPassword(password);
       setIsUnlocked(true);
       setMasterPasswordModal({ isOpen: false, isSetup: false });
@@ -102,7 +83,6 @@ const PasswordCatalog: React.FC = () => {
     } else {
       // Verify password
       if (storedHash && await verifyMasterPassword(password, storedHash)) {
-        sessionStorage.setItem(SESSION_MASTER_PASSWORD_KEY, password);
         setSessionMasterPassword(password);
         setIsUnlocked(true);
         setMasterPasswordModal({ isOpen: false, isSetup: false });
@@ -272,7 +252,7 @@ const PasswordCatalog: React.FC = () => {
               <p className="text-sm text-muted-foreground mb-4">
                 Enter your master password to access your encrypted passwords
               </p>
-              <Button onClick={() => setMasterPasswordModal({ isOpen: true, isSetup: false })}>
+              <Button onClick={handleUnlockClick}>
                 <Lock className="h-4 w-4 mr-2" />
                 Unlock Password Catalog
               </Button>

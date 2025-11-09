@@ -70,10 +70,10 @@ const MasterPasswordModal: React.FC<MasterPasswordModalProps> = ({
             {isSetup ? (
               <>
                 Create a strong master password to encrypt your passwords. 
-                <strong className="block mt-2 text-destructive">⚠️ This password is NEVER stored on our servers and cannot be recovered if forgotten!</strong>
+                <strong className="block mt-2 text-destructive">⚠️ This password is NEVER stored and must be entered every time you access your passwords!</strong>
               </>
             ) : (
-              'Enter your master password to access your encrypted passwords.'
+              'Enter your master password to decrypt and access your passwords. You must enter this every time.'
             )}
           </DialogDescription>
         </DialogHeader>
@@ -84,7 +84,7 @@ const MasterPasswordModal: React.FC<MasterPasswordModalProps> = ({
               <Lock className="h-4 w-4" />
               <AlertDescription className="ml-2">
                 Your master password encrypts all passwords on YOUR device before sending to our database. 
-                We cannot help you recover it if lost!
+                You must enter it every time you access your passwords - we never store it!
               </AlertDescription>
             </Alert>
           )}
