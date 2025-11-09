@@ -84,6 +84,20 @@ const ProfileTab: React.FC = () => {
     setIsLoading(true);
     
     try {
+      // Check if email has changed
+      const emailChanged = email !== user.email;
+      
+      if (emailChanged) {
+        // Update email via Supabase auth (requires verification)
+        const { error: emailError } = await supabase.auth.updateUser({
+          email: email,
+        });
+
+        if (emailError) {
+          throw emailError;
+        }
+      }
+
       // Update profile in database
       const { error: updateError } = await supabase
         .from('profiles')
@@ -98,10 +112,17 @@ const ProfileTab: React.FC = () => {
         throw updateError;
       }
 
-      toast({
-        title: "Profile Updated",
-        description: "Your profile information has been successfully updated.",
-      });
+      if (emailChanged) {
+        toast({
+          title: "Verification Email Sent",
+          description: "Please check your new email address and click the verification link to complete the email change.",
+        });
+      } else {
+        toast({
+          title: "Profile Updated",
+          description: "Your profile information has been successfully updated.",
+        });
+      }
     } catch (error) {
       console.error('Error updating profile:', error);
       toast({
@@ -165,11 +186,10 @@ const ProfileTab: React.FC = () => {
               type="email" 
               placeholder="Enter your email" 
               value={email}
-              disabled
-              className="bg-gray-50"
+              onChange={(e) => setEmail(e.target.value)}
             />
             <p className="text-sm text-muted-foreground">
-              Email cannot be changed here. Contact support to update your email.
+              Changing your email requires verification. You'll receive a confirmation link at your new email address.
             </p>
           </div>
           
