@@ -401,7 +401,7 @@ const PasswordCatalog: React.FC = () => {
                       <Label className="text-xs text-muted-foreground">Password</Label>
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-sm">
-                          {showPasswords[password.id] 
+                          {!showPasswords[password.id] 
                             ? (decryptedPasswords[password.id] || 'Decrypting...')
                             : '••••••••'}
                         </span>
@@ -410,7 +410,7 @@ const PasswordCatalog: React.FC = () => {
                           size="sm"
                           onClick={() => togglePasswordVisibility(password.id)}
                         >
-                          {showPasswords[password.id] ? (
+                          {!showPasswords[password.id] ? (
                             <EyeOff className="h-4 w-4" />
                           ) : (
                             <Eye className="h-4 w-4" />
