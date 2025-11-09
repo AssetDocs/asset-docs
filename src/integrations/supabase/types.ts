@@ -565,11 +565,13 @@ export type Database = {
         Row: {
           account_number: string | null
           avatar_url: string | null
+          bio: string | null
           created_at: string
           current_period_end: string | null
           first_name: string | null
           id: string
           last_name: string | null
+          phone: string | null
           plan_id: string | null
           plan_status: string | null
           property_limit: number | null
@@ -581,11 +583,13 @@ export type Database = {
         Insert: {
           account_number?: string | null
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           current_period_end?: string | null
           first_name?: string | null
           id?: string
           last_name?: string | null
+          phone?: string | null
           plan_id?: string | null
           plan_status?: string | null
           property_limit?: number | null
@@ -597,11 +601,13 @@ export type Database = {
         Update: {
           account_number?: string | null
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           current_period_end?: string | null
           first_name?: string | null
           id?: string
           last_name?: string | null
+          phone?: string | null
           plan_id?: string | null
           plan_status?: string | null
           property_limit?: number | null

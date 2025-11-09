@@ -1,15 +1,59 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, CreditCard, Calendar } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import PaymentHistory from '@/components/PaymentHistory';
 import { supabase } from '@/integrations/supabase/client';
 
+interface PaymentMethodInfo {
+  brand: string;
+  last4: string;
+  exp_month: number;
+  exp_year: number;
+}
+
 const BillingTab: React.FC = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethodInfo[]>([]);
+  const [loadingMethods, setLoadingMethods] = useState(true);
+
+  useEffect(() => {
+    fetchPaymentMethods();
+  }, []);
+
+  const fetchPaymentMethods = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('payment-history');
+      
+      if (error) throw error;
+
+      // Extract unique payment methods from payment history
+      if (data.payments && data.payments.length > 0) {
+        const methods = data.payments
+          .filter((p: any) => p.paymentMethod)
+          .map((p: any) => ({
+            brand: p.paymentMethod.type || 'card',
+            last4: p.paymentMethod.last4,
+            exp_month: 12, // Default values since we don't have this in payment history
+            exp_year: 2025,
+          }));
+        
+        // Remove duplicates based on last4
+        const uniqueMethods = methods.filter((method: PaymentMethodInfo, index: number, self: PaymentMethodInfo[]) =>
+          index === self.findIndex((m) => m.last4 === method.last4)
+        );
+        
+        setPaymentMethods(uniqueMethods);
+      }
+    } catch (error) {
+      console.error('Error fetching payment methods:', error);
+    } finally {
+      setLoadingMethods(false);
+    }
+  };
 
   const handleManageBilling = async () => {
     setIsLoading(true);
@@ -35,44 +79,71 @@ const BillingTab: React.FC = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Billing & Payment Methods</CardTitle>
+          <CardTitle>Payment Methods</CardTitle>
           <CardDescription>
-            Manage your payment methods, billing address, and view invoices
+            Your saved payment methods for subscriptions
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h4 className="font-semibold text-blue-900 mb-2">Manage Through Stripe</h4>
-            <p className="text-sm text-blue-800 mb-4">
-              Update your payment methods, billing address, and view your payment history through our secure Stripe billing portal.
-            </p>
-            <ul className="space-y-2 mb-4">
-              <li className="flex items-center gap-2 text-sm text-blue-800">
-                <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
-                Update credit card information
-              </li>
-              <li className="flex items-center gap-2 text-sm text-blue-800">
-                <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
-                Change billing address
-              </li>
-              <li className="flex items-center gap-2 text-sm text-blue-800">
-                <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
-                Download invoices and receipts
-              </li>
-              <li className="flex items-center gap-2 text-sm text-blue-800">
-                <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
-                View complete payment history
-              </li>
-            </ul>
-            <Button 
-              onClick={handleManageBilling}
-              disabled={isLoading}
-              className="w-full"
-            >
-              <ExternalLink className="h-4 w-4 mr-2" />
-              {isLoading ? 'Loading...' : 'Open Billing Portal'}
-            </Button>
-          </div>
+        <CardContent>
+          {loadingMethods ? (
+            <div className="space-y-3">
+              <div className="animate-pulse h-16 bg-gray-200 rounded-lg"></div>
+            </div>
+          ) : paymentMethods.length > 0 ? (
+            <div className="space-y-3">
+              {paymentMethods.map((method, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-4 border rounded-lg bg-card"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10">
+                      <CreditCard className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <div className="font-medium capitalize">
+                        {method.brand} •••• •••• •••• {method.last4}
+                      </div>
+                      <div className="text-sm text-muted-foreground flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        Expires {method.exp_month}/{method.exp_year}
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleManageBilling}
+                    disabled={isLoading}
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Manage
+                  </Button>
+                </div>
+              ))}
+              <Button
+                variant="outline"
+                onClick={handleManageBilling}
+                disabled={isLoading}
+                className="w-full mt-2"
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                {isLoading ? 'Loading...' : 'Add or Update Payment Method'}
+              </Button>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <CreditCard className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p className="mb-4">No payment methods on file</p>
+              <Button
+                onClick={handleManageBilling}
+                disabled={isLoading}
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                {isLoading ? 'Loading...' : 'Add Payment Method'}
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 

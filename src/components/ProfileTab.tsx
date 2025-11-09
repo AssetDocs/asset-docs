@@ -22,7 +22,6 @@ const ProfileTab: React.FC = () => {
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [company, setCompany] = useState('');
   const [bio, setBio] = useState('');
 
   // Fetch profile data on component mount
@@ -37,7 +36,7 @@ const ProfileTab: React.FC = () => {
         // Get profile data
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('first_name, last_name, avatar_url, account_number')
+          .select('first_name, last_name, avatar_url, account_number, phone, bio')
           .eq('user_id', user.id)
           .single();
 
@@ -48,13 +47,12 @@ const ProfileTab: React.FC = () => {
         if (profile) {
           setFirstName(profile.first_name || '');
           setLastName(profile.last_name || '');
+          setPhone(profile.phone || '');
+          setBio(profile.bio || '');
         }
 
         // Set email from auth user
         setEmail(user.email || '');
-        
-        // Note: phone, company, and bio are not currently in the profiles table
-        // but the form state is ready if you add these columns later
 
       } catch (error) {
         console.error('Error loading profile:', error);
@@ -104,6 +102,8 @@ const ProfileTab: React.FC = () => {
         .update({
           first_name: firstName,
           last_name: lastName,
+          phone: phone,
+          bio: bio,
           updated_at: new Date().toISOString(),
         })
         .eq('user_id', user.id);
@@ -201,40 +201,18 @@ const ProfileTab: React.FC = () => {
               placeholder="Enter your phone number" 
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              disabled
             />
-            <p className="text-sm text-muted-foreground">
-              Phone number field coming soon.
-            </p>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="company">Company (Optional)</Label>
-            <Input 
-              id="company" 
-              placeholder="Enter your company name" 
-              value={company}
-              onChange={(e) => setCompany(e.target.value)}
-              disabled
-            />
-            <p className="text-sm text-muted-foreground">
-              Company field coming soon.
-            </p>
           </div>
           
           <div className="space-y-2">
             <Label htmlFor="bio">Bio (Optional)</Label>
             <Textarea 
               id="bio" 
-              placeholder="Tell us about yourself" 
+              placeholder="Tell us about yourself (hobbies, interests, background, etc.)" 
               rows={3}
               value={bio}
               onChange={(e) => setBio(e.target.value)}
-              disabled
             />
-            <p className="text-sm text-muted-foreground">
-              Bio field coming soon.
-            </p>
           </div>
           
           <Button onClick={handleSaveProfile} disabled={isLoading}>
