@@ -187,7 +187,7 @@ const MediaGalleryGrid: React.FC<MediaGalleryGridProps> = ({
               <Icon className="h-12 w-12 text-gray-400" />
             )}
             
-            <div className="absolute top-2 left-2">
+            <div className="absolute top-2 left-2 z-10">
               <Checkbox
                 checked={selectedFiles.includes(file.id)}
                 onCheckedChange={() => onFileSelect(file.id)}
@@ -195,20 +195,7 @@ const MediaGalleryGrid: React.FC<MediaGalleryGridProps> = ({
               />
             </div>
 
-            <div className="absolute bottom-2 right-2">
-              <Button 
-                size="sm" 
-                variant="destructive"
-                onClick={() => onDeleteFile(file.id)}
-                className="h-8 w-8 p-0"
-                aria-label={`Delete ${file.name}`}
-                title="Delete"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 z-[1]">
               <Button 
                 size="sm" 
                 variant="secondary"
@@ -229,6 +216,16 @@ const MediaGalleryGrid: React.FC<MediaGalleryGridProps> = ({
                 }}
               >
                 <Download className="h-4 w-4" />
+              </Button>
+              <Button 
+                size="sm" 
+                variant="destructive"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteFile(file.id);
+                }}
+              >
+                <Trash2 className="h-4 w-4" />
               </Button>
             </div>
           </div>
