@@ -21,6 +21,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import EmailVerificationNotice from '@/components/EmailVerificationNotice';
 import { StripeTestPanel } from '@/components/StripeTestPanel';
 import { useToast } from '@/hooks/use-toast';
+import PasswordCatalog from '@/components/PasswordCatalog';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -419,6 +420,11 @@ const Account: React.FC = () => {
 
               {/* Third Row */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Password Catalog Card */}
+                <div className="col-span-1 md:col-span-2 lg:col-span-3">
+                  <PasswordCatalog />
+                </div>
+                
                 {/* Insurance Information Card */}
                 <Card className="hover:shadow-lg transition-shadow">
                   <CardHeader>

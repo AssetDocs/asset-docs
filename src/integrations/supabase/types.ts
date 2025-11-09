@@ -516,6 +516,39 @@ export type Database = {
         }
         Relationships: []
       }
+      password_catalog: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          password: string
+          updated_at: string
+          user_id: string
+          website_name: string
+          website_url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          password: string
+          updated_at?: string
+          user_id: string
+          website_name: string
+          website_url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          password?: string
+          updated_at?: string
+          user_id?: string
+          website_name?: string
+          website_url?: string
+        }
+        Relationships: []
+      }
       payment_events: {
         Row: {
           amount: number | null
