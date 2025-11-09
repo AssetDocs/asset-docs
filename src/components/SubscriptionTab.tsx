@@ -434,33 +434,41 @@ const SubscriptionTab: React.FC = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Current Subscription</CardTitle>
+          <CardTitle>Manage Your Subscription</CardTitle>
           <CardDescription>
-            View and change your subscription plan
+            Upgrade, downgrade, or manage your subscription plan
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
             {/* Current Plan Display */}
-            <div className="p-4 border rounded-lg bg-green-50 border-green-200">
-              <div className="flex items-center gap-2 mb-3">
-                <h3 className="text-lg font-semibold text-green-800">
-                  {subscriptionStatus.subscription_tier} Plan
-                </h3>
-                <Badge variant="secondary" className="bg-green-600 text-white border-green-700">Active</Badge>
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-500 rounded-lg p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-green-600 flex items-center justify-center">
+                    <CheckIcon className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Current Plan</p>
+                    <h3 className="text-2xl font-bold text-green-900">
+                      {subscriptionStatus.subscription_tier} Plan
+                    </h3>
+                  </div>
+                </div>
+                <Badge variant="secondary" className="bg-green-600 text-white border-green-700 px-4 py-2 text-sm">Active</Badge>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div>
-                  <Label className="text-sm text-gray-600">Monthly Price</Label>
-                  <p className="text-lg font-semibold text-gray-800">
+                  <Label className="text-sm text-muted-foreground">Monthly Price</Label>
+                  <p className="text-xl font-bold text-gray-900">
                     {subscriptionStatus.subscription_tier?.toLowerCase() === 'standard' && '$12.99/mo'}
                     {subscriptionStatus.subscription_tier?.toLowerCase() === 'premium' && '$18.99/mo'}
                   </p>
                 </div>
                 {subscriptionStatus.subscription_end && (
                   <div>
-                    <Label className="text-sm text-gray-600">Next Billing Date</Label>
-                    <p className="text-lg font-semibold text-gray-800">
+                    <Label className="text-sm text-muted-foreground">Next Billing Date</Label>
+                    <p className="text-xl font-bold text-gray-900">
                       {new Date(subscriptionStatus.subscription_end).toLocaleDateString()}
                     </p>
                   </div>
@@ -468,77 +476,53 @@ const SubscriptionTab: React.FC = () => {
               </div>
             </div>
 
-            {/* Plan Features */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-semibold text-blue-900 mb-2">Current Plan Features</h4>
-              <ul className="space-y-1">
-                {planConfigs[subscriptionStatus.subscription_tier?.toLowerCase() as keyof typeof planConfigs]?.features.map((feature, index) => (
-                  <li key={index} className="flex items-center gap-2 text-sm text-blue-800">
-                    <CheckIcon className="h-4 w-4 text-blue-600 flex-shrink-0" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Change Plan Options */}
-            <div className="space-y-3">
-              <h4 className="font-semibold">Change Your Plan</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Available Plans */}
+            <div>
+              <h4 className="font-semibold text-lg mb-4">Available Plans</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {Object.entries(planConfigs).map(([key, plan]) => {
                   const isCurrentPlan = subscriptionStatus.subscription_tier?.toLowerCase() === key;
                   return (
-                    <div
-                      key={key}
-                      className={`relative p-4 border rounded-lg ${
-                        isCurrentPlan
-                          ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
-                          : 'border-gray-200'
-                      }`}
-                    >
-                      {isCurrentPlan && (
-                        <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
-                          <span className="bg-green-600 text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-                            <CheckIcon className="h-3 w-3" />
-                            Your Current Plan
-                          </span>
+                    <Card key={key} className={isCurrentPlan ? 'border-2 border-green-500 shadow-lg' : 'border-2'}>
+                      <CardContent className="pt-6">
+                        {isCurrentPlan && (
+                          <div className="mb-4">
+                            <Badge className="bg-green-600 text-white text-sm px-3 py-1">Current Plan</Badge>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2 mb-3">
+                          {plan.icon}
+                          <h3 className="font-semibold text-lg">{plan.title}</h3>
                         </div>
-                      )}
-                      <div className="flex items-center gap-2 mb-2">
-                        {plan.icon}
-                        <h3 className="font-semibold">{plan.title}</h3>
-                      </div>
-                      <div className="text-2xl font-bold mb-2">
-                        {plan.price}
-                        <span className="text-sm font-normal text-muted-foreground">/month</span>
-                      </div>
-                      <ul className="space-y-1 mb-3">
-                        {plan.features.map((feature, index) => (
-                          <li key={index} className="flex items-center gap-2 text-xs">
-                            <CheckIcon className="h-3 w-3 text-green-500 flex-shrink-0" />
-                            {feature}
-                          </li>
-                        ))}
-                      </ul>
-                      {!isCurrentPlan && (
-                        <Button 
-                          variant="outline"
-                          size="sm"
-                          className="w-full"
-                          onClick={async () => {
-                            setSelectedPlan(key as keyof typeof planConfigs);
-                            await handleStartSubscription();
-                          }}
-                          disabled={isLoading}
-                        >
-                          {isLoading ? 'Loading...' : 'Change to This Plan'}
-                        </Button>
-                      )}
-                    </div>
+                        <div className="text-3xl font-bold mb-2">
+                          {plan.price}
+                          <span className="text-sm font-normal text-muted-foreground">/month</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-4">{plan.description}</p>
+                        <ul className="space-y-2 mb-4">
+                          {plan.features.map((feature, index) => (
+                            <li key={index} className="flex items-center gap-2 text-sm">
+                              <CheckIcon className="h-4 w-4 text-green-500 flex-shrink-0" />
+                              {feature}
+                            </li>
+                          ))}
+                        </ul>
+                        {!isCurrentPlan && (
+                          <Button 
+                            onClick={handleManageSubscription}
+                            disabled={isLoading}
+                            variant={key === 'premium' ? 'default' : 'outline'}
+                            className="w-full"
+                          >
+                            {isLoading ? 'Loading...' : 'Change to This Plan'}
+                          </Button>
+                        )}
+                      </CardContent>
+                    </Card>
                   );
                 })}
               </div>
-              <p className="text-sm text-muted-foreground text-center">
+              <p className="text-sm text-muted-foreground text-center mt-4">
                 Click "Change to This Plan" to modify your subscription through Stripe
               </p>
             </div>

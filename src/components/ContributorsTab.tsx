@@ -87,6 +87,9 @@ const ContributorsTab: React.FC = () => {
       .single();
 
     const inviterName = profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : user.email;
+    
+    // Create redirect URL for password creation
+    const redirectUrl = `${window.location.origin}/auth?mode=contributor&email=${encodeURIComponent(email)}`;
 
     // First, create the database record
     const { error: dbError } = await supabase
@@ -115,7 +118,7 @@ const ContributorsTab: React.FC = () => {
       return;
     }
 
-    // Then, send the invitation email
+    // Then, send the invitation email with redirect URL
     try {
       const { error: emailError } = await supabase.functions.invoke('send-contributor-invitation', {
         body: {
@@ -123,6 +126,7 @@ const ContributorsTab: React.FC = () => {
           contributor_role: role,
           inviter_name: inviterName || 'AssetDocs User',
           inviter_email: user.email,
+          redirect_url: redirectUrl,
         },
       });
 
@@ -136,7 +140,7 @@ const ContributorsTab: React.FC = () => {
       } else {
         toast({
           title: "Success",
-          description: "Contributor invitation sent successfully",
+          description: "Contributor invitation sent successfully. They will be prompted to create a password.",
         });
       }
     } catch (error) {

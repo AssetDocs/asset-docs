@@ -1,6 +1,6 @@
-
 import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useProperties } from '@/hooks/useProperties';
 
 interface PropertySelectorProps {
   value: string;
@@ -9,12 +9,27 @@ interface PropertySelectorProps {
 }
 
 const PropertySelector: React.FC<PropertySelectorProps> = ({ value, onChange, placeholder = "Select property" }) => {
-  // Mock properties - in production, these would come from the user's actual properties
-  const properties = [
-    { id: '1', name: 'Main Residence - 123 Oak Street' },
-    { id: '2', name: 'Vacation Home - 456 Pine Avenue' },
-    { id: '3', name: 'Rental Property - 789 Maple Drive' },
-  ];
+  const { properties, isLoading } = useProperties();
+
+  if (isLoading) {
+    return (
+      <Select disabled>
+        <SelectTrigger>
+          <SelectValue placeholder="Loading properties..." />
+        </SelectTrigger>
+      </Select>
+    );
+  }
+
+  if (!properties || properties.length === 0) {
+    return (
+      <Select disabled>
+        <SelectTrigger>
+          <SelectValue placeholder="No properties available" />
+        </SelectTrigger>
+      </Select>
+    );
+  }
 
   return (
     <Select value={value} onValueChange={onChange}>
@@ -24,7 +39,7 @@ const PropertySelector: React.FC<PropertySelectorProps> = ({ value, onChange, pl
       <SelectContent>
         {properties.map((property) => (
           <SelectItem key={property.id} value={property.id}>
-            {property.name}
+            {property.name} - {property.address}
           </SelectItem>
         ))}
       </SelectContent>

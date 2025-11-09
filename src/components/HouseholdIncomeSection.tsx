@@ -1,12 +1,14 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DollarSign, Save } from 'lucide-react';
+import { DollarSign, Save, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 const incomeRanges = [
   { value: 'under-25k', label: 'Under $25,000' },
@@ -22,12 +24,34 @@ const incomeRanges = [
 
 const HouseholdIncomeSection: React.FC = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [inputMethod, setInputMethod] = useState<'manual' | 'range'>('range');
   const [manualIncome, setManualIncome] = useState('');
   const [selectedRange, setSelectedRange] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [savedIncome, setSavedIncome] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchSavedIncome = async () => {
+      if (!user) return;
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('household_income')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (data?.household_income) {
+        setSavedIncome(data.household_income);
+      }
+    };
+    
+    fetchSavedIncome();
+  }, [user]);
 
   const handleSave = async () => {
+    if (!user) return;
+    
     setIsLoading(true);
     
     // Validate input
@@ -51,14 +75,35 @@ const HouseholdIncomeSection: React.FC = () => {
       return;
     }
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    setIsLoading(false);
-    toast({
-      title: "Household Income Updated",
-      description: "Your household income information has been successfully saved.",
-    });
+    try {
+      const incomeValue = inputMethod === 'manual' ? `$${parseInt(manualIncome).toLocaleString()}` : selectedRange;
+      
+      const { error } = await supabase
+        .from('profiles')
+        .update({ household_income: incomeValue })
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      
+      setSavedIncome(incomeValue);
+      
+      toast({
+        title: "Household Income Updated",
+        description: "Your household income information has been successfully saved.",
+      });
+      
+      // Reset form
+      setManualIncome('');
+      setSelectedRange('');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save household income. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const formatCurrency = (value: string) => {
@@ -93,6 +138,18 @@ const HouseholdIncomeSection: React.FC = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {savedIncome && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
+            <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
+            <div>
+              <p className="font-semibold text-green-900">Saved Income</p>
+              <p className="text-sm text-green-700">
+                {incomeRanges.find(r => r.value === savedIncome)?.label || savedIncome}
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="space-y-4">
           <Label className="text-base font-medium">How would you like to provide your income?</Label>
           
