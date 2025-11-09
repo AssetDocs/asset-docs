@@ -4,8 +4,7 @@ import Footer from '@/components/Footer';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Camera, Shield, Lock, FileImage, BarChart, Clock, Home, Building, Briefcase, Scale, Truck, Users, TrendingUp, Heart, Handshake, MapPin, Smartphone, Cloud, Share2, FileText, DollarSign, UserCheck, Globe, Calculator, ClipboardList, ShieldCheck, Timer, Archive, Download, GraduationCap, Car, Plane, Anchor, Factory, Stethoscope, HardHat, Church, Palette, Hammer, Trash2, Scan, Upload, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Camera, Shield, Lock, FileImage, BarChart, Clock, Home, Building, Briefcase, Scale, Truck, Users, TrendingUp, Heart, Handshake, MapPin, Smartphone, Cloud, Share2, FileText, DollarSign, UserCheck, Globe, Calculator, ClipboardList, ShieldCheck, Timer, Archive, Download, GraduationCap, Car, Plane, Anchor, Factory, Stethoscope, HardHat, Church, Palette, Hammer, Trash2, Scan, Upload, CheckCircle, AlertTriangle, KeyRound, UserPlus } from 'lucide-react';
 
 const Features: React.FC = () => {
   return (
@@ -89,24 +88,14 @@ const Features: React.FC = () => {
                   <p className="text-gray-600">Streamlined claims process with pre-documented proof of ownership and condition.</p>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow relative">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="h-8 w-8 bg-brand-blue text-white rounded-lg flex items-center justify-center text-sm font-bold">♪</span>
-                    <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200 text-xs">
-                      Standard & Premium
-                    </Badge>
-                  </div>
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <span className="h-8 w-8 bg-brand-blue text-white rounded-lg flex items-center justify-center text-sm font-bold mb-3">♪</span>
                   <h3 className="text-xl font-semibold mb-2">Voice Notes</h3>
                   <p className="text-gray-600">Add voice recordings to capture sentimental value, historical significance, and important details that photos can't convey.</p>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow relative">
-                  <div className="flex items-center gap-2 mb-3">
-                    <AlertTriangle className="h-8 w-8 text-brand-blue" />
-                    <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200 text-xs">
-                      Standard & Premium
-                    </Badge>
-                  </div>
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <AlertTriangle className="h-8 w-8 text-brand-blue mb-3" />
                   <h3 className="text-xl font-semibold mb-2">Post Damage Documentation</h3>
                   <p className="text-gray-600">Comprehensive damage recording with photos, videos, and detailed reports for insurance claims.</p>
                 </div>
@@ -117,13 +106,8 @@ const Features: React.FC = () => {
                   <p className="text-gray-600">Comprehensive asset tracking with photos, receipts, and valuations for complete property and personal inventory management.</p>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow relative">
-                  <div className="flex items-center gap-2 mb-3">
-                    <FileText className="h-8 w-8 text-brand-blue" />
-                    <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200 text-xs">
-                      Standard & Premium
-                    </Badge>
-                  </div>
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <FileText className="h-8 w-8 text-brand-blue mb-3" />
                   <h3 className="text-xl font-semibold mb-2">Export Assets</h3>
                   <p className="text-gray-600">Export your complete asset inventory to CSV, PDF, or other formats for insurance, legal, or personal use.</p>
                 </div>
@@ -132,6 +116,18 @@ const Features: React.FC = () => {
                   <Download className="h-8 w-8 text-brand-blue mb-3" />
                   <h3 className="text-xl font-semibold mb-2">Download All Files</h3>
                   <p className="text-gray-600">Bulk download all your photos, videos, documents, and files for backup or external storage purposes.</p>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <KeyRound className="h-8 w-8 text-brand-blue mb-3" />
+                  <h3 className="text-xl font-semibold mb-2">Password Catalog</h3>
+                  <p className="text-gray-600">Never forget a password again. Securely store all your website credentials in one place with end-to-end encryption protecting your data.</p>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <UserPlus className="h-8 w-8 text-brand-blue mb-3" />
+                  <h3 className="text-xl font-semibold mb-2">Add Contributors</h3>
+                  <p className="text-gray-600">Invite others to collaborate on your property documentation. Assign specific permission levels—administrator, contributor, or view-only access.</p>
                 </div>
               </div>
             </TabsContent>
@@ -182,24 +178,14 @@ const Features: React.FC = () => {
                   <p className="text-gray-600">Detailed records for renter's insurance claims and coverage verification.</p>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow relative">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="h-8 w-8 bg-brand-blue text-white rounded-lg flex items-center justify-center text-sm font-bold">♪</span>
-                    <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200 text-xs">
-                      Standard & Premium
-                    </Badge>
-                  </div>
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <span className="h-8 w-8 bg-brand-blue text-white rounded-lg flex items-center justify-center text-sm font-bold mb-3">♪</span>
                   <h3 className="text-xl font-semibold mb-2">Voice Notes</h3>
                   <p className="text-gray-600">Record important details about personal belongings, their history, and emotional significance for comprehensive documentation.</p>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow relative">
-                  <div className="flex items-center gap-2 mb-3">
-                    <AlertTriangle className="h-8 w-8 text-brand-blue" />
-                    <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200 text-xs">
-                      Standard & Premium
-                    </Badge>
-                  </div>
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <AlertTriangle className="h-8 w-8 text-brand-blue mb-3" />
                   <h3 className="text-xl font-semibold mb-2">Post Damage Documentation</h3>
                   <p className="text-gray-600">Document rental property damage with detailed reports to protect your security deposit and personal property.</p>
                 </div>
@@ -210,13 +196,8 @@ const Features: React.FC = () => {
                   <p className="text-gray-600">Document your personal belongings and valuable items with comprehensive asset tracking for rental insurance and protection.</p>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow relative">
-                  <div className="flex items-center gap-2 mb-3">
-                    <FileText className="h-8 w-8 text-brand-blue" />
-                    <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200 text-xs">
-                      Standard & Premium
-                    </Badge>
-                  </div>
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <FileText className="h-8 w-8 text-brand-blue mb-3" />
                   <h3 className="text-xl font-semibold mb-2">Export Assets</h3>
                   <p className="text-gray-600">Export your personal property inventory for insurance claims, legal documentation, or moving purposes.</p>
                 </div>
@@ -225,6 +206,18 @@ const Features: React.FC = () => {
                   <Download className="h-8 w-8 text-brand-blue mb-3" />
                   <h3 className="text-xl font-semibold mb-2">Download All Files</h3>
                   <p className="text-gray-600">Download all your documentation and files for personal backup or sharing with landlords, insurance, or legal representatives.</p>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <KeyRound className="h-8 w-8 text-brand-blue mb-3" />
+                  <h3 className="text-xl font-semibold mb-2">Password Catalog</h3>
+                  <p className="text-gray-600">Never forget a password again. Securely store all your website credentials in one place with end-to-end encryption protecting your data.</p>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <UserPlus className="h-8 w-8 text-brand-blue mb-3" />
+                  <h3 className="text-xl font-semibold mb-2">Add Contributors</h3>
+                  <p className="text-gray-600">Invite others to collaborate on your property documentation. Assign specific permission levels—administrator, contributor, or view-only access.</p>
                 </div>
               </div>
             </TabsContent>
@@ -275,24 +268,14 @@ const Features: React.FC = () => {
                   <p className="text-gray-600">Essential documentation for business continuity and insurance claims.</p>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow relative">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="h-8 w-8 bg-brand-blue text-white rounded-lg flex items-center justify-center text-sm font-bold">♪</span>
-                    <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200 text-xs">
-                      Standard & Premium
-                    </Badge>
-                  </div>
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <span className="h-8 w-8 bg-brand-blue text-white rounded-lg flex items-center justify-center text-sm font-bold mb-3">♪</span>
                   <h3 className="text-xl font-semibold mb-2">Voice Notes</h3>
                   <p className="text-gray-600">Capture business asset history, operational details, and critical information that supplements visual documentation.</p>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow relative">
-                  <div className="flex items-center gap-2 mb-3">
-                    <AlertTriangle className="h-8 w-8 text-brand-blue" />
-                    <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200 text-xs">
-                      Standard & Premium
-                    </Badge>
-                  </div>
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <AlertTriangle className="h-8 w-8 text-brand-blue mb-3" />
                   <h3 className="text-xl font-semibold mb-2">Post Damage Documentation</h3>
                   <p className="text-gray-600">Professional damage documentation with comprehensive reports for business insurance and continuity planning.</p>
                 </div>
@@ -303,13 +286,8 @@ const Features: React.FC = () => {
                   <p className="text-gray-600">Complete business asset management including equipment, inventory, and infrastructure tracking for financing, compliance, and insurance purposes.</p>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow relative">
-                  <div className="flex items-center gap-2 mb-3">
-                    <FileText className="h-8 w-8 text-brand-blue" />
-                    <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200 text-xs">
-                      Standard & Premium
-                    </Badge>
-                  </div>
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <FileText className="h-8 w-8 text-brand-blue mb-3" />
                   <h3 className="text-xl font-semibold mb-2">Export Assets</h3>
                   <p className="text-gray-600">Export business asset inventories for accounting, insurance, loan applications, and regulatory compliance reporting.</p>
                 </div>
@@ -318,6 +296,18 @@ const Features: React.FC = () => {
                   <Download className="h-8 w-8 text-brand-blue mb-3" />
                   <h3 className="text-xl font-semibold mb-2">Download All Files</h3>
                   <p className="text-gray-600">Bulk download all business documentation for backup, compliance audits, or sharing with stakeholders and partners.</p>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <KeyRound className="h-8 w-8 text-brand-blue mb-3" />
+                  <h3 className="text-xl font-semibold mb-2">Password Catalog</h3>
+                  <p className="text-gray-600">Never forget a password again. Securely store all your website credentials in one place with end-to-end encryption protecting your data.</p>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <UserPlus className="h-8 w-8 text-brand-blue mb-3" />
+                  <h3 className="text-xl font-semibold mb-2">Add Contributors</h3>
+                  <p className="text-gray-600">Invite others to collaborate on your property documentation. Assign specific permission levels—administrator, contributor, or view-only access.</p>
                 </div>
               </div>
             </TabsContent>
@@ -368,24 +358,14 @@ const Features: React.FC = () => {
                   <p className="text-gray-600">Share property documentation and maintenance records with tenants securely.</p>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow relative">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="h-8 w-8 bg-brand-blue text-white rounded-lg flex items-center justify-center text-sm font-bold">♪</span>
-                    <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200 text-xs">
-                      Standard & Premium
-                    </Badge>
-                  </div>
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <span className="h-8 w-8 bg-brand-blue text-white rounded-lg flex items-center justify-center text-sm font-bold mb-3">♪</span>
                   <h3 className="text-xl font-semibold mb-2">Voice Notes</h3>
                   <p className="text-gray-600">Record property maintenance history, tenant interactions, and important property details for comprehensive records.</p>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow relative">
-                  <div className="flex items-center gap-2 mb-3">
-                    <AlertTriangle className="h-8 w-8 text-brand-blue" />
-                    <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200 text-xs">
-                      Standard & Premium
-                    </Badge>
-                  </div>
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <AlertTriangle className="h-8 w-8 text-brand-blue mb-3" />
                   <h3 className="text-xl font-semibold mb-2">Post Damage Documentation</h3>
                   <p className="text-gray-600">Detailed damage tracking and reporting for property management, insurance claims, and tenant relations.</p>
                 </div>
@@ -396,13 +376,8 @@ const Features: React.FC = () => {
                   <p className="text-gray-600">Multi-property asset management with comprehensive tracking of appliances, fixtures, and tenant belongings for effective property management.</p>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow relative">
-                  <div className="flex items-center gap-2 mb-3">
-                    <FileText className="h-8 w-8 text-brand-blue" />
-                    <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200 text-xs">
-                      Standard & Premium
-                    </Badge>
-                  </div>
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <FileText className="h-8 w-8 text-brand-blue mb-3" />
                   <h3 className="text-xl font-semibold mb-2">Export Assets</h3>
                   <p className="text-gray-600">Export property asset inventories for insurance, tax documentation, property sales, and tenant move-in/out reports.</p>
                 </div>
@@ -411,6 +386,18 @@ const Features: React.FC = () => {
                   <Download className="h-8 w-8 text-brand-blue mb-3" />
                   <h3 className="text-xl font-semibold mb-2">Download All Files</h3>
                   <p className="text-gray-600">Download complete property documentation for backup, legal proceedings, or sharing with tenants and property management teams.</p>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <KeyRound className="h-8 w-8 text-brand-blue mb-3" />
+                  <h3 className="text-xl font-semibold mb-2">Password Catalog</h3>
+                  <p className="text-gray-600">Never forget a password again. Securely store all your website credentials in one place with end-to-end encryption protecting your data.</p>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <UserPlus className="h-8 w-8 text-brand-blue mb-3" />
+                  <h3 className="text-xl font-semibold mb-2">Add Contributors</h3>
+                  <p className="text-gray-600">Invite others to collaborate on your property documentation. Assign specific permission levels—administrator, contributor, or view-only access.</p>
                 </div>
               </div>
             </TabsContent>
