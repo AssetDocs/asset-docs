@@ -30,23 +30,9 @@ const BillingTab: React.FC = () => {
       
       if (error) throw error;
 
-      // Extract unique payment methods from payment history
-      if (data.payments && data.payments.length > 0) {
-        const methods = data.payments
-          .filter((p: any) => p.paymentMethod)
-          .map((p: any) => ({
-            brand: p.paymentMethod.type || 'card',
-            last4: p.paymentMethod.last4,
-            exp_month: 12, // Default values since we don't have this in payment history
-            exp_year: 2025,
-          }));
-        
-        // Remove duplicates based on last4
-        const uniqueMethods = methods.filter((method: PaymentMethodInfo, index: number, self: PaymentMethodInfo[]) =>
-          index === self.findIndex((m) => m.last4 === method.last4)
-        );
-        
-        setPaymentMethods(uniqueMethods);
+      // Use payment methods from Stripe API
+      if (data.paymentMethods && data.paymentMethods.length > 0) {
+        setPaymentMethods(data.paymentMethods);
       }
     } catch (error) {
       console.error('Error fetching payment methods:', error);

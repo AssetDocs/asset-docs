@@ -144,12 +144,40 @@ serve(async (req) => {
       }
     }
 
+    // Get customer's payment methods with full details
+    const paymentMethods = [];
+    try {
+      const paymentMethodsResponse = await fetch(`https://api.stripe.com/v1/payment_methods?customer=${customerId}&type=card&limit=10`, {
+        headers: {
+          'Authorization': `Bearer ${stripeKey}`,
+        },
+      });
+
+      if (paymentMethodsResponse.ok) {
+        const paymentMethodsData = await paymentMethodsResponse.json();
+        for (const pm of paymentMethodsData.data || []) {
+          if (pm.card) {
+            paymentMethods.push({
+              id: pm.id,
+              brand: pm.card.brand?.charAt(0).toUpperCase() + pm.card.brand?.slice(1) || 'Card',
+              last4: pm.card.last4,
+              exp_month: pm.card.exp_month,
+              exp_year: pm.card.exp_year,
+              is_default: pm.id === customerData.data[0].invoice_settings?.default_payment_method
+            });
+          }
+        }
+      }
+    } catch (error) {
+      logStep("Error fetching payment methods", { error: error instanceof Error ? error.message : String(error) });
+    }
+
     // Sort by date (newest first)
     payments.sort((a, b) => b.created - a.created);
 
-    logStep("Payment history retrieved", { count: payments.length });
+    logStep("Payment history retrieved", { paymentsCount: payments.length, paymentMethodsCount: paymentMethods.length });
 
-    return new Response(JSON.stringify({ payments }), {
+    return new Response(JSON.stringify({ payments, paymentMethods }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
