@@ -276,22 +276,12 @@ const Documents: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <Button 
-                onClick={() => setShowCreateFolder(true)}
-                variant="outline"
-                size="sm"
-              >
-                <FolderPlus className="h-4 w-4 mr-1" />
-                New Folder
-              </Button>
-              <Button asChild size="sm">
-                <a href="/account/documents/upload">
-                  <Plus className="h-4 w-4 mr-1" />
-                  Upload Documents
-                </a>
-              </Button>
-            </div>
+            <Button asChild size="sm">
+              <a href="/account/documents/upload">
+                <Plus className="h-4 w-4 mr-1" />
+                Upload Documents
+              </a>
+            </Button>
           </div>
 
           {/* Search and Controls */}
@@ -391,6 +381,14 @@ const Documents: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
+                    <Button 
+                      onClick={() => setShowCreateFolder(true)}
+                      variant="outline"
+                      className="w-full justify-start border-2 border-dashed"
+                    >
+                      <FolderPlus className="h-4 w-4 mr-2" />
+                      New Folder
+                    </Button>
                     <Button
                       variant={selectedFolder === null ? "default" : "ghost"}
                       className="w-full justify-start"

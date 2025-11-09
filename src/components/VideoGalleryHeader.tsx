@@ -52,7 +52,6 @@ interface VideoGalleryHeaderProps {
   onSortChange: (sort: SortOption) => void;
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
-  onCreateFolder: () => void;
   onMoveVideos: (folderId: number | null) => void;
   onBulkDelete: () => void;
   onSelectAll: () => void;
@@ -71,7 +70,6 @@ const VideoGalleryHeader: React.FC<VideoGalleryHeaderProps> = ({
   onSortChange,
   viewMode,
   onViewModeChange,
-  onCreateFolder,
   onMoveVideos,
   onBulkDelete,
   onSelectAll,
@@ -187,16 +185,6 @@ const VideoGalleryHeader: React.FC<VideoGalleryHeaderProps> = ({
               Delete ({selectedCount})
             </Button>
           )}
-
-          <Button 
-            onClick={onCreateFolder}
-            variant="outline" 
-            size="sm"
-            className="border-brand-blue text-brand-blue"
-          >
-            <FolderPlus className="h-4 w-4 mr-2" />
-            New Folder
-          </Button>
 
           <Button 
             onClick={() => navigate('/account/videos/upload')}

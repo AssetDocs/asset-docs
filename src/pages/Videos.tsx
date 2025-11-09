@@ -4,7 +4,7 @@ import Footer from '@/components/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Video } from 'lucide-react';
+import { Video, ArrowLeft, Plus, FolderPlus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import CreateFolderModal from '@/components/CreateFolderModal';
@@ -239,7 +239,6 @@ const Videos: React.FC = () => {
             onSortChange={setSortBy}
             viewMode={viewMode}
             onViewModeChange={setViewMode}
-            onCreateFolder={() => setShowCreateFolder(true)}
             onMoveVideos={handleMoveVideos}
             onBulkDelete={handleBulkDelete}
             onSelectAll={selectAllVideos}
@@ -256,6 +255,14 @@ const Videos: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
+                    <Button 
+                      onClick={() => setShowCreateFolder(true)}
+                      variant="outline"
+                      className="w-full justify-start border-2 border-dashed"
+                    >
+                      <FolderPlus className="h-4 w-4 mr-2" />
+                      New Folder
+                    </Button>
                     <Button
                       variant={selectedFolder === null ? "default" : "ghost"}
                       className="w-full justify-start"
