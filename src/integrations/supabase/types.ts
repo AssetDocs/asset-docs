@@ -1084,8 +1084,8 @@ export type Database = {
       }
       has_contributor_access: {
         Args: {
-          required_role: Database["public"]["Enums"]["contributor_role"]
-          target_user_id: string
+          _required_role: Database["public"]["Enums"]["contributor_role"]
+          _user_id: string
         }
         Returns: boolean
       }
