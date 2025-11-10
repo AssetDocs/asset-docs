@@ -829,6 +829,39 @@ export type Database = {
           },
         ]
       }
+      source_websites: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          id: string
+          updated_at: string
+          user_id: string
+          website_name: string
+          website_url: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+          website_name: string
+          website_url: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+          website_name?: string
+          website_url?: string
+        }
+        Relationships: []
+      }
       storage_usage: {
         Row: {
           bucket_name: string
