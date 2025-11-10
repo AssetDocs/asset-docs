@@ -12,6 +12,7 @@ import StorageAlert from '@/components/StorageAlert';
 import StorageDashboard from '@/components/StorageDashboard';
 import PostDamageSection from '@/components/PostDamageSection';
 import VoiceNotesSection from '@/components/VoiceNotesSection';
+import SourceWebsitesSection from '@/components/SourceWebsitesSection';
 import DashboardTour from '@/components/DashboardTour';
 import { FeatureGuard } from '@/components/FeatureGuard';
 import DocumentationChecklist from '@/components/DocumentationChecklist';
@@ -132,12 +133,15 @@ const Account: React.FC = () => {
           </div>
 
           <Tabs defaultValue="overview" className="space-y-6" id="tabs-content">
-            <TabsList className={`${isMobile ? 'flex overflow-x-auto' : 'grid grid-cols-4'} w-full`}>
+            <TabsList className={`${isMobile ? 'flex overflow-x-auto' : 'grid grid-cols-5'} w-full`}>
               <TabsTrigger value="overview" className={isMobile ? 'flex-shrink-0' : ''}>
                 {isMobile ? 'Home' : 'Overview'}
               </TabsTrigger>
               <TabsTrigger value="asset-values" className={isMobile ? 'flex-shrink-0' : ''}>
                 {isMobile ? 'Assets' : 'Asset Values'}
+              </TabsTrigger>
+              <TabsTrigger value="source-websites" className={isMobile ? 'flex-shrink-0' : ''}>
+                {isMobile ? 'Websites' : 'Source Websites'}
               </TabsTrigger>
               <TabsTrigger value="damage" className={isMobile ? 'flex-shrink-0' : ''}>
                 {isMobile ? 'Damage' : 'Post Damage'}
@@ -406,7 +410,7 @@ const Account: React.FC = () => {
                             alert('AssetDocs.net says\n\nDemo: This allows you to manually add items to your inventory without photos.');
                             return;
                           }
-                          // Add manual entry functionality here
+                          window.location.href = '/inventory?mode=manual';
                         }}
                         className="w-full bg-brand-blue hover:bg-brand-lightBlue"
                       >
@@ -536,6 +540,10 @@ const Account: React.FC = () => {
 
             <TabsContent value="asset-values">
               <AssetValuesSection />
+            </TabsContent>
+
+            <TabsContent value="source-websites">
+              <SourceWebsitesSection />
             </TabsContent>
 
             <TabsContent value="damage">

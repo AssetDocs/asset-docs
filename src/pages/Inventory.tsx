@@ -13,17 +13,26 @@ import ReceiptUpload from '@/components/ReceiptUpload';
 import ItemReceiptsSection from '@/components/ItemReceiptsSection';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import ManualEntrySection from '@/components/ManualEntrySection';
 
 const Inventory: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [receiptRefresh, setReceiptRefresh] = useState(0);
+  const [showManualEntry, setShowManualEntry] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get('mode') === 'manual') {
+      setShowManualEntry(true);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (user?.id) {
@@ -80,11 +89,23 @@ const Inventory: React.FC = () => {
                 Manage your items and their documentation
               </p>
             </div>
-            <Button onClick={() => navigate('/photo-upload')} className="flex items-center">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Items
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={() => setShowManualEntry(!showManualEntry)} variant="outline" className="flex items-center">
+                <Plus className="h-4 w-4 mr-2" />
+                {showManualEntry ? 'Hide Manual Entry' : 'Manual Entry'}
+              </Button>
+              <Button onClick={() => navigate('/photo-upload')} className="flex items-center">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Items
+              </Button>
+            </div>
           </div>
+
+          {showManualEntry && (
+            <div className="mb-6">
+              <ManualEntrySection />
+            </div>
+          )}
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
