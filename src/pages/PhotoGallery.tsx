@@ -34,43 +34,46 @@ import PhotoGalleryFolders from '@/components/PhotoGalleryFolders';
 import CreateFolderModal from '@/components/CreateFolderModal';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
+import MovePhotoModal from '@/components/MovePhotoModal';
 import { PropertyService, PropertyFile } from '@/services/PropertyService';
 import { useToast } from '@/hooks/use-toast';
 import { useProperties } from '@/hooks/useProperties';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'size-desc' | 'size-asc';
 type ViewMode = 'grid' | 'list';
 
-const mockFolders = [
-  {
-    id: 1,
-    name: "Interior Photos",
-    description: "All interior shots",
-    photoCount: 0,
-    createdDate: "2024-06-01",
-    color: "blue"
-  }
-];
+interface Folder {
+  id: string;
+  folder_name: string;
+  description: string | null;
+  gradient_color: string;
+  created_at: string;
+}
 
 const PhotoGallery: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const { properties } = useProperties();
   const [photos, setPhotos] = useState<PropertyFile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [folders, setFolders] = useState(mockFolders);
-  const [selectedFolder, setSelectedFolder] = useState<number | null>(null);
+  const [folders, setFolders] = useState<Folder[]>([]);
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('date-desc');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPhotos, setSelectedPhotos] = useState<string[]>([]);
   const [showCreateFolder, setShowCreateFolder] = useState(false);
+  const [showMoveModal, setShowMoveModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [photoToDelete, setPhotoToDelete] = useState<string | null>(null);
   const [bulkDeleteMode, setBulkDeleteMode] = useState(false);
 
   useEffect(() => {
     fetchPhotos();
+    fetchFolders();
   }, []);
 
   const fetchPhotos = async () => {
@@ -87,6 +90,28 @@ const PhotoGallery: React.FC = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchFolders = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('photo_folders')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setFolders(data || []);
+    } catch (error) {
+      console.error('Error fetching folders:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load folders",
+        variant: "destructive"
+      });
     }
   };
 
@@ -117,7 +142,9 @@ const PhotoGallery: React.FC = () => {
   const filteredAndSortedPhotos = React.useMemo(() => {
     let filtered = transformedPhotos.filter(photo => {
       const matchesSearch = photo.name.toLowerCase().includes(searchTerm.toLowerCase());
-      return matchesSearch;
+      const photoData = photos.find(p => p.id === photo.id);
+      const matchesFolder = selectedFolder ? photoData?.folder_id === selectedFolder : true;
+      return matchesSearch && matchesFolder;
     });
 
     filtered.sort((a, b) => {
@@ -136,24 +163,76 @@ const PhotoGallery: React.FC = () => {
     });
 
     return filtered;
-  }, [transformedPhotos, searchTerm, sortBy]);
+  }, [transformedPhotos, searchTerm, sortBy, selectedFolder, photos]);
 
-  const handleCreateFolder = (name: string, color: string) => {
-    const newFolder = {
-      id: Math.max(...folders.map(f => f.id)) + 1,
-      name,
-      description: `Folder for ${name}`,
-      photoCount: 0,
-      createdDate: new Date().toISOString().split('T')[0],
-      color
-    };
-    setFolders([...folders, newFolder]);
-    setShowCreateFolder(false);
+  const handleCreateFolder = async (name: string, description: string, gradientColor: string) => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('photo_folders')
+        .insert({
+          user_id: user.id,
+          folder_name: name,
+          description: description || null,
+          gradient_color: gradientColor
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      setFolders([data, ...folders]);
+      setShowCreateFolder(false);
+      toast({
+        title: "Success",
+        description: "Folder created successfully"
+      });
+    } catch (error) {
+      console.error('Error creating folder:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create folder",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleMovePhotos = (folderId: number | null) => {
-    // TODO: Implement folder functionality
-    setSelectedPhotos([]);
+  const handleMovePhotos = async (propertyId: string | null, folderId: string | null) => {
+    if (selectedPhotos.length === 0) return;
+    
+    try {
+      const updates = selectedPhotos.map(photoId => {
+        const photo = photos.find(p => p.id === photoId);
+        if (!photo) return Promise.resolve();
+        
+        return supabase
+          .from('property_files')
+          .update({ 
+            folder_id: folderId,
+            property_id: propertyId || photo.property_id
+          })
+          .eq('id', photoId);
+      });
+
+      await Promise.all(updates);
+      
+      toast({
+        title: "Success",
+        description: `${selectedPhotos.length} photo(s) moved successfully`
+      });
+      
+      await fetchPhotos();
+      setSelectedPhotos([]);
+      setShowMoveModal(false);
+    } catch (error) {
+      console.error('Error moving photos:', error);
+      toast({
+        title: "Error",
+        description: "Failed to move photos",
+        variant: "destructive"
+      });
+    }
   };
 
   const togglePhotoSelection = (photoId: string) => {
@@ -239,8 +318,12 @@ const PhotoGallery: React.FC = () => {
   };
 
   const currentFolderName = selectedFolder 
-    ? folders.find(f => f.id === selectedFolder)?.name 
+    ? folders.find(f => f.id === selectedFolder)?.folder_name 
     : 'All Photos';
+
+  const currentFolderPhotoCount = selectedFolder
+    ? photos.filter(p => p.folder_id === selectedFolder).length
+    : photos.length;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -262,7 +345,7 @@ const PhotoGallery: React.FC = () => {
             viewMode={viewMode}
             onViewModeChange={setViewMode}
             onCreateFolder={() => setShowCreateFolder(true)}
-            onMovePhotos={handleMovePhotos}
+            onMovePhotos={() => setShowMoveModal(true)}
             onBulkDelete={handleBulkDelete}
             onSelectAll={selectAllPhotos}
             onUnselectAll={unselectAllPhotos}
@@ -294,7 +377,7 @@ const PhotoGallery: React.FC = () => {
                     folders={folders}
                     selectedFolder={selectedFolder}
                     onFolderSelect={setSelectedFolder}
-                    photos={[]}
+                    photoCount={currentFolderPhotoCount}
                   />
                 </div>
               </CardContent>
@@ -324,6 +407,14 @@ const PhotoGallery: React.FC = () => {
         isOpen={showCreateFolder}
         onClose={() => setShowCreateFolder(false)}
         onCreateFolder={handleCreateFolder}
+      />
+
+      <MovePhotoModal
+        isOpen={showMoveModal}
+        onClose={() => setShowMoveModal(false)}
+        onMove={handleMovePhotos}
+        folders={folders}
+        photoCount={selectedPhotos.length}
       />
 
       <DeleteConfirmationDialog

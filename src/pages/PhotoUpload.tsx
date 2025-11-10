@@ -13,6 +13,13 @@ import { useToast } from '@/hooks/use-toast';
 import { useProperties } from '@/hooks/useProperties';
 import { usePropertyFiles } from '@/hooks/usePropertyFiles';
 import { useSubscription } from '@/contexts/SubscriptionContext';
+import { supabase } from '@/integrations/supabase/client';
+
+interface Folder {
+  id: string;
+  folder_name: string;
+  gradient_color: string;
+}
 
 const PhotoUpload: React.FC = () => {
   const navigate = useNavigate();
@@ -21,11 +28,36 @@ const PhotoUpload: React.FC = () => {
   const { properties } = useProperties();
   const { subscriptionTier } = useSubscription();
   const [selectedPropertyId, setSelectedPropertyId] = useState<string>('');
+  const [selectedFolderId, setSelectedFolderId] = useState<string>('');
+  const [folders, setFolders] = useState<Folder[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const cameraInputRef = React.useRef<HTMLInputElement>(null);
   const { uploadFiles, isUploading } = usePropertyFiles(selectedPropertyId || null, 'photo');
+
+  React.useEffect(() => {
+    if (user) {
+      fetchFolders();
+    }
+  }, [user]);
+
+  const fetchFolders = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('photo_folders')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setFolders(data || []);
+    } catch (error) {
+      console.error('Error fetching folders:', error);
+    }
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -63,7 +95,22 @@ const PhotoUpload: React.FC = () => {
       return;
     }
 
-    await uploadFiles(selectedFiles);
+    const uploadedFiles = await uploadFiles(selectedFiles);
+    
+    // Update folder_id for uploaded files if folder is selected
+    if (selectedFolderId && uploadedFiles.length > 0) {
+      try {
+        const updates = uploadedFiles.map(file => 
+          supabase
+            .from('property_files')
+            .update({ folder_id: selectedFolderId })
+            .eq('id', file.id)
+        );
+        await Promise.all(updates);
+      } catch (error) {
+        console.error('Error assigning folder:', error);
+      }
+    }
     
     // Clear selections
     setSelectedFiles([]);
@@ -112,6 +159,27 @@ const PhotoUpload: React.FC = () => {
                     {properties.map((property) => (
                       <SelectItem key={property.id} value={property.id}>
                         {property.name} - {property.address}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Folder Selector */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Select Folder (Optional)</label>
+                <Select value={selectedFolderId} onValueChange={setSelectedFolderId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="No folder - keep in main gallery" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No folder</SelectItem>
+                    {folders.map((folder) => (
+                      <SelectItem key={folder.id} value={folder.id}>
+                        <div className="flex items-center gap-2">
+                          <div className={`w-3 h-3 rounded bg-gradient-to-r ${folder.gradient_color}`} />
+                          {folder.folder_name}
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>

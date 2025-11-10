@@ -27,15 +27,18 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
 }) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [color, setColor] = useState('blue');
+  const [color, setColor] = useState('from-blue-500 to-purple-600');
 
-  const colors = [
-    { value: 'blue', label: 'Blue', class: 'bg-blue-500' },
-    { value: 'green', label: 'Green', class: 'bg-green-500' },
-    { value: 'purple', label: 'Purple', class: 'bg-purple-500' },
-    { value: 'orange', label: 'Orange', class: 'bg-orange-500' },
-    { value: 'red', label: 'Red', class: 'bg-red-500' },
-    { value: 'gray', label: 'Gray', class: 'bg-gray-500' }
+  const gradients = [
+    { value: 'from-blue-500 to-purple-600', label: 'Ocean', class: 'bg-gradient-to-r from-blue-500 to-purple-600' },
+    { value: 'from-pink-500 to-rose-600', label: 'Sunset', class: 'bg-gradient-to-r from-pink-500 to-rose-600' },
+    { value: 'from-green-500 to-emerald-600', label: 'Forest', class: 'bg-gradient-to-r from-green-500 to-emerald-600' },
+    { value: 'from-orange-500 to-amber-600', label: 'Autumn', class: 'bg-gradient-to-r from-orange-500 to-amber-600' },
+    { value: 'from-purple-500 to-pink-600', label: 'Lavender', class: 'bg-gradient-to-r from-purple-500 to-pink-600' },
+    { value: 'from-cyan-500 to-blue-600', label: 'Sky', class: 'bg-gradient-to-r from-cyan-500 to-blue-600' },
+    { value: 'from-red-500 to-orange-600', label: 'Fire', class: 'bg-gradient-to-r from-red-500 to-orange-600' },
+    { value: 'from-indigo-500 to-purple-600', label: 'Galaxy', class: 'bg-gradient-to-r from-indigo-500 to-purple-600' },
+    { value: 'from-teal-500 to-green-600', label: 'Mint', class: 'bg-gradient-to-r from-teal-500 to-green-600' }
   ];
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -44,14 +47,14 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
       onCreateFolder(name, description, color);
       setName('');
       setDescription('');
-      setColor('blue');
+      setColor('from-blue-500 to-purple-600');
     }
   };
 
   const handleClose = () => {
     setName('');
     setDescription('');
-    setColor('blue');
+    setColor('from-blue-500 to-purple-600');
     onClose();
   };
 
@@ -89,27 +92,27 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
           </div>
 
           <div className="space-y-3">
-            <Label>Folder Color</Label>
+            <Label>Folder Gradient</Label>
             <RadioGroup value={color} onValueChange={setColor}>
-              <div className="grid grid-cols-3 gap-3">
-                {colors.map((colorOption) => (
-                  <div key={colorOption.value} className="flex items-center space-x-2">
+              <div className="grid grid-cols-3 gap-2">
+                {gradients.map((gradientOption) => (
+                  <div key={gradientOption.value} className="flex flex-col items-center space-y-1">
                     <RadioGroupItem 
-                      value={colorOption.value} 
-                      id={colorOption.value}
+                      value={gradientOption.value} 
+                      id={gradientOption.value}
                       className="sr-only"
                     />
                     <Label
-                      htmlFor={colorOption.value}
-                      className={`flex items-center space-x-2 cursor-pointer p-2 rounded-lg border-2 transition-colors ${
-                        color === colorOption.value 
-                          ? 'border-gray-400 bg-gray-50' 
-                          : 'border-gray-200 hover:border-gray-300'
+                      htmlFor={gradientOption.value}
+                      className={`cursor-pointer rounded-lg border-2 transition-all w-full ${
+                        color === gradientOption.value 
+                          ? 'border-primary ring-2 ring-primary/20' 
+                          : 'border-border hover:border-primary/50'
                       }`}
                     >
-                      <div className={`w-4 h-4 rounded-full ${colorOption.class}`} />
-                      <span className="text-sm">{colorOption.label}</span>
+                      <div className={`w-full h-12 rounded-md ${gradientOption.class}`} />
                     </Label>
+                    <span className="text-xs text-muted-foreground">{gradientOption.label}</span>
                   </div>
                 ))}
               </div>

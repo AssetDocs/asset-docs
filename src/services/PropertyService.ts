@@ -24,6 +24,7 @@ export interface PropertyFile {
   file_url: string;
   file_size: number | null;
   bucket_name: string;
+  folder_id?: string | null;
   created_at: string;
 }
 

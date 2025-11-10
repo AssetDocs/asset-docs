@@ -43,17 +43,16 @@ interface PhotoGalleryHeaderProps {
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
   onCreateFolder: () => void;
-  onMovePhotos: (folderId: number | null) => void;
+  onMovePhotos: () => void;
   onBulkDelete: () => void;
   onSelectAll: () => void;
   onUnselectAll: () => void;
   folders: Array<{
-    id: number;
-    name: string;
-    description: string;
-    photoCount: number;
-    createdDate: string;
-    color: string;
+    id: string;
+    folder_name: string;
+    description: string | null;
+    gradient_color: string;
+    created_at: string;
   }>;
 }
 
@@ -117,28 +116,10 @@ const PhotoGalleryHeader: React.FC<PhotoGalleryHeaderProps> = ({
           </Button>
           
           {selectedCount > 0 && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline">
-                  <Move className="h-4 w-4 mr-2" />
-                  Move to Folder
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => onMovePhotos(null)}>
-                  Remove from folder
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                {folders.map((folder) => (
-                  <DropdownMenuItem 
-                    key={folder.id}
-                    onClick={() => onMovePhotos(folder.id)}
-                  >
-                    {folder.name}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button onClick={onMovePhotos} variant="outline">
+              <Move className="h-4 w-4 mr-2" />
+              Move to Folder
+            </Button>
           )}
 
           <div className="flex items-center gap-2">

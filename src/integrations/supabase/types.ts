@@ -594,6 +594,36 @@ export type Database = {
         }
         Relationships: []
       }
+      photo_folders: {
+        Row: {
+          created_at: string
+          description: string | null
+          folder_name: string
+          gradient_color: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          folder_name: string
+          gradient_color?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          folder_name?: string
+          gradient_color?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           account_number: string | null
@@ -705,6 +735,7 @@ export type Database = {
           file_size: number | null
           file_type: string
           file_url: string
+          folder_id: string | null
           id: string
           property_id: string
           user_id: string
@@ -717,6 +748,7 @@ export type Database = {
           file_size?: number | null
           file_type: string
           file_url: string
+          folder_id?: string | null
           id?: string
           property_id: string
           user_id: string
@@ -729,11 +761,19 @@ export type Database = {
           file_size?: number | null
           file_type?: string
           file_url?: string
+          folder_id?: string | null
           id?: string
           property_id?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "property_files_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "photo_folders"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "property_files_property_id_fkey"
             columns: ["property_id"]
