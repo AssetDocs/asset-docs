@@ -58,7 +58,7 @@ const PhotoGalleryFolders: React.FC<PhotoGalleryFoldersProps> = ({
               className="w-full justify-start p-3 h-auto"
               onClick={() => onFolderSelect(folder.id)}
             >
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center mr-3 bg-gradient-to-r ${folder.gradient_color}`}>
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center mr-3 ${folder.gradient_color}`}>
                 {isSelected ? (
                   <FolderOpen className="h-4 w-4 text-white" />
                 ) : (
