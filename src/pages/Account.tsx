@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import AssetValuesSection from '@/components/AssetValuesSection';
@@ -71,6 +71,7 @@ const WelcomeMessage: React.FC = () => {
 
 const Account: React.FC = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [showTour, setShowTour] = useState(false);
   const { subscriptionTier } = useSubscription();
@@ -269,7 +270,7 @@ const Account: React.FC = () => {
                             alert('AssetDocs.net says\n\nDemo: This allows you to upload photos and document your items with estimated values.');
                             return;
                           }
-                          window.location.href = '/account/photos/upload';
+                          navigate('/account/photos/upload');
                         }}
                         className="w-full bg-brand-blue hover:bg-brand-lightBlue"
                       >
@@ -318,7 +319,7 @@ const Account: React.FC = () => {
                             alert('AssetDocs.net says\n\nDemo: This allows you to upload and manage video recordings of your property and belongings.');
                             return;
                           }
-                          window.location.href = '/account/videos/upload';
+                          navigate('/account/videos/upload');
                         }}
                         className="w-full bg-brand-blue hover:bg-brand-lightBlue"
                       >
