@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Menu, X, Video, LogOut, User, Home } from 'lucide-react';
 import SearchBar from '@/components/SearchBar';
@@ -51,25 +51,47 @@ const Navbar: React.FC = () => {
                    <Home className="h-4 w-4 mr-1" />
                    {translate('nav.dashboard')}
                  </Link>
-                 <Link to="/features" className="text-gray-700 hover:text-brand-blue transition-colors">
+                 <NavLink 
+                   to="/features" 
+                   className={({ isActive }) => 
+                     `text-gray-700 hover:text-brand-blue transition-colors ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                   }
+                 >
                    {translate('nav.features')}
-                 </Link>
-                 <Link to="/scenarios" className="text-gray-700 hover:text-brand-blue transition-colors">
+                 </NavLink>
+                 <NavLink 
+                   to="/scenarios" 
+                   className={({ isActive }) => 
+                     `text-gray-700 hover:text-brand-blue transition-colors ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                   }
+                 >
                    Scenarios
-                 </Link>
-                 <Link to="/pricing" className="text-gray-700 hover:text-brand-blue transition-colors">
+                 </NavLink>
+                 <NavLink 
+                   to="/pricing" 
+                   className={({ isActive }) => 
+                     `text-gray-700 hover:text-brand-blue transition-colors ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                   }
+                 >
                    {translate('nav.pricing')}
-                 </Link>
-                 <Link to="/gift" className="text-gray-700 hover:text-brand-blue transition-colors">
+                 </NavLink>
+                 <NavLink 
+                   to="/gift" 
+                   className={({ isActive }) => 
+                     `text-gray-700 hover:text-brand-blue transition-colors ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                   }
+                 >
                    Gift
-                 </Link>
-                <Link 
+                 </NavLink>
+                <NavLink 
                   to="/video-help" 
-                  className="text-gray-700 hover:text-brand-blue transition-colors flex items-center"
+                  className={({ isActive }) => 
+                    `text-gray-700 hover:text-brand-blue transition-colors flex items-center ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                  }
                 >
                   <Video className="h-4 w-4 mr-1" />
                   {translate('nav.videoHelp')}
-                </Link>
+                </NavLink>
                  <div className="flex items-center space-x-4">
                    <Link 
                      to="/account" 
@@ -149,50 +171,60 @@ const Navbar: React.FC = () => {
             <div className="flex flex-col space-y-4">
               {isAuthenticated ? (
                 <>
-                  <Link 
-                    to="/account" 
-                    className="flex items-center px-3 py-2 bg-brand-blue/10 text-brand-blue hover:bg-brand-blue hover:text-white transition-all rounded-md font-medium w-fit"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <Home className="h-4 w-4 mr-1" />
-                    {translate('nav.dashboard')}
-                  </Link>
                    <Link 
+                     to="/account" 
+                     className="flex items-center px-3 py-2 bg-brand-blue/10 text-brand-blue hover:bg-brand-blue hover:text-white transition-all rounded-md font-medium w-fit"
+                     onClick={() => setIsMenuOpen(false)}
+                   >
+                     <Home className="h-4 w-4 mr-1" />
+                     {translate('nav.dashboard')}
+                   </Link>
+                   <NavLink 
                      to="/features" 
-                     className="text-gray-700 hover:text-brand-blue transition-colors py-2"
+                     className={({ isActive }) => 
+                       `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                     }
                      onClick={() => setIsMenuOpen(false)}
                    >
                      {translate('nav.features')}
-                   </Link>
-                   <Link 
+                   </NavLink>
+                   <NavLink 
                      to="/scenarios" 
-                     className="text-gray-700 hover:text-brand-blue transition-colors py-2"
+                     className={({ isActive }) => 
+                       `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                     }
                      onClick={() => setIsMenuOpen(false)}
                    >
                      Scenarios
-                   </Link>
-                   <Link 
+                   </NavLink>
+                   <NavLink 
                      to="/pricing" 
-                     className="text-gray-700 hover:text-brand-blue transition-colors py-2"
+                     className={({ isActive }) => 
+                       `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                     }
                      onClick={() => setIsMenuOpen(false)}
                    >
                      {translate('nav.pricing')}
-                   </Link>
-                   <Link 
+                   </NavLink>
+                   <NavLink 
                      to="/gift" 
-                     className="text-gray-700 hover:text-brand-blue transition-colors py-2"
+                     className={({ isActive }) => 
+                       `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                     }
                      onClick={() => setIsMenuOpen(false)}
                    >
                      Gift
-                   </Link>
-                  <Link 
+                   </NavLink>
+                  <NavLink 
                     to="/video-help" 
-                    className="text-gray-700 hover:text-brand-blue transition-colors py-2 flex items-center"
+                    className={({ isActive }) => 
+                      `text-gray-700 hover:text-brand-blue transition-colors py-2 flex items-center ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                    }
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <Video className="h-4 w-4 mr-1" />
                     {translate('nav.videoHelp')}
-                  </Link>
+                  </NavLink>
                    <Link 
                      to="/account" 
                      className="text-gray-700 hover:text-brand-blue transition-colors py-2 flex items-center"
@@ -214,44 +246,54 @@ const Navbar: React.FC = () => {
                      {translate('nav.signOut')}
                    </Button>
                 </>
-              ) : (
+               ) : (
                 <>
-                   <Link 
+                   <NavLink 
                      to="/features" 
-                     className="text-gray-700 hover:text-brand-blue transition-colors py-2"
+                     className={({ isActive }) => 
+                       `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                     }
                      onClick={() => setIsMenuOpen(false)}
                    >
                      {translate('nav.features')}
-                   </Link>
-                   <Link 
+                   </NavLink>
+                   <NavLink 
                      to="/scenarios" 
-                     className="text-gray-700 hover:text-brand-blue transition-colors py-2"
+                     className={({ isActive }) => 
+                       `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                     }
                      onClick={() => setIsMenuOpen(false)}
                    >
                      Scenarios
-                   </Link>
-                   <Link 
+                   </NavLink>
+                   <NavLink 
                      to="/pricing" 
-                     className="text-gray-700 hover:text-brand-blue transition-colors py-2"
+                     className={({ isActive }) => 
+                       `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                     }
                      onClick={() => setIsMenuOpen(false)}
                    >
                      {translate('nav.pricing')}
-                   </Link>
-                   <Link 
+                   </NavLink>
+                   <NavLink 
                      to="/gift" 
-                     className="text-gray-700 hover:text-brand-blue transition-colors py-2"
+                     className={({ isActive }) => 
+                       `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                     }
                      onClick={() => setIsMenuOpen(false)}
                    >
                      Gift
-                   </Link>
-                  <Link 
+                   </NavLink>
+                  <NavLink 
                     to="/video-help" 
-                    className="text-gray-700 hover:text-brand-blue transition-colors py-2 flex items-center"
+                    className={({ isActive }) => 
+                      `text-gray-700 hover:text-brand-blue transition-colors py-2 flex items-center ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                    }
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <Video className="h-4 w-4 mr-1" />
                     {translate('nav.videoHelp')}
-                  </Link>
+                  </NavLink>
                    <Button asChild variant="outline" className="w-fit">
                      <Link 
                        to="/login" 
