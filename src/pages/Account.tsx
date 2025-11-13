@@ -284,7 +284,7 @@ const Account: React.FC = () => {
                             alert('AssetDocs.net says\n\nDemo: This allows you to view, organize, download, and categorize your uploaded photos.');
                             return;
                           }
-                          window.location.href = '/account/photos';
+                          navigate('/account/photos');
                         }}
                         variant="outline" 
                         className="w-full"
@@ -333,13 +333,13 @@ const Account: React.FC = () => {
                             alert('AssetDocs.net says\n\nDemo: This allows you to view, watch, download, and categorize your uploaded videos.');
                             return;
                           }
-                          window.location.href = '/account/videos';
+                          navigate('/account/videos');
                         }}
                         variant="outline" 
                         className="w-full"
                       >
                         <Eye className="h-4 w-4 mr-2" />
-                        View Videos
+                        View Video Gallery
                       </Button>
                     </div>
                   </CardContent>
