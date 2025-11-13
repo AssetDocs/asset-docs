@@ -21,11 +21,33 @@ const passwordSchema = z.object({
   notes: z.string().trim().max(1000).optional(),
 });
 
+const accountSchema = z.object({
+  accountType: z.string().trim().min(1, "Account type is required").max(100),
+  accountName: z.string().trim().min(1, "Account name is required").max(100),
+  institutionName: z.string().trim().min(1, "Institution name is required").max(100),
+  accountNumber: z.string().trim().min(1, "Account number is required").max(100),
+  routingNumber: z.string().trim().max(100).optional(),
+  currentBalance: z.string().trim().max(50).optional(),
+  notes: z.string().trim().max(1000).optional(),
+});
+
 interface PasswordEntry {
   id: string;
   website_name: string;
   website_url: string;
   password: string;
+  notes: string | null;
+  created_at: string;
+}
+
+interface FinancialAccount {
+  id: string;
+  account_type: string;
+  account_name: string;
+  institution_name: string;
+  account_number: string;
+  routing_number: string | null;
+  current_balance: number | null;
   notes: string | null;
   created_at: string;
 }
@@ -36,8 +58,10 @@ const PasswordCatalog: React.FC = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [passwords, setPasswords] = useState<PasswordEntry[]>([]);
+  const [accounts, setAccounts] = useState<FinancialAccount[]>([]);
   const [loading, setLoading] = useState(false);
   const [showPasswords, setShowPasswords] = useState<{ [key: string]: boolean }>({});
+  const [showAccountNumbers, setShowAccountNumbers] = useState<{ [key: string]: boolean }>({});
   const [masterPasswordModal, setMasterPasswordModal] = useState<{ isOpen: boolean; isSetup: boolean }>({
     isOpen: false,
     isSetup: false,
@@ -45,11 +69,24 @@ const PasswordCatalog: React.FC = () => {
   const [sessionMasterPassword, setSessionMasterPassword] = useState<string | null>(null);
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [decryptedPasswords, setDecryptedPasswords] = useState<{ [key: string]: string }>({});
+  const [decryptedAccountNumbers, setDecryptedAccountNumbers] = useState<{ [key: string]: string }>({});
+  const [decryptedRoutingNumbers, setDecryptedRoutingNumbers] = useState<{ [key: string]: string }>({});
+  const [decryptedAccountNotes, setDecryptedAccountNotes] = useState<{ [key: string]: string }>({});
   
   const [formData, setFormData] = useState({
     websiteName: '',
     websiteUrl: '',
     password: '',
+    notes: '',
+  });
+
+  const [accountFormData, setAccountFormData] = useState({
+    accountType: '',
+    accountName: '',
+    institutionName: '',
+    accountNumber: '',
+    routingNumber: '',
+    currentBalance: '',
     notes: '',
   });
 
@@ -76,6 +113,7 @@ const PasswordCatalog: React.FC = () => {
       setIsUnlocked(true);
       setMasterPasswordModal({ isOpen: false, isSetup: false });
       fetchPasswords(password);
+      fetchAccounts(password);
       toast({
         title: "Master Password Set",
         description: "Your passwords will now be encrypted with client-side encryption.",
@@ -87,6 +125,7 @@ const PasswordCatalog: React.FC = () => {
         setIsUnlocked(true);
         setMasterPasswordModal({ isOpen: false, isSetup: false });
         fetchPasswords(password);
+        fetchAccounts(password);
       } else {
         throw new Error('Incorrect master password');
       }
@@ -139,6 +178,53 @@ const PasswordCatalog: React.FC = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAccounts = async (masterPassword: string) => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('financial_accounts')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setAccounts(data || []);
+      
+      // Pre-decrypt all sensitive data for display
+      const decryptedAcctNums: { [key: string]: string } = {};
+      const decryptedRouting: { [key: string]: string } = {};
+      const decryptedNotes: { [key: string]: string } = {};
+      
+      if (data) {
+        for (const entry of data) {
+          try {
+            decryptedAcctNums[entry.id] = await decryptPassword(entry.account_number, masterPassword);
+            if (entry.routing_number) {
+              decryptedRouting[entry.id] = await decryptPassword(entry.routing_number, masterPassword);
+            }
+            if (entry.notes) {
+              decryptedNotes[entry.id] = await decryptPassword(entry.notes, masterPassword);
+            }
+          } catch (error) {
+            console.error('Error decrypting account data:', error);
+            decryptedAcctNums[entry.id] = '[Decryption Error]';
+          }
+        }
+      }
+      setDecryptedAccountNumbers(decryptedAcctNums);
+      setDecryptedRoutingNumbers(decryptedRouting);
+      setDecryptedAccountNotes(decryptedNotes);
+    } catch (error) {
+      console.error('Error fetching accounts:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load financial accounts",
+        variant: "destructive",
+      });
     }
   };
 
@@ -232,6 +318,108 @@ const PasswordCatalog: React.FC = () => {
     }));
   };
 
+  const handleAccountSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!user || !sessionMasterPassword) return;
+
+    try {
+      accountSchema.parse(accountFormData);
+
+      // Encrypt sensitive data on client-side before sending to database
+      const encryptedAccountNumber = await encryptPassword(accountFormData.accountNumber, sessionMasterPassword);
+      const encryptedRoutingNumber = accountFormData.routingNumber 
+        ? await encryptPassword(accountFormData.routingNumber, sessionMasterPassword)
+        : null;
+      const encryptedNotes = accountFormData.notes 
+        ? await encryptPassword(accountFormData.notes, sessionMasterPassword)
+        : null;
+
+      const { error } = await supabase
+        .from('financial_accounts')
+        .insert({
+          user_id: user.id,
+          account_type: accountFormData.accountType,
+          account_name: accountFormData.accountName,
+          institution_name: accountFormData.institutionName,
+          account_number: encryptedAccountNumber,
+          routing_number: encryptedRoutingNumber,
+          current_balance: accountFormData.currentBalance ? parseFloat(accountFormData.currentBalance) : null,
+          notes: encryptedNotes,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Financial account encrypted and saved securely",
+      });
+
+      setAccountFormData({
+        accountType: '',
+        accountName: '',
+        institutionName: '',
+        accountNumber: '',
+        routingNumber: '',
+        currentBalance: '',
+        notes: '',
+      });
+
+      if (sessionMasterPassword) {
+        fetchAccounts(sessionMasterPassword);
+      }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast({
+          title: "Validation Error",
+          description: error.errors[0].message,
+          variant: "destructive",
+        });
+      } else {
+        console.error('Error saving account:', error);
+        toast({
+          title: "Error",
+          description: "Failed to save financial account",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handleDeleteAccount = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('financial_accounts')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Financial account deleted successfully",
+      });
+
+      if (sessionMasterPassword) {
+        fetchAccounts(sessionMasterPassword);
+      }
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete financial account",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const toggleAccountNumberVisibility = (id: string) => {
+    setShowAccountNumbers((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
+
   if (!isUnlocked) {
     return (
       <>
@@ -250,7 +438,7 @@ const PasswordCatalog: React.FC = () => {
               <Lock className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
               <h3 className="text-lg font-semibold mb-2">Password and Accounts Catalog Locked</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Enter your master password to access your encrypted passwords
+                Enter your master password to access your encrypted passwords and Account Summary
               </p>
               <Button onClick={handleUnlockClick}>
                 <Lock className="h-4 w-4 mr-2" />
@@ -426,6 +614,201 @@ const PasswordCatalog: React.FC = () => {
                     )}
                     <p className="text-xs text-muted-foreground">
                       Added: {new Date(password.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Financial Accounts Section */}
+          <div className="space-y-4 mt-8">
+            <h3 className="text-xl font-semibold flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              Financial Accounts
+            </h3>
+            
+            {/* Add Financial Account Form */}
+            <form onSubmit={handleAccountSubmit} className="space-y-4 p-4 border rounded-lg bg-muted/30">
+              <h3 className="font-semibold flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Add New Financial Account
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="accountType">Account Type</Label>
+                  <Input
+                    id="accountType"
+                    value={accountFormData.accountType}
+                    onChange={(e) => setAccountFormData({ ...accountFormData, accountType: e.target.value })}
+                    placeholder="e.g., Checking, Savings, 401(k), CD, Stocks"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="accountName">Account Name</Label>
+                  <Input
+                    id="accountName"
+                    value={accountFormData.accountName}
+                    onChange={(e) => setAccountFormData({ ...accountFormData, accountName: e.target.value })}
+                    placeholder="e.g., Primary Savings, Retirement Fund"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="institutionName">Institution Name</Label>
+                <Input
+                  id="institutionName"
+                  value={accountFormData.institutionName}
+                  onChange={(e) => setAccountFormData({ ...accountFormData, institutionName: e.target.value })}
+                  placeholder="e.g., Chase, Fidelity, Vanguard"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="accountNumber">Account Number</Label>
+                  <Input
+                    id="accountNumber"
+                    type="password"
+                    value={accountFormData.accountNumber}
+                    onChange={(e) => setAccountFormData({ ...accountFormData, accountNumber: e.target.value })}
+                    placeholder="Will be encrypted"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="routingNumber">Routing Number (Optional)</Label>
+                  <Input
+                    id="routingNumber"
+                    type="password"
+                    value={accountFormData.routingNumber}
+                    onChange={(e) => setAccountFormData({ ...accountFormData, routingNumber: e.target.value })}
+                    placeholder="Will be encrypted"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="currentBalance">Current Balance (Optional)</Label>
+                <Input
+                  id="currentBalance"
+                  type="number"
+                  step="0.01"
+                  value={accountFormData.currentBalance}
+                  onChange={(e) => setAccountFormData({ ...accountFormData, currentBalance: e.target.value })}
+                  placeholder="e.g., 10000.00"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="accountNotes">Notes (Optional)</Label>
+                <Textarea
+                  id="accountNotes"
+                  value={accountFormData.notes}
+                  onChange={(e) => setAccountFormData({ ...accountFormData, notes: e.target.value })}
+                  placeholder="Any additional notes (will be encrypted)..."
+                  rows={2}
+                />
+              </div>
+              <Button type="submit" className="w-full">
+                <Lock className="h-4 w-4 mr-2" />
+                Encrypt & Save Account
+              </Button>
+            </form>
+
+            {/* Saved Financial Accounts List */}
+            {loading ? (
+              <p className="text-center text-muted-foreground">Loading accounts...</p>
+            ) : accounts.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">
+                No financial accounts saved yet. Add your first account above.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {accounts.map((account) => (
+                  <div key={account.id} className="p-4 border rounded-lg bg-card space-y-3">
+                    <div className="flex justify-between items-start">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-semibold">{account.account_name}</h4>
+                          <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded">
+                            {account.account_type}
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{account.institution_name}</p>
+                      </div>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Financial Account</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete this financial account? This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDeleteAccount(account.id)}
+                              className="bg-destructive text-destructive-foreground"
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Account Number</Label>
+                        <div className="flex items-center gap-2">
+                          <code className="text-sm font-mono flex-1">
+                            {showAccountNumbers[account.id]
+                              ? decryptedAccountNumbers[account.id] || 'Loading...'
+                              : '••••••••'}
+                          </code>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => toggleAccountNumberVisibility(account.id)}
+                          >
+                            {!showAccountNumbers[account.id] ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                      {account.routing_number && (
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Routing Number</Label>
+                          <code className="text-sm font-mono">
+                            {decryptedRoutingNumbers[account.id] || 'Loading...'}
+                          </code>
+                        </div>
+                      )}
+                    </div>
+                    {account.current_balance !== null && (
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Current Balance</Label>
+                        <p className="text-sm font-semibold">
+                          ${account.current_balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </p>
+                      </div>
+                    )}
+                    {account.notes && decryptedAccountNotes[account.id] && (
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Notes</Label>
+                        <p className="text-sm">{decryptedAccountNotes[account.id]}</p>
+                      </div>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      Added: {new Date(account.created_at).toLocaleDateString()}
                     </p>
                   </div>
                 ))}
