@@ -98,7 +98,7 @@ const PasswordCatalog: React.FC = () => {
     if (!isUnlocked) {
       toast({
         title: "Access Required",
-        description: "You need to unlock your password catalog to continue.",
+        description: "You need to unlock your password and accounts catalog to continue.",
         variant: "destructive",
       });
     }
@@ -239,22 +239,22 @@ const PasswordCatalog: React.FC = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Lock className="h-5 w-5" />
-              Password Catalog (Locked)
+              Password and Accounts Catalog (Locked)
             </CardTitle>
             <CardDescription>
-              Your password catalog is protected with end-to-end encryption
+              Your password and accounts catalog is protected with end-to-end encryption
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="text-center py-8">
               <Lock className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-semibold mb-2">Password Catalog Locked</h3>
+              <h3 className="text-lg font-semibold mb-2">Password and Accounts Catalog Locked</h3>
               <p className="text-sm text-muted-foreground mb-4">
                 Enter your master password to access your encrypted passwords
               </p>
               <Button onClick={handleUnlockClick}>
                 <Lock className="h-4 w-4 mr-2" />
-                Unlock Password Catalog
+                Unlock Password and Accounts Catalog
               </Button>
             </div>
           </CardContent>
@@ -275,7 +275,7 @@ const PasswordCatalog: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-green-600" />
-            Password Catalog (Unlocked)
+            Password and Accounts Catalog (Unlocked)
           </CardTitle>
           <CardDescription>
             Securely store and manage your website passwords with client-side encryption
