@@ -120,8 +120,8 @@ const Features: React.FC = () => {
 
                 <div className="bg-white p-6 rounded-lg shadow">
                   <KeyRound className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Password Catalog</h3>
-                  <p className="text-gray-600">Never forget a password again. Securely store all your website credentials in one place with end-to-end encryption protecting your data.</p>
+                  <h3 className="text-xl font-semibold mb-2">Password and Accounts Catalog</h3>
+                  <p className="text-gray-600">Securely store website passwords and financial account information in one encrypted location. Never forget credentials again with end-to-end encryption protecting your sensitive data.</p>
                 </div>
 
                 <div className="bg-white p-6 rounded-lg shadow">
@@ -210,8 +210,8 @@ const Features: React.FC = () => {
 
                 <div className="bg-white p-6 rounded-lg shadow">
                   <KeyRound className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Password Catalog</h3>
-                  <p className="text-gray-600">Never forget a password again. Securely store all your website credentials in one place with end-to-end encryption protecting your data.</p>
+                  <h3 className="text-xl font-semibold mb-2">Password and Accounts Catalog</h3>
+                  <p className="text-gray-600">Securely store website passwords and financial account information in one encrypted location. Never forget credentials again with end-to-end encryption protecting your sensitive data.</p>
                 </div>
 
                 <div className="bg-white p-6 rounded-lg shadow">
@@ -300,8 +300,8 @@ const Features: React.FC = () => {
 
                 <div className="bg-white p-6 rounded-lg shadow">
                   <KeyRound className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Password Catalog</h3>
-                  <p className="text-gray-600">Never forget a password again. Securely store all your website credentials in one place with end-to-end encryption protecting your data.</p>
+                  <h3 className="text-xl font-semibold mb-2">Password and Accounts Catalog</h3>
+                  <p className="text-gray-600">Securely store website passwords and financial account information in one encrypted location. Never forget credentials again with end-to-end encryption protecting your sensitive data.</p>
                 </div>
 
                 <div className="bg-white p-6 rounded-lg shadow">
@@ -390,8 +390,8 @@ const Features: React.FC = () => {
 
                 <div className="bg-white p-6 rounded-lg shadow">
                   <KeyRound className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Password Catalog</h3>
-                  <p className="text-gray-600">Never forget a password again. Securely store all your website credentials in one place with end-to-end encryption protecting your data.</p>
+                  <h3 className="text-xl font-semibold mb-2">Password and Accounts Catalog</h3>
+                  <p className="text-gray-600">Securely store website passwords and financial account information in one encrypted location. Never forget credentials again with end-to-end encryption protecting your sensitive data.</p>
                 </div>
 
                 <div className="bg-white p-6 rounded-lg shadow">
