@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Trash2, Eye, EyeOff, Plus, ExternalLink, Lock, Shield } from 'lucide-react';
+import { Trash2, Plus, ExternalLink, Lock, Shield } from 'lucide-react';
 import { z } from 'zod';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import MasterPasswordModal from './MasterPasswordModal';
@@ -60,8 +60,6 @@ const PasswordCatalog: React.FC = () => {
   const [passwords, setPasswords] = useState<PasswordEntry[]>([]);
   const [accounts, setAccounts] = useState<FinancialAccount[]>([]);
   const [loading, setLoading] = useState(false);
-  const [showPasswords, setShowPasswords] = useState<{ [key: string]: boolean }>({});
-  const [showAccountNumbers, setShowAccountNumbers] = useState<{ [key: string]: boolean }>({});
   const [masterPasswordModal, setMasterPasswordModal] = useState<{ isOpen: boolean; isSetup: boolean }>({
     isOpen: false,
     isSetup: false,
@@ -186,13 +184,13 @@ const PasswordCatalog: React.FC = () => {
 
     try {
       const { data, error } = await supabase
-        .from('financial_accounts')
+        .from('financial_accounts' as any)
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setAccounts(data || []);
+      setAccounts((data as any) || []);
       
       // Pre-decrypt all sensitive data for display
       const decryptedAcctNums: { [key: string]: string } = {};
@@ -202,16 +200,17 @@ const PasswordCatalog: React.FC = () => {
       if (data) {
         for (const entry of data) {
           try {
-            decryptedAcctNums[entry.id] = await decryptPassword(entry.account_number, masterPassword);
-            if (entry.routing_number) {
-              decryptedRouting[entry.id] = await decryptPassword(entry.routing_number, masterPassword);
+            const entryAny = entry as any;
+            decryptedAcctNums[entryAny.id] = await decryptPassword(entryAny.account_number, masterPassword);
+            if (entryAny.routing_number) {
+              decryptedRouting[entryAny.id] = await decryptPassword(entryAny.routing_number, masterPassword);
             }
-            if (entry.notes) {
-              decryptedNotes[entry.id] = await decryptPassword(entry.notes, masterPassword);
+            if (entryAny.notes) {
+              decryptedNotes[entryAny.id] = await decryptPassword(entryAny.notes, masterPassword);
             }
           } catch (error) {
             console.error('Error decrypting account data:', error);
-            decryptedAcctNums[entry.id] = '[Decryption Error]';
+            decryptedAcctNums[(entry as any).id] = '[Decryption Error]';
           }
         }
       }
@@ -311,13 +310,6 @@ const PasswordCatalog: React.FC = () => {
     }
   };
 
-  const togglePasswordVisibility = (id: string) => {
-    setShowPasswords((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
-  };
-
   const handleAccountSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -336,7 +328,7 @@ const PasswordCatalog: React.FC = () => {
         : null;
 
       const { error } = await supabase
-        .from('financial_accounts')
+        .from('financial_accounts' as any)
         .insert({
           user_id: user.id,
           account_type: accountFormData.accountType,
@@ -389,7 +381,7 @@ const PasswordCatalog: React.FC = () => {
   const handleDeleteAccount = async (id: string) => {
     try {
       const { error } = await supabase
-        .from('financial_accounts')
+        .from('financial_accounts' as any)
         .delete()
         .eq('id', id);
 
@@ -413,12 +405,6 @@ const PasswordCatalog: React.FC = () => {
     }
   };
 
-  const toggleAccountNumberVisibility = (id: string) => {
-    setShowAccountNumbers((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
-  };
 
   if (!isUnlocked) {
     return (
@@ -511,7 +497,7 @@ const PasswordCatalog: React.FC = () => {
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
-                type="password"
+                type="text"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 placeholder="Enter password (will be encrypted)"
@@ -587,24 +573,9 @@ const PasswordCatalog: React.FC = () => {
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs text-muted-foreground">Password</Label>
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-sm">
-                          {!showPasswords[password.id] 
-                            ? (decryptedPasswords[password.id] || 'Decrypting...')
-                            : '••••••••'}
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => togglePasswordVisibility(password.id)}
-                        >
-                          {!showPasswords[password.id] ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </div>
+                      <span className="font-mono text-sm">
+                        {decryptedPasswords[password.id] || 'Decrypting...'}
+                      </span>
                     </div>
                     {password.notes && (
                       <div className="space-y-1">
@@ -671,10 +642,10 @@ const PasswordCatalog: React.FC = () => {
                   <Label htmlFor="accountNumber">Account Number</Label>
                   <Input
                     id="accountNumber"
-                    type="password"
+                    type="text"
                     value={accountFormData.accountNumber}
                     onChange={(e) => setAccountFormData({ ...accountFormData, accountNumber: e.target.value })}
-                    placeholder="Will be encrypted"
+                    placeholder="Enter account number (will be encrypted)"
                     required
                   />
                 </div>
@@ -682,10 +653,10 @@ const PasswordCatalog: React.FC = () => {
                   <Label htmlFor="routingNumber">Routing Number (Optional)</Label>
                   <Input
                     id="routingNumber"
-                    type="password"
+                    type="text"
                     value={accountFormData.routingNumber}
                     onChange={(e) => setAccountFormData({ ...accountFormData, routingNumber: e.target.value })}
-                    placeholder="Will be encrypted"
+                    placeholder="Enter routing number (will be encrypted)"
                   />
                 </div>
               </div>
@@ -765,24 +736,9 @@ const PasswordCatalog: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <Label className="text-xs text-muted-foreground">Account Number</Label>
-                        <div className="flex items-center gap-2">
-                          <code className="text-sm font-mono flex-1">
-                            {showAccountNumbers[account.id]
-                              ? decryptedAccountNumbers[account.id] || 'Loading...'
-                              : '••••••••'}
-                          </code>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => toggleAccountNumberVisibility(account.id)}
-                          >
-                            {!showAccountNumbers[account.id] ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </div>
+                        <code className="text-sm font-mono">
+                          {decryptedAccountNumbers[account.id] || 'Loading...'}
+                        </code>
                       </div>
                       {account.routing_number && (
                         <div className="space-y-1">
