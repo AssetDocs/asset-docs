@@ -16,7 +16,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const passwordSchema = z.object({
   websiteName: z.string().trim().min(1, "Website name is required").max(100),
-  websiteUrl: z.string().trim().url("Must be a valid URL").max(500),
+  websiteUrl: z.string().trim().min(1, "Website/URL is required").max(500),
   password: z.string().trim().min(1, "Password is required").max(500),
   notes: z.string().trim().max(1000).optional(),
 });
@@ -482,13 +482,13 @@ const PasswordCatalog: React.FC = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="websiteUrl">Website URL</Label>
+                <Label htmlFor="websiteUrl">Website/URL</Label>
                 <Input
                   id="websiteUrl"
-                  type="url"
+                  type="text"
                   value={formData.websiteUrl}
                   onChange={(e) => setFormData({ ...formData, websiteUrl: e.target.value })}
-                  placeholder="https://example.com"
+                  placeholder="e.g., facebook, google mail, bankofamerica.com"
                   required
                 />
               </div>
