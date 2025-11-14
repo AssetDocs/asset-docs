@@ -129,6 +129,7 @@ const Gift: React.FC = () => {
                     description={plan.description}
                     features={plan.features}
                     buttonText="Gift This Plan"
+                    buttonClassName="w-full bg-brand-orange hover:bg-brand-orange/90"
                     onClick={() => handleGiftPurchase(plan.planType)}
                   />
                 </div>
@@ -143,8 +144,8 @@ const Gift: React.FC = () => {
                     <h4 className="font-semibold text-lg mb-2">For Gift Givers:</h4>
                     <ul className="space-y-2 text-gray-600">
                       <li>• Purchase a 12-month subscription</li>
-                      <li>• Receive a gift certificate via email</li>
-                      <li>• Share the gift code with your recipient</li>
+                      <li>• Enter recipient information during checkout</li>
+                      <li>• Automatic gift certificate delivered to recipient</li>
                       <li>• No recurring charges - one-time payment</li>
                     </ul>
                   </div>
