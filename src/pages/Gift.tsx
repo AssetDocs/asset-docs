@@ -27,7 +27,6 @@ const Gift: React.FC = () => {
         "12-month gift subscription"
       ],
       planType: "standard",
-      recommended: true,
       icon: <Zap className="h-6 w-6" />
     },
     {
@@ -123,13 +122,12 @@ const Gift: React.FC = () => {
 
             <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
               {giftPlans.map((plan, index) => (
-                <div key={plan.title} className={`relative ${plan.recommended ? 'transform scale-105' : ''}`}>
+                <div key={plan.title} className="relative">
                   <SubscriptionPlan
                     title={plan.title}
                     price={plan.price}
                     description={plan.description}
                     features={plan.features}
-                    recommended={plan.recommended}
                     buttonText="Gift This Plan"
                     onClick={() => handleGiftPurchase(plan.planType)}
                   />
