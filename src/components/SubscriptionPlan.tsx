@@ -12,6 +12,7 @@ interface SubscriptionPlanProps {
   recommended?: boolean;
   buttonText?: string;
   onClick?: () => void;
+  buttonClassName?: string;
 }
 
 const SubscriptionPlan: React.FC<SubscriptionPlanProps> = ({
@@ -21,7 +22,8 @@ const SubscriptionPlan: React.FC<SubscriptionPlanProps> = ({
   features,
   recommended = false,
   buttonText = "Subscribe",
-  onClick
+  onClick,
+  buttonClassName
 }) => {
   return (
     <Card className={`flex flex-col h-full ${recommended ? 'border-2 border-brand-orange relative' : ''}`}>
@@ -50,7 +52,7 @@ const SubscriptionPlan: React.FC<SubscriptionPlanProps> = ({
       </CardContent>
       <CardFooter className="pt-4">
         <Button 
-          className={`w-full ${recommended ? 'bg-brand-orange hover:bg-brand-orange/90' : 'bg-brand-blue hover:bg-brand-lightBlue'}`} 
+          className={buttonClassName || `w-full ${recommended ? 'bg-brand-orange hover:bg-brand-orange/90' : 'bg-brand-blue hover:bg-brand-lightBlue'}`} 
           onClick={onClick}
         >
           {buttonText}
