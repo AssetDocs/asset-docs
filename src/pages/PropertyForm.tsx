@@ -44,6 +44,30 @@ const PropertyForm: React.FC = () => {
     });
   };
 
+  const handleCurrencyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    // Remove all non-numeric characters except for the decimal point
+    const numericValue = value.replace(/[^0-9.]/g, '');
+    
+    // Format with commas and dollar sign if there's a value
+    let formattedValue = value;
+    if (numericValue) {
+      const parts = numericValue.split('.');
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      formattedValue = parts.length > 1 ? parts.join('.') : parts[0];
+      if (!value.startsWith('$')) {
+        formattedValue = '$' + formattedValue;
+      } else {
+        formattedValue = '$' + formattedValue.replace('$', '');
+      }
+    }
+    
+    setFormData({
+      ...formData,
+      [name]: formattedValue
+    });
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
@@ -223,10 +247,10 @@ const PropertyForm: React.FC = () => {
                     <Input
                       id="purchasePrice"
                       name="purchasePrice"
-                      type="number"
+                      type="text"
                       value={formData.purchasePrice}
-                      onChange={handleInputChange}
-                      placeholder="350000"
+                      onChange={handleCurrencyChange}
+                      placeholder="$350,000"
                     />
                   </div>
                   
@@ -235,9 +259,9 @@ const PropertyForm: React.FC = () => {
                     <Input
                       id="currentValue"
                       name="currentValue"
-                      type="number"
+                      type="text"
                       value={formData.currentValue}
-                      onChange={handleInputChange}
+                      onChange={handleCurrencyChange}
                       placeholder="425000"
                     />
                   </div>
