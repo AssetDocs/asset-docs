@@ -300,6 +300,48 @@ export type Database = {
         }
         Relationships: []
       }
+      financial_accounts: {
+        Row: {
+          account_name: string
+          account_number: string
+          account_type: string
+          created_at: string
+          current_balance: number | null
+          id: string
+          institution_name: string
+          notes: string | null
+          routing_number: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_name: string
+          account_number: string
+          account_type: string
+          created_at?: string
+          current_balance?: number | null
+          id?: string
+          institution_name: string
+          notes?: string | null
+          routing_number?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_name?: string
+          account_number?: string
+          account_type?: string
+          created_at?: string
+          current_balance?: number | null
+          id?: string
+          institution_name?: string
+          notes?: string | null
+          routing_number?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       gift_claim_attempts: {
         Row: {
           attempted_at: string | null
