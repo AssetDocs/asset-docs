@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Folder, FolderOpen, Images } from 'lucide-react';
+import { Folder, FolderOpen, Images, Trash2 } from 'lucide-react';
 
 interface Folder {
   id: string;
@@ -31,13 +31,15 @@ interface PhotoGalleryFoldersProps {
   selectedFolder: string | null;
   onFolderSelect: (folderId: string | null) => void;
   photoCount: number;
+  onDeleteFolder: (folderId: string) => void;
 }
 
 const PhotoGalleryFolders: React.FC<PhotoGalleryFoldersProps> = ({
   folders,
   selectedFolder,
   onFolderSelect,
-  photoCount
+  photoCount,
+  onDeleteFolder
 }) => {
 
   return (
@@ -52,29 +54,41 @@ const PhotoGalleryFolders: React.FC<PhotoGalleryFoldersProps> = ({
           const isSelected = selectedFolder === folder.id;
           
           return (
-            <Button
-              key={folder.id}
-              variant={isSelected ? 'default' : 'ghost'}
-              className="w-full justify-start p-3 h-auto"
-              onClick={() => onFolderSelect(folder.id)}
-            >
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center mr-3 ${folder.gradient_color}`}>
-                {isSelected ? (
-                  <FolderOpen className="h-4 w-4 text-white" />
-                ) : (
-                  <Folder className="h-4 w-4 text-white" />
-                )}
-              </div>
-              <div className="flex-1 text-left">
-                <div className="font-medium text-sm">{folder.folder_name}</div>
-                {folder.description && (
-                  <div className="text-xs text-muted-foreground truncate">{folder.description}</div>
-                )}
-              </div>
-              <Badge variant="secondary" className="ml-2">
-                {photoCount}
-              </Badge>
-            </Button>
+            <div key={folder.id} className="relative group">
+              <Button
+                variant={isSelected ? 'default' : 'ghost'}
+                className="w-full justify-start p-3 h-auto"
+                onClick={() => onFolderSelect(folder.id)}
+              >
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center mr-3 ${folder.gradient_color}`}>
+                  {isSelected ? (
+                    <FolderOpen className="h-4 w-4 text-white" />
+                  ) : (
+                    <Folder className="h-4 w-4 text-white" />
+                  )}
+                </div>
+                <div className="flex-1 text-left">
+                  <div className="font-medium text-sm">{folder.folder_name}</div>
+                  {folder.description && (
+                    <div className="text-xs text-muted-foreground truncate">{folder.description}</div>
+                  )}
+                </div>
+                <Badge variant="secondary" className="ml-2">
+                  {photoCount}
+                </Badge>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteFolder(folder.id);
+                }}
+              >
+                <Trash2 className="h-4 w-4 text-destructive" />
+              </Button>
+            </div>
           );
         })
       )}

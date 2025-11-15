@@ -198,6 +198,34 @@ const PhotoGallery: React.FC = () => {
     }
   };
 
+  const handleDeleteFolder = async (folderId: string) => {
+    try {
+      const { error } = await supabase
+        .from('photo_folders')
+        .delete()
+        .eq('id', folderId);
+
+      if (error) throw error;
+      
+      setFolders(folders.filter(f => f.id !== folderId));
+      if (selectedFolder === folderId) {
+        setSelectedFolder(null);
+      }
+      
+      toast({
+        title: "Success",
+        description: "Folder deleted successfully"
+      });
+    } catch (error) {
+      console.error('Error deleting folder:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete folder",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleMovePhotos = async (propertyId: string | null, folderId: string | null) => {
     if (selectedPhotos.length === 0) return;
     
@@ -378,6 +406,7 @@ const PhotoGallery: React.FC = () => {
                     selectedFolder={selectedFolder}
                     onFolderSelect={setSelectedFolder}
                     photoCount={currentFolderPhotoCount}
+                    onDeleteFolder={handleDeleteFolder}
                   />
                 </div>
               </CardContent>

@@ -10,32 +10,34 @@ import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import CreateFolderModal from '@/components/CreateFolderModal';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import VideoGalleryHeader from '@/components/VideoGalleryHeader';
+import VideoGalleryFolders from '@/components/VideoGalleryFolders';
 import MediaGalleryGrid from '@/components/MediaGalleryGrid';
 import { PropertyService, PropertyFile } from '@/services/PropertyService';
 import { useToast } from '@/hooks/use-toast';
 import { useProperties } from '@/hooks/useProperties';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'size-desc' | 'size-asc' | 'duration-desc' | 'duration-asc';
 type ViewMode = 'grid' | 'list';
 
-const mockFolders = [
-  {
-    id: 1,
-    name: "Interior Videos",
-    description: "Videos of interior spaces",
-    photoCount: 0,
-    createdDate: "2024-06-01",
-    color: "blue"
-  }
-];
+interface Folder {
+  id: number;
+  name: string;
+  description: string;
+  photoCount: number;
+  createdDate: string;
+  color: string;
+}
 
 const Videos: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const { properties } = useProperties();
   const [videos, setVideos] = useState<PropertyFile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [folders, setFolders] = useState(mockFolders);
+  const [folders, setFolders] = useState<Folder[]>([]);
   const [selectedFolder, setSelectedFolder] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('date-desc');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -48,6 +50,7 @@ const Videos: React.FC = () => {
 
   useEffect(() => {
     fetchVideos();
+    fetchFolders();
   }, []);
 
   const fetchVideos = async () => {
@@ -64,6 +67,41 @@ const Videos: React.FC = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchFolders = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('video_folders')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      const mappedFolders = data?.map(folder => ({
+        id: parseInt(folder.id),
+        name: folder.folder_name,
+        description: folder.description || '',
+        photoCount: 0,
+        createdDate: folder.created_at,
+        color: folder.gradient_color.includes('blue') ? 'blue' : 
+               folder.gradient_color.includes('green') ? 'green' : 
+               folder.gradient_color.includes('purple') ? 'purple' : 
+               folder.gradient_color.includes('orange') ? 'orange' : 'blue'
+      })) || [];
+      
+      setFolders(mappedFolders);
+    } catch (error) {
+      console.error('Error fetching folders:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load folders",
+        variant: "destructive"
+      });
     }
   };
 
@@ -89,11 +127,15 @@ const Videos: React.FC = () => {
   const transformedVideos = videos.map(video => ({
     id: video.id,
     name: video.file_name,
+    filename: video.file_name,
     url: video.file_url,
     uploadDate: video.created_at,
     size: formatFileSize(video.file_size),
+    propertyId: parseInt(video.property_id) || 0,
     propertyName: getPropertyName(video.property_id),
-    duration: '--:--' // TODO: Store duration in database
+    duration: '--:--', // TODO: Store duration in database
+    folderId: null,
+    tags: []
   }));
 
   const currentFolderName = selectedFolder 
@@ -141,17 +183,65 @@ const Videos: React.FC = () => {
     setSelectedVideos([]);
   };
 
-  const handleCreateFolder = (name: string, color: string) => {
-    const newFolder = {
-      id: folders.length + 1,
-      name,
-      description: `Created on ${new Date().toLocaleDateString()}`,
-      photoCount: 0,
-      createdDate: new Date().toISOString().split('T')[0],
-      color
-    };
-    setFolders(prev => [...prev, newFolder]);
-    setShowCreateFolder(false);
+  const handleCreateFolder = async (name: string, description: string, gradientColor: string) => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('video_folders')
+        .insert({
+          user_id: user.id,
+          folder_name: name,
+          description: description || null,
+          gradient_color: gradientColor
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      await fetchFolders();
+      setShowCreateFolder(false);
+      toast({
+        title: "Success",
+        description: "Folder created successfully"
+      });
+    } catch (error) {
+      console.error('Error creating folder:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create folder",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteFolder = async (folderId: number) => {
+    try {
+      const { error } = await supabase
+        .from('video_folders')
+        .delete()
+        .eq('id', folderId.toString());
+
+      if (error) throw error;
+      
+      setFolders(folders.filter(f => f.id !== folderId));
+      if (selectedFolder === folderId) {
+        setSelectedFolder(null);
+      }
+      
+      toast({
+        title: "Success",
+        description: "Folder deleted successfully"
+      });
+    } catch (error) {
+      console.error('Error deleting folder:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete folder",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleDeleteVideo = (videoId: string) => {
@@ -247,7 +337,7 @@ const Videos: React.FC = () => {
           />
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* Folders Sidebar */}
+            {/* Sidebar with Folders */}
             <div className="lg:col-span-1">
               <Card>
                 <CardHeader>
@@ -263,32 +353,13 @@ const Videos: React.FC = () => {
                       <FolderPlus className="h-4 w-4 mr-2" />
                       New Folder
                     </Button>
-                    <Button
-                      variant={selectedFolder === null ? "default" : "ghost"}
-                      className="w-full justify-start"
-                      onClick={() => setSelectedFolder(null)}
-                    >
-                      <Video className="h-4 w-4 mr-2" />
-                      All Videos
-                      <Badge variant="secondary" className="ml-auto">
-                        {videos.length}
-                      </Badge>
-                    </Button>
-                    
-                    {folders.map((folder) => (
-                      <Button
-                        key={folder.id}
-                        variant={selectedFolder === folder.id ? "default" : "ghost"}
-                        className="w-full justify-start"
-                        onClick={() => setSelectedFolder(folder.id)}
-                      >
-                        <div className={`w-3 h-3 rounded-full mr-2 bg-${folder.color}-500`} />
-                        {folder.name}
-                        <Badge variant="secondary" className="ml-auto">
-                          0
-                        </Badge>
-                      </Button>
-                    ))}
+                    <VideoGalleryFolders
+                      folders={folders}
+                      selectedFolder={selectedFolder}
+                      onFolderSelect={setSelectedFolder}
+                      videos={transformedVideos.map(v => ({ ...v, id: parseInt(v.id) || 0 }))}
+                      onDeleteFolder={handleDeleteFolder}
+                    />
                   </div>
                 </CardContent>
               </Card>

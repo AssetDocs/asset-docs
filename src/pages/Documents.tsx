@@ -32,30 +32,33 @@ import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import CreateFolderModal from '@/components/CreateFolderModal';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import MediaGalleryGrid from '@/components/MediaGalleryGrid';
+import DocumentFolders from '@/components/DocumentFolders';
 import { PropertyService, PropertyFile } from '@/services/PropertyService';
 import { useToast } from '@/hooks/use-toast';
 import { useProperties } from '@/hooks/useProperties';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'size-desc' | 'size-asc';
 type ViewMode = 'grid' | 'list';
 
-const mockFolders = [
-  {
-    id: 1,
-    name: "Legal Documents",
-    documentCount: 0,
-    color: "blue"
-  }
-];
+interface Folder {
+  id: string;
+  folder_name: string;
+  description: string | null;
+  gradient_color: string;
+  created_at: string;
+}
 
 const Documents: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const { properties } = useProperties();
   const [documents, setDocuments] = useState<PropertyFile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [folders, setFolders] = useState(mockFolders);
-  const [selectedFolder, setSelectedFolder] = useState<number | null>(null);
+  const [folders, setFolders] = useState<Folder[]>([]);
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('date-desc');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [searchTerm, setSearchTerm] = useState('');
@@ -67,6 +70,7 @@ const Documents: React.FC = () => {
 
   useEffect(() => {
     fetchDocuments();
+    fetchFolders();
   }, []);
 
   const fetchDocuments = async () => {
@@ -83,6 +87,28 @@ const Documents: React.FC = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchFolders = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('document_folders')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setFolders(data || []);
+    } catch (error) {
+      console.error('Error fetching folders:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load folders",
+        variant: "destructive"
+      });
     }
   };
 
@@ -116,7 +142,7 @@ const Documents: React.FC = () => {
   }));
 
   const currentFolderName = selectedFolder 
-    ? folders.find(f => f.id === selectedFolder)?.name || 'Documents'
+    ? folders.find(f => f.id === selectedFolder)?.folder_name || 'Documents'
     : 'All Documents';
 
   const filteredDocuments = transformedDocuments.filter(document => {
@@ -226,15 +252,65 @@ const Documents: React.FC = () => {
     setBulkDeleteMode(false);
   };
 
-  const handleCreateFolder = (name: string, color: string) => {
-    const newFolder = {
-      id: folders.length + 1,
-      name,
-      documentCount: 0,
-      color
-    };
-    setFolders(prev => [...prev, newFolder]);
-    setShowCreateFolder(false);
+  const handleCreateFolder = async (name: string, description: string, gradientColor: string) => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('document_folders')
+        .insert({
+          user_id: user.id,
+          folder_name: name,
+          description: description || null,
+          gradient_color: gradientColor
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      setFolders([data, ...folders]);
+      setShowCreateFolder(false);
+      toast({
+        title: "Success",
+        description: "Folder created successfully"
+      });
+    } catch (error) {
+      console.error('Error creating folder:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create folder",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteFolder = async (folderId: string) => {
+    try {
+      const { error } = await supabase
+        .from('document_folders')
+        .delete()
+        .eq('id', folderId);
+
+      if (error) throw error;
+      
+      setFolders(folders.filter(f => f.id !== folderId));
+      if (selectedFolder === folderId) {
+        setSelectedFolder(null);
+      }
+      
+      toast({
+        title: "Success",
+        description: "Folder deleted successfully"
+      });
+    } catch (error) {
+      console.error('Error deleting folder:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete folder",
+        variant: "destructive"
+      });
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -373,49 +449,33 @@ const Documents: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* Folders Sidebar */}
+            {/* Sidebar with Folders */}
             <div className="lg:col-span-1">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Folders</CardTitle>
+                  <CardTitle className="text-lg flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <FileText className="h-5 w-5" />
+                      Document Organization
+                    </span>
+                  </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <Button 
-                      onClick={() => setShowCreateFolder(true)}
-                      variant="outline"
-                      className="w-full justify-start border-2 border-dashed"
-                    >
-                      <FolderPlus className="h-4 w-4 mr-2" />
-                      New Folder
-                    </Button>
-                    <Button
-                      variant={selectedFolder === null ? "default" : "ghost"}
-                      className="w-full justify-start"
-                      onClick={() => setSelectedFolder(null)}
-                    >
-                      <FileText className="h-4 w-4 mr-2" />
-                      All Documents
-                      <Badge variant="secondary" className="ml-auto">
-                        {documents.length}
-                      </Badge>
-                    </Button>
-                    
-                    {folders.map((folder) => (
-                      <Button
-                        key={folder.id}
-                        variant={selectedFolder === folder.id ? "default" : "ghost"}
-                        className="w-full justify-start"
-                        onClick={() => setSelectedFolder(folder.id)}
-                      >
-                        <div className={`w-3 h-3 rounded-full mr-2 bg-${folder.color}-500`} />
-                        {folder.name}
-                        <Badge variant="secondary" className="ml-auto">
-                          0
-                        </Badge>
-                      </Button>
-                    ))}
-                  </div>
+                <CardContent className="space-y-4">
+                  <Button
+                    onClick={() => setShowCreateFolder(true)}
+                    variant="outline"
+                    className="w-full justify-start border-2 border-dashed"
+                  >
+                    <FolderPlus className="h-4 w-4 mr-2" />
+                    New Folder
+                  </Button>
+                  <DocumentFolders
+                    folders={folders}
+                    selectedFolder={selectedFolder}
+                    onFolderSelect={setSelectedFolder}
+                    documentCount={documents.length}
+                    onDeleteFolder={handleDeleteFolder}
+                  />
                 </CardContent>
               </Card>
             </div>
