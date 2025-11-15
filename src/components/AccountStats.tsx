@@ -27,6 +27,14 @@ const AccountStats: React.FC = () => {
       const items = await ItemService.getUserItems(user.id);
       const totalItemValue = items.reduce((sum, item) => sum + (Number(item.estimated_value) || 0), 0);
 
+      // Get properties count and value
+      const { data: properties } = await supabase
+        .from('properties')
+        .select('estimated_value')
+        .eq('user_id', user.id);
+      const propertyCount = properties?.length || 0;
+      const totalPropertyValue = properties?.reduce((sum, prop) => sum + (Number(prop.estimated_value) || 0), 0) || 0;
+
       // Get photo count
       const { data: photoFiles } = await supabase.storage
         .from('photos')
@@ -46,12 +54,12 @@ const AccountStats: React.FC = () => {
       const documentCount = documentFiles?.length || 0;
 
       setStats({
-        properties: 0, // Will be loaded from items with property_id
+        properties: propertyCount,
         photos: photoCount,
         videos: videoCount,
         documents: documentCount,
         totalValue: totalItemValue,
-        propertyValue: 0
+        propertyValue: totalPropertyValue
       });
     } catch (error) {
       console.error('Error loading stats:', error);
