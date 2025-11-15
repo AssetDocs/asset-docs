@@ -1,68 +1,39 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Folder, FolderOpen, Video, Trash2 } from 'lucide-react';
+import { Folder, FolderOpen, FileText, Trash2 } from 'lucide-react';
 
 interface Folder {
-  id: number;
-  name: string;
-  description: string;
-  photoCount: number;
-  createdDate: string;
-  color: string;
+  id: string;
+  folder_name: string;
+  description: string | null;
+  gradient_color: string;
+  created_at: string;
 }
 
-interface VideoData {
-  id: number;
-  name: string;
-  filename: string;
-  url: string;
-  duration: string;
-  uploadDate: string;
-  size: string;
-  propertyId: number;
-  propertyName: string;
-  folderId: number | null;
-  tags: string[];
-}
-
-interface VideoGalleryFoldersProps {
+interface DocumentFoldersProps {
   folders: Folder[];
-  selectedFolder: number | null;
-  onFolderSelect: (folderId: number | null) => void;
-  videos: VideoData[];
-  onDeleteFolder: (folderId: number) => void;
+  selectedFolder: string | null;
+  onFolderSelect: (folderId: string | null) => void;
+  documentCount: number;
+  onDeleteFolder: (folderId: string) => void;
 }
 
-const VideoGalleryFolders: React.FC<VideoGalleryFoldersProps> = ({
+const DocumentFolders: React.FC<DocumentFoldersProps> = ({
   folders,
   selectedFolder,
   onFolderSelect,
-  videos,
+  documentCount,
   onDeleteFolder
 }) => {
-  const getColorClass = (color: string) => {
-    switch (color) {
-      case 'blue': return 'text-blue-600 bg-blue-50';
-      case 'green': return 'text-green-600 bg-green-50';
-      case 'purple': return 'text-purple-600 bg-purple-50';
-      case 'orange': return 'text-orange-600 bg-orange-50';
-      case 'red': return 'text-red-600 bg-red-50';
-      default: return 'text-gray-600 bg-gray-50';
-    }
-  };
-
-  const unorganizedCount = videos.filter(video => video.folderId === null).length;
-
   return (
     <div className="space-y-4">
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <Video className="h-5 w-5" />
-            Video Organization
+            <FileText className="h-5 w-5" />
+            Document Organization
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
@@ -71,22 +42,10 @@ const VideoGalleryFolders: React.FC<VideoGalleryFoldersProps> = ({
             className="w-full justify-start"
             onClick={() => onFolderSelect(null)}
           >
-            <Video className="h-4 w-4 mr-2" />
-            All Videos
+            <FileText className="h-4 w-4 mr-2" />
+            All Documents
             <Badge variant="secondary" className="ml-auto">
-              {videos.length}
-            </Badge>
-          </Button>
-
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={() => onFolderSelect(null)}
-          >
-            <Folder className="h-4 w-4 mr-2 text-gray-400" />
-            Unorganized
-            <Badge variant="secondary" className="ml-auto">
-              {unorganizedCount}
+              {documentCount}
             </Badge>
           </Button>
         </CardContent>
@@ -104,7 +63,6 @@ const VideoGalleryFolders: React.FC<VideoGalleryFoldersProps> = ({
             </div>
           ) : (
             folders.map((folder) => {
-              const actualVideoCount = videos.filter(video => video.folderId === folder.id).length;
               const isSelected = selectedFolder === folder.id;
               
               return (
@@ -114,19 +72,21 @@ const VideoGalleryFolders: React.FC<VideoGalleryFoldersProps> = ({
                     className="w-full justify-start p-3 h-auto"
                     onClick={() => onFolderSelect(folder.id)}
                   >
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center mr-3 ${getColorClass(folder.color)}`}>
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center mr-3 ${folder.gradient_color}`}>
                       {isSelected ? (
-                        <FolderOpen className="h-4 w-4" />
+                        <FolderOpen className="h-4 w-4 text-white" />
                       ) : (
-                        <Folder className="h-4 w-4" />
+                        <Folder className="h-4 w-4 text-white" />
                       )}
                     </div>
                     <div className="flex-1 text-left">
-                      <div className="font-medium text-sm">{folder.name}</div>
-                      <div className="text-xs text-gray-500 truncate">{folder.description}</div>
+                      <div className="font-medium text-sm">{folder.folder_name}</div>
+                      {folder.description && (
+                        <div className="text-xs text-muted-foreground truncate">{folder.description}</div>
+                      )}
                     </div>
                     <Badge variant="secondary" className="ml-2">
-                      {actualVideoCount}
+                      {documentCount}
                     </Badge>
                   </Button>
                   <Button
@@ -150,4 +110,4 @@ const VideoGalleryFolders: React.FC<VideoGalleryFoldersProps> = ({
   );
 };
 
-export default VideoGalleryFolders;
+export default DocumentFolders;
