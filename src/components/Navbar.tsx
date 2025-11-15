@@ -44,13 +44,15 @@ const Navbar: React.FC = () => {
             <div className="flex items-center space-x-6">
               {isAuthenticated ? (
                 <>
-                 <Link 
+                 <NavLink 
                    to="/account" 
-                   className="flex items-center px-3 py-2 bg-brand-blue/10 text-brand-blue hover:bg-brand-blue hover:text-white transition-all rounded-md font-medium"
+                   className={({ isActive }) => 
+                     `flex items-center px-3 py-2 transition-all rounded-md font-medium ${isActive ? 'bg-yellow-400 text-gray-900' : 'bg-brand-blue/10 text-brand-blue hover:bg-brand-blue hover:text-white'}`
+                   }
                  >
                    <Home className="h-4 w-4 mr-1" />
                    {translate('nav.dashboard')}
-                 </Link>
+                 </NavLink>
                  <NavLink 
                    to="/features" 
                    className={({ isActive }) => 
@@ -171,14 +173,16 @@ const Navbar: React.FC = () => {
             <div className="flex flex-col space-y-4">
               {isAuthenticated ? (
                 <>
-                   <Link 
+                   <NavLink 
                      to="/account" 
-                     className="flex items-center px-3 py-2 bg-brand-blue/10 text-brand-blue hover:bg-brand-blue hover:text-white transition-all rounded-md font-medium w-fit"
+                     className={({ isActive }) => 
+                       `flex items-center px-3 py-2 transition-all rounded-md font-medium w-fit ${isActive ? 'bg-yellow-400 text-gray-900' : 'bg-brand-blue/10 text-brand-blue hover:bg-brand-blue hover:text-white'}`
+                     }
                      onClick={() => setIsMenuOpen(false)}
                    >
                      <Home className="h-4 w-4 mr-1" />
                      {translate('nav.dashboard')}
-                   </Link>
+                   </NavLink>
                    <NavLink 
                      to="/features" 
                      className={({ isActive }) => 
