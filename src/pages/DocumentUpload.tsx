@@ -8,8 +8,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Upload, FileText, Trash2, Plus } from 'lucide-react';
+import { ArrowLeft, Upload, FileText, Trash2, Plus, Folder } from 'lucide-react';
 import PropertySelector from '@/components/PropertySelector';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+
+interface DocumentFolder {
+  id: string;
+  folder_name: string;
+  gradient_color: string;
+}
 
 interface UploadedDocument {
   id: string;
@@ -19,13 +27,40 @@ interface UploadedDocument {
   description: string;
   propertyId: string;
   tags: string;
+  folderId: string;
 }
 
 const DocumentUpload: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadedDocuments, setUploadedDocuments] = useState<UploadedDocument[]>([]);
   const [defaultPropertyId, setDefaultPropertyId] = useState('');
+  const [selectedFolderId, setSelectedFolderId] = useState<string>('');
+  const [folders, setFolders] = useState<DocumentFolder[]>([]);
+
+  React.useEffect(() => {
+    if (user) {
+      fetchFolders();
+    }
+  }, [user]);
+
+  const fetchFolders = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('document_folders')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setFolders(data || []);
+    } catch (error) {
+      console.error('Error fetching folders:', error);
+    }
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -42,7 +77,8 @@ const DocumentUpload: React.FC = () => {
       category: 'general',
       description: '',
       propertyId: defaultPropertyId,
-      tags: ''
+      tags: '',
+      folderId: selectedFolderId
     }));
 
     setUploadedDocuments([...uploadedDocuments, ...newDocuments]);
@@ -100,15 +136,38 @@ const DocumentUpload: React.FC = () => {
               <CardTitle className="text-lg">Default Settings</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="max-w-md">
-                <Label htmlFor="default-property" className="text-sm font-medium">
-                  Default Property (optional)
-                </Label>
-                <PropertySelector
-                  value={defaultPropertyId}
-                  onChange={setDefaultPropertyId}
-                  placeholder="Select a default property"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="default-property" className="text-sm font-medium">
+                    Default Property (optional)
+                  </Label>
+                  <PropertySelector
+                    value={defaultPropertyId}
+                    onChange={setDefaultPropertyId}
+                    placeholder="Select a default property"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="default-folder" className="text-sm font-medium">
+                    Default Folder (optional)
+                  </Label>
+                  <Select value={selectedFolderId} onValueChange={setSelectedFolderId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a folder" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background z-50">
+                      <SelectItem value="">None</SelectItem>
+                      {folders.map((folder) => (
+                        <SelectItem key={folder.id} value={folder.id}>
+                          <div className="flex items-center gap-2">
+                            <div className={`w-4 h-4 rounded ${folder.gradient_color}`} />
+                            {folder.folder_name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </CardContent>
           </Card>

@@ -58,16 +58,16 @@ const DocumentFolders: React.FC<DocumentFoldersProps> = ({
               const isSelected = selectedFolder === folder.id;
               
               return (
-                <div key={folder.id} className="relative group">
+                <div key={folder.id} className="relative">
                   <Button
                     variant={isSelected ? 'default' : 'ghost'}
-                    className="w-full justify-start p-3 h-auto"
+                    className="w-full justify-start p-3 h-auto pr-12"
                     onClick={() => onFolderSelect(folder.id)}
                   >
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center mr-3 ${folder.gradient_color}`}>
                       <Folder className="h-4 w-4 text-white fill-white" />
                     </div>
-                    <div className="flex-1 text-left">
+                    <div className="flex-1 text-left min-w-0">
                       <div className="font-medium text-sm">{folder.folder_name}</div>
                       {folder.description && (
                         <div className="text-xs text-muted-foreground truncate">{folder.description}</div>
@@ -80,7 +80,7 @@ const DocumentFolders: React.FC<DocumentFoldersProps> = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-destructive/10"
                     onClick={(e) => {
                       e.stopPropagation();
                       onDeleteFolder(folder.id);
