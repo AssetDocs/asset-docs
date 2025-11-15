@@ -361,48 +361,45 @@ const Videos: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Sidebar with Folders */}
             <div className="lg:col-span-1">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Folders</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <Button 
-                      onClick={() => setShowCreateFolder(true)}
-                      variant="outline"
-                      className="w-full justify-start border-2 border-dashed"
-                    >
-                      <FolderPlus className="h-4 w-4 mr-2" />
-                      New Folder
-                    </Button>
-                    <VideoGalleryFolders
-                      folders={folders}
-                      selectedFolder={selectedFolder}
-                      onFolderSelect={setSelectedFolder}
-                      videos={transformedVideos.map(v => ({ ...v, id: parseInt(v.id) || 0 }))}
-                      onDeleteFolder={handleDeleteFolder}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+              <VideoGalleryFolders
+                folders={folders}
+                selectedFolder={selectedFolder}
+                onFolderSelect={setSelectedFolder}
+                videos={transformedVideos.map(v => ({ ...v, id: parseInt(v.id) || 0 }))}
+                onDeleteFolder={handleDeleteFolder}
+                onCreateFolder={() => setShowCreateFolder(true)}
+              />
             </div>
 
             {/* Videos Grid */}
             <div className="lg:col-span-3">
-              {isLoading ? (
-                <Card className="p-12 text-center">
-                  <p className="text-gray-500">Loading videos...</p>
-                </Card>
-              ) : (
-                <MediaGalleryGrid
-                  files={sortedVideos}
-                  viewMode={viewMode}
-                  selectedFiles={selectedVideos}
-                  onFileSelect={toggleVideoSelection}
-                  onDeleteFile={handleDeleteVideo}
-                  mediaType="video"
-                />
-              )}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Video className="h-5 w-5" />
+                    {selectedFolder 
+                      ? folders.find(f => f.id === selectedFolder)?.name || 'Videos'
+                      : 'All Videos'
+                    }
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {isLoading ? (
+                    <div className="p-12 text-center">
+                      <p className="text-muted-foreground">Loading videos...</p>
+                    </div>
+                  ) : (
+                    <MediaGalleryGrid
+                      files={sortedVideos}
+                      viewMode={viewMode}
+                      selectedFiles={selectedVideos}
+                      onFileSelect={toggleVideoSelection}
+                      onDeleteFile={handleDeleteVideo}
+                      mediaType="video"
+                    />
+                  )}
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>
