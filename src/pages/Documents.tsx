@@ -67,6 +67,8 @@ const Documents: React.FC = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<string | null>(null);
   const [bulkDeleteMode, setBulkDeleteMode] = useState(false);
+  const [showDeleteFolderDialog, setShowDeleteFolderDialog] = useState(false);
+  const [folderToDelete, setFolderToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDocuments();
@@ -285,23 +287,43 @@ const Documents: React.FC = () => {
     }
   };
 
-  const handleDeleteFolder = async (folderId: string) => {
+  const handleDeleteFolder = (folderId: string) => {
+    setFolderToDelete(folderId);
+    setShowDeleteFolderDialog(true);
+  };
+
+  const confirmDeleteFolder = async () => {
+    if (!folderToDelete) return;
+    
     try {
-      const { error } = await supabase
+      // First, update all documents in this folder to remove folder_id
+      const { error: updateError } = await supabase
+        .from('property_files')
+        .update({ folder_id: null })
+        .eq('folder_id', folderToDelete);
+
+      if (updateError) throw updateError;
+
+      // Then delete the folder
+      const { error: deleteError } = await supabase
         .from('document_folders')
         .delete()
-        .eq('id', folderId);
+        .eq('id', folderToDelete);
 
-      if (error) throw error;
+      if (deleteError) throw deleteError;
       
-      setFolders(folders.filter(f => f.id !== folderId));
-      if (selectedFolder === folderId) {
+      setFolders(folders.filter(f => f.id !== folderToDelete));
+      if (selectedFolder === folderToDelete) {
         setSelectedFolder(null);
       }
       
+      await fetchDocuments();
+      setShowDeleteFolderDialog(false);
+      setFolderToDelete(null);
+      
       toast({
         title: "Success",
-        description: "Folder deleted successfully"
+        description: "Folder deleted successfully. Files remain in general storage."
       });
     } catch (error) {
       console.error('Error deleting folder:', error);
@@ -513,6 +535,17 @@ const Documents: React.FC = () => {
         onConfirm={confirmDelete}
         title={bulkDeleteMode ? "Delete Documents" : "Delete Document"}
         itemCount={bulkDeleteMode ? selectedDocuments.length : 1}
+      />
+
+      <DeleteConfirmationDialog
+        isOpen={showDeleteFolderDialog}
+        onClose={() => {
+          setShowDeleteFolderDialog(false);
+          setFolderToDelete(null);
+        }}
+        onConfirm={confirmDeleteFolder}
+        title="Delete Folder"
+        description="Are you sure you want to delete this folder? This folder and all of its contents will be removed from the folder, but the uploaded files can still be found in general storage."
       />
       
       <Footer />
