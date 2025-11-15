@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Folder, FolderOpen, FileText, Trash2 } from 'lucide-react';
+import { Folder, FileText, Trash2, Plus } from 'lucide-react';
 
 interface Folder {
   id: string;
@@ -18,6 +18,7 @@ interface DocumentFoldersProps {
   onFolderSelect: (folderId: string | null) => void;
   documentCount: number;
   onDeleteFolder: (folderId: string) => void;
+  onCreateFolder: () => void;
 }
 
 const DocumentFolders: React.FC<DocumentFoldersProps> = ({
@@ -25,44 +26,35 @@ const DocumentFolders: React.FC<DocumentFoldersProps> = ({
   selectedFolder,
   onFolderSelect,
   documentCount,
-  onDeleteFolder
+  onDeleteFolder,
+  onCreateFolder
 }) => {
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Document Organization
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <Button
-            variant={selectedFolder === null ? 'default' : 'ghost'}
-            className="w-full justify-start"
-            onClick={() => onFolderSelect(null)}
-          >
-            <FileText className="h-4 w-4 mr-2" />
-            All Documents
-            <Badge variant="secondary" className="ml-auto">
-              {documentCount}
-            </Badge>
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Folders</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {folders.length === 0 ? (
-            <div className="text-center py-4 text-gray-500">
-              <Folder className="h-8 w-8 mx-auto mb-2 text-gray-300" />
-              <p className="text-sm">No folders created yet</p>
-            </div>
-          ) : (
-            folders.map((folder) => {
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg flex items-center gap-2">
+          <FileText className="h-5 w-5" />
+          Document Organization
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <Button
+          onClick={onCreateFolder}
+          className="w-full"
+          variant="outline"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Create Folder
+        </Button>
+        
+        {folders.length === 0 ? (
+          <div className="text-center py-4 text-muted-foreground">
+            <Folder className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p className="text-sm">No folders created yet</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {folders.map((folder) => {
               const isSelected = selectedFolder === folder.id;
               
               return (
@@ -73,11 +65,7 @@ const DocumentFolders: React.FC<DocumentFoldersProps> = ({
                     onClick={() => onFolderSelect(folder.id)}
                   >
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center mr-3 ${folder.gradient_color}`}>
-                      {isSelected ? (
-                        <FolderOpen className="h-4 w-4 text-white" />
-                      ) : (
-                        <Folder className="h-4 w-4 text-white" />
-                      )}
+                      <Folder className="h-4 w-4 text-white fill-white" />
                     </div>
                     <div className="flex-1 text-left">
                       <div className="font-medium text-sm">{folder.folder_name}</div>
@@ -102,11 +90,11 @@ const DocumentFolders: React.FC<DocumentFoldersProps> = ({
                   </Button>
                 </div>
               );
-            })
-          )}
-        </CardContent>
-      </Card>
-    </div>
+            })}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

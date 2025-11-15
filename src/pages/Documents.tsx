@@ -473,51 +473,45 @@ const Documents: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Sidebar with Folders */}
             <div className="lg:col-span-1">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center justify-between">
-                    <span className="flex items-center gap-2">
-                      <FileText className="h-5 w-5" />
-                      Document Organization
-                    </span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Button
-                    onClick={() => setShowCreateFolder(true)}
-                    variant="outline"
-                    className="w-full justify-start border-2 border-dashed"
-                  >
-                    <FolderPlus className="h-4 w-4 mr-2" />
-                    New Folder
-                  </Button>
-                  <DocumentFolders
-                    folders={folders}
-                    selectedFolder={selectedFolder}
-                    onFolderSelect={setSelectedFolder}
-                    documentCount={documents.length}
-                    onDeleteFolder={handleDeleteFolder}
-                  />
-                </CardContent>
-              </Card>
+              <DocumentFolders
+                folders={folders}
+                selectedFolder={selectedFolder}
+                onFolderSelect={setSelectedFolder}
+                documentCount={documents.length}
+                onDeleteFolder={handleDeleteFolder}
+                onCreateFolder={() => setShowCreateFolder(true)}
+              />
             </div>
 
             {/* Documents Grid */}
             <div className="lg:col-span-3">
-              {isLoading ? (
-                <Card className="p-12 text-center">
-                  <p className="text-gray-500">Loading documents...</p>
-                </Card>
-              ) : (
-                <MediaGalleryGrid
-                  files={sortedDocuments}
-                  viewMode={viewMode}
-                  selectedFiles={selectedDocuments}
-                  onFileSelect={toggleDocumentSelection}
-                  onDeleteFile={handleDeleteDocument}
-                  mediaType="document"
-                />
-              )}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    {selectedFolder 
+                      ? folders.find(f => f.id === selectedFolder)?.folder_name || 'Documents'
+                      : 'All Documents'
+                    }
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {isLoading ? (
+                    <div className="p-12 text-center">
+                      <p className="text-muted-foreground">Loading documents...</p>
+                    </div>
+                  ) : (
+                    <MediaGalleryGrid
+                      files={sortedDocuments}
+                      viewMode={viewMode}
+                      selectedFiles={selectedDocuments}
+                      onFileSelect={toggleDocumentSelection}
+                      onDeleteFile={handleDeleteDocument}
+                      mediaType="document"
+                    />
+                  )}
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>
