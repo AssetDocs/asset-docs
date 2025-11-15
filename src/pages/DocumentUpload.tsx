@@ -208,10 +208,11 @@ const DocumentUpload: React.FC = () => {
                               <SelectTrigger>
                                 <SelectValue placeholder="Select category" />
                               </SelectTrigger>
-                              <SelectContent>
+                              <SelectContent className="bg-background z-50">
                                 <SelectItem value="insurance">Insurance</SelectItem>
                                 <SelectItem value="warranty">Warranty</SelectItem>
                                 <SelectItem value="legal">Legal</SelectItem>
+                                <SelectItem value="taxes">Taxes</SelectItem>
                                 <SelectItem value="receipt">Receipt</SelectItem>
                                 <SelectItem value="contract">Contract</SelectItem>
                                 <SelectItem value="general">General</SelectItem>
