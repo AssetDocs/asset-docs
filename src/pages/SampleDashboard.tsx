@@ -4,6 +4,7 @@ import Footer from '@/components/Footer';
 import AssetValuesSection from '@/components/AssetValuesSection';
 import PostDamageSection from '@/components/PostDamageSection';
 import VoiceNotesSection from '@/components/VoiceNotesSection';
+import DemoLegacyLocker from "@/components/DemoLegacyLocker";
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -688,6 +689,9 @@ const SampleDashboard: React.FC = () => {
 
               {/* Documentation Checklist */}
               <DemoDocumentationChecklist />
+              
+              {/* Legacy Locker */}
+              <DemoLegacyLocker />
             </TabsContent>
 
             <TabsContent value="asset-values">
