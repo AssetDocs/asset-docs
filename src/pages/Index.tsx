@@ -11,6 +11,7 @@ import GiftSection from '@/components/GiftSection';
 import FeaturedSection from '@/components/FeaturedSection';
 import FeaturesSection from '@/components/FeaturesSection';
 import HowItWorksSection from '@/components/HowItWorksSection';
+import LegacyLockerSection from '@/components/LegacyLockerSection';
 import CTASection from '@/components/CTASection';
 import FeedbackSection from '@/components/FeedbackSection';
 
@@ -26,6 +27,7 @@ const Index: React.FC = () => {
       <FeaturedSection />
       <FeaturesSection />
       <HowItWorksSection />
+      <LegacyLockerSection />
       <CTASection />
       <FeedbackSection />
       <Footer />
