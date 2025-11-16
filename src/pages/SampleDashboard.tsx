@@ -573,15 +573,15 @@ const SampleDashboard: React.FC = () => {
 
               {/* Third Row - Password Catalog, Insurance, Export */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Password Catalog Card */}
+                {/* Password and Accounts Catalog Card */}
                 <Card className="hover:shadow-lg transition-shadow col-span-1 md:col-span-2 lg:col-span-3">
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <Lock className="h-6 w-6 mr-2 text-brand-blue" />
-                      Password Catalog
+                      Password and Accounts Catalog (Locked)
                     </CardTitle>
                     <CardDescription>
-                      Securely store and manage your passwords and financial accounts with encryption
+                      Your password and accounts catalog is protected with end-to-end encryption
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -589,17 +589,18 @@ const SampleDashboard: React.FC = () => {
                       <Alert className="border-blue-200 bg-blue-50">
                         <Lock className="h-4 w-4" />
                         <AlertDescription>
-                          <strong>Secure Storage:</strong> All passwords are encrypted with your master password and stored securely.
-                          Only you can access them.
+                          <strong>Password and Accounts Catalog Locked</strong>
+                          <br />
+                          Enter your master password to access your encrypted passwords and Account Summary
                         </AlertDescription>
                       </Alert>
                       <div className="flex gap-3">
                         <Button 
-                          onClick={() => alert('AssetDocs.net says\n\nDemo: This would allow you to unlock and access your password catalog with your master password.')}
+                          onClick={() => alert("AssetDocs.net says\n\nDemo: This would allow you to unlock and access your password and accounts catalog with your master password.")}
                           className="flex-1 bg-brand-blue hover:bg-brand-lightBlue"
                         >
                           <Lock className="h-4 w-4 mr-2" />
-                          Unlock Password Catalog
+                          Unlock Password and Accounts Catalog
                         </Button>
                       </div>
                     </div>
