@@ -11,7 +11,10 @@ const AccountStats: React.FC = () => {
     videos: 0,
     documents: 0,
     totalValue: 0,
-    propertyValue: 0
+    propertyValue: 0,
+    photoValue: 0,
+    videoValue: 0,
+    documentValue: 0
   });
 
   useEffect(() => {
@@ -25,7 +28,30 @@ const AccountStats: React.FC = () => {
 
       // Get items count and total value
       const items = await ItemService.getUserItems(user.id);
-      const totalItemValue = items.reduce((sum, item) => sum + (Number(item.estimated_value) || 0), 0);
+      
+      // Calculate value for items with photos
+      const photoItemValue = items
+        .filter(item => item.photo_url || item.photo_path)
+        .reduce((sum, item) => sum + (Number(item.estimated_value) || 0), 0);
+      
+      // For videos, calculate based on property_files
+      const { data: videoPropertyFiles } = await supabase
+        .from('property_files')
+        .select('property_id')
+        .eq('user_id', user.id)
+        .eq('file_type', 'video');
+      
+      const videoPropertyIds = videoPropertyFiles?.map(f => f.property_id) || [];
+      const videoItemValue = items
+        .filter(item => item.property_id && videoPropertyIds.includes(item.property_id))
+        .reduce((sum, item) => sum + (Number(item.estimated_value) || 0), 0);
+      
+      // For documents, get receipts total
+      const { data: receipts } = await supabase
+        .from('receipts')
+        .select('purchase_amount')
+        .eq('user_id', user.id);
+      const documentValue = receipts?.reduce((sum, receipt) => sum + (Number(receipt.purchase_amount) || 0), 0) || 0;
 
       // Get properties count and value
       const { data: properties } = await supabase
@@ -53,13 +79,20 @@ const AccountStats: React.FC = () => {
         .list(user.id);
       const documentCount = documentFiles?.length || 0;
 
+      // Calculate total value (all items + properties)
+      const totalItemValue = items.reduce((sum, item) => sum + (Number(item.estimated_value) || 0), 0);
+      const grandTotalValue = totalItemValue + totalPropertyValue;
+
       setStats({
         properties: propertyCount,
         photos: photoCount,
         videos: videoCount,
         documents: documentCount,
-        totalValue: totalItemValue,
-        propertyValue: totalPropertyValue
+        totalValue: grandTotalValue,
+        propertyValue: totalPropertyValue,
+        photoValue: photoItemValue,
+        videoValue: videoItemValue,
+        documentValue: documentValue
       });
     } catch (error) {
       console.error('Error loading stats:', error);
@@ -99,6 +132,9 @@ const AccountStats: React.FC = () => {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Photos</p>
               <p className="text-2xl font-bold">{stats.photos}</p>
+              {stats.photoValue > 0 && (
+                <p className="text-xs text-gray-500">{formatCurrency(stats.photoValue)} total value</p>
+              )}
             </div>
           </div>
         </CardContent>
@@ -111,6 +147,9 @@ const AccountStats: React.FC = () => {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Videos</p>
               <p className="text-2xl font-bold">{stats.videos}</p>
+              {stats.videoValue > 0 && (
+                <p className="text-xs text-gray-500">{formatCurrency(stats.videoValue)} total value</p>
+              )}
             </div>
           </div>
         </CardContent>
@@ -123,6 +162,9 @@ const AccountStats: React.FC = () => {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Documents</p>
               <p className="text-2xl font-bold">{stats.documents}</p>
+              {stats.documentValue > 0 && (
+                <p className="text-xs text-gray-500">{formatCurrency(stats.documentValue)} total value</p>
+              )}
             </div>
           </div>
         </CardContent>
@@ -135,9 +177,7 @@ const AccountStats: React.FC = () => {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Value</p>
               <p className="text-2xl font-bold">{formatCurrency(stats.totalValue)}</p>
-              {stats.propertyValue > 0 && (
-                <p className="text-xs text-gray-500">Including real estate</p>
-              )}
+              <p className="text-xs text-gray-500">All assets combined</p>
             </div>
           </div>
         </CardContent>
