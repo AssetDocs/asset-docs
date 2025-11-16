@@ -100,6 +100,45 @@ const Testimonials: React.FC = () => {
               </blockquote>
               <cite className="text-brand-blue font-semibold">— Charlotte B.</cite>
             </div>
+            
+            {/* Testimonial 7 */}
+            <div className="bg-white p-6 rounded-lg shadow">
+              <div className="flex items-center mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
+                ))}
+              </div>
+              <blockquote className="text-gray-600 mb-4">
+                "As a creative professional, I manage passwords for more than 150 websites. Having a secure place to store not only my financial and business account details, but also all of those login credentials, is essential."
+              </blockquote>
+              <cite className="text-brand-blue font-semibold">— Cambria S.</cite>
+            </div>
+            
+            {/* Testimonial 8 */}
+            <div className="bg-white p-6 rounded-lg shadow">
+              <div className="flex items-center mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
+                ))}
+              </div>
+              <blockquote className="text-gray-600 mb-4">
+                "At first, I thought uploading all my information would take forever. Instead, I had every asset secured with Asset Docs in less than two weekends."
+              </blockquote>
+              <cite className="text-brand-blue font-semibold">— Todd W.</cite>
+            </div>
+            
+            {/* Testimonial 9 */}
+            <div className="bg-white p-6 rounded-lg shadow">
+              <div className="flex items-center mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
+                ))}
+              </div>
+              <blockquote className="text-gray-600 mb-4">
+                "In the mortgage world, a complete and organized list of assets can determine whether a transaction succeeds or falls apart. I suggest Asset Docs to customers every chance I get"
+              </blockquote>
+              <cite className="text-brand-blue font-semibold">— Navida Y.</cite>
+            </div>
           </div>
         </div>
       </section>
