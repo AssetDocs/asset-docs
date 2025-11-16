@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PropertySelector from '@/components/PropertySelector';
 import ManualDamageEntry from '@/components/ManualDamageEntry';
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import jsPDF from 'jspdf';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -18,7 +19,8 @@ import {
   Calendar,
   MapPin,
   FileText,
-  Edit
+  Edit,
+  Trash2
 } from 'lucide-react';
 
 interface DamagePhoto {
@@ -43,9 +45,11 @@ interface DamageVideo {
 const PostDamageSection: React.FC = () => {
   const [selectedPropertyId, setSelectedPropertyId] = useState('');
   const { toast } = useToast();
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [photoToDelete, setPhotoToDelete] = useState<number | null>(null);
   
   // Mock data - in a real app, this would come from your backend
-  const [damagePhotos] = useState<DamagePhoto[]>([
+  const [damagePhotos, setDamagePhotos] = useState<DamagePhoto[]>([
     {
       id: 1,
       name: "Water damage in basement",
@@ -91,6 +95,23 @@ const PostDamageSection: React.FC = () => {
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  const handleDeletePhoto = (photoId: number) => {
+    setPhotoToDelete(photoId);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDeletePhoto = () => {
+    if (photoToDelete !== null) {
+      setDamagePhotos(photos => photos.filter(photo => photo.id !== photoToDelete));
+      toast({
+        title: "Photo Deleted",
+        description: "Damage photo has been removed.",
+      });
+    }
+    setShowDeleteDialog(false);
+    setPhotoToDelete(null);
   };
 
   const generateDamageReport = () => {
@@ -333,7 +354,15 @@ const PostDamageSection: React.FC = () => {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {damagePhotos.slice(0, 4).map((photo) => (
-                      <Card key={photo.id} className="overflow-hidden">
+                      <Card key={photo.id} className="overflow-hidden relative">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute top-2 right-2 z-10 bg-white/90 hover:bg-red-50 hover:text-red-600"
+                          onClick={() => handleDeletePhoto(photo.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                         <div className="aspect-video bg-gray-200 flex items-center justify-center">
                           <Camera className="h-8 w-8 text-gray-400" />
                         </div>
@@ -463,29 +492,19 @@ const PostDamageSection: React.FC = () => {
             </TabsContent>
           </Tabs>
 
-          {/* Quick Actions */}
-          <div className="pt-4 border-t">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => {
-                  const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
-                  if (isOnSampleDashboard) {
-                    alert('AssetDocs.net says\n\nDemo: This would generate comprehensive damage reports for insurance claims with photos, videos, and details.');
-                    return;
-                  }
-                  generateDamageReport();
-                }}
-                disabled={!selectedPropertyId}
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                Generate Damage Report
-              </Button>
-            </div>
-          </div>
         </div>
       </CardContent>
+      
+      <DeleteConfirmationDialog
+        isOpen={showDeleteDialog}
+        onClose={() => {
+          setShowDeleteDialog(false);
+          setPhotoToDelete(null);
+        }}
+        onConfirm={confirmDeletePhoto}
+        title="Delete Damage Photo"
+        description="Are you sure you want to delete this item? This cannot be undone."
+      />
     </Card>
   );
 };
