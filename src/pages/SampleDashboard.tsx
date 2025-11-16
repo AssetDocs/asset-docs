@@ -4,7 +4,6 @@ import Footer from '@/components/Footer';
 import AssetValuesSection from '@/components/AssetValuesSection';
 import PostDamageSection from '@/components/PostDamageSection';
 import VoiceNotesSection from '@/components/VoiceNotesSection';
-import SourceWebsitesSection from '@/components/SourceWebsitesSection';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -32,7 +31,9 @@ import {
   Download,
   Lock,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Globe,
+  ExternalLink
 } from 'lucide-react';
 
 const SampleDashboard: React.FC = () => {
@@ -248,6 +249,98 @@ const SampleDashboard: React.FC = () => {
       </CardContent>
     </Card>
   );
+
+  // Demo Source Websites Component
+  const DemoSourceWebsites = () => {
+    const dummyWebsites = [
+      {
+        id: '1',
+        website_name: 'Amazon',
+        website_url: 'https://www.amazon.com',
+        description: 'Online retailer for electronics, furniture, and household items',
+        category: 'E-commerce'
+      },
+      {
+        id: '2',
+        website_name: 'Best Buy',
+        website_url: 'https://www.bestbuy.com',
+        description: 'Electronics and appliance retailer',
+        category: 'Electronics'
+      },
+      {
+        id: '3',
+        website_name: 'Wayfair',
+        website_url: 'https://www.wayfair.com',
+        description: 'Furniture and home decor online store',
+        category: 'Furniture'
+      },
+      {
+        id: '4',
+        website_name: 'Home Depot',
+        website_url: 'https://www.homedepot.com',
+        description: 'Home improvement and hardware supplies',
+        category: 'Home Improvement'
+      }
+    ];
+
+    return (
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center">
+                <Globe className="h-6 w-6 mr-2 text-brand-blue" />
+                Source Websites
+              </CardTitle>
+              <CardDescription>
+                Track where you purchased your items for warranty and reference purposes
+              </CardDescription>
+            </div>
+            <Button 
+              onClick={() => alert('AssetDocs.net says\n\nDemo: This would allow you to add a new source website to track where you purchased items.')}
+              className="bg-brand-blue hover:bg-brand-lightBlue"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Website
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {dummyWebsites.map((website) => (
+              <Card key={website.id} className="hover:shadow-lg transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg mb-1 flex items-center">
+                        <Globe className="h-4 w-4 mr-2 text-brand-blue" />
+                        {website.website_name}
+                      </h3>
+                      {website.category && (
+                        <Badge variant="secondary" className="mb-2">
+                          {website.category}
+                        </Badge>
+                      )}
+                      <p className="text-sm text-gray-600 mb-3">{website.description}</p>
+                      <Button
+                        onClick={() => alert('AssetDocs.net says\n\nDemo: This would open the website in a new tab.')}
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                      >
+                        <ExternalLink className="h-3 w-3 mr-2" />
+                        Visit Website
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -613,7 +706,7 @@ const SampleDashboard: React.FC = () => {
                   <strong>Demo Mode:</strong> This shows sample source websites. In the live dashboard, you could save websites where you purchased items for reference.
                 </AlertDescription>
               </Alert>
-              <SourceWebsitesSection />
+              <DemoSourceWebsites />
             </TabsContent>
 
             <TabsContent value="damage">
