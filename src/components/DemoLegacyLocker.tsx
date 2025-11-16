@@ -23,6 +23,18 @@ const DemoLegacyLocker = () => {
       </CardHeader>
       <CardContent className="space-y-4">
         <Alert>
+          <Shield className="h-4 w-4" />
+          <AlertDescription className="text-sm">
+            <strong>Important:</strong> The Legacy Locker is not a legal digital will or electronic will (e-will).
+            Instead, it serves as an auxiliary evidence vault—a secure place to organize additional information that supports your wishes and helps executors, family members, and trusted contacts understand your intentions.
+            <br /><br />
+            Your Legacy Locker may include photo and video documentation of your assets, personal notes or explanations of your wishes, access information for personal websites, financial and investment account details, passwords and logins, and supporting documents for estate planning.
+            <br /><br />
+            This feature does not replace a legally executed will or e-will, but it provides valuable context, clarity, and verification to accompany your official estate documents.
+          </AlertDescription>
+        </Alert>
+
+        <Alert>
           <AlertDescription>
             This is a demonstration of the Legacy Locker feature. In the full version, you can:
             <ul className="list-disc ml-6 mt-2 space-y-1">

@@ -330,17 +330,17 @@ const LegacyLocker = () => {
   return (
     <>
       <Card className="w-full">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5" />
-                Legacy Locker
-              </CardTitle>
-              <CardDescription>
-                Your informal Last Will & Testament
-              </CardDescription>
-            </div>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              Legacy Locker
+            </CardTitle>
+            <CardDescription>
+              Your informal Last Will & Testament
+            </CardDescription>
+          </div>
             <div className="flex items-center gap-2">
               <Label htmlFor="encryption-toggle">Encrypt</Label>
               <Switch
@@ -358,6 +358,18 @@ const LegacyLocker = () => {
           </div>
         </CardHeader>
         <CardContent>
+          <Alert className="mb-4">
+            <Shield className="h-4 w-4" />
+            <AlertDescription className="text-sm">
+              <strong>Important:</strong> The Legacy Locker is not a legal digital will or electronic will (e-will).
+              Instead, it serves as an auxiliary evidence vault—a secure place to organize additional information that supports your wishes and helps executors, family members, and trusted contacts understand your intentions.
+              <br /><br />
+              Your Legacy Locker may include photo and video documentation of your assets, personal notes or explanations of your wishes, access information for personal websites, financial and investment account details, passwords and logins, and supporting documents for estate planning.
+              <br /><br />
+              This feature does not replace a legally executed will or e-will, but it provides valuable context, clarity, and verification to accompany your official estate documents.
+            </AlertDescription>
+          </Alert>
+
           <Alert className="mb-4">
             <AlertDescription>
               {isEncrypted 
