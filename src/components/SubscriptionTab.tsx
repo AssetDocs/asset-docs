@@ -399,10 +399,10 @@ const SubscriptionTab: React.FC = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Once you delete your account, there is no going back. This action cannot be undone.
-                </p>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                If you wish to delete your account, make sure you securely back up or export your dashboard files. Once you delete your account, there is no going back. This action cannot be undone.
+              </p>
                 <Button 
                   variant="destructive" 
                   onClick={() => setShowDeleteDialog(true)}
@@ -563,7 +563,7 @@ const SubscriptionTab: React.FC = () => {
           <CardContent>
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Once you delete your account, there is no going back. This action cannot be undone.
+                If you wish to delete your account, make sure you securely back up or export your dashboard files. Once you delete your account, there is no going back. This action cannot be undone.
               </p>
               <Button 
                 variant="destructive" 

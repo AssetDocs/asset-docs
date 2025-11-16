@@ -149,7 +149,7 @@ const SampleDashboard: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center">
             <FolderOpen className="h-5 w-5 mr-2 text-brand-blue" />
-            Storage Quota
+            Storage Usage
           </CardTitle>
           <CardDescription>
             Track your storage usage

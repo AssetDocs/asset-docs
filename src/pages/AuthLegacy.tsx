@@ -23,7 +23,11 @@ const Auth: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, signIn } = useAuth();
+  const { user, signIn, signUp } = useAuth();
+  const [isContributorMode, setIsContributorMode] = useState(false);
+  const [contributorEmail, setContributorEmail] = useState('');
+  const [contributorPassword, setContributorPassword] = useState('');
+  const [contributorConfirmPassword, setContributorConfirmPassword] = useState('');
 
   const signInForm = useForm<SignInFormData>({
     defaultValues: {
@@ -41,12 +45,20 @@ const Auth: React.FC = () => {
     }
   }, [user, navigate]);
 
-  // Pre-fill gift code from URL parameter
+  // Pre-fill gift code from URL parameter and check for contributor mode
   useEffect(() => {
     const codeFromUrl = searchParams.get('giftCode');
+    const mode = searchParams.get('mode');
+    const email = searchParams.get('email');
+    
     if (codeFromUrl) {
       setGiftCode(codeFromUrl);
       signInForm.setValue('giftCode', codeFromUrl);
+    }
+    
+    if (mode === 'contributor' && email) {
+      setIsContributorMode(true);
+      setContributorEmail(email);
     }
   }, [searchParams, signInForm]);
 
@@ -90,6 +102,141 @@ const Auth: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+  const handleContributorSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (contributorPassword !== contributorConfirmPassword) {
+      toast({
+        title: "Passwords Don't Match",
+        description: "Please make sure both passwords match.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (contributorPassword.length < 6) {
+      toast({
+        title: "Password Too Short",
+        description: "Password must be at least 6 characters long.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { error } = await signUp(contributorEmail, contributorPassword);
+      
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Account Created!",
+        description: "Your contributor account has been created. You now have access to the dashboard.",
+      });
+      navigate('/account');
+    } catch (error: any) {
+      console.error('Contributor signup error:', error);
+      toast({
+        title: "Signup Failed",
+        description: error.message || "Failed to create your account. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Contributor password creation form
+  if (isContributorMode) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="mb-6">
+            <Link 
+              to="/" 
+              className="inline-flex items-center text-brand-blue hover:text-brand-blue/80 transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Home
+            </Link>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Create Your Password</CardTitle>
+              <CardDescription>
+                You've been invited as a contributor. Create a password to access the dashboard.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleContributorSignup} className="space-y-4">
+                <div className="space-y-2">
+                  <label htmlFor="contributor-email" className="text-sm font-medium">Email</label>
+                  <Input
+                    id="contributor-email"
+                    type="email"
+                    value={contributorEmail}
+                    disabled
+                    className="bg-muted"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="contributor-password" className="text-sm font-medium">Password</label>
+                  <div className="relative">
+                    <Input
+                      id="contributor-password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Create a password"
+                      value={contributorPassword}
+                      onChange={(e) => setContributorPassword(e.target.value)}
+                      required
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4 text-gray-400" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-gray-400" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="contributor-confirm-password" className="text-sm font-medium">Confirm Password</label>
+                  <Input
+                    id="contributor-confirm-password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Confirm your password"
+                    value={contributorConfirmPassword}
+                    onChange={(e) => setContributorConfirmPassword(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <Button 
+                  type="submit" 
+                  className="w-full"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Creating Account..." : "Create Account & Access Dashboard"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50 flex items-center justify-center p-4">

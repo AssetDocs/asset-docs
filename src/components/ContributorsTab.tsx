@@ -179,6 +179,51 @@ const ContributorsTab: React.FC = () => {
     }
   };
 
+  const resendInvitation = async (contributorId: string, email: string, role: 'administrator' | 'contributor' | 'viewer') => {
+    setLoading(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    // Get user's profile information for the invitation email
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('first_name, last_name')
+      .eq('user_id', user.id)
+      .single();
+
+    const inviterName = profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : user.email;
+
+    try {
+      const { error } = await supabase.functions.invoke('send-contributor-invitation', {
+        body: {
+          contributorEmail: email,
+          role: role,
+          inviterName: inviterName,
+          inviterEmail: user.email,
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Invitation Resent",
+        description: `Invitation email has been resent to ${email}`,
+      });
+    } catch (error) {
+      console.error('Error resending invitation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to resend invitation",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const updateContributorRole = async (contributorId: string, newRole: 'administrator' | 'contributor' | 'viewer') => {
     const { error } = await supabase
       .from('contributors')
@@ -351,6 +396,17 @@ const ContributorsTab: React.FC = () => {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
+                    {contributor.status === 'pending' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => resendInvitation(contributor.id, contributor.contributor_email, contributor.role)}
+                        disabled={loading}
+                      >
+                        <Mail className="h-4 w-4 mr-1" />
+                        Resend
+                      </Button>
+                    )}
                     <Select
                       value={contributor.role}
                       onValueChange={(value) => updateContributorRole(contributor.id, value as any)}
