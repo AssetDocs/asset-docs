@@ -197,12 +197,10 @@ const AppContent = () => {
         <Route path="/account/properties" element={<ProtectedRoute><Properties /></ProtectedRoute>} />
         <Route path="/account/properties/new" element={<ProtectedRoute><PropertyForm /></ProtectedRoute>} />
         <Route path="/account/photos" element={<ProtectedRoute><PhotoGallery /></ProtectedRoute>} />
-        <Route path="/photo-gallery" element={<ProtectedRoute><PhotoGallery /></ProtectedRoute>} />
         <Route path="/account/videos" element={<ProtectedRoute><Videos /></ProtectedRoute>} />
         <Route path="/account/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
         
         <Route path="/account/insurance" element={<ProtectedRoute><Insurance /></ProtectedRoute>} />
-        <Route path="/photo-upload" element={<ProtectedRoute><PhotoUpload /></ProtectedRoute>} />
         <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
         <Route path="/account/photos/upload" element={<ProtectedRoute><PhotoUpload /></ProtectedRoute>} />
         <Route path="/account/videos/upload" element={<ProtectedRoute><VideoUpload /></ProtectedRoute>} />

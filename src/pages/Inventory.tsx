@@ -94,7 +94,7 @@ const Inventory: React.FC = () => {
                 <Plus className="h-4 w-4 mr-2" />
                 {showManualEntry ? 'Hide Manual Entry' : 'Manual Entry'}
               </Button>
-              <Button onClick={() => navigate('/photo-upload')} className="flex items-center">
+              <Button onClick={() => navigate('/account/photos/upload')} className="flex items-center">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Items
               </Button>
@@ -188,7 +188,7 @@ const Inventory: React.FC = () => {
                   ? "Try adjusting your search or filters" 
                   : "Start by adding your first item to begin building your inventory"}
               </p>
-              <Button onClick={() => navigate('/photo-upload')}>
+              <Button onClick={() => navigate('/account/photos/upload')}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Your First Item
               </Button>
