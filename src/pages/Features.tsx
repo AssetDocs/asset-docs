@@ -129,22 +129,27 @@ const Features: React.FC = () => {
                   <h3 className="text-xl font-semibold mb-2">Add Contributors</h3>
                   <p className="text-gray-600">Invite others to collaborate on your property documentation. Assign specific permission levels—administrator, contributor, or view-only access.</p>
                 </div>
+              </div>
 
-                <div className="bg-white p-6 rounded-lg shadow border-2 border-brand-blue">
-                  <Shield className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Legacy Locker</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="font-semibold text-gray-800 mb-1">What It Is</h4>
-                      <p className="text-gray-600 text-sm">A secure, encrypted vault inside Asset Docs where you can store the most important details your loved ones will need—photos, videos, account access, personal notes, and instructions that clarify your wishes. It's a modern way to organize the information that often gets lost, forgotten, or overlooked.</p>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-800 mb-1">What It's Not</h4>
-                      <p className="text-gray-600 text-sm">Legacy Locker is not a legally recognized will or electronic will. It does not replace formal estate-planning documents, notarized paperwork, or attorney guidance. Instead, it serves as a companion resource that supports and enhances them.</p>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-800 mb-1">Why It Matters for Homeowners</h4>
-                      <p className="text-gray-600 text-sm">Legacy Locker gives peace of mind by ensuring your family or trusted contacts can easily access essential information about your home, your assets, and your digital life. It reduces confusion, speeds up decisions during emergencies or transitions, and preserves the story behind your belongings. It's a simple, powerful way to protect your legacy—and the people who depend on it.</p>
+              {/* Legacy Locker - Full Width Section */}
+              <div className="mt-8 bg-white p-8 rounded-lg shadow-lg border-2 border-brand-blue">
+                <div className="flex items-start gap-4">
+                  <Shield className="h-10 w-10 text-brand-blue flex-shrink-0" />
+                  <div className="flex-1">
+                    <h3 className="text-2xl font-semibold mb-4">Legacy Locker</h3>
+                    <div className="grid md:grid-cols-3 gap-6">
+                      <div>
+                        <h4 className="font-semibold text-gray-800 mb-2">What It Is</h4>
+                        <p className="text-gray-600">A secure, encrypted vault inside Asset Docs where you can store the most important details your loved ones will need—photos, videos, account access, personal notes, and instructions that clarify your wishes. It's a modern way to organize the information that often gets lost, forgotten, or overlooked.</p>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-800 mb-2">What It's Not</h4>
+                        <p className="text-gray-600">Legacy Locker is not a legally recognized will or electronic will. It does not replace formal estate-planning documents, notarized paperwork, or attorney guidance. Instead, it serves as a companion resource that supports and enhances them.</p>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-800 mb-2">Why It Matters for Homeowners</h4>
+                        <p className="text-gray-600">Legacy Locker gives peace of mind by ensuring your family or trusted contacts can easily access essential information about your home, your assets, and your digital life. It reduces confusion, speeds up decisions during emergencies or transitions, and preserves the story behind your belongings. It's a simple, powerful way to protect your legacy—and the people who depend on it.</p>
+                      </div>
                     </div>
                   </div>
                 </div>
