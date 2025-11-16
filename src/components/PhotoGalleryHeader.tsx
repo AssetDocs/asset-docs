@@ -109,7 +109,7 @@ const PhotoGalleryHeader: React.FC<PhotoGalleryHeaderProps> = ({
 
         <div className="flex items-center gap-2">
           <Button asChild className="bg-brand-blue hover:bg-brand-lightBlue">
-            <Link to="/photo-upload">
+            <Link to="/account/photos/upload">
               <Upload className="h-4 w-4 mr-2" />
               Upload Photos
             </Link>

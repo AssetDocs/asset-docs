@@ -118,7 +118,7 @@ const PhotoUpload: React.FC = () => {
     setPreviews([]);
     
     // Navigate to photo gallery
-    navigate('/photo-gallery');
+    navigate('/account/photos');
   };
 
   return (
