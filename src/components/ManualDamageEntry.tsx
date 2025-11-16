@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import PropertySelector from '@/components/PropertySelector';
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import { AlertTriangle, Plus, Save } from 'lucide-react';
 
 interface ManualDamageEntry {
@@ -33,6 +34,8 @@ interface ManualDamageEntry {
 const ManualDamageEntry: React.FC = () => {
   const [damageEntries, setDamageEntries] = useState<ManualDamageEntry[]>([]);
   const [showNewEntry, setShowNewEntry] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
   const [newEntry, setNewEntry] = useState<ManualDamageEntry>({
     id: '',
     name: '',
@@ -102,8 +105,17 @@ const ManualDamageEntry: React.FC = () => {
     }
   };
 
-  const removeEntry = (id: string) => {
-    setDamageEntries(entries => entries.filter(entry => entry.id !== id));
+  const handleRemoveEntry = (id: string) => {
+    setEntryToDelete(id);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmRemoveEntry = () => {
+    if (entryToDelete) {
+      setDamageEntries(entries => entries.filter(entry => entry.id !== entryToDelete));
+    }
+    setShowDeleteDialog(false);
+    setEntryToDelete(null);
   };
 
   const getSeverityColor = (severity: string) => {
@@ -368,7 +380,7 @@ const ManualDamageEntry: React.FC = () => {
                     <div className="flex justify-between items-start mb-2">
                       <h5 className="font-medium">{entry.name}</h5>
                       <Button
-                        onClick={() => removeEntry(entry.id)}
+                        onClick={() => handleRemoveEntry(entry.id)}
                         variant="destructive"
                         size="sm"
                         className="text-xs"
@@ -401,6 +413,17 @@ const ManualDamageEntry: React.FC = () => {
           </div>
         )}
       </CardContent>
+      
+      <DeleteConfirmationDialog
+        isOpen={showDeleteDialog}
+        onClose={() => {
+          setShowDeleteDialog(false);
+          setEntryToDelete(null);
+        }}
+        onConfirm={confirmRemoveEntry}
+        title="Delete Manual Entry"
+        description="Are you sure you want to delete this item? This cannot be undone."
+      />
     </Card>
   );
 };

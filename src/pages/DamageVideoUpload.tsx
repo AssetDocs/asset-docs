@@ -12,10 +12,16 @@ import PropertySelector from '@/components/PropertySelector';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import { ArrowLeft, Upload, Video, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { StorageService } from '@/services/StorageService';
+import { PropertyService } from '@/services/PropertyService';
 
 const DamageVideoUpload: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [isUploading, setIsUploading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadData, setUploadData] = useState({
     propertyId: '',
@@ -49,7 +55,7 @@ const DamageVideoUpload: React.FC = () => {
     }
   };
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
     if (selectedFiles.length === 0 || !uploadData.propertyId || !uploadData.damageType) {
       toast({
         title: "Missing Information",
@@ -59,14 +65,54 @@ const DamageVideoUpload: React.FC = () => {
       return;
     }
 
-    // Simulate upload process
-    toast({
-      title: "Videos Uploaded",
-      description: `Successfully uploaded ${selectedFiles.length} damage videos.`,
-    });
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "You must be logged in to upload files.",
+        variant: "destructive"
+      });
+      return;
+    }
 
-    // Navigate back to post damage section
-    navigate('/account#post-damage');
+    setIsUploading(true);
+
+    try {
+      const uploadPromises = selectedFiles.map(async (file) => {
+        // Upload to videos bucket (damage videos stored there)
+        const uploadResult = await StorageService.uploadFile(file, 'videos', user.id);
+        const filePath = typeof uploadResult === 'string' ? uploadResult : uploadResult.path;
+        const fileUrl = StorageService.getPublicUrl('videos', filePath);
+
+        // Add to property_files table
+        await PropertyService.addPropertyFile({
+          property_id: uploadData.propertyId,
+          file_name: file.name,
+          file_path: filePath,
+          file_url: fileUrl,
+          file_type: 'video',
+          file_size: file.size,
+          bucket_name: 'videos'
+        });
+      });
+
+      await Promise.all(uploadPromises);
+
+      toast({
+        title: "Videos Uploaded",
+        description: `Successfully uploaded ${selectedFiles.length} damage videos.`,
+      });
+
+      navigate('/account#post-damage');
+    } catch (error) {
+      console.error('Error uploading damage videos:', error);
+      toast({
+        title: "Upload Failed",
+        description: "There was an error uploading your videos. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleBack = () => {
