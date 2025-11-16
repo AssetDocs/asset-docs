@@ -23,6 +23,7 @@ import EmailVerificationNotice from '@/components/EmailVerificationNotice';
 import { StripeTestPanel } from '@/components/StripeTestPanel';
 import { useToast } from '@/hooks/use-toast';
 import PasswordCatalog from '@/components/PasswordCatalog';
+import LegacyLocker from '@/components/LegacyLocker';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -428,6 +429,11 @@ const Account: React.FC = () => {
                 {/* Password Catalog Card */}
                 <div className="col-span-1 md:col-span-2 lg:col-span-3">
                   <PasswordCatalog />
+                </div>
+                
+                {/* Legacy Locker Card */}
+                <div className="col-span-1 md:col-span-2 lg:col-span-3">
+                  <LegacyLocker />
                 </div>
                 
                 {/* Insurance Information Card */}

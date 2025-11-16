@@ -588,6 +588,111 @@ export type Database = {
         }
         Relationships: []
       }
+      legacy_locker: {
+        Row: {
+          address: string | null
+          backup_executor_contact: string | null
+          backup_executor_name: string | null
+          backup_guardian_contact: string | null
+          backup_guardian_name: string | null
+          burial_or_cremation: string | null
+          business_succession_plan: string | null
+          ceremony_preferences: string | null
+          created_at: string
+          debts_expenses: string | null
+          digital_assets: Json | null
+          ethical_will: string | null
+          executor_contact: string | null
+          executor_name: string | null
+          executor_relationship: string | null
+          full_legal_name: string | null
+          funeral_wishes: string | null
+          general_bequests: Json | null
+          guardian_contact: string | null
+          guardian_name: string | null
+          guardian_relationship: string | null
+          id: string
+          is_encrypted: boolean
+          letters_to_loved_ones: string | null
+          no_contest_clause: boolean | null
+          organ_donation: boolean | null
+          pet_care_instructions: string | null
+          real_estate_instructions: string | null
+          residuary_estate: string | null
+          specific_bequests: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          backup_executor_contact?: string | null
+          backup_executor_name?: string | null
+          backup_guardian_contact?: string | null
+          backup_guardian_name?: string | null
+          burial_or_cremation?: string | null
+          business_succession_plan?: string | null
+          ceremony_preferences?: string | null
+          created_at?: string
+          debts_expenses?: string | null
+          digital_assets?: Json | null
+          ethical_will?: string | null
+          executor_contact?: string | null
+          executor_name?: string | null
+          executor_relationship?: string | null
+          full_legal_name?: string | null
+          funeral_wishes?: string | null
+          general_bequests?: Json | null
+          guardian_contact?: string | null
+          guardian_name?: string | null
+          guardian_relationship?: string | null
+          id?: string
+          is_encrypted?: boolean
+          letters_to_loved_ones?: string | null
+          no_contest_clause?: boolean | null
+          organ_donation?: boolean | null
+          pet_care_instructions?: string | null
+          real_estate_instructions?: string | null
+          residuary_estate?: string | null
+          specific_bequests?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          backup_executor_contact?: string | null
+          backup_executor_name?: string | null
+          backup_guardian_contact?: string | null
+          backup_guardian_name?: string | null
+          burial_or_cremation?: string | null
+          business_succession_plan?: string | null
+          ceremony_preferences?: string | null
+          created_at?: string
+          debts_expenses?: string | null
+          digital_assets?: Json | null
+          ethical_will?: string | null
+          executor_contact?: string | null
+          executor_name?: string | null
+          executor_relationship?: string | null
+          full_legal_name?: string | null
+          funeral_wishes?: string | null
+          general_bequests?: Json | null
+          guardian_contact?: string | null
+          guardian_name?: string | null
+          guardian_relationship?: string | null
+          id?: string
+          is_encrypted?: boolean
+          letters_to_loved_ones?: string | null
+          no_contest_clause?: boolean | null
+          organ_donation?: boolean | null
+          pet_care_instructions?: string | null
+          real_estate_instructions?: string | null
+          residuary_estate?: string | null
+          specific_bequests?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       password_catalog: {
         Row: {
           created_at: string
