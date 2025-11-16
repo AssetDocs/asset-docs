@@ -13,9 +13,6 @@ const Testimonials: React.FC = () => {
       <section className="bg-brand-blue text-white py-16">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl font-bold mb-6">What Our Customers Say</h1>
-          <p className="text-xl max-w-3xl mx-auto">
-            Real stories from real customers who trust Asset Docs to protect their valuable assets.
-          </p>
         </div>
       </section>
       
