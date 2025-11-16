@@ -4,14 +4,15 @@ import Footer from '@/components/Footer';
 import AssetValuesSection from '@/components/AssetValuesSection';
 import PostDamageSection from '@/components/PostDamageSection';
 import VoiceNotesSection from '@/components/VoiceNotesSection';
+import SourceWebsitesSection from '@/components/SourceWebsitesSection';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { 
   Eye, 
-  Mail, 
   Home, 
   Camera, 
   Video, 
@@ -27,7 +28,11 @@ import {
   BarChart3,
   DollarSign,
   FolderOpen,
-  Clock
+  Clock,
+  Download,
+  Lock,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 
 const SampleDashboard: React.FC = () => {
@@ -136,15 +141,112 @@ const SampleDashboard: React.FC = () => {
     </div>
   );
 
-  // Demo Storage Alert Component
-  const DemoStorageAlert = () => (
-    <Alert className="mb-6 border-orange-200 bg-orange-50">
-      <Clock className="h-4 w-4" />
-      <AlertDescription>
-        <strong>Demo Account:</strong> You're currently using 2.4GB of your 5GB storage limit. 
-        This would show real storage usage in a live account.
-      </AlertDescription>
-    </Alert>
+  // Demo Storage Dashboard Component
+  const DemoStorageDashboard = () => (
+    <div className="grid gap-6 md:grid-cols-2 mb-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <FolderOpen className="h-5 w-5 mr-2 text-brand-blue" />
+            Storage Quota
+          </CardTitle>
+          <CardDescription>
+            Track your storage usage
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Used</span>
+              <span className="font-semibold">2.4 GB of 5 GB</span>
+            </div>
+            <Progress value={48} className="h-2" />
+            <p className="text-xs text-gray-500">48% of storage used</p>
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <BarChart3 className="h-5 w-5 mr-2 text-brand-blue" />
+            Storage Breakdown
+          </CardTitle>
+          <CardDescription>
+            How your storage is allocated
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <Camera className="h-4 w-4 text-blue-500" />
+              <span className="text-sm">Photos</span>
+            </div>
+            <span className="text-sm font-semibold">1.2 GB</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <Video className="h-4 w-4 text-purple-500" />
+              <span className="text-sm">Videos</span>
+            </div>
+            <span className="text-sm font-semibold">0.8 GB</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-green-500" />
+              <span className="text-sm">Documents</span>
+            </div>
+            <span className="text-sm font-semibold">0.4 GB</span>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  // Demo Documentation Checklist Component
+  const DemoDocumentationChecklist = () => (
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <CheckCircle2 className="h-5 w-5 mr-2 text-brand-blue" />
+          Documentation Checklist
+        </CardTitle>
+        <CardDescription>
+          Track your documentation progress
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="h-5 w-5 text-green-600" />
+              <span className="text-sm font-medium">Property Profile Created</span>
+            </div>
+            <Badge variant="outline" className="bg-green-100 text-green-800">Complete</Badge>
+          </div>
+          <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="h-5 w-5 text-green-600" />
+              <span className="text-sm font-medium">Photos Uploaded</span>
+            </div>
+            <Badge variant="outline" className="bg-green-100 text-green-800">Complete</Badge>
+          </div>
+          <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="h-5 w-5 text-yellow-600" />
+              <span className="text-sm font-medium">Insurance Information</span>
+            </div>
+            <Badge variant="outline" className="bg-yellow-100 text-yellow-800">In Progress</Badge>
+          </div>
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="h-5 w-5 text-gray-400" />
+              <span className="text-sm font-medium">Video Documentation</span>
+            </div>
+            <Badge variant="outline" className="bg-gray-100 text-gray-600">Not Started</Badge>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 
   return (
@@ -170,13 +272,14 @@ const SampleDashboard: React.FC = () => {
           {/* Demo Account Header */}
           <DemoAccountHeader />
 
-          {/* Demo Storage Alert */}
-          <DemoStorageAlert />
+          {/* Demo Storage Dashboard */}
+          <DemoStorageDashboard />
 
           <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="asset-values">Asset Values</TabsTrigger>
+              <TabsTrigger value="source-websites">Source Websites</TabsTrigger>
               <TabsTrigger value="damage">Post Damage</TabsTrigger>
               <TabsTrigger value="voice-notes">Voice Notes</TabsTrigger>
             </TabsList>
@@ -350,6 +453,66 @@ const SampleDashboard: React.FC = () => {
                   </CardContent>
                 </Card>
 
+                {/* Manual Entry Card */}
+                <Card className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <FileText className="h-6 w-6 mr-2 text-brand-blue" />
+                      Manual Entry
+                    </CardTitle>
+                    <CardDescription>
+                      Add items to your inventory without photos
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <Button
+                        onClick={() => alert('AssetDocs.net says\n\nDemo: This allows you to manually add items to your inventory without photos.')}
+                        className="w-full bg-brand-blue hover:bg-brand-lightBlue"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Manual Entry
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Third Row - Password Catalog, Insurance, Export */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Password Catalog Card */}
+                <Card className="hover:shadow-lg transition-shadow col-span-1 md:col-span-2 lg:col-span-3">
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Lock className="h-6 w-6 mr-2 text-brand-blue" />
+                      Password Catalog
+                    </CardTitle>
+                    <CardDescription>
+                      Securely store and manage your passwords and financial accounts with encryption
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <Alert className="border-blue-200 bg-blue-50">
+                        <Lock className="h-4 w-4" />
+                        <AlertDescription>
+                          <strong>Secure Storage:</strong> All passwords are encrypted with your master password and stored securely.
+                          Only you can access them.
+                        </AlertDescription>
+                      </Alert>
+                      <div className="flex gap-3">
+                        <Button 
+                          onClick={() => alert('AssetDocs.net says\n\nDemo: This would allow you to unlock and access your password catalog with your master password.')}
+                          className="flex-1 bg-brand-blue hover:bg-brand-lightBlue"
+                        >
+                          <Lock className="h-4 w-4 mr-2" />
+                          Unlock Password Catalog
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
                 {/* Insurance Information Card */}
                 <Card className="hover:shadow-lg transition-shadow">
                   <CardHeader>
@@ -358,20 +521,20 @@ const SampleDashboard: React.FC = () => {
                       Insurance Information
                     </CardTitle>
                     <CardDescription>
-                      Manage your insurance policies and claims documentation
+                      Manage insurance policies, claims, and related documentation
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
                       <Button 
-                        onClick={() => alert('AssetDocs.net says\n\nDemo: This allows you to manage your insurance policies and claims documentation.')}
+                        onClick={() => alert('AssetDocs.net says\n\nDemo: This allows you to add and manage insurance policies, claims, and related documentation.')}
                         className="w-full bg-brand-blue hover:bg-brand-lightBlue"
                       >
                         <Plus className="h-4 w-4 mr-2" />
-                        Add Insurance Info
+                        Add Insurance Policy
                       </Button>
                       <Button 
-                        onClick={() => alert('AssetDocs.net says\n\nDemo: This allows you to view and manage your insurance information.')}
+                        onClick={() => alert('AssetDocs.net says\n\nDemo: This allows you to view and manage your insurance policies and claims.')}
                         variant="outline" 
                         className="w-full"
                       >
@@ -381,18 +544,95 @@ const SampleDashboard: React.FC = () => {
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Export Assets Card */}
+                <Card className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <FileText className="h-6 w-6 mr-2 text-brand-blue" />
+                      Export Assets
+                    </CardTitle>
+                    <CardDescription>
+                      Generate a comprehensive PDF summary and download all your assets in a zip file
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button 
+                      onClick={() => alert('AssetDocs.net says\n\nDemo: This would export your complete asset summary as a PDF and ZIP file.')}
+                      variant="default"
+                      className="w-full bg-brand-green hover:bg-brand-green/90"
+                    >
+                      <FileText className="mr-2 h-4 w-4" />
+                      Export Assets
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Download All Files Card */}
+                <Card className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Download className="h-6 w-6 mr-2 text-brand-blue" />
+                      Download All Files
+                    </CardTitle>
+                    <CardDescription>
+                      Download all your photos, videos, and documents in a single ZIP file
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button 
+                      onClick={() => alert('AssetDocs.net says\n\nDemo: This would download all your files in a ZIP archive.')}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      <Download className="mr-2 h-4 w-4" />
+                      Download All
+                    </Button>
+                  </CardContent>
+                </Card>
               </div>
+
+              {/* Documentation Checklist */}
+              <DemoDocumentationChecklist />
             </TabsContent>
 
             <TabsContent value="asset-values">
+              <Alert className="mb-4 border-blue-200 bg-blue-50">
+                <Eye className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Demo Mode:</strong> This shows sample asset values. In the live dashboard, this would display your actual items and values.
+                </AlertDescription>
+              </Alert>
               <AssetValuesSection />
             </TabsContent>
 
+            <TabsContent value="source-websites">
+              <Alert className="mb-4 border-blue-200 bg-blue-50">
+                <Eye className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Demo Mode:</strong> This shows sample source websites. In the live dashboard, you could save websites where you purchased items for reference.
+                </AlertDescription>
+              </Alert>
+              <SourceWebsitesSection />
+            </TabsContent>
+
             <TabsContent value="damage">
+              <Alert className="mb-4 border-blue-200 bg-blue-50">
+                <Eye className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Demo Mode:</strong> This shows post-damage documentation features. In the live dashboard, you could document damage to your property and assets.
+                </AlertDescription>
+              </Alert>
               <PostDamageSection />
             </TabsContent>
 
             <TabsContent value="voice-notes">
+              <Alert className="mb-4 border-blue-200 bg-blue-50">
+                <Eye className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Demo Mode:</strong> This shows voice notes features. In the live dashboard, you could record and manage voice notes about your assets.
+                </AlertDescription>
+              </Alert>
               <VoiceNotesSection />
             </TabsContent>
           </Tabs>
