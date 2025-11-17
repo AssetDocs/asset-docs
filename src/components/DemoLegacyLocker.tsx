@@ -25,12 +25,9 @@ const DemoLegacyLocker = () => {
         <Alert>
           <Shield className="h-4 w-4" />
           <AlertDescription className="text-sm">
-            <strong>Important:</strong> The Legacy Locker is not a legal digital will or electronic will (e-will).
-            Instead, it serves as an auxiliary evidence vault—a secure place to organize additional information that supports your wishes and helps executors, family members, and trusted contacts understand your intentions.
+            <strong>Important:</strong> The Legacy Locker is not a legal will. It's a secure vault for photos, videos, notes, account access, and other details that help clarify your wishes.
             <br /><br />
-            Your Legacy Locker may include photo and video documentation of your assets, personal notes or explanations of your wishes, access information for personal websites, financial and investment account details, passwords and logins, and supporting documents for estate planning.
-            <br /><br />
-            This feature does not replace a legally executed will or e-will, but it provides valuable context, clarity, and verification to accompany your official estate documents.
+            It doesn't replace an official will, but it adds valuable context and support for your estate plans.
           </AlertDescription>
         </Alert>
 
