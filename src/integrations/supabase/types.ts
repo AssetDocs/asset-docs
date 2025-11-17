@@ -693,6 +693,83 @@ export type Database = {
         }
         Relationships: []
       }
+      legacy_locker_files: {
+        Row: {
+          bucket_name: string
+          created_at: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string
+          file_url: string
+          folder_id: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          bucket_name: string
+          created_at?: string
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type: string
+          file_url: string
+          folder_id?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          bucket_name?: string
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string
+          file_url?: string
+          folder_id?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legacy_locker_files_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "legacy_locker_folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      legacy_locker_folders: {
+        Row: {
+          created_at: string
+          description: string | null
+          folder_name: string
+          gradient_color: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          folder_name: string
+          gradient_color?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          folder_name?: string
+          gradient_color?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       password_catalog: {
         Row: {
           created_at: string
