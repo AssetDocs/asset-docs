@@ -9,10 +9,11 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Lock, Unlock, Save, FileText, Users, Home, DollarSign, Heart, Shield } from 'lucide-react';
+import { Lock, Unlock, Save, FileText, Users, Home, DollarSign, Heart, Shield, Upload } from 'lucide-react';
 import { encryptPassword, decryptPassword } from '@/utils/encryption';
 import MasterPasswordModal from './MasterPasswordModal';
 import { MASTER_PASSWORD_HASH_KEY } from './PasswordCatalog';
+import LegacyLockerUploads from './LegacyLockerUploads';
 
 interface LegacyLockerData {
   id?: string;
@@ -376,7 +377,7 @@ const LegacyLocker = () => {
           </Alert>
 
           <Tabs defaultValue="personal" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 md:grid-cols-6">
+            <TabsList className="grid w-full grid-cols-3 md:grid-cols-7">
               <TabsTrigger value="personal">
                 <FileText className="h-4 w-4 mr-1" />
                 Personal
@@ -400,6 +401,10 @@ const LegacyLocker = () => {
               <TabsTrigger value="wishes">
                 <Heart className="h-4 w-4 mr-1" />
                 Wishes
+              </TabsTrigger>
+              <TabsTrigger value="uploads">
+                <Upload className="h-4 w-4 mr-1" />
+                Uploads
               </TabsTrigger>
             </TabsList>
 
@@ -683,6 +688,10 @@ const LegacyLocker = () => {
                   rows={6}
                 />
               </div>
+            </TabsContent>
+
+            <TabsContent value="uploads" className="space-y-4 mt-4">
+              <LegacyLockerUploads />
             </TabsContent>
           </Tabs>
 
