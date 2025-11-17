@@ -379,7 +379,7 @@ const LegacyLocker = () => {
           </Alert>
 
           <Tabs defaultValue="personal" className="w-full">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-3 md:grid-cols-6">
               <TabsTrigger value="personal">
                 <FileText className="h-4 w-4 mr-1" />
                 Personal
