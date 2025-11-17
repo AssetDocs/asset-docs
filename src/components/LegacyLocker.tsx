@@ -377,38 +377,38 @@ const LegacyLocker = () => {
           </Alert>
 
           <Tabs defaultValue="personal" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 md:grid-cols-7">
-              <TabsTrigger value="personal">
-                <FileText className="h-4 w-4 mr-1" />
+            <TabsList className="grid w-full grid-cols-3 md:grid-cols-7 gap-1">
+              <TabsTrigger value="personal" className="text-xs md:text-sm px-2">
+                <FileText className="h-4 w-4 mr-0 md:mr-1 hidden md:inline" />
                 Personal
               </TabsTrigger>
-              <TabsTrigger value="executor">
-                <Users className="h-4 w-4 mr-1" />
+              <TabsTrigger value="executor" className="text-xs md:text-sm px-2">
+                <Users className="h-4 w-4 mr-0 md:mr-1 hidden md:inline" />
                 Executor
               </TabsTrigger>
-              <TabsTrigger value="guardians">
-                <Shield className="h-4 w-4 mr-1" />
+              <TabsTrigger value="guardians" className="text-xs md:text-sm px-2">
+                <Shield className="h-4 w-4 mr-0 md:mr-1 hidden md:inline" />
                 Guardians
               </TabsTrigger>
-              <TabsTrigger value="assets">
-                <DollarSign className="h-4 w-4 mr-1" />
+              <TabsTrigger value="assets" className="text-xs md:text-sm px-2">
+                <DollarSign className="h-4 w-4 mr-0 md:mr-1 hidden md:inline" />
                 Assets
               </TabsTrigger>
-              <TabsTrigger value="property">
-                <Home className="h-4 w-4 mr-1" />
+              <TabsTrigger value="property" className="text-xs md:text-sm px-2">
+                <Home className="h-4 w-4 mr-0 md:mr-1 hidden md:inline" />
                 Property
               </TabsTrigger>
-              <TabsTrigger value="wishes">
-                <Heart className="h-4 w-4 mr-1" />
+              <TabsTrigger value="wishes" className="text-xs md:text-sm px-2">
+                <Heart className="h-4 w-4 mr-0 md:mr-1 hidden md:inline" />
                 Wishes
               </TabsTrigger>
-              <TabsTrigger value="uploads">
-                <Upload className="h-4 w-4 mr-1" />
+              <TabsTrigger value="uploads" className="text-xs md:text-sm px-2">
+                <Upload className="h-4 w-4 mr-0 md:mr-1 hidden md:inline" />
                 Uploads
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="personal" className="space-y-4 mt-4">
+            <TabsContent value="personal" className="space-y-4 mt-6">
               <div className="space-y-2">
                 <Label htmlFor="full_legal_name">Full Legal Name</Label>
                 <Input
@@ -430,7 +430,7 @@ const LegacyLocker = () => {
               </div>
             </TabsContent>
 
-            <TabsContent value="executor" className="space-y-4 mt-4">
+            <TabsContent value="executor" className="space-y-4 mt-6">
               <div className="space-y-4 p-4 border rounded-lg">
                 <h3 className="font-semibold">Primary Executor</h3>
                 <div className="space-y-2">
@@ -485,7 +485,7 @@ const LegacyLocker = () => {
               </div>
             </TabsContent>
 
-            <TabsContent value="guardians" className="space-y-4 mt-4">
+            <TabsContent value="guardians" className="space-y-4 mt-6">
               <Alert>
                 <AlertDescription>
                   For minor children only. Specify who should care for them if you pass away.
@@ -546,7 +546,7 @@ const LegacyLocker = () => {
               </div>
             </TabsContent>
 
-            <TabsContent value="assets" className="space-y-4 mt-4">
+            <TabsContent value="assets" className="space-y-4 mt-6">
               <div className="space-y-2">
                 <Label htmlFor="residuary_estate">Residuary Estate Instructions</Label>
                 <Textarea
@@ -581,7 +581,7 @@ const LegacyLocker = () => {
               </div>
             </TabsContent>
 
-            <TabsContent value="property" className="space-y-4 mt-4">
+            <TabsContent value="property" className="space-y-4 mt-6">
               <div className="space-y-2">
                 <Label htmlFor="real_estate_instructions">Real Estate Instructions</Label>
                 <Textarea
@@ -594,7 +594,7 @@ const LegacyLocker = () => {
               </div>
             </TabsContent>
 
-            <TabsContent value="wishes" className="space-y-4 mt-4">
+            <TabsContent value="wishes" className="space-y-4 mt-6">
               <div className="space-y-2">
                 <Label htmlFor="funeral_wishes">Funeral Wishes</Label>
                 <Textarea
@@ -690,7 +690,7 @@ const LegacyLocker = () => {
               </div>
             </TabsContent>
 
-            <TabsContent value="uploads" className="space-y-4 mt-4">
+            <TabsContent value="uploads" className="space-y-4 mt-6">
               <LegacyLockerUploads />
             </TabsContent>
           </Tabs>
