@@ -44,9 +44,6 @@ const SampleDashboard: React.FC = () => {
       <h1 className="text-2xl font-bold">
         Welcome, Demo User!
       </h1>
-      <p className="text-brand-blue/80 mt-1">
-        Manage your assets and documentation from your dashboard
-      </p>
     </div>
   );
 
