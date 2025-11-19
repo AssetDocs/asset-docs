@@ -367,12 +367,12 @@ const SampleDashboard: React.FC = () => {
           <DemoStorageDashboard />
 
           <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="asset-values">Asset Values</TabsTrigger>
-              <TabsTrigger value="source-websites">Source Websites</TabsTrigger>
-              <TabsTrigger value="damage">Post Damage</TabsTrigger>
-              <TabsTrigger value="voice-notes">Voice Notes</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 gap-1 h-auto">
+              <TabsTrigger value="overview" className="text-xs md:text-sm px-2">Overview</TabsTrigger>
+              <TabsTrigger value="asset-values" className="text-xs md:text-sm px-2">Asset Values</TabsTrigger>
+              <TabsTrigger value="source-websites" className="text-xs md:text-sm px-2">Source Websites</TabsTrigger>
+              <TabsTrigger value="damage" className="text-xs md:text-sm px-2">Post Damage</TabsTrigger>
+              <TabsTrigger value="voice-notes" className="text-xs md:text-sm px-2">Voice Notes</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
