@@ -607,7 +607,13 @@ const SampleDashboard: React.FC = () => {
                     </div>
                   </CardContent>
                 </Card>
+              </div>
 
+              {/* Legacy Locker */}
+              <DemoLegacyLocker />
+
+              {/* Fourth Row - Insurance, Export, Download */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {/* Insurance Information Card */}
                 <Card className="hover:shadow-lg transition-shadow">
                   <CardHeader>
@@ -689,9 +695,6 @@ const SampleDashboard: React.FC = () => {
 
               {/* Documentation Checklist */}
               <DemoDocumentationChecklist />
-              
-              {/* Legacy Locker */}
-              <DemoLegacyLocker />
             </TabsContent>
 
             <TabsContent value="asset-values">
