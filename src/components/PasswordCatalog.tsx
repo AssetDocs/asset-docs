@@ -52,7 +52,7 @@ interface FinancialAccount {
   created_at: string;
 }
 
-export const MASTER_PASSWORD_HASH_KEY = 'assetdocs_master_password_hash';
+export const MASTER_PASSWORD_HASH_KEY = 'assetsafe_master_password_hash';
 
 const PasswordCatalog: React.FC = () => {
   const { toast } = useToast();

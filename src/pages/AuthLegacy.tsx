@@ -255,7 +255,7 @@ const Auth: React.FC = () => {
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold text-brand-blue">Welcome Back</CardTitle>
             <CardDescription>
-              Sign in to your Asset Docs account
+              Sign in to your Asset Safe account
             </CardDescription>
           </CardHeader>
           <CardContent>

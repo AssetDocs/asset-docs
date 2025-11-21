@@ -260,7 +260,7 @@ const PostDamageSection: React.FC = () => {
               onClick={() => {
                 const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
                 if (isOnSampleDashboard) {
-                  alert('AssetDocs.net says\n\nDemo: This allows you to upload and document property damage with photos for insurance claims.');
+                  alert('AssetSafe.net says\n\nDemo: This allows you to upload and document property damage with photos for insurance claims.');
                   return;
                 }
                 if (selectedPropertyId) {
@@ -279,7 +279,7 @@ const PostDamageSection: React.FC = () => {
               onClick={() => {
                 const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
                 if (isOnSampleDashboard) {
-                  alert('AssetDocs.net says\n\nDemo: This allows you to upload and document property damage with videos for insurance claims.');
+                  alert('AssetSafe.net says\n\nDemo: This allows you to upload and document property damage with videos for insurance claims.');
                   return;
                 }
                 if (selectedPropertyId) {
@@ -336,7 +336,7 @@ const PostDamageSection: React.FC = () => {
                     onClick={() => {
                       const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
                       if (isOnSampleDashboard) {
-                        alert('AssetDocs.net says\n\nDemo: This allows you to upload your first damage photo to start documenting property damage.');
+                        alert('AssetSafe.net says\n\nDemo: This allows you to upload your first damage photo to start documenting property damage.');
                         return;
                       }
                       window.location.href = '/account/damage/photos/upload';
@@ -404,7 +404,7 @@ const PostDamageSection: React.FC = () => {
                     onClick={() => {
                       const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
                       if (isOnSampleDashboard) {
-                        alert('AssetDocs.net says\n\nDemo: This allows you to upload your first damage video to create video walkthroughs of property damage.');
+                        alert('AssetSafe.net says\n\nDemo: This allows you to upload your first damage video to create video walkthroughs of property damage.');
                         return;
                       }
                       window.location.href = '/account/damage/videos/upload';
@@ -478,7 +478,7 @@ const PostDamageSection: React.FC = () => {
                   onClick={() => {
                     const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
                     if (isOnSampleDashboard) {
-                      alert('AssetDocs.net says\n\nDemo: This would generate comprehensive damage reports for insurance claims with photos, videos, and details.');
+                      alert('AssetSafe.net says\n\nDemo: This would generate comprehensive damage reports for insurance claims with photos, videos, and details.');
                       return;
                     }
                     generateDamageReport();

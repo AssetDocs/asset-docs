@@ -63,7 +63,7 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ onEnterSite }) => {
           <div className="flex justify-center mb-6">
             <img 
               src="/lovable-uploads/390b9c27-b850-4840-b6dd-ac89f59276df.png" 
-              alt="AssetDocs Logo" 
+              alt="Asset Safe Logo" 
               className="h-16 w-auto"
             />
           </div>
@@ -124,7 +124,7 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ onEnterSite }) => {
           </div>
           
           <div className="mt-8 text-center text-sm text-muted-foreground">
-            <p>© 2025 AssetDocs. All rights reserved.</p>
+            <p>© 2025 Asset Safe. All rights reserved.</p>
           </div>
         </CardContent>
       </Card>

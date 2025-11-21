@@ -72,7 +72,7 @@ const AwarenessGuide: React.FC = () => {
               <Shield className="h-8 w-8 text-primary" />
             </div>
             <h1 className="text-4xl font-bold text-foreground mb-4">
-              🏠🔒 Asset Docs Awareness Guide
+              🏠🔒 Asset Safe Awareness Guide
             </h1>
             <h2 className="text-2xl font-semibold text-muted-foreground mb-6">
               Top 10 Hidden Risks That Can Damage Your Home or Business
@@ -106,7 +106,7 @@ const AwarenessGuide: React.FC = () => {
             <CardHeader>
               <div className="flex items-center gap-2 mb-2">
                 <AlertTriangle className="h-6 w-6 text-primary" />
-                <Badge variant="default">Pro Tip from Asset Docs</Badge>
+                <Badge variant="default">Pro Tip from Asset Safe</Badge>
               </div>
               <CardTitle className="text-xl">Prevention is Key</CardTitle>
             </CardHeader>
@@ -124,7 +124,7 @@ const AwarenessGuide: React.FC = () => {
               📌 Protect your property. Protect your family. Protect your business.
             </h3>
             <p className="text-xl font-semibold text-primary">
-              Asset Docs – Your Digital Safety Net
+              Asset Safe – Your Digital Safety Net
             </p>
           </div>
         </div>

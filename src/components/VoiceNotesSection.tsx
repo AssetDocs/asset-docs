@@ -248,7 +248,7 @@ const VoiceNotesSection: React.FC = () => {
               onClick={() => {
                 const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
                 if (isOnSampleDashboard) {
-                  alert('AssetDocs.net says\n\nDemo: This would allow you to record voice notes for items with sentimental value, historical significance, or important details.');
+                  alert('AssetSafe.net says\n\nDemo: This would allow you to record voice notes for items with sentimental value, historical significance, or important details.');
                   return;
                 }
                 isRecording ? stopRecording() : startRecording();
@@ -291,7 +291,7 @@ const VoiceNotesSection: React.FC = () => {
                 onClick={() => {
                   const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
                   if (isOnSampleDashboard) {
-                    alert('AssetDocs.net says\n\nDemo: This would save your voice note with transcription for future reference.');
+                    alert('AssetSafe.net says\n\nDemo: This would save your voice note with transcription for future reference.');
                     return;
                   }
                   saveVoiceNote();

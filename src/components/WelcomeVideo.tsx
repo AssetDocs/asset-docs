@@ -25,7 +25,7 @@ const WelcomeVideo: React.FC = () => {
   // Animation steps content
   const steps = [
     {
-      title: "Welcome to AssetDocs",
+      title: "Welcome to Asset Safe",
       description: "Your digital safety net for property and asset documentation",
       icon: Shield,
       color: "text-brand-blue"

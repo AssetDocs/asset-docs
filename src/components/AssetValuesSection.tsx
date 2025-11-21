@@ -110,7 +110,7 @@ const AssetValuesSection: React.FC = () => {
           onClick={() => {
             const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
             if (isOnSampleDashboard) {
-              alert('AssetDocs.net says\n\nDemo: This toggles between combined asset view and individual property details view.');
+              alert('AssetSafe.net says\n\nDemo: This toggles between combined asset view and individual property details view.');
               return;
             }
             setShowIndividualProperties(!showIndividualProperties);

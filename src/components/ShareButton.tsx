@@ -18,13 +18,13 @@ const ShareButton: React.FC<ShareButtonProps> = ({
   const { toast } = useToast();
 
   const handleShare = async () => {
-    const shareUrl = "https://www.assetdocs.net/";
-    const shareText = "Check out Asset Docs - the best way to document and protect your property and assets!";
+    const shareUrl = "https://www.assetsafe.net/";
+    const shareText = "Check out Asset Safe - the best way to document and protect your property and assets!";
 
     try {
       if (navigator.share) {
         await navigator.share({
-          title: 'Asset Docs',
+          title: 'Asset Safe',
           text: shareText,
           url: shareUrl,
         });
@@ -63,7 +63,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({
       className={className}
     >
       <Share className="h-4 w-4 mr-2" />
-      Share Asset Docs
+      Share Asset Safe
     </Button>
   );
 };

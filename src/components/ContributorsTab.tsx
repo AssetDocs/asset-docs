@@ -124,7 +124,7 @@ const ContributorsTab: React.FC = () => {
         body: {
           contributor_email: email,
           contributor_role: role,
-          inviter_name: inviterName || 'AssetDocs User',
+          inviter_name: inviterName || 'Asset Safe User',
           inviter_email: user.email,
           redirect_url: redirectUrl,
         },
