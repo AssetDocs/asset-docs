@@ -55,8 +55,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email to your business address
     const emailResponse = await resend.emails.send({
-      from: "Asset Docs Feedback <onboarding@resend.dev>",
-      to: ["info@assetdocs.net"],
+      from: "Asset Safe Feedback <onboarding@resend.dev>",
+      to: ["support@assetsafe.net"],
       subject: `New Feedback Submission from ${name}`,
       html: `
         <h2>New Feedback Form Submission</h2>
@@ -71,25 +71,25 @@ const handler = async (req: Request): Promise<Response> => {
           ${safeImprovement.replace(/\n/g, '<br>')}
         </div>
         <hr>
-        <p style="color: #666; font-size: 12px;">This email was sent from the Asset Docs feedback form.</p>
+        <p style="color: #666; font-size: 12px;">This email was sent from the Asset Safe feedback form.</p>
       `,
     });
 
     // Send confirmation email to the user
     await resend.emails.send({
-      from: "Asset Docs <onboarding@resend.dev>",
+      from: "Asset Safe <onboarding@resend.dev>",
       to: [email],
       subject: "Thank you for your feedback",
       html: `
         <h2>Thank you for your feedback, ${safeName}!</h2>
         <p>We have received your feedback and truly appreciate you taking the time to share your thoughts with us.</p>
-        <p>Your input helps us improve AssetDocs and better serve our community.</p>
+        <p>Your input helps us improve AssetSafe and better serve our community.</p>
         <p>Here's a copy of what you shared:</p>
         <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 10px 0;">
           <p><strong>Improvement Suggestions:</strong></p>
           ${safeImprovement.replace(/\n/g, '<br>')}
         </div>
-        <p>Best regards,<br>The Asset Docs Team</p>
+        <p>Best regards,<br>The Asset Safe Team</p>
       `,
     });
 

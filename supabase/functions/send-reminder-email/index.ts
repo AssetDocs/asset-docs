@@ -36,14 +36,14 @@ const handler = async (req: Request): Promise<Response> => {
                            plan_type === 'standard' ? 'Standard' : 'Premium';
 
     const emailResponse = await resend.emails.send({
-      from: "Asset Docs <info@assetdocs.net>",
+      from: "Asset Safe <info@assetsafe.net>",
       to: [recipient_email],
-      subject: "⏰ Your Asset Docs subscription expires soon - Update billing to continue",
+      subject: "⏰ Your Asset Safe subscription expires soon - Update billing to continue",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
           <div style="background: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #1f2937; margin: 0; font-size: 28px;">Asset Docs</h1>
+              <h1 style="color: #1f2937; margin: 0; font-size: 28px;">Asset Safe</h1>
               <p style="color: #6b7280; margin: 5px 0 0 0;">Professional Asset Documentation</p>
             </div>
             
@@ -57,13 +57,13 @@ const handler = async (req: Request): Promise<Response> => {
             <div style="margin-bottom: 30px;">
               <h3 style="color: #1f2937;">Hi ${recipient_name},</h3>
               <p style="color: #374151; line-height: 1.6;">
-                We hope you've been enjoying Asset Docs! Your gifted ${planDisplayName} subscription is set to expire in one month. 
+                We hope you've been enjoying Asset Safe! Your gifted ${planDisplayName} subscription is set to expire in one month. 
                 To continue protecting and documenting your valuable assets, you'll need to update your billing information.
               </p>
             </div>
             
             <div style="background: #f3f4f6; border-radius: 6px; padding: 20px; margin-bottom: 30px;">
-              <h3 style="color: #1f2937; margin: 0 0 15px 0;">Why continue with Asset Docs?</h3>
+              <h3 style="color: #1f2937; margin: 0 0 15px 0;">Why continue with Asset Safe?</h3>
               <ul style="color: #374151; line-height: 1.6; margin: 0; padding-left: 20px;">
                 <li>Keep your asset documentation secure and accessible</li>
                 <li>Continue using advanced AI valuation features</li>
@@ -83,17 +83,17 @@ const handler = async (req: Request): Promise<Response> => {
             </div>
             
             <div style="text-align: center; margin: 40px 0;">
-              <a href="https://assetdocs.net/login" style="background: #2563eb; color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+              <a href="https://www.assetsafe.net/login" style="background: #2563eb; color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
                 Update Billing Information
               </a>
             </div>
             
             <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 30px;">
               <p style="color: #6b7280; font-size: 14px; text-align: center; margin: 0;">
-                Questions? Reply to this email or contact us at <a href="mailto:info@assetdocs.net" style="color: #2563eb;">info@assetdocs.net</a>
+                Questions? Reply to this email or contact us at <a href="mailto:support@assetsafe.net" style="color: #2563eb;">support@assetsafe.net</a>
               </p>
               <p style="color: #6b7280; font-size: 12px; text-align: center; margin: 10px 0 0 0;">
-                © 2024 Asset Docs. All rights reserved.
+                © 2024 Asset Safe. All rights reserved.
               </p>
             </div>
           </div>

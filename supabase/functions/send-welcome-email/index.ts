@@ -31,13 +31,13 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send welcome email to the new user
     const emailResponse = await resend.emails.send({
-      from: "Asset Docs <onboarding@resend.dev>",
+      from: "Asset Safe <onboarding@resend.dev>",
       to: [email],
-      subject: "Welcome to Asset Docs - Let's Protect Your Valuable Assets!",
+      subject: "Welcome to Asset Safe - Let's Protect Your Valuable Assets!",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #1e40af; font-size: 28px; margin: 0;">Welcome to Asset Docs!</h1>
+            <h1 style="color: #1e40af; font-size: 28px; margin: 0;">Welcome to Asset Safe!</h1>
           </div>
           
           <p style="font-size: 18px; color: #333; margin-bottom: 20px;">
@@ -45,7 +45,7 @@ const handler = async (req: Request): Promise<Response> => {
           </p>
           
           <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
-            We're thrilled to have you join the Asset Docs community! You're now part of a growing network of homeowners, renters, and business owners who are taking control of their asset protection and documentation.
+            We're thrilled to have you join the Asset Safe community! You're now part of a growing network of homeowners, renters, and business owners who are taking control of their asset protection and documentation.
           </p>
           
           <div style="background: #f0f9ff; padding: 20px; border-radius: 8px; margin: 30px 0; border-left: 4px solid #1e40af;">
@@ -81,15 +81,15 @@ const handler = async (req: Request): Promise<Response> => {
           <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 30px 0;">
             <h3 style="color: #1e40af; font-size: 18px; margin-top: 0;">📚 Helpful Resources:</h3>
             <div style="display: flex; flex-wrap: wrap; gap: 15px; margin: 15px 0;">
-              <a href="${req.headers.get("origin") || 'https://assetdocs.net'}/video-help" style="color: #1e40af; text-decoration: none; padding: 8px 16px; background: #e0f2fe; border-radius: 5px; font-size: 14px;">📹 Video Help</a>
-              <a href="${req.headers.get("origin") || 'https://assetdocs.net'}/resources" style="color: #1e40af; text-decoration: none; padding: 8px 16px; background: #e0f2fe; border-radius: 5px; font-size: 14px;">📖 Resources</a>
-              <a href="${req.headers.get("origin") || 'https://assetdocs.net'}/social-impact" style="color: #1e40af; text-decoration: none; padding: 8px 16px; background: #e0f2fe; border-radius: 5px; font-size: 14px;">🌍 Social Impact</a>
-              <a href="${req.headers.get("origin") || 'https://assetdocs.net'}/qa" style="color: #1e40af; text-decoration: none; padding: 8px 16px; background: #e0f2fe; border-radius: 5px; font-size: 14px;">❓ Q&A</a>
+              <a href="${req.headers.get("origin") || 'https://www.assetsafe.net'}/video-help" style="color: #1e40af; text-decoration: none; padding: 8px 16px; background: #e0f2fe; border-radius: 5px; font-size: 14px;">📹 Video Help</a>
+              <a href="${req.headers.get("origin") || 'https://www.assetsafe.net'}/resources" style="color: #1e40af; text-decoration: none; padding: 8px 16px; background: #e0f2fe; border-radius: 5px; font-size: 14px;">📖 Resources</a>
+              <a href="${req.headers.get("origin") || 'https://www.assetsafe.net'}/social-impact" style="color: #1e40af; text-decoration: none; padding: 8px 16px; background: #e0f2fe; border-radius: 5px; font-size: 14px;">🌍 Social Impact</a>
+              <a href="${req.headers.get("origin") || 'https://www.assetsafe.net'}/qa" style="color: #1e40af; text-decoration: none; padding: 8px 16px; background: #e0f2fe; border-radius: 5px; font-size: 14px;">❓ Q&A</a>
             </div>
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${req.headers.get("origin") || 'https://assetdocs.net'}/account" 
+            <a href="${req.headers.get("origin") || 'https://www.assetsafe.net'}/account" 
                style="background: #1e40af; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block; font-size: 16px;">
               Start Your Free Trial Now
             </a>
@@ -104,18 +104,18 @@ const handler = async (req: Request): Promise<Response> => {
           
           <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
             Questions? Need help getting started? Our support team is here to help at 
-            <a href="mailto:info@assetdocs.net" style="color: #1e40af;">info@assetdocs.net</a>.
+            <a href="mailto:support@assetsafe.net" style="color: #1e40af;">support@assetsafe.net</a>.
           </p>
           
           <p style="color: #666; margin-bottom: 30px;">
             Welcome to your digital safety net!<br>
-            <strong>The Asset Docs Team</strong>
+            <strong>The Asset Safe Team</strong>
           </p>
           
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
           
           <p style="color: #9ca3af; font-size: 12px; text-align: center;">
-            This email was sent to ${email}. If you didn't create an account with Asset Docs, please ignore this email.
+            This email was sent to ${email}. If you didn't create an account with Asset Safe, please ignore this email.
           </p>
         </div>
       `,
@@ -123,8 +123,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Also send notification to business email
     await resend.emails.send({
-      from: "Asset Docs Notifications <onboarding@resend.dev>",
-      to: ["info@assetdocs.net"],
+      from: "Asset Safe Notifications <onboarding@resend.dev>",
+      to: ["support@assetsafe.net"],
       subject: `New User Registration: ${fullName}`,
       html: `
         <h2>New User Registration</h2>
@@ -133,7 +133,7 @@ const handler = async (req: Request): Promise<Response> => {
         <p><strong>User ID:</strong> ${user_id}</p>
         <p><strong>Registration Time:</strong> ${new Date().toLocaleString()}</p>
         <hr>
-        <p style="color: #666; font-size: 12px;">This is an automated notification from the Asset Docs registration system.</p>
+        <p style="color: #666; font-size: 12px;">This is an automated notification from the Asset Safe registration system.</p>
       `,
     });
 

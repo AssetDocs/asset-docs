@@ -52,8 +52,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email to your business address
     const emailResponse = await resend.emails.send({
-      from: "Asset Docs Contact <onboarding@resend.dev>",
-      to: ["info@assetdocs.net"],
+      from: "Asset Safe Contact <onboarding@resend.dev>",
+      to: ["support@assetsafe.net"],
       subject: `New Contact Form Submission from ${name}`,
       html: `
         <h2>New Contact Form Submission</h2>
@@ -66,15 +66,15 @@ const handler = async (req: Request): Promise<Response> => {
           ${safeMessage.replace(/\n/g, '<br>')}
         </div>
         <hr>
-        <p style="color: #666; font-size: 12px;">This email was sent from the Asset Docs contact form.</p>
+        <p style="color: #666; font-size: 12px;">This email was sent from the Asset Safe contact form.</p>
       `,
     });
 
     // Send confirmation email to the user
     await resend.emails.send({
-      from: "Asset Docs <onboarding@resend.dev>",
+      from: "Asset Safe <onboarding@resend.dev>",
       to: [email],
-      subject: "Thank you for contacting Asset Docs",
+      subject: "Thank you for contacting Asset Safe",
       html: `
         <h2>Thank you for contacting us, ${safeName}!</h2>
         <p>We have received your message and will get back to you as soon as possible.</p>
@@ -83,7 +83,7 @@ const handler = async (req: Request): Promise<Response> => {
           <p><strong>Message:</strong></p>
           ${safeMessage.replace(/\n/g, '<br>')}
         </div>
-        <p>Best regards,<br>The Asset Docs Team</p>
+        <p>Best regards,<br>The Asset Safe Team</p>
       `,
     });
 

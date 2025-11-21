@@ -75,21 +75,21 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email to the invited contributor
     const emailResponse = await resend.emails.send({
-      from: "AssetDocs <invitations@assetdocs.net>",
+      from: "AssetSafe <invitations@assetsafe.net>",
       to: [contributor_email],
-      subject: `You've been invited to collaborate on ${inviter_name}'s AssetDocs account`,
+      subject: `You've been invited to collaborate on ${inviter_name}'s AssetSafe account`,
       html: `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
           <div style="background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #1e40af; margin: 0; font-size: 28px;">AssetDocs</h1>
+              <h1 style="color: #1e40af; margin: 0; font-size: 28px;">AssetSafe</h1>
               <p style="color: #6b7280; margin: 5px 0 0 0;">Digital Asset Documentation</p>
             </div>
             
             <h2 style="color: #111827; margin-bottom: 20px;">You've been invited to collaborate!</h2>
             
             <p style="color: #374151; line-height: 1.6; margin-bottom: 20px;">
-              Hello! <strong>${safeInviterName}</strong> (${inviter_email}) has invited you to access their AssetDocs account as a <strong>${safeRole}</strong>.
+              Hello! <strong>${safeInviterName}</strong> (${inviter_email}) has invited you to access their AssetSafe account as a <strong>${safeRole}</strong>.
             </p>
             
             <div style="background-color: #f3f4f6; padding: 20px; border-radius: 6px; margin: 20px 0;">
@@ -98,11 +98,11 @@ const handler = async (req: Request): Promise<Response> => {
             </div>
             
             <p style="color: #374151; line-height: 1.6; margin-bottom: 30px;">
-              To accept this invitation and start collaborating, simply sign up or log in to AssetDocs using this email address.
+              To accept this invitation and start collaborating, simply sign up or log in to AssetSafe using this email address.
             </p>
             
             <div style="text-align: center; margin: 30px 0;">
-              <a href="https://assetdocs.net/auth" 
+              <a href="https://www.assetsafe.net/auth" 
                  style="background-color: #1e40af; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">
                 Accept Invitation
               </a>
@@ -110,7 +110,7 @@ const handler = async (req: Request): Promise<Response> => {
             
             <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 30px;">
               <p style="color: #6b7280; font-size: 14px; margin: 0;">
-                If you have any questions, please contact us at <a href="mailto:support@assetdocs.net" style="color: #1e40af;">support@assetdocs.net</a>
+                If you have any questions, please contact us at <a href="mailto:support@assetsafe.net" style="color: #1e40af;">support@assetsafe.net</a>
               </p>
               <p style="color: #6b7280; font-size: 12px; margin: 10px 0 0 0;">
                 This invitation was sent to ${contributor_email}. If you didn't expect this invitation, you can safely ignore this email.

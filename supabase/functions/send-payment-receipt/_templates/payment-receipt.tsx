@@ -49,7 +49,7 @@ export const PaymentReceiptEmail = ({
   return (
     <Html>
       <Head />
-      <Preview>Your payment receipt from AssetDocs - {formattedAmount}</Preview>
+      <Preview>Your payment receipt from AssetSafe - {formattedAmount}</Preview>
       <Body style={main}>
         <Container style={container}>
           <Heading style={h1}>Payment Receipt</Heading>
@@ -112,7 +112,7 @@ export const PaymentReceiptEmail = ({
 
           <Text style={text}>
             You can access your account and manage your subscription anytime at{' '}
-            <Link href="https://assetdocs.net/account" style={link}>
+            <Link href="https://www.assetsafe.net/account" style={link}>
               your account dashboard
             </Link>.
           </Text>
@@ -125,11 +125,11 @@ export const PaymentReceiptEmail = ({
 
           <Text style={footer}>
             <Link
-              href="https://assetdocs.net"
+              href="https://www.assetsafe.net"
               target="_blank"
               style={footerLink}
             >
-              AssetDocs
+              AssetSafe
             </Link>
             <br />
             Document and protect what matters most

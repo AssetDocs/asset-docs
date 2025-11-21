@@ -55,7 +55,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const displayName = user.user_metadata?.first_name || "Valued User";
     // Use the actual app domain instead of Supabase's site_url
-    const appUrl = "https://assetdocs.net";
+    const appUrl = "https://www.assetsafe.net";
     const confirmationUrl = `${appUrl}/auth/callback?token_hash=${email_data.token_hash}&type=${email_data.email_action_type}&redirect_to=${encodeURIComponent(email_data.redirect_to || "/account")}`;
 
     let subject = "";
@@ -64,17 +64,17 @@ const handler = async (req: Request): Promise<Response> => {
     switch (email_data.email_action_type) {
       case "signup":
       case "email_change_confirm_new":
-        subject = "Verify Your Email - Asset Docs";
+        subject = "Verify Your Email - Asset Safe";
         html = createEmailVerificationTemplate(displayName, confirmationUrl, user.email);
         break;
       
       case "recovery":
-        subject = "Reset Your Password - Asset Docs";
+        subject = "Reset Your Password - Asset Safe";
         html = createPasswordResetTemplate(displayName, confirmationUrl, user.email);
         break;
       
       case "magiclink":
-        subject = "Your Magic Link - Asset Docs";
+        subject = "Your Magic Link - Asset Safe";
         html = createMagicLinkTemplate(displayName, confirmationUrl, user.email);
         break;
       
@@ -85,7 +85,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Send email with a hard timeout to avoid Supabase 5s hook timeouts
     const sendPromise = resend.emails
       .send({
-        from: "Asset Docs <noreply@assetdocs.net>",
+        from: "Asset Safe <noreply@assetsafe.net>",
         to: [user.email],
         subject,
         html,
@@ -144,8 +144,8 @@ function createEmailVerificationTemplate(displayName: string, confirmationUrl: s
         Hi ${displayName},
       </p>
       
-      <p style="color: #666; line-height: 1.6; margin-bottom: 30px;">
-        Thank you for signing up for Asset Docs! To complete your registration and start protecting your valuable assets, please verify your email address by clicking the button below.
+        <p style="color: #666; line-height: 1.6; margin-bottom: 30px;">
+        Thank you for signing up for Asset Safe! To complete your registration and start protecting your valuable assets, please verify your email address by clicking the button below.
       </p>
       
       <div style="text-align: center; margin: 40px 0;">
@@ -161,7 +161,7 @@ function createEmailVerificationTemplate(displayName: string, confirmationUrl: s
           <li>Secure your account and protect your data</li>
           <li>Receive important notifications about your assets</li>
           <li>Enable password recovery if needed</li>
-          <li>Access all Asset Docs features</li>
+          <li>Access all Asset Safe features</li>
         </ul>
       </div>
       
@@ -180,17 +180,17 @@ function createEmailVerificationTemplate(displayName: string, confirmationUrl: s
       </div>
       
       <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
-        If you didn't create an account with Asset Docs, you can safely ignore this email.
+        If you didn't create an account with Asset Safe, you can safely ignore this email.
       </p>
       
       <p style="color: #666; margin-bottom: 30px;">
         Questions? Need help? Contact our support team at 
-        <a href="mailto:info@assetdocs.net" style="color: #1e40af;">info@assetdocs.net</a>.
+        <a href="mailto:support@assetsafe.net" style="color: #1e40af;">support@assetsafe.net</a>.
       </p>
       
       <p style="color: #666; margin-bottom: 30px;">
-        Welcome to Asset Docs!<br>
-        <strong>The Asset Docs Team</strong>
+        Welcome to Asset Safe!<br>
+        <strong>The Asset Safe Team</strong>
       </p>
       
       <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
@@ -214,7 +214,7 @@ function createPasswordResetTemplate(displayName: string, resetUrl: string, emai
       </p>
       
       <p style="color: #666; line-height: 1.6; margin-bottom: 30px;">
-        We received a request to reset the password for your Asset Docs account. If you requested this change, click the button below to set a new password.
+        We received a request to reset the password for your Asset Safe account. If you requested this change, click the button below to set a new password.
       </p>
       
       <div style="text-align: center; margin: 40px 0;">
@@ -243,12 +243,12 @@ function createPasswordResetTemplate(displayName: string, resetUrl: string, emai
       
       <p style="color: #666; margin-bottom: 30px;">
         Need help? Contact our support team at 
-        <a href="mailto:info@assetdocs.net" style="color: #1e40af;">info@assetdocs.net</a>.
+        <a href="mailto:support@assetsafe.net" style="color: #1e40af;">support@assetsafe.net</a>.
       </p>
       
       <p style="color: #666; margin-bottom: 30px;">
         Best regards,<br>
-        <strong>The Asset Docs Team</strong>
+        <strong>The Asset Safe Team</strong>
       </p>
       
       <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
@@ -272,7 +272,7 @@ function createMagicLinkTemplate(displayName: string, magicUrl: string, email: s
       </p>
       
       <p style="color: #666; line-height: 1.6; margin-bottom: 30px;">
-        Click the magic link below to securely sign in to your Asset Docs account. No password required!
+        Click the magic link below to securely sign in to your Asset Safe account. No password required!
       </p>
       
       <div style="text-align: center; margin: 40px 0;">
@@ -298,12 +298,12 @@ function createMagicLinkTemplate(displayName: string, magicUrl: string, email: s
       
       <p style="color: #666; margin-bottom: 30px;">
         Questions? Contact our support team at 
-        <a href="mailto:info@assetdocs.net" style="color: #1e40af;">info@assetdocs.net</a>.
+        <a href="mailto:support@assetsafe.net" style="color: #1e40af;">support@assetsafe.net</a>.
       </p>
       
       <p style="color: #666; margin-bottom: 30px;">
         Best regards,<br>
-        <strong>The Asset Docs Team</strong>
+        <strong>The Asset Safe Team</strong>
       </p>
       
       <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
