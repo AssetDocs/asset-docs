@@ -5,7 +5,7 @@ const HowItWorksSection: React.FC = () => {
   return (
     <section className="py-20">
       <div className="container mx-auto px-4">
-        <h2 className="section-title">How Asset Docs Works</h2>
+        <h2 className="section-title">How Asset Safe Works</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
           <div className="p-6">
             <div className="w-16 h-16 rounded-full bg-brand-blue text-white flex items-center justify-center mx-auto mb-4">

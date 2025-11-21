@@ -154,7 +154,7 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
                 Download your free inventory checklist
               </DialogTitle>
               <p className="text-center text-muted-foreground text-sm">
-                by Asset Docs
+                by Asset Safe
               </p>
             </DialogHeader>
 

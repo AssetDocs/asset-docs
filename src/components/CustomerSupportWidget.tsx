@@ -45,7 +45,7 @@ const CustomerSupportWidget: React.FC<CustomerSupportWidgetProps> = ({ openaiApi
     const path = location.pathname;
     
     if (path === '/') {
-      return "Hi! I'm here to help you get started with Asset Docs. Need help with property documentation or have questions about our features?";
+      return "Hi! I'm here to help you get started with Asset Safe. Need help with property documentation or have questions about our features?";
     } else if (path.includes('/photo-upload') || path.includes('/photos')) {
       return "I can help you with photo uploads! Need assistance with organizing photos, using AI analysis, or best practices for documentation?";
     } else if (path.includes('/properties')) {
@@ -56,7 +56,7 @@ const CustomerSupportWidget: React.FC<CustomerSupportWidgetProps> = ({ openaiApi
       return "Need help with your account settings, subscription, or profile management? I'm here to assist!";
     }
     
-    return "Hi! I'm your Asset Docs support assistant. How can I help you today?";
+    return "Hi! I'm your Asset Safe support assistant. How can I help you today?";
   };
 
   // Initialize conversation when opened
@@ -87,7 +87,7 @@ const CustomerSupportWidget: React.FC<CustomerSupportWidgetProps> = ({ openaiApi
 
   const generateContextualResponse = async (userMessage: string): Promise<string> => {
     const path = location.pathname;
-    let systemContext = "You are a helpful customer support assistant for Asset Docs, a property documentation and asset management application.";
+    let systemContext = "You are a helpful customer support assistant for Asset Safe, a property documentation and asset management application.";
     
     // Add page-specific context
     if (path.includes('/photo-upload') || path.includes('/photos')) {
@@ -100,7 +100,7 @@ const CustomerSupportWidget: React.FC<CustomerSupportWidgetProps> = ({ openaiApi
       systemContext += " The user is in account settings. Help them with subscription, profile, and account management.";
     }
 
-    systemContext += " Keep responses concise, helpful, and focused on Asset Docs features. If you don't know something specific about the app, admit it and suggest they contact support.";
+    systemContext += " Keep responses concise, helpful, and focused on Asset Safe features. If you don't know something specific about the app, admit it and suggest they contact support.";
 
     if (!apiKey) {
       return "I need an OpenAI API key to provide intelligent responses. Please enter your API key in the settings above, or contact our support team directly for assistance.";
@@ -204,7 +204,7 @@ const CustomerSupportWidget: React.FC<CustomerSupportWidgetProps> = ({ openaiApi
         <div className="flex items-center justify-between p-3 bg-brand-orange text-white rounded-t-lg">
           <div className="flex items-center space-x-2">
             <MessageCircle className="h-5 w-5" />
-            <span className="font-semibold">Asset Docs Support</span>
+            <span className="font-semibold">Asset Safe Support</span>
           </div>
           <div className="flex items-center space-x-1">
             <Button
