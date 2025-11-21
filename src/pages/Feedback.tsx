@@ -91,7 +91,7 @@ const Feedback: React.FC = () => {
             <MessageSquare className="h-12 w-12 text-brand-blue mx-auto mb-4" />
             <h1 className="text-3xl font-bold text-brand-blue mb-2">We Value Your Feedback</h1>
             <p className="text-muted-foreground">
-              Help us improve AssetDocs by sharing your thoughts and experiences with us.
+              Help us improve Asset Safe by sharing your thoughts and experiences with us.
             </p>
           </div>
 

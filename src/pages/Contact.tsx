@@ -57,7 +57,7 @@ const Contact: React.FC = () => {
       console.error('Error sending contact email:', error);
       toast({
         title: "Error Sending Message",
-        description: "There was a problem sending your message. Please try again or contact us directly at info@assetdocs.net",
+        description: "There was a problem sending your message. Please try again or contact us directly at support@assetsafe.net",
         variant: "destructive",
       });
     } finally {
@@ -233,8 +233,8 @@ const Contact: React.FC = () => {
               <div className="bg-gray-50 p-6 rounded-lg">
                 <h3 className="text-lg font-semibold mb-3 text-gray-800">Email</h3>
                 <p className="text-gray-600">
-                  <a href="mailto:info@assetdocs.net" className="hover:text-brand-blue transition-colors">
-                    info@assetdocs.net
+                  <a href="mailto:support@assetsafe.net" className="hover:text-brand-blue transition-colors">
+                    support@assetsafe.net
                   </a>
                 </p>
               </div>

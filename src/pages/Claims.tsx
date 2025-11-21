@@ -155,7 +155,7 @@ const Claims: React.FC = () => {
             <Phone className="h-12 w-12 mx-auto mb-4" />
             <h3 className="text-2xl font-semibold mb-4">Need Help with Your Claim?</h3>
             <p className="text-lg mb-6">
-              Asset Docs helps you organize and maintain all the documentation you need for insurance claims.
+              Asset Safe helps you organize and maintain all the documentation you need for insurance claims.
             </p>
             <div className="space-y-2">
               <p className="text-sm">
