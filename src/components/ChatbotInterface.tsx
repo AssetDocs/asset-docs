@@ -16,7 +16,7 @@ const ChatbotInterface: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      text: "Hello! I'm the AssetDocs AI assistant. How can I help you with property documentation or asset valuation today?",
+      text: "Hello! I'm the AssetSafe AI assistant. How can I help you with property documentation or asset valuation today?",
       sender: 'bot',
       timestamp: new Date(),
     },
@@ -65,7 +65,7 @@ const ChatbotInterface: React.FC = () => {
     
     // Simple response logic based on keywords
     if (normalizedInput.includes('pricing') || normalizedInput.includes('cost') || normalizedInput.includes('price')) {
-      return "AssetDocs offers two pricing tiers: our Standard (Homeowner) plan at $12.99/month for up to 3 properties with 25GB storage, and our Premium (Professional) plan at $18.99/month for unlimited properties with 100GB storage. Both plans include a 30-day free trial and comprehensive asset documentation features. You can view all pricing details on our Pricing page.";
+      return "AssetSafe offers two pricing tiers: our Standard (Homeowner) plan at $12.99/month for up to 3 properties with 25GB storage, and our Premium (Professional) plan at $18.99/month for unlimited properties with 100GB storage. Both plans include a 30-day free trial and comprehensive asset documentation features. You can view all pricing details on our Pricing page.";
     }
     
     if (normalizedInput.includes('value') || normalizedInput.includes('valuation')) {
@@ -73,11 +73,11 @@ const ChatbotInterface: React.FC = () => {
     }
     
     if (normalizedInput.includes('secure') || normalizedInput.includes('security') || normalizedInput.includes('privacy')) {
-      return "Security is our top priority at AssetDocs. We use enterprise-grade encryption, secure cloud storage, and strict access controls to protect your data. All information is encrypted both in transit and at rest. We never share your data with third parties without your explicit consent.";
+      return "Security is our top priority at AssetSafe. We use enterprise-grade encryption, secure cloud storage, and strict access controls to protect your data. All information is encrypted both in transit and at rest. We never share your data with third parties without your explicit consent.";
     }
     
     if (normalizedInput.includes('insurance') || normalizedInput.includes('claim')) {
-      return "AssetDocs documentation is designed specifically to expedite insurance claims. Our detailed reports include proof of ownership, condition documentation, and value assessments. Many insurance companies accept our third-party verified documentation as valid evidence for claims processing.";
+      return "AssetSafe documentation is designed specifically to expedite insurance claims. Our detailed reports include proof of ownership, condition documentation, and value assessments. Many insurance companies accept our third-party verified documentation as valid evidence for claims processing.";
     }
     
     if (normalizedInput.includes('receipt') || normalizedInput.includes('purchase')) {
@@ -85,11 +85,11 @@ const ChatbotInterface: React.FC = () => {
     }
     
     if (normalizedInput.includes('free') || normalizedInput.includes('trial')) {
-      return "Yes! We offer a 14-day free trial. This gives you full access to all features so you can experience the benefits of AssetDocs before committing to a subscription.";
+      return "Yes! We offer a 14-day free trial. This gives you full access to all features so you can experience the benefits of AssetSafe before committing to a subscription.";
     }
     
     if (normalizedInput.includes('how') && normalizedInput.includes('work')) {
-      return "AssetDocs works by allowing you to document your assets through photos, videos, or 3D virtual tours. Our AI technology identifies items, categorizes them, and assigns market values. You can organize items by location, category, or custom tags. All documentation is securely stored in the cloud and accessible whenever you need it.";
+      return "AssetSafe works by allowing you to document your assets through photos, videos, or 3D virtual tours. Our AI technology identifies items, categorizes them, and assigns market values. You can organize items by location, category, or custom tags. All documentation is securely stored in the cloud and accessible whenever you need it.";
     }
     
     if (normalizedInput.includes('professional') || normalizedInput.includes('service')) {
@@ -115,7 +115,7 @@ const ChatbotInterface: React.FC = () => {
       <div className="bg-brand-blue p-4">
         <div className="flex items-center text-white">
           <MessageCircle className="w-6 h-6 mr-2" />
-          <h3 className="font-medium">AssetDocs Assistant</h3>
+          <h3 className="font-medium">AssetSafe Assistant</h3>
         </div>
       </div>
       
@@ -161,7 +161,7 @@ const ChatbotInterface: React.FC = () => {
         <div className="flex gap-2">
           <Input
             type="text"
-            placeholder="Ask me anything about AssetDocs..."
+            placeholder="Ask me anything about AssetSafe..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
