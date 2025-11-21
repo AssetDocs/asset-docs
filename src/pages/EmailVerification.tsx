@@ -76,7 +76,7 @@ const EmailVerification: React.FC = () => {
                 <CheckCircle className="w-6 h-6 text-green-600 mx-auto mb-2" />
                 <p className="text-sm text-gray-700">
                   A verification email has been sent to your email address. 
-                  Click the link in the email to verify your account and start using Asset Docs.
+                  Click the link in the email to verify your account and start using Asset Safe.
                 </p>
               </div>
 
@@ -85,7 +85,7 @@ const EmailVerification: React.FC = () => {
                 <ol className="list-decimal list-inside space-y-1 text-left">
                   <li>Check your email inbox (and spam folder)</li>
                   <li>Click the "Verify Your Email" button in the email</li>
-                  <li>You'll be redirected back to Asset Docs</li>
+                  <li>You'll be redirected back to Asset Safe</li>
                   <li>Start documenting your valuable assets!</li>
                 </ol>
               </div>
@@ -121,10 +121,10 @@ const EmailVerification: React.FC = () => {
               <div className="text-center text-sm text-gray-600">
                 Having trouble? Contact us at{' '}
                 <a 
-                  href="mailto:info@assetdocs.net" 
+                  href="mailto:support@assetsafe.net" 
                   className="text-brand-blue hover:underline"
                 >
-                  info@assetdocs.net
+                  support@assetsafe.net
                 </a>
               </div>
             </div>

@@ -140,7 +140,7 @@ const Features: React.FC = () => {
                     <div className="grid md:grid-cols-3 gap-6">
                       <div>
                         <h4 className="font-semibold text-gray-800 mb-2">What It Is</h4>
-                        <p className="text-gray-600">A secure, encrypted vault inside Asset Docs where you can store the most important details your loved ones will need—photos, videos, account access, personal notes, and instructions that clarify your wishes. It's a modern way to organize the information that often gets lost, forgotten, or overlooked.</p>
+                        <p className="text-gray-600">A secure, encrypted vault inside Asset Safe where you can store the most important details your loved ones will need—photos, videos, account access, personal notes, and instructions that clarify your wishes. It's a modern way to organize the information that often gets lost, forgotten, or overlooked.</p>
                       </div>
                       <div>
                         <h4 className="font-semibold text-gray-800 mb-2">What It's Not</h4>
@@ -536,7 +536,7 @@ const Features: React.FC = () => {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center text-brand-blue mb-4">Industries We Serve</h2>
           <p className="text-center text-lg text-gray-600 max-w-4xl mx-auto mb-12">
-            Asset Docs provides specialized documentation solutions across diverse industries, helping protect valuable assets and streamline operations for professionals and organizations worldwide.
+            Asset Safe provides specialized documentation solutions across diverse industries, helping protect valuable assets and streamline operations for professionals and organizations worldwide.
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -729,7 +729,7 @@ const Features: React.FC = () => {
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-6">Protect What Matters Most</h2>
           <p className="text-xl mb-8 max-w-3xl mx-auto">
-            Join thousands of property owners, renters, and business professionals who trust Asset Docs for comprehensive asset protection.
+            Join thousands of property owners, renters, and business professionals who trust Asset Safe for comprehensive asset protection.
           </p>
           <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
             <a href="/signup" className="bg-white text-orange-500 hover:bg-gray-100 px-6 py-3 rounded-md font-medium">
