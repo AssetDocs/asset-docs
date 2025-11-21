@@ -115,7 +115,7 @@ const AuthCallback = () => {
           
           <div className="space-y-4">
             <h1 className="text-4xl md:text-5xl font-bold text-foreground">
-              Welcome to Asset Docs!
+              Welcome to Asset Safe!
             </h1>
             <p className="text-xl text-muted-foreground">
               Your email has been successfully verified. Thank you for taking proactive steps to protect your assets and minimize your risks.

@@ -50,11 +50,11 @@ const PasswordGate: React.FC<PasswordGateProps> = ({ onPasswordCorrect }) => {
       if (data?.valid) {
         // Clear rate limit on successful access
         RateLimiter.clearRateLimit(identifier, 'password-attempt');
-        await SecureStorage.setTemporaryAccess('assetdocs-access', 'granted');
+        await SecureStorage.setTemporaryAccess('assetsafe-access', 'granted');
         onPasswordCorrect();
         toast({
           title: "Access Granted",
-          description: "Welcome to AssetDocs!",
+          description: "Welcome to Asset Safe!",
         });
       } else {
         const attemptsRemaining = rateLimitResult.attemptsRemaining;
@@ -87,7 +87,7 @@ const PasswordGate: React.FC<PasswordGateProps> = ({ onPasswordCorrect }) => {
           <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
             <Lock className="h-6 w-6 text-primary" />
           </div>
-          <CardTitle className="text-2xl font-bold">AssetDocs</CardTitle>
+          <CardTitle className="text-2xl font-bold">Asset Safe</CardTitle>
           <p className="text-muted-foreground">
             This site is currently under construction. Please enter the access password to continue.
           </p>
@@ -136,7 +136,7 @@ const PasswordGate: React.FC<PasswordGateProps> = ({ onPasswordCorrect }) => {
           </form>
           
           <div className="mt-6 text-center text-sm text-muted-foreground">
-            <p>© 2025 AssetDocs. All rights reserved.</p>
+            <p>© 2025 Asset Safe. All rights reserved.</p>
           </div>
         </CardContent>
       </Card>

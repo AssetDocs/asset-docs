@@ -8,7 +8,7 @@ const UnderConstructionBanner: React.FC = () => {
       <div className="container mx-auto flex items-center justify-center gap-2 text-sm font-medium">
         <Construction className="h-4 w-4 flex-shrink-0" />
         <span>
-          This site is currently under construction. Feel free to browse around and learn more about AssetDocs! 
+          This site is currently under construction. Feel free to browse around and learn more about Asset Safe! 
           {" "}Have questions? {" "}
           <Link to="/contact" className="underline hover:text-gray-700 font-semibold">
             Contact us

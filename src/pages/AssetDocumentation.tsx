@@ -255,7 +255,7 @@ const AssetDocumentation: React.FC = () => {
                   Proper asset documentation requires secure storage and management. Your asset documents contain sensitive information about your possessions and financial resources, making security a top priority.
                 </p>
                 <p className="text-lg mb-6">
-                  Asset Docs provides everything you need to create, organize, and securely store comprehensive asset documentation:
+                  Asset Safe provides everything you need to create, organize, and securely store comprehensive asset documentation:
                 </p>
                 <ul className="space-y-3 mb-8">
                   <li className="flex items-start">
