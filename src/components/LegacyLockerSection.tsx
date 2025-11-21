@@ -22,7 +22,7 @@ const LegacyLockerSection: React.FC = () => {
             <div className="bg-white p-8 rounded-lg shadow-lg">
               <h3 className="text-2xl font-semibold mb-4 text-brand-blue">What It Is</h3>
               <p className="text-gray-700 leading-relaxed">
-                A secure, encrypted vault inside Asset Docs where you can store the most important 
+                A secure, encrypted vault inside Asset Safe where you can store the most important 
                 details your loved ones will need—photos, videos, account access, personal notes, 
                 and instructions that clarify your wishes. It's a modern way to organize the 
                 information that often gets lost, forgotten, or overlooked.

@@ -10,7 +10,7 @@ const About: React.FC = () => {
       
       <div className="container mx-auto px-4 py-12 flex-grow">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl font-bold text-brand-blue mb-8 text-center">About Asset Docs</h1>
+          <h1 className="text-4xl font-bold text-brand-blue mb-8 text-center">About Asset Safe</h1>
           
           <div className="prose prose-lg max-w-none">
             <section className="mb-12">
@@ -20,7 +20,7 @@ const About: React.FC = () => {
               
               <div className="bg-gradient-to-r from-blue-50 to-teal-50 p-8 rounded-lg mb-8">
                 <p className="text-xl text-gray-700 leading-relaxed text-center mb-6">
-                  Asset Docs was born from a simple yet powerful belief: protecting your most valuable 
+                  Asset Safe was born from a simple yet powerful belief: protecting your most valuable 
                   possessions shouldn't be complicated, stressful, or uncertain.
                 </p>
               </div>
@@ -70,7 +70,7 @@ const About: React.FC = () => {
                 <h3 className="text-2xl font-semibold mb-4 text-center text-gray-800">Our Mission</h3>
                 <p className="text-lg text-gray-700 leading-relaxed text-center mb-6">
                   We believe every family deserves the confidence that comes with knowing their most precious 
-                  belongings are properly documented and protected. Asset Docs transforms the traditional, 
+                  belongings are properly documented and protected. Asset Safe transforms the traditional, 
                   tedious process of property documentation into a modern, intuitive experience that actually 
                   works when you need it most.
                 </p>
@@ -78,7 +78,7 @@ const About: React.FC = () => {
                 <div className="bg-white p-6 rounded-lg border-l-4 border-brand-blue">
                   <p className="text-gray-700 italic text-center">
                     "Because when disaster strikes, the last thing you should worry about is whether 
-                    you can prove what you've lost. With Asset Docs, you're not just documenting possessions—
+                    you can prove what you've lost. With Asset Safe, you're not just documenting possessions—
                     you're securing your family's future."
                   </p>
                 </div>

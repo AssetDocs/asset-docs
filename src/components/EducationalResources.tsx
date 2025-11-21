@@ -48,7 +48,7 @@ const EducationalResources: React.FC = () => {
           Learn & Maximize Your Protection
         </h2>
         <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-          Get the most out of Asset Docs with our comprehensive guides and best practices. 
+          Get the most out of Asset Safe with our comprehensive guides and best practices. 
           Learn from insurance professionals and property documentation experts.
         </p>
       </div>

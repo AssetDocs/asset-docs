@@ -17,7 +17,7 @@ const FeaturesList: React.FC = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-primary mb-4">Asset Docs - Complete Feature Overview</h1>
+          <h1 className="text-4xl font-bold text-primary mb-4">Asset Safe - Complete Feature Overview</h1>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
             Comprehensive asset documentation platform for homeowners, renters, businesses, and landlords. 
             Built with React, TypeScript, Tailwind CSS, and Supabase backend.

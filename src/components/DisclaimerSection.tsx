@@ -13,7 +13,7 @@ const DisclaimerSection: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-brand-blue mb-1">Asset Documentation Platform</p>
                 <p className="text-sm text-gray-600">
-                  Asset Docs is designed for property documentation and insurance protection, not inventory management or business operations.
+                  Asset Safe is designed for property documentation and insurance protection, not inventory management or business operations.
                 </p>
               </div>
             </div>
