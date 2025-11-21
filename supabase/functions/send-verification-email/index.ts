@@ -30,7 +30,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send verification email
     const emailResponse = await resend.emails.send({
-      from: "Asset Docs <noreply@assetdocs.net>",
+      from: "Asset Safe <noreply@assetsafe.net>",
       to: [email],
       subject: "Verify your email to complete your subscription",
       html: `
@@ -43,7 +43,7 @@ const handler = async (req: Request): Promise<Response> => {
             <p style="font-size: 18px; margin-bottom: 20px;">Hi ${displayName},</p>
             
             <p style="font-size: 16px; margin-bottom: 20px;">
-              Thank you for choosing Asset Docs! You're just one click away from starting your 30-day free trial.
+              Thank you for choosing Asset Safe! You're just one click away from starting your 30-day free trial.
             </p>
             
             <p style="font-size: 16px; margin-bottom: 30px;">
@@ -72,7 +72,7 @@ const handler = async (req: Request): Promise<Response> => {
             </p>
             
             <p style="font-size: 14px; color: #666; margin-top: 20px;">
-              Questions? We're here to help! Contact us at support@assetdocs.com
+              Questions? We're here to help! Contact us at support@assetsafe.net
             </p>
           </div>
           

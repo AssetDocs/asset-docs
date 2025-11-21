@@ -65,19 +65,19 @@ const handler = async (req: Request): Promise<Response> => {
     const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
 
     const emailResponse = await resend.emails.send({
-      from: 'Asset Docs <onboarding@resend.dev>',
+      from: 'Asset Safe <onboarding@resend.dev>',
       to: [email],
-      subject: 'Your Asset Docs trial ends in 3 days',
+      subject: 'Your Asset Safe trial ends in 3 days',
       html: `
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h1 style="color: #333; font-size: 24px; margin-bottom: 20px;">Your Asset Docs trial ends in 3 days</h1>
+          <h1 style="color: #333; font-size: 24px; margin-bottom: 20px;">Your Asset Safe trial ends in 3 days</h1>
           
           <p style="color: #333; font-size: 16px; line-height: 1.5; margin-bottom: 20px;">
             Hi ${firstName},
           </p>
           
           <p style="color: #333; font-size: 16px; line-height: 1.5; margin-bottom: 20px;">
-            We hope you've enjoyed using Asset Docs. Your 30-day trial will end on <strong>${trialEndDate}</strong>.
+            We hope you've enjoyed using Asset Safe. Your 30-day trial will end on <strong>${trialEndDate}</strong>.
           </p>
           
           <p style="color: #333; font-size: 16px; line-height: 1.5; margin-bottom: 20px;">
@@ -100,13 +100,13 @@ const handler = async (req: Request): Promise<Response> => {
           </p>
           
           <p style="color: #333; font-size: 16px; line-height: 1.5;">
-            – The Asset Docs Team
+            – The Asset Safe Team
           </p>
           
           <hr style="border: none; border-top: 1px solid #eee; margin: 40px 0;" />
           
           <p style="color: #999; font-size: 14px; text-align: center;">
-            Asset Docs - Protecting what matters most to you
+            Asset Safe - Protecting what matters most to you
           </p>
         </div>
       `,

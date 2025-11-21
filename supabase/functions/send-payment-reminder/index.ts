@@ -35,7 +35,7 @@ const handler = async (req: Request): Promise<Response> => {
     const resend = new Resend(resendKey);
 
     const emailResponse = await resend.emails.send({
-      from: "AssetDocs <noreply@assetdocs.net>",
+      from: "AssetSafe <noreply@assetsafe.net>",
       to: [email],
       subject: "Action Required: Update Your Payment Method",
       html: `
@@ -61,7 +61,7 @@ const handler = async (req: Request): Promise<Response> => {
             <div class="container">
               <div class="header">
                 <h1 style="margin: 0; font-size: 28px;">Payment Method Update Required</h1>
-                <p style="margin: 10px 0 0 0; opacity: 0.9;">AssetDocs</p>
+                <p style="margin: 10px 0 0 0; opacity: 0.9;">AssetSafe</p>
               </div>
               
               <div class="content">
@@ -85,34 +85,34 @@ const handler = async (req: Request): Promise<Response> => {
                 
                 <p>To update your payment information:</p>
                 <ol>
-                  <li>Log in to your AssetDocs account</li>
+                  <li>Log in to your AssetSafe account</li>
                   <li>Go to Account Settings → Billing</li>
                   <li>Update your payment method</li>
                   <li>Or use the quick link below</li>
                 </ol>
                 
                 <div style="text-align: center; margin: 30px 0;">
-                  <a href="https://assetdocs.net/account" class="button">Update Payment Method</a>
+                  <a href="https://www.assetsafe.net/account" class="button">Update Payment Method</a>
                 </div>
                 
                 <p><strong>Need help?</strong> Our support team is here to assist you:</p>
                 <ul>
-                  <li>Email: <a href="mailto:support@assetdocs.net">support@assetdocs.net</a></li>
-                  <li>Visit: <a href="https://assetdocs.net/contact">Contact Support</a></li>
+                  <li>Email: <a href="mailto:support@assetsafe.net">support@assetsafe.net</a></li>
+                  <li>Visit: <a href="https://www.assetsafe.net/contact">Contact Support</a></li>
                 </ul>
                 
-                <p style="margin-top: 30px;">Thank you for being a valued AssetDocs customer!</p>
+                <p style="margin-top: 30px;">Thank you for being a valued AssetSafe customer!</p>
                 
                 <p style="margin-top: 20px;">
                   Best regards,<br>
-                  <strong>The AssetDocs Team</strong>
+                  <strong>The AssetSafe Team</strong>
                 </p>
               </div>
               
               <div class="footer">
-                <p>AssetDocs - Professional Asset Documentation Platform</p>
+                <p>AssetSafe - Professional Asset Documentation Platform</p>
                 <p>This is an automated message. Please do not reply to this email.</p>
-                <p>If you no longer wish to receive these emails, you can <a href="https://assetdocs.net/account">manage your preferences</a> in your account settings.</p>
+                <p>If you no longer wish to receive these emails, you can <a href="https://www.assetsafe.net/account">manage your preferences</a> in your account settings.</p>
               </div>
             </div>
           </body>

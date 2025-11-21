@@ -163,7 +163,7 @@ const handler = async (req: Request): Promise<Response> => {
 
       // Send the email
       const emailResponse = await resend.emails.send({
-        from: 'AssetDocs <onboarding@resend.dev>', // Update this to your verified domain
+        from: 'AssetSafe <onboarding@resend.dev>', // Update this to your verified domain
         to: [customerEmail],
         subject: `Payment Receipt - ${planName}`,
         html,

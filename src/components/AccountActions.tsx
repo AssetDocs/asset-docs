@@ -32,7 +32,7 @@ const AccountActions: React.FC<AccountActionsProps> = () => {
               onClick={() => {
                 const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
                 if (isOnSampleDashboard) {
-                  alert('AssetDocs.net says\n\nDemo: This allows you to update your profile, security settings, and preferences.');
+                  alert('AssetSafe.net says\n\nDemo: This allows you to update your profile, security settings, and preferences.');
                   return;
                 }
                 window.location.href = '/account/settings';

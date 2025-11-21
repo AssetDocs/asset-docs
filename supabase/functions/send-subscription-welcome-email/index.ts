@@ -89,12 +89,12 @@ const handler = async (req: Request): Promise<Response> => {
     const dashboardUrl = `${Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '')}.lovable.app/welcome`;
 
     const emailResponse = await resend.emails.send({
-      from: "Asset Docs <info@assetdocs.net>",
+      from: "Asset Safe <info@assetsafe.net>",
       to: [email],
-      subject: `Welcome to Asset Docs — Your ${planName} Plan is Active!`,
+      subject: `Welcome to Asset Safe — Your ${planName} Plan is Active!`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h1 style="color: #2563eb; margin-bottom: 20px;">Welcome to Asset Docs!</h1>
+          <h1 style="color: #2563eb; margin-bottom: 20px;">Welcome to Asset Safe!</h1>
           
           <p>Hi ${firstName},</p>
           
@@ -127,7 +127,7 @@ const handler = async (req: Request): Promise<Response> => {
           
           <p style="margin-top: 30px;">We're excited to protect what matters most to you.</p>
           
-          <p style="margin-bottom: 0;">– The Asset Docs Team</p>
+          <p style="margin-bottom: 0;">– The Asset Safe Team</p>
           
           <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
           <p style="font-size: 12px; color: #6b7280; text-align: center;">

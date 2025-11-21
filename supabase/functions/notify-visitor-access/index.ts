@@ -42,21 +42,21 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Send notification email to info@assetdocs.net
+    // Send notification email to support@assetsafe.net
     const emailResponse = await resend.emails.send({
-      from: "AssetDocs Notifications <onboarding@resend.dev>",
-      to: ["info@assetdocs.net"],
-      subject: "New Visitor Access - AssetDocs Website",
+      from: "AssetSafe Notifications <onboarding@resend.dev>",
+      to: ["support@assetsafe.net"],
+      subject: "New Visitor Access - AssetSafe Website",
       html: `
         <h2>New Visitor Access Notification</h2>
-        <p>A new visitor has requested access to the AssetDocs website:</p>
+        <p>A new visitor has requested access to the AssetSafe website:</p>
         <ul>
           <li><strong>Email:</strong> ${email}</li>
           <li><strong>Time:</strong> ${new Date().toLocaleString()}</li>
         </ul>
         <p>This visitor has now been granted access to browse the website.</p>
         <hr>
-        <p><em>This is an automated notification from AssetDocs.</em></p>
+        <p><em>This is an automated notification from AssetSafe.</em></p>
       `,
     });
 
