@@ -28,8 +28,8 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between items-center">
           <Link to="/" className="flex items-center">
             <img 
-              src="/lovable-uploads/b60286e3-ddd8-48f4-9a60-56cfa470be11.png" 
-              alt="Asset Docs Logo" 
+              src="/lovable-uploads/asset-safe-logo.jpg" 
+              alt="Asset Safe Logo" 
               className="h-20 mr-2"
             />
           </Link>
