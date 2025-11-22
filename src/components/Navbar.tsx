@@ -30,7 +30,7 @@ const Navbar: React.FC = () => {
             <img 
               src={assetSafeLogo} 
               alt="Asset Safe Logo" 
-              className="h-20 mr-2"
+              className="h-24 mr-2"
             />
           </Link>
           
