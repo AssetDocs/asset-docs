@@ -185,7 +185,7 @@ const Login: React.FC = () => {
                 Ready for Full Access?
               </h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Are you ready to access all of the features Asset Docs has to offer? 
+                Are you ready to access all of the features Asset Safe has to offer? 
                 Click here to subscribe and start your free 30-day trial.
               </p>
               <Button asChild variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">

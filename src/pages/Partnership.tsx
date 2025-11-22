@@ -15,13 +15,13 @@ const Partnership: React.FC = () => {
               <div className="flex items-center justify-center gap-2 mb-4">
                 <span className="text-3xl">🏡</span>
                 <CardTitle className="text-3xl font-bold text-primary">
-                  Partnership Proposal: Asset Docs x RE/MAX
+                  Partnership Proposal: Asset Safe x RE/MAX
                 </CardTitle>
               </div>
               <div className="space-y-2 text-muted-foreground">
                 <p><strong>Presented to:</strong> Chris Harden, RE/MAX Broker</p>
-                <p><strong>From:</strong> Michael Lewis, Founder – Asset Docs</p>
-                <p><strong>Contact:</strong> info@assetdocs.net | www.assetdocs.net</p>
+                <p><strong>From:</strong> Michael Lewis, Founder – Asset Safe</p>
+                <p><strong>Contact:</strong> support@assetsafe.net | www.assetsafe.net</p>
               </div>
             </CardHeader>
           </Card>
@@ -31,12 +31,12 @@ const Partnership: React.FC = () => {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <span className="text-2xl">🔒</span>
-                <CardTitle className="text-2xl">What is Asset Docs?</CardTitle>
+                <CardTitle className="text-2xl">What is Asset Safe?</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
               <p className="mb-4 text-lg">
-                Asset Docs provides professional-grade digital documentation of a homeowner's belongings and property. Our services include:
+                Asset Safe provides professional-grade digital documentation of a homeowner's belongings and property. Our services include:
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="flex items-center gap-2">
@@ -79,12 +79,12 @@ const Partnership: React.FC = () => {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <span className="text-2xl">🤝</span>
-                <CardTitle className="text-2xl">Why Partner with Asset Docs?</CardTitle>
+                <CardTitle className="text-2xl">Why Partner with Asset Safe?</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
               <p className="mb-4 text-lg">
-                By partnering with Asset Docs, RE/MAX agents can offer clients real, lasting value beyond the transaction. It's a smart way to:
+                By partnering with Asset Safe, RE/MAX agents can offer clients real, lasting value beyond the transaction. It's a smart way to:
               </p>
               <ul className="space-y-2 text-lg">
                 <li>• Differentiate your services</li>
@@ -105,7 +105,7 @@ const Partnership: React.FC = () => {
             <CardContent className="space-y-6">
               <div className="border-l-4 border-primary pl-4">
                 <h3 className="text-xl font-semibold mb-2">1. Premium Closing Gift</h3>
-                <p className="mb-2">Offer an Asset Docs package as part of your closing gift.</p>
+                <p className="mb-2">Offer an Asset Safe package as part of your closing gift.</p>
                 <p className="text-muted-foreground">
                   🎁 Clients receive a year of professional home inventory services — practical, lasting, and appreciated.
                 </p>
@@ -113,7 +113,7 @@ const Partnership: React.FC = () => {
 
               <div className="border-l-4 border-primary pl-4">
                 <h3 className="text-xl font-semibold mb-2">2. Relocation & Life Transition Support</h3>
-                <p className="mb-2">Asset Docs is ideal for clients moving across the country, managing estates, or navigating divorce.</p>
+                <p className="mb-2">Asset Safe is ideal for clients moving across the country, managing estates, or navigating divorce.</p>
                 <p className="text-muted-foreground">
                   📦 We simplify the process of documenting and organizing everything that matters.
                 </p>
@@ -129,7 +129,7 @@ const Partnership: React.FC = () => {
 
               <div className="border-l-4 border-primary pl-4">
                 <h3 className="text-xl font-semibold mb-2">4. Co-Branded Materials</h3>
-                <p className="mb-2">Asset Docs provides RE/MAX agents with flyers, email templates, and digital handouts.</p>
+                <p className="mb-2">Asset Safe provides RE/MAX agents with flyers, email templates, and digital handouts.</p>
                 <p className="text-muted-foreground">
                   📩 Makes offering the service seamless and professional.
                 </p>
@@ -181,7 +181,7 @@ const Partnership: React.FC = () => {
             </CardHeader>
             <CardContent>
               <p className="text-lg mb-4">
-                In any of these scenarios, having comprehensive pre-incident documentation through Asset Docs can:
+                In any of these scenarios, having comprehensive pre-incident documentation through Asset Safe can:
               </p>
               <div className="space-y-3">
                 <div className="flex items-start gap-2">
@@ -271,12 +271,12 @@ const Partnership: React.FC = () => {
             </CardHeader>
             <CardContent>
               <p className="text-lg mb-6">
-                We believe everyone deserves the confidence that comes with knowing their most precious belongings are properly documented and protected. Asset Docs transforms the traditional, tedious process of property documentation into a modern, intuitive experience that actually works when you need it most.
+                We believe everyone deserves the confidence that comes with knowing their most precious belongings are properly documented and protected. Asset Safe transforms the traditional, tedious process of property documentation into a modern, intuitive experience that actually works when you need it most.
               </p>
               
               <blockquote className="border-l-4 border-primary pl-6 py-4 bg-background/50 rounded-r-lg">
                 <p className="text-lg italic text-primary">
-                  "Because when disaster strikes, the last thing you should worry about is whether you can prove what you've lost. With Asset Docs, you're not just documenting possessions— you're securing your family's future."
+                  "Because when disaster strikes, the last thing you should worry about is whether you can prove what you've lost. With Asset Safe, you're not just documenting possessions— you're securing your family's future."
                 </p>
               </blockquote>
             </CardContent>
@@ -347,7 +347,7 @@ const Partnership: React.FC = () => {
               
               <div className="bg-secondary/50 p-6 rounded-lg">
                 <h3 className="text-xl font-semibold mb-4">Michael Lewis</h3>
-                <p className="text-lg font-medium text-primary mb-3">Founder, Asset Docs</p>
+                <p className="text-lg font-medium text-primary mb-3">Founder, Asset Safe</p>
                 <div className="space-y-2">
                   <p className="flex items-center gap-2">
                     <span>📞</span>
@@ -355,18 +355,18 @@ const Partnership: React.FC = () => {
                   </p>
                   <p className="flex items-center gap-2">
                     <span>📧</span>
-                    <a href="mailto:info@assetdocs.net" className="text-primary hover:underline">info@assetdocs.net</a>
+                    <a href="mailto:support@assetsafe.net" className="text-primary hover:underline">support@assetsafe.net</a>
                   </p>
                   <p className="flex items-center gap-2">
                     <span>🌐</span>
-                    <a href="https://www.assetdocs.net" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">www.assetdocs.net</a>
+                    <a href="https://www.assetsafe.net" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">www.assetsafe.net</a>
                   </p>
                 </div>
                 
                 <div className="mt-6">
                   <Button asChild className="w-full">
-                    <a href="https://www.assetdocs.net" target="_blank" rel="noopener noreferrer">
-                      Go to Asset Docs Website
+                    <a href="https://www.assetsafe.net" target="_blank" rel="noopener noreferrer">
+                      Go to Asset Safe Website
                     </a>
                   </Button>
                 </div>

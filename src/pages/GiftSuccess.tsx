@@ -110,7 +110,7 @@ const GiftSuccess: React.FC = () => {
                       </div>
                       <div className="flex items-start gap-2">
                         <span className="bg-brand-orange text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">2</span>
-                        <span>They'll create their Asset Docs account using the gift code</span>
+                        <span>They'll create their Asset Safe account using the gift code</span>
                       </div>
                       <div className="flex items-start gap-2">
                         <span className="bg-brand-orange text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">3</span>

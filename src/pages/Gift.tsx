@@ -77,7 +77,7 @@ const Gift: React.FC = () => {
               Give the Gift of Protection and Peace of Mind
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Help your loved ones protect their most valuable assets with Asset Docs. 
+              Help your loved ones protect their most valuable assets with Asset Safe. 
               A thoughtful gift that provides lasting security and organization for their properties and belongings.
             </p>
             
@@ -152,7 +152,7 @@ const Gift: React.FC = () => {
                   <div>
                     <h4 className="font-semibold text-lg mb-2">For Recipients:</h4>
                     <ul className="space-y-2 text-gray-600">
-                      <li>• Create an Asset Docs account</li>
+                      <li>• Create an Asset Safe account</li>
                       <li>• Enter the gift code during setup</li>
                       <li>• Enjoy full access for 12 months</li>
                       <li>• Option to continue with their own subscription</li>
@@ -171,7 +171,7 @@ const Gift: React.FC = () => {
               Give a Gift That Truly Matters
             </h2>
             <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-              Show someone you care about their security and peace of mind. Asset Docs makes the perfect gift 
+              Show someone you care about their security and peace of mind. Asset Safe makes the perfect gift 
               for new homeowners, property investors, or anyone who values protection.
             </p>
             <Button 

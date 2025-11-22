@@ -6,13 +6,13 @@ const AppDownloadButtons: React.FC = () => {
   const handleIOSDownload = () => {
     // In production, this would link to the App Store
     console.log('Redirecting to iOS App Store');
-    // window.open('https://apps.apple.com/app/asset-docs', '_blank');
+    // window.open('https://apps.apple.com/app/asset-safe', '_blank');
   };
 
   const handleAndroidDownload = () => {
     // In production, this would link to Google Play Store
     console.log('Redirecting to Google Play Store');
-    // window.open('https://play.google.com/store/apps/details?id=com.assetdocs', '_blank');
+    // window.open('https://play.google.com/store/apps/details?id=com.assetsafe', '_blank');
   };
 
   return (

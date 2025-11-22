@@ -99,7 +99,7 @@ const GiftClaim: React.FC = () => {
       setClaimSuccess(true);
       toast({
         title: "Gift Claimed Successfully!",
-        description: "Your subscription has been activated. Welcome to Asset Docs!",
+        description: "Your subscription has been activated. Welcome to Asset Safe!",
       });
 
       // Redirect to dashboard after a short delay
@@ -133,7 +133,7 @@ const GiftClaim: React.FC = () => {
                 </div>
                 <CardTitle className="text-2xl text-green-700">Gift Claimed Successfully!</CardTitle>
                 <CardDescription className="text-lg">
-                  Welcome to Asset Docs - Your subscription is now active
+                  Welcome to Asset Safe - Your subscription is now active
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -185,7 +185,7 @@ const GiftClaim: React.FC = () => {
               </div>
               <CardTitle className="text-2xl">Claim Your Gift Subscription</CardTitle>
               <CardDescription>
-                Enter your gift code to activate your Asset Docs subscription
+                Enter your gift code to activate your Asset Safe subscription
               </CardDescription>
             </CardHeader>
             <CardContent>

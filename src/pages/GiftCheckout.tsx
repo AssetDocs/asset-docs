@@ -156,7 +156,7 @@ const GiftCheckout: React.FC = () => {
             <div className="text-center mb-8">
               <Gift className="h-12 w-12 text-brand-orange mx-auto mb-4" />
               <h1 className="text-3xl font-bold text-gray-900 mb-2">Complete Your Gift Purchase</h1>
-              <p className="text-gray-600">Fill out the details below to send an Asset Docs subscription as a gift</p>
+              <p className="text-gray-600">Fill out the details below to send an Asset Safe subscription as a gift</p>
             </div>
 
             <div className="grid lg:grid-cols-2 gap-8">
