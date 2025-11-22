@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Menu, X, Video, LogOut, User, Home } from 'lucide-react';
 import SearchBar from '@/components/SearchBar';
+import assetSafeLogo from '@/assets/asset-safe-logo.png';
 
 import { useTranslation } from '@/contexts/TranslationContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -28,7 +28,7 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between items-center">
           <Link to="/" className="flex items-center">
             <img 
-              src="/lovable-uploads/asset-safe-logo.jpg" 
+              src={assetSafeLogo} 
               alt="Asset Safe Logo" 
               className="h-20 mr-2"
             />
