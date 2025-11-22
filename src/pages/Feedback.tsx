@@ -171,7 +171,7 @@ const Feedback: React.FC = () => {
                 name="currentUser"
                 render={({ field }) => (
                   <FormItem className="space-y-3">
-                    <FormLabel>Are you a current user of AssetDocs? *</FormLabel>
+                    <FormLabel>Are you a current user of Asset Safe? *</FormLabel>
                     <FormControl>
                       <RadioGroup
                         onValueChange={field.onChange}
@@ -198,7 +198,7 @@ const Feedback: React.FC = () => {
                 name="npsScore"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>How likely are you to refer AssetDocs to a friend or family member? *</FormLabel>
+                    <FormLabel>How likely are you to refer Asset Safe to a friend or family member? *</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>

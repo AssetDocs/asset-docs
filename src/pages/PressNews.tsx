@@ -59,7 +59,7 @@ const PressNews: React.FC = () => {
       id: 2,
       title: "Why Digital Asset Documentation Beats Spreadsheets + Phone Photos",
       excerpt: "Protect what matters most - with precision, professionalism, and proof. A comprehensive comparison of traditional DIY methods versus professional digital documentation.",
-      author: "Asset Docs Team",
+      author: "Asset Safe Team",
       date: "2024-07-22",
       readTime: "8 min read",
       category: "Featured Guide",
@@ -75,7 +75,7 @@ const PressNews: React.FC = () => {
                 <tr class="bg-gray-100">
                   <th class="border border-gray-300 px-4 py-3 text-left font-semibold">Feature</th>
                   <th class="border border-gray-300 px-4 py-3 text-left font-semibold">Spreadsheet + Phone Photos</th>
-                  <th class="border border-gray-300 px-4 py-3 text-left font-semibold">Asset Docs Digital Documentation</th>
+                  <th class="border border-gray-300 px-4 py-3 text-left font-semibold">Asset Safe Digital Documentation</th>
                 </tr>
               </thead>
               <tbody>
@@ -131,7 +131,7 @@ const PressNews: React.FC = () => {
             <li class="flex items-start"><span class="text-green-600 font-bold mr-2">•</span><strong>Restoration & Insurance Professionals:</strong> Claim support and documentation</li>
           </ul>
 
-          <h3 class="text-2xl font-bold text-gray-900 mb-4">✨ The Asset Docs Advantage</h3>
+          <h3 class="text-2xl font-bold text-gray-900 mb-4">✨ The Asset Safe Advantage</h3>
           <ul class="list-none space-y-3 mb-8">
             <li class="flex items-start"><span class="text-blue-600 font-bold mr-2">✓</span>Interactive Visual Records (3D tours, floorplans, tagged images)</li>
             <li class="flex items-start"><span class="text-blue-600 font-bold mr-2">✓</span>Accurate Valuation via AI and web-based tools</li>
@@ -140,7 +140,7 @@ const PressNews: React.FC = () => {
           </ul>
 
           <p class="text-lg font-semibold text-gray-800 mb-4">Ready to make your assets undeniable, insurable, and easily managed?</p>
-          <p class="text-lg text-blue-600 font-medium">Visit AssetDocs.net to get started.</p>
+          <p class="text-lg text-blue-600 font-medium">Visit AssetSafe.net to get started.</p>
         </div>
       `,
       featured: true
@@ -377,7 +377,7 @@ const PressNews: React.FC = () => {
                         <tr className="bg-muted">
                           <th className="border border-border px-4 py-3 text-left font-semibold">Feature</th>
                           <th className="border border-border px-4 py-3 text-left font-semibold">Spreadsheet + Phone Photos</th>
-                          <th className="border border-border px-4 py-3 text-left font-semibold">Asset Docs Digital Documentation</th>
+                          <th className="border border-border px-4 py-3 text-left font-semibold">Asset Safe Digital Documentation</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -513,7 +513,7 @@ const PressNews: React.FC = () => {
                     <li className="flex items-start"><span className="text-primary font-bold mr-2">•</span><strong>Restoration & Insurance Professionals:</strong> Claim support and documentation</li>
                   </ul>
 
-                  <h3 className="text-2xl font-bold mb-4">✨ The Asset Docs Advantage</h3>
+                  <h3 className="text-2xl font-bold mb-4">✨ The Asset Safe Advantage</h3>
                   <ul className="list-none space-y-3 mb-8">
                     <li className="flex items-start"><span className="text-accent font-bold mr-2">✓</span>Interactive Visual Records (3D tours, floorplans, tagged images)</li>
                     <li className="flex items-start"><span className="text-accent font-bold mr-2">✓</span>Accurate Valuation via AI and web-based tools</li>
@@ -522,7 +522,7 @@ const PressNews: React.FC = () => {
                   </ul>
 
                   <p className="text-lg font-semibold mb-4">Ready to make your assets undeniable, insurable, and easily managed?</p>
-                  <p className="text-lg text-primary font-medium">Visit AssetDocs.net to get started.</p>
+                  <p className="text-lg text-primary font-medium">Visit AssetSafe.net to get started.</p>
                 </div>
               )}
               {selectedArticle.id !== 1 && (
