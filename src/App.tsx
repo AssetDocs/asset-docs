@@ -52,6 +52,7 @@ import PressNews from "./pages/PressNews";
 import Resources from "./pages/Resources";
 import Feedback from "./pages/Feedback";
 import VideoHelp from "./pages/VideoHelp";
+import TestEmail from "./pages/TestEmail";
 import AccountSettings from "./pages/AccountSettings";
 import PhotoGallery from "./pages/PhotoGallery";
 import Videos from "./pages/Videos";
@@ -172,6 +173,7 @@ const AppContent = () => {
           <Route path="/gift-claim" element={<GiftClaim />} />
         <Route path="/subscription-checkout" element={<SubscriptionCheckout />} />
         <Route path="/video-help" element={<VideoHelp />} />
+        <Route path="/test-email" element={<TestEmail />} />
         <Route path="/resources" element={<Resources />} />
         <Route path="/sample-dashboard" element={<SampleDashboard />} />
         
