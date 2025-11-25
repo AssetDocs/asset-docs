@@ -137,6 +137,7 @@ function createEmailVerificationTemplate(displayName: string, confirmationUrl: s
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="text-align: center; margin-bottom: 30px;">
+        <img src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 20px;" />
         <h1 style="color: #1e40af; font-size: 28px; margin: 0;">Verify Your Email</h1>
       </div>
       
@@ -206,6 +207,7 @@ function createPasswordResetTemplate(displayName: string, resetUrl: string, emai
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="text-align: center; margin-bottom: 30px;">
+        <img src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 20px;" />
         <h1 style="color: #dc2626; font-size: 28px; margin: 0;">Reset Your Password</h1>
       </div>
       
@@ -264,6 +266,7 @@ function createMagicLinkTemplate(displayName: string, magicUrl: string, email: s
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="text-align: center; margin-bottom: 30px;">
+        <img src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 20px;" />
         <h1 style="color: #059669; font-size: 28px; margin: 0;">Your Magic Link</h1>
       </div>
       
