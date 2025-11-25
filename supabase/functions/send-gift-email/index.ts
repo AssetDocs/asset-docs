@@ -61,6 +61,7 @@ const handler = async (req: Request): Promise<Response> => {
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="text-align: center; margin-bottom: 40px;">
+            <img src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 20px;" />
             <h1 style="color: #2563eb; margin-bottom: 10px;">🎁 Congratulations!</h1>
             <h2 style="color: #1f2937; margin: 0;">You've received a gift subscription to Asset Safe</h2>
           </div>
@@ -144,14 +145,15 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send confirmation email to purchaser
     const purchaserEmailResponse = await resend.emails.send({
-      from: "Asset Docs <noreply@assetdocs.net>",
+      from: "Asset Safe <noreply@assetsafe.net>",
       to: [giftSub.purchaser_email],
       subject: `Gift Subscription Confirmation - ${giftSub.recipient_name}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="text-align: center; margin-bottom: 40px;">
+            <img src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 20px;" />
             <h1 style="color: #2563eb; margin-bottom: 10px;">🎁 Gift Sent Successfully!</h1>
-            <h2 style="color: #1f2937; margin: 0;">Your Asset Docs gift subscription has been delivered</h2>
+            <h2 style="color: #1f2937; margin: 0;">Your Asset Safe gift subscription has been delivered</h2>
           </div>
           
           <div style="background: #f8fafc; border-radius: 8px; padding: 30px; margin-bottom: 30px;">
@@ -181,14 +183,14 @@ const handler = async (req: Request): Promise<Response> => {
             <h3 style="color: #1f2937;">What happens next?</h3>
             <ul style="color: #374151; line-height: 1.6;">
               <li>Your recipient has received an email with their gift code and redemption instructions</li>
-              <li>They can create an account at assetdocs.net and enter the gift code to activate their subscription</li>
+              <li>They can create an account at www.assetsafe.net and enter the gift code to activate their subscription</li>
               <li>Once activated, they'll have full access to all ${giftSub.plan_type} plan features for 12 months</li>
             </ul>
           </div>
           
           <div style="text-align: center; margin-top: 40px; padding-top: 30px; border-top: 1px solid #e5e7eb;">
             <p style="color: #6b7280; font-size: 14px;">
-              Thank you for giving the gift of Asset Docs! Questions? Contact us at <a href="mailto:support@assetdocs.net" style="color: #2563eb;">support@assetdocs.net</a>
+              Thank you for giving the gift of Asset Safe! Questions? Contact us at <a href="mailto:support@assetsafe.net" style="color: #2563eb;">support@assetsafe.net</a>
             </p>
           </div>
         </div>
