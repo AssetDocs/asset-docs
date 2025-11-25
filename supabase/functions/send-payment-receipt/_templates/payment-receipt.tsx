@@ -52,6 +52,13 @@ export const PaymentReceiptEmail = ({
       <Preview>Your payment receipt from AssetSafe - {formattedAmount}</Preview>
       <Body style={main}>
         <Container style={container}>
+          <Section style={{ textAlign: 'center' as const, margin: '20px 0' }}>
+            <img 
+              src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email.jpg" 
+              alt="Asset Safe" 
+              style={{ maxWidth: '200px' }}
+            />
+          </Section>
           <Heading style={h1}>Payment Receipt</Heading>
           
           <Text style={text}>
