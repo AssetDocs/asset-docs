@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import legacyLockerLogo from '@/assets/legacy-locker-logo.jpg';
+import legacyLockerLogo from '@/assets/legacy-locker-logo.png';
 
 const LegacyLockerSection: React.FC = () => {
   return (
