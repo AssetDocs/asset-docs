@@ -1,7 +1,7 @@
 import React from 'react';
-import { Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import legacyLockerLogo from '@/assets/legacy-locker-logo.jpg';
 
 const LegacyLockerSection: React.FC = () => {
   return (
@@ -9,9 +9,7 @@ const LegacyLockerSection: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-brand-blue rounded-full mb-6">
-              <Shield className="h-10 w-10 text-white" />
-            </div>
+            <img src={legacyLockerLogo} alt="Legacy Locker" className="w-20 h-20 mx-auto mb-6" />
             <h2 className="text-4xl font-bold text-brand-blue mb-4">Introducing Legacy Locker</h2>
             <p className="text-xl text-gray-700">
               A secure vault for organizing the information that matters most to your loved ones
