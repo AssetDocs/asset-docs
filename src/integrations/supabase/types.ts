@@ -770,6 +770,45 @@ export type Database = {
         }
         Relationships: []
       }
+      legacy_locker_voice_notes: {
+        Row: {
+          audio_path: string | null
+          audio_url: string | null
+          created_at: string | null
+          description: string | null
+          duration: number | null
+          file_size: number | null
+          id: string
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          audio_path?: string | null
+          audio_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration?: number | null
+          file_size?: number | null
+          id?: string
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          audio_path?: string | null
+          audio_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration?: number | null
+          file_size?: number | null
+          id?: string
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       password_catalog: {
         Row: {
           created_at: string
