@@ -340,7 +340,7 @@ const LegacyLocker = () => {
               Legacy Locker
             </CardTitle>
             <CardDescription>
-              Your informal Last Will & Testament
+              High-Value Information Beyond a Traditional Will
             </CardDescription>
           </div>
             <div className="flex items-center gap-2">
@@ -414,6 +414,12 @@ const LegacyLocker = () => {
             </TabsList>
 
             <TabsContent value="personal" className="space-y-4 mt-6">
+              <Alert className="mb-4">
+                <AlertDescription>
+                  <strong>Why this matters:</strong> Human meaning + clarity = fewer misunderstandings after death.
+                </AlertDescription>
+              </Alert>
+
               <div className="space-y-2">
                 <Label htmlFor="full_legal_name">Full Legal Name</Label>
                 <Input
@@ -423,6 +429,7 @@ const LegacyLocker = () => {
                   placeholder="Your full legal name"
                 />
               </div>
+
               <div className="space-y-2">
                 <Label htmlFor="address">Address</Label>
                 <Textarea
@@ -433,9 +440,51 @@ const LegacyLocker = () => {
                   rows={3}
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="life_overview">Life overview / personal background</Label>
+                <Textarea
+                  id="life_overview"
+                  placeholder="A short narrative for family: upbringing, values, principles."
+                  rows={4}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="digital_identity">Digital identity preferences</Label>
+                <Textarea
+                  id="digital_identity"
+                  placeholder="How they want social media handled, memorialized, or deleted."
+                  rows={3}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="personal_philosophies">Personal philosophies or reminders for loved ones</Label>
+                <Textarea
+                  id="personal_philosophies"
+                  placeholder="Example: Always take the family trip. Don't wait."
+                  rows={3}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="medical_preferences">Medical or ethical preferences not covered by legal docs</Label>
+                <Textarea
+                  id="medical_preferences"
+                  placeholder="Example: organ donation rationale, cultural preferences, music they'd want at a memorial."
+                  rows={4}
+                />
+              </div>
             </TabsContent>
 
             <TabsContent value="executor" className="space-y-4 mt-6">
+              <Alert className="mb-4">
+                <AlertDescription>
+                  <strong>Why this matters:</strong> Executors are often overwhelmed. Giving them a roadmap is huge.
+                </AlertDescription>
+              </Alert>
+
               <div className="space-y-4 p-4 border rounded-lg">
                 <h3 className="font-semibold">Primary Executor</h3>
                 <div className="space-y-2">
@@ -488,12 +537,48 @@ const LegacyLocker = () => {
                   />
                 </div>
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="executor_instructions">Step-by-step instructions for your specific situation</Label>
+                <Textarea
+                  id="executor_instructions"
+                  placeholder='Ex: "Contact my financial advisor, then my CPA. Here are their numbers."'
+                  rows={4}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="subscriptions">List of recurring subscriptions and services to cancel</Label>
+                <Textarea
+                  id="subscriptions"
+                  placeholder="Netflix, Amazon, insurance policies, memberships."
+                  rows={3}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="household_operations">Household operations guide</Label>
+                <Textarea
+                  id="household_operations"
+                  placeholder="Alarm codes, how the sprinkler system works, who services the HVAC."
+                  rows={4}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="financial_crypto">Financial/crypto explanation in plain English</Label>
+                <Textarea
+                  id="financial_crypto"
+                  placeholder="Legal wills often state 'I have crypto,' but don't explain how to access it."
+                  rows={4}
+                />
+              </div>
             </TabsContent>
 
             <TabsContent value="guardians" className="space-y-4 mt-6">
-              <Alert>
+              <Alert className="mb-4">
                 <AlertDescription>
-                  For minor children only. Specify who should care for them if you pass away.
+                  <strong>Why this matters:</strong> A will names a guardian; Legacy Locker teaches them how to parent the way you would.
                 </AlertDescription>
               </Alert>
               
@@ -549,9 +634,51 @@ const LegacyLocker = () => {
                   />
                 </div>
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="parenting_preferences">Parenting preferences</Label>
+                <Textarea
+                  id="parenting_preferences"
+                  placeholder="Routines, bedtimes, diets, schooling preferences."
+                  rows={4}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="emotional_behavioral">Emotional/behavioral notes</Label>
+                <Textarea
+                  id="emotional_behavioral"
+                  placeholder="Fears, allergies, quirks, triggers, strengths."
+                  rows={3}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="developmental_goals">Developmental goals</Label>
+                <Textarea
+                  id="developmental_goals"
+                  placeholder="Faith, character, education, extracurriculars."
+                  rows={3}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="letters_to_children">Letters to children at key ages</Label>
+                <Textarea
+                  id="letters_to_children"
+                  placeholder="10, 16, 18, wedding day, etc."
+                  rows={4}
+                />
+              </div>
             </TabsContent>
 
             <TabsContent value="assets" className="space-y-4 mt-6">
+              <Alert className="mb-4">
+                <AlertDescription>
+                  <strong>Why this matters:</strong> Evidence + clarity reduces disputes and attorney fees dramatically.
+                </AlertDescription>
+              </Alert>
+
               <div className="space-y-2">
                 <Label htmlFor="residuary_estate">Residuary Estate Instructions</Label>
                 <Textarea
@@ -584,9 +711,51 @@ const LegacyLocker = () => {
                   rows={4}
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="photo_video_documentation">Photo/video documentation of every major item</Label>
+                <Textarea
+                  id="photo_video_documentation"
+                  placeholder="This solves disputes, reduces fraud, accelerates probate."
+                  rows={3}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="physical_documents">Where to find physical documents</Label>
+                <Textarea
+                  id="physical_documents"
+                  placeholder="Deeds, titles, receipts, service histories."
+                  rows={3}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="sentimental_items">Plain-language explanation of sentimental items</Label>
+                <Textarea
+                  id="sentimental_items"
+                  placeholder="Why something matters (wills don't capture value beyond $$)."
+                  rows={3}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="crypto_passwords">Crypto wallets, passwords, digital accounts</Label>
+                <Textarea
+                  id="crypto_passwords"
+                  placeholder="Not included in normal wills."
+                  rows={3}
+                />
+              </div>
             </TabsContent>
 
             <TabsContent value="property" className="space-y-4 mt-6">
+              <Alert className="mb-4">
+                <AlertDescription>
+                  <strong>Why this matters:</strong> Property transitions are expensive and confusing — this minimizes friction.
+                </AlertDescription>
+              </Alert>
+
               <div className="space-y-2">
                 <Label htmlFor="real_estate_instructions">Real Estate Instructions</Label>
                 <Textarea
@@ -597,17 +766,53 @@ const LegacyLocker = () => {
                   rows={6}
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="property_walkthrough">Property walk-through videos</Label>
+                <Textarea
+                  id="property_walkthrough"
+                  placeholder="Explaining what's valuable, what to donate, what to toss."
+                  rows={3}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="home_maintenance">Home maintenance list</Label>
+                <Textarea
+                  id="home_maintenance"
+                  placeholder="Water shutoff, HVAC filters, annual tasks."
+                  rows={3}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="neighborhood_contacts">Neighborhood or tenant contacts</Label>
+                <Textarea
+                  id="neighborhood_contacts"
+                  placeholder="Important contacts for property management."
+                  rows={2}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="rental_property">Rental property instructions</Label>
+                <Textarea
+                  id="rental_property"
+                  placeholder="Lease locations, key contacts, payout preferences."
+                  rows={3}
+                />
+              </div>
             </TabsContent>
 
             <TabsContent value="wishes" className="space-y-4 mt-6">
               <div className="space-y-2">
-                <Label htmlFor="funeral_wishes">Funeral Wishes</Label>
+                <Label htmlFor="funeral_wishes">Funeral/memorial preferences (with reasoning)</Label>
                 <Textarea
                   id="funeral_wishes"
                   value={formData.funeral_wishes}
                   onChange={(e) => handleInputChange('funeral_wishes', e.target.value)}
-                  placeholder="Type of ceremony, desired location, etc."
-                  rows={3}
+                  placeholder="Songs, colors, location, faith elements."
+                  rows={4}
                 />
               </div>
 
@@ -648,6 +853,33 @@ const LegacyLocker = () => {
                   onCheckedChange={(checked) => handleInputChange('no_contest_clause', checked)}
                 />
                 <Label htmlFor="no_contest_clause">Include No-Contest Clause</Label>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="sentimental_distribution">How to distribute sentimental items</Label>
+                <Textarea
+                  id="sentimental_distribution"
+                  placeholder="Often the #1 cause of family arguments."
+                  rows={3}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="legacy_messages">Legacy messages</Label>
+                <Textarea
+                  id="legacy_messages"
+                  placeholder="What you hope your children carry forward."
+                  rows={3}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="charitable_giving">Charitable giving rationale</Label>
+                <Textarea
+                  id="charitable_giving"
+                  placeholder="Why certain donations matter."
+                  rows={3}
+                />
               </div>
 
               <div className="space-y-2">
@@ -696,6 +928,20 @@ const LegacyLocker = () => {
             </TabsContent>
 
             <TabsContent value="voicenotes" className="space-y-4 mt-6">
+              <Alert className="mb-4">
+                <AlertDescription>
+                  <strong>Why this matters:</strong> Video/audio preserves emotion, not just text.
+                  <br /><br />
+                  <strong>Examples of high-value recordings:</strong>
+                  <ul className="list-disc ml-6 mt-2 space-y-1">
+                    <li>Messages to children, spouse, parents.</li>
+                    <li>"If something happens to me" guidance.</li>
+                    <li>Why certain inheritance decisions were made.</li>
+                    <li>Encouragement for difficult life moments.</li>
+                    <li>Oral instructions for asset access (but not legal directives).</li>
+                  </ul>
+                </AlertDescription>
+              </Alert>
               <VoiceNotesSection />
             </TabsContent>
 

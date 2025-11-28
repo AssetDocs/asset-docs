@@ -15,7 +15,7 @@ const DemoLegacyLocker = () => {
               Legacy Locker
             </CardTitle>
             <CardDescription>
-              Your informal Last Will & Testament
+              High-Value Information Beyond a Traditional Will
             </CardDescription>
           </div>
           <Badge variant="secondary">Demo Mode</Badge>
