@@ -22,7 +22,6 @@ const Index: React.FC = () => {
       <Navbar />
       <HeroSection />
       <AboutSection />
-      <TrialCTASection />
       <GiftSection />
       <LegacyLockerSection />
       <FeaturedSection />
