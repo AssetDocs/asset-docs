@@ -24,10 +24,10 @@ const Index: React.FC = () => {
       <AboutSection />
       <TrialCTASection />
       <GiftSection />
+      <LegacyLockerSection />
       <FeaturedSection />
       <FeaturesSection />
       <HowItWorksSection />
-      <LegacyLockerSection />
       <CTASection />
       <FeedbackSection />
       <Footer />
