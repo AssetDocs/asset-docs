@@ -1374,6 +1374,53 @@ export type Database = {
         }
         Relationships: []
       }
+      voice_note_attachments: {
+        Row: {
+          created_at: string | null
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string
+          file_url: string
+          id: string
+          updated_at: string | null
+          user_id: string
+          voice_note_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type: string
+          file_url: string
+          id?: string
+          updated_at?: string | null
+          user_id: string
+          voice_note_id: string
+        }
+        Update: {
+          created_at?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string
+          file_url?: string
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+          voice_note_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voice_note_attachments_voice_note_id_fkey"
+            columns: ["voice_note_id"]
+            isOneToOne: false
+            referencedRelation: "legacy_locker_voice_notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
