@@ -1,373 +1,279 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Mic, MicOff, Play, Pause, Trash2, Save } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Mic, Square, Trash2, Play, Pause } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-
-// Extend Window interface for speech recognition
-declare global {
-  interface Window {
-    SpeechRecognition: any;
-    webkitSpeechRecognition: any;
-  }
-}
 
 interface VoiceNote {
   id: string;
   title: string;
-  transcript: string;
-  audioUrl?: string;
-  category: string;
-  createdAt: Date;
+  description?: string;
+  audio_url: string;
   duration?: number;
+  created_at: string;
 }
 
-const VoiceNotesSection: React.FC = () => {
-  const [isRecording, setIsRecording] = useState(false);
+export const VoiceNotesSection = () => {
   const [voiceNotes, setVoiceNotes] = useState<VoiceNote[]>([]);
-  const [currentTranscript, setCurrentTranscript] = useState('');
-  const [noteTitle, setNoteTitle] = useState('');
-  const [noteCategory, setNoteCategory] = useState('General');
-  const [isListening, setIsListening] = useState(false);
-  const [playingNoteId, setPlayingNoteId] = useState<string | null>(null);
-  
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
-  const recognitionRef = useRef<any>(null);
-  const audioElementRef = useRef<HTMLAudioElement | null>(null);
-  
+  const [isRecording, setIsRecording] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
+  const [newNote, setNewNote] = useState({ title: '', description: '' });
+  const [playingId, setPlayingId] = useState<string | null>(null);
+  const { user } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
-    // Initialize speech recognition
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const recognition = new SpeechRecognition();
-      
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.lang = 'en-US';
-      
-      recognition.onresult = (event) => {
-        let finalTranscript = '';
-        let interimTranscript = '';
-        
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            finalTranscript += transcript;
-          } else {
-            interimTranscript += transcript;
-          }
-        }
-        
-        setCurrentTranscript(prev => prev + finalTranscript);
-      };
-      
-      recognition.onerror = (event) => {
-        console.error('Speech recognition error:', event.error);
-        setIsListening(false);
-      };
-      
-      recognition.onend = () => {
-        setIsListening(false);
-      };
-      
-      recognitionRef.current = recognition;
+    if (user) {
+      fetchVoiceNotes();
     }
-    
-    return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
-    };
-  }, []);
+  }, [user]);
+
+  const fetchVoiceNotes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('legacy_locker_voice_notes')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setVoiceNotes(data || []);
+    } catch (error) {
+      console.error('Error fetching voice notes:', error);
+    }
+  };
 
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      
-      audioChunksRef.current = [];
-      
-      mediaRecorder.ondataavailable = (event) => {
-        audioChunksRef.current.push(event.data);
+      const recorder = new MediaRecorder(stream);
+      const chunks: Blob[] = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunks.push(e.data);
+        }
       };
-      
-      mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        
-        // Save the note with audio
-        saveVoiceNote(audioUrl);
+
+      recorder.onstop = () => {
+        setAudioChunks(chunks);
+        stream.getTracks().forEach(track => track.stop());
       };
-      
-      mediaRecorderRef.current = mediaRecorder;
-      mediaRecorder.start();
+
+      recorder.start();
+      setMediaRecorder(recorder);
       setIsRecording(true);
-      
-      // Start speech recognition
-      if (recognitionRef.current) {
-        recognitionRef.current.start();
-        setIsListening(true);
-      }
-      
-      toast({
-        title: "Recording started",
-        description: "Speak into your microphone to add a voice note.",
-      });
     } catch (error) {
-      console.error('Error starting recording:', error);
       toast({
-        title: "Recording failed",
-        description: "Could not access microphone. Please check permissions.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Could not access microphone',
+        variant: 'destructive',
       });
     }
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+    if (mediaRecorder) {
+      mediaRecorder.stop();
       setIsRecording(false);
-    }
-    
-    if (recognitionRef.current && isListening) {
-      recognitionRef.current.stop();
-      setIsListening(false);
     }
   };
 
-  const saveVoiceNote = (audioUrl?: string) => {
-    if (!currentTranscript.trim() && !audioUrl) {
+  const saveVoiceNote = async () => {
+    if (!user || audioChunks.length === 0 || !newNote.title.trim()) {
       toast({
-        title: "Nothing to save",
-        description: "Please record some audio or enter text.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Please add a title and record audio',
+        variant: 'destructive',
       });
       return;
     }
 
-    const newNote: VoiceNote = {
-      id: Date.now().toString(),
-      title: noteTitle || `Voice Note ${voiceNotes.length + 1}`,
-      transcript: currentTranscript,
-      audioUrl,
-      category: noteCategory,
-      createdAt: new Date(),
-    };
+    try {
+      const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+      const fileName = `${user.id}/${Date.now()}-voice-note.webm`;
 
-    setVoiceNotes(prev => [newNote, ...prev]);
-    setCurrentTranscript('');
-    setNoteTitle('');
-    setNoteCategory('General');
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('documents')
+        .upload(fileName, audioBlob);
 
-    toast({
-      title: "Voice note saved",
-      description: "Your voice note has been saved successfully.",
-    });
-  };
+      if (uploadError) throw uploadError;
 
-  const playAudio = (noteId: string, audioUrl: string) => {
-    if (playingNoteId === noteId) {
-      audioElementRef.current?.pause();
-      setPlayingNoteId(null);
-    } else {
-      if (audioElementRef.current) {
-        audioElementRef.current.pause();
-      }
-      
-      const audio = new Audio(audioUrl);
-      audio.onended = () => setPlayingNoteId(null);
-      audio.play();
-      audioElementRef.current = audio;
-      setPlayingNoteId(noteId);
+      const { data: { publicUrl } } = supabase.storage
+        .from('documents')
+        .getPublicUrl(fileName);
+
+      const { error: insertError } = await supabase
+        .from('legacy_locker_voice_notes')
+        .insert({
+          user_id: user.id,
+          title: newNote.title,
+          description: newNote.description,
+          audio_path: fileName,
+          audio_url: publicUrl,
+          file_size: audioBlob.size,
+        });
+
+      if (insertError) throw insertError;
+
+      toast({
+        title: 'Success',
+        description: 'Voice note saved successfully',
+      });
+
+      setNewNote({ title: '', description: '' });
+      setAudioChunks([]);
+      fetchVoiceNotes();
+    } catch (error) {
+      console.error('Error saving voice note:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save voice note',
+        variant: 'destructive',
+      });
     }
   };
 
-  const deleteNote = (noteId: string) => {
-    setVoiceNotes(prev => prev.filter(note => note.id !== noteId));
-    toast({
-      title: "Note deleted",
-      description: "Voice note has been removed.",
-    });
+  const deleteVoiceNote = async (id: string, audioPath: string) => {
+    try {
+      await supabase.storage.from('documents').remove([audioPath]);
+      
+      const { error } = await supabase
+        .from('legacy_locker_voice_notes')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'Voice note deleted',
+      });
+
+      fetchVoiceNotes();
+    } catch (error) {
+      console.error('Error deleting voice note:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete voice note',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const categories = ['General', 'Family Heirlooms', 'Collectibles', 'Priceless Items', 'Insurance', 'Memories', 'Other'];
+  const togglePlay = (id: string, audioUrl: string) => {
+    if (playingId === id) {
+      setPlayingId(null);
+    } else {
+      const audio = new Audio(audioUrl);
+      audio.play();
+      setPlayingId(id);
+      audio.onended = () => setPlayingId(null);
+    }
+  };
 
   return (
     <div className="space-y-6">
-      {/* Voice Notes Purpose Note */}
-      <Card className="bg-blue-50 border-blue-200">
-        <CardContent className="pt-6">
-          <div className="text-center space-y-2">
-            <h3 className="font-semibold text-blue-900">Voice Notes Purpose</h3>
-            <p className="text-blue-800 text-sm">
-              Use voice notes for items that need <strong>Clarifications & Details</strong>, have <strong>sentimental or historical significance</strong>, 
-              <strong> emotional value</strong>, or contain <strong>practical notes for future use</strong>.
-            </p>
-            <p className="text-blue-700 text-xs italic">
-              Photos show what it looks like • Videos show what it does • Voice notes tell why it matters
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Recording Section */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Mic className="h-5 w-5" />
-            Record Voice Note
-          </CardTitle>
+          <CardTitle>Record New Voice Note</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm font-medium mb-2 block">Title *</label>
             <Input
-              placeholder="Note title (optional)"
-              value={noteTitle}
-              onChange={(e) => setNoteTitle(e.target.value)}
+              value={newNote.title}
+              onChange={(e) => setNewNote({ ...newNote, title: e.target.value })}
+              placeholder="Enter title for this voice note"
             />
-            <select
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-              value={noteCategory}
-              onChange={(e) => setNoteCategory(e.target.value)}
-            >
-              {categories.map(category => (
-                <option key={category} value={category}>{category}</option>
-              ))}
-            </select>
           </div>
 
-          <div className="flex items-center gap-4">
-            <Button
-              onClick={() => {
-                const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
-                if (isOnSampleDashboard) {
-                  alert('AssetSafe.net says\n\nDemo: This would allow you to record voice notes for items with sentimental value, historical significance, or important details.');
-                  return;
-                }
-                isRecording ? stopRecording() : startRecording();
-              }}
-              variant={isRecording ? "destructive" : "default"}
-              size="lg"
-              className="flex items-center gap-2"
-            >
-              {isRecording ? (
-                <>
-                  <MicOff className="h-4 w-4" />
-                  Stop Recording
-                </>
-              ) : (
-                <>
-                  <Mic className="h-4 w-4" />
-                  Start Recording
-                </>
-              )}
-            </Button>
-            
-            {isRecording && (
-              <div className="flex items-center gap-2 text-red-500">
-                <div className="h-2 w-2 bg-red-500 rounded-full animate-pulse" />
-                Recording...
-              </div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">Description</label>
+            <Textarea
+              value={newNote.description}
+              onChange={(e) => setNewNote({ ...newNote, description: e.target.value })}
+              placeholder="Add optional description"
+              rows={3}
+            />
+          </div>
+
+          <div className="flex gap-2">
+            {!isRecording ? (
+              <Button onClick={startRecording} className="flex items-center gap-2">
+                <Mic className="h-4 w-4" />
+                Start Recording
+              </Button>
+            ) : (
+              <Button onClick={stopRecording} variant="destructive" className="flex items-center gap-2">
+                <Square className="h-4 w-4" />
+                Stop Recording
+              </Button>
+            )}
+
+            {audioChunks.length > 0 && (
+              <Button onClick={saveVoiceNote} variant="secondary">
+                Save Voice Note
+              </Button>
             )}
           </div>
 
-          {currentTranscript && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Live Transcript:</label>
-              <Textarea
-                value={currentTranscript}
-                onChange={(e) => setCurrentTranscript(e.target.value)}
-                placeholder="Your speech will appear here..."
-                className="min-h-[100px]"
-              />
-              <Button 
-                onClick={() => {
-                  const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
-                  if (isOnSampleDashboard) {
-                    alert('AssetSafe.net says\n\nDemo: This would save your voice note with transcription for future reference.');
-                    return;
-                  }
-                  saveVoiceNote();
-                }}
-                className="w-full"
-              >
-                <Save className="h-4 w-4 mr-2" />
-                Save Note
-              </Button>
-            </div>
+          {isRecording && (
+            <p className="text-sm text-muted-foreground animate-pulse">Recording...</p>
           )}
         </CardContent>
       </Card>
 
-      {/* Voice Notes List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Voice Notes ({voiceNotes.length})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {voiceNotes.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Mic className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No voice notes yet</p>
-              <p className="text-sm">Record your first voice note to get started</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {voiceNotes.map((note) => (
-                <Card key={note.id} className="bg-muted/30">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1">
-                        <h3 className="font-medium">{note.title}</h3>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge variant="secondary">{note.category}</Badge>
-                          <span className="text-xs text-muted-foreground">
-                            {note.createdAt.toLocaleDateString()} at {note.createdAt.toLocaleTimeString()}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {note.audioUrl && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => playAudio(note.id, note.audioUrl!)}
-                          >
-                            {playingNoteId === note.id ? (
-                              <Pause className="h-4 w-4" />
-                            ) : (
-                              <Play className="h-4 w-4" />
-                            )}
-                          </Button>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => deleteNote(note.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    {note.transcript && (
-                      <p className="text-sm text-muted-foreground bg-background p-3 rounded">
-                        {note.transcript}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Your Voice Notes</h3>
+        {voiceNotes.length === 0 ? (
+          <p className="text-muted-foreground text-center py-8">No voice notes yet. Record your first one above!</p>
+        ) : (
+          <div className="grid gap-4">
+            {voiceNotes.map((note) => (
+              <Card key={note.id}>
+                <CardContent className="pt-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 space-y-2">
+                      <h4 className="font-semibold">{note.title}</h4>
+                      {note.description && (
+                        <p className="text-sm text-muted-foreground">{note.description}</p>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(note.created_at).toLocaleDateString()}
                       </p>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => togglePlay(note.id, note.audio_url)}
+                      >
+                        {playingId === note.id ? (
+                          <Pause className="h-4 w-4" />
+                        ) : (
+                          <Play className="h-4 w-4" />
+                        )}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => deleteVoiceNote(note.id, note.audio_url)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
