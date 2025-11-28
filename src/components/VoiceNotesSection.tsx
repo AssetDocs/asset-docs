@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mic, Square, Trash2, Play, Pause } from 'lucide-react';
+import { Mic, Square, Trash2, Play, Pause, Upload, FileText, X, Edit2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -17,13 +17,26 @@ interface VoiceNote {
   created_at: string;
 }
 
+interface VoiceNoteAttachment {
+  id: string;
+  voice_note_id: string;
+  file_name: string;
+  file_url: string;
+  file_size: number;
+  file_type: string;
+  created_at: string;
+}
+
 export const VoiceNotesSection = () => {
   const [voiceNotes, setVoiceNotes] = useState<VoiceNote[]>([]);
+  const [attachments, setAttachments] = useState<Record<string, VoiceNoteAttachment[]>>({});
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
   const [newNote, setNewNote] = useState({ title: '', description: '' });
   const [playingId, setPlayingId] = useState<string | null>(null);
+  const [editingFileName, setEditingFileName] = useState<string | null>(null);
+  const [newFileName, setNewFileName] = useState('');
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -32,6 +45,21 @@ export const VoiceNotesSection = () => {
       fetchVoiceNotes();
     }
   }, [user]);
+
+  const fetchAttachments = async (voiceNoteId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('voice_note_attachments')
+        .select('*')
+        .eq('voice_note_id', voiceNoteId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setAttachments(prev => ({ ...prev, [voiceNoteId]: data || [] }));
+    } catch (error) {
+      console.error('Error fetching attachments:', error);
+    }
+  };
 
   const fetchVoiceNotes = async () => {
     try {
@@ -42,6 +70,9 @@ export const VoiceNotesSection = () => {
 
       if (error) throw error;
       setVoiceNotes(data || []);
+      
+      // Fetch attachments for each voice note
+      data?.forEach(note => fetchAttachments(note.id));
     } catch (error) {
       console.error('Error fetching voice notes:', error);
     }
@@ -176,6 +207,114 @@ export const VoiceNotesSection = () => {
     }
   };
 
+  const handleFileUpload = async (voiceNoteId: string, files: FileList | null) => {
+    if (!files || !user) return;
+
+    for (const file of Array.from(files)) {
+      try {
+        const fileName = `${user.id}/${voiceNoteId}/${Date.now()}-${file.name}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('documents')
+          .upload(fileName, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('documents')
+          .getPublicUrl(fileName);
+
+        const { error: insertError } = await supabase
+          .from('voice_note_attachments')
+          .insert({
+            voice_note_id: voiceNoteId,
+            user_id: user.id,
+            file_name: file.name,
+            file_path: fileName,
+            file_url: publicUrl,
+            file_size: file.size,
+            file_type: file.type,
+          });
+
+        if (insertError) throw insertError;
+
+        toast({
+          title: 'Success',
+          description: 'File attached successfully',
+        });
+
+        fetchAttachments(voiceNoteId);
+      } catch (error) {
+        console.error('Error uploading file:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to attach file',
+          variant: 'destructive',
+        });
+      }
+    }
+  };
+
+  const deleteAttachment = async (attachmentId: string, filePath: string, voiceNoteId: string) => {
+    try {
+      await supabase.storage.from('documents').remove([filePath]);
+
+      const { error } = await supabase
+        .from('voice_note_attachments')
+        .delete()
+        .eq('id', attachmentId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'File deleted',
+      });
+
+      fetchAttachments(voiceNoteId);
+    } catch (error) {
+      console.error('Error deleting attachment:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete file',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const startRename = (attachmentId: string, currentName: string) => {
+    setEditingFileName(attachmentId);
+    setNewFileName(currentName);
+  };
+
+  const saveRename = async (attachmentId: string, voiceNoteId: string) => {
+    if (!newFileName.trim()) return;
+
+    try {
+      const { error } = await supabase
+        .from('voice_note_attachments')
+        .update({ file_name: newFileName })
+        .eq('id', attachmentId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'File renamed',
+      });
+
+      setEditingFileName(null);
+      fetchAttachments(voiceNoteId);
+    } catch (error) {
+      console.error('Error renaming file:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to rename file',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -267,6 +406,70 @@ export const VoiceNotesSection = () => {
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
+                  </div>
+
+                  {/* Attachments Section */}
+                  <div className="mt-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium">Attachments</p>
+                      <label>
+                        <input
+                          type="file"
+                          multiple
+                          className="hidden"
+                          onChange={(e) => handleFileUpload(note.id, e.target.files)}
+                        />
+                        <Button size="sm" variant="outline" asChild>
+                          <span className="cursor-pointer">
+                            <Upload className="h-4 w-4 mr-2" />
+                            Add Files
+                          </span>
+                        </Button>
+                      </label>
+                    </div>
+                    
+                    {attachments[note.id]?.length > 0 && (
+                      <div className="space-y-2">
+                        {attachments[note.id].map((attachment) => (
+                          <div key={attachment.id} className="flex items-center justify-between p-2 bg-muted rounded-md">
+                            <div className="flex items-center gap-2 flex-1">
+                              <FileText className="h-4 w-4" />
+                              {editingFileName === attachment.id ? (
+                                <Input
+                                  value={newFileName}
+                                  onChange={(e) => setNewFileName(e.target.value)}
+                                  onBlur={() => saveRename(attachment.id, note.id)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') saveRename(attachment.id, note.id);
+                                    if (e.key === 'Escape') setEditingFileName(null);
+                                  }}
+                                  className="h-7 text-sm"
+                                  autoFocus
+                                />
+                              ) : (
+                                <span className="text-sm truncate">{attachment.file_name}</span>
+                              )}
+                            </div>
+                            <div className="flex gap-1">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => startRename(attachment.id, attachment.file_name)}
+                              >
+                                <Edit2 className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => deleteAttachment(attachment.id, attachment.file_url, note.id)}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
