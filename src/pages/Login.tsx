@@ -9,6 +9,7 @@ import Footer from '@/components/Footer';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -50,10 +51,41 @@ const Login: React.FC = () => {
           variant: "destructive",
         });
       } else {
-        toast({
-          title: "Login Successful",
-          description: "Welcome back!",
-        });
+        // Check for pending contributor invitations
+        const isContributorInvite = searchParams.get('contributor_invite') === 'true';
+        
+        try {
+          const { data: session } = await supabase.auth.getSession();
+          if (session?.session?.access_token) {
+            const { data: invitationData } = await supabase.functions.invoke(
+              'accept-contributor-invitation',
+              {
+                headers: {
+                  Authorization: `Bearer ${session.session.access_token}`
+                }
+              }
+            );
+            
+            if (invitationData?.invitations?.length > 0) {
+              toast({
+                title: "Welcome!",
+                description: `You now have access to ${invitationData.invitations.length} account(s).`,
+              });
+            } else if (!isContributorInvite) {
+              toast({
+                title: "Login Successful",
+                description: "Welcome back!",
+              });
+            }
+          }
+        } catch (inviteError) {
+          console.error('Error checking contributor invitations:', inviteError);
+          toast({
+            title: "Login Successful",
+            description: "Welcome back!",
+          });
+        }
+        
         // Redirect with gift code if present
         if (giftCode) {
           navigate(`/gift-claim?code=${giftCode}`);

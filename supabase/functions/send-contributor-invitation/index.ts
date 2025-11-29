@@ -101,7 +101,7 @@ const handler = async (req: Request): Promise<Response> => {
             </p>
             
             <div style="text-align: center; margin: 30px 0;">
-              <a href="https://www.assetsafe.net/auth" 
+              <a href="https://www.assetsafe.net/auth?contributor_invite=true" 
                  style="background-color: #1e40af; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">
                 Accept Invitation
               </a>
