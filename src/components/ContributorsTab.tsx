@@ -6,7 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { UserPlus, Trash2, Mail, Shield, Eye, Users } from 'lucide-react';
+import { UserPlus, Trash2, Mail, Shield, Eye, Users, Lock } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useSubscription } from '@/contexts/SubscriptionContext';
@@ -297,6 +298,15 @@ const ContributorsTab: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Legacy Locker Access Notice */}
+          <Alert className="border-amber-200 bg-amber-50">
+            <Lock className="h-4 w-4 text-amber-600" />
+            <AlertDescription className="text-sm text-amber-900">
+              <strong>Legacy Locker Access:</strong> Only users with the Administrator role can access the Legacy Locker section. 
+              Viewers and Contributors will see the section but cannot view its contents.
+            </AlertDescription>
+          </Alert>
+          
           {/* Show current usage and limits */}
           <div className="bg-muted/30 rounded-lg p-3 mb-4">
             <p className="text-sm text-muted-foreground">
@@ -465,7 +475,7 @@ const ContributorsTab: React.FC = () => {
                 <h4 className="font-semibold">Administrator</h4>
               </div>
               <p className="text-sm text-muted-foreground">
-                Full access to all account features, including managing other contributors
+                Full access to all account features, including Legacy Locker and managing other contributors
               </p>
             </div>
             <div className="p-4 border rounded-lg">
@@ -474,7 +484,7 @@ const ContributorsTab: React.FC = () => {
                 <h4 className="font-semibold">Contributor</h4>
               </div>
               <p className="text-sm text-muted-foreground">
-                Can view, upload, and manage files but cannot manage contributors or account settings
+                Can view, upload, and manage files but cannot access Legacy Locker, manage contributors, or change account settings
               </p>
             </div>
             <div className="p-4 border rounded-lg">
@@ -483,7 +493,7 @@ const ContributorsTab: React.FC = () => {
                 <h4 className="font-semibold">Viewer</h4>
               </div>
               <p className="text-sm text-muted-foreground">
-                Read-only access for sharing account overviews. Cannot upload, download, or delete files
+                Read-only access for sharing account overviews. Cannot access Legacy Locker, upload, download, or delete files
               </p>
             </div>
           </div>

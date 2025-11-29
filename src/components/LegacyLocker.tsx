@@ -54,6 +54,8 @@ const LegacyLocker = () => {
   const [showMasterPasswordModal, setShowMasterPasswordModal] = useState(false);
   const [sessionMasterPassword, setSessionMasterPassword] = useState<string | null>(null);
   const [existingData, setExistingData] = useState<LegacyLockerData | null>(null);
+  const [contributorRole, setContributorRole] = useState<'administrator' | 'contributor' | 'viewer' | null>(null);
+  const [isContributor, setIsContributor] = useState(false);
   
   const [formData, setFormData] = useState<LegacyLockerData>({
     full_legal_name: '',
@@ -84,8 +86,31 @@ const LegacyLocker = () => {
   });
 
   useEffect(() => {
+    checkContributorStatus();
     fetchLegacyLocker();
   }, []);
+
+  const checkContributorStatus = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Check if this user is a contributor to someone else's account
+      const { data: contributorData } = await supabase
+        .from('contributors')
+        .select('role, account_owner_id')
+        .eq('contributor_user_id', user.id)
+        .eq('status', 'accepted')
+        .maybeSingle();
+
+      if (contributorData) {
+        setIsContributor(true);
+        setContributorRole(contributorData.role);
+      }
+    } catch (error) {
+      console.error('Error checking contributor status:', error);
+    }
+  };
 
   const fetchLegacyLocker = async () => {
     try {
@@ -291,6 +316,42 @@ const LegacyLocker = () => {
   const handleInputChange = (field: keyof LegacyLockerData, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+
+  // Check if user is a non-administrator contributor
+  if (isContributor && contributorRole !== 'administrator') {
+    return (
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            Legacy Locker
+          </CardTitle>
+          <CardDescription>
+            High-Value Information Beyond a Traditional Will
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Alert className="border-amber-200 bg-amber-50">
+            <Lock className="h-5 w-5 text-amber-600" />
+            <AlertDescription className="text-amber-900">
+              <strong>Access Restricted</strong>
+              <br />
+              The Legacy Locker section is only accessible to users with Administrator permissions. 
+              Your current role ({contributorRole}) does not include access to this sensitive information.
+              <br /><br />
+              Please contact the account owner if you need access to this section.
+            </AlertDescription>
+          </Alert>
+          <div className="bg-muted/50 rounded-lg p-8 text-center space-y-4">
+            <Lock className="h-16 w-16 mx-auto text-muted-foreground" />
+            <p className="text-muted-foreground">
+              Legacy Locker content is hidden to protect sensitive personal and estate information.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (isEncrypted && !isUnlocked) {
     return (
