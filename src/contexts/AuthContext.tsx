@@ -58,8 +58,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 .single();
               setProfile(profileData);
               
-              // Also check subscription status on login
+              // Check subscription status on login
               await supabase.functions.invoke('check-subscription');
+
+              // Check for pending contributor invitations on login/signup
+              if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+                try {
+                  await supabase.functions.invoke('accept-contributor-invitation', {
+                    headers: {
+                      Authorization: `Bearer ${session.access_token}`
+                    }
+                  });
+                } catch (inviteError) {
+                  console.error('Error checking contributor invitations:', inviteError);
+                }
+              }
             } catch (error) {
               console.error('Error fetching profile or checking subscription:', error);
             }

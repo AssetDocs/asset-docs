@@ -38,6 +38,31 @@ const AuthCallback = () => {
 
         console.log('Auth callback successful:', data);
 
+        // Check for pending contributor invitations
+        if (data.session?.access_token) {
+          try {
+            const { data: invitationData } = await supabase.functions.invoke(
+              'accept-contributor-invitation',
+              {
+                headers: {
+                  Authorization: `Bearer ${data.session.access_token}`
+                }
+              }
+            );
+            
+            if (invitationData?.invitations?.length > 0) {
+              console.log('Accepted contributor invitations:', invitationData.invitations);
+              toast({
+                title: "Invitation Accepted!",
+                description: `You now have access to ${invitationData.invitations.length} account(s).`,
+              });
+            }
+          } catch (inviteError) {
+            console.error('Error checking contributor invitations:', inviteError);
+            // Don't block the flow if invitation check fails
+          }
+        }
+
         // Show success message based on the type
         if (type === 'signup' || type === 'email_change_confirm_new') {
           // Show welcome screen for signup
