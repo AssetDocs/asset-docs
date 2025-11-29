@@ -200,10 +200,10 @@ const ContributorsTab: React.FC = () => {
     try {
       const { error } = await supabase.functions.invoke('send-contributor-invitation', {
         body: {
-          contributorEmail: email,
-          role: role,
-          inviterName: inviterName,
-          inviterEmail: user.email,
+          contributor_email: email,
+          contributor_role: role,
+          inviter_name: inviterName,
+          inviter_email: user.email,
         }
       });
 
