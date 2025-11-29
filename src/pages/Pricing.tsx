@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import SEOHead from '@/components/SEOHead';
 import PricingHero from '@/components/PricingHero';
 import PricingFAQ from '@/components/PricingFAQ';
 import PricingContactCTA from '@/components/PricingContactCTA';
@@ -12,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { CheckIcon, Zap, Shield, Star, Gift } from 'lucide-react';
+import { productSchema, faqSchema, breadcrumbSchema } from '@/utils/structuredData';
 
 const Pricing: React.FC = () => {
   const { user } = useAuth();
@@ -22,6 +24,35 @@ const Pricing: React.FC = () => {
     subscription_end?: string;
   }>({ subscribed: false });
   const [isLoading, setIsLoading] = useState(false);
+
+  // Structured data for pricing page
+  const faqData = [
+    {
+      question: "How secure is my property documentation?",
+      answer: "Asset Safe uses enterprise-grade encryption and secure cloud storage to protect your valuable documentation. All data is encrypted both in transit and at rest."
+    },
+    {
+      question: "Can I cancel my subscription at any time?",
+      answer: "Yes, you can cancel your subscription at any time. Your documentation will remain accessible until the end of your billing period."
+    },
+    {
+      question: "Is there a free trial available?",
+      answer: "Yes, we offer a 30-day free trial for both Standard and Premium plans with full access to all features."
+    }
+  ];
+
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      productSchema("Asset Safe Standard Plan", "12.99", "Comprehensive home documentation with up to 3 properties and 25GB storage"),
+      productSchema("Asset Safe Premium Plan", "18.99", "Professional plan with unlimited properties and 100GB storage for estate managers"),
+      faqSchema(faqData),
+      breadcrumbSchema([
+        { name: 'Home', url: 'https://www.assetsafe.net/' },
+        { name: 'Pricing', url: 'https://www.assetsafe.net/pricing' }
+      ])
+    ]
+  };
 
   const checkSubscription = async () => {
     if (!user) return;
@@ -89,6 +120,13 @@ const Pricing: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <SEOHead
+        title="Pricing - Affordable Plans for Home & Property Documentation"
+        description="Choose from Standard ($12.99/mo) or Premium ($18.99/mo) plans. 30-day free trial, no credit card required. Secure cloud storage, unlimited photos/videos, insurance claims support."
+        keywords="home inventory pricing, property documentation cost, digital asset management pricing, insurance inventory app cost, estate planning tools pricing"
+        canonicalUrl="https://www.assetsafe.net/pricing"
+        structuredData={structuredData}
+      />
       <Navbar />
       <PricingHero />
       

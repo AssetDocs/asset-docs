@@ -2,10 +2,30 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import SEOHead from '@/components/SEOHead';
+import { organizationSchema, breadcrumbSchema } from '@/utils/structuredData';
 
 const About: React.FC = () => {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      organizationSchema,
+      breadcrumbSchema([
+        { name: 'Home', url: 'https://www.assetsafe.net/' },
+        { name: 'About', url: 'https://www.assetsafe.net/about' }
+      ])
+    ]
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
+      <SEOHead
+        title="About Asset Safe - Your Digital Guardian for Property Protection"
+        description="Learn about Asset Safe's mission to simplify property documentation and asset protection for families and businesses. Secure, comprehensive, and trusted by homeowners nationwide."
+        keywords="about asset safe, property documentation platform, home inventory company, digital asset protection, estate planning tools, insurance claims support"
+        canonicalUrl="https://www.assetsafe.net/about"
+        structuredData={structuredData}
+      />
       <Navbar />
       
       <div className="container mx-auto px-4 py-12 flex-grow">

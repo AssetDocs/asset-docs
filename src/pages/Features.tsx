@@ -1,14 +1,28 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import SEOHead from '@/components/SEOHead';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Camera, Shield, Lock, FileImage, BarChart, Clock, Home, Building, Briefcase, Scale, Truck, Users, TrendingUp, Heart, Handshake, MapPin, Smartphone, Cloud, Share2, FileText, DollarSign, UserCheck, Globe, Calculator, ClipboardList, ShieldCheck, Timer, Archive, Download, GraduationCap, Car, Plane, Anchor, Factory, Stethoscope, HardHat, Church, Palette, Hammer, Trash2, Scan, Upload, CheckCircle, AlertTriangle, KeyRound, UserPlus } from 'lucide-react';
+import { breadcrumbSchema } from '@/utils/structuredData';
 
 const Features: React.FC = () => {
+  const breadcrumbs = breadcrumbSchema([
+    { name: 'Home', url: 'https://www.assetsafe.net/' },
+    { name: 'Features', url: 'https://www.assetsafe.net/features' }
+  ]);
+
   return (
     <div className="flex flex-col min-h-screen">
+      <SEOHead
+        title="Features - Complete Asset Documentation Solution"
+        description="Comprehensive property documentation features for homeowners, renters, businesses, and landlords. Digital inventory, insurance claims support, legacy planning, and secure cloud storage."
+        keywords="property documentation features, digital home inventory, insurance claims support, legacy locker, asset tracking, home inventory software, property management tools"
+        canonicalUrl="https://www.assetsafe.net/features"
+        structuredData={breadcrumbs}
+      />
       <Navbar />
       
       {/* Hero Section */}

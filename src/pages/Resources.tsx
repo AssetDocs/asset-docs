@@ -2,14 +2,21 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import SEOHead from '@/components/SEOHead';
 import TrustSecuritySection from '@/components/TrustSecuritySection';
 import EducationalResources from '@/components/EducationalResources';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSearchParams } from 'react-router-dom';
+import { breadcrumbSchema } from '@/utils/structuredData';
 
 const Resources: React.FC = () => {
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("education");
+
+  const structuredData = breadcrumbSchema([
+    { name: 'Home', url: 'https://www.assetsafe.net/' },
+    { name: 'Resources', url: 'https://www.assetsafe.net/resources' }
+  ]);
 
   useEffect(() => {
     const tab = searchParams.get('tab');
@@ -17,8 +24,16 @@ const Resources: React.FC = () => {
       setActiveTab('security');
     }
   }, [searchParams]);
+  
   return (
     <div className="flex flex-col min-h-screen">
+      <SEOHead
+        title="Resources & Security - Educational Guides & Trust Information"
+        description="Access comprehensive guides on property documentation, photography tips, insurance claims, and learn about Asset Safe's enterprise-grade security measures and data protection."
+        keywords="property documentation guides, home inventory tips, insurance claim resources, data security, privacy protection, photography guides, estate planning resources"
+        canonicalUrl="https://www.assetsafe.net/resources"
+        structuredData={structuredData}
+      />
       <Navbar />
       
       <div className="flex-grow py-12 px-4 bg-gray-50">

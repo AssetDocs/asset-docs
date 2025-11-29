@@ -9,7 +9,7 @@ const LegacyLockerSection: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
-            <img src={legacyLockerLogo} alt="Legacy Locker" className="w-20 h-20 mx-auto mb-6" />
+            <img src={legacyLockerLogo} alt="Legacy Locker - Secure Digital Estate Planning Vault" className="w-20 h-20 mx-auto mb-6" loading="lazy" />
             <h2 className="text-4xl font-bold text-brand-blue mb-4">Introducing Legacy Locker</h2>
             <p className="text-xl text-gray-700">
               A secure vault for organizing the information that matters most to your loved ones
