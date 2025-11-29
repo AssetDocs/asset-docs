@@ -29,8 +29,10 @@ const Navbar: React.FC = () => {
           <Link to="/" className="flex items-center">
             <img 
               src={assetSafeLogo} 
-              alt="Asset Safe Logo" 
+              alt="Asset Safe - Digital Home Inventory and Legacy Locker Platform" 
               className="h-24 mr-2"
+              width="auto"
+              height="96"
             />
           </Link>
           
