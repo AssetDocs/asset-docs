@@ -77,6 +77,107 @@ const BlogPost = () => {
         <p>— The Asset Safe Team</p>
       `
     },
+    'legacy-locker-modern-protection': {
+      title: 'Legacy Locker — The Modern Way to Protect Your Wishes, Memories, and Home',
+      category: 'Estate Planning',
+      date: '2025-01-18',
+      readTime: '7 min read',
+      image: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1200&h=600&fit=crop',
+      author: 'Asset Safe Team',
+      content: `
+        <h2>Why Every Family Needs a Legacy Locker (and Why a Will Isn't Enough)</h2>
+        
+        <p>Most people think a traditional will is the only thing they need to prepare their family for the future. But here's the truth:</p>
+
+        <p><strong>A will tells people what you want.<br />
+        A Legacy Locker shows them what you meant.</strong></p>
+
+        <p>In a world where our lives are increasingly digital — from photos and social accounts to home records, financial logins, warranties, and personal notes — families are left with enormous questions at the worst possible time.</p>
+
+        <p>That's where the Legacy Locker comes in.</p>
+
+        <p><strong>It's not a legal will.<br />
+        It's the missing piece that gives clarity, context, and peace of mind to the people you love.</strong></p>
+
+        <h2>⭐ What Is the Legacy Locker?</h2>
+
+        <p>The Legacy Locker is a secure digital vault inside Asset Safe designed to store the personal details, instructions, memories, and information that don't fit inside a traditional will — but matter deeply to your family.</p>
+
+        <p>Think of it as a protected space where you can record:</p>
+
+        <ul>
+          <li>Personal wishes and notes</li>
+          <li>Executor and guardian information</li>
+          <li>Instructions for handling accounts, passwords, or important websites</li>
+          <li>Messages for loved ones</li>
+          <li>Videos, voice notes, and photos that add meaning</li>
+          <li>Family traditions or expectations</li>
+          <li>Access details for property, safes, or documents</li>
+          <li>A "What To Do Next" guide for your family</li>
+        </ul>
+
+        <p><strong>Your legal will handles the formalities.<br />
+        Your Legacy Locker handles the heart, the context, and the everyday decisions your family will face.</strong></p>
+
+        <h2>🏡 Why Legacy Locker Matters for Homeowners</h2>
+
+        <p>Your home isn't just property — it's where life happens. And when something unexpected occurs (loss, illness, transition), your family needs more than just a deed or insurance policy. They need guidance.</p>
+
+        <p>The Legacy Locker helps you document:</p>
+
+        <ul>
+          <li><strong>Home maintenance schedules and contacts</strong> — HVAC service history, plumber contacts, warranty info</li>
+          <li><strong>Location of important documents</strong> — deeds, mortgage papers, insurance policies</li>
+          <li><strong>Security codes and access information</strong> — alarm codes, safe combinations, garage door remotes</li>
+          <li><strong>Utility account details</strong> — water, gas, electric, internet providers</li>
+          <li><strong>Instructions for specific rooms or areas</strong> — "Here's how the water heater works" or "The attic has…"</li>
+        </ul>
+
+        <p>This isn't paranoia — it's preparation. And it makes the difference between your family scrambling for answers or having a clear roadmap forward.</p>
+
+        <h2>💬 What Makes Legacy Locker Different</h2>
+
+        <h3>1. It's Digital and Secure</h3>
+        <p>No more notebooks hidden in drawers or scattered Google Docs. Everything is encrypted, password-protected, and accessible only to those you trust.</p>
+
+        <h3>2. It Covers What Wills Miss</h3>
+        <p>Wills are legal documents. They don't have space for "Here's why I want this heirloom to go to Sarah" or "Make sure to tell the kids about Grandma's recipe book." Legacy Locker does.</p>
+
+        <h3>3. It's Designed for Real Life</h3>
+        <p>You can add voice notes, upload videos, attach photos, and write personal letters. It's not just data — it's your voice, your personality, and your guidance.</p>
+
+        <h3>4. It Grows With You</h3>
+        <p>As life changes, so does your Legacy Locker. Update it anytime. Add new instructions. Record new memories. It's a living document that evolves with your family.</p>
+
+        <h2>🛠️ How to Get Started With Your Legacy Locker</h2>
+
+        <p>You don't need to fill it all out at once. Start small:</p>
+
+        <ol>
+          <li><strong>Record your executor and guardian information</strong> — Who do you trust to carry out your wishes?</li>
+          <li><strong>Add a few personal messages</strong> — Short notes to loved ones can mean the world</li>
+          <li><strong>Document your home basics</strong> — Utilities, maintenance contacts, important locations</li>
+          <li><strong>Upload a voice note or video</strong> — Sometimes hearing your voice matters more than reading words</li>
+          <li><strong>Add important account or password details</strong> — Financial logins, social media, subscriptions</li>
+        </ol>
+
+        <p>Over time, you can expand it — add traditions, family stories, property instructions, or anything else your loved ones might need.</p>
+
+        <h2>🔐 Is It Safe?</h2>
+
+        <p>Absolutely. The Legacy Locker is encrypted and password-protected. Only you control access — and you decide who can view it and when. Your information is stored securely using industry-standard encryption, ensuring your most sensitive details remain private.</p>
+
+        <h2>Final Thoughts: Don't Leave Your Family Guessing</h2>
+
+        <p>A will is important. But it's not enough.</p>
+
+        <p>The Legacy Locker gives your family the context, clarity, and comfort they'll desperately need when the time comes. It's not morbid — it's one of the most thoughtful, loving things you can do.</p>
+
+        <p>Start your Legacy Locker today. Your family will thank you for it.</p>
+
+        <p>— The Asset Safe Team</p>
+      `
+    },
     'digital-home-inventory-guide': {
       title: 'The Complete Guide to Creating a Digital Home Inventory',
       category: 'Guides',

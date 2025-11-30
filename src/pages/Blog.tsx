@@ -21,6 +21,16 @@ const Blog = () => {
       featured: true
     },
     {
+      id: 'legacy-locker-modern-protection',
+      title: 'Legacy Locker — The Modern Way to Protect Your Wishes, Memories, and Home',
+      excerpt: "A will tells people what you want. A Legacy Locker shows them what you meant. Discover the missing piece that gives clarity and peace of mind to the people you love.",
+      category: 'Estate Planning',
+      date: '2025-01-18',
+      readTime: '7 min read',
+      image: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&h=400&fit=crop',
+      featured: false
+    },
+    {
       id: 'digital-home-inventory-guide',
       title: 'The Complete Guide to Creating a Digital Home Inventory',
       excerpt: 'Learn how to document your assets effectively with our comprehensive guide to digital home inventory management.',
