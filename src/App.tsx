@@ -78,6 +78,8 @@ import AwarenessGuide from "./pages/AwarenessGuide";
 import AssetDocumentation from "./pages/AssetDocumentation";
 import Admin from "./pages/Admin";
 import CompassPartnership from "./pages/CompassPartnership";
+import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
 import CRM from "./pages/CRM";
 
 const queryClient = new QueryClient();
@@ -224,6 +226,9 @@ const AppContent = () => {
         <Route path="/press-news" element={<PressNews />} />
         <Route path="/press-news/digital-documentation-guide" element={<PressNews />} />
         <Route path="/photography-guide" element={<PhotographyGuide />} />
+        
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/blog/:slug" element={<BlogPost />} />
         
         <Route path="/social-impact" element={<SocialImpact />} />
         <Route path="/partnership" element={<Partnership />} />
