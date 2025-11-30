@@ -226,29 +226,6 @@ const Contact: React.FC = () => {
               </form>
             </Form>
           </div>
-          
-          <div className="mt-12 text-center">
-            <h2 className="text-2xl font-semibold mb-6 text-gray-800">Other Ways to Reach Us</h2>
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="bg-gray-50 p-6 rounded-lg">
-                <h3 className="text-lg font-semibold mb-3 text-gray-800">Email</h3>
-                <p className="text-gray-600">
-                  <a href="mailto:support@assetsafe.net" className="hover:text-brand-blue transition-colors">
-                    support@assetsafe.net
-                  </a>
-                </p>
-              </div>
-              
-              <div className="bg-gray-50 p-6 rounded-lg">
-                <h3 className="text-lg font-semibold mb-3 text-gray-800">Phone</h3>
-                <p className="text-gray-600">
-                  <a href="tel:+11234567890" className="hover:text-brand-blue transition-colors">
-                    (123) 456-7890
-                  </a>
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
       
