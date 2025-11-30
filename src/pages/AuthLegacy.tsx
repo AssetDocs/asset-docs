@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SignInFormData {
   email: string;
@@ -132,10 +133,40 @@ const Auth: React.FC = () => {
         throw error;
       }
 
-      toast({
-        title: "Account Created!",
-        description: "Your contributor account has been created. You now have access to the dashboard.",
-      });
+      // After successful signup, accept the contributor invitation
+      try {
+        const { data: session } = await supabase.auth.getSession();
+        if (session?.session?.access_token) {
+          const { data: invitationData } = await supabase.functions.invoke(
+            'accept-contributor-invitation',
+            {
+              headers: {
+                Authorization: `Bearer ${session.session.access_token}`
+              }
+            }
+          );
+          
+          if (invitationData?.invitations?.length > 0) {
+            toast({
+              title: "Account Created!",
+              description: `Your contributor account has been created. You now have access to ${invitationData.invitations.length} account(s).`,
+            });
+          } else {
+            toast({
+              title: "Account Created!",
+              description: "Your contributor account has been created. You now have access to the dashboard.",
+            });
+          }
+        }
+      } catch (inviteError) {
+        console.error('Error accepting contributor invitation:', inviteError);
+        // Still show success message even if invitation acceptance fails
+        toast({
+          title: "Account Created!",
+          description: "Your contributor account has been created. You now have access to the dashboard.",
+        });
+      }
+
       navigate('/account');
     } catch (error: any) {
       console.error('Contributor signup error:', error);
