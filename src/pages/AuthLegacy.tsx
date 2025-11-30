@@ -86,10 +86,45 @@ const Auth: React.FC = () => {
           throw error;
         }
       } else {
-        toast({
-          title: "Welcome Back!",
-          description: "You have successfully signed in.",
-        });
+        // If this is a contributor login, accept pending invitations
+        if (isContributorMode) {
+          try {
+            const { data: session } = await supabase.auth.getSession();
+            if (session?.session?.access_token) {
+              const { data: invitationData } = await supabase.functions.invoke(
+                'accept-contributor-invitation',
+                {
+                  headers: {
+                    Authorization: `Bearer ${session.session.access_token}`
+                  }
+                }
+              );
+              
+              if (invitationData?.invitations?.length > 0) {
+                toast({
+                  title: "Welcome Back!",
+                  description: `You've accepted ${invitationData.invitations.length} invitation(s) and now have access to the dashboard.`,
+                });
+              } else {
+                toast({
+                  title: "Welcome Back!",
+                  description: "You have successfully signed in.",
+                });
+              }
+            }
+          } catch (inviteError) {
+            console.error('Error accepting contributor invitation:', inviteError);
+            toast({
+              title: "Welcome Back!",
+              description: "You have successfully signed in.",
+            });
+          }
+        } else {
+          toast({
+            title: "Welcome Back!",
+            description: "You have successfully signed in.",
+          });
+        }
         navigate('/account');
       }
     } catch (error: any) {
@@ -197,9 +232,9 @@ const Auth: React.FC = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>Create Your Password</CardTitle>
+              <CardTitle>Create Your Account</CardTitle>
               <CardDescription>
-                You've been invited as a contributor. Create a password to access the dashboard.
+                You've been invited as a contributor. Create your password to access the dashboard.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -261,6 +296,20 @@ const Auth: React.FC = () => {
                 >
                   {isLoading ? "Creating Account..." : "Create Account & Access Dashboard"}
                 </Button>
+                
+                <div className="text-center mt-4 pt-4 border-t">
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Already have an account?
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => setIsContributorMode(false)}
+                  >
+                    Sign In Instead
+                  </Button>
+                </div>
               </form>
             </CardContent>
           </Card>
