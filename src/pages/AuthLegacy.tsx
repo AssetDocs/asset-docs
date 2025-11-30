@@ -168,18 +168,39 @@ const Auth: React.FC = () => {
         throw error;
       }
 
-      // After successful signup, accept the contributor invitation
+      // Wait for session to be established before accepting invitation
+      const waitForSession = async (maxAttempts = 5) => {
+        for (let i = 0; i < maxAttempts; i++) {
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+          const { data: session } = await supabase.auth.getSession();
+          
+          if (session?.session?.access_token) {
+            console.log('Session established, accepting invitation...');
+            return session.session.access_token;
+          }
+          console.log(`Waiting for session... attempt ${i + 1}/${maxAttempts}`);
+        }
+        return null;
+      };
+
+      // After successful signup, wait for session and accept the contributor invitation
       try {
-        const { data: session } = await supabase.auth.getSession();
-        if (session?.session?.access_token) {
-          const { data: invitationData } = await supabase.functions.invoke(
+        const accessToken = await waitForSession();
+        
+        if (accessToken) {
+          const { data: invitationData, error: inviteError } = await supabase.functions.invoke(
             'accept-contributor-invitation',
             {
               headers: {
-                Authorization: `Bearer ${session.session.access_token}`
+                Authorization: `Bearer ${accessToken}`
               }
             }
           );
+          
+          if (inviteError) {
+            console.error('Invitation acceptance error:', inviteError);
+            throw inviteError;
+          }
           
           if (invitationData?.invitations?.length > 0) {
             toast({
@@ -192,14 +213,23 @@ const Auth: React.FC = () => {
               description: "Your contributor account has been created. You now have access to the dashboard.",
             });
           }
+        } else {
+          console.error('Failed to establish session after signup');
+          toast({
+            title: "Account Created",
+            description: "Please sign in again to complete the process.",
+          });
+          setIsContributorMode(false);
+          return;
         }
       } catch (inviteError) {
         console.error('Error accepting contributor invitation:', inviteError);
-        // Still show success message even if invitation acceptance fails
         toast({
-          title: "Account Created!",
-          description: "Your contributor account has been created. You now have access to the dashboard.",
+          title: "Setup Incomplete",
+          description: "Your account was created, but there was an issue setting up access. Please contact support.",
+          variant: "destructive",
         });
+        return;
       }
 
       navigate('/account');
