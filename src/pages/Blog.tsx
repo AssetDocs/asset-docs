@@ -11,6 +11,16 @@ const Blog = () => {
   // Sample blog posts - in production, this would come from a CMS or database
   const blogPosts = [
     {
+      id: 'welcome-to-asset-safe',
+      title: 'Welcome to Asset Safe — Your Home, Your Legacy, Our Mission',
+      excerpt: "We're here to help you preserve, document, and protect what matters most — not just as property, but as part of your life, legacy, and peace of mind.",
+      category: 'Company News',
+      date: '2025-01-20',
+      readTime: '6 min read',
+      image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&h=400&fit=crop',
+      featured: true
+    },
+    {
       id: 'digital-home-inventory-guide',
       title: 'The Complete Guide to Creating a Digital Home Inventory',
       excerpt: 'Learn how to document your assets effectively with our comprehensive guide to digital home inventory management.',
@@ -18,7 +28,7 @@ const Blog = () => {
       date: '2025-01-15',
       readTime: '8 min read',
       image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&h=400&fit=crop',
-      featured: true
+      featured: false
     },
     {
       id: 'estate-planning-digital-vault',
@@ -67,7 +77,7 @@ const Blog = () => {
     }
   ];
 
-  const categories = ['All', 'Guides', 'Estate Planning', 'Insurance', 'Organization', 'Protection', 'Preparedness'];
+  const categories = ['All', 'Company News', 'Guides', 'Estate Planning', 'Insurance', 'Organization', 'Protection', 'Preparedness'];
 
   const [selectedCategory, setSelectedCategory] = React.useState('All');
 
