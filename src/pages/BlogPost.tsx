@@ -24,6 +24,7 @@ const BlogPost = () => {
         <p>Welcome to Asset Safe! We're so glad you're here. Whether you're a homeowner, a soon-to-be homeowner, or someone thinking ahead for your family, we believe that what you own matters. Asset Safe is built to help you preserve, document, and protect those things — not just as property, but as part of your life, legacy, and peace of mind.</p>
 
         <h2>🛡️ Why Asset Safe Exists</h2>
+        
         <p>We know that life changes. Moves, renovation, remodeling, insurance claims, natural disasters — any of these can threaten not just your home, but your memories and security. The default way many people handle this — scattered receipts, half-remembered room inventories, poorly organized photos, maybe a few notes — often falls short when it counts most.</p>
 
         <p>Asset Safe transforms that approach. We make the process of documenting property intuitive, comprehensive, and useful when you actually need it: for insurance, resale, estate planning, or simply peace of mind. On our home page, we describe the platform as turning "the traditional, tedious process of property documentation into a modern, intuitive experience that actually works when you need it most."</p>
@@ -31,6 +32,7 @@ const BlogPost = () => {
         <p>For a business owner like you (with roots in real-estate photography, detailed floorplans, and visual documentation), this is more than just a nice-to-have — it's a new standard for how we treat our homes, belongings, and legacies.</p>
 
         <h2>✨ Our Core Values & What They Mean for You</h2>
+        
         <p>Here's what we at Asset Safe stand for — and how it serves you:</p>
 
         <h3>Clarity & Transparency</h3>
@@ -49,6 +51,7 @@ const BlogPost = () => {
         <p>Because you come to us for protection and peace of mind, we treat every record seriously. Your documentation — whether photos, floorplans, asset lists — is stored securely and built to stand up when it counts.</p>
 
         <h2>Who Asset Safe Is For</h2>
+        
         <p>Asset Safe isn't just for real estate professionals or heavy-duty investors. We built it for everyday people and families — folks who care about their home, their possessions, and the future.</p>
 
         <p>You might be:</p>
@@ -61,6 +64,7 @@ const BlogPost = () => {
         </ul>
 
         <h2>What to Expect Going Forward</h2>
+        
         <p>This first blog post isn't just a welcome — it's the start of a conversation. Going forward, we'll publish content to help you get the most out of Asset Safe:</p>
 
         <ul>
@@ -355,14 +359,15 @@ const BlogPost = () => {
                   {/* Article Content */}
                   <div 
                     className="prose prose-lg max-w-none
-                      prose-headings:text-foreground prose-headings:font-bold
-                      prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4
-                      prose-h3:text-xl prose-h3:mt-6 prose-h3:mb-3
-                      prose-p:text-muted-foreground prose-p:leading-relaxed prose-p:mb-4
+                      prose-headings:text-foreground prose-headings:font-extrabold
+                      prose-h2:text-3xl prose-h2:mt-12 prose-h2:mb-6
+                      prose-h3:text-2xl prose-h3:mt-8 prose-h3:mb-4
+                      prose-p:text-muted-foreground prose-p:leading-relaxed prose-p:mb-6
                       prose-a:text-primary prose-a:no-underline hover:prose-a:underline
-                      prose-strong:text-foreground prose-strong:font-semibold
-                      prose-ul:text-muted-foreground prose-ul:my-4
-                      prose-li:mb-2"
+                      prose-strong:text-foreground prose-strong:font-bold
+                      prose-ul:text-muted-foreground prose-ul:my-6 prose-ul:ml-6
+                      prose-ol:text-muted-foreground prose-ol:my-6 prose-ol:ml-6
+                      prose-li:mb-3 prose-li:leading-relaxed"
                     dangerouslySetInnerHTML={{ __html: post.content }}
                   />
                 </CardContent>
