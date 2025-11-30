@@ -87,6 +87,14 @@ const Navbar: React.FC = () => {
                  >
                    Gift
                  </NavLink>
+                 <NavLink 
+                   to="/blog" 
+                   className={({ isActive }) => 
+                     `text-gray-700 hover:text-brand-blue transition-colors ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                   }
+                 >
+                   Blog
+                 </NavLink>
                 <NavLink 
                   to="/video-help" 
                   className={({ isActive }) => 
@@ -134,6 +142,9 @@ const Navbar: React.FC = () => {
                   </Link>
                   <Link to="/gift" className="text-gray-700 hover:text-brand-blue transition-colors">
                     Gift
+                  </Link>
+                  <Link to="/blog" className="text-gray-700 hover:text-brand-blue transition-colors">
+                    Blog
                   </Link>
                 <Link 
                   to="/video-help" 
@@ -218,16 +229,25 @@ const Navbar: React.FC = () => {
                    >
                      {translate('nav.pricing')}
                    </NavLink>
+                    <NavLink 
+                      to="/gift" 
+                      className={({ isActive }) => 
+                        `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                      }
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Gift
+                    </NavLink>
+                    <NavLink 
+                      to="/blog" 
+                      className={({ isActive }) => 
+                        `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                      }
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Blog
+                    </NavLink>
                    <NavLink 
-                     to="/gift" 
-                     className={({ isActive }) => 
-                       `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
-                     }
-                     onClick={() => setIsMenuOpen(false)}
-                   >
-                     Gift
-                   </NavLink>
-                  <NavLink 
                     to="/video-help" 
                     className={({ isActive }) => 
                       `text-gray-700 hover:text-brand-blue transition-colors py-2 flex items-center ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
@@ -305,16 +325,25 @@ const Navbar: React.FC = () => {
                    >
                      About
                    </NavLink>
+                    <NavLink 
+                      to="/gift" 
+                      className={({ isActive }) => 
+                        `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                      }
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Gift
+                    </NavLink>
+                    <NavLink 
+                      to="/blog" 
+                      className={({ isActive }) => 
+                        `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                      }
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Blog
+                    </NavLink>
                    <NavLink 
-                     to="/gift" 
-                     className={({ isActive }) => 
-                       `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
-                     }
-                     onClick={() => setIsMenuOpen(false)}
-                   >
-                     Gift
-                   </NavLink>
-                  <NavLink 
                     to="/video-help" 
                     className={({ isActive }) => 
                       `text-gray-700 hover:text-brand-blue transition-colors py-2 flex items-center ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
