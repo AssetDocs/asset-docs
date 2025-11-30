@@ -1,170 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
-        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
-
-  <!-- Homepage -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://www.assetsafe.net/</loc>
-    <lastmod>2025-01-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
   </url>
-
-  <!-- Main Pages -->
   <url>
     <loc>https://www.assetsafe.net/features</loc>
-    <lastmod>2025-01-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
   </url>
-
+  <url>
+    <loc>https://www.assetsafe.net/legacy-locker</loc>
+  </url>
   <url>
     <loc>https://www.assetsafe.net/pricing</loc>
-    <lastmod>2025-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
   </url>
-
-  <url>
-    <loc>https://www.assetsafe.net/scenarios</loc>
-    <lastmod>2025-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
   <url>
     <loc>https://www.assetsafe.net/about</loc>
-    <lastmod>2025-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
   </url>
-
   <url>
     <loc>https://www.assetsafe.net/contact</loc>
-    <lastmod>2025-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
   </url>
-
-  <!-- Gift Pages -->
-  <url>
-    <loc>https://www.assetsafe.net/gift</loc>
-    <lastmod>2025-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- Resources & Help -->
-  <url>
-    <loc>https://www.assetsafe.net/resources</loc>
-    <lastmod>2025-01-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-
-  <url>
-    <loc>https://www.assetsafe.net/qa</loc>
-    <lastmod>2025-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-
-  <url>
-    <loc>https://www.assetsafe.net/video-help</loc>
-    <lastmod>2025-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-
-  <!-- Industry & State Information -->
-  <url>
-    <loc>https://www.assetsafe.net/industry-requirements</loc>
-    <lastmod>2025-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-
-  <url>
-    <loc>https://www.assetsafe.net/state-requirements</loc>
-    <lastmod>2025-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-
-  <!-- Guides & Documentation -->
-  <url>
-    <loc>https://www.assetsafe.net/photography-guide</loc>
-    <lastmod>2025-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-
-  <url>
-    <loc>https://www.assetsafe.net/awareness-guide</loc>
-    <lastmod>2025-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-
-  <url>
-    <loc>https://www.assetsafe.net/asset-documentation</loc>
-    <lastmod>2025-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-
-  <!-- Company Pages -->
-  <url>
-    <loc>https://www.assetsafe.net/social-impact</loc>
-    <lastmod>2025-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-
-  <url>
-    <loc>https://www.assetsafe.net/partnership</loc>
-    <lastmod>2025-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-
-  <url>
-    <loc>https://www.assetsafe.net/testimonials</loc>
-    <lastmod>2025-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-
-  <url>
-    <loc>https://www.assetsafe.net/press-news</loc>
-    <lastmod>2025-01-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-
-  <!-- Legal Pages -->
-  <url>
-    <loc>https://www.assetsafe.net/terms</loc>
-    <lastmod>2025-01-01</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
-  </url>
-
-  <url>
-    <loc>https://www.assetsafe.net/legal</loc>
-    <lastmod>2025-01-01</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
-  </url>
-
-  <!-- Sample Dashboard (Public) -->
-  <url>
-    <loc>https://www.assetsafe.net/sample-dashboard</loc>
-    <lastmod>2025-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-
 </urlset>
