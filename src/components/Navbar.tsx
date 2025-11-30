@@ -117,18 +117,24 @@ const Navbar: React.FC = () => {
               </>
             ) : (
               <>
-                 <Link to="/features" className="text-gray-700 hover:text-brand-blue transition-colors">
-                   {translate('nav.features')}
-                 </Link>
-                 <Link to="/scenarios" className="text-gray-700 hover:text-brand-blue transition-colors">
-                   Scenarios
-                 </Link>
-                 <Link to="/pricing" className="text-gray-700 hover:text-brand-blue transition-colors">
-                   {translate('nav.pricing')}
-                 </Link>
-                 <Link to="/gift" className="text-gray-700 hover:text-brand-blue transition-colors">
-                   Gift
-                 </Link>
+                  <Link to="/features" className="text-gray-700 hover:text-brand-blue transition-colors">
+                    {translate('nav.features')}
+                  </Link>
+                  <Link to="/scenarios" className="text-gray-700 hover:text-brand-blue transition-colors">
+                    Scenarios
+                  </Link>
+                  <Link to="/pricing" className="text-gray-700 hover:text-brand-blue transition-colors">
+                    {translate('nav.pricing')}
+                  </Link>
+                  <Link to="/resources" className="text-gray-700 hover:text-brand-blue transition-colors">
+                    Resources
+                  </Link>
+                  <Link to="/about" className="text-gray-700 hover:text-brand-blue transition-colors">
+                    About
+                  </Link>
+                  <Link to="/gift" className="text-gray-700 hover:text-brand-blue transition-colors">
+                    Gift
+                  </Link>
                 <Link 
                   to="/video-help" 
                   className="text-gray-700 hover:text-brand-blue transition-colors flex items-center"
@@ -280,6 +286,24 @@ const Navbar: React.FC = () => {
                      onClick={() => setIsMenuOpen(false)}
                    >
                      {translate('nav.pricing')}
+                   </NavLink>
+                   <NavLink 
+                     to="/resources" 
+                     className={({ isActive }) => 
+                       `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                     }
+                     onClick={() => setIsMenuOpen(false)}
+                   >
+                     Resources
+                   </NavLink>
+                   <NavLink 
+                     to="/about" 
+                     className={({ isActive }) => 
+                       `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                     }
+                     onClick={() => setIsMenuOpen(false)}
+                   >
+                     About
                    </NavLink>
                    <NavLink 
                      to="/gift" 
