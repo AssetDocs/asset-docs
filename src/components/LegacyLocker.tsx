@@ -489,42 +489,42 @@ const LegacyLocker = () => {
           </Alert>
 
           <Tabs defaultValue="personal" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 grid-rows-3 gap-2">
-              <TabsTrigger value="personal" className="text-xs md:text-sm px-2">
-                <FileText className="h-4 w-4 mr-0 md:mr-1 hidden md:inline" />
-                Personal
+            <TabsList className="grid w-full grid-cols-3 grid-rows-3 gap-3 p-2 h-auto">
+              <TabsTrigger value="personal" className="text-xs md:text-sm px-1 py-2">
+                <FileText className="h-3 w-3 md:h-4 md:w-4 mr-1 hidden sm:inline" />
+                <span className="truncate">Personal</span>
               </TabsTrigger>
-              <TabsTrigger value="contacts" className="text-xs md:text-sm px-2">
-                <Contact className="h-4 w-4 mr-0 md:mr-1 hidden md:inline" />
-                Contacts
+              <TabsTrigger value="contacts" className="text-xs md:text-sm px-1 py-2">
+                <Contact className="h-3 w-3 md:h-4 md:w-4 mr-1 hidden sm:inline" />
+                <span className="truncate">Contacts</span>
               </TabsTrigger>
-              <TabsTrigger value="executor" className="text-xs md:text-sm px-2">
-                <Users className="h-4 w-4 mr-0 md:mr-1 hidden md:inline" />
-                Executor
+              <TabsTrigger value="executor" className="text-xs md:text-sm px-1 py-2">
+                <Users className="h-3 w-3 md:h-4 md:w-4 mr-1 hidden sm:inline" />
+                <span className="truncate">Executor</span>
               </TabsTrigger>
-              <TabsTrigger value="guardians" className="text-xs md:text-sm px-2">
-                <Shield className="h-4 w-4 mr-0 md:mr-1 hidden md:inline" />
-                Guardians
+              <TabsTrigger value="guardians" className="text-xs md:text-sm px-1 py-2">
+                <Shield className="h-3 w-3 md:h-4 md:w-4 mr-1 hidden sm:inline" />
+                <span className="truncate">Guardians</span>
               </TabsTrigger>
-              <TabsTrigger value="assets" className="text-xs md:text-sm px-2">
-                <DollarSign className="h-4 w-4 mr-0 md:mr-1 hidden md:inline" />
-                Assets
+              <TabsTrigger value="assets" className="text-xs md:text-sm px-1 py-2">
+                <DollarSign className="h-3 w-3 md:h-4 md:w-4 mr-1 hidden sm:inline" />
+                <span className="truncate">Assets</span>
               </TabsTrigger>
-              <TabsTrigger value="property" className="text-xs md:text-sm px-2">
-                <Home className="h-4 w-4 mr-0 md:mr-1 hidden md:inline" />
-                Property
+              <TabsTrigger value="property" className="text-xs md:text-sm px-1 py-2">
+                <Home className="h-3 w-3 md:h-4 md:w-4 mr-1 hidden sm:inline" />
+                <span className="truncate">Property</span>
               </TabsTrigger>
-              <TabsTrigger value="wishes" className="text-xs md:text-sm px-2">
-                <Heart className="h-4 w-4 mr-0 md:mr-1 hidden md:inline" />
-                Wishes
+              <TabsTrigger value="wishes" className="text-xs md:text-sm px-1 py-2">
+                <Heart className="h-3 w-3 md:h-4 md:w-4 mr-1 hidden sm:inline" />
+                <span className="truncate">Wishes</span>
               </TabsTrigger>
-              <TabsTrigger value="voicenotes" className="text-xs md:text-sm px-2">
-                <Mic className="h-4 w-4 mr-0 md:mr-1 hidden md:inline" />
-                Voice
+              <TabsTrigger value="voicenotes" className="text-xs md:text-sm px-1 py-2">
+                <Mic className="h-3 w-3 md:h-4 md:w-4 mr-1 hidden sm:inline" />
+                <span className="truncate">Voice</span>
               </TabsTrigger>
-              <TabsTrigger value="uploads" className="text-xs md:text-sm px-2">
-                <Upload className="h-4 w-4 mr-0 md:mr-1 hidden md:inline" />
-                Uploads
+              <TabsTrigger value="uploads" className="text-xs md:text-sm px-1 py-2">
+                <Upload className="h-3 w-3 md:h-4 md:w-4 mr-1 hidden sm:inline" />
+                <span className="truncate">Uploads</span>
               </TabsTrigger>
             </TabsList>
 
