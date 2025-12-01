@@ -217,6 +217,95 @@ const QA: React.FC = () => {
                 </AccordionContent>
               </AccordionItem>
               
+              {/* Legacy Locker Encryption & Recovery Section */}
+              <AccordionItem value="item-19a">
+                <AccordionTrigger className="text-lg font-medium">Legacy Locker Encryption & Recovery</AccordionTrigger>
+                <AccordionContent>
+                  <Accordion type="single" collapsible className="space-y-2">
+                    <AccordionItem value="encrypt-1" className="border-b-0">
+                      <AccordionTrigger className="text-base font-medium">
+                        What happens if I encrypt my Legacy Locker—can my spouse or executor still access it if something happens to me?
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground">
+                        Yes. If you choose to encrypt your Legacy Locker, you can also assign a Recovery Delegate (such as a spouse, child, or executor). They cannot see your encrypted information while you're alive, but they can request access if you become unable to manage your account. After a short grace period, their access will be securely approved so they can unlock your encrypted vault.
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem value="encrypt-2" className="border-b-0">
+                      <AccordionTrigger className="text-base font-medium">
+                        What is a Recovery Delegate?
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground">
+                        A Recovery Delegate is a trusted person you choose who can unlock your encrypted Legacy Locker only if you can't—such as due to illness, incapacity, or death. They do not have immediate access, and they cannot see your data unless a recovery request is approved.
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem value="encrypt-3" className="border-b-0">
+                      <AccordionTrigger className="text-base font-medium">
+                        How does a Recovery Delegate request access?
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground">
+                        If your Legacy Locker is encrypted, your delegate will see a button labeled "Request Access." They'll submit a short request explaining why access is needed. You'll receive a notification, and if you don't respond within your chosen grace period (usually 7–30 days), access will be granted to them automatically.
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem value="encrypt-4" className="border-b-0">
+                      <AccordionTrigger className="text-base font-medium">
+                        What happens if I'm still able to respond?
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground">
+                        If you're available and you reject the access request, your encrypted Legacy Locker stays private and locked. You remain in complete control as long as you're able to manage your account.
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem value="encrypt-5" className="border-b-0">
+                      <AccordionTrigger className="text-base font-medium">
+                        What happens if I pass away?
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground">
+                        If you have already assigned a Recovery Delegate (such as your spouse), they simply submit an access request through Asset Safe. If the account owner does not respond during the grace period, the system will automatically approve access—allowing your delegate to unlock your encrypted Legacy Locker.
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem value="encrypt-6" className="border-b-0">
+                      <AccordionTrigger className="text-base font-medium">
+                        Does Asset Safe ever see or store my encryption password?
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground">
+                        No. Asset Safe uses a zero-knowledge encryption architecture. That means we never see, store, or have access to your encryption keys or vault contents. Only you—and your approved Recovery Delegate when necessary—can decrypt your Legacy Locker.
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem value="encrypt-7" className="border-b-0">
+                      <AccordionTrigger className="text-base font-medium">
+                        What if I don't assign a Recovery Delegate?
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground">
+                        If you don't choose a Recovery Delegate, nobody (including Asset Safe) will be able to access your encrypted Legacy Locker if you pass away. To prevent permanent lockout, we highly recommend adding at least one trusted delegate.
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem value="encrypt-8" className="border-b-0">
+                      <AccordionTrigger className="text-base font-medium">
+                        Can I change my Recovery Delegate later?
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground">
+                        Absolutely. You can update or remove your Recovery Delegate at any time from your Legacy Locker settings. If you remove a delegate, previously encrypted access keys are automatically invalidated.
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem value="encrypt-9" className="border-b-0">
+                      <AccordionTrigger className="text-base font-medium">
+                        Does encryption affect other contributors on my account?
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground">
+                        No. Contributors and admins still have access to the standard areas of your Asset Safe account. Encryption applies only to your private Legacy Locker data—and only the owner or an approved Recovery Delegate can unlock it.
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                </AccordionContent>
+              </AccordionItem>
+              
               {/* Contributors Section */}
               <AccordionItem value="item-20">
                 <AccordionTrigger className="text-lg font-medium">Who can I add as a contributor?</AccordionTrigger>
