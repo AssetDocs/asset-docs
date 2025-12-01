@@ -99,7 +99,7 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
   const isTestingEmail = user?.email === 'michaeljlewis2@gmail.com';
   
   useEffect(() => {
-    const checkSubscription = async () => {
+    const checkSubscription = async (retryCount = 0) => {
       if (!user || skipSubscriptionCheck || isTestingEmail) {
         setCheckingSubscription(false);
         if (isTestingEmail) {
@@ -110,13 +110,26 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
 
       try {
         const { data } = await supabase.functions.invoke('check-subscription');
+        
+        // Check if user has subscription (own or through contributor access)
         if (data?.subscribed || data?.is_trial) {
           setHasSubscription(true);
+        } else if (retryCount < 2) {
+          // Retry after a short delay to allow invitation acceptance to complete
+          setTimeout(() => checkSubscription(retryCount + 1), 1000);
+          return;
         }
       } catch (error) {
         console.error('Error checking subscription:', error);
+        // On error, retry once
+        if (retryCount < 1) {
+          setTimeout(() => checkSubscription(retryCount + 1), 1000);
+          return;
+        }
       } finally {
-        setCheckingSubscription(false);
+        if (retryCount >= 2) {
+          setCheckingSubscription(false);
+        }
       }
     };
 
