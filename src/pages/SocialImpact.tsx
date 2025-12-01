@@ -14,7 +14,7 @@ const SocialImpact: React.FC = () => {
               Our Social Impact
             </h1>
             <p className="text-lg text-muted-foreground leading-relaxed">
-              At Asset Docs, we believe that peace of mind should be accessible to everyone—especially during life's most uncertain moments. From families navigating divorce or disaster to small business owners protecting their investments, we're committed to making documentation and recovery easier, faster, and fairer for all.
+              At Asset Safe, we believe that peace of mind should be accessible to everyone—especially during life's most uncertain moments. From families navigating divorce or disaster to small business owners protecting their investments, we're committed to making documentation and recovery easier, faster, and fairer for all.
             </p>
           </header>
 
@@ -31,7 +31,7 @@ const SocialImpact: React.FC = () => {
                     Natural disasters, theft, and accidents can happen without warning. Our platform empowers individuals and families to document their belongings before the worst happens—and recover faster when it does. We've helped users file claims with confidence and reduce stress during emergency situations.
                   </p>
                   <blockquote className="border-l-4 border-primary pl-6 italic text-muted-foreground">
-                    "Asset Docs made it possible to submit our insurance claim within days after the storm. It was one less thing to worry about."
+                    "Asset Safe made it possible to submit our insurance claim within days after the storm. It was one less thing to worry about."
                     <footer className="mt-2 font-medium text-foreground">— Lisa R., Texas homeowner</footer>
                   </blockquote>
                 </div>
@@ -158,10 +158,10 @@ const SocialImpact: React.FC = () => {
               <p className="text-muted-foreground leading-relaxed">
                 Contact us at{' '}
                 <a 
-                  href="mailto:info@assetdocs.net" 
+                  href="mailto:support@assetsafe.net" 
                   className="text-primary hover:text-primary/80 transition-colors font-medium"
                 >
-                  info@assetdocs.net
+                  support@assetsafe.net
                 </a>{' '}
                 to get involved or recommend a program for support.
               </p>
