@@ -15,6 +15,9 @@ import MasterPasswordModal from './MasterPasswordModal';
 import { MASTER_PASSWORD_HASH_KEY } from './PasswordCatalog';
 import LegacyLockerUploads from './LegacyLockerUploads';
 import VoiceNotesSection from './VoiceNotesSection';
+import { RecoveryDelegateSelector } from './RecoveryDelegateSelector';
+import { RecoveryRequestDialog } from './RecoveryRequestDialog';
+import { RecoveryRequestAlert } from './RecoveryRequestAlert';
 
 interface LegacyLockerData {
   id?: string;
@@ -58,6 +61,9 @@ interface LegacyLockerData {
   business_succession_plan?: string;
   ethical_will?: string;
   is_encrypted?: boolean;
+  delegate_user_id?: string | null;
+  recovery_grace_period_days?: number;
+  recovery_status?: string;
 }
 
 const LegacyLocker = () => {
@@ -70,6 +76,12 @@ const LegacyLocker = () => {
   const [existingData, setExistingData] = useState<LegacyLockerData | null>(null);
   const [contributorRole, setContributorRole] = useState<'administrator' | 'contributor' | 'viewer' | null>(null);
   const [isContributor, setIsContributor] = useState(false);
+  const [contributors, setContributors] = useState<any[]>([]);
+  const [selectedDelegateId, setSelectedDelegateId] = useState<string | null>(null);
+  const [gracePeriodDays, setGracePeriodDays] = useState(14);
+  const [showRecoveryRequestDialog, setShowRecoveryRequestDialog] = useState(false);
+  const [isDelegate, setIsDelegate] = useState(false);
+  const [hasPendingRequest, setHasPendingRequest] = useState(false);
   
   const [formData, setFormData] = useState<LegacyLockerData>({
     full_legal_name: '',
@@ -116,6 +128,7 @@ const LegacyLocker = () => {
   useEffect(() => {
     checkContributorStatus();
     fetchLegacyLocker();
+    fetchContributors();
   }, []);
 
   const checkContributorStatus = async () => {
@@ -140,6 +153,24 @@ const LegacyLocker = () => {
     }
   };
 
+  const fetchContributors = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('contributors')
+        .select('*')
+        .eq('account_owner_id', user.id)
+        .eq('status', 'accepted');
+
+      if (error) throw error;
+      setContributors(data || []);
+    } catch (error) {
+      console.error('Error fetching contributors:', error);
+    }
+  };
+
   const fetchLegacyLocker = async () => {
     try {
       setLoading(true);
@@ -156,6 +187,12 @@ const LegacyLocker = () => {
 
       if (data) {
         setIsEncrypted(data.is_encrypted);
+        setSelectedDelegateId(data.delegate_user_id);
+        setGracePeriodDays(data.recovery_grace_period_days || 14);
+        setHasPendingRequest(data.recovery_status === 'pending');
+        
+        // Check if current user is the delegate
+        setIsDelegate(data.delegate_user_id === user.id);
         
         // Convert database data to form data format
         const convertedData: LegacyLockerData = {
@@ -200,6 +237,9 @@ const LegacyLocker = () => {
           business_succession_plan: data.business_succession_plan || '',
           ethical_will: data.ethical_will || '',
           is_encrypted: data.is_encrypted,
+          delegate_user_id: data.delegate_user_id,
+          recovery_grace_period_days: data.recovery_grace_period_days,
+          recovery_status: data.recovery_status,
         };
         
         setExistingData(convertedData);
@@ -328,6 +368,8 @@ const LegacyLocker = () => {
       const payload = {
         user_id: user.id,
         is_encrypted: isEncrypted,
+        delegate_user_id: selectedDelegateId,
+        recovery_grace_period_days: gracePeriodDays,
         ...dataToSave,
       };
 
@@ -420,13 +462,36 @@ const LegacyLocker = () => {
             <Alert>
               <Lock className="h-4 w-4" />
               <AlertDescription>
-                This Legacy Locker is encrypted. Enter your master password to unlock and view.
+                This Legacy Locker is encrypted. {isDelegate ? 'As a designated recovery delegate, you can request access if needed.' : 'Enter your master password to unlock and view.'}
               </AlertDescription>
             </Alert>
-            <Button onClick={handleUnlockClick} className="w-full">
-              <Unlock className="mr-2 h-4 w-4" />
-              Unlock Legacy Locker
-            </Button>
+            
+            {isDelegate ? (
+              <>
+                <Button onClick={() => setShowRecoveryRequestDialog(true)} className="w-full">
+                  <Shield className="mr-2 h-4 w-4" />
+                  Request Access to Encrypted Vault
+                </Button>
+                
+                {existingData?.id && (
+                  <RecoveryRequestDialog
+                    isOpen={showRecoveryRequestDialog}
+                    onClose={() => setShowRecoveryRequestDialog(false)}
+                    legacyLockerId={existingData.id}
+                    gracePeriodDays={gracePeriodDays}
+                    onRequestSubmitted={() => {
+                      fetchLegacyLocker();
+                      setShowRecoveryRequestDialog(false);
+                    }}
+                  />
+                )}
+              </>
+            ) : (
+              <Button onClick={handleUnlockClick} className="w-full">
+                <Unlock className="mr-2 h-4 w-4" />
+                Unlock Legacy Locker
+              </Button>
+            )}
           </CardContent>
         </Card>
         
@@ -471,6 +536,17 @@ const LegacyLocker = () => {
           </div>
         </CardHeader>
         <CardContent>
+          {/* Show pending recovery request alert for owners */}
+          {existingData?.id && hasPendingRequest && !isDelegate && (
+            <RecoveryRequestAlert
+              legacyLockerId={existingData.id}
+              onRequestResolved={() => {
+                setHasPendingRequest(false);
+                fetchLegacyLocker();
+              }}
+            />
+          )}
+
           <Alert className="mb-4">
             <Shield className="h-4 w-4" />
             <AlertDescription className="text-sm">
@@ -487,6 +563,17 @@ const LegacyLocker = () => {
                 : 'This information is not encrypted. Contributors with access can view this data.'}
             </AlertDescription>
           </Alert>
+
+          {/* Recovery delegate selector - only show for owners when encryption is enabled */}
+          {isEncrypted && !isDelegate && !isContributor && (
+            <RecoveryDelegateSelector
+              contributors={contributors}
+              selectedDelegateId={selectedDelegateId}
+              gracePeriodDays={gracePeriodDays}
+              onDelegateChange={setSelectedDelegateId}
+              onGracePeriodChange={setGracePeriodDays}
+            />
+          )}
 
           <Tabs defaultValue="personal" className="w-full">
             <TabsList className="grid w-full grid-cols-3 grid-rows-3 gap-3 p-2 h-auto">
