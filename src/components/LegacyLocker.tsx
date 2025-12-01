@@ -520,7 +520,9 @@ const LegacyLocker = () => {
             </CardDescription>
           </div>
             <div className="flex items-center gap-2">
-              <Label htmlFor="encryption-toggle">Encrypt</Label>
+              <Label htmlFor="encryption-toggle" className={isEncrypted && existingData?.is_encrypted ? "text-muted-foreground" : ""}>
+                {isEncrypted && existingData?.is_encrypted ? "Encrypted" : "Encrypt"}
+              </Label>
               <Switch
                 id="encryption-toggle"
                 checked={isEncrypted}
@@ -530,7 +532,7 @@ const LegacyLocker = () => {
                     handleUnlockClick();
                   }
                 }}
-                disabled={loading}
+                disabled={loading || (isEncrypted && existingData?.is_encrypted)}
               />
             </div>
           </div>
