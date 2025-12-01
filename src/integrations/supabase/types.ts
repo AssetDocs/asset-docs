@@ -591,11 +591,17 @@ export type Database = {
       legacy_locker: {
         Row: {
           address: string | null
+          attorney_contact: string | null
+          attorney_firm: string | null
+          attorney_name: string | null
           backup_executor_contact: string | null
           backup_executor_name: string | null
           backup_guardian_contact: string | null
           backup_guardian_name: string | null
           burial_or_cremation: string | null
+          business_partner_company: string | null
+          business_partner_contact: string | null
+          business_partner_name: string | null
           business_succession_plan: string | null
           ceremony_preferences: string | null
           created_at: string
@@ -605,6 +611,9 @@ export type Database = {
           executor_contact: string | null
           executor_name: string | null
           executor_relationship: string | null
+          financial_advisor_contact: string | null
+          financial_advisor_firm: string | null
+          financial_advisor_name: string | null
           full_legal_name: string | null
           funeral_wishes: string | null
           general_bequests: Json | null
@@ -612,6 +621,9 @@ export type Database = {
           guardian_name: string | null
           guardian_relationship: string | null
           id: string
+          investment_advisor_name: string | null
+          investment_firm_contact: string | null
+          investment_firm_name: string | null
           is_encrypted: boolean
           letters_to_loved_ones: string | null
           no_contest_clause: boolean | null
@@ -620,16 +632,24 @@ export type Database = {
           real_estate_instructions: string | null
           residuary_estate: string | null
           specific_bequests: Json | null
+          spouse_contact: string | null
+          spouse_name: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           address?: string | null
+          attorney_contact?: string | null
+          attorney_firm?: string | null
+          attorney_name?: string | null
           backup_executor_contact?: string | null
           backup_executor_name?: string | null
           backup_guardian_contact?: string | null
           backup_guardian_name?: string | null
           burial_or_cremation?: string | null
+          business_partner_company?: string | null
+          business_partner_contact?: string | null
+          business_partner_name?: string | null
           business_succession_plan?: string | null
           ceremony_preferences?: string | null
           created_at?: string
@@ -639,6 +659,9 @@ export type Database = {
           executor_contact?: string | null
           executor_name?: string | null
           executor_relationship?: string | null
+          financial_advisor_contact?: string | null
+          financial_advisor_firm?: string | null
+          financial_advisor_name?: string | null
           full_legal_name?: string | null
           funeral_wishes?: string | null
           general_bequests?: Json | null
@@ -646,6 +669,9 @@ export type Database = {
           guardian_name?: string | null
           guardian_relationship?: string | null
           id?: string
+          investment_advisor_name?: string | null
+          investment_firm_contact?: string | null
+          investment_firm_name?: string | null
           is_encrypted?: boolean
           letters_to_loved_ones?: string | null
           no_contest_clause?: boolean | null
@@ -654,16 +680,24 @@ export type Database = {
           real_estate_instructions?: string | null
           residuary_estate?: string | null
           specific_bequests?: Json | null
+          spouse_contact?: string | null
+          spouse_name?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           address?: string | null
+          attorney_contact?: string | null
+          attorney_firm?: string | null
+          attorney_name?: string | null
           backup_executor_contact?: string | null
           backup_executor_name?: string | null
           backup_guardian_contact?: string | null
           backup_guardian_name?: string | null
           burial_or_cremation?: string | null
+          business_partner_company?: string | null
+          business_partner_contact?: string | null
+          business_partner_name?: string | null
           business_succession_plan?: string | null
           ceremony_preferences?: string | null
           created_at?: string
@@ -673,6 +707,9 @@ export type Database = {
           executor_contact?: string | null
           executor_name?: string | null
           executor_relationship?: string | null
+          financial_advisor_contact?: string | null
+          financial_advisor_firm?: string | null
+          financial_advisor_name?: string | null
           full_legal_name?: string | null
           funeral_wishes?: string | null
           general_bequests?: Json | null
@@ -680,6 +717,9 @@ export type Database = {
           guardian_name?: string | null
           guardian_relationship?: string | null
           id?: string
+          investment_advisor_name?: string | null
+          investment_firm_contact?: string | null
+          investment_firm_name?: string | null
           is_encrypted?: boolean
           letters_to_loved_ones?: string | null
           no_contest_clause?: boolean | null
@@ -688,6 +728,8 @@ export type Database = {
           real_estate_instructions?: string | null
           residuary_estate?: string | null
           specific_bequests?: Json | null
+          spouse_contact?: string | null
+          spouse_name?: string | null
           updated_at?: string
           user_id?: string
         }
