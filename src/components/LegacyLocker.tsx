@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Lock, Unlock, Save, FileText, Users, Home, DollarSign, Heart, Shield, Upload, Mic, Contact } from 'lucide-react';
+import { Lock, Unlock, Save, FileText, Users, Home, DollarSign, Heart, Shield, Upload, Mic, Contact, X, Plus } from 'lucide-react';
 import { encryptPassword, decryptPassword } from '@/utils/encryption';
 import MasterPasswordModal from './MasterPasswordModal';
 import { MASTER_PASSWORD_HASH_KEY } from './PasswordCatalog';
@@ -600,150 +600,78 @@ const LegacyLocker = () => {
                 </AlertDescription>
               </Alert>
 
-              <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
-                <h3 className="font-semibold text-lg">Spouse / Partner</h3>
-                <div className="space-y-2">
-                  <Label htmlFor="spouse_name">Name</Label>
-                  <Input
-                    id="spouse_name"
-                    value={formData.spouse_name}
-                    onChange={(e) => handleInputChange('spouse_name', e.target.value)}
-                    placeholder="Full name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="spouse_contact">Contact Information</Label>
-                  <Input
-                    id="spouse_contact"
-                    value={formData.spouse_contact}
-                    onChange={(e) => handleInputChange('spouse_contact', e.target.value)}
-                    placeholder="Phone and/or email"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
-                <h3 className="font-semibold text-lg">Attorney</h3>
-                <div className="space-y-2">
-                  <Label htmlFor="attorney_name">Name</Label>
-                  <Input
-                    id="attorney_name"
-                    value={formData.attorney_name}
-                    onChange={(e) => handleInputChange('attorney_name', e.target.value)}
-                    placeholder="Attorney&apos;s full name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="attorney_firm">Law Firm</Label>
-                  <Input
-                    id="attorney_firm"
-                    value={formData.attorney_firm}
-                    onChange={(e) => handleInputChange('attorney_firm', e.target.value)}
-                    placeholder="Law firm name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="attorney_contact">Contact Information</Label>
-                  <Input
-                    id="attorney_contact"
-                    value={formData.attorney_contact}
-                    onChange={(e) => handleInputChange('attorney_contact', e.target.value)}
-                    placeholder="Phone and/or email"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
-                <h3 className="font-semibold text-lg">Business Partner</h3>
-                <div className="space-y-2">
-                  <Label htmlFor="business_partner_name">Name</Label>
-                  <Input
-                    id="business_partner_name"
-                    value={formData.business_partner_name}
-                    onChange={(e) => handleInputChange('business_partner_name', e.target.value)}
-                    placeholder="Partner&apos;s full name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="business_partner_company">Company</Label>
-                  <Input
-                    id="business_partner_company"
-                    value={formData.business_partner_company}
-                    onChange={(e) => handleInputChange('business_partner_company', e.target.value)}
-                    placeholder="Company name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="business_partner_contact">Contact Information</Label>
-                  <Input
-                    id="business_partner_contact"
-                    value={formData.business_partner_contact}
-                    onChange={(e) => handleInputChange('business_partner_contact', e.target.value)}
-                    placeholder="Phone and/or email"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
-                <h3 className="font-semibold text-lg">Investment Firm</h3>
-                <div className="space-y-2">
-                  <Label htmlFor="investment_firm_name">Firm Name</Label>
-                  <Input
-                    id="investment_firm_name"
-                    value={formData.investment_firm_name}
-                    onChange={(e) => handleInputChange('investment_firm_name', e.target.value)}
-                    placeholder="Investment firm name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="investment_advisor_name">Advisor Name</Label>
-                  <Input
-                    id="investment_advisor_name"
-                    value={formData.investment_advisor_name}
-                    onChange={(e) => handleInputChange('investment_advisor_name', e.target.value)}
-                    placeholder="Your advisor&apos;s name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="investment_firm_contact">Contact Information</Label>
-                  <Input
-                    id="investment_firm_contact"
-                    value={formData.investment_firm_contact}
-                    onChange={(e) => handleInputChange('investment_firm_contact', e.target.value)}
-                    placeholder="Phone and/or email"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
-                <h3 className="font-semibold text-lg">Financial Advisor</h3>
-                <div className="space-y-2">
-                  <Label htmlFor="financial_advisor_name">Name</Label>
-                  <Input
-                    id="financial_advisor_name"
-                    value={formData.financial_advisor_name}
-                    onChange={(e) => handleInputChange('financial_advisor_name', e.target.value)}
-                    placeholder="Advisor&apos;s full name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="financial_advisor_firm">Firm</Label>
-                  <Input
-                    id="financial_advisor_firm"
-                    value={formData.financial_advisor_firm}
-                    onChange={(e) => handleInputChange('financial_advisor_firm', e.target.value)}
-                    placeholder="Firm name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="financial_advisor_contact">Contact Information</Label>
-                  <Input
-                    id="financial_advisor_contact"
-                    value={formData.financial_advisor_contact}
-                    onChange={(e) => handleInputChange('financial_advisor_contact', e.target.value)}
-                    placeholder="Phone and/or email"
-                  />
-                </div>
+              <div className="space-y-4">
+                {(JSON.parse(formData.digital_assets || '[]') as any[]).map((contact: any, index: number) => (
+                  <div key={index} className="space-y-4 p-4 border rounded-lg bg-muted/30 relative">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute top-2 right-2"
+                      onClick={() => {
+                        const contacts = JSON.parse(formData.digital_assets || '[]');
+                        contacts.splice(index, 1);
+                        handleInputChange('digital_assets', JSON.stringify(contacts));
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                    
+                    <div className="space-y-2">
+                      <Label>Name</Label>
+                      <Input
+                        value={contact.name || ''}
+                        onChange={(e) => {
+                          const contacts = JSON.parse(formData.digital_assets || '[]');
+                          contacts[index] = { ...contacts[index], name: e.target.value };
+                          handleInputChange('digital_assets', JSON.stringify(contacts));
+                        }}
+                        placeholder="Enter contact name"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Relationship / Title / Business</Label>
+                      <Input
+                        value={contact.relationship || ''}
+                        onChange={(e) => {
+                          const contacts = JSON.parse(formData.digital_assets || '[]');
+                          contacts[index] = { ...contacts[index], relationship: e.target.value };
+                          handleInputChange('digital_assets', JSON.stringify(contacts));
+                        }}
+                        placeholder="e.g., Spouse, Attorney, Business Partner, Financial Advisor"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Contact Information</Label>
+                      <Textarea
+                        value={contact.contact || ''}
+                        onChange={(e) => {
+                          const contacts = JSON.parse(formData.digital_assets || '[]');
+                          contacts[index] = { ...contacts[index], contact: e.target.value };
+                          handleInputChange('digital_assets', JSON.stringify(contacts));
+                        }}
+                        placeholder="Phone, email, address, or any other contact details"
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+                ))}
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    const contacts = JSON.parse(formData.digital_assets || '[]');
+                    contacts.push({ name: '', relationship: '', contact: '' });
+                    handleInputChange('digital_assets', JSON.stringify(contacts));
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Contact
+                </Button>
               </div>
             </TabsContent>
 
