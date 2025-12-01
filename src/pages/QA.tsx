@@ -16,7 +16,7 @@ const QA: React.FC = () => {
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold text-brand-blue mb-2">Frequently Asked Questions</h1>
           <p className="text-gray-600 mb-8">
-            Find answers to common questions about Asset Docs or chat with our AI assistant for specific inquiries.
+            Find answers to common questions about Asset Safe or chat with our AI assistant for specific inquiries.
           </p>
           
           <div className="mb-10">
@@ -25,7 +25,7 @@ const QA: React.FC = () => {
               <AccordionItem value="item-1">
                 <AccordionTrigger className="text-lg font-medium">How secure is my property documentation?</AccordionTrigger>
                 <AccordionContent>
-                  Asset Docs uses enterprise-grade encryption and secure cloud storage to protect your valuable 
+                  Asset Safe uses enterprise-grade encryption and secure cloud storage to protect your valuable 
                   documentation. All data is encrypted both in transit and at rest, and we implement strict access 
                   controls to ensure your information remains private and secure at all times. Our security protocols 
                   are regularly audited and updated to maintain the highest standards of data protection.
@@ -33,9 +33,9 @@ const QA: React.FC = () => {
               </AccordionItem>
               
               <AccordionItem value="item-2">
-                <AccordionTrigger className="text-lg font-medium">Can I use Asset Docs for inventory management or business operations?</AccordionTrigger>
+                <AccordionTrigger className="text-lg font-medium">Can I use Asset Safe for inventory management or business operations?</AccordionTrigger>
                 <AccordionContent>
-                  No, Asset Docs is specifically designed for property documentation and insurance protection, not 
+                  No, Asset Safe is specifically designed for property documentation and insurance protection, not 
                   inventory management or business operations. Our platform focuses on helping property owners 
                   create comprehensive documentation of their personal assets for insurance claims, estate planning, 
                   and financial records. For business inventory management, we recommend using dedicated inventory 
@@ -44,9 +44,9 @@ const QA: React.FC = () => {
               </AccordionItem>
               
               <AccordionItem value="item-3">
-                <AccordionTrigger className="text-lg font-medium">Can I use Asset Docs for insurance claims?</AccordionTrigger>
+                <AccordionTrigger className="text-lg font-medium">Can I use Asset Safe for insurance claims?</AccordionTrigger>
                 <AccordionContent>
-                  Yes! Asset Docs is specifically designed to help with insurance claims. Our third-party verification 
+                  Yes! Asset Safe is specifically designed to help with insurance claims. Our third-party verification 
                   process creates legally valid documentation of your assets that can expedite claims processing. 
                   You can generate detailed reports that include proof of ownership, condition documentation, and 
                   value assessments that most insurance companies accept as valid evidence during claims.
@@ -73,13 +73,13 @@ const QA: React.FC = () => {
               <AccordionItem value="item-6">
                 <AccordionTrigger className="text-lg font-medium">What types of assets can I document?</AccordionTrigger>
                 <AccordionContent>
-                  Asset Docs supports documentation of virtually any physical asset, including electronics, furniture, 
+                  Asset Safe supports documentation of virtually any physical asset, including electronics, furniture, 
                   artwork, jewelry, collectibles, appliances, vehicles, and real estate.
                 </AccordionContent>
               </AccordionItem>
               
               <AccordionItem value="item-7">
-                <AccordionTrigger className="text-lg font-medium">How do I get started with Asset Docs?</AccordionTrigger>
+                <AccordionTrigger className="text-lg font-medium">How do I get started with Asset Safe?</AccordionTrigger>
                 <AccordionContent>
                   Getting started is easy! Sign up for a free 30-day trial and start using our web platform. 
                   You can begin documenting your possessions right away by taking photos, videos, and uploading documents.
@@ -89,7 +89,7 @@ const QA: React.FC = () => {
               <AccordionItem value="item-8">
                 <AccordionTrigger className="text-lg font-medium">Can I share my documentation with others?</AccordionTrigger>
                 <AccordionContent>
-                  Yes, Asset Docs allows you to securely share selected documentation with specified parties, such as 
+                  Yes, Asset Safe allows you to securely share selected documentation with specified parties, such as 
                   insurance agents, estate planners, or family members. You can control exactly what information is 
                   shared and for how long, and you can revoke access at any time. This feature is particularly useful 
                   when filing insurance claims or during estate planning.
@@ -112,7 +112,7 @@ const QA: React.FC = () => {
                 <AccordionContent>
                   We offer comprehensive support including a 24/7 chat feature and email assistance. We also 
                   provide video tutorials and resource information under the References section in the footer, 
-                  to help you get the most out of Asset Docs.
+                  to help you get the most out of Asset Safe.
                 </AccordionContent>
               </AccordionItem>
               
@@ -156,7 +156,7 @@ const QA: React.FC = () => {
                 <AccordionTrigger className="text-lg font-medium">How much storage do I need?</AccordionTrigger>
                 <AccordionContent>
                   <p className="mb-4">
-                    Storage needs vary based on file types and usage. Here's a quick reference for our plans:
+                    Storage needs vary based on file types and usage. Here&apos;s a quick reference for our plans:
                   </p>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
@@ -184,6 +184,115 @@ const QA: React.FC = () => {
                       </tbody>
                     </table>
                   </div>
+                </AccordionContent>
+              </AccordionItem>
+              
+              {/* Legacy Locker Section */}
+              <AccordionItem value="item-16">
+                <AccordionTrigger className="text-lg font-medium">What is the Legacy Locker?</AccordionTrigger>
+                <AccordionContent>
+                  The Legacy Locker is a secure, private vault inside Asset Safe where you can organize important personal information for loved ones—photos, videos, notes, access details, and other clarifying documents. It is designed to provide context and guidance alongside your official estate plans.
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-17">
+                <AccordionTrigger className="text-lg font-medium">Is the Legacy Locker a legal will?</AccordionTrigger>
+                <AccordionContent>
+                  No. The Legacy Locker is not a legally recognized will or e-will. Instead, it acts as supporting evidence—helping your executor, family, and trusted contacts better understand your wishes with added detail and documentation.
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-18">
+                <AccordionTrigger className="text-lg font-medium">What kind of information can I store in the Legacy Locker?</AccordionTrigger>
+                <AccordionContent>
+                  You can store personal messages, executor and guardian details, asset notes, property information, wish statements, financial account summaries, passwords, voice notes, photos, videos, and uploaded documents. Anything that helps tell the story behind your intentions belongs here.
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-19">
+                <AccordionTrigger className="text-lg font-medium">Why is the Legacy Locker valuable?</AccordionTrigger>
+                <AccordionContent>
+                  <p className="mb-2">Wills state what you want — your Legacy Locker shows why and how.</p>
+                  <p>It removes guesswork, reduces stress on your family, and provides an organized record of your wishes with real-life documentation to support your estate plans.</p>
+                </AccordionContent>
+              </AccordionItem>
+              
+              {/* Contributors Section */}
+              <AccordionItem value="item-20">
+                <AccordionTrigger className="text-lg font-medium">Who can I add as a contributor?</AccordionTrigger>
+                <AccordionContent>
+                  You can invite trusted individuals—family members, friends, financial professionals, or advisors—to collaborate on your Asset Safe account. You control exactly what each contributor can see or update.
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-21">
+                <AccordionTrigger className="text-lg font-medium">What are the access levels?</AccordionTrigger>
+                <AccordionContent>
+                  <p className="mb-3">Asset Safe offers tiered access options, including:</p>
+                  <ul className="list-disc list-inside space-y-2 ml-4">
+                    <li><strong>View Only</strong> – Contributor can see selected items but cannot edit anything.</li>
+                    <li><strong>Edit Access</strong> – Contributor can add, update, or organize information you allow them to manage.</li>
+                    <li><strong>Administrator Access</strong> – Full access to all features and settings, including the ability to manage other contributors.</li>
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-22">
+                <AccordionTrigger className="text-lg font-medium">Can contributors see my Legacy Locker?</AccordionTrigger>
+                <AccordionContent>
+                  Only if you authorize it. Your Legacy Locker is private by default, and you can choose whether contributors have full access, partial access, or no access at all.
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-23">
+                <AccordionTrigger className="text-lg font-medium">Can I revoke access at any time?</AccordionTrigger>
+                <AccordionContent>
+                  Yes. You can instantly remove or adjust a contributor&apos;s permissions from your dashboard with one click.
+                </AccordionContent>
+              </AccordionItem>
+              
+              {/* Password & Accounts Catalog Section */}
+              <AccordionItem value="item-24">
+                <AccordionTrigger className="text-lg font-medium">What is the Password and Accounts Catalog?</AccordionTrigger>
+                <AccordionContent>
+                  It&apos;s a secure, encrypted list where you can document login credentials, account numbers, PINs, digital subscriptions, financial accounts, and other access information your loved ones may need in the event of an emergency.
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-25">
+                <AccordionTrigger className="text-lg font-medium">Is my password information encrypted?</AccordionTrigger>
+                <AccordionContent>
+                  Yes. Everything in the Password and Accounts Catalog is encrypted at rest and in transit. Only you—and anyone you explicitly grant access—can view this information.
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-26">
+                <AccordionTrigger className="text-lg font-medium">Why should I store my passwords here instead of on paper or in a notes app?</AccordionTrigger>
+                <AccordionContent>
+                  <p className="mb-2">Paper gets lost. Notes apps aren&apos;t secure.</p>
+                  <p>Asset Safe gives you one organized, encrypted place to store digital access information to protect your family from getting locked out of essential accounts.</p>
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-27">
+                <AccordionTrigger className="text-lg font-medium">Can contributors access my password list?</AccordionTrigger>
+                <AccordionContent>
+                  Only if you manually enable it. You decide who can view, edit, or be restricted from this section entirely.
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-28">
+                <AccordionTrigger className="text-lg font-medium">What types of accounts can I store?</AccordionTrigger>
+                <AccordionContent>
+                  <p className="mb-3">Anything you want loved ones or an executor to find easily:</p>
+                  <ul className="list-disc list-inside space-y-1 ml-4">
+                    <li>Banking & investment accounts</li>
+                    <li>Mortgage & insurance logins</li>
+                    <li>Email & social accounts</li>
+                    <li>Utilities & subscriptions</li>
+                    <li>Medical portals</li>
+                    <li>Cloud storage and photo accounts</li>
+                  </ul>
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
