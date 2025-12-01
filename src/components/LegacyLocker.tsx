@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Lock, Unlock, Save, FileText, Users, Home, DollarSign, Heart, Shield, Upload, Mic } from 'lucide-react';
+import { Lock, Unlock, Save, FileText, Users, Home, DollarSign, Heart, Shield, Upload, Mic, Contact } from 'lucide-react';
 import { encryptPassword, decryptPassword } from '@/utils/encryption';
 import MasterPasswordModal from './MasterPasswordModal';
 import { MASTER_PASSWORD_HASH_KEY } from './PasswordCatalog';
@@ -30,6 +30,20 @@ interface LegacyLockerData {
   guardian_contact?: string;
   backup_guardian_name?: string;
   backup_guardian_contact?: string;
+  spouse_name?: string;
+  spouse_contact?: string;
+  attorney_name?: string;
+  attorney_firm?: string;
+  attorney_contact?: string;
+  business_partner_name?: string;
+  business_partner_company?: string;
+  business_partner_contact?: string;
+  investment_firm_name?: string;
+  investment_advisor_name?: string;
+  investment_firm_contact?: string;
+  financial_advisor_name?: string;
+  financial_advisor_firm?: string;
+  financial_advisor_contact?: string;
   residuary_estate?: string;
   digital_assets?: string;
   real_estate_instructions?: string;
@@ -70,6 +84,20 @@ const LegacyLocker = () => {
     guardian_contact: '',
     backup_guardian_name: '',
     backup_guardian_contact: '',
+    spouse_name: '',
+    spouse_contact: '',
+    attorney_name: '',
+    attorney_firm: '',
+    attorney_contact: '',
+    business_partner_name: '',
+    business_partner_company: '',
+    business_partner_contact: '',
+    investment_firm_name: '',
+    investment_advisor_name: '',
+    investment_firm_contact: '',
+    financial_advisor_name: '',
+    financial_advisor_firm: '',
+    financial_advisor_contact: '',
     residuary_estate: '',
     digital_assets: '',
     real_estate_instructions: '',
@@ -144,6 +172,20 @@ const LegacyLocker = () => {
           guardian_contact: data.guardian_contact || '',
           backup_guardian_name: data.backup_guardian_name || '',
           backup_guardian_contact: data.backup_guardian_contact || '',
+          spouse_name: (data as any).spouse_name || '',
+          spouse_contact: (data as any).spouse_contact || '',
+          attorney_name: (data as any).attorney_name || '',
+          attorney_firm: (data as any).attorney_firm || '',
+          attorney_contact: (data as any).attorney_contact || '',
+          business_partner_name: (data as any).business_partner_name || '',
+          business_partner_company: (data as any).business_partner_company || '',
+          business_partner_contact: (data as any).business_partner_contact || '',
+          investment_firm_name: (data as any).investment_firm_name || '',
+          investment_advisor_name: (data as any).investment_advisor_name || '',
+          investment_firm_contact: (data as any).investment_firm_contact || '',
+          financial_advisor_name: (data as any).financial_advisor_name || '',
+          financial_advisor_firm: (data as any).financial_advisor_firm || '',
+          financial_advisor_contact: (data as any).financial_advisor_contact || '',
           residuary_estate: data.residuary_estate || '',
           digital_assets: typeof data.digital_assets === 'string' ? data.digital_assets : JSON.stringify(data.digital_assets || ''),
           real_estate_instructions: data.real_estate_instructions || '',
@@ -200,8 +242,12 @@ const LegacyLocker = () => {
           'full_legal_name', 'address', 'executor_name', 'executor_relationship',
           'executor_contact', 'backup_executor_name', 'backup_executor_contact',
           'guardian_name', 'guardian_relationship', 'guardian_contact',
-          'backup_guardian_name', 'backup_guardian_contact', 'residuary_estate',
-          'digital_assets', 'real_estate_instructions', 'debts_expenses',
+          'backup_guardian_name', 'backup_guardian_contact', 
+          'spouse_name', 'spouse_contact', 'attorney_name', 'attorney_firm', 'attorney_contact',
+          'business_partner_name', 'business_partner_company', 'business_partner_contact',
+          'investment_firm_name', 'investment_advisor_name', 'investment_firm_contact',
+          'financial_advisor_name', 'financial_advisor_firm', 'financial_advisor_contact',
+          'residuary_estate', 'digital_assets', 'real_estate_instructions', 'debts_expenses',
           'funeral_wishes', 'burial_or_cremation', 'ceremony_preferences',
           'letters_to_loved_ones', 'pet_care_instructions', 'business_succession_plan',
           'ethical_will'
@@ -258,8 +304,12 @@ const LegacyLocker = () => {
           'full_legal_name', 'address', 'executor_name', 'executor_relationship',
           'executor_contact', 'backup_executor_name', 'backup_executor_contact',
           'guardian_name', 'guardian_relationship', 'guardian_contact',
-          'backup_guardian_name', 'backup_guardian_contact', 'residuary_estate',
-          'digital_assets', 'real_estate_instructions', 'debts_expenses',
+          'backup_guardian_name', 'backup_guardian_contact',
+          'spouse_name', 'spouse_contact', 'attorney_name', 'attorney_firm', 'attorney_contact',
+          'business_partner_name', 'business_partner_company', 'business_partner_contact',
+          'investment_firm_name', 'investment_advisor_name', 'investment_firm_contact',
+          'financial_advisor_name', 'financial_advisor_firm', 'financial_advisor_contact',
+          'residuary_estate', 'digital_assets', 'real_estate_instructions', 'debts_expenses',
           'funeral_wishes', 'burial_or_cremation', 'ceremony_preferences',
           'letters_to_loved_ones', 'pet_care_instructions', 'business_succession_plan',
           'ethical_will'
@@ -439,10 +489,14 @@ const LegacyLocker = () => {
           </Alert>
 
           <Tabs defaultValue="personal" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-1">
+            <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-1">
               <TabsTrigger value="personal" className="text-xs md:text-sm px-2">
                 <FileText className="h-4 w-4 mr-0 md:mr-1 hidden md:inline" />
                 Personal
+              </TabsTrigger>
+              <TabsTrigger value="contacts" className="text-xs md:text-sm px-2">
+                <Contact className="h-4 w-4 mr-0 md:mr-1 hidden md:inline" />
+                Contacts
               </TabsTrigger>
               <TabsTrigger value="executor" className="text-xs md:text-sm px-2">
                 <Users className="h-4 w-4 mr-0 md:mr-1 hidden md:inline" />
@@ -536,6 +590,160 @@ const LegacyLocker = () => {
                   placeholder="Example: organ donation rationale, cultural preferences, music they'd want at a memorial."
                   rows={4}
                 />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="contacts" className="space-y-4 mt-6">
+              <Alert className="mb-4">
+                <AlertDescription>
+                  <strong>Why this matters:</strong> Essential VIP contacts your loved ones may need to reach immediately.
+                </AlertDescription>
+              </Alert>
+
+              <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+                <h3 className="font-semibold text-lg">Spouse / Partner</h3>
+                <div className="space-y-2">
+                  <Label htmlFor="spouse_name">Name</Label>
+                  <Input
+                    id="spouse_name"
+                    value={formData.spouse_name}
+                    onChange={(e) => handleInputChange('spouse_name', e.target.value)}
+                    placeholder="Full name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="spouse_contact">Contact Information</Label>
+                  <Input
+                    id="spouse_contact"
+                    value={formData.spouse_contact}
+                    onChange={(e) => handleInputChange('spouse_contact', e.target.value)}
+                    placeholder="Phone and/or email"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+                <h3 className="font-semibold text-lg">Attorney</h3>
+                <div className="space-y-2">
+                  <Label htmlFor="attorney_name">Name</Label>
+                  <Input
+                    id="attorney_name"
+                    value={formData.attorney_name}
+                    onChange={(e) => handleInputChange('attorney_name', e.target.value)}
+                    placeholder="Attorney&apos;s full name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="attorney_firm">Law Firm</Label>
+                  <Input
+                    id="attorney_firm"
+                    value={formData.attorney_firm}
+                    onChange={(e) => handleInputChange('attorney_firm', e.target.value)}
+                    placeholder="Law firm name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="attorney_contact">Contact Information</Label>
+                  <Input
+                    id="attorney_contact"
+                    value={formData.attorney_contact}
+                    onChange={(e) => handleInputChange('attorney_contact', e.target.value)}
+                    placeholder="Phone and/or email"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+                <h3 className="font-semibold text-lg">Business Partner</h3>
+                <div className="space-y-2">
+                  <Label htmlFor="business_partner_name">Name</Label>
+                  <Input
+                    id="business_partner_name"
+                    value={formData.business_partner_name}
+                    onChange={(e) => handleInputChange('business_partner_name', e.target.value)}
+                    placeholder="Partner&apos;s full name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="business_partner_company">Company</Label>
+                  <Input
+                    id="business_partner_company"
+                    value={formData.business_partner_company}
+                    onChange={(e) => handleInputChange('business_partner_company', e.target.value)}
+                    placeholder="Company name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="business_partner_contact">Contact Information</Label>
+                  <Input
+                    id="business_partner_contact"
+                    value={formData.business_partner_contact}
+                    onChange={(e) => handleInputChange('business_partner_contact', e.target.value)}
+                    placeholder="Phone and/or email"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+                <h3 className="font-semibold text-lg">Investment Firm</h3>
+                <div className="space-y-2">
+                  <Label htmlFor="investment_firm_name">Firm Name</Label>
+                  <Input
+                    id="investment_firm_name"
+                    value={formData.investment_firm_name}
+                    onChange={(e) => handleInputChange('investment_firm_name', e.target.value)}
+                    placeholder="Investment firm name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="investment_advisor_name">Advisor Name</Label>
+                  <Input
+                    id="investment_advisor_name"
+                    value={formData.investment_advisor_name}
+                    onChange={(e) => handleInputChange('investment_advisor_name', e.target.value)}
+                    placeholder="Your advisor&apos;s name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="investment_firm_contact">Contact Information</Label>
+                  <Input
+                    id="investment_firm_contact"
+                    value={formData.investment_firm_contact}
+                    onChange={(e) => handleInputChange('investment_firm_contact', e.target.value)}
+                    placeholder="Phone and/or email"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+                <h3 className="font-semibold text-lg">Financial Advisor</h3>
+                <div className="space-y-2">
+                  <Label htmlFor="financial_advisor_name">Name</Label>
+                  <Input
+                    id="financial_advisor_name"
+                    value={formData.financial_advisor_name}
+                    onChange={(e) => handleInputChange('financial_advisor_name', e.target.value)}
+                    placeholder="Advisor&apos;s full name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="financial_advisor_firm">Firm</Label>
+                  <Input
+                    id="financial_advisor_firm"
+                    value={formData.financial_advisor_firm}
+                    onChange={(e) => handleInputChange('financial_advisor_firm', e.target.value)}
+                    placeholder="Firm name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="financial_advisor_contact">Contact Information</Label>
+                  <Input
+                    id="financial_advisor_contact"
+                    value={formData.financial_advisor_contact}
+                    onChange={(e) => handleInputChange('financial_advisor_contact', e.target.value)}
+                    placeholder="Phone and/or email"
+                  />
+                </div>
               </div>
             </TabsContent>
 
