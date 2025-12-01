@@ -14,7 +14,6 @@ import FeaturesSection from '@/components/FeaturesSection';
 import HowItWorksSection from '@/components/HowItWorksSection';
 import LegacyLockerSection from '@/components/LegacyLockerSection';
 import ComparisonSection from '@/components/ComparisonSection';
-import HomeFAQ from '@/components/HomeFAQ';
 import CTASection from '@/components/CTASection';
 import FeedbackSection from '@/components/FeedbackSection';
 import { organizationSchema, webApplicationSchema, faqSchema } from '@/utils/structuredData';
@@ -51,7 +50,6 @@ const Index: React.FC = () => {
       <FeaturesSection />
       <HowItWorksSection />
       <ComparisonSection />
-      <HomeFAQ />
       <CTASection />
       <FeedbackSection />
       <Footer />
