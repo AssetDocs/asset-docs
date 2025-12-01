@@ -90,16 +90,38 @@ serve(async (req) => {
 
       if (!contributorError && contributorAccess?.profiles) {
         const ownerProfile = contributorAccess.profiles as any;
+        
+        // Check if owner has active subscription OR is in trial period
         const ownerIsSubscribed = ownerProfile.plan_status === 'active' || ownerProfile.plan_status === 'trialing';
         
-        if (ownerIsSubscribed) {
-          logStep("User has contributor access to subscribed account", {
+        // Also check if owner is in free trial period (30 days from account creation)
+        let ownerInTrial = false;
+        if (!ownerIsSubscribed) {
+          // Get owner's created_at date to check trial
+          const { data: ownerUserData } = await supabaseClient
+            .from("profiles")
+            .select("created_at, user_id")
+            .eq("user_id", contributorAccess.account_owner_id)
+            .single();
+          
+          if (ownerUserData?.created_at) {
+            const now = new Date();
+            const ownerTrialEnd = new Date(ownerUserData.created_at);
+            ownerTrialEnd.setDate(ownerTrialEnd.getDate() + 30);
+            ownerInTrial = now < ownerTrialEnd;
+          }
+        }
+        
+        if (ownerIsSubscribed || ownerInTrial) {
+          logStep("User has contributor access to subscribed/trial account", {
             role: contributorAccess.role,
-            ownerPlanStatus: ownerProfile.plan_status
+            ownerPlanStatus: ownerProfile.plan_status,
+            ownerInTrial
           });
           
           isSubscribed = true;
-          planStatus = ownerProfile.plan_status;
+          isInTrial = ownerInTrial; // If owner is in trial, contributor inherits trial status
+          planStatus = ownerProfile.plan_status || (ownerInTrial ? 'trialing' : 'inactive');
           propertyLimit = ownerProfile.property_limit || 1;
           storageQuotaGb = ownerProfile.storage_quota_gb || 5;
           currentPeriodEnd = ownerProfile.current_period_end;
