@@ -606,7 +606,10 @@ export type Database = {
           ceremony_preferences: string | null
           created_at: string
           debts_expenses: string | null
+          delegate_user_id: string | null
           digital_assets: Json | null
+          encryption_key_encrypted_for_delegate: string | null
+          encryption_key_encrypted_for_user: string | null
           ethical_will: string | null
           executor_contact: string | null
           executor_name: string | null
@@ -630,6 +633,9 @@ export type Database = {
           organ_donation: boolean | null
           pet_care_instructions: string | null
           real_estate_instructions: string | null
+          recovery_grace_period_days: number | null
+          recovery_requested_at: string | null
+          recovery_status: string | null
           residuary_estate: string | null
           specific_bequests: Json | null
           spouse_contact: string | null
@@ -654,7 +660,10 @@ export type Database = {
           ceremony_preferences?: string | null
           created_at?: string
           debts_expenses?: string | null
+          delegate_user_id?: string | null
           digital_assets?: Json | null
+          encryption_key_encrypted_for_delegate?: string | null
+          encryption_key_encrypted_for_user?: string | null
           ethical_will?: string | null
           executor_contact?: string | null
           executor_name?: string | null
@@ -678,6 +687,9 @@ export type Database = {
           organ_donation?: boolean | null
           pet_care_instructions?: string | null
           real_estate_instructions?: string | null
+          recovery_grace_period_days?: number | null
+          recovery_requested_at?: string | null
+          recovery_status?: string | null
           residuary_estate?: string | null
           specific_bequests?: Json | null
           spouse_contact?: string | null
@@ -702,7 +714,10 @@ export type Database = {
           ceremony_preferences?: string | null
           created_at?: string
           debts_expenses?: string | null
+          delegate_user_id?: string | null
           digital_assets?: Json | null
+          encryption_key_encrypted_for_delegate?: string | null
+          encryption_key_encrypted_for_user?: string | null
           ethical_will?: string | null
           executor_contact?: string | null
           executor_name?: string | null
@@ -726,6 +741,9 @@ export type Database = {
           organ_donation?: boolean | null
           pet_care_instructions?: string | null
           real_estate_instructions?: string | null
+          recovery_grace_period_days?: number | null
+          recovery_requested_at?: string | null
+          recovery_status?: string | null
           residuary_estate?: string | null
           specific_bequests?: Json | null
           spouse_contact?: string | null
@@ -1203,6 +1221,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      recovery_requests: {
+        Row: {
+          created_at: string
+          delegate_user_id: string
+          documentation_url: string | null
+          grace_period_ends_at: string
+          id: string
+          legacy_locker_id: string
+          owner_user_id: string
+          reason: string | null
+          relationship: string | null
+          requested_at: string
+          responded_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          delegate_user_id: string
+          documentation_url?: string | null
+          grace_period_ends_at: string
+          id?: string
+          legacy_locker_id: string
+          owner_user_id: string
+          reason?: string | null
+          relationship?: string | null
+          requested_at?: string
+          responded_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          delegate_user_id?: string
+          documentation_url?: string | null
+          grace_period_ends_at?: string
+          id?: string
+          legacy_locker_id?: string
+          owner_user_id?: string
+          reason?: string | null
+          relationship?: string | null
+          requested_at?: string
+          responded_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       source_websites: {
         Row: {
