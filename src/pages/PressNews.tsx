@@ -87,7 +87,7 @@ const PressNews: React.FC = () => {
                 <tr class="bg-gray-50">
                   <td class="border border-gray-300 px-4 py-3 font-medium">Market Valuation</td>
                   <td class="border border-gray-300 px-4 py-3"><span class="flex items-center text-red-600"><svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>Manual research required</span></td>
-                  <td class="border border-gray-300 px-4 py-3"><span class="flex items-center text-green-600"><svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>AI-assisted or expert-assigned current value</span></td>
+                  <td class="border border-gray-300 px-4 py-3"><span class="flex items-center text-green-600"><svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>Assigned current value</span></td>
                 </tr>
                 <tr>
                   <td class="border border-gray-300 px-4 py-3 font-medium">Insurance Readiness</td>
@@ -133,8 +133,8 @@ const PressNews: React.FC = () => {
 
           <h3 class="text-2xl font-bold text-gray-900 mb-4">✨ The Asset Safe Advantage</h3>
           <ul class="list-none space-y-3 mb-8">
-            <li class="flex items-start"><span class="text-blue-600 font-bold mr-2">✓</span>Interactive Visual Records (3D tours, floorplans, tagged images)</li>
-            <li class="flex items-start"><span class="text-blue-600 font-bold mr-2">✓</span>Accurate Valuation via AI and web-based tools</li>
+            <li class="flex items-start"><span class="text-blue-600 font-bold mr-2">✓</span>Interactive Visual Records</li>
+            <li class="flex items-start"><span class="text-blue-600 font-bold mr-2">✓</span>Accurate Valuation</li>
             <li class="flex items-start"><span class="text-blue-600 font-bold mr-2">✓</span>Exportable Reports for insurance, attorneys, or buyers</li>
             <li class="flex items-start"><span class="text-blue-600 font-bold mr-2">✓</span>Cloud-Backed Security for anytime, anywhere access</li>
           </ul>
