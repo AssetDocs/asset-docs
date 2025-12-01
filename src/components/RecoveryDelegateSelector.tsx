@@ -39,7 +39,6 @@ export const RecoveryDelegateSelector: React.FC<RecoveryDelegateSelectorProps> =
         <Info className="h-4 w-4" />
         <AlertDescription>
           Choose someone who can request access to your encrypted Legacy Locker if you become unable to.
-          They will not see your encrypted data unless a recovery request is approved.
         </AlertDescription>
       </Alert>
 
