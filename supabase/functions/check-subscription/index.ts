@@ -56,44 +56,99 @@ serve(async (req) => {
     });
 
     // Check if user has an active subscription
-    const isSubscribed = profile?.plan_status === 'active' || profile?.plan_status === 'trialing';
+    let isSubscribed = profile?.plan_status === 'active' || profile?.plan_status === 'trialing';
+    let subscriptionTier = 'basic';
+    let propertyLimit = profile?.property_limit || 1;
+    let storageQuotaGb = profile?.storage_quota_gb || 5;
+    let currentPeriodEnd = profile?.current_period_end;
+    let planStatus = profile?.plan_status || 'inactive';
     
     // Check trial status for users without active subscription
     let isInTrial = false;
     let trialEndDate = null;
     
     if (!isSubscribed) {
-      const now = new Date();
-      const trialEnd = new Date(profile?.created_at || user.created_at);
-      trialEnd.setDate(trialEnd.getDate() + 30);
-      isInTrial = now < trialEnd;
-      trialEndDate = isInTrial ? trialEnd.toISOString() : null;
-      
-      logStep("Trial status calculated", { 
-        createdAt: profile?.created_at || user.created_at, 
-        trialEnd: trialEnd.toISOString(), 
-        isInTrial 
-      });
-    }
+      // Check if user is a contributor with accepted access
+      logStep("Checking contributor access");
+      const { data: contributorAccess, error: contributorError } = await supabaseClient
+        .from("contributors")
+        .select(`
+          account_owner_id,
+          status,
+          role,
+          profiles!contributors_account_owner_id_fkey (
+            plan_status,
+            plan_id,
+            property_limit,
+            storage_quota_gb,
+            current_period_end
+          )
+        `)
+        .eq("contributor_user_id", user.id)
+        .eq("status", "accepted")
+        .single();
 
-    // Determine tier from plan_id or fallback to basic
-    let subscriptionTier = 'basic';
-    if (profile?.plan_id) {
-      const planLower = profile.plan_id.toLowerCase();
-      if (planLower.includes('premium') || planLower.includes('professional')) {
-        subscriptionTier = 'premium';
-      } else if (planLower.includes('standard') || planLower.includes('homeowner')) {
-        subscriptionTier = 'standard';
+      if (!contributorError && contributorAccess?.profiles) {
+        const ownerProfile = contributorAccess.profiles as any;
+        const ownerIsSubscribed = ownerProfile.plan_status === 'active' || ownerProfile.plan_status === 'trialing';
+        
+        if (ownerIsSubscribed) {
+          logStep("User has contributor access to subscribed account", {
+            role: contributorAccess.role,
+            ownerPlanStatus: ownerProfile.plan_status
+          });
+          
+          isSubscribed = true;
+          planStatus = ownerProfile.plan_status;
+          propertyLimit = ownerProfile.property_limit || 1;
+          storageQuotaGb = ownerProfile.storage_quota_gb || 5;
+          currentPeriodEnd = ownerProfile.current_period_end;
+          
+          // Determine tier from owner's plan
+          if (ownerProfile.plan_id) {
+            const planLower = ownerProfile.plan_id.toLowerCase();
+            if (planLower.includes('premium') || planLower.includes('professional')) {
+              subscriptionTier = 'premium';
+            } else if (planLower.includes('standard') || planLower.includes('homeowner')) {
+              subscriptionTier = 'standard';
+            }
+          }
+        }
+      }
+      
+      // If still not subscribed, check trial status
+      if (!isSubscribed) {
+        const now = new Date();
+        const trialEnd = new Date(profile?.created_at || user.created_at);
+        trialEnd.setDate(trialEnd.getDate() + 30);
+        isInTrial = now < trialEnd;
+        trialEndDate = isInTrial ? trialEnd.toISOString() : null;
+        
+        logStep("Trial status calculated", { 
+          createdAt: profile?.created_at || user.created_at, 
+          trialEnd: trialEnd.toISOString(), 
+          isInTrial 
+        });
+      }
+    } else {
+      // User has their own subscription - determine tier
+      if (profile?.plan_id) {
+        const planLower = profile.plan_id.toLowerCase();
+        if (planLower.includes('premium') || planLower.includes('professional')) {
+          subscriptionTier = 'premium';
+        } else if (planLower.includes('standard') || planLower.includes('homeowner')) {
+          subscriptionTier = 'standard';
+        }
       }
     }
 
     const response = {
       subscribed: isSubscribed,
       subscription_tier: subscriptionTier,
-      subscription_end: profile?.current_period_end,
-      plan_status: profile?.plan_status || 'inactive',
-      property_limit: profile?.property_limit || 1,
-      storage_quota_gb: profile?.storage_quota_gb || 5,
+      subscription_end: currentPeriodEnd,
+      plan_status: planStatus,
+      property_limit: propertyLimit,
+      storage_quota_gb: storageQuotaGb,
       is_trial: isInTrial,
       trial_end: trialEndDate
     };
