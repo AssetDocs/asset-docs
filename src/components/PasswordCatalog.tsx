@@ -472,6 +472,286 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
     );
   }
 
+  // When controlled by parent, render content directly without extra card wrapper
+  if (isControlledByParent) {
+    return (
+      <div className="space-y-6">
+        {/* Add Password Form */}
+        <form onSubmit={handleSubmit} className="space-y-4 p-4 border rounded-lg bg-muted/30">
+          <h4 className="font-semibold flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Add New Website Password
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="websiteName">Website Name</Label>
+              <Input
+                id="websiteName"
+                value={formData.websiteName}
+                onChange={(e) => setFormData({ ...formData, websiteName: e.target.value })}
+                placeholder="e.g., Gmail, Facebook"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="websiteUrl">Website/URL</Label>
+              <Input
+                id="websiteUrl"
+                type="text"
+                value={formData.websiteUrl}
+                onChange={(e) => setFormData({ ...formData, websiteUrl: e.target.value })}
+                placeholder="e.g., facebook.com, gmail.com"
+                required
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="text"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              placeholder="Enter password (will be encrypted)"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="notes">Notes (Optional)</Label>
+            <Textarea
+              id="notes"
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              placeholder="Any additional notes..."
+              rows={2}
+            />
+          </div>
+          <Button type="submit" className="w-full bg-yellow-500 hover:bg-yellow-600 text-black">
+            <Lock className="h-4 w-4 mr-2" />
+            Save Password
+          </Button>
+        </form>
+
+        {/* Password List */}
+        <div className="space-y-2">
+          <h4 className="font-semibold">Saved Passwords ({passwords.length})</h4>
+          {loading ? (
+            <div className="text-center py-8 text-muted-foreground">Loading...</div>
+          ) : passwords.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground border rounded-lg">
+              <Lock className="h-12 w-12 mx-auto mb-2 opacity-50" />
+              <p>No passwords saved yet</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {passwords.map((password) => (
+                <div key={password.id} className="p-4 border rounded-lg bg-card space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-semibold">{password.website_name}</h4>
+                      <a href={password.website_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80">
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+                    </div>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="sm" className="text-destructive">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Password</AlertDialogTitle>
+                          <AlertDialogDescription>Are you sure you want to delete this password? This action cannot be undone.</AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDelete(password.id)}>Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Password</Label>
+                    <span className="font-mono text-sm block">{decryptedPasswords[password.id] || 'Decrypting...'}</span>
+                  </div>
+                  {password.notes && (
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Notes</Label>
+                      <p className="text-sm">{password.notes}</p>
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground">Added: {new Date(password.created_at).toLocaleDateString()}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Financial Accounts Section */}
+        <div className="space-y-4 mt-8 pt-6 border-t">
+          <h4 className="text-lg font-semibold flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            Financial Accounts
+          </h4>
+          
+          <form onSubmit={handleAccountSubmit} className="space-y-4 p-4 border rounded-lg bg-muted/30">
+            <h4 className="font-semibold flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Add New Financial Account
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="accountType">Account Type</Label>
+                <Input
+                  id="accountType"
+                  value={accountFormData.accountType}
+                  onChange={(e) => setAccountFormData({ ...accountFormData, accountType: e.target.value })}
+                  placeholder="e.g., Checking, Savings, 401(k)"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="accountName">Account Name</Label>
+                <Input
+                  id="accountName"
+                  value={accountFormData.accountName}
+                  onChange={(e) => setAccountFormData({ ...accountFormData, accountName: e.target.value })}
+                  placeholder="e.g., Primary Savings"
+                  required
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="institutionName">Institution Name</Label>
+              <Input
+                id="institutionName"
+                value={accountFormData.institutionName}
+                onChange={(e) => setAccountFormData({ ...accountFormData, institutionName: e.target.value })}
+                placeholder="e.g., Chase, Fidelity"
+                required
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="accountNumber">Account Number</Label>
+                <Input
+                  id="accountNumber"
+                  type="text"
+                  value={accountFormData.accountNumber}
+                  onChange={(e) => setAccountFormData({ ...accountFormData, accountNumber: e.target.value })}
+                  placeholder="Will be encrypted"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="routingNumber">Routing Number (Optional)</Label>
+                <Input
+                  id="routingNumber"
+                  type="text"
+                  value={accountFormData.routingNumber}
+                  onChange={(e) => setAccountFormData({ ...accountFormData, routingNumber: e.target.value })}
+                  placeholder="Will be encrypted"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="currentBalance">Current Balance (Optional)</Label>
+              <Input
+                id="currentBalance"
+                type="number"
+                step="0.01"
+                value={accountFormData.currentBalance}
+                onChange={(e) => setAccountFormData({ ...accountFormData, currentBalance: e.target.value })}
+                placeholder="e.g., 10000.00"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="accountNotes">Notes (Optional)</Label>
+              <Textarea
+                id="accountNotes"
+                value={accountFormData.notes}
+                onChange={(e) => setAccountFormData({ ...accountFormData, notes: e.target.value })}
+                placeholder="Will be encrypted..."
+                rows={2}
+              />
+            </div>
+            <Button type="submit" className="w-full bg-yellow-500 hover:bg-yellow-600 text-black">
+              <Lock className="h-4 w-4 mr-2" />
+              Save Account
+            </Button>
+          </form>
+
+          {/* Saved Financial Accounts */}
+          {loading ? (
+            <p className="text-center text-muted-foreground">Loading accounts...</p>
+          ) : accounts.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">No financial accounts saved yet.</p>
+          ) : (
+            <div className="space-y-3">
+              {accounts.map((account) => (
+                <div key={account.id} className="p-4 border rounded-lg bg-card space-y-3">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-semibold">{account.account_name}</h4>
+                        <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded">{account.account_type}</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{account.institution_name}</p>
+                    </div>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="text-destructive">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Financial Account</AlertDialogTitle>
+                          <AlertDialogDescription>Are you sure? This action cannot be undone.</AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDeleteAccount(account.id)} className="bg-destructive text-destructive-foreground">Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Account Number</Label>
+                      <code className="text-sm font-mono">{decryptedAccountNumbers[account.id] || 'Loading...'}</code>
+                    </div>
+                    {account.routing_number && (
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Routing Number</Label>
+                        <code className="text-sm font-mono">{decryptedRoutingNumbers[account.id] || 'Loading...'}</code>
+                      </div>
+                    )}
+                  </div>
+                  {account.current_balance !== null && (
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Current Balance</Label>
+                      <p className="text-sm font-semibold">${account.current_balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                    </div>
+                  )}
+                  {account.notes && decryptedAccountNotes[account.id] && (
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Notes</Label>
+                      <p className="text-sm">{decryptedAccountNotes[account.id]}</p>
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground">Added: {new Date(account.created_at).toLocaleDateString()}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Standalone mode with Card wrapper
   return (
     <>
       <Card className="w-full">
@@ -483,14 +763,6 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
           <CardDescription>
             Securely store and manage your website passwords with client-side encryption
           </CardDescription>
-          <Alert className="mt-3">
-            <Shield className="h-4 w-4" />
-            <AlertDescription>
-              <strong>🔒 Maximum Security:</strong> Your passwords are encrypted on YOUR device before being sent to our database. 
-              Your master password never leaves your device and we cannot decrypt your passwords - 
-              this is as secure as dedicated password managers!
-            </AlertDescription>
-          </Alert>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Add Password Form */}
@@ -501,9 +773,9 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="websiteName">Website Name</Label>
+                <Label htmlFor="websiteNameStandalone">Website Name</Label>
                 <Input
-                  id="websiteName"
+                  id="websiteNameStandalone"
                   value={formData.websiteName}
                   onChange={(e) => setFormData({ ...formData, websiteName: e.target.value })}
                   placeholder="e.g., Gmail, Facebook"
@@ -511,21 +783,21 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="websiteUrl">Website/URL</Label>
+                <Label htmlFor="websiteUrlStandalone">Website/URL</Label>
                 <Input
-                  id="websiteUrl"
+                  id="websiteUrlStandalone"
                   type="text"
                   value={formData.websiteUrl}
                   onChange={(e) => setFormData({ ...formData, websiteUrl: e.target.value })}
-                  placeholder="e.g., facebook, google mail, bankofamerica.com"
+                  placeholder="e.g., facebook.com"
                   required
                 />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="passwordStandalone">Password</Label>
               <Input
-                id="password"
+                id="passwordStandalone"
                 type="text"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -534,9 +806,9 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="notes">Notes (Optional)</Label>
+              <Label htmlFor="notesStandalone">Notes (Optional)</Label>
               <Textarea
-                id="notes"
+                id="notesStandalone"
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 placeholder="Any additional notes..."
@@ -562,19 +834,11 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
             ) : (
               <div className="space-y-3">
                 {passwords.map((password) => (
-                  <div
-                    key={password.id}
-                    className="p-4 border rounded-lg bg-card space-y-2"
-                  >
+                  <div key={password.id} className="p-4 border rounded-lg bg-card space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <h4 className="font-semibold">{password.website_name}</h4>
-                        <a
-                          href={password.website_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary hover:text-primary/80"
-                        >
+                        <a href={password.website_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80">
                           <ExternalLink className="h-4 w-4" />
                         </a>
                       </div>
@@ -587,24 +851,18 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
                         <AlertDialogContent>
                           <AlertDialogHeader>
                             <AlertDialogTitle>Delete Password</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete this password? This action cannot be undone.
-                            </AlertDialogDescription>
+                            <AlertDialogDescription>Are you sure? This action cannot be undone.</AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDelete(password.id)}>
-                              Delete
-                            </AlertDialogAction>
+                            <AlertDialogAction onClick={() => handleDelete(password.id)}>Delete</AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs text-muted-foreground">Password</Label>
-                      <span className="font-mono text-sm">
-                        {decryptedPasswords[password.id] || 'Decrypting...'}
-                      </span>
+                      <span className="font-mono text-sm">{decryptedPasswords[password.id] || 'Decrypting...'}</span>
                     </div>
                     {password.notes && (
                       <div className="space-y-1">
@@ -612,189 +870,7 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
                         <p className="text-sm">{password.notes}</p>
                       </div>
                     )}
-                    <p className="text-xs text-muted-foreground">
-                      Added: {new Date(password.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Financial Accounts Section */}
-          <div className="space-y-4 mt-8">
-            <h3 className="text-xl font-semibold flex items-center gap-2">
-              <Shield className="h-5 w-5" />
-              Financial Accounts
-            </h3>
-            
-            {/* Add Financial Account Form */}
-            <form onSubmit={handleAccountSubmit} className="space-y-4 p-4 border rounded-lg bg-muted/30">
-              <h3 className="font-semibold flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Add New Financial Account
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="accountType">Account Type</Label>
-                  <Input
-                    id="accountType"
-                    value={accountFormData.accountType}
-                    onChange={(e) => setAccountFormData({ ...accountFormData, accountType: e.target.value })}
-                    placeholder="e.g., Checking, Savings, 401(k), CD, Stocks"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="accountName">Account Name</Label>
-                  <Input
-                    id="accountName"
-                    value={accountFormData.accountName}
-                    onChange={(e) => setAccountFormData({ ...accountFormData, accountName: e.target.value })}
-                    placeholder="e.g., Primary Savings, Retirement Fund"
-                    required
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="institutionName">Institution Name</Label>
-                <Input
-                  id="institutionName"
-                  value={accountFormData.institutionName}
-                  onChange={(e) => setAccountFormData({ ...accountFormData, institutionName: e.target.value })}
-                  placeholder="e.g., Chase, Fidelity, Vanguard"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="accountNumber">Account Number</Label>
-                  <Input
-                    id="accountNumber"
-                    type="text"
-                    value={accountFormData.accountNumber}
-                    onChange={(e) => setAccountFormData({ ...accountFormData, accountNumber: e.target.value })}
-                    placeholder="Enter account number (will be encrypted)"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="routingNumber">Routing Number (Optional)</Label>
-                  <Input
-                    id="routingNumber"
-                    type="text"
-                    value={accountFormData.routingNumber}
-                    onChange={(e) => setAccountFormData({ ...accountFormData, routingNumber: e.target.value })}
-                    placeholder="Enter routing number (will be encrypted)"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="currentBalance">Current Balance (Optional)</Label>
-                <Input
-                  id="currentBalance"
-                  type="number"
-                  step="0.01"
-                  value={accountFormData.currentBalance}
-                  onChange={(e) => setAccountFormData({ ...accountFormData, currentBalance: e.target.value })}
-                  placeholder="e.g., 10000.00"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="accountNotes">Notes (Optional)</Label>
-                <Textarea
-                  id="accountNotes"
-                  value={accountFormData.notes}
-                  onChange={(e) => setAccountFormData({ ...accountFormData, notes: e.target.value })}
-                  placeholder="Any additional notes (will be encrypted)..."
-                  rows={2}
-                />
-              </div>
-              <Button type="submit" className="w-full">
-                <Lock className="h-4 w-4 mr-2" />
-                Encrypt & Save Account
-              </Button>
-            </form>
-
-            {/* Saved Financial Accounts List */}
-            {loading ? (
-              <p className="text-center text-muted-foreground">Loading accounts...</p>
-            ) : accounts.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">
-                No financial accounts saved yet. Add your first account above.
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {accounts.map((account) => (
-                  <div key={account.id} className="p-4 border rounded-lg bg-card space-y-3">
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-semibold">{account.account_name}</h4>
-                          <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded">
-                            {account.account_type}
-                          </span>
-                        </div>
-                        <p className="text-sm text-muted-foreground">{account.institution_name}</p>
-                      </div>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon" className="text-destructive">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Financial Account</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete this financial account? This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDeleteAccount(account.id)}
-                              className="bg-destructive text-destructive-foreground"
-                            >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Account Number</Label>
-                        <code className="text-sm font-mono">
-                          {decryptedAccountNumbers[account.id] || 'Loading...'}
-                        </code>
-                      </div>
-                      {account.routing_number && (
-                        <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Routing Number</Label>
-                          <code className="text-sm font-mono">
-                            {decryptedRoutingNumbers[account.id] || 'Loading...'}
-                          </code>
-                        </div>
-                      )}
-                    </div>
-                    {account.current_balance !== null && (
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Current Balance</Label>
-                        <p className="text-sm font-semibold">
-                          ${account.current_balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </p>
-                      </div>
-                    )}
-                    {account.notes && decryptedAccountNotes[account.id] && (
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Notes</Label>
-                        <p className="text-sm">{decryptedAccountNotes[account.id]}</p>
-                      </div>
-                    )}
-                    <p className="text-xs text-muted-foreground">
-                      Added: {new Date(account.created_at).toLocaleDateString()}
-                    </p>
+                    <p className="text-xs text-muted-foreground">Added: {new Date(password.created_at).toLocaleDateString()}</p>
                   </div>
                 ))}
               </div>

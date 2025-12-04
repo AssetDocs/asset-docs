@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Lock, Shield, Unlock, Info } from 'lucide-react';
+import { Lock, Shield, Unlock, Info, ChevronDown, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -15,6 +15,7 @@ import PasswordCatalog from './PasswordCatalog';
 import LegacyLocker from './LegacyLocker';
 import { RecoveryDelegateSelector } from './RecoveryDelegateSelector';
 import { RecoveryRequestAlert } from './RecoveryRequestAlert';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 const SecureVault: React.FC = () => {
   const { user } = useAuth();
@@ -35,6 +36,8 @@ const SecureVault: React.FC = () => {
   const [isDelegate, setIsDelegate] = useState(false);
   const [isContributor, setIsContributor] = useState(false);
   const [existingEncrypted, setExistingEncrypted] = useState(false);
+  const [passwordCatalogOpen, setPasswordCatalogOpen] = useState(true);
+  const [legacyLockerOpen, setLegacyLockerOpen] = useState(true);
 
   useEffect(() => {
     fetchVaultStatus();
@@ -264,29 +267,59 @@ const SecureVault: React.FC = () => {
           )}
 
           {/* Section 1: Password Catalog */}
-          <div className="border-2 border-yellow-300 rounded-lg p-4 bg-yellow-50/30 dark:bg-yellow-900/10">
-            <h3 className="text-lg font-bold text-yellow-800 dark:text-yellow-300 mb-4 flex items-center gap-2">
-              <span className="bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">1</span>
-              Password Catalog
-            </h3>
-            <PasswordCatalog 
-              isUnlockedFromParent={isUnlocked}
-              sessionMasterPasswordFromParent={sessionMasterPassword}
-            />
-          </div>
+          <Collapsible open={passwordCatalogOpen} onOpenChange={setPasswordCatalogOpen}>
+            <div className="border-2 border-yellow-300 rounded-lg bg-yellow-50/30 dark:bg-yellow-900/10">
+              <CollapsibleTrigger asChild>
+                <button className="w-full p-4 flex items-center justify-between hover:bg-yellow-100/50 dark:hover:bg-yellow-800/20 transition-colors rounded-t-lg">
+                  <h3 className="text-lg font-bold text-yellow-800 dark:text-yellow-300 flex items-center gap-2">
+                    <span className="bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">1</span>
+                    Password Catalog
+                  </h3>
+                  {passwordCatalogOpen ? (
+                    <ChevronDown className="h-5 w-5 text-yellow-600" />
+                  ) : (
+                    <ChevronRight className="h-5 w-5 text-yellow-600" />
+                  )}
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="p-4 pt-0">
+                  <PasswordCatalog 
+                    isUnlockedFromParent={isUnlocked}
+                    sessionMasterPasswordFromParent={sessionMasterPassword}
+                  />
+                </div>
+              </CollapsibleContent>
+            </div>
+          </Collapsible>
           
           {/* Section 2: Legacy Locker */}
-          <div className="border-2 border-yellow-300 rounded-lg p-4 bg-yellow-50/30 dark:bg-yellow-900/10">
-            <h3 className="text-lg font-bold text-yellow-800 dark:text-yellow-300 mb-4 flex items-center gap-2">
-              <span className="bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">2</span>
-              Legacy Locker
-            </h3>
-            <LegacyLocker 
-              isUnlockedFromParent={isUnlocked}
-              sessionMasterPasswordFromParent={sessionMasterPassword}
-              hideEncryptionControls={true}
-            />
-          </div>
+          <Collapsible open={legacyLockerOpen} onOpenChange={setLegacyLockerOpen}>
+            <div className="border-2 border-yellow-300 rounded-lg bg-yellow-50/30 dark:bg-yellow-900/10">
+              <CollapsibleTrigger asChild>
+                <button className="w-full p-4 flex items-center justify-between hover:bg-yellow-100/50 dark:hover:bg-yellow-800/20 transition-colors rounded-t-lg">
+                  <h3 className="text-lg font-bold text-yellow-800 dark:text-yellow-300 flex items-center gap-2">
+                    <span className="bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">2</span>
+                    Legacy Locker
+                  </h3>
+                  {legacyLockerOpen ? (
+                    <ChevronDown className="h-5 w-5 text-yellow-600" />
+                  ) : (
+                    <ChevronRight className="h-5 w-5 text-yellow-600" />
+                  )}
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="p-4 pt-0">
+                  <LegacyLocker 
+                    isUnlockedFromParent={isUnlocked}
+                    sessionMasterPasswordFromParent={sessionMasterPassword}
+                    hideEncryptionControls={true}
+                  />
+                </div>
+              </CollapsibleContent>
+            </div>
+          </Collapsible>
         </CardContent>
       </Card>
       
