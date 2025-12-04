@@ -9,12 +9,13 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Lock, Unlock, Save, FileText, Users, Home, DollarSign, Heart, Shield, Upload, Mic, Contact, X, Plus } from 'lucide-react';
+import { Lock, Unlock, Save, FileText, Users, Home, DollarSign, Heart, Shield, Upload, Mic, Contact, X, Plus, Scale } from 'lucide-react';
 import { encryptPassword, decryptPassword } from '@/utils/encryption';
 import MasterPasswordModal from './MasterPasswordModal';
 import { MASTER_PASSWORD_HASH_KEY } from './PasswordCatalog';
 import LegacyLockerUploads from './LegacyLockerUploads';
 import VoiceNotesSection from './VoiceNotesSection';
+import TrustInformation from './TrustInformation';
 import { RecoveryDelegateSelector } from './RecoveryDelegateSelector';
 import { RecoveryRequestDialog } from './RecoveryRequestDialog';
 import { RecoveryRequestAlert } from './RecoveryRequestAlert';
@@ -606,7 +607,7 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
           )}
 
           <Tabs defaultValue="personal" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 grid-rows-3 gap-3 p-2 h-auto">
+            <TabsList className="grid w-full grid-cols-5 grid-rows-2 gap-3 p-2 h-auto">
               <TabsTrigger value="personal" className="text-xs md:text-sm px-1 py-2">
                 <FileText className="h-3 w-3 md:h-4 md:w-4 mr-1 hidden sm:inline" />
                 <span className="truncate">Personal</span>
@@ -630,6 +631,10 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
               <TabsTrigger value="property" className="text-xs md:text-sm px-1 py-2">
                 <Home className="h-3 w-3 md:h-4 md:w-4 mr-1 hidden sm:inline" />
                 <span className="truncate">Property</span>
+              </TabsTrigger>
+              <TabsTrigger value="trust" className="text-xs md:text-sm px-1 py-2">
+                <Scale className="h-3 w-3 md:h-4 md:w-4 mr-1 hidden sm:inline" />
+                <span className="truncate">Trust</span>
               </TabsTrigger>
               <TabsTrigger value="wishes" className="text-xs md:text-sm px-1 py-2">
                 <Heart className="h-3 w-3 md:h-4 md:w-4 mr-1 hidden sm:inline" />
@@ -1116,6 +1121,13 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                   rows={3}
                 />
               </div>
+            </TabsContent>
+
+            <TabsContent value="trust" className="space-y-4 mt-6">
+              <TrustInformation 
+                isUnlockedFromParent={isUnlocked}
+                sessionMasterPasswordFromParent={sessionMasterPassword}
+              />
             </TabsContent>
 
             <TabsContent value="wishes" className="space-y-4 mt-6">
