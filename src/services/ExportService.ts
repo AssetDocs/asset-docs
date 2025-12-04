@@ -274,65 +274,134 @@ export class ExportService {
   }
 
   /**
-   * Get mock asset data - replace with real data fetching logic
+   * Get real asset data from the database
    */
   static async getUserAssets(userId: string): Promise<AssetSummary> {
-    // This is mock data - in a real implementation, you would fetch from your database
-    // You can replace this with actual database queries to get user's assets
-    
-    const mockAssets: AssetSummary = {
-      photos: [
-        {
-          id: '1',
-          name: 'living-room-before.jpg',
-          url: '/placeholder.svg',
-          uploadDate: '2024-01-15',
-          category: 'Interior'
-        },
-        {
-          id: '2',
-          name: 'kitchen-damage.jpg',
-          url: '/placeholder.svg',
-          uploadDate: '2024-01-20',
-          category: 'Damage'
-        }
-      ],
-      videos: [
-        {
-          id: '1',
-          name: 'property-walkthrough.mp4',
-          url: '/placeholder.svg',
-          duration: '5:30',
-          uploadDate: '2024-01-10'
-        }
-      ],
-      documents: [
-        {
-          id: '1',
-          name: 'insurance-policy.pdf',
-          url: '/placeholder.svg',
-          type: 'PDF',
-          uploadDate: '2024-01-05'
-        },
-        {
-          id: '2',
-          name: 'property-deed.pdf',
-          url: '/placeholder.svg',
-          type: 'PDF',
-          uploadDate: '2024-01-01'
-        }
-      ],
-      floorPlans: [
-        {
-          id: '1',
-          name: 'main-floor-plan.pdf',
-          url: '/placeholder.svg',
-          uploadDate: '2024-01-12'
-        }
-      ]
+    const assets: AssetSummary = {
+      photos: [],
+      videos: [],
+      documents: [],
+      floorPlans: []
     };
 
-    return mockAssets;
+    try {
+      // Fetch property files (photos, videos, documents, floor-plans)
+      const { data: propertyFiles, error: propertyFilesError } = await supabase
+        .from('property_files')
+        .select('*')
+        .eq('user_id', userId);
+
+      if (propertyFilesError) {
+        console.error('Error fetching property files:', propertyFilesError);
+      } else if (propertyFiles) {
+        propertyFiles.forEach(file => {
+          const fileData = {
+            id: file.id,
+            name: file.file_name,
+            url: file.file_url,
+            uploadDate: file.created_at || new Date().toISOString()
+          };
+
+          switch (file.bucket_name) {
+            case 'photos':
+              assets.photos.push({
+                ...fileData,
+                category: file.file_type || 'Uncategorized'
+              });
+              break;
+            case 'videos':
+              assets.videos.push(fileData);
+              break;
+            case 'documents':
+              assets.documents.push({
+                ...fileData,
+                type: file.file_type || 'Document'
+              });
+              break;
+            case 'floor-plans':
+              assets.floorPlans.push(fileData);
+              break;
+          }
+        });
+      }
+
+      // Fetch legacy locker files
+      const { data: legacyFiles, error: legacyFilesError } = await supabase
+        .from('legacy_locker_files')
+        .select('*')
+        .eq('user_id', userId);
+
+      if (legacyFilesError) {
+        console.error('Error fetching legacy locker files:', legacyFilesError);
+      } else if (legacyFiles) {
+        legacyFiles.forEach(file => {
+          const fileData = {
+            id: file.id,
+            name: file.file_name,
+            url: file.file_url,
+            uploadDate: file.created_at || new Date().toISOString()
+          };
+
+          // Categorize based on file type
+          const ext = file.file_name.toLowerCase().split('.').pop();
+          if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext || '')) {
+            assets.photos.push({ ...fileData, category: 'Legacy Locker' });
+          } else if (['mp4', 'mov', 'avi', 'webm'].includes(ext || '')) {
+            assets.videos.push(fileData);
+          } else {
+            assets.documents.push({ ...fileData, type: file.file_type || 'Document' });
+          }
+        });
+      }
+
+      // Fetch item photos from items table
+      const { data: items, error: itemsError } = await supabase
+        .from('items')
+        .select('id, name, photo_url, created_at, category')
+        .eq('user_id', userId)
+        .not('photo_url', 'is', null);
+
+      if (itemsError) {
+        console.error('Error fetching items:', itemsError);
+      } else if (items) {
+        items.forEach(item => {
+          if (item.photo_url) {
+            assets.photos.push({
+              id: item.id,
+              name: item.name || 'Item Photo',
+              url: item.photo_url,
+              uploadDate: item.created_at || new Date().toISOString(),
+              category: item.category || 'Inventory'
+            });
+          }
+        });
+      }
+
+      // Fetch receipts
+      const { data: receipts, error: receiptsError } = await supabase
+        .from('receipts')
+        .select('id, receipt_name, receipt_url, created_at')
+        .eq('user_id', userId);
+
+      if (receiptsError) {
+        console.error('Error fetching receipts:', receiptsError);
+      } else if (receipts) {
+        receipts.forEach(receipt => {
+          assets.documents.push({
+            id: receipt.id,
+            name: receipt.receipt_name,
+            url: receipt.receipt_url,
+            type: 'Receipt',
+            uploadDate: receipt.created_at || new Date().toISOString()
+          });
+        });
+      }
+
+    } catch (error) {
+      console.error('Error fetching user assets:', error);
+    }
+
+    return assets;
   }
 
   /**
