@@ -66,13 +66,21 @@ interface LegacyLockerData {
   recovery_status?: string;
 }
 
-const LegacyLocker = () => {
+interface LegacyLockerProps {
+  isUnlockedFromParent?: boolean;
+  sessionMasterPasswordFromParent?: string | null;
+  hideEncryptionControls?: boolean;
+}
+
+const LegacyLocker: React.FC<LegacyLockerProps> = ({ 
+  isUnlockedFromParent, 
+  sessionMasterPasswordFromParent,
+  hideEncryptionControls = false
+}) => {
   const { toast } = useToast();
   const [isEncrypted, setIsEncrypted] = useState(false);
-  const [isUnlocked, setIsUnlocked] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showMasterPasswordModal, setShowMasterPasswordModal] = useState(false);
-  const [sessionMasterPassword, setSessionMasterPassword] = useState<string | null>(null);
   const [existingData, setExistingData] = useState<LegacyLockerData | null>(null);
   const [contributorRole, setContributorRole] = useState<'administrator' | 'contributor' | 'viewer' | null>(null);
   const [isContributor, setIsContributor] = useState(false);
@@ -82,6 +90,14 @@ const LegacyLocker = () => {
   const [showRecoveryRequestDialog, setShowRecoveryRequestDialog] = useState(false);
   const [isDelegate, setIsDelegate] = useState(false);
   const [hasPendingRequest, setHasPendingRequest] = useState(false);
+  
+  // Use parent state if provided, otherwise manage locally
+  const [localSessionMasterPassword, setLocalSessionMasterPassword] = useState<string | null>(null);
+  const [localIsUnlocked, setLocalIsUnlocked] = useState(false);
+  
+  const sessionMasterPassword = sessionMasterPasswordFromParent ?? localSessionMasterPassword;
+  const isUnlocked = isUnlockedFromParent ?? localIsUnlocked;
+  const isControlledByParent = isUnlockedFromParent !== undefined;
   
   const [formData, setFormData] = useState<LegacyLockerData>({
     full_legal_name: '',
@@ -246,7 +262,7 @@ const LegacyLocker = () => {
         
         if (!data.is_encrypted) {
           setFormData(convertedData);
-          setIsUnlocked(true);
+          setLocalIsUnlocked(true);
         }
       }
     } catch (error: any) {
@@ -271,8 +287,8 @@ const LegacyLocker = () => {
 
   const handleMasterPasswordSubmit = async (password: string) => {
     try {
-      setSessionMasterPassword(password);
-      setIsUnlocked(true);
+      setLocalSessionMasterPassword(password);
+      setLocalIsUnlocked(true);
       
       if (existingData && existingData.is_encrypted) {
         // Decrypt all text fields
@@ -445,7 +461,13 @@ const LegacyLocker = () => {
     );
   }
 
-  if (isEncrypted && !isUnlocked) {
+  // If controlled by parent but not unlocked, return null (parent handles unlock UI)
+  if (isControlledByParent && isEncrypted && !isUnlocked) {
+    return null;
+  }
+
+  // Standalone mode - show locked state
+  if (!isControlledByParent && isEncrypted && !isUnlocked) {
     return (
       <>
         <Card className="w-full">
@@ -519,6 +541,8 @@ const LegacyLocker = () => {
               High-Value Information Beyond a Traditional Will
             </CardDescription>
           </div>
+          {/* Only show encryption toggle when not controlled by parent */}
+          {!hideEncryptionControls && (
             <div className="flex items-center gap-2">
               <Label htmlFor="encryption-toggle" className={isEncrypted && existingData?.is_encrypted ? "text-muted-foreground" : ""}>
                 {isEncrypted && existingData?.is_encrypted ? "Encrypted" : "Encrypt"}
@@ -535,11 +559,12 @@ const LegacyLocker = () => {
                 disabled={loading || (isEncrypted && existingData?.is_encrypted)}
               />
             </div>
+          )}
           </div>
         </CardHeader>
         <CardContent>
-          {/* Show pending recovery request alert for owners */}
-          {existingData?.id && hasPendingRequest && !isDelegate && (
+          {/* Show pending recovery request alert for owners - only when not controlled by parent */}
+          {!hideEncryptionControls && existingData?.id && hasPendingRequest && !isDelegate && (
             <RecoveryRequestAlert
               legacyLockerId={existingData.id}
               onRequestResolved={() => {
@@ -558,16 +583,19 @@ const LegacyLocker = () => {
             </AlertDescription>
           </Alert>
 
-          <Alert className="mb-4">
-            <AlertDescription>
-              {isEncrypted 
-                ? 'This information is encrypted and only accessible with your master password. Contributors will not be able to view encrypted data.'
-                : 'This information is not encrypted. Contributors with access can view this data.'}
-            </AlertDescription>
-          </Alert>
+          {/* Only show encryption status alert when not controlled by parent */}
+          {!hideEncryptionControls && (
+            <Alert className="mb-4">
+              <AlertDescription>
+                {isEncrypted 
+                  ? 'This information is encrypted and only accessible with your master password. Contributors will not be able to view encrypted data.'
+                  : 'This information is not encrypted. Contributors with access can view this data.'}
+              </AlertDescription>
+            </Alert>
+          )}
 
-          {/* Recovery delegate selector - only show for owners when encryption is enabled */}
-          {isEncrypted && !isDelegate && !isContributor && (
+          {/* Recovery delegate selector - only show for owners when encryption is enabled and not controlled by parent */}
+          {!hideEncryptionControls && isEncrypted && !isDelegate && !isContributor && (
             <RecoveryDelegateSelector
               contributors={contributors}
               selectedDelegateId={selectedDelegateId}

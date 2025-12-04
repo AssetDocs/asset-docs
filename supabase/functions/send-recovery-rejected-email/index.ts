@@ -54,7 +54,7 @@ const handler = async (req: Request): Promise<Response> => {
                 <p>Hello ${delegateName},</p>
                 
                 <div class="info">
-                  The account owner has denied your request to access the encrypted Legacy Locker for ${ownerName}.
+                  The account owner has denied your request to access the encrypted Secure Vault (Password Catalog & Legacy Locker) for ${ownerName}.
                 </div>
                 
                 <p><strong>What this means:</strong></p>

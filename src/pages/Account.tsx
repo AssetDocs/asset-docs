@@ -22,8 +22,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import EmailVerificationNotice from '@/components/EmailVerificationNotice';
 import { StripeTestPanel } from '@/components/StripeTestPanel';
 import { useToast } from '@/hooks/use-toast';
-import PasswordCatalog from '@/components/PasswordCatalog';
-import LegacyLocker from '@/components/LegacyLocker';
+import SecureVault from '@/components/SecureVault';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -424,16 +423,11 @@ const Account: React.FC = () => {
                 </Card>
               </div>
 
-              {/* Third Row */}
+              {/* Third Row - Secure Vault (Password Catalog + Legacy Locker) */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Password Catalog Card */}
+                {/* Secure Vault - Combines Password Catalog and Legacy Locker */}
                 <div className="col-span-1 md:col-span-2 lg:col-span-3">
-                  <PasswordCatalog />
-                </div>
-                
-                {/* Legacy Locker Card */}
-                <div className="col-span-1 md:col-span-2 lg:col-span-3">
-                  <LegacyLocker />
+                  <SecureVault />
                 </div>
                 
                 {/* Insurance Information Card */}
