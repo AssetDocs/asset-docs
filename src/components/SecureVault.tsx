@@ -285,7 +285,7 @@ const SecureVault: React.FC = () => {
               <CollapsibleContent>
                 <div className="p-4 pt-0">
                   <PasswordCatalog 
-                    isUnlockedFromParent={isUnlocked}
+                    isUnlockedFromParent={!isEncrypted || isUnlocked}
                     sessionMasterPasswordFromParent={sessionMasterPassword}
                   />
                 </div>
@@ -312,7 +312,7 @@ const SecureVault: React.FC = () => {
               <CollapsibleContent>
                 <div className="p-4 pt-0">
                   <LegacyLocker 
-                    isUnlockedFromParent={isUnlocked}
+                    isUnlockedFromParent={!isEncrypted || isUnlocked}
                     sessionMasterPasswordFromParent={sessionMasterPassword}
                     hideEncryptionControls={true}
                   />
