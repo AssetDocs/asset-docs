@@ -384,6 +384,111 @@ const QA: React.FC = () => {
                   </ul>
                 </AccordionContent>
               </AccordionItem>
+              
+              {/* Trust Information Section */}
+              <AccordionItem value="item-29">
+                <AccordionTrigger className="text-lg font-medium">What is the Trust Information section?</AccordionTrigger>
+                <AccordionContent>
+                  The Trust Information section is a secure place to organize and store important details about your family trust, including trustees, beneficiaries, and supporting legal documents. It doesn&apos;t replace your legally executed trust—it keeps everything easy to access when your loved ones need it most.
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-30">
+                <AccordionTrigger className="text-lg font-medium">Does Trust Information replace my official trust document?</AccordionTrigger>
+                <AccordionContent>
+                  No. Your signed trust documents remain the official legal version. The information stored here provides a quick reference and ensures your trustees and family can easily locate and understand the important details in an emergency.
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-31">
+                <AccordionTrigger className="text-lg font-medium">What if my trust includes sensitive legal instructions?</AccordionTrigger>
+                <AccordionContent>
+                  You can choose to encrypt any or all information within this section. Encrypted details can only be unlocked using your personal master key or a trusted access process you designate.
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-32">
+                <AccordionTrigger className="text-lg font-medium">Who can access the Trust Information section?</AccordionTrigger>
+                <AccordionContent>
+                  <p className="mb-3">Only those you explicitly grant permission to. By default:</p>
+                  <ul className="list-disc list-inside space-y-1 ml-4">
+                    <li>Only you can edit the information</li>
+                    <li>Trustees and Executors (if invited by you) may have read-only access</li>
+                    <li>Other Contributors do not see this section unless you allow it</li>
+                  </ul>
+                  <p className="mt-3">Your privacy settings are always in your control.</p>
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-33">
+                <AccordionTrigger className="text-lg font-medium">What documents should I upload to Trust Information?</AccordionTrigger>
+                <AccordionContent>
+                  <p className="mb-3">Most families include:</p>
+                  <ul className="list-disc list-inside space-y-1 ml-4">
+                    <li>The signed trust document</li>
+                    <li>Any amendments or attachments</li>
+                    <li>Certification of trust</li>
+                    <li>Property deeds assigned to the trust</li>
+                    <li>Trustee instruction sheets</li>
+                    <li>Contact and storage info for the original documents</li>
+                  </ul>
+                  <p className="mt-3">These uploads help ensure nothing is lost during stressful or emotional times.</p>
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-34">
+                <AccordionTrigger className="text-lg font-medium">Do I need to list every asset in my trust?</AccordionTrigger>
+                <AccordionContent>
+                  <p className="mb-2">You can—but you don&apos;t have to. You can:</p>
+                  <ul className="list-disc list-inside space-y-1 ml-4">
+                    <li>Link assets already documented in your Asset Safe inventory</li>
+                    <li>Add new assets and mark whether they belong to the trust</li>
+                    <li>Provide simple notes like &quot;All home contents distributed equally&quot;</li>
+                  </ul>
+                  <p className="mt-3">Completeness helps reduce confusion for your family.</p>
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-35">
+                <AccordionTrigger className="text-lg font-medium">Can Asset Safe notify me if my trust information is incomplete?</AccordionTrigger>
+                <AccordionContent>
+                  Yes. If something important is missing—like beneficiary assignments or successor trustees—we&apos;ll display a gentle alert and offer guidance on what to update.
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-36">
+                <AccordionTrigger className="text-lg font-medium">What happens if I update my trust in the future?</AccordionTrigger>
+                <AccordionContent>
+                  <p className="mb-2">You can easily:</p>
+                  <ul className="list-disc list-inside space-y-1 ml-4">
+                    <li>Upload new versions of documents</li>
+                    <li>Update trustees or beneficiaries</li>
+                    <li>Add or adjust assets</li>
+                  </ul>
+                  <p className="mt-3">We&apos;ll keep a record of changes so your information stays accurate over time.</p>
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-37">
+                <AccordionTrigger className="text-lg font-medium">Do I still need an attorney for my trust?</AccordionTrigger>
+                <AccordionContent>
+                  Yes, we strongly recommend working with a qualified estate attorney to create or revise your trust. Legacy Locker helps you manage and organize your trust—your attorney ensures it&apos;s legally enforceable.
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-38">
+                <AccordionTrigger className="text-lg font-medium">What if I don&apos;t have a trust yet?</AccordionTrigger>
+                <AccordionContent>
+                  <p className="mb-2">No problem! This section can help you begin planning. You can:</p>
+                  <ul className="list-disc list-inside space-y-1 ml-4">
+                    <li>Learn what information is involved</li>
+                    <li>Record future intentions</li>
+                    <li>Gather attorney contacts</li>
+                    <li>Prepare for a trust when the time is right</li>
+                  </ul>
+                  <p className="mt-3">This way, you&apos;re a step ahead whenever you&apos;re ready.</p>
+                </AccordionContent>
+              </AccordionItem>
             </Accordion>
             
             <div className="mt-10 text-center">
