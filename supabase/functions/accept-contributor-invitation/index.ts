@@ -54,6 +54,8 @@ serve(async (req: Request) => {
 
     console.log('Found pending invitations:', pendingInvitations?.length || 0);
 
+    let acceptedInvitations: any[] = [];
+
     if (pendingInvitations && pendingInvitations.length > 0) {
       // Update all pending invitations for this user
       const { data: updatedInvitations, error: updateError } = await supabase
@@ -74,25 +76,41 @@ serve(async (req: Request) => {
       }
 
       console.log('Successfully accepted invitations:', updatedInvitations);
-
-      return new Response(
-        JSON.stringify({
-          success: true,
-          message: `Successfully accepted ${updatedInvitations?.length || 0} invitation(s)`,
-          invitations: updatedInvitations
-        }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        }
-      );
+      acceptedInvitations = updatedInvitations || [];
     }
+
+    // Also check for already-accepted invitations (user might already be a contributor)
+    const { data: existingAccepted, error: existingError } = await supabase
+      .from('contributors')
+      .select('*')
+      .eq('contributor_user_id', user.id)
+      .eq('status', 'accepted');
+
+    if (existingError) {
+      console.error('Error fetching existing accepted invitations:', existingError);
+    }
+
+    const allContributorRelationships = [
+      ...acceptedInvitations,
+      ...(existingAccepted || [])
+    ];
+
+    // Deduplicate by id
+    const uniqueRelationships = allContributorRelationships.filter(
+      (item, index, self) => index === self.findIndex(t => t.id === item.id)
+    );
+
+    const isContributor = uniqueRelationships.length > 0;
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'No pending invitations found',
-        invitations: []
+        message: acceptedInvitations.length > 0 
+          ? `Successfully accepted ${acceptedInvitations.length} invitation(s)` 
+          : (isContributor ? 'Already a contributor' : 'No pending invitations found'),
+        invitations: acceptedInvitations,
+        isContributor,
+        contributorRelationships: uniqueRelationships
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

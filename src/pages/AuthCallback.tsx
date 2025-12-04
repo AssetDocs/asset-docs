@@ -38,7 +38,7 @@ const AuthCallback = () => {
 
         console.log('Auth callback successful:', data);
 
-        // Check for pending contributor invitations
+        // Check for pending contributor invitations or existing contributor status
         let isContributor = false;
         if (data.session?.access_token) {
           try {
@@ -51,13 +51,17 @@ const AuthCallback = () => {
               }
             );
             
+            // Check if user is a contributor (either just accepted or already was)
+            isContributor = invitationData?.isContributor === true;
+            
             if (invitationData?.invitations?.length > 0) {
-              isContributor = true;
               console.log('Accepted contributor invitations:', invitationData.invitations);
               toast({
                 title: "Invitation Accepted!",
                 description: `You now have access to ${invitationData.invitations.length} account(s).`,
               });
+            } else if (isContributor) {
+              console.log('User is already a contributor:', invitationData.contributorRelationships);
             }
           } catch (inviteError) {
             console.error('Error checking contributor invitations:', inviteError);
