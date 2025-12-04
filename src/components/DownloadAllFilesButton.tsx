@@ -1,13 +1,15 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Download, Archive, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { ExportService } from '@/services/ExportService';
 
 const DownloadAllFilesButton: React.FC = () => {
   const [isDownloading, setIsDownloading] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleDownloadAll = async () => {
     const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
@@ -15,39 +17,43 @@ const DownloadAllFilesButton: React.FC = () => {
       alert('AssetSafe.net says\n\nDemo: This would download all your uploaded photos, videos, and documents as a ZIP file for backup or data portability.');
       return;
     }
+
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to download your files.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsDownloading(true);
     
     try {
-      // Simulate the download process
       toast({
         title: "Preparing Download",
         description: "Collecting all your files and creating ZIP archive...",
       });
 
-      // Simulate API call to generate ZIP file
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Get real user assets from database
+      const assets = await ExportService.getUserAssets(user.id);
+      
+      const totalFiles = assets.photos.length + assets.videos.length + assets.documents.length + assets.floorPlans.length;
+      
+      if (totalFiles === 0) {
+        toast({
+          title: "No Files Found",
+          description: "You haven't uploaded any files yet.",
+          variant: "destructive",
+        });
+        return;
+      }
 
-      // In a real implementation, this would:
-      // 1. Call an API endpoint that collects all user files
-      // 2. Create a ZIP file on the server
-      // 3. Return a download URL
-      // 4. Trigger the download
-
-      // For now, we'll simulate a successful download
-      const link = document.createElement('a');
-      link.href = '#'; // In real implementation, this would be the ZIP file URL
-      link.download = `my-files-backup-${new Date().toISOString().split('T')[0]}.zip`;
-      // document.body.appendChild(link);
-      // link.click();
-      // document.body.removeChild(link);
-
-      toast({
-        title: "Download Complete",
-        description: "Your files have been successfully downloaded as a ZIP archive.",
-      });
+      // Download all files as ZIP
+      await ExportService.downloadAssetsZip(assets);
 
     } catch (error) {
+      console.error('Download error:', error);
       toast({
         title: "Download Failed",
         description: "There was an error creating your file archive. Please try again.",
@@ -71,7 +77,7 @@ const DownloadAllFilesButton: React.FC = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          <div className="text-sm text-gray-600 space-y-1">
+          <div className="text-sm text-muted-foreground space-y-1">
             <p>• Includes all photos, videos, and documents</p>
             <p>• Creates a compressed ZIP archive</p>
             <p>• Perfect for backup or data portability</p>
