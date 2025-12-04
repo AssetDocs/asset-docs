@@ -1436,6 +1436,99 @@ export type Database = {
           },
         ]
       }
+      trust_information: {
+        Row: {
+          amendment_count: number | null
+          attorney_email: string | null
+          attorney_firm: string | null
+          attorney_name: string | null
+          attorney_phone: string | null
+          beneficiaries: Json | null
+          cpa_email: string | null
+          cpa_firm: string | null
+          cpa_name: string | null
+          cpa_phone: string | null
+          created_at: string
+          current_trustees: Json | null
+          effective_date: string | null
+          grantors: Json | null
+          id: string
+          is_encrypted: boolean
+          keyholder_contact: string | null
+          keyholder_name: string | null
+          originals_location: string | null
+          physical_access_instructions: string | null
+          successor_trustees: Json | null
+          trust_assets: Json | null
+          trust_documents: Json | null
+          trust_name: string | null
+          trust_purpose: string | null
+          trust_type: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amendment_count?: number | null
+          attorney_email?: string | null
+          attorney_firm?: string | null
+          attorney_name?: string | null
+          attorney_phone?: string | null
+          beneficiaries?: Json | null
+          cpa_email?: string | null
+          cpa_firm?: string | null
+          cpa_name?: string | null
+          cpa_phone?: string | null
+          created_at?: string
+          current_trustees?: Json | null
+          effective_date?: string | null
+          grantors?: Json | null
+          id?: string
+          is_encrypted?: boolean
+          keyholder_contact?: string | null
+          keyholder_name?: string | null
+          originals_location?: string | null
+          physical_access_instructions?: string | null
+          successor_trustees?: Json | null
+          trust_assets?: Json | null
+          trust_documents?: Json | null
+          trust_name?: string | null
+          trust_purpose?: string | null
+          trust_type?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amendment_count?: number | null
+          attorney_email?: string | null
+          attorney_firm?: string | null
+          attorney_name?: string | null
+          attorney_phone?: string | null
+          beneficiaries?: Json | null
+          cpa_email?: string | null
+          cpa_firm?: string | null
+          cpa_name?: string | null
+          cpa_phone?: string | null
+          created_at?: string
+          current_trustees?: Json | null
+          effective_date?: string | null
+          grantors?: Json | null
+          id?: string
+          is_encrypted?: boolean
+          keyholder_contact?: string | null
+          keyholder_name?: string | null
+          originals_location?: string | null
+          physical_access_instructions?: string | null
+          successor_trustees?: Json | null
+          trust_assets?: Json | null
+          trust_documents?: Json | null
+          trust_name?: string | null
+          trust_purpose?: string | null
+          trust_type?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
