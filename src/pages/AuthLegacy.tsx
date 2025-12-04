@@ -27,6 +27,8 @@ const Auth: React.FC = () => {
   const { user, signIn, signUp } = useAuth();
   const [isContributorMode, setIsContributorMode] = useState(false);
   const [contributorEmail, setContributorEmail] = useState('');
+  const [contributorFirstName, setContributorFirstName] = useState('');
+  const [contributorLastName, setContributorLastName] = useState('');
   const [contributorPassword, setContributorPassword] = useState('');
   const [contributorConfirmPassword, setContributorConfirmPassword] = useState('');
 
@@ -142,6 +144,15 @@ const Auth: React.FC = () => {
   const handleContributorSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!contributorFirstName.trim() || !contributorLastName.trim()) {
+      toast({
+        title: "Name Required",
+        description: "Please enter your first and last name.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     if (contributorPassword !== contributorConfirmPassword) {
       toast({
         title: "Passwords Don't Match",
@@ -162,7 +173,7 @@ const Auth: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const { error } = await signUp(contributorEmail, contributorPassword);
+      const { error } = await signUp(contributorEmail, contributorPassword, contributorFirstName.trim(), contributorLastName.trim());
       
       if (error) {
         throw error;
@@ -269,6 +280,31 @@ const Auth: React.FC = () => {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleContributorSignup} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="contributor-first-name" className="text-sm font-medium">First Name</label>
+                    <Input
+                      id="contributor-first-name"
+                      type="text"
+                      placeholder="First name"
+                      value={contributorFirstName}
+                      onChange={(e) => setContributorFirstName(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="contributor-last-name" className="text-sm font-medium">Last Name</label>
+                    <Input
+                      id="contributor-last-name"
+                      type="text"
+                      placeholder="Last name"
+                      value={contributorLastName}
+                      onChange={(e) => setContributorLastName(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+                
                 <div className="space-y-2">
                   <label htmlFor="contributor-email" className="text-sm font-medium">Email</label>
                   <Input

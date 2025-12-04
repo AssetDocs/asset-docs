@@ -39,6 +39,7 @@ const AuthCallback = () => {
         console.log('Auth callback successful:', data);
 
         // Check for pending contributor invitations
+        let isContributor = false;
         if (data.session?.access_token) {
           try {
             const { data: invitationData } = await supabase.functions.invoke(
@@ -51,6 +52,7 @@ const AuthCallback = () => {
             );
             
             if (invitationData?.invitations?.length > 0) {
+              isContributor = true;
               console.log('Accepted contributor invitations:', invitationData.invitations);
               toast({
                 title: "Invitation Accepted!",
@@ -65,7 +67,16 @@ const AuthCallback = () => {
 
         // Show success message based on the type
         if (type === 'signup' || type === 'email_change_confirm_new') {
-          // Show welcome screen for signup
+          // If user is a contributor, skip subscription flow and go directly to dashboard
+          if (isContributor) {
+            toast({
+              title: "Welcome to Asset Safe!",
+              description: "Your contributor account is ready. Redirecting to dashboard...",
+            });
+            navigate('/account', { replace: true });
+            return;
+          }
+          // Show welcome screen for signup (non-contributors)
           setShowWelcome(true);
           setLoading(false);
         } else {
