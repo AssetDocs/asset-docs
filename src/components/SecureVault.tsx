@@ -36,8 +36,8 @@ const SecureVault: React.FC = () => {
   const [isDelegate, setIsDelegate] = useState(false);
   const [isContributor, setIsContributor] = useState(false);
   const [existingEncrypted, setExistingEncrypted] = useState(false);
-  const [passwordCatalogOpen, setPasswordCatalogOpen] = useState(true);
-  const [legacyLockerOpen, setLegacyLockerOpen] = useState(true);
+  const [passwordCatalogOpen, setPasswordCatalogOpen] = useState(false);
+  const [legacyLockerOpen, setLegacyLockerOpen] = useState(false);
 
   useEffect(() => {
     fetchVaultStatus();
