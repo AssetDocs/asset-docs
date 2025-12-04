@@ -202,12 +202,12 @@ const SecureVault: React.FC = () => {
         <CardHeader className="bg-yellow-50 dark:bg-yellow-900/20 border-b border-yellow-400">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <CardTitle className="flex items-center gap-2 text-xl">
-                <Shield className="h-6 w-6 text-yellow-600" />
+              <CardTitle className="flex items-center gap-2 text-2xl">
+                <Shield className="h-7 w-7 text-yellow-600" />
                 Secure Vault {isUnlocked ? '(Unlocked)' : ''}
               </CardTitle>
-              <CardDescription className="text-yellow-700 dark:text-yellow-300">
-                Password Catalog & Legacy Locker - Your Most Sensitive Information
+              <CardDescription className="text-yellow-700 dark:text-yellow-300 text-base mt-1">
+                Password Catalog & Legacy Locker — Your Most Sensitive Information
               </CardDescription>
             </div>
             
@@ -240,7 +240,7 @@ const SecureVault: React.FC = () => {
           </Alert>
         </CardHeader>
         
-        <CardContent className="p-4 space-y-6">
+        <CardContent className="p-4 space-y-8">
           {/* Recovery Request Alert for owners */}
           {legacyLockerId && hasPendingRequest && !isDelegate && (
             <RecoveryRequestAlert
@@ -263,16 +263,24 @@ const SecureVault: React.FC = () => {
             />
           )}
 
-          {/* Password Catalog */}
-          <div>
+          {/* Section 1: Password Catalog */}
+          <div className="border-2 border-yellow-300 rounded-lg p-4 bg-yellow-50/30 dark:bg-yellow-900/10">
+            <h3 className="text-lg font-bold text-yellow-800 dark:text-yellow-300 mb-4 flex items-center gap-2">
+              <span className="bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">1</span>
+              Password Catalog
+            </h3>
             <PasswordCatalog 
               isUnlockedFromParent={isUnlocked}
               sessionMasterPasswordFromParent={sessionMasterPassword}
             />
           </div>
           
-          {/* Legacy Locker */}
-          <div>
+          {/* Section 2: Legacy Locker */}
+          <div className="border-2 border-yellow-300 rounded-lg p-4 bg-yellow-50/30 dark:bg-yellow-900/10">
+            <h3 className="text-lg font-bold text-yellow-800 dark:text-yellow-300 mb-4 flex items-center gap-2">
+              <span className="bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">2</span>
+              Legacy Locker
+            </h3>
             <LegacyLocker 
               isUnlockedFromParent={isUnlocked}
               sessionMasterPasswordFromParent={sessionMasterPassword}
