@@ -55,15 +55,15 @@ const handler = async (req: Request): Promise<Response> => {
                 <p>Hello ${delegateName},</p>
                 
                 <div class="success">
-                  <strong>✓ Access Granted:</strong> Your recovery request for ${ownerName}'s encrypted Legacy Locker has been approved.
+                  <strong>✓ Access Granted:</strong> Your recovery request for ${ownerName}'s encrypted Secure Vault (Password Catalog & Legacy Locker) has been approved.
                 </div>
                 
-                <p>You may now unlock and view the contents of the Legacy Locker.</p>
+                <p>You may now unlock and view the contents of both the Password Catalog and Legacy Locker.</p>
                 
                 <p><strong>What you can do:</strong></p>
                 <ul>
-                  <li>Access all encrypted information</li>
-                  <li>View documents, photos, and voice notes</li>
+                  <li>Access all encrypted passwords and financial accounts</li>
+                  <li>View Legacy Locker documents, photos, and voice notes</li>
                   <li>Review important contacts and instructions</li>
                 </ul>
                 

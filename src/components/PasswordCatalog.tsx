@@ -54,7 +54,15 @@ interface FinancialAccount {
 
 export const MASTER_PASSWORD_HASH_KEY = 'assetsafe_master_password_hash';
 
-const PasswordCatalog: React.FC = () => {
+interface PasswordCatalogProps {
+  isUnlockedFromParent?: boolean;
+  sessionMasterPasswordFromParent?: string | null;
+}
+
+const PasswordCatalog: React.FC<PasswordCatalogProps> = ({ 
+  isUnlockedFromParent, 
+  sessionMasterPasswordFromParent 
+}) => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [passwords, setPasswords] = useState<PasswordEntry[]>([]);
@@ -64,8 +72,15 @@ const PasswordCatalog: React.FC = () => {
     isOpen: false,
     isSetup: false,
   });
-  const [sessionMasterPassword, setSessionMasterPassword] = useState<string | null>(null);
-  const [isUnlocked, setIsUnlocked] = useState(false);
+  
+  // Use parent state if provided, otherwise manage locally
+  const [localSessionMasterPassword, setLocalSessionMasterPassword] = useState<string | null>(null);
+  const [localIsUnlocked, setLocalIsUnlocked] = useState(false);
+  
+  const sessionMasterPassword = sessionMasterPasswordFromParent ?? localSessionMasterPassword;
+  const isUnlocked = isUnlockedFromParent ?? localIsUnlocked;
+  const isControlledByParent = isUnlockedFromParent !== undefined;
+  
   const [decryptedPasswords, setDecryptedPasswords] = useState<{ [key: string]: string }>({});
   const [decryptedAccountNumbers, setDecryptedAccountNumbers] = useState<{ [key: string]: string }>({});
   const [decryptedRoutingNumbers, setDecryptedRoutingNumbers] = useState<{ [key: string]: string }>({});
@@ -100,6 +115,14 @@ const PasswordCatalog: React.FC = () => {
     }
   };
 
+  // Fetch data when unlocked from parent
+  useEffect(() => {
+    if (isControlledByParent && isUnlocked && sessionMasterPassword) {
+      fetchPasswords(sessionMasterPassword);
+      fetchAccounts(sessionMasterPassword);
+    }
+  }, [isControlledByParent, isUnlocked, sessionMasterPassword]);
+
   const handleMasterPasswordSubmit = async (password: string) => {
     const storedHash = localStorage.getItem(MASTER_PASSWORD_HASH_KEY);
 
@@ -107,8 +130,8 @@ const PasswordCatalog: React.FC = () => {
       // Setup new master password
       const hash = await createPasswordVerificationHash(password);
       localStorage.setItem(MASTER_PASSWORD_HASH_KEY, hash);
-      setSessionMasterPassword(password);
-      setIsUnlocked(true);
+      setLocalSessionMasterPassword(password);
+      setLocalIsUnlocked(true);
       setMasterPasswordModal({ isOpen: false, isSetup: false });
       fetchPasswords(password);
       fetchAccounts(password);
@@ -119,8 +142,8 @@ const PasswordCatalog: React.FC = () => {
     } else {
       // Verify password
       if (storedHash && await verifyMasterPassword(password, storedHash)) {
-        setSessionMasterPassword(password);
-        setIsUnlocked(true);
+        setLocalSessionMasterPassword(password);
+        setLocalIsUnlocked(true);
         setMasterPasswordModal({ isOpen: false, isSetup: false });
         fetchPasswords(password);
         fetchAccounts(password);
@@ -406,7 +429,13 @@ const PasswordCatalog: React.FC = () => {
   };
 
 
-  if (!isUnlocked) {
+  // If controlled by parent but not unlocked yet, show nothing (parent handles unlock UI)
+  if (isControlledByParent && !isUnlocked) {
+    return null;
+  }
+
+  // Standalone mode - show locked state
+  if (!isControlledByParent && !isUnlocked) {
     return (
       <>
         <Card className="w-full">

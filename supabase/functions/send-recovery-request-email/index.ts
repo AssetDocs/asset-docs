@@ -29,7 +29,7 @@ const handler = async (req: Request): Promise<Response> => {
     const emailResponse = await resend.emails.send({
       from: "Asset Safe <support@assetsafe.net>",
       to: [ownerEmail],
-      subject: "Recovery Request for Your Encrypted Legacy Locker",
+      subject: "Recovery Request for Your Encrypted Secure Vault",
       html: `
         <!DOCTYPE html>
         <html>
@@ -52,11 +52,11 @@ const handler = async (req: Request): Promise<Response> => {
               </div>
               
               <div class="content">
-                <h2>Recovery Request for Your Encrypted Legacy Locker</h2>
+                <h2>Recovery Request for Your Encrypted Secure Vault</h2>
                 
                 <p>Hello ${ownerName},</p>
                 
-                <p>Your designated Recovery Delegate, <strong>${delegateName}</strong>, has requested access to your encrypted Legacy Locker.</p>
+                <p>Your designated Recovery Delegate, <strong>${delegateName}</strong>, has requested access to your encrypted <strong>Secure Vault</strong> (Password Catalog & Legacy Locker).</p>
                 
                 ${requestReason ? `<p><strong>Reason provided:</strong> ${requestReason}</p>` : ''}
                 
