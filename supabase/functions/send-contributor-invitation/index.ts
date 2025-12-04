@@ -13,6 +13,7 @@ const corsHeaders = {
 // Validation schema for contributor invitation
 const contributorInvitationSchema = z.object({
   contributor_email: z.string().email().max(255),
+  contributor_name: z.string().trim().max(200).optional(),
   contributor_role: z.enum(['administrator', 'contributor', 'viewer']),
   inviter_name: z.string().trim().min(1).max(100),
   inviter_email: z.string().email().max(255)
@@ -42,6 +43,7 @@ const handler = async (req: Request): Promise<Response> => {
     
     const { 
       contributor_email, 
+      contributor_name,
       contributor_role, 
       inviter_name, 
       inviter_email 
@@ -49,10 +51,12 @@ const handler = async (req: Request): Promise<Response> => {
     
     // Escape HTML for safe email rendering
     const safeInviterName = escapeHtml(inviter_name);
+    const safeContributorName = contributor_name ? escapeHtml(contributor_name) : '';
     const safeRole = escapeHtml(contributor_role);
 
     console.log("Sending contributor invitation:", {
       contributor_email,
+      contributor_name,
       contributor_role,
       inviter_name
     });
@@ -88,7 +92,7 @@ const handler = async (req: Request): Promise<Response> => {
             <h2 style="color: #111827; margin-bottom: 20px;">You've been invited to collaborate!</h2>
             
             <p style="color: #374151; line-height: 1.6; margin-bottom: 20px;">
-              Hello! <strong>${safeInviterName}</strong> (${inviter_email}) has invited you to access their AssetSafe account as a <strong>${safeRole}</strong>.
+              Hello${safeContributorName ? ` ${safeContributorName}` : ''}! <strong>${safeInviterName}</strong> (${inviter_email}) has invited you to access their AssetSafe account as a <strong>${safeRole}</strong>.
             </p>
             
             <div style="background-color: #f3f4f6; padding: 20px; border-radius: 6px; margin: 20px 0;">

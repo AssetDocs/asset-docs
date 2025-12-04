@@ -172,8 +172,10 @@ export type Database = {
           contributor_email: string
           contributor_user_id: string | null
           created_at: string
+          first_name: string | null
           id: string
           invited_at: string
+          last_name: string | null
           role: Database["public"]["Enums"]["contributor_role"]
           status: string
           updated_at: string
@@ -184,8 +186,10 @@ export type Database = {
           contributor_email: string
           contributor_user_id?: string | null
           created_at?: string
+          first_name?: string | null
           id?: string
           invited_at?: string
+          last_name?: string | null
           role?: Database["public"]["Enums"]["contributor_role"]
           status?: string
           updated_at?: string
@@ -196,8 +200,10 @@ export type Database = {
           contributor_email?: string
           contributor_user_id?: string | null
           created_at?: string
+          first_name?: string | null
           id?: string
           invited_at?: string
+          last_name?: string | null
           role?: Database["public"]["Enums"]["contributor_role"]
           status?: string
           updated_at?: string
