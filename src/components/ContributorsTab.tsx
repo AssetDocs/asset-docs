@@ -17,6 +17,8 @@ interface Contributor {
   id: string;
   contributor_email: string;
   contributor_user_id: string | null;
+  first_name: string | null;
+  last_name: string | null;
   role: 'administrator' | 'contributor' | 'viewer';
   status: string;
   invited_at: string;
@@ -26,6 +28,8 @@ interface Contributor {
 const ContributorsTab: React.FC = () => {
   const [contributors, setContributors] = useState<Contributor[]>([]);
   const [email, setEmail] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [role, setRole] = useState<'administrator' | 'contributor' | 'viewer'>('viewer');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -58,7 +62,14 @@ const ContributorsTab: React.FC = () => {
   };
 
   const inviteContributor = async () => {
-    if (!email || !role) return;
+    if (!email || !role || !firstName.trim() || !lastName.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please enter the contributor's name and email.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     // Check contributor limits
     const limitCheck = checkContributorLimit(
@@ -98,6 +109,8 @@ const ContributorsTab: React.FC = () => {
       .insert({
         account_owner_id: user.id,
         contributor_email: email,
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
         role: role,
       });
 
@@ -124,6 +137,7 @@ const ContributorsTab: React.FC = () => {
       const { error: emailError } = await supabase.functions.invoke('send-contributor-invitation', {
         body: {
           contributor_email: email,
+          contributor_name: `${firstName.trim()} ${lastName.trim()}`,
           contributor_role: role,
           inviter_name: inviterName || 'Asset Safe User',
           inviter_email: user.email,
@@ -154,6 +168,8 @@ const ContributorsTab: React.FC = () => {
     }
 
     setEmail('');
+    setFirstName('');
+    setLastName('');
     setRole('viewer');
     fetchContributors();
     setLoading(false);
@@ -316,7 +332,27 @@ const ContributorsTab: React.FC = () => {
               )}
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <Label htmlFor="firstName">First Name</Label>
+              <Input
+                id="firstName"
+                type="text"
+                placeholder="First name"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input
+                id="lastName"
+                type="text"
+                placeholder="Last name"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+              />
+            </div>
             <div>
               <Label htmlFor="email">Email Address</Label>
               <Input
@@ -355,16 +391,15 @@ const ContributorsTab: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-end">
-              <Button 
-                onClick={inviteContributor} 
-                disabled={!email || loading}
-                className="w-full"
-              >
-                <Mail className="h-4 w-4 mr-2" />
-                Send Invitation
-              </Button>
-            </div>
+          </div>
+          <div className="flex justify-end mt-4">
+            <Button 
+              onClick={inviteContributor} 
+              disabled={!email || !firstName || !lastName || loading}
+            >
+              <Mail className="h-4 w-4 mr-2" />
+              Send Invitation
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -387,7 +422,14 @@ const ContributorsTab: React.FC = () => {
                 <div key={contributor.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">{contributor.contributor_email}</span>
+                      <span className="font-medium">
+                        {contributor.first_name || contributor.last_name 
+                          ? `${contributor.first_name || ''} ${contributor.last_name || ''}`.trim()
+                          : contributor.contributor_email}
+                      </span>
+                      {(contributor.first_name || contributor.last_name) && (
+                        <span className="text-sm text-muted-foreground">({contributor.contributor_email})</span>
+                      )}
                       <Badge variant="outline" className={getRoleColor(contributor.role)}>
                         <div className="flex items-center gap-1">
                           {getRoleIcon(contributor.role)}
