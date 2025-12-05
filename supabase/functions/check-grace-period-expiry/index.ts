@@ -88,20 +88,27 @@ const handler = async (req: Request): Promise<Response> => {
         const delegateEmail = delegateUser?.user?.email;
 
         if (delegateEmail) {
-          // Send the access email to the delegate
-          const { error: emailError } = await supabase.functions.invoke('send-delegate-access-email', {
-            body: {
+          // Send the access email to the delegate with internal secret header
+          const response = await fetch(`${supabaseUrl}/functions/v1/send-delegate-access-email`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${supabaseServiceKey}`,
+              'x-internal-secret': supabaseServiceKey,
+            },
+            body: JSON.stringify({
               delegateEmail,
               delegateName,
               ownerName,
               ownerEmail,
               legacyLockerId: locker.id,
               delegateUserId: locker.delegate_user_id
-            }
+            })
           });
 
-          if (emailError) {
-            console.error(`Error sending access email for locker ${locker.id}:`, emailError);
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`Error sending access email for locker ${locker.id}:`, errorText);
           } else {
             console.log(`Access email sent to ${delegateEmail} for locker ${locker.id}`);
             processedCount++;
@@ -125,7 +132,7 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error("Error checking grace period expiry:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "An error occurred" }),
       { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }

@@ -6,8 +6,11 @@ const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-internal-secret",
 };
+
+// Internal secret for function-to-function calls
+const INTERNAL_SECRET = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
 interface DelegateAccessEmailData {
   delegateEmail: string;
@@ -24,6 +27,16 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Validate internal secret header - only allow calls from trusted internal sources
+    const internalSecret = req.headers.get("x-internal-secret");
+    if (!internalSecret || internalSecret !== INTERNAL_SECRET) {
+      console.error("Unauthorized: Missing or invalid internal secret");
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     const { 
       delegateEmail, 
       delegateName, 
@@ -33,17 +46,57 @@ const handler = async (req: Request): Promise<Response> => {
       delegateUserId 
     }: DelegateAccessEmailData = await req.json();
 
+    // Input validation
+    if (!delegateEmail || !legacyLockerId || !delegateUserId) {
+      console.error("Missing required fields");
+      return new Response(
+        JSON.stringify({ error: "Missing required fields" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Validate that the locker exists and has this delegate assigned
+    const { data: locker, error: lockerError } = await supabase
+      .from('legacy_locker')
+      .select('id, user_id, delegate_user_id, recovery_status')
+      .eq('id', legacyLockerId)
+      .single();
+
+    if (lockerError || !locker) {
+      console.error("Legacy locker not found:", legacyLockerId);
+      return new Response(
+        JSON.stringify({ error: "Legacy locker not found" }),
+        { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    if (locker.delegate_user_id !== delegateUserId) {
+      console.error("Delegate mismatch: provided delegate does not match locker's delegate");
+      return new Response(
+        JSON.stringify({ error: "Invalid delegate for this locker" }),
+        { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // Only process if in grace_period_active status
+    if (locker.recovery_status !== 'grace_period_active') {
+      console.log("Locker not in grace_period_active status, skipping:", locker.recovery_status);
+      return new Response(
+        JSON.stringify({ message: "Locker not in active grace period" }),
+        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     console.log("Sending delegate access email to:", delegateEmail);
 
     // Generate a unique acknowledgment token
     const acknowledgmentToken = crypto.randomUUID();
 
-    // Store the token in the database for verification
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Update the legacy_locker with the acknowledgment token
+    // Update the legacy_locker with the acknowledgment status
     const { error: updateError } = await supabase
       .from('legacy_locker')
       .update({ 
@@ -63,7 +116,7 @@ const handler = async (req: Request): Promise<Response> => {
       .insert({
         legacy_locker_id: legacyLockerId,
         delegate_user_id: delegateUserId,
-        owner_user_id: (await supabase.from('legacy_locker').select('user_id').eq('id', legacyLockerId).single()).data?.user_id,
+        owner_user_id: locker.user_id,
         status: 'grace_period_expired',
         grace_period_ends_at: new Date().toISOString(),
         reason: 'Grace period expired - awaiting delegate acknowledgment',
@@ -174,7 +227,7 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error("Error sending delegate access email:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "An error occurred" }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
