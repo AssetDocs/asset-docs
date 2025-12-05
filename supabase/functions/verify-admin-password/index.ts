@@ -27,8 +27,19 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Admin password
-    const adminPassword = "AssetDocs2025";
+    // Get admin password from environment variable
+    const adminPassword = Deno.env.get('ADMIN_PASSWORD');
+    
+    if (!adminPassword) {
+      console.error('ADMIN_PASSWORD secret not configured');
+      return new Response(
+        JSON.stringify({ valid: false, error: 'Server configuration error' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500 
+        }
+      );
+    }
     
     const isValid = password === adminPassword;
     
