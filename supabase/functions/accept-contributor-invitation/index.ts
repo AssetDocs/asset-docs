@@ -12,7 +12,20 @@ serve(async (req: Request) => {
   }
 
   try {
-    const supabase = createClient(
+    // Use SERVICE_ROLE_KEY to bypass RLS - we validate the user manually via JWT
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
+    );
+
+    // Create a separate client for user auth verification
+    const supabaseAuth = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
@@ -26,39 +39,41 @@ serve(async (req: Request) => {
     // Get the authorization header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
+      console.error('[ACCEPT-CONTRIBUTOR] No authorization header');
       throw new Error('No authorization header');
     }
 
-    // Verify the user's session
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
+    // Verify the user's session using the anon client
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(
       authHeader.replace('Bearer ', '')
     );
 
     if (authError || !user) {
+      console.error('[ACCEPT-CONTRIBUTOR] Auth error:', authError);
       throw new Error('Unauthorized');
     }
 
-    console.log('Checking for pending invitations for user:', user.email);
+    console.log('[ACCEPT-CONTRIBUTOR] User authenticated:', { userId: user.id, email: user.email });
 
-    // Check for pending invitations matching the user's email
-    const { data: pendingInvitations, error: fetchError } = await supabase
+    // Use admin client to bypass RLS and find pending invitations
+    const { data: pendingInvitations, error: fetchError } = await supabaseAdmin
       .from('contributors')
       .select('*')
       .eq('contributor_email', user.email)
       .eq('status', 'pending');
 
     if (fetchError) {
-      console.error('Error fetching invitations:', fetchError);
+      console.error('[ACCEPT-CONTRIBUTOR] Error fetching invitations:', fetchError);
       throw fetchError;
     }
 
-    console.log('Found pending invitations:', pendingInvitations?.length || 0);
+    console.log('[ACCEPT-CONTRIBUTOR] Found pending invitations:', pendingInvitations?.length || 0);
 
     let acceptedInvitations: any[] = [];
 
     if (pendingInvitations && pendingInvitations.length > 0) {
-      // Update all pending invitations for this user
-      const { data: updatedInvitations, error: updateError } = await supabase
+      // Update all pending invitations for this user using admin client
+      const { data: updatedInvitations, error: updateError } = await supabaseAdmin
         .from('contributors')
         .update({
           status: 'accepted',
@@ -71,23 +86,23 @@ serve(async (req: Request) => {
         .select();
 
       if (updateError) {
-        console.error('Error updating invitations:', updateError);
+        console.error('[ACCEPT-CONTRIBUTOR] Error updating invitations:', updateError);
         throw updateError;
       }
 
-      console.log('Successfully accepted invitations:', updatedInvitations);
+      console.log('[ACCEPT-CONTRIBUTOR] Successfully accepted invitations:', updatedInvitations?.length || 0);
       acceptedInvitations = updatedInvitations || [];
     }
 
-    // Also check for already-accepted invitations (user might already be a contributor)
-    const { data: existingAccepted, error: existingError } = await supabase
+    // Also check for already-accepted invitations using admin client
+    const { data: existingAccepted, error: existingError } = await supabaseAdmin
       .from('contributors')
       .select('*')
       .eq('contributor_user_id', user.id)
       .eq('status', 'accepted');
 
     if (existingError) {
-      console.error('Error fetching existing accepted invitations:', existingError);
+      console.error('[ACCEPT-CONTRIBUTOR] Error fetching existing accepted:', existingError);
     }
 
     const allContributorRelationships = [
@@ -101,6 +116,13 @@ serve(async (req: Request) => {
     );
 
     const isContributor = uniqueRelationships.length > 0;
+
+    console.log('[ACCEPT-CONTRIBUTOR] Final result:', {
+      acceptedCount: acceptedInvitations.length,
+      existingCount: existingAccepted?.length || 0,
+      isContributor,
+      relationships: uniqueRelationships.map(r => ({ id: r.id, role: r.role, owner: r.account_owner_id }))
+    });
 
     return new Response(
       JSON.stringify({
@@ -119,7 +141,7 @@ serve(async (req: Request) => {
     );
 
   } catch (error: any) {
-    console.error('Error in accept-contributor-invitation:', error);
+    console.error('[ACCEPT-CONTRIBUTOR] Error:', error);
     return new Response(
       JSON.stringify({
         error: error.message || 'An error occurred',

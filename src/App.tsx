@@ -109,27 +109,59 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
       }
 
       try {
+        // First, try to accept any pending contributor invitations
+        if (retryCount === 0) {
+          try {
+            const { data: session } = await supabase.auth.getSession();
+            if (session?.session) {
+              await supabase.functions.invoke('accept-contributor-invitation');
+            }
+          } catch (inviteError) {
+            console.log('Invitation acceptance check:', inviteError);
+          }
+        }
+
         const { data } = await supabase.functions.invoke('check-subscription');
         
         // Check if user has subscription (own or through contributor access)
         if (data?.subscribed || data?.is_trial) {
           setHasSubscription(true);
-        } else if (retryCount < 2) {
-          // Retry after a short delay to allow invitation acceptance to complete
-          setTimeout(() => checkSubscription(retryCount + 1), 1000);
+          setCheckingSubscription(false);
           return;
         }
+        
+        // Fallback: Check contributor status directly if subscription check fails
+        if (retryCount >= 2) {
+          const { data: contributorData } = await supabase
+            .from('contributors')
+            .select('id, account_owner_id, role, status')
+            .eq('contributor_user_id', user.id)
+            .eq('status', 'accepted')
+            .limit(1);
+          
+          if (contributorData && contributorData.length > 0) {
+            console.log('Found accepted contributor relationship, granting access');
+            setHasSubscription(true);
+            setCheckingSubscription(false);
+            return;
+          }
+        }
+        
+        if (retryCount < 3) {
+          // Retry after a short delay to allow invitation acceptance to complete
+          setTimeout(() => checkSubscription(retryCount + 1), 1500);
+          return;
+        }
+        
+        setCheckingSubscription(false);
       } catch (error) {
         console.error('Error checking subscription:', error);
-        // On error, retry once
-        if (retryCount < 1) {
-          setTimeout(() => checkSubscription(retryCount + 1), 1000);
+        // On error, retry
+        if (retryCount < 3) {
+          setTimeout(() => checkSubscription(retryCount + 1), 1500);
           return;
         }
-      } finally {
-        if (retryCount >= 2) {
-          setCheckingSubscription(false);
-        }
+        setCheckingSubscription(false);
       }
     };
 
