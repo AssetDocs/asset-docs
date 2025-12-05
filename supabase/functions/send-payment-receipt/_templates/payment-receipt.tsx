@@ -54,7 +54,7 @@ export const PaymentReceiptEmail = ({
         <Container style={container}>
           <Section style={{ textAlign: 'center' as const, margin: '20px 0' }}>
             <img 
-              src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email.jpg" 
+              src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email-v2.jpg" 
               alt="Asset Safe" 
               style={{ maxWidth: '200px' }}
             />

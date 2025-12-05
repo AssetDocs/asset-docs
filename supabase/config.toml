@@ -160,3 +160,6 @@ verify_jwt = true
 
 [functions.check-grace-period-expiry]
 verify_jwt = false
+
+[functions.validate-lifetime-code]
+verify_jwt = false

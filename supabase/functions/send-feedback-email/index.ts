@@ -60,7 +60,7 @@ const handler = async (req: Request): Promise<Response> => {
       subject: `New Feedback Submission from ${name}`,
       html: `
         <div style="text-align: center; margin-bottom: 20px;">
-          <img src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email.jpg" alt="Asset Safe" style="max-width: 200px;" />
+          <img src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
         </div>
         <h2>New Feedback Form Submission</h2>
         <p><strong>Name:</strong> ${safeName}</p>
@@ -85,7 +85,7 @@ const handler = async (req: Request): Promise<Response> => {
       subject: "Thank you for your feedback",
       html: `
         <div style="text-align: center; margin-bottom: 20px;">
-          <img src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email.jpg" alt="Asset Safe" style="max-width: 200px;" />
+          <img src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
         </div>
         <h2>Thank you for your feedback, ${safeName}!</h2>
         <p>We have received your feedback and truly appreciate you taking the time to share your thoughts with us.</p>

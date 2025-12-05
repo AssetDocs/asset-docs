@@ -36,7 +36,7 @@ const handler = async (req: Request): Promise<Response> => {
       html: `
         <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
           <div style="background: linear-gradient(135deg, #f97316, #ea580c); padding: 40px 20px; text-align: center;">
-            <img src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 20px;" />
+            <img src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 20px;" />
             <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">Almost There!</h1>
           </div>
           

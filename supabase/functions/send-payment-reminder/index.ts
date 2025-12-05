@@ -60,7 +60,7 @@ const handler = async (req: Request): Promise<Response> => {
           <body>
             <div class="container">
               <div class="header">
-                <img src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 15px;" />
+                <img src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 15px;" />
                 <h1 style="margin: 0; font-size: 28px;">Payment Method Update Required</h1>
                 <p style="margin: 10px 0 0 0; opacity: 0.9;">AssetSafe</p>
               </div>
