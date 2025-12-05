@@ -88,10 +88,40 @@ const Auth: React.FC = () => {
           throw error;
         }
       } else {
+        // Get current session for API calls
+        const { data: session } = await supabase.auth.getSession();
+        
+        // Check for lifetime gift code (ASLT2025)
+        if (giftCode && session?.session?.user?.id) {
+          try {
+            const { data: codeResult, error: codeError } = await supabase.functions.invoke(
+              'validate-lifetime-code',
+              {
+                body: {
+                  code: giftCode,
+                  user_id: session.session.user.id
+                }
+              }
+            );
+            
+            if (codeResult?.success) {
+              toast({
+                title: "🎉 Lifetime Access Activated!",
+                description: "Welcome to Asset Safe! Your lifetime premium subscription is now active.",
+              });
+              navigate('/account');
+              return;
+            } else if (codeError || codeResult?.error) {
+              console.log('Gift code not a lifetime code, checking standard gift codes...');
+            }
+          } catch (codeCheckError) {
+            console.error('Error checking lifetime code:', codeCheckError);
+          }
+        }
+        
         // If this is a contributor login, accept pending invitations
         if (isContributorMode) {
           try {
-            const { data: session } = await supabase.auth.getSession();
             if (session?.session?.access_token) {
               const { data: invitationData } = await supabase.functions.invoke(
                 'accept-contributor-invitation',
