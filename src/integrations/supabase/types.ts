@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_deletion_requests: {
+        Row: {
+          account_owner_id: string
+          created_at: string
+          grace_period_days: number
+          grace_period_ends_at: string
+          id: string
+          reason: string | null
+          requested_at: string
+          requester_user_id: string
+          responded_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          account_owner_id: string
+          created_at?: string
+          grace_period_days?: number
+          grace_period_ends_at: string
+          id?: string
+          reason?: string | null
+          requested_at?: string
+          requester_user_id: string
+          responded_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          account_owner_id?: string
+          created_at?: string
+          grace_period_days?: number
+          grace_period_ends_at?: string
+          id?: string
+          reason?: string | null
+          requested_at?: string
+          requester_user_id?: string
+          responded_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       activities: {
         Row: {
           contact_id: string | null
