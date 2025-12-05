@@ -15,8 +15,9 @@ interface DeleteConfirmationDialogProps {
   onClose: () => void;
   onConfirm: () => void;
   title: string;
-  description?: string;
+  description?: React.ReactNode;
   itemCount?: number;
+  confirmText?: string;
 }
 
 const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
@@ -25,7 +26,8 @@ const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
   onConfirm,
   title,
   description,
-  itemCount = 1
+  itemCount = 1,
+  confirmText = "Yes, Delete"
 }) => {
   const defaultDescription = itemCount === 1 
     ? "Do you want to permanently delete this item? This cannot be undone."
@@ -36,14 +38,18 @@ const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription>
-            {description || defaultDescription}
+          <AlertDialogDescription asChild={typeof description !== 'string'}>
+            {typeof description === 'string' || !description ? (
+              <span>{description || defaultDescription}</span>
+            ) : (
+              <div>{description}</div>
+            )}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel onClick={onClose}>No</AlertDialogCancel>
           <AlertDialogAction onClick={onConfirm} className="bg-red-600 hover:bg-red-700">
-            Yes, Delete
+            {confirmText}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
