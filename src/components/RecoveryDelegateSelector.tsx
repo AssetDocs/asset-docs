@@ -2,7 +2,8 @@ import React from "react";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Shield, Info } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Shield, Info, Save, Loader2 } from "lucide-react";
 
 interface Contributor {
   id: string;
@@ -17,6 +18,9 @@ interface RecoveryDelegateSelectorProps {
   gracePeriodDays: number;
   onDelegateChange: (delegateId: string | null) => void;
   onGracePeriodChange: (days: number) => void;
+  onSave?: () => Promise<void>;
+  isSaving?: boolean;
+  hasChanges?: boolean;
 }
 
 export const RecoveryDelegateSelector: React.FC<RecoveryDelegateSelectorProps> = ({
@@ -25,6 +29,9 @@ export const RecoveryDelegateSelector: React.FC<RecoveryDelegateSelectorProps> =
   gracePeriodDays,
   onDelegateChange,
   onGracePeriodChange,
+  onSave,
+  isSaving = false,
+  hasChanges = false,
 }) => {
   const adminContributors = contributors.filter(c => c.role === 'administrator' && c.contributor_user_id);
 
@@ -38,7 +45,7 @@ export const RecoveryDelegateSelector: React.FC<RecoveryDelegateSelectorProps> =
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
-          Choose someone who can request access to your encrypted Legacy Locker if you become unable to.
+          Choose someone who can request access to your encrypted Secure Vault if you become unable to.
         </AlertDescription>
       </Alert>
 
@@ -88,8 +95,36 @@ export const RecoveryDelegateSelector: React.FC<RecoveryDelegateSelectorProps> =
             </SelectContent>
           </Select>
           <p className="text-sm text-muted-foreground">
-            If a recovery request is made, you will be notified and have this grace period to respond before access is granted.
+            Once saved, the grace period countdown will begin. After the time expires, your delegate will receive an email granting access to your Secure Vault.
           </p>
+        </div>
+      )}
+
+      {/* Save Button */}
+      {onSave && (
+        <div className="pt-4 border-t">
+          <Button
+            onClick={onSave}
+            disabled={isSaving || !hasChanges}
+            className="w-full sm:w-auto"
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4 mr-2" />
+                Save Recovery Delegate
+              </>
+            )}
+          </Button>
+          {hasChanges && (
+            <p className="text-sm text-amber-600 mt-2">
+              You have unsaved changes to your recovery delegate settings.
+            </p>
+          )}
         </div>
       )}
     </div>

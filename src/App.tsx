@@ -81,6 +81,7 @@ import CompassPartnership from "./pages/CompassPartnership";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import CRM from "./pages/CRM";
+import AcknowledgeAccess from "./pages/AcknowledgeAccess";
 
 const queryClient = new QueryClient();
 
@@ -282,6 +283,7 @@ const AppContent = () => {
         <Route path="/admin" element={<Admin />} />
         <Route path="/admin/crm" element={<CRM />} />
         <Route path="/admin/compass-partnership" element={<CompassPartnership />} />
+        <Route path="/acknowledge-access" element={<AcknowledgeAccess />} />
         
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />

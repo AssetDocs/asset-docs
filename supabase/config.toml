@@ -151,3 +151,12 @@ verify_jwt = false
 
 [functions.send-payment-receipt]
 verify_jwt = false
+
+[functions.send-delegate-access-email]
+verify_jwt = false
+
+[functions.acknowledge-delegate-access]
+verify_jwt = true
+
+[functions.check-grace-period-expiry]
+verify_jwt = false
