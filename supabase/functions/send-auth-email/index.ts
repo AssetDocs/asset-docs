@@ -1,14 +1,11 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { Resend } from "https://esm.sh/resend@2.0.0";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { Webhook } from "https://esm.sh/standardwebhooks@1.0.0";
+import { Resend } from "npm:resend@2.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const hookSecret = Deno.env.get("SEND_EMAIL_HOOK_SECRET");
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-interface AuthEmailRequest {
+interface AuthEmailPayload {
   user: {
     id: string;
     email: string;
@@ -23,18 +20,47 @@ interface AuthEmailRequest {
     redirect_to: string;
     email_action_type: string;
     site_url: string;
+    token_new: string;
+    token_hash_new: string;
   };
 }
 
-const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+serve(async (req: Request): Promise<Response> => {
+  if (req.method !== "POST") {
+    return new Response("Method not allowed", { status: 405 });
   }
 
   try {
-    const payload: AuthEmailRequest = await req.json();
-    const { user, email_data } = payload;
+    // Get the raw payload for signature verification
+    const payload = await req.text();
+    const headers = Object.fromEntries(req.headers);
+
+    console.log("Received auth email hook request");
+
+    // Verify webhook signature if secret is configured
+    let parsedPayload: AuthEmailPayload;
+    
+    if (hookSecret) {
+      const secret = hookSecret.replace("v1,whsec_", "");
+      const wh = new Webhook(secret);
+      
+      try {
+        parsedPayload = wh.verify(payload, headers) as AuthEmailPayload;
+        console.log("Webhook signature verified successfully");
+      } catch (err) {
+        console.error("Webhook signature verification failed:", err);
+        return new Response(
+          JSON.stringify({ error: { http_code: 401, message: "Invalid webhook signature" } }),
+          { status: 401, headers: { "Content-Type": "application/json" } }
+        );
+      }
+    } else {
+      // Fallback for testing without signature verification
+      console.log("Warning: SEND_EMAIL_HOOK_SECRET not configured, skipping signature verification");
+      parsedPayload = JSON.parse(payload);
+    }
+
+    const { user, email_data } = parsedPayload;
     
     console.log("Auth email request:", { 
       email: user.email, 
@@ -54,7 +80,6 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const displayName = user.user_metadata?.first_name || "Valued User";
-    // Use the actual app domain instead of Supabase's site_url
     const appUrl = "https://www.assetsafe.net";
     const confirmationUrl = `${appUrl}/auth/callback?token_hash=${email_data.token_hash}&type=${email_data.email_action_type}&redirect_to=${encodeURIComponent(email_data.redirect_to || "/account")}`;
 
@@ -79,59 +104,51 @@ const handler = async (req: Request): Promise<Response> => {
         break;
       
       default:
-        throw new Error(`Unsupported email action type: ${email_data.email_action_type}`);
+        console.log(`Unsupported email action type: ${email_data.email_action_type}`);
+        // Return 200 to avoid breaking the auth flow for unsupported types
+        return new Response(JSON.stringify({}), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
     }
 
-    // Send email with a hard timeout to avoid Supabase 5s hook timeouts
-    const sendPromise = resend.emails
-      .send({
-        from: "Asset Safe <noreply@assetsafe.net>",
-        to: [user.email],
-        subject,
-        html,
-      })
-      .then((resp) => {
-        console.log("Auth email sent successfully:", resp);
-        return { ok: true } as const;
-      })
-      .catch((err) => {
-        console.error("Resend send() failed:", err);
-        return { ok: false, error: String(err?.message || err) } as const;
-      });
+    // Send email
+    const { data, error } = await resend.emails.send({
+      from: "Asset Safe <noreply@assetsafe.net>",
+      to: [user.email],
+      subject,
+      html,
+    });
 
-    const timeoutMs = 4500; // keep under GoTrue 5s limit
-    const timeoutPromise = new Promise<{ ok: true; timeout: true }>((resolve) =>
-      setTimeout(() => resolve({ ok: true, timeout: true }), timeoutMs)
-    );
+    if (error) {
+      console.error("Resend error:", error);
+      throw error;
+    }
 
-    const result = await Promise.race([sendPromise, timeoutPromise]);
+    console.log("Auth email sent successfully:", data);
 
-    // Always return 200 quickly so signup never fails due to email delays
-    return new Response(
-      JSON.stringify({
-        success: true,
-        queued: "timeout" in (result as any) ? true : false,
-        note: "Email send initiated",
-      }),
-      {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          ...corsHeaders,
-        },
-      }
-    );
+    // Return empty 200 response as required by Supabase Auth Hook
+    return new Response(JSON.stringify({}), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+
   } catch (error: any) {
     console.error("Error in send-auth-email function:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({
+        error: {
+          http_code: 500,
+          message: error.message || "Internal server error",
+        },
+      }),
       {
         status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        headers: { "Content-Type": "application/json" },
       }
     );
   }
-};
+});
 
 function createEmailVerificationTemplate(displayName: string, confirmationUrl: string, email: string): string {
   return `
@@ -145,7 +162,7 @@ function createEmailVerificationTemplate(displayName: string, confirmationUrl: s
         Hi ${displayName},
       </p>
       
-        <p style="color: #666; line-height: 1.6; margin-bottom: 30px;">
+      <p style="color: #666; line-height: 1.6; margin-bottom: 30px;">
         Thank you for signing up for Asset Safe! To complete your registration and start protecting your valuable assets, please verify your email address by clicking the button below.
       </p>
       
@@ -317,5 +334,3 @@ function createMagicLinkTemplate(displayName: string, magicUrl: string, email: s
     </div>
   `;
 }
-
-serve(handler);
