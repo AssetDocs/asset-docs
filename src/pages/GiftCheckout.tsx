@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { format } from 'date-fns';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -13,9 +14,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Shield, Zap, Star, Gift, CheckIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Shield, Zap, Star, Gift, CheckIcon, CalendarIcon } from 'lucide-react';
 
 const formSchema = z.object({
   firstName: z.string().min(2, 'First name must be at least 2 characters'),
@@ -276,14 +281,62 @@ const GiftCheckout: React.FC = () => {
                           control={form.control}
                           name="deliveryDate"
                           render={({ field }) => (
-                            <FormItem>
+                            <FormItem className="space-y-3">
                               <FormLabel>Gift Delivery Date</FormLabel>
                               <FormControl>
-                                <Input 
-                                  type="date" 
-                                  min={new Date().toISOString().split('T')[0]}
-                                  {...field} 
-                                />
+                                <RadioGroup
+                                  onValueChange={(value) => {
+                                    if (value === 'now') {
+                                      field.onChange(new Date().toISOString().split('T')[0]);
+                                    } else {
+                                      field.onChange('');
+                                    }
+                                  }}
+                                  className="space-y-3"
+                                >
+                                  <div className="flex items-center space-x-3">
+                                    <RadioGroupItem value="now" id="delivery-now" />
+                                    <Label htmlFor="delivery-now" className="font-normal cursor-pointer">
+                                      Send immediately after purchase
+                                    </Label>
+                                  </div>
+                                  <div className="flex items-start space-x-3">
+                                    <RadioGroupItem value="scheduled" id="delivery-scheduled" className="mt-1" />
+                                    <div className="flex-1 space-y-2">
+                                      <Label htmlFor="delivery-scheduled" className="font-normal cursor-pointer">
+                                        Schedule for a specific date
+                                      </Label>
+                                      <Popover>
+                                        <PopoverTrigger asChild>
+                                          <Button
+                                            variant="outline"
+                                            className={cn(
+                                              "w-full justify-start text-left font-normal",
+                                              !field.value && "text-muted-foreground"
+                                            )}
+                                          >
+                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                            {field.value ? format(new Date(field.value), "PPP") : <span>Pick a date</span>}
+                                          </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="start">
+                                          <Calendar
+                                            mode="single"
+                                            selected={field.value ? new Date(field.value) : undefined}
+                                            onSelect={(date) => {
+                                              if (date) {
+                                                field.onChange(format(date, 'yyyy-MM-dd'));
+                                              }
+                                            }}
+                                            disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                                            initialFocus
+                                            className={cn("p-3 pointer-events-auto")}
+                                          />
+                                        </PopoverContent>
+                                      </Popover>
+                                    </div>
+                                  </div>
+                                </RadioGroup>
                               </FormControl>
                               <FormMessage />
                             </FormItem>
