@@ -26,7 +26,14 @@ interface AuthEmailPayload {
 }
 
 serve(async (req: Request): Promise<Response> => {
+  // DEBUG: Log immediately when ANY request comes in
+  console.log("=== SEND-AUTH-EMAIL FUNCTION CALLED ===");
+  console.log("Method:", req.method);
+  console.log("URL:", req.url);
+  console.log("Headers:", JSON.stringify(Object.fromEntries(req.headers)));
+
   if (req.method !== "POST") {
+    console.log("Rejecting non-POST request");
     return new Response("Method not allowed", { status: 405 });
   }
 
@@ -35,29 +42,23 @@ serve(async (req: Request): Promise<Response> => {
     const payload = await req.text();
     const headers = Object.fromEntries(req.headers);
 
-    console.log("Received auth email hook request");
+    console.log("Raw payload received:", payload.substring(0, 500));
+    console.log("SEND_EMAIL_HOOK_SECRET configured:", !!hookSecret);
 
-    // Verify webhook signature if secret is configured
+    // DEBUG: Temporarily skip signature verification to test if hook is being called
     let parsedPayload: AuthEmailPayload;
     
-    if (hookSecret) {
-      const secret = hookSecret.replace("v1,whsec_", "");
-      const wh = new Webhook(secret);
-      
-      try {
-        parsedPayload = wh.verify(payload, headers) as AuthEmailPayload;
-        console.log("Webhook signature verified successfully");
-      } catch (err) {
-        console.error("Webhook signature verification failed:", err);
-        return new Response(
-          JSON.stringify({ error: { http_code: 401, message: "Invalid webhook signature" } }),
-          { status: 401, headers: { "Content-Type": "application/json" } }
-        );
-      }
-    } else {
-      // Fallback for testing without signature verification
-      console.log("Warning: SEND_EMAIL_HOOK_SECRET not configured, skipping signature verification");
+    try {
       parsedPayload = JSON.parse(payload);
+      console.log("Parsed payload successfully - HOOK IS WORKING!");
+      console.log("User email:", parsedPayload?.user?.email);
+      console.log("Action type:", parsedPayload?.email_data?.email_action_type);
+    } catch (parseErr) {
+      console.error("Failed to parse payload:", parseErr);
+      return new Response(
+        JSON.stringify({ error: { http_code: 400, message: "Invalid payload" } }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
     }
 
     const { user, email_data } = parsedPayload;
