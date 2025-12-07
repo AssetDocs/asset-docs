@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface SignUpFormData {
   firstName: string;
@@ -15,6 +16,7 @@ interface SignUpFormData {
   email: string;
   password: string;
   confirmPassword: string;
+  acceptTerms: boolean;
 }
 
 const Signup: React.FC = () => {
@@ -32,6 +34,7 @@ const Signup: React.FC = () => {
       email: '',
       password: '',
       confirmPassword: '',
+      acceptTerms: false,
     },
   });
 
@@ -249,8 +252,37 @@ const Signup: React.FC = () => {
                     </FormItem>
                   )}
                 />
+
+                <FormField
+                  control={signUpForm.control}
+                  name="acceptTerms"
+                  rules={{ required: "You must accept the terms and conditions" }}
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel className="text-sm font-normal cursor-pointer">
+                          By clicking continue, you agree to the Asset Safe{' '}
+                          <Link to="/terms" className="text-brand-blue hover:underline">
+                            Terms and Conditions
+                          </Link>{' '}
+                          and{' '}
+                          <Link to="/legal" className="text-brand-blue hover:underline">
+                            Privacy Policy
+                          </Link>
+                        </FormLabel>
+                        <FormMessage />
+                      </div>
+                    </FormItem>
+                  )}
+                />
                 
-                <Button 
+                <Button
                   type="submit" 
                   className="w-full bg-brand-blue hover:bg-brand-blue/90"
                   disabled={isLoading}
