@@ -82,6 +82,7 @@ import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import CRM from "./pages/CRM";
 import AcknowledgeAccess from "./pages/AcknowledgeAccess";
+import VerifyPhone from "./pages/VerifyPhone";
 
 const queryClient = new QueryClient();
 
@@ -91,10 +92,11 @@ const ScrollToTopWrapper = () => {
 };
 
 // Protected Route Component with Subscription Guard
-const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children: React.ReactNode; skipSubscriptionCheck?: boolean }) => {
+const ProtectedRoute = ({ children, skipSubscriptionCheck = false, skipPhoneCheck = false }: { children: React.ReactNode; skipSubscriptionCheck?: boolean; skipPhoneCheck?: boolean }) => {
   const { isAuthenticated, loading, user } = useAuth();
   const [checkingSubscription, setCheckingSubscription] = useState(!skipSubscriptionCheck);
   const [hasSubscription, setHasSubscription] = useState(false);
+  const [phoneVerified, setPhoneVerified] = useState<boolean | null>(null);
   
   // Testing whitelist - bypass all restrictions for this email
   const isTestingEmail = user?.email === 'michaeljlewis2@gmail.com';
@@ -105,6 +107,7 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
         setCheckingSubscription(false);
         if (isTestingEmail) {
           setHasSubscription(true);
+          setPhoneVerified(true);
         }
         return;
       }
@@ -120,6 +123,19 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
           } catch (inviteError) {
             console.log('Invitation acceptance check:', inviteError);
           }
+        }
+
+        // Check phone verification status
+        if (!skipPhoneCheck) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('phone_verified')
+            .eq('user_id', user.id)
+            .single();
+          
+          setPhoneVerified(profile?.phone_verified ?? false);
+        } else {
+          setPhoneVerified(true);
         }
 
         const { data } = await supabase.functions.invoke('check-subscription');
@@ -169,7 +185,7 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
     if (user) {
       checkSubscription();
     }
-  }, [user, skipSubscriptionCheck, isTestingEmail]);
+  }, [user, skipSubscriptionCheck, isTestingEmail, skipPhoneCheck]);
   
   if (loading || checkingSubscription) {
     return (
@@ -191,6 +207,11 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
   // Check if email is verified (unless on the welcome or subscription pages)
   if (!skipSubscriptionCheck && user && !user.email_confirmed_at) {
     return <Navigate to="/welcome" replace />;
+  }
+
+  // Check if phone is verified (unless skipping the check)
+  if (!skipPhoneCheck && phoneVerified === false) {
+    return <Navigate to="/verify-phone" replace />;
   }
 
   // Check if user has subscription (unless skipping the check)
@@ -233,6 +254,7 @@ const AppContent = () => {
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/email-verification" element={<EmailVerification />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/verify-phone" element={<VerifyPhone />} />
         <Route path="/complete-pricing" element={<CompletePricing />} />
         
         {/* Public FAQ route */}
@@ -243,7 +265,7 @@ const AppContent = () => {
         <Route path="/welcome" element={<Welcome />} />
         
         {/* Protected routes */}
-        <Route path="/subscription-success" element={<ProtectedRoute skipSubscriptionCheck={true}><SubscriptionSuccess /></ProtectedRoute>} />
+        <Route path="/subscription-success" element={<ProtectedRoute skipSubscriptionCheck={true} skipPhoneCheck={true}><SubscriptionSuccess /></ProtectedRoute>} />
         <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
         <Route path="/account/properties" element={<ProtectedRoute><Properties /></ProtectedRoute>} />
         <Route path="/account/properties/new" element={<ProtectedRoute><PropertyForm /></ProtectedRoute>} />
