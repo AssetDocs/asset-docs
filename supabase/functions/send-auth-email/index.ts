@@ -94,6 +94,11 @@ serve(async (req: Request): Promise<Response> => {
         html = createEmailVerificationTemplate(displayName, confirmationUrl, user.email);
         break;
       
+      case "invite":
+        subject = "You've Been Invited to Asset Safe";
+        html = createInviteTemplate(displayName, confirmationUrl, user.email);
+        break;
+      
       case "recovery":
         subject = "Reset Your Password - Asset Safe";
         html = createPasswordResetTemplate(displayName, confirmationUrl, user.email);
@@ -324,6 +329,72 @@ function createMagicLinkTemplate(displayName: string, magicUrl: string, email: s
       
       <p style="color: #666; margin-bottom: 30px;">
         Best regards,<br>
+        <strong>The Asset Safe Team</strong>
+      </p>
+      
+      <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+      
+      <p style="color: #9ca3af; font-size: 12px; text-align: center;">
+        This email was sent to ${email}. This is an automated message, please do not reply.
+      </p>
+    </div>
+  `;
+}
+
+function createInviteTemplate(displayName: string, inviteUrl: string, email: string): string {
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <img src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 20px;" />
+        <h1 style="color: #7c3aed; font-size: 28px; margin: 0;">You've Been Invited!</h1>
+      </div>
+      
+      <p style="font-size: 18px; color: #333; margin-bottom: 20px;">
+        Hi ${displayName},
+      </p>
+      
+      <p style="color: #666; line-height: 1.6; margin-bottom: 30px;">
+        You've been invited to join Asset Safe - the secure platform for protecting and documenting your valuable assets. Click the button below to accept your invitation and create your account.
+      </p>
+      
+      <div style="text-align: center; margin: 40px 0;">
+        <a href="${inviteUrl}" 
+           style="background: #7c3aed; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; font-size: 16px; box-shadow: 0 4px 6px rgba(124, 58, 237, 0.3);">
+          🎉 Accept Invitation
+        </a>
+      </div>
+      
+      <div style="background: #f5f3ff; padding: 20px; border-radius: 8px; margin: 30px 0; border-left: 4px solid #7c3aed;">
+        <h3 style="color: #7c3aed; font-size: 18px; margin-top: 0;">🏠 What is Asset Safe?</h3>
+        <ul style="color: #5b21b6; margin: 10px 0; padding-left: 20px; line-height: 1.6;">
+          <li>Document and protect your home inventory</li>
+          <li>Store important photos, videos, and documents</li>
+          <li>Secure vault for sensitive information</li>
+          <li>Peace of mind for you and your family</li>
+        </ul>
+      </div>
+      
+      <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+        If the button above doesn't work, copy and paste this link into your browser:
+      </p>
+      
+      <p style="background: #f8fafc; padding: 15px; border-radius: 5px; word-break: break-all; color: #7c3aed; border: 1px solid #e2e8f0;">
+        ${inviteUrl}
+      </p>
+      
+      <div style="background: #fef3cd; border-left: 4px solid #f59e0b; padding: 15px; margin: 30px 0;">
+        <p style="color: #92400e; margin: 0; font-size: 14px;">
+          ⚠️ <strong>Important:</strong> This invitation link will expire in 24 hours.
+        </p>
+      </div>
+      
+      <p style="color: #666; margin-bottom: 30px;">
+        Questions? Contact our support team at 
+        <a href="mailto:support@assetsafe.net" style="color: #1e40af;">support@assetsafe.net</a>.
+      </p>
+      
+      <p style="color: #666; margin-bottom: 30px;">
+        Welcome to Asset Safe!<br>
         <strong>The Asset Safe Team</strong>
       </p>
       
