@@ -1037,6 +1037,8 @@ export type Database = {
           id: string
           last_name: string | null
           phone: string | null
+          phone_verified: boolean | null
+          phone_verified_at: string | null
           plan_id: string | null
           plan_status: string | null
           property_limit: number | null
@@ -1056,6 +1058,8 @@ export type Database = {
           id?: string
           last_name?: string | null
           phone?: string | null
+          phone_verified?: boolean | null
+          phone_verified_at?: string | null
           plan_id?: string | null
           plan_status?: string | null
           property_limit?: number | null
@@ -1075,6 +1079,8 @@ export type Database = {
           id?: string
           last_name?: string | null
           phone?: string | null
+          phone_verified?: boolean | null
+          phone_verified_at?: string | null
           plan_id?: string | null
           plan_status?: string | null
           property_limit?: number | null
