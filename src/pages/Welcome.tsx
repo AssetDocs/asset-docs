@@ -1,13 +1,15 @@
-
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Video, BookOpen, CheckCircle2 } from 'lucide-react';
+import { Video, BookOpen, CheckCircle2, RefreshCw } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const Welcome: React.FC = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [isResending, setIsResending] = useState(false);
 
   // Prevent back navigation
   useEffect(() => {
@@ -43,6 +45,48 @@ const Welcome: React.FC = () => {
     return () => clearInterval(interval);
   }, [navigate]);
 
+  const handleResendEmail = async () => {
+    setIsResending(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user?.email) {
+        toast({
+          title: "Error",
+          description: "Could not find your email address. Please try signing up again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: user.email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback?type=signup&redirect_to=/welcome`,
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Verification Email Sent",
+        description: "Please check your inbox for the new verification link.",
+      });
+    } catch (error: any) {
+      console.error('Error resending verification email:', error);
+      toast({
+        title: "Failed to Resend",
+        description: error.message || "Could not resend verification email. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsResending(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen py-12 px-4">
@@ -72,6 +116,26 @@ const Welcome: React.FC = () => {
             <p className="text-center text-sm text-yellow-800 dark:text-yellow-200 mt-2">
               Once you verify your email, you'll be automatically redirected to complete your subscription.
             </p>
+            <div className="flex justify-center mt-4">
+              <Button
+                variant="outline"
+                onClick={handleResendEmail}
+                disabled={isResending}
+                className="border-yellow-500 text-yellow-800 hover:bg-yellow-100 dark:text-yellow-200 dark:hover:bg-yellow-800/30"
+              >
+                {isResending ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Resend Verification Email
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
 
           {/* Resources Info (read-only) */}
