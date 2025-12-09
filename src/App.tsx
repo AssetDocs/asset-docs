@@ -95,19 +95,51 @@ const ScrollToTopWrapper = () => {
 const ProtectedRoute = ({ children, skipSubscriptionCheck = false, skipPhoneCheck = false }: { children: React.ReactNode; skipSubscriptionCheck?: boolean; skipPhoneCheck?: boolean }) => {
   const { isAuthenticated, loading, user } = useAuth();
   const [checkingSubscription, setCheckingSubscription] = useState(!skipSubscriptionCheck);
+  const [checkingPhone, setCheckingPhone] = useState(!skipPhoneCheck);
   const [hasSubscription, setHasSubscription] = useState(false);
   const [phoneVerified, setPhoneVerified] = useState<boolean | null>(null);
   
   // Testing whitelist - bypass all restrictions for this email
   const isTestingEmail = user?.email === 'michaeljlewis2@gmail.com';
   
+  // Check phone verification status separately
+  useEffect(() => {
+    const checkPhoneVerification = async () => {
+      if (!user || skipPhoneCheck || isTestingEmail) {
+        setCheckingPhone(false);
+        if (isTestingEmail) {
+          setPhoneVerified(true);
+        }
+        return;
+      }
+
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('phone_verified')
+          .eq('user_id', user.id)
+          .single();
+        
+        setPhoneVerified(profile?.phone_verified ?? false);
+      } catch (error) {
+        console.error('Error checking phone verification:', error);
+        setPhoneVerified(false);
+      } finally {
+        setCheckingPhone(false);
+      }
+    };
+
+    if (user) {
+      checkPhoneVerification();
+    }
+  }, [user, skipPhoneCheck, isTestingEmail]);
+
   useEffect(() => {
     const checkSubscription = async (retryCount = 0) => {
       if (!user || skipSubscriptionCheck || isTestingEmail) {
         setCheckingSubscription(false);
         if (isTestingEmail) {
           setHasSubscription(true);
-          setPhoneVerified(true);
         }
         return;
       }
@@ -123,19 +155,6 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false, skipPhoneChec
           } catch (inviteError) {
             console.log('Invitation acceptance check:', inviteError);
           }
-        }
-
-        // Check phone verification status
-        if (!skipPhoneCheck) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('phone_verified')
-            .eq('user_id', user.id)
-            .single();
-          
-          setPhoneVerified(profile?.phone_verified ?? false);
-        } else {
-          setPhoneVerified(true);
         }
 
         const { data } = await supabase.functions.invoke('check-subscription');
@@ -185,9 +204,9 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false, skipPhoneChec
     if (user) {
       checkSubscription();
     }
-  }, [user, skipSubscriptionCheck, isTestingEmail, skipPhoneCheck]);
+  }, [user, skipSubscriptionCheck, isTestingEmail]);
   
-  if (loading || checkingSubscription) {
+  if (loading || checkingPhone || checkingSubscription) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
@@ -209,7 +228,8 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false, skipPhoneChec
     return <Navigate to="/welcome" replace />;
   }
 
-  // Check if phone is verified (unless skipping the check)
+  // Check if phone is verified BEFORE checking subscription
+  // This ensures phone verification happens early in the flow
   if (!skipPhoneCheck && phoneVerified === false) {
     return <Navigate to="/verify-phone" replace />;
   }
