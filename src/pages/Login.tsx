@@ -46,8 +46,8 @@ const Login: React.FC = () => {
       
       if (error) {
         toast({
-          title: "Login Failed",
-          description: error.message || "Invalid email or password. Please try again.",
+          title: "Unable to Sign In",
+          description: "We couldn't sign you in with those credentials. Double-check your email and password, or reset your password if you've forgotten it.",
           variant: "destructive",
         });
       } else {

@@ -7,8 +7,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, ArrowLeft, ShieldCheck } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface SignUpFormData {
   firstName: string;
@@ -23,6 +24,7 @@ const Signup: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [emailExistsError, setEmailExistsError] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, signUp } = useAuth();
@@ -46,6 +48,8 @@ const Signup: React.FC = () => {
   }, [user, navigate]);
 
   const onSignUp = async (data: SignUpFormData) => {
+    setEmailExistsError(false);
+    
     if (data.password !== data.confirmPassword) {
       toast({
         title: "Password Mismatch",
@@ -60,12 +64,8 @@ const Signup: React.FC = () => {
       const { error } = await signUp(data.email, data.password, data.firstName, data.lastName);
 
       if (error) {
-        if (error.message.includes('User already registered')) {
-          toast({
-            title: "Account Already Exists",
-            description: "An account with this email already exists. Please sign in instead.",
-            variant: "destructive",
-          });
+        if (error.message.includes('User already registered') || error.message.includes('already been registered')) {
+          setEmailExistsError(true);
         } else {
           throw error;
         }
@@ -106,6 +106,27 @@ const Signup: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {emailExistsError && (
+              <Alert className="mb-6 border-amber-500 bg-amber-50 dark:bg-amber-900/20">
+                <ShieldCheck className="h-5 w-5 text-amber-600" />
+                <AlertTitle className="text-amber-800 dark:text-amber-200">
+                  An Asset Safe account already exists with this email
+                </AlertTitle>
+                <AlertDescription className="text-amber-700 dark:text-amber-300 mt-2">
+                  To protect your information, we don't create duplicate accounts.
+                  Please sign in or reset your password to regain access.
+                </AlertDescription>
+                <div className="flex flex-col sm:flex-row gap-2 mt-4">
+                  <Button asChild variant="default" className="bg-brand-blue hover:bg-brand-blue/90">
+                    <Link to="/login">Sign In Instead</Link>
+                  </Button>
+                  <Button asChild variant="outline">
+                    <Link to="/forgot-password">Reset Password</Link>
+                  </Button>
+                </div>
+              </Alert>
+            )}
+            
             <Form {...signUpForm}>
               <form onSubmit={signUpForm.handleSubmit(onSignUp)} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
