@@ -489,6 +489,110 @@ const QA: React.FC = () => {
                   <p className="mt-3">This way, you&apos;re a step ahead whenever you&apos;re ready.</p>
                 </AccordionContent>
               </AccordionItem>
+              
+              {/* Two-Step Authentication Section */}
+              <AccordionItem value="item-39">
+                <AccordionTrigger className="text-lg font-medium">🔐 Why Does Asset Safe Require Two-Step Authentication?</AccordionTrigger>
+                <AccordionContent>
+                  <Accordion type="single" collapsible className="space-y-2">
+                    <AccordionItem value="2fa-1" className="border-b-0">
+                      <AccordionTrigger className="text-base font-medium">
+                        Why do I need to verify both my email and phone number when I create an account?
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground">
+                        Asset Safe protects valuable and sensitive information. Verifying both email and phone prevents fake accounts and confirms that you are the rightful owner of your account from day one.
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem value="2fa-2" className="border-b-0">
+                      <AccordionTrigger className="text-base font-medium">
+                        Will I have to enter a verification code every time I log in?
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground">
+                        No. After you verify during signup, you can browse your dashboard and view most features without extra authentication. We avoid unnecessary friction so your experience stays quick and easy.
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem value="2fa-3" className="border-b-0">
+                      <AccordionTrigger className="text-base font-medium">
+                        When will Asset Safe ask for an extra verification code?
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground">
+                        <p className="mb-4">Only when you&apos;re doing something that could impact your privacy, assets, or financial security:</p>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm border-collapse">
+                            <thead>
+                              <tr className="border-b">
+                                <th className="text-left py-2 pr-4">Action</th>
+                                <th className="text-left py-2 pr-4">SMS Verification?</th>
+                                <th className="text-left py-2">Why</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr className="border-b">
+                                <td className="py-2 pr-4">Creating an account / first login</td>
+                                <td className="py-2 pr-4">✔️</td>
+                                <td className="py-2">Prevent fake accounts and confirm identity</td>
+                              </tr>
+                              <tr className="border-b">
+                                <td className="py-2 pr-4">Accessing general dashboard features</td>
+                                <td className="py-2 pr-4">❌</td>
+                                <td className="py-2">Keep experience fast and smooth</td>
+                              </tr>
+                              <tr className="border-b">
+                                <td className="py-2 pr-4">Opening Secure Vault or Legacy Locker</td>
+                                <td className="py-2 pr-4">✔️</td>
+                                <td className="py-2">Protect sensitive data like documents, passwords, and personal notes</td>
+                              </tr>
+                              <tr className="border-b">
+                                <td className="py-2 pr-4">Updating billing or subscriptions</td>
+                                <td className="py-2 pr-4">✔️</td>
+                                <td className="py-2">Prevent unauthorized purchases or changes</td>
+                              </tr>
+                              <tr className="border-b">
+                                <td className="py-2 pr-4">Adding trusted contacts or contributors</td>
+                                <td className="py-2 pr-4">✔️</td>
+                                <td className="py-2">Ensure only approved people gain access</td>
+                              </tr>
+                              <tr>
+                                <td className="py-2 pr-4">Changing your email or phone number</td>
+                                <td className="py-2 pr-4">✔️</td>
+                                <td className="py-2">Protect your account recovery options</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem value="2fa-4" className="border-b-0">
+                      <AccordionTrigger className="text-base font-medium">
+                        What if I lose access to my phone?
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground">
+                        Your verified email and trusted contacts provide secure backup methods to help you regain access without exposing your data.
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem value="2fa-5" className="border-b-0">
+                      <AccordionTrigger className="text-base font-medium">
+                        Why not require codes for everything?
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground">
+                        Security shouldn&apos;t get in the way of usability. We combine strong protection with smart automation so you only verify for high-risk actions.
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                  
+                  <div className="mt-6 p-4 bg-primary/5 rounded-lg border border-primary/20">
+                    <p className="text-base font-medium text-primary mb-2">✨ The Result</p>
+                    <p className="text-muted-foreground">
+                      You stay protected — without the annoyance of constant interruptions.<br />
+                      <span className="font-medium">Strong where it matters. Seamless everywhere else.</span>
+                    </p>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
             </Accordion>
             
             <div className="mt-10 text-center">
