@@ -236,7 +236,7 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false, skipPhoneChec
 
   // Check if user has subscription (unless skipping the check)
   if (!skipSubscriptionCheck && !hasSubscription) {
-    return <Navigate to="/subscription-success" replace />;
+    return <Navigate to="/pricing" replace />;
   }
   
   return <>{children}</>;
