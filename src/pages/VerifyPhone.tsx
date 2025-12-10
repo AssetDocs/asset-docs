@@ -33,7 +33,8 @@ const VerifyPhone: React.FC = () => {
         .single();
 
       if (profile?.phone_verified) {
-        navigate('/subscription-success');
+        // Phone already verified, go to pricing to complete subscription
+        navigate('/pricing');
       } else if (profile?.phone) {
         setPhone(profile.phone);
       }
@@ -149,8 +150,8 @@ const VerifyPhone: React.FC = () => {
           description: "Your phone number has been verified successfully.",
         });
 
-        // Redirect to subscription or account
-        navigate('/subscription-success');
+        // Redirect to pricing page to complete subscription
+        navigate('/pricing');
       } else {
         throw new Error('Invalid verification code. Please try again.');
       }
