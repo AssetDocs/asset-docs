@@ -128,9 +128,8 @@ const AuthCallback = () => {
   }, [searchParams, navigate, toast]);
 
   const handleContinue = () => {
-    const planType = sessionStorage.getItem('selectedPlanType') || 'standard';
-    sessionStorage.removeItem('selectedPlanType');
-    navigate(`/subscription-success?plan=${planType}`, { replace: true });
+    // Redirect to phone verification (SMS 2FA) as next step after email verification
+    navigate('/verify-phone', { replace: true });
   };
 
   if (loading) {
