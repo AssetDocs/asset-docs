@@ -64,7 +64,16 @@ const Signup: React.FC = () => {
       const { error } = await signUp(data.email, data.password, data.firstName, data.lastName);
 
       if (error) {
-        if (error.message.includes('User already registered') || error.message.includes('already been registered')) {
+        // Check for various Supabase "user already exists" error variations
+        const errorMsg = error.message?.toLowerCase() || '';
+        if (
+          errorMsg.includes('user already registered') || 
+          errorMsg.includes('already been registered') ||
+          errorMsg.includes('already exists') ||
+          errorMsg.includes('email already') ||
+          error.message?.includes('duplicate key') ||
+          error.message?.includes('unique constraint')
+        ) {
           setEmailExistsError(true);
         } else {
           throw error;
