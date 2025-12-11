@@ -34,7 +34,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Globe,
-  ExternalLink
+  ExternalLink,
+  Paintbrush
 } from 'lucide-react';
 
 const SampleDashboard: React.FC = () => {
@@ -367,13 +368,23 @@ const SampleDashboard: React.FC = () => {
           <DemoStorageDashboard />
 
           <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 gap-1 h-auto">
-              <TabsTrigger value="overview" className="text-xs md:text-sm px-2">Overview</TabsTrigger>
-              <TabsTrigger value="asset-values" className="text-xs md:text-sm px-2">Asset Values</TabsTrigger>
-              <TabsTrigger value="source-websites" className="text-xs md:text-sm px-2">Source Websites</TabsTrigger>
-              <TabsTrigger value="damage" className="text-xs md:text-sm px-2">Post Damage</TabsTrigger>
-              <TabsTrigger value="voice-notes" className="text-xs md:text-sm px-2">Voice Notes</TabsTrigger>
-            </TabsList>
+            <div className="space-y-2">
+              {/* First Row - 3 tabs */}
+              <TabsList className="grid w-full grid-cols-3 gap-1 h-auto">
+                <TabsTrigger value="overview" className="text-xs md:text-sm px-2">Overview</TabsTrigger>
+                <TabsTrigger value="asset-values" className="text-xs md:text-sm px-2">Asset Values</TabsTrigger>
+                <TabsTrigger value="source-websites" className="text-xs md:text-sm px-2">Source Websites</TabsTrigger>
+              </TabsList>
+              {/* Second Row - 3 tabs */}
+              <TabsList className="grid w-full grid-cols-3 gap-1 h-auto">
+                <TabsTrigger value="damage" className="text-xs md:text-sm px-2">Post Damage</TabsTrigger>
+                <TabsTrigger value="voice-notes" className="text-xs md:text-sm px-2">Voice Notes</TabsTrigger>
+                <TabsTrigger value="paint-codes" className="text-xs md:text-sm px-2">
+                  <Paintbrush className="h-3 w-3 mr-1" />
+                  Paint Codes
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
             <TabsContent value="overview" className="space-y-6">
               <DemoAccountStats />
@@ -732,6 +743,76 @@ const SampleDashboard: React.FC = () => {
                 </AlertDescription>
               </Alert>
               <VoiceNotesSection />
+            </TabsContent>
+
+            <TabsContent value="paint-codes">
+              <Alert className="mb-4 border-blue-200 bg-blue-50">
+                <Paintbrush className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Demo Mode:</strong> This shows the paint codes feature. In the live dashboard, you can store paint brand, name, code, and room location for touch-ups and repainting.
+                </AlertDescription>
+              </Alert>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Paintbrush className="h-6 w-6 mr-2 text-brand-blue" />
+                    Paint Codes
+                  </CardTitle>
+                  <CardDescription>
+                    Store paint brand, name, and code information for each room in your property
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Sample Paint Codes */}
+                  <div className="space-y-3">
+                    <h3 className="font-semibold text-gray-900">Saved Paint Codes (4)</h3>
+                    <div className="grid gap-3">
+                      {[
+                        { brand: 'Benjamin Moore', name: 'Simply White', code: 'OC-117', interior: true, room: 'Living Room' },
+                        { brand: 'Sherwin-Williams', name: 'Agreeable Gray', code: 'SW 7029', interior: true, room: 'Master Bedroom' },
+                        { brand: 'Benjamin Moore', name: 'Hale Navy', code: 'HC-154', interior: true, room: 'Home Office' },
+                        { brand: 'Sherwin-Williams', name: 'Alabaster', code: 'SW 7008', interior: false, room: 'Exterior Trim' },
+                      ].map((paint, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center justify-between p-4 border rounded-lg bg-white hover:bg-gray-50 transition-colors"
+                        >
+                          <div className="flex-1 grid grid-cols-1 md:grid-cols-5 gap-2 md:gap-4">
+                            <div>
+                              <p className="text-xs text-gray-500 uppercase">Brand</p>
+                              <p className="font-medium">{paint.brand}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-500 uppercase">Name</p>
+                              <p className="font-medium">{paint.name}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-500 uppercase">Code</p>
+                              <p className="font-medium font-mono">{paint.code}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-500 uppercase">Type</p>
+                              <p className="font-medium">
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                                  paint.interior 
+                                    ? 'bg-blue-100 text-blue-800' 
+                                    : 'bg-green-100 text-green-800'
+                                }`}>
+                                  {paint.interior ? 'Interior' : 'Exterior'}
+                                </span>
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-500 uppercase">Room/Location</p>
+                              <p className="font-medium">{paint.room}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         </div>

@@ -917,6 +917,42 @@ export type Database = {
         }
         Relationships: []
       }
+      paint_codes: {
+        Row: {
+          created_at: string
+          id: string
+          is_interior: boolean
+          paint_brand: string
+          paint_code: string
+          paint_name: string
+          room_location: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_interior?: boolean
+          paint_brand: string
+          paint_code: string
+          paint_name: string
+          room_location?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_interior?: boolean
+          paint_brand?: string
+          paint_code?: string
+          paint_name?: string
+          room_location?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       password_catalog: {
         Row: {
           created_at: string
