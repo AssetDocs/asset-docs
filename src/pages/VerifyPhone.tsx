@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Shield, Phone, Lock, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Shield, Phone, Lock, CheckCircle, Info } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
@@ -17,6 +17,7 @@ const VerifyPhone: React.FC = () => {
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
   const [isLoading, setIsLoading] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [isVerified, setIsVerified] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -33,15 +34,15 @@ const VerifyPhone: React.FC = () => {
         .single();
 
       if (profile?.phone_verified) {
-        // Phone already verified, go to pricing to complete subscription
-        navigate('/pricing');
+        setIsVerified(true);
+        if (profile?.phone) setPhone(profile.phone);
       } else if (profile?.phone) {
         setPhone(profile.phone);
       }
     };
 
     checkPhoneVerification();
-  }, [user, navigate]);
+  }, [user]);
 
   // Countdown timer for resend
   useEffect(() => {
@@ -52,10 +53,7 @@ const VerifyPhone: React.FC = () => {
   }, [resendCooldown]);
 
   const formatPhoneNumber = (value: string) => {
-    // Remove all non-digits
     const digits = value.replace(/\D/g, '');
-    
-    // Format as US phone number
     if (digits.length <= 3) return digits;
     if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
     return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
@@ -63,7 +61,6 @@ const VerifyPhone: React.FC = () => {
 
   const getE164Phone = (phone: string) => {
     const digits = phone.replace(/\D/g, '');
-    // Assume US number if 10 digits
     if (digits.length === 10) return `+1${digits}`;
     if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`;
     return `+${digits}`;
@@ -133,7 +130,6 @@ const VerifyPhone: React.FC = () => {
       if (error) throw error;
 
       if (data?.valid) {
-        // Update profile with verified phone
         const { error: updateError } = await supabase
           .from('profiles')
           .update({ 
@@ -145,13 +141,11 @@ const VerifyPhone: React.FC = () => {
 
         if (updateError) throw updateError;
 
+        setIsVerified(true);
         toast({
           title: "Phone Verified!",
           description: "Your phone number has been verified successfully.",
         });
-
-        // Redirect to pricing page to complete subscription
-        navigate('/pricing');
       } else {
         throw new Error('Invalid verification code. Please try again.');
       }
@@ -181,110 +175,134 @@ const VerifyPhone: React.FC = () => {
                 </div>
               </div>
               <CardTitle className="text-2xl font-bold text-primary">
-                Two-Factor Authentication Required
+                {isVerified ? 'Phone Verified' : 'Set Up Phone Verification'}
               </CardTitle>
               <CardDescription className="text-base mt-2">
-                Verify your phone number for enhanced security
+                {isVerified 
+                  ? 'Your phone is verified for secure vault access'
+                  : 'Optional: Add your phone for faster access to sensitive features'
+                }
               </CardDescription>
             </CardHeader>
             
             <CardContent className="space-y-6">
-              {/* Security Explanation */}
-              <Alert className="bg-amber-50 border-amber-200">
-                <AlertTriangle className="h-5 w-5 text-amber-600" />
-                <AlertDescription className="text-amber-800 ml-2">
-                  <strong>Why we require phone verification:</strong>
-                  <ul className="mt-2 space-y-1 text-sm">
-                    <li>• Asset Safe stores sensitive personal and financial information</li>
-                    <li>• Two-factor authentication prevents unauthorized access</li>
-                    <li>• Your phone number is encrypted and never shared</li>
-                    <li>• This is a one-time verification for account setup</li>
-                  </ul>
-                </AlertDescription>
-              </Alert>
-
-              {step === 'phone' ? (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Mobile Phone Number
-                    </label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                      <Input
-                        type="tel"
-                        placeholder="(555) 123-4567"
-                        value={phone}
-                        onChange={(e) => setPhone(formatPhoneNumber(e.target.value))}
-                        className="pl-10 text-lg"
-                        maxLength={14}
-                      />
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      We'll send a 6-digit verification code via SMS
-                    </p>
-                  </div>
-
-                  <Button
-                    onClick={handleSendOTP}
-                    className="w-full bg-primary hover:bg-primary/90 text-lg py-6"
-                    disabled={isLoading || phone.replace(/\D/g, '').length < 10}
-                  >
-                    {isLoading ? 'Sending Code...' : 'Send Verification Code'}
+              {isVerified ? (
+                <div className="text-center space-y-4">
+                  <CheckCircle className="w-16 h-16 text-green-500 mx-auto" />
+                  <p className="text-green-700 font-medium">
+                    Phone number verified: {phone}
+                  </p>
+                  <p className="text-muted-foreground text-sm">
+                    You can now access the Secure Vault and other sensitive features with SMS verification.
+                  </p>
+                  <Button onClick={() => navigate('/account')} className="w-full">
+                    Go to Dashboard
                   </Button>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  <div className="text-center mb-4">
-                    <CheckCircle className="w-10 h-10 text-green-500 mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">
-                      Code sent to <strong>{phone}</strong>
-                    </p>
-                    <button
-                      onClick={() => setStep('phone')}
-                      className="text-sm text-primary hover:underline mt-1"
-                    >
-                      Change number
-                    </button>
-                  </div>
+                <>
+                  <Alert className="bg-blue-50 border-blue-200">
+                    <Info className="h-5 w-5 text-blue-600" />
+                    <AlertDescription className="text-blue-800 ml-2">
+                      <strong>This step is optional.</strong>
+                      <p className="mt-1 text-sm">
+                        Phone verification is only required when accessing sensitive features like the Secure Vault, Legacy Locker, or changing billing information.
+                      </p>
+                    </AlertDescription>
+                  </Alert>
 
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Enter Verification Code
-                    </label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                      <Input
-                        type="text"
-                        placeholder="123456"
-                        value={otp}
-                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                        className="pl-10 text-lg text-center tracking-widest font-mono"
-                        maxLength={6}
-                      />
+                  {step === 'phone' ? (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">
+                          Mobile Phone Number
+                        </label>
+                        <div className="relative">
+                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                          <Input
+                            type="tel"
+                            placeholder="(555) 123-4567"
+                            value={phone}
+                            onChange={(e) => setPhone(formatPhoneNumber(e.target.value))}
+                            className="pl-10 text-lg"
+                            maxLength={14}
+                          />
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          We'll send a 6-digit verification code via SMS
+                        </p>
+                      </div>
+
+                      <Button
+                        onClick={handleSendOTP}
+                        className="w-full bg-primary hover:bg-primary/90 text-lg py-6"
+                        disabled={isLoading || phone.replace(/\D/g, '').length < 10}
+                      >
+                        {isLoading ? 'Sending Code...' : 'Send Verification Code'}
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        onClick={() => navigate('/account')}
+                        className="w-full"
+                      >
+                        Skip for Now
+                      </Button>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="text-center mb-4">
+                        <CheckCircle className="w-10 h-10 text-green-500 mx-auto mb-2" />
+                        <p className="text-sm text-muted-foreground">
+                          Code sent to <strong>{phone}</strong>
+                        </p>
+                        <button
+                          onClick={() => setStep('phone')}
+                          className="text-sm text-primary hover:underline mt-1"
+                        >
+                          Change number
+                        </button>
+                      </div>
 
-                  <Button
-                    onClick={handleVerifyOTP}
-                    className="w-full bg-primary hover:bg-primary/90 text-lg py-6"
-                    disabled={isLoading || otp.length !== 6}
-                  >
-                    {isLoading ? 'Verifying...' : 'Verify & Continue'}
-                  </Button>
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-2">
+                          Enter Verification Code
+                        </label>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                          <Input
+                            type="text"
+                            placeholder="123456"
+                            value={otp}
+                            onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                            className="pl-10 text-lg text-center tracking-widest font-mono"
+                            maxLength={6}
+                          />
+                        </div>
+                      </div>
 
-                  <div className="text-center">
-                    <button
-                      onClick={handleSendOTP}
-                      disabled={resendCooldown > 0 || isLoading}
-                      className="text-sm text-primary hover:underline disabled:text-muted-foreground disabled:no-underline"
-                    >
-                      {resendCooldown > 0 
-                        ? `Resend code in ${resendCooldown}s` 
-                        : "Didn't receive a code? Resend"}
-                    </button>
-                  </div>
-                </div>
+                      <Button
+                        onClick={handleVerifyOTP}
+                        className="w-full bg-primary hover:bg-primary/90 text-lg py-6"
+                        disabled={isLoading || otp.length !== 6}
+                      >
+                        {isLoading ? 'Verifying...' : 'Verify Phone'}
+                      </Button>
+
+                      <div className="text-center">
+                        <button
+                          onClick={handleSendOTP}
+                          disabled={resendCooldown > 0 || isLoading}
+                          className="text-sm text-primary hover:underline disabled:text-muted-foreground disabled:no-underline"
+                        >
+                          {resendCooldown > 0 
+                            ? `Resend code in ${resendCooldown}s` 
+                            : "Didn't receive a code? Resend"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
 
               {/* Trust Badges */}

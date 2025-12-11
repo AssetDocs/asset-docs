@@ -92,47 +92,14 @@ const ScrollToTopWrapper = () => {
 };
 
 // Protected Route Component with Subscription Guard
-const ProtectedRoute = ({ children, skipSubscriptionCheck = false, skipPhoneCheck = false }: { children: React.ReactNode; skipSubscriptionCheck?: boolean; skipPhoneCheck?: boolean }) => {
+// NOTE: Phone verification removed from main flow - now handled via step-up verification for sensitive actions
+const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children: React.ReactNode; skipSubscriptionCheck?: boolean }) => {
   const { isAuthenticated, loading, user } = useAuth();
   const [checkingSubscription, setCheckingSubscription] = useState(!skipSubscriptionCheck);
-  const [checkingPhone, setCheckingPhone] = useState(!skipPhoneCheck);
   const [hasSubscription, setHasSubscription] = useState(false);
-  const [phoneVerified, setPhoneVerified] = useState<boolean | null>(null);
   
   // Testing whitelist - bypass all restrictions for this email
   const isTestingEmail = user?.email === 'michaeljlewis2@gmail.com';
-  
-  // Check phone verification status separately
-  useEffect(() => {
-    const checkPhoneVerification = async () => {
-      if (!user || skipPhoneCheck || isTestingEmail) {
-        setCheckingPhone(false);
-        if (isTestingEmail) {
-          setPhoneVerified(true);
-        }
-        return;
-      }
-
-      try {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('phone_verified')
-          .eq('user_id', user.id)
-          .single();
-        
-        setPhoneVerified(profile?.phone_verified ?? false);
-      } catch (error) {
-        console.error('Error checking phone verification:', error);
-        setPhoneVerified(false);
-      } finally {
-        setCheckingPhone(false);
-      }
-    };
-
-    if (user) {
-      checkPhoneVerification();
-    }
-  }, [user, skipPhoneCheck, isTestingEmail]);
 
   useEffect(() => {
     const checkSubscription = async (retryCount = 0) => {
@@ -206,7 +173,7 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false, skipPhoneChec
     }
   }, [user, skipSubscriptionCheck, isTestingEmail]);
   
-  if (loading || checkingPhone || checkingSubscription) {
+  if (loading || checkingSubscription) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
@@ -226,12 +193,6 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false, skipPhoneChec
   // Check if email is verified (unless on the welcome or subscription pages)
   if (!skipSubscriptionCheck && user && !user.email_confirmed_at) {
     return <Navigate to="/welcome" replace />;
-  }
-
-  // Check if phone is verified BEFORE checking subscription
-  // This ensures phone verification happens early in the flow
-  if (!skipPhoneCheck && phoneVerified === false) {
-    return <Navigate to="/verify-phone" replace />;
   }
 
   // Check if user has subscription (unless skipping the check)
@@ -285,7 +246,7 @@ const AppContent = () => {
         <Route path="/welcome" element={<Welcome />} />
         
         {/* Protected routes */}
-        <Route path="/subscription-success" element={<ProtectedRoute skipSubscriptionCheck={true} skipPhoneCheck={true}><SubscriptionSuccess /></ProtectedRoute>} />
+        <Route path="/subscription-success" element={<ProtectedRoute skipSubscriptionCheck={true}><SubscriptionSuccess /></ProtectedRoute>} />
         <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
         <Route path="/account/properties" element={<ProtectedRoute><Properties /></ProtectedRoute>} />
         <Route path="/account/properties/new" element={<ProtectedRoute><PropertyForm /></ProtectedRoute>} />
