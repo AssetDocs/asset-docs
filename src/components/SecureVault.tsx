@@ -16,6 +16,7 @@ import LegacyLocker from './LegacyLocker';
 import { RecoveryDelegateSelector } from './RecoveryDelegateSelector';
 import { RecoveryRequestAlert } from './RecoveryRequestAlert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import StepUpVerification from './StepUpVerification';
 
 const SecureVault: React.FC = () => {
   const { user } = useAuth();
@@ -26,6 +27,10 @@ const SecureVault: React.FC = () => {
   const [showMasterPasswordModal, setShowMasterPasswordModal] = useState(false);
   const [isSetupMode, setIsSetupMode] = useState(false);
   const [loading, setLoading] = useState(true);
+  
+  // Step-up verification state
+  const [showStepUpVerification, setShowStepUpVerification] = useState(false);
+  const [stepUpVerified, setStepUpVerified] = useState(false);
   
   // Recovery delegate state
   const [contributors, setContributors] = useState<any[]>([]);
@@ -118,6 +123,22 @@ const SecureVault: React.FC = () => {
   };
 
   const handleUnlockClick = () => {
+    // Require step-up SMS verification first
+    if (!stepUpVerified) {
+      setShowStepUpVerification(true);
+      return;
+    }
+    
+    const storedHash = localStorage.getItem(MASTER_PASSWORD_HASH_KEY);
+    setIsSetupMode(!storedHash);
+    setShowMasterPasswordModal(true);
+  };
+
+  const handleStepUpVerified = () => {
+    setStepUpVerified(true);
+    setShowStepUpVerification(false);
+    
+    // Now proceed to master password modal
     const storedHash = localStorage.getItem(MASTER_PASSWORD_HASH_KEY);
     setIsSetupMode(!storedHash);
     setShowMasterPasswordModal(true);
@@ -265,6 +286,12 @@ const SecureVault: React.FC = () => {
           onSubmit={handleMasterPasswordSubmit}
           onCancel={() => setShowMasterPasswordModal(false)}
         />
+        <StepUpVerification
+          isOpen={showStepUpVerification}
+          onClose={() => setShowStepUpVerification(false)}
+          onVerified={handleStepUpVerified}
+          actionDescription="access your Secure Vault"
+        />
       </>
     );
   }
@@ -401,6 +428,12 @@ const SecureVault: React.FC = () => {
         isSetup={isSetupMode}
         onSubmit={handleMasterPasswordSubmit}
         onCancel={() => setShowMasterPasswordModal(false)}
+      />
+      <StepUpVerification
+        isOpen={showStepUpVerification}
+        onClose={() => setShowStepUpVerification(false)}
+        onVerified={handleStepUpVerified}
+        actionDescription="access your Secure Vault"
       />
     </>
   );
