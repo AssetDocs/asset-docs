@@ -13,9 +13,6 @@ const HeroSection: React.FC = () => {
             <h1 className="text-4xl md:text-5xl font-bold mb-4 animate-fade-in">
               Your Digital Safety Net for Asset Protection & Unexpected Events
             </h1>
-            <p className="text-lg font-semibold mb-6 animate-fade-in text-white/90 italic">
-              The Trusted Standard in Property Protection
-            </p>
             <p className="text-xl mb-4 animate-slide-up opacity-90">
               Complete property documentation platform for homeowners, renters, and businesses. Secure digital inventory, insurance claims support, legacy planning, and estate management tools—all in one comprehensive solution.
             </p>
