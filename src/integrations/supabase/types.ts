@@ -925,7 +925,10 @@ export type Database = {
           paint_brand: string
           paint_code: string
           paint_name: string
+          property_id: string | null
           room_location: string | null
+          swatch_image_path: string | null
+          swatch_image_url: string | null
           updated_at: string
           user_id: string
         }
@@ -936,7 +939,10 @@ export type Database = {
           paint_brand: string
           paint_code: string
           paint_name: string
+          property_id?: string | null
           room_location?: string | null
+          swatch_image_path?: string | null
+          swatch_image_url?: string | null
           updated_at?: string
           user_id: string
         }
@@ -947,11 +953,22 @@ export type Database = {
           paint_brand?: string
           paint_code?: string
           paint_name?: string
+          property_id?: string | null
           room_location?: string | null
+          swatch_image_path?: string | null
+          swatch_image_url?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "paint_codes_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       password_catalog: {
         Row: {
