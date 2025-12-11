@@ -768,43 +768,65 @@ const SampleDashboard: React.FC = () => {
                     <h3 className="font-semibold text-gray-900">Saved Paint Codes (4)</h3>
                     <div className="grid gap-3">
                       {[
-                        { brand: 'Benjamin Moore', name: 'Simply White', code: 'OC-117', interior: true, room: 'Living Room' },
-                        { brand: 'Sherwin-Williams', name: 'Agreeable Gray', code: 'SW 7029', interior: true, room: 'Master Bedroom' },
-                        { brand: 'Benjamin Moore', name: 'Hale Navy', code: 'HC-154', interior: true, room: 'Home Office' },
-                        { brand: 'Sherwin-Williams', name: 'Alabaster', code: 'SW 7008', interior: false, room: 'Exterior Trim' },
+                        { property: 'Main Home', brand: 'Benjamin Moore', name: 'Simply White', code: 'OC-117', interior: true, room: 'Living Room', swatch: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=100&h=100&fit=crop' },
+                        { property: 'Main Home', brand: 'Sherwin-Williams', name: 'Agreeable Gray', code: 'SW 7029', interior: true, room: 'Master Bedroom', swatch: 'https://images.unsplash.com/photo-1604147495798-57beb5d6af73?w=100&h=100&fit=crop' },
+                        { property: 'Beach Cottage', brand: 'Benjamin Moore', name: 'Hale Navy', code: 'HC-154', interior: true, room: 'Home Office', swatch: 'https://images.unsplash.com/photo-1557683316-973673baf926?w=100&h=100&fit=crop' },
+                        { property: 'Main Home', brand: 'Sherwin-Williams', name: 'Alabaster', code: 'SW 7008', interior: false, room: 'Exterior Trim', swatch: null },
                       ].map((paint, idx) => (
                         <div
                           key={idx}
-                          className="flex items-center justify-between p-4 border rounded-lg bg-white hover:bg-gray-50 transition-colors"
+                          className="flex items-start justify-between p-4 border rounded-lg bg-white hover:bg-gray-50 transition-colors"
                         >
-                          <div className="flex-1 grid grid-cols-1 md:grid-cols-5 gap-2 md:gap-4">
-                            <div>
-                              <p className="text-xs text-gray-500 uppercase">Brand</p>
-                              <p className="font-medium">{paint.brand}</p>
+                          <div className="flex gap-4 flex-1">
+                            {/* Color Swatch */}
+                            <div className="flex-shrink-0">
+                              {paint.swatch ? (
+                                <img 
+                                  src={paint.swatch} 
+                                  alt={`${paint.name} swatch`}
+                                  className="w-16 h-16 object-cover rounded-lg border"
+                                />
+                              ) : (
+                                <div className="w-16 h-16 rounded-lg border bg-gray-100 flex items-center justify-center">
+                                  <FileImage className="h-6 w-6 text-gray-400" />
+                                </div>
+                              )}
                             </div>
-                            <div>
-                              <p className="text-xs text-gray-500 uppercase">Name</p>
-                              <p className="font-medium">{paint.name}</p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-gray-500 uppercase">Code</p>
-                              <p className="font-medium font-mono">{paint.code}</p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-gray-500 uppercase">Type</p>
-                              <p className="font-medium">
-                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                                  paint.interior 
-                                    ? 'bg-blue-100 text-blue-800' 
-                                    : 'bg-green-100 text-green-800'
-                                }`}>
-                                  {paint.interior ? 'Interior' : 'Exterior'}
-                                </span>
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-gray-500 uppercase">Room/Location</p>
-                              <p className="font-medium">{paint.room}</p>
+                            
+                            {/* Paint Details */}
+                            <div className="flex-1 grid grid-cols-1 md:grid-cols-6 gap-2 md:gap-4">
+                              <div>
+                                <p className="text-xs text-gray-500 uppercase">Property</p>
+                                <p className="font-medium text-sm">{paint.property}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-500 uppercase">Brand</p>
+                                <p className="font-medium">{paint.brand}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-500 uppercase">Name</p>
+                                <p className="font-medium">{paint.name}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-500 uppercase">Code</p>
+                                <p className="font-medium font-mono">{paint.code}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-500 uppercase">Type</p>
+                                <p className="font-medium">
+                                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                                    paint.interior 
+                                      ? 'bg-blue-100 text-blue-800' 
+                                      : 'bg-green-100 text-green-800'
+                                  }`}>
+                                    {paint.interior ? 'Interior' : 'Exterior'}
+                                  </span>
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-500 uppercase">Room</p>
+                                <p className="font-medium">{paint.room}</p>
+                              </div>
                             </div>
                           </div>
                         </div>
