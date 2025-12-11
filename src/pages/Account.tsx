@@ -27,6 +27,7 @@ import SecureVault from '@/components/SecureVault';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import PaintCodesSection from '@/components/PaintCodesSection';
 import { 
   Home, 
   Camera, 
@@ -37,7 +38,8 @@ import {
   Settings, 
   Plus, 
   Eye, 
-  Users 
+  Users,
+  Paintbrush 
 } from 'lucide-react';
 
 // Welcome Message Component
@@ -134,23 +136,33 @@ const Account: React.FC = () => {
           </div>
 
           <Tabs defaultValue="overview" className="space-y-6" id="tabs-content">
-            <TabsList className={`${isMobile ? 'flex overflow-x-auto' : 'grid grid-cols-5'} w-full`}>
-              <TabsTrigger value="overview" className={isMobile ? 'flex-shrink-0' : ''}>
-                {isMobile ? 'Home' : 'Overview'}
-              </TabsTrigger>
-              <TabsTrigger value="asset-values" className={isMobile ? 'flex-shrink-0' : ''}>
-                {isMobile ? 'Assets' : 'Asset Values'}
-              </TabsTrigger>
-              <TabsTrigger value="source-websites" className={isMobile ? 'flex-shrink-0' : ''}>
-                {isMobile ? 'Websites' : 'Source Websites'}
-              </TabsTrigger>
-              <TabsTrigger value="damage" className={isMobile ? 'flex-shrink-0' : ''}>
-                {isMobile ? 'Damage' : 'Post Damage'}
-              </TabsTrigger>
-              <TabsTrigger value="voice-notes" className={isMobile ? 'flex-shrink-0' : ''}>
-                {isMobile ? 'Notes' : 'Voice Notes'}
-              </TabsTrigger>
-            </TabsList>
+            <div className="space-y-2">
+              {/* First Row - 3 tabs */}
+              <TabsList className={`${isMobile ? 'flex overflow-x-auto' : 'grid grid-cols-3'} w-full`}>
+                <TabsTrigger value="overview" className={isMobile ? 'flex-shrink-0' : ''}>
+                  {isMobile ? 'Home' : 'Overview'}
+                </TabsTrigger>
+                <TabsTrigger value="asset-values" className={isMobile ? 'flex-shrink-0' : ''}>
+                  {isMobile ? 'Assets' : 'Asset Values'}
+                </TabsTrigger>
+                <TabsTrigger value="source-websites" className={isMobile ? 'flex-shrink-0' : ''}>
+                  {isMobile ? 'Websites' : 'Source Websites'}
+                </TabsTrigger>
+              </TabsList>
+              {/* Second Row - 3 tabs */}
+              <TabsList className={`${isMobile ? 'flex overflow-x-auto' : 'grid grid-cols-3'} w-full`}>
+                <TabsTrigger value="damage" className={isMobile ? 'flex-shrink-0' : ''}>
+                  {isMobile ? 'Damage' : 'Post Damage'}
+                </TabsTrigger>
+                <TabsTrigger value="voice-notes" className={isMobile ? 'flex-shrink-0' : ''}>
+                  {isMobile ? 'Notes' : 'Voice Notes'}
+                </TabsTrigger>
+                <TabsTrigger value="paint-codes" className={isMobile ? 'flex-shrink-0' : ''}>
+                  <Paintbrush className="h-4 w-4 mr-1" />
+                  {isMobile ? 'Paint' : 'Paint Codes'}
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
             <TabsContent value="overview" className="space-y-6">
               <AccountStats />
@@ -557,6 +569,10 @@ const Account: React.FC = () => {
               <FeatureGuard featureKey="voice_notes">
                 <VoiceNotesSection />
               </FeatureGuard>
+            </TabsContent>
+
+            <TabsContent value="paint-codes">
+              <PaintCodesSection />
             </TabsContent>
 
           </Tabs>
