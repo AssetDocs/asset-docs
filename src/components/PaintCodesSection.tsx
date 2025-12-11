@@ -158,7 +158,7 @@ const PaintCodesSection: React.FC = () => {
           paint_code: newEntry.paint_code,
           is_interior: newEntry.is_interior,
           room_location: newEntry.room_location,
-          property_id: newEntry.property_id || null,
+          property_id: newEntry.property_id === 'none' ? null : (newEntry.property_id || null),
           swatch_image_path: swatchData?.path || null,
           swatch_image_url: swatchData?.url || null
         })
@@ -268,7 +268,7 @@ const PaintCodesSection: React.FC = () => {
                   <SelectValue placeholder="Select a property (optional)" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border shadow-lg z-50">
-                  <SelectItem value="">No property selected</SelectItem>
+                  <SelectItem value="none">No property selected</SelectItem>
                   {properties.map((property) => (
                     <SelectItem key={property.id} value={property.id}>
                       {property.name} - {property.address}
