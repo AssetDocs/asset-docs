@@ -32,8 +32,8 @@ const Welcome: React.FC = () => {
     // Only redirect if user exists AND email is confirmed
     // This prevents redirecting before the user has verified
     if (user?.email_confirmed_at) {
-      // Redirect to phone verification (SMS 2FA) as next step
-      navigate('/verify-phone');
+      // Redirect to pricing/subscription selection after email verification
+      navigate('/pricing');
     }
   };
 

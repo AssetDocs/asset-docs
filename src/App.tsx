@@ -82,7 +82,7 @@ import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import CRM from "./pages/CRM";
 import AcknowledgeAccess from "./pages/AcknowledgeAccess";
-import VerifyPhone from "./pages/VerifyPhone";
+
 
 const queryClient = new QueryClient();
 
@@ -92,7 +92,7 @@ const ScrollToTopWrapper = () => {
 };
 
 // Protected Route Component with Subscription Guard
-// NOTE: Phone verification removed from main flow - now handled via step-up verification for sensitive actions
+// NOTE: TOTP-based 2FA is used for sensitive actions (Secure Vault, billing, etc.) - not on every login
 const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children: React.ReactNode; skipSubscriptionCheck?: boolean }) => {
   const { isAuthenticated, loading, user } = useAuth();
   const [checkingSubscription, setCheckingSubscription] = useState(!skipSubscriptionCheck);
@@ -235,7 +235,7 @@ const AppContent = () => {
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/email-verification" element={<EmailVerification />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
-        <Route path="/verify-phone" element={<VerifyPhone />} />
+        {/* TOTP-based 2FA is now used instead of phone verification */}
         <Route path="/complete-pricing" element={<CompletePricing />} />
         
         {/* Public FAQ route */}

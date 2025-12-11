@@ -128,8 +128,8 @@ const AuthCallback = () => {
   }, [searchParams, navigate, toast]);
 
   const handleContinue = () => {
-    // Redirect to phone verification (SMS 2FA) as next step after email verification
-    navigate('/verify-phone', { replace: true });
+    // Redirect to pricing/subscription selection after email verification
+    navigate('/pricing', { replace: true });
   };
 
   if (loading) {

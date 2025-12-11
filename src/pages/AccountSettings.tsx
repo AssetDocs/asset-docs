@@ -8,11 +8,12 @@ import SubscriptionTab from '@/components/SubscriptionTab';
 import NotificationsTab from '@/components/NotificationsTab';
 import ContributorsTab from '@/components/ContributorsTab';
 import CookieSettings from '@/components/CookieSettings';
+import TOTPSettings from '@/components/TOTPSettings';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, User, CreditCard, Package, Bell, Copy, Check, Shield, Users } from 'lucide-react';
+import { ArrowLeft, User, CreditCard, Package, Bell, Copy, Check, Shield, Users, Lock } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -27,7 +28,7 @@ const AccountSettings: React.FC = () => {
   const getDefaultTab = () => {
     const urlParams = new URLSearchParams(location.search);
     const tab = urlParams.get('tab');
-    return ['profile', 'billing', 'subscription', 'contributors', 'notifications', 'privacy'].includes(tab || '') 
+    return ['profile', 'billing', 'subscription', 'contributors', 'notifications', 'security', 'privacy'].includes(tab || '') 
       ? tab || 'profile' 
       : 'profile';
   };
@@ -96,30 +97,34 @@ const AccountSettings: React.FC = () => {
           </div>
 
           <Tabs defaultValue={getDefaultTab()} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-7">
               <TabsTrigger value="profile" className="flex items-center gap-2">
                 <User className="h-4 w-4" />
-                Profile
+                <span className="hidden sm:inline">Profile</span>
               </TabsTrigger>
               <TabsTrigger value="billing" className="flex items-center gap-2">
                 <CreditCard className="h-4 w-4" />
-                Billing
+                <span className="hidden sm:inline">Billing</span>
               </TabsTrigger>
               <TabsTrigger value="subscription" className="flex items-center gap-2">
                 <Package className="h-4 w-4" />
-                Subscription
+                <span className="hidden sm:inline">Plan</span>
               </TabsTrigger>
               <TabsTrigger value="contributors" className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
-                Contributors
+                <span className="hidden sm:inline">Contributors</span>
+              </TabsTrigger>
+              <TabsTrigger value="security" className="flex items-center gap-2">
+                <Lock className="h-4 w-4" />
+                <span className="hidden sm:inline">Security</span>
               </TabsTrigger>
               <TabsTrigger value="notifications" className="flex items-center gap-2">
                 <Bell className="h-4 w-4" />
-                Notifications
+                <span className="hidden sm:inline">Alerts</span>
               </TabsTrigger>
               <TabsTrigger value="privacy" className="flex items-center gap-2">
                 <Shield className="h-4 w-4" />
-                Privacy
+                <span className="hidden sm:inline">Privacy</span>
               </TabsTrigger>
             </TabsList>
 
@@ -141,6 +146,10 @@ const AccountSettings: React.FC = () => {
 
             <TabsContent value="notifications">
               <NotificationsTab />
+            </TabsContent>
+
+            <TabsContent value="security">
+              <TOTPSettings />
             </TabsContent>
 
             <TabsContent value="privacy">

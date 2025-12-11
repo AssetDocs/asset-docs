@@ -16,7 +16,7 @@ import LegacyLocker from './LegacyLocker';
 import { RecoveryDelegateSelector } from './RecoveryDelegateSelector';
 import { RecoveryRequestAlert } from './RecoveryRequestAlert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import StepUpVerification from './StepUpVerification';
+import TOTPChallenge from './TOTPChallenge';
 
 const SecureVault: React.FC = () => {
   const { user } = useAuth();
@@ -28,9 +28,9 @@ const SecureVault: React.FC = () => {
   const [isSetupMode, setIsSetupMode] = useState(false);
   const [loading, setLoading] = useState(true);
   
-  // Step-up verification state
-  const [showStepUpVerification, setShowStepUpVerification] = useState(false);
-  const [stepUpVerified, setStepUpVerified] = useState(false);
+  // TOTP verification state
+  const [showTOTPChallenge, setShowTOTPChallenge] = useState(false);
+  const [totpVerified, setTotpVerified] = useState(false);
   
   // Recovery delegate state
   const [contributors, setContributors] = useState<any[]>([]);
@@ -123,9 +123,9 @@ const SecureVault: React.FC = () => {
   };
 
   const handleUnlockClick = () => {
-    // Require step-up SMS verification first
-    if (!stepUpVerified) {
-      setShowStepUpVerification(true);
+    // Require TOTP verification first
+    if (!totpVerified) {
+      setShowTOTPChallenge(true);
       return;
     }
     
@@ -134,9 +134,9 @@ const SecureVault: React.FC = () => {
     setShowMasterPasswordModal(true);
   };
 
-  const handleStepUpVerified = () => {
-    setStepUpVerified(true);
-    setShowStepUpVerification(false);
+  const handleTOTPVerified = () => {
+    setTotpVerified(true);
+    setShowTOTPChallenge(false);
     
     // Now proceed to master password modal
     const storedHash = localStorage.getItem(MASTER_PASSWORD_HASH_KEY);
@@ -286,10 +286,10 @@ const SecureVault: React.FC = () => {
           onSubmit={handleMasterPasswordSubmit}
           onCancel={() => setShowMasterPasswordModal(false)}
         />
-        <StepUpVerification
-          isOpen={showStepUpVerification}
-          onClose={() => setShowStepUpVerification(false)}
-          onVerified={handleStepUpVerified}
+        <TOTPChallenge
+          isOpen={showTOTPChallenge}
+          onClose={() => setShowTOTPChallenge(false)}
+          onVerified={handleTOTPVerified}
           actionDescription="access your Secure Vault"
         />
       </>
@@ -429,10 +429,10 @@ const SecureVault: React.FC = () => {
         onSubmit={handleMasterPasswordSubmit}
         onCancel={() => setShowMasterPasswordModal(false)}
       />
-      <StepUpVerification
-        isOpen={showStepUpVerification}
-        onClose={() => setShowStepUpVerification(false)}
-        onVerified={handleStepUpVerified}
+      <TOTPChallenge
+        isOpen={showTOTPChallenge}
+        onClose={() => setShowTOTPChallenge(false)}
+        onVerified={handleTOTPVerified}
         actionDescription="access your Secure Vault"
       />
     </>

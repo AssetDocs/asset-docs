@@ -497,10 +497,10 @@ const QA: React.FC = () => {
                   <Accordion type="single" collapsible className="space-y-2">
                     <AccordionItem value="2fa-1" className="border-b-0">
                       <AccordionTrigger className="text-base font-medium">
-                        Why do I need to verify both my email and phone number when I create an account?
+                        What type of two-factor authentication does Asset Safe use?
                       </AccordionTrigger>
                       <AccordionContent className="text-muted-foreground">
-                        Asset Safe protects valuable and sensitive information. Verifying both email and phone prevents fake accounts and confirms that you are the rightful owner of your account from day one.
+                        Asset Safe uses TOTP (Time-based One-Time Password) authentication via authenticator apps like Google Authenticator, Authy, or 1Password. This is more secure than SMS and works even without cell service.
                       </AccordionContent>
                     </AccordionItem>
 
@@ -509,7 +509,7 @@ const QA: React.FC = () => {
                         Will I have to enter a verification code every time I log in?
                       </AccordionTrigger>
                       <AccordionContent className="text-muted-foreground">
-                        No. After you verify during signup, you can browse your dashboard and view most features without extra authentication. We avoid unnecessary friction so your experience stays quick and easy.
+                        No. After verifying your email during signup, you can browse your dashboard and most features without extra authentication. TOTP verification is only required for sensitive actions like accessing the Secure Vault.
                       </AccordionContent>
                     </AccordionItem>
 
@@ -524,15 +524,15 @@ const QA: React.FC = () => {
                             <thead>
                               <tr className="border-b">
                                 <th className="text-left py-2 pr-4">Action</th>
-                                <th className="text-left py-2 pr-4">SMS Verification?</th>
+                                <th className="text-left py-2 pr-4">Authenticator Required?</th>
                                 <th className="text-left py-2">Why</th>
                               </tr>
                             </thead>
                             <tbody>
                               <tr className="border-b">
                                 <td className="py-2 pr-4">Creating an account / first login</td>
-                                <td className="py-2 pr-4">✔️</td>
-                                <td className="py-2">Prevent fake accounts and confirm identity</td>
+                                <td className="py-2 pr-4">❌</td>
+                                <td className="py-2">Email verification is sufficient for signup</td>
                               </tr>
                               <tr className="border-b">
                                 <td className="py-2 pr-4">Accessing general dashboard features</td>
@@ -555,7 +555,7 @@ const QA: React.FC = () => {
                                 <td className="py-2">Ensure only approved people gain access</td>
                               </tr>
                               <tr>
-                                <td className="py-2 pr-4">Changing your email or phone number</td>
+                                <td className="py-2 pr-4">Changing your email or password</td>
                                 <td className="py-2 pr-4">✔️</td>
                                 <td className="py-2">Protect your account recovery options</td>
                               </tr>
@@ -567,10 +567,10 @@ const QA: React.FC = () => {
 
                     <AccordionItem value="2fa-4" className="border-b-0">
                       <AccordionTrigger className="text-base font-medium">
-                        What if I lose access to my phone?
+                        What if I lose access to my authenticator app?
                       </AccordionTrigger>
                       <AccordionContent className="text-muted-foreground">
-                        Your verified email and trusted contacts provide secure backup methods to help you regain access without exposing your data.
+                        Your verified email and trusted contacts provide secure backup methods to help you regain access. You can also remove and re-setup your authenticator from the Security tab in Account Settings.
                       </AccordionContent>
                     </AccordionItem>
 
