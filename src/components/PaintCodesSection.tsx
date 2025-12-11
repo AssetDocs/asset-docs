@@ -130,15 +130,6 @@ const PaintCodesSection: React.FC = () => {
   };
 
   const handleAddEntry = async () => {
-    if (!newEntry.paint_brand || !newEntry.paint_name || !newEntry.paint_code) {
-      toast({
-        title: 'Missing Information',
-        description: 'Please fill in brand, name, and code fields',
-        variant: 'destructive',
-      });
-      return;
-    }
-
     setIsSaving(true);
     try {
       let swatchData: { path: string; url: string } | null = null;
