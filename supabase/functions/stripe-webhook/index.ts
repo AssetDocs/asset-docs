@@ -173,14 +173,16 @@ async function handleSubscriptionChange(supabase: any, subscription: Stripe.Subs
     // Handle storage add-on separately
     const storageAmountGb = parseInt(subscription.metadata?.storage_amount_gb || '50');
     
-    const { data: user } = await supabase.auth.admin.getUserByEmail(customer.email);
+    // List users filtered by email (since getUserByEmail doesn't work in Deno)
+    const { data: usersData } = await supabase.auth.admin.listUsers();
+    const user = usersData?.users?.find((u: any) => u.email === customer.email);
     
-    if (user?.user) {
+    if (user) {
       // Get current storage quota
       const { data: profile } = await supabase
         .from('profiles')
         .select('storage_quota_gb')
-        .eq('user_id', user.user.id)
+        .eq('user_id', user.id)
         .single();
       
       const currentQuota = profile?.storage_quota_gb || 5;
@@ -193,7 +195,7 @@ async function handleSubscriptionChange(supabase: any, subscription: Stripe.Subs
           storage_quota_gb: newQuota,
           updated_at: new Date().toISOString()
         })
-        .eq('user_id', user.user.id);
+        .eq('user_id', user.id);
       
       if (profileError) {
         logStep('Error updating storage quota', profileError);
@@ -210,15 +212,16 @@ async function handleSubscriptionChange(supabase: any, subscription: Stripe.Subs
   // Determine plan limits based on price
   const { propertyLimit, storageQuotaGb, tier } = getPlanLimits(priceId);
 
-  // Find user by email
-  const { data: user } = await supabase.auth.admin.getUserByEmail(customer.email);
+  // Find user by email (list users and filter since getUserByEmail doesn't work in Deno)
+  const { data: usersData } = await supabase.auth.admin.listUsers();
+  const user = usersData?.users?.find((u: any) => u.email === customer.email);
   
-  if (user?.user) {
+  if (user) {
     // Check if profile exists with subscription
     const { data: existingProfile } = await supabase
       .from('profiles')
       .select('stripe_customer_id, plan_status')
-      .eq('user_id', user.user.id)
+      .eq('user_id', user.id)
       .single();
 
     const isNewSubscription = !existingProfile?.stripe_customer_id && (planStatus === 'active' || planStatus === 'trialing');
@@ -235,7 +238,7 @@ async function handleSubscriptionChange(supabase: any, subscription: Stripe.Subs
         storage_quota_gb: storageQuotaGb,
         updated_at: new Date().toISOString()
       })
-      .eq('user_id', user.user.id);
+      .eq('user_id', user.id);
 
     if (profileError) {
       logStep('Error updating profile', profileError);
@@ -247,7 +250,7 @@ async function handleSubscriptionChange(supabase: any, subscription: Stripe.Subs
     const { error: subscriberError } = await supabase
       .from('subscribers')
       .upsert({
-        user_id: user.user.id,
+        user_id: user.id,
         email: customer.email,
         stripe_customer_id: subscription.customer,
         subscribed: planStatus === 'active' || planStatus === 'trialing',
