@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -23,6 +22,7 @@ import EmailVerificationNotice from '@/components/EmailVerificationNotice';
 import { StripeTestPanel } from '@/components/StripeTestPanel';
 import { useToast } from '@/hooks/use-toast';
 import SecureVault from '@/components/SecureVault';
+import { supabase } from '@/integrations/supabase/client';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -81,16 +81,38 @@ const Account: React.FC = () => {
   
   const showFloorPlans = true; // All subscription tiers now have access to floor plans
 
-  // Show success message if redirected from successful payment
+  // Sync subscription and show success message if redirected from successful payment
   useEffect(() => {
-    if (searchParams.get('payment_success') === 'true') {
-      toast({
-        title: "Payment Successful!",
-        description: "Your subscription has been activated. Welcome aboard!",
-      });
-      // Clear the URL parameter
-      window.history.replaceState({}, '', '/account');
-    }
+    const syncAndNotify = async () => {
+      if (searchParams.get('payment_success') === 'true') {
+        try {
+          // Sync subscription from Stripe to ensure database is updated
+          const { data, error } = await supabase.functions.invoke('sync-subscription');
+          
+          if (error) {
+            console.error('Error syncing subscription:', error);
+          } else if (data?.synced) {
+            console.log('Subscription synced:', data);
+          }
+          
+          toast({
+            title: "Payment Successful!",
+            description: "Your subscription has been activated. Welcome aboard!",
+          });
+        } catch (err) {
+          console.error('Error in sync:', err);
+          toast({
+            title: "Payment Successful!",
+            description: "Your subscription has been activated. Welcome aboard!",
+          });
+        }
+        
+        // Clear the URL parameter
+        window.history.replaceState({}, '', '/account');
+      }
+    };
+    
+    syncAndNotify();
   }, [searchParams, toast]);
 
   useEffect(() => {
