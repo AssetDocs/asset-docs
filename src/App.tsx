@@ -82,6 +82,7 @@ import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import CRM from "./pages/CRM";
 import AcknowledgeAccess from "./pages/AcknowledgeAccess";
+import ForgotPassword from "./pages/ForgotPassword";
 
 
 const queryClient = new QueryClient();
@@ -235,6 +236,7 @@ const AppContent = () => {
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/email-verification" element={<EmailVerification />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         {/* TOTP-based 2FA is now used instead of phone verification */}
         <Route path="/complete-pricing" element={<CompletePricing />} />
         
