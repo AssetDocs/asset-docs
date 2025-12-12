@@ -158,7 +158,6 @@ const Account: React.FC = () => {
                   {isMobile ? 'Notes' : 'Voice Notes'}
                 </TabsTrigger>
                 <TabsTrigger value="paint-codes" className={isMobile ? 'flex-shrink-0' : ''}>
-                  <Paintbrush className="h-4 w-4 mr-1" />
                   {isMobile ? 'Paint' : 'Paint Codes'}
                 </TabsTrigger>
               </TabsList>
