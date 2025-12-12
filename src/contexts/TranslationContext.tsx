@@ -66,14 +66,14 @@ const translations: Translations = {
     ja: 'ビデオヘルプ'
   },
   'nav.startTrial': {
-    en: 'Start Free Trial',
-    es: 'Iniciar prueba gratuita',
-    fr: 'Essai gratuit',
-    de: 'Kostenlose Testversion',
-    it: 'Prova gratuita',
-    pt: 'Teste grátis',
-    zh: '开始免费试用',
-    ja: '無料トライアル開始'
+    en: 'Get Started',
+    es: 'Comenzar',
+    fr: 'Commencer',
+    de: 'Loslegen',
+    it: 'Inizia',
+    pt: 'Começar',
+    zh: '开始使用',
+    ja: '始める'
   },
   'features.title': {
     en: 'Comprehensive Documentation Tools',

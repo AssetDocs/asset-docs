@@ -25,8 +25,8 @@ const HomeFAQ: React.FC = () => {
       answer: "Yes! Asset Safe is designed to streamline insurance claims by providing pre-documented proof of ownership, purchase receipts, condition photos, and detailed item descriptions. This comprehensive documentation can significantly speed up the claims process and maximize your recovery."
     },
     {
-      question: "Do you offer a free trial?",
-      answer: "Yes, we offer a 30-day free trial with full access to all features. No credit card required to start. Experience the complete platform and see how Asset Safe can protect your property and assets."
+      question: "How do I get started with Asset Safe?",
+      answer: "Getting started is easy! Simply create an account, choose your subscription plan, and begin documenting your assets. Our intuitive platform guides you through the process of adding properties, uploading photos and videos, and organizing your valuable documentation."
     },
     {
       question: "How many properties can I document?",

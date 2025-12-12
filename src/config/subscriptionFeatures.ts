@@ -146,11 +146,8 @@ export const getTierHierarchy = (): Record<SubscriptionTier, number> => ({
 export const hasFeatureAccess = (
   userTier: SubscriptionTier | null | undefined,
   requiredTier: SubscriptionTier,
-  isInTrial?: boolean
+  _isInTrial?: boolean // Deprecated - trial no longer supported
 ): boolean => {
-  // If user is in trial, they get premium access to all features
-  if (isInTrial) return true;
-  
   if (!userTier) return false;
   
   const hierarchy = getTierHierarchy();
@@ -212,11 +209,9 @@ export const getContributorLimit = (tier: SubscriptionTier | null | undefined): 
 export const checkPropertyLimit = (
   currentCount: number,
   userTier: SubscriptionTier | null | undefined,
-  isInTrial?: boolean
+  _isInTrial?: boolean // Deprecated - trial no longer supported
 ): { canAdd: boolean; limit: number; message?: string } => {
-  // If user is in trial, they get premium access
-  const effectiveTier = isInTrial ? 'premium' : userTier;
-  const limit = getPropertyLimit(effectiveTier);
+  const limit = getPropertyLimit(userTier);
   const canAdd = currentCount < limit;
   
   if (!canAdd) {
@@ -237,11 +232,9 @@ export const checkPropertyLimit = (
 export const checkContributorLimit = (
   currentCount: number,
   userTier: SubscriptionTier | null | undefined,
-  isInTrial?: boolean
+  _isInTrial?: boolean // Deprecated - trial no longer supported
 ): { canAdd: boolean; limit: number; message?: string } => {
-  // If user is in trial, they get premium access
-  const effectiveTier = isInTrial ? 'premium' : userTier;
-  const limit = getContributorLimit(effectiveTier);
+  const limit = getContributorLimit(userTier);
   const canAdd = currentCount < limit;
   
   if (!canAdd) {

@@ -21,9 +21,12 @@ const HeroSection: React.FC = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 animate-slide-up">
-          <Button asChild size="lg" className="bg-white text-orange-500 hover:bg-gray-100">
-            <Link to="/signup">Start Your Free 30-Day Trial</Link>
-          </Button>
+              <div className="flex flex-col items-center sm:items-start">
+                <Button asChild size="lg" className="bg-white text-orange-500 hover:bg-gray-100">
+                  <Link to="/signup">Get Started with Asset Safe</Link>
+                </Button>
+                <p className="text-sm mt-2 opacity-80">Secure signup • Cancel anytime • No long-term commitment</p>
+              </div>
               <Button asChild size="lg" className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 hover:from-yellow-500 hover:to-yellow-600 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold border-2 border-white/30">
                 <Link to="/sample-dashboard">View Sample Dashboard</Link>
               </Button>

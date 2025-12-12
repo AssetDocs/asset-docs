@@ -126,8 +126,8 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
 
         const { data } = await supabase.functions.invoke('check-subscription');
         
-        // Check if user has subscription (own or through contributor access)
-        if (data?.subscribed || data?.is_trial) {
+        // Check if user has active subscription (not trial - trial is no longer supported)
+        if (data?.subscribed) {
           setHasSubscription(true);
           setCheckingSubscription(false);
           return;

@@ -40,7 +40,6 @@ const planConfigs = {
 };
 
 const commonFeatures = [
-  "30-day free trial",
   "Photo and video uploads",
   "Full web platform access",
   "Voice notes for item details",
@@ -550,8 +549,7 @@ const SubscriptionTab: React.FC = () => {
                   <span className="text-lg font-normal text-muted-foreground">/month</span>
                 </div>
                 <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 mb-4">
-                  <p className="text-primary font-semibold text-sm">🎉 Start with a 30-day free trial</p>
-                  <p className="text-xs text-muted-foreground">No charges until after your trial ends. Cancel anytime.</p>
+                  <p className="text-xs text-muted-foreground">No long-term contract. Cancel anytime.</p>
                 </div>
                 <Button 
                   onClick={handleStartSubscription}
@@ -560,7 +558,7 @@ const SubscriptionTab: React.FC = () => {
                   size="lg"
                 >
                   <CreditCard className="h-4 w-4 mr-2" />
-                  {isLoading ? 'Processing...' : 'Start Free Trial & Enter Payment Info'}
+                  {isLoading ? 'Processing...' : 'Subscribe Now'}
                 </Button>
               </CardContent>
             </Card>

@@ -18,7 +18,6 @@ const PricingPlans: React.FC = () => {
   };
 
   const commonFeatures = [
-    "30-day free trial",
     "Photo and video uploads",
     "Full web platform access",
     "Voice notes for item details",
@@ -30,7 +29,6 @@ const PricingPlans: React.FC = () => {
 
   const businessFeatures = {
     small: [
-      "30-day free trial",
       "10GB secure cloud storage",
       "3 user accounts",
       "Photo uploads",
@@ -41,7 +39,6 @@ const PricingPlans: React.FC = () => {
       "Priority email support"
     ],
     medium: [
-      "30-day free trial",
       "50GB secure cloud storage",
       "25 user accounts",
       "Unlimited photo and video uploads",
@@ -51,7 +48,6 @@ const PricingPlans: React.FC = () => {
       "Priority email and phone support"
     ],
     enterprise: [
-      "30-day free trial",
       "Unlimited secure cloud storage",
       "Unlimited user accounts",
       "Custom implementation",
@@ -82,14 +78,14 @@ const PricingPlans: React.FC = () => {
                 price="$12.99"
                 description="Our most popular plan for comprehensive home documentation"
                 features={planDifferences.standard}
-                buttonText="Start 30-Day Free Trial"
+                buttonText="Get Started"
               />
               <SubscriptionPlan
                 title="Premium (Professional Plan)"
                 price="$18.99"
                 description="Best suited for estate managers, multiple-property owners, or businesses"
                 features={planDifferences.premium}
-                buttonText="Start 30-Day Free Trial"
+                buttonText="Get Started"
               />
             </div>
             
@@ -121,7 +117,7 @@ const PricingPlans: React.FC = () => {
                 price="$49.99"
                 description="For small businesses with basic asset documentation needs."
                 features={businessFeatures.small}
-                buttonText="Start 30-Day Free Trial"
+                buttonText="Get Started"
               />
               <SubscriptionPlan
                 title="Business Plus"
@@ -129,14 +125,14 @@ const PricingPlans: React.FC = () => {
                 description="For growing businesses with extensive documentation requirements."
                 features={businessFeatures.medium}
                 recommended={true}
-                buttonText="Start 30-Day Free Trial"
+                buttonText="Get Started"
               />
               <SubscriptionPlan
                 title="Enterprise"
                 price="Custom"
                 description="Tailored solutions for large businesses with complex needs."
                 features={businessFeatures.enterprise}
-                buttonText="Start 30-Day Free Trial"
+                buttonText="Contact Sales"
               />
             </div>
           </TabsContent>
