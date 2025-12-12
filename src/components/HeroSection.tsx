@@ -23,7 +23,7 @@ const HeroSection: React.FC = () => {
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 animate-slide-up">
               <div className="flex flex-col items-center sm:items-start">
                 <Button asChild size="lg" className="bg-white text-orange-500 hover:bg-gray-100">
-                  <Link to="/signup">Get Started with Asset Safe</Link>
+                  <Link to="/signup">Activate Your Account</Link>
                 </Button>
                 <p className="text-sm mt-2 opacity-80">Secure signup • Cancel anytime • No long-term commitment</p>
               </div>
