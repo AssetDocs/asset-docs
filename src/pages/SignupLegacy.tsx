@@ -61,7 +61,7 @@ const Signup: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const { error } = await signUp(data.email, data.password, data.firstName, data.lastName);
+      const { error, data: signUpData } = await signUp(data.email, data.password, data.firstName, data.lastName);
 
       if (error) {
         // Check for various Supabase "user already exists" error variations
@@ -78,6 +78,10 @@ const Signup: React.FC = () => {
         } else {
           throw error;
         }
+      } else if (signUpData?.user?.identities?.length === 0) {
+        // Supabase returns empty identities array when user already exists
+        // This happens when "user_repeated_signup" occurs - no email is sent
+        setEmailExistsError(true);
       } else {
         // Redirect to welcome page with email verification notice
         navigate('/welcome');
