@@ -380,7 +380,6 @@ const SampleDashboard: React.FC = () => {
                 <TabsTrigger value="damage" className="text-xs md:text-sm px-2">Post Damage</TabsTrigger>
                 <TabsTrigger value="voice-notes" className="text-xs md:text-sm px-2">Voice Notes</TabsTrigger>
                 <TabsTrigger value="paint-codes" className="text-xs md:text-sm px-2">
-                  <Paintbrush className="h-3 w-3 mr-1" />
                   Paint Codes
                 </TabsTrigger>
               </TabsList>
