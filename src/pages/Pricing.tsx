@@ -72,8 +72,36 @@ const Pricing: React.FC = () => {
     }
   }, [user]);
 
-  const handleSubscribe = (planType: string) => {
-    // Navigate to signup page for contact information
+  const handleSubscribe = async (planType: string) => {
+    // If user is already logged in, go directly to Stripe checkout
+    if (user) {
+      setIsLoading(true);
+      try {
+        const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-checkout', {
+          body: { 
+            planType,
+            email: user.email,
+          },
+        });
+        
+        if (checkoutError) throw checkoutError;
+        
+        // Redirect to Stripe checkout
+        window.location.href = checkoutData.url;
+      } catch (error: any) {
+        console.error('Error creating checkout:', error);
+        toast({
+          title: "Error",
+          description: error.message || "Failed to create checkout session. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
+    
+    // For new users, navigate to signup page
     window.location.href = `/signup?plan=${planType}`;
   };
 
