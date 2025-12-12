@@ -58,9 +58,9 @@ serve(async (req) => {
 
     let event: Stripe.Event;
 
-    // SECURITY: Always verify webhook signature
+    // SECURITY: Always verify webhook signature (use async version for Deno)
     try {
-      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+      event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
       logStep('Webhook signature verified');
     } catch (err) {
       const error = err as Error;
