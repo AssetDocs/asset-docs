@@ -13,7 +13,7 @@ const CTASection: React.FC = () => {
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-4">
           <Button asChild size="lg" className="bg-white text-orange-500 hover:bg-gray-100 w-full sm:w-auto">
-            <Link to="/signup">Start Your Free 30-Day Trial</Link>
+            <Link to="/signup">Get Started with Asset Safe</Link>
           </Button>
           <ShareButton 
             variant="outline" 
@@ -21,7 +21,7 @@ const CTASection: React.FC = () => {
             className="bg-transparent border-white text-white hover:bg-white/10 w-full sm:w-auto"
           />
         </div>
-        <p className="mt-4 text-sm opacity-90">No credit card required. Cancel anytime.</p>
+        <p className="mt-4 text-sm opacity-90">Secure signup • Cancel anytime • No long-term commitment</p>
       </div>
     </section>
   );

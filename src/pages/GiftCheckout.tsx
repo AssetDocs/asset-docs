@@ -65,7 +65,6 @@ const GiftCheckout: React.FC = () => {
       price: '$155.88/year',
       description: 'Our most popular plan for comprehensive home documentation',
       features: [
-        '30-day free trial',
         'Up to 3 properties',
         '25GB secure cloud storage',
         'Unlimited photo and video uploads',
@@ -85,7 +84,6 @@ const GiftCheckout: React.FC = () => {
       price: '$227.88/year',
       description: 'Best suited for estate managers, multiple-property owners, or businesses',
       features: [
-        '30-day free trial',
         'Unlimited properties',
         '100GB secure cloud storage',
         'Unlimited photo and video uploads',

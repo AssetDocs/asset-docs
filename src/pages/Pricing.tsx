@@ -36,8 +36,8 @@ const Pricing: React.FC = () => {
       answer: "Yes, you can cancel your subscription at any time. Your documentation will remain accessible until the end of your billing period."
     },
     {
-      question: "Is there a free trial available?",
-      answer: "Yes, we offer a 30-day free trial for both Standard and Premium plans with full access to all features."
+      question: "What payment methods do you accept?",
+      answer: "We accept all major credit cards including Visa, Mastercard, and American Express through our secure Stripe payment processing."
     }
   ];
 
@@ -89,7 +89,6 @@ const Pricing: React.FC = () => {
   };
 
   const commonFeatures = [
-    "30-day free trial",
     "Photo and video uploads",
     "Full web platform access",
     "Voice notes for item details",
@@ -122,7 +121,7 @@ const Pricing: React.FC = () => {
     <div className="flex flex-col min-h-screen">
       <SEOHead
         title="Pricing - Affordable Plans for Home & Property Documentation"
-        description="Choose from Standard ($12.99/mo) or Premium ($18.99/mo) plans. 30-day free trial, no credit card required. Secure cloud storage, unlimited photos/videos, insurance claims support."
+        description="Choose from Standard ($12.99/mo) or Premium ($18.99/mo) plans. No long-term contract. Cancel anytime. Secure cloud storage, unlimited photos/videos, insurance claims support."
         keywords="home inventory pricing, property documentation cost, digital asset management pricing, insurance inventory app cost, estate planning tools pricing"
         canonicalUrl="https://www.assetsafe.net/pricing"
         structuredData={structuredData}
@@ -160,7 +159,6 @@ const Pricing: React.FC = () => {
                     Select the perfect plan for your property management needs
                   </p>
                   <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 max-w-md mx-auto">
-                    <p className="text-primary font-semibold">🎉 Start with a 30-day free trial</p>
                     <p className="text-sm text-muted-foreground">No long-term contract. Cancel anytime</p>
                   </div>
                 </div>
@@ -289,7 +287,7 @@ const Pricing: React.FC = () => {
                   <div className="bg-muted/30 rounded-lg p-8">
                     <h3 className="text-xl font-semibold text-center mb-6">Included in Both Gift Plans</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
-                      {commonFeatures.filter(feature => feature !== "30-day free trial").map((feature, index) => (
+                      {commonFeatures.map((feature, index) => (
                         <div key={index} className="flex items-center gap-2">
                           <div className="h-5 w-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
                             <svg className="h-3 w-3 text-primary" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">

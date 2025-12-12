@@ -58,7 +58,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [loading, setLoading] = useState(true);
 
   const subscriptionTier = mapTierToEnum(subscriptionStatus.subscription_tier);
-  const isInTrial = subscriptionStatus.is_trial || false;
+  const isInTrial = false; // Trial no longer supported
   const propertyLimit = subscriptionStatus.property_limit || 1;
   const storageQuotaGb = subscriptionStatus.storage_quota_gb || 5;
 
