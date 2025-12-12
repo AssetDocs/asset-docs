@@ -8,8 +8,9 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [loginError, setLoginError] = useState(false);
   const { signIn, user } = useAuth();
   const { toast } = useToast();
 
@@ -40,16 +42,13 @@ const Login: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setLoginError(false);
 
     try {
       const { error } = await signIn(email, password);
       
       if (error) {
-        toast({
-          title: "Unable to Sign In",
-          description: "We couldn't sign you in with those credentials. Double-check your email and password, or reset your password if you've forgotten it.",
-          variant: "destructive",
-        });
+        setLoginError(true);
       } else {
         // Check for pending contributor invitations
         const isContributorInvite = searchParams.get('contributor_invite') === 'true';
@@ -117,6 +116,26 @@ const Login: React.FC = () => {
             </p>
           </div>
           
+          {loginError && (
+            <Alert className="mb-6 border-amber-500 bg-amber-50 dark:bg-amber-900/20">
+              <AlertCircle className="h-5 w-5 text-amber-600" />
+              <AlertTitle className="text-amber-800 dark:text-amber-200">
+                Unable to Sign In
+              </AlertTitle>
+              <AlertDescription className="text-amber-700 dark:text-amber-300 mt-2">
+                We couldn't sign you in with those credentials. Double-check your email and password, or reset your password if you've forgotten it.
+              </AlertDescription>
+              <div className="flex flex-col sm:flex-row gap-2 mt-4">
+                <Button asChild variant="outline" size="sm">
+                  <Link to="/forgot-password">Reset Password</Link>
+                </Button>
+                <Button asChild variant="outline" size="sm">
+                  <Link to="/signup">Create Account</Link>
+                </Button>
+              </div>
+            </Alert>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <Label htmlFor="email">Email Address</Label>
