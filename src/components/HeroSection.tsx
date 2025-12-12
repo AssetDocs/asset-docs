@@ -25,7 +25,7 @@ const HeroSection: React.FC = () => {
                 <Button asChild size="lg" className="bg-white text-orange-500 hover:bg-gray-100">
                   <Link to="/signup">Activate Your Account</Link>
                 </Button>
-                <p className="text-sm mt-2 opacity-80">Secure signup</p>
+                <p className="text-sm mt-2 opacity-80">Cancel anytime • No long-term commitment</p>
               </div>
               <Button asChild size="lg" className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 hover:from-yellow-500 hover:to-yellow-600 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold border-2 border-white/30">
                 <Link to="/sample-dashboard">View Sample Dashboard</Link>
