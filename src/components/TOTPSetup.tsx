@@ -10,9 +10,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, Smartphone, RefreshCw, CheckCircle, Copy, Key } from 'lucide-react';
+import { Shield, Smartphone, RefreshCw, CheckCircle, Copy, Key, Download, ExternalLink } from 'lucide-react';
 import { useTOTP } from '@/hooks/useTOTP';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface TOTPSetupProps {
   isOpen: boolean;
@@ -27,11 +28,13 @@ const TOTPSetup: React.FC<TOTPSetupProps> = ({
 }) => {
   const { toast } = useToast();
   const { startEnrollment, verifyEnrollment, enrollmentData } = useTOTP();
+  const isMobile = useIsMobile();
   const [step, setStep] = useState<'intro' | 'qr' | 'verify'>('intro');
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [factorId, setFactorId] = useState<string | null>(null);
   const [secret, setSecret] = useState<string>('');
+  const [otpauthUri, setOtpauthUri] = useState<string>('');
 
   const handleStartSetup = async () => {
     setLoading(true);
@@ -40,6 +43,7 @@ const TOTPSetup: React.FC<TOTPSetupProps> = ({
       if (data) {
         setFactorId(data.id);
         setSecret(data.totp.secret);
+        setOtpauthUri(data.totp.uri);
         setStep('qr');
       }
     } catch (error: any) {
@@ -83,24 +87,51 @@ const TOTPSetup: React.FC<TOTPSetupProps> = ({
     });
   };
 
+  const openInAuthenticatorApp = () => {
+    if (otpauthUri) {
+      window.location.href = otpauthUri;
+    }
+  };
+
   const handleClose = () => {
     setStep('intro');
     setCode('');
     setFactorId(null);
     setSecret('');
+    setOtpauthUri('');
     onClose();
   };
 
+  const authenticatorApps = [
+    { 
+      name: 'Google Authenticator', 
+      ios: 'https://apps.apple.com/app/google-authenticator/id388497605',
+      android: 'https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2'
+    },
+    { 
+      name: 'Authy', 
+      ios: 'https://apps.apple.com/app/authy/id494168017',
+      android: 'https://play.google.com/store/apps/details?id=com.authy.authy'
+    },
+    { 
+      name: 'Microsoft Authenticator', 
+      ios: 'https://apps.apple.com/app/microsoft-authenticator/id983156458',
+      android: 'https://play.google.com/store/apps/details?id=com.azure.authenticator'
+    },
+  ];
+
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
             Set Up Two-Factor Authentication
           </DialogTitle>
           <DialogDescription>
-            Protect your account with an authenticator app like Google Authenticator, Authy, or 1Password.
+            Protect your account with an authenticator app.
           </DialogDescription>
         </DialogHeader>
 
@@ -110,14 +141,33 @@ const TOTPSetup: React.FC<TOTPSetupProps> = ({
               <Alert className="bg-primary/5 border-primary/20">
                 <Smartphone className="h-4 w-4" />
                 <AlertDescription>
-                  You'll need an authenticator app on your phone. Popular options include Google Authenticator, Authy, or 1Password.
+                  You'll need an authenticator app on your phone to generate secure codes.
                 </AlertDescription>
               </Alert>
 
               <div className="space-y-3 text-sm text-muted-foreground">
-                <p className="font-medium text-foreground">What is TOTP?</p>
+                <p className="font-medium text-foreground">Don't have an authenticator app?</p>
+                <p className="text-xs">Download one of these free apps:</p>
+                <div className="space-y-2">
+                  {authenticatorApps.map((app) => (
+                    <a
+                      key={app.name}
+                      href={isIOS ? app.ios : app.android}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between p-2 rounded-lg border border-border hover:bg-muted/50 transition-colors"
+                    >
+                      <span className="font-medium text-foreground text-sm">{app.name}</span>
+                      <Download className="h-4 w-4 text-muted-foreground" />
+                    </a>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2 text-sm text-muted-foreground border-t pt-4">
+                <p className="font-medium text-foreground">How it works:</p>
                 <p>
-                  Time-based One-Time Password (TOTP) generates a new 6-digit code every 30 seconds. 
+                  Your authenticator app generates a new 6-digit code every 30 seconds. 
                   It's more secure than SMS and works offline.
                 </p>
               </div>
@@ -128,44 +178,76 @@ const TOTPSetup: React.FC<TOTPSetupProps> = ({
                 ) : (
                   <Key className="h-4 w-4 mr-2" />
                 )}
-                Get Started
+                I Have an Authenticator App
               </Button>
             </>
           )}
 
           {step === 'qr' && enrollmentData && (
             <>
-              <Alert className="bg-primary/5 border-primary/20">
-                <Smartphone className="h-4 w-4" />
-                <AlertDescription>
-                  Scan this QR code with your authenticator app, then enter the 6-digit code below.
-                </AlertDescription>
-              </Alert>
+              {isMobile ? (
+                <>
+                  <Alert className="bg-primary/5 border-primary/20">
+                    <Smartphone className="h-4 w-4" />
+                    <AlertDescription>
+                      Tap the button below to open your authenticator app and add Asset Safe.
+                    </AlertDescription>
+                  </Alert>
 
-              <div className="flex justify-center p-4 bg-white rounded-lg">
-                <img 
-                  src={enrollmentData.totp.qr_code} 
-                  alt="TOTP QR Code" 
-                  className="w-48 h-48"
-                />
-              </div>
-
-              <div className="text-center">
-                <p className="text-xs text-muted-foreground mb-2">
-                  Can't scan? Enter this code manually:
-                </p>
-                <div className="flex items-center justify-center gap-2">
-                  <code className="bg-muted px-3 py-1 rounded text-sm font-mono break-all">
-                    {secret}
-                  </code>
-                  <Button variant="ghost" size="icon" onClick={copySecret}>
-                    <Copy className="h-4 w-4" />
+                  <Button onClick={openInAuthenticatorApp} className="w-full" size="lg">
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Open in Authenticator App
                   </Button>
-                </div>
-              </div>
+
+                  <div className="text-center border-t pt-4">
+                    <p className="text-xs text-muted-foreground mb-2">
+                      Or enter this code manually in your app:
+                    </p>
+                    <div className="flex items-center justify-center gap-2">
+                      <code className="bg-muted px-3 py-2 rounded text-xs font-mono break-all max-w-[200px]">
+                        {secret}
+                      </code>
+                      <Button variant="ghost" size="icon" onClick={copySecret}>
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Alert className="bg-primary/5 border-primary/20">
+                    <Smartphone className="h-4 w-4" />
+                    <AlertDescription>
+                      Open your authenticator app and scan this QR code with your phone's camera.
+                    </AlertDescription>
+                  </Alert>
+
+                  <div className="flex justify-center p-4 bg-white rounded-lg">
+                    <img 
+                      src={enrollmentData.totp.qr_code} 
+                      alt="TOTP QR Code" 
+                      className="w-48 h-48"
+                    />
+                  </div>
+
+                  <div className="text-center">
+                    <p className="text-xs text-muted-foreground mb-2">
+                      Can't scan? Enter this code manually:
+                    </p>
+                    <div className="flex items-center justify-center gap-2">
+                      <code className="bg-muted px-3 py-1 rounded text-sm font-mono break-all">
+                        {secret}
+                      </code>
+                      <Button variant="ghost" size="icon" onClick={copySecret}>
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              )}
 
               <Button onClick={() => setStep('verify')} className="w-full">
-                Continue
+                I've Added Asset Safe to My App
               </Button>
             </>
           )}
@@ -207,7 +289,7 @@ const TOTPSetup: React.FC<TOTPSetupProps> = ({
               </Button>
 
               <Button variant="ghost" onClick={() => setStep('qr')} className="w-full">
-                Back to QR Code
+                Back
               </Button>
             </>
           )}
