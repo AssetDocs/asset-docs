@@ -14,7 +14,7 @@ const MobileCTA: React.FC = () => {
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border p-4 safe-area-bottom">
       <Button asChild className="w-full" size="lg">
-        <Link to="/signup">Start Your Free 30-Day Trial</Link>
+        <Link to="/signup">Activate Your Account</Link>
       </Button>
     </div>
   );
