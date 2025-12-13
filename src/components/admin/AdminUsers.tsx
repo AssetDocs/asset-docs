@@ -71,18 +71,27 @@ const AdminUsers = () => {
         .order('created_at', { ascending: false });
 
       if (usersData) {
-        // Get subscriber info separately
+        // Get subscriber info
         const { data: subscribersData } = await supabase
           .from('subscribers')
           .select('user_id, email, subscription_tier, subscribed');
+
+        // Get contacts info as fallback for email
+        const { data: contactsData } = await supabase
+          .from('contacts')
+          .select('user_id, email');
 
         const subscriberMap = new Map(
           subscribersData?.map(s => [s.user_id, s]) || []
         );
 
+        const contactsMap = new Map(
+          contactsData?.map(c => [c.user_id, c.email]) || []
+        );
+
         const mergedUsers = usersData.map(user => ({
           ...user,
-          email: subscriberMap.get(user.user_id)?.email || null,
+          email: subscriberMap.get(user.user_id)?.email || contactsMap.get(user.user_id) || null,
           subscription_tier: subscriberMap.get(user.user_id)?.subscription_tier || null,
           subscribed: subscriberMap.get(user.user_id)?.subscribed || null,
         }));
