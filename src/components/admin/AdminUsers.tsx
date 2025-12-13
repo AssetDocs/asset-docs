@@ -76,22 +76,24 @@ const AdminUsers = () => {
           .from('subscribers')
           .select('user_id, email, subscription_tier, subscribed');
 
-        // Get contacts info as fallback for email
-        const { data: contactsData } = await supabase
-          .from('contacts')
-          .select('user_id, email');
+        // Get user emails from auth.users via edge function
+        let authEmails: Record<string, string | null> = {};
+        try {
+          const { data: emailData, error: emailError } = await supabase.functions.invoke('admin-get-user-emails');
+          if (emailData?.userEmails) {
+            authEmails = emailData.userEmails;
+          }
+        } catch (e) {
+          console.error('Error fetching user emails:', e);
+        }
 
         const subscriberMap = new Map(
           subscribersData?.map(s => [s.user_id, s]) || []
         );
 
-        const contactsMap = new Map(
-          contactsData?.map(c => [c.user_id, c.email]) || []
-        );
-
         const mergedUsers = usersData.map(user => ({
           ...user,
-          email: subscriberMap.get(user.user_id)?.email || contactsMap.get(user.user_id) || null,
+          email: subscriberMap.get(user.user_id)?.email || authEmails[user.user_id] || null,
           subscription_tier: subscriberMap.get(user.user_id)?.subscription_tier || null,
           subscribed: subscriberMap.get(user.user_id)?.subscribed || null,
         }));
