@@ -234,12 +234,10 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Delete user's data from all tables
-    const tablesToClean = [
-      'account_deletion_requests',
+    // Delete user's data from all tables with user_id column
+    const tablesWithUserId = [
       'subscribers',
       'contacts',
-      'contributors',
       'profiles',
       'properties', 
       'property_files',
@@ -257,11 +255,12 @@ Deno.serve(async (req) => {
       'video_folders',
       'document_folders',
       'source_websites',
-      'financial_accounts'
+      'financial_accounts',
+      'paint_codes'
     ];
 
-    // Delete data from each table
-    for (const table of tablesToClean) {
+    // Delete data from tables with user_id column
+    for (const table of tablesWithUserId) {
       try {
         const { error: deleteError } = await supabaseAdmin
           .from(table)
@@ -276,6 +275,42 @@ Deno.serve(async (req) => {
       } catch (error) {
         console.log(`[DELETE-ACCOUNT] Error processing table ${table}:`, error);
       }
+    }
+
+    // Delete from contributors table (uses different column names)
+    try {
+      // Delete where user is a contributor
+      await supabaseAdmin
+        .from('contributors')
+        .delete()
+        .eq('contributor_user_id', targetAccountId);
+      
+      // Delete where user is account owner (their contributors)
+      await supabaseAdmin
+        .from('contributors')
+        .delete()
+        .eq('account_owner_id', targetAccountId);
+      
+      console.log('[DELETE-ACCOUNT] Successfully deleted contributor records');
+    } catch (error) {
+      console.log('[DELETE-ACCOUNT] Error deleting contributors:', error);
+    }
+
+    // Delete from account_deletion_requests (uses different column names)
+    try {
+      await supabaseAdmin
+        .from('account_deletion_requests')
+        .delete()
+        .eq('requester_user_id', targetAccountId);
+      
+      await supabaseAdmin
+        .from('account_deletion_requests')
+        .delete()
+        .eq('account_owner_id', targetAccountId);
+      
+      console.log('[DELETE-ACCOUNT] Successfully deleted account deletion requests');
+    } catch (error) {
+      console.log('[DELETE-ACCOUNT] Error deleting account deletion requests:', error);
     }
 
     // Delete the user account using admin client
