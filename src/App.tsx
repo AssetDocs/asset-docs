@@ -83,6 +83,7 @@ import BlogPost from "./pages/BlogPost";
 import CRM from "./pages/CRM";
 import AcknowledgeAccess from "./pages/AcknowledgeAccess";
 import ForgotPassword from "./pages/ForgotPassword";
+import LegacyLockerInfo from "./pages/LegacyLockerInfo";
 
 
 const queryClient = new QueryClient();
@@ -282,6 +283,7 @@ const AppContent = () => {
         <Route path="/blog/:slug" element={<BlogPost />} />
         
         <Route path="/social-impact" element={<SocialImpact />} />
+        <Route path="/legacy-locker-info" element={<LegacyLockerInfo />} />
         <Route path="/partnership" element={<Partnership />} />
         <Route path="/awareness-guide" element={<AwarenessGuide />} />
         <Route path="/asset-documentation" element={<AssetDocumentation />} />
