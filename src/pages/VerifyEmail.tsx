@@ -118,7 +118,7 @@ const VerifyEmail: React.FC = () => {
             </Button>
             
             <p className="text-xs text-muted-foreground mt-4">
-              You won't be charged until after your 30-day free trial ends.
+              No long-term contract. Cancel anytime.
             </p>
           </div>
         </div>

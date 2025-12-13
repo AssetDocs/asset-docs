@@ -110,10 +110,8 @@ serve(async (req) => {
       mode: "subscription",
       success_url: `${req.headers.get("origin")}/account?payment_success=true`,
       cancel_url: `${req.headers.get("origin")}/pricing`,
-      // 30-day free trial before first payment
-      subscription_data: {
-        trial_period_days: 30,
-      },
+      // Immediate payment - no trial period
+      payment_method_collection: 'always',
       // Enable automatic tax collection
       automatic_tax: {
         enabled: true,

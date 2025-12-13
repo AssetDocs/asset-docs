@@ -65,7 +65,7 @@ const ChatbotInterface: React.FC = () => {
     
     // Simple response logic based on keywords
     if (normalizedInput.includes('pricing') || normalizedInput.includes('cost') || normalizedInput.includes('price')) {
-      return "AssetSafe offers two pricing tiers: our Standard (Homeowner) plan at $12.99/month for up to 3 properties with 25GB storage, and our Premium (Professional) plan at $18.99/month for unlimited properties with 100GB storage. Both plans include a 30-day free trial and comprehensive asset documentation features. You can view all pricing details on our Pricing page.";
+      return "Asset Safe offers two pricing tiers: our Standard (Homeowner) plan at $12.99/month for up to 3 properties with 20GB storage, and our Premium (Professional) plan at $18.99/month for unlimited properties with 100GB storage. Both plans include comprehensive asset documentation features. You can view all pricing details on our Pricing page.";
     }
     
     if (normalizedInput.includes('value') || normalizedInput.includes('valuation')) {
@@ -85,7 +85,7 @@ const ChatbotInterface: React.FC = () => {
     }
     
     if (normalizedInput.includes('free') || normalizedInput.includes('trial')) {
-      return "Yes! We offer a 14-day free trial. This gives you full access to all features so you can experience the benefits of AssetSafe before committing to a subscription.";
+      return "Asset Safe offers flexible monthly plans with no long-term contract required. You can cancel anytime. Visit our Pricing page to see our subscription options.";
     }
     
     if (normalizedInput.includes('how') && normalizedInput.includes('work')) {
