@@ -77,7 +77,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     const billingText = `Your next billing date is ${billingDate}.`;
 
-    const dashboardUrl = `${Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '')}.lovable.app/welcome`;
+    const baseUrl = 'https://www.assetsafe.net';
+    const dashboardUrl = `${baseUrl}/welcome`;
 
     const emailResponse = await resend.emails.send({
       from: "Asset Safe <info@assetsafe.net>",
@@ -113,10 +114,10 @@ const handler = async (req: Request): Promise<Response> => {
           
           <h3 style="color: #2563eb; margin-top: 30px;">Get Started with These Resources:</h3>
           <ul style="margin: 15px 0; padding-left: 20px;">
-            <li><a href="${dashboardUrl.replace('/welcome', '/video-help')}" style="color: #2563eb;">Video Tutorials</a> - Step-by-step guides</li>
-            <li><a href="${dashboardUrl.replace('/welcome', '/resources')}" style="color: #2563eb;">Resources &amp; Security</a> - Best practices</li>
-            <li><a href="${dashboardUrl.replace('/welcome', '/awareness-guide')}" style="color: #2563eb;">Awareness Guide</a> - Important tips</li>
-            <li><a href="${dashboardUrl.replace('/welcome', '/qa')}" style="color: #2563eb;">Q&amp;A</a> - Common questions answered</li>
+            <li><a href="${baseUrl}/video-help" style="color: #2563eb; text-decoration: underline;">Video Tutorials</a> - Step-by-step guides</li>
+            <li><a href="${baseUrl}/resources" style="color: #2563eb; text-decoration: underline;">Resources &amp; Security</a> - Best practices</li>
+            <li><a href="${baseUrl}/awareness-guide" style="color: #2563eb; text-decoration: underline;">Awareness Guide</a> - Important tips</li>
+            <li><a href="${baseUrl}/qa" style="color: #2563eb; text-decoration: underline;">Q&amp;A</a> - Common questions answered</li>
           </ul>
           
           <p style="margin-top: 30px;">We're excited to protect what matters most to you.</p>
