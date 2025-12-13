@@ -237,7 +237,7 @@ const Login: React.FC = () => {
               </h3>
               <p className="text-sm text-muted-foreground mb-4">
                 Are you ready to access all of the features Asset Safe has to offer? 
-                Click here to subscribe and start your free 30-day trial.
+                Click here to subscribe and activate your account.
               </p>
               <Button asChild variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
                 <Link to="/pricing">View Subscription Plans</Link>

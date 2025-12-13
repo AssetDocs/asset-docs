@@ -68,23 +68,14 @@ const handler = async (req: Request): Promise<Response> => {
     };
     const planName = planNames[subscription_tier] || subscription_tier;
 
-    // Calculate billing date
-    const billingDate = trial_end ? 
-      new Date(trial_end).toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      }) :
-      new Date(current_period_end).toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      });
+    // Calculate next billing date
+    const billingDate = new Date(current_period_end).toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
 
-    const trialText = trial_end ? 'with a 30-day free trial' : '';
-    const billingText = trial_end ? 
-      `Your first billing date will be ${billingDate}, unless you cancel before then.` :
-      `Your next billing date is ${billingDate}.`;
+    const billingText = `Your next billing date is ${billingDate}.`;
 
     const dashboardUrl = `${Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '')}.lovable.app/welcome`;
 
@@ -101,7 +92,7 @@ const handler = async (req: Request): Promise<Response> => {
           
           <p>Hi ${firstName},</p>
           
-          <p>Your account is now active! You're on the <strong>${planName} Plan</strong> ${trialText}.</p>
+          <p>Your account is now active! You're on the <strong>${planName} Plan</strong>.</p>
           
           <p><strong>You'll have access to:</strong></p>
           <ul style="margin: 15px 0; padding-left: 20px;">

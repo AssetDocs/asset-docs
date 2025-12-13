@@ -115,7 +115,7 @@ const ComparisonSection: React.FC = () => {
               href="/signup" 
               className="inline-block bg-primary text-primary-foreground px-8 py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors"
             >
-              Start Your Free 30-Day Trial
+              Activate Your Account
             </a>
           </div>
         </div>

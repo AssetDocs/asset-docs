@@ -81,7 +81,7 @@ const QA: React.FC = () => {
               <AccordionItem value="item-7">
                 <AccordionTrigger className="text-lg font-medium">How do I get started with Asset Safe?</AccordionTrigger>
                 <AccordionContent>
-                  Getting started is easy! Sign up for a free 30-day trial and start using our web platform. 
+                  Getting started is easy! Subscribe to a plan and start using our web platform. 
                   You can begin documenting your possessions right away by taking photos, videos, and uploading documents.
                 </AccordionContent>
               </AccordionItem>
@@ -124,16 +124,9 @@ const QA: React.FC = () => {
               </AccordionItem>
               
               <AccordionItem value="item-12">
-                <AccordionTrigger className="text-lg font-medium">Is there a free trial available?</AccordionTrigger>
+                <AccordionTrigger className="text-lg font-medium">What is included in my subscription?</AccordionTrigger>
                 <AccordionContent>
-                  Yes, we offer a 30-day free trial for both Standard and Premium plans.
-                </AccordionContent>
-              </AccordionItem>
-              
-              <AccordionItem value="item-13">
-                <AccordionTrigger className="text-lg font-medium">What is included in my 30-day free trial?</AccordionTrigger>
-                <AccordionContent>
-                  Your 30-day free trial includes full access to all features with no limitations:
+                  Your subscription includes full access to all features:
                   <ul className="list-disc list-inside mt-2 ml-4 space-y-1">
                     <li>Photo and video uploads</li>
                     <li>Full web platform access</li>

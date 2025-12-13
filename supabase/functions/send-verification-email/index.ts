@@ -44,7 +44,7 @@ const handler = async (req: Request): Promise<Response> => {
             <p style="font-size: 18px; margin-bottom: 20px;">Hi ${displayName},</p>
             
             <p style="font-size: 16px; margin-bottom: 20px;">
-              Thank you for choosing Asset Safe! You're just one click away from starting your 30-day free trial.
+              Thank you for choosing Asset Safe! You're just one click away from activating your account.
             </p>
             
             <p style="font-size: 16px; margin-bottom: 30px;">
@@ -62,7 +62,7 @@ const handler = async (req: Request): Promise<Response> => {
               <h3 style="margin: 0 0 15px 0; color: #333; font-size: 16px;">What happens next?</h3>
               <ol style="margin: 0; padding-left: 20px;">
                 <li style="margin-bottom: 8px;">Click the verification button above</li>
-                <li style="margin-bottom: 8px;">Complete your payment setup (you won't be charged for 30 days)</li>
+                <li style="margin-bottom: 8px;">Complete your payment setup</li>
                 <li style="margin-bottom: 8px;">Start documenting and protecting your valuable assets</li>
               </ol>
             </div>
