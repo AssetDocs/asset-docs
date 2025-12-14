@@ -148,8 +148,45 @@ const SecureVault: React.FC = () => {
     const storedHash = localStorage.getItem(MASTER_PASSWORD_HASH_KEY);
 
     if (isSetupMode) {
+      // Create and store the password hash locally
       const hash = await createPasswordVerificationHash(password);
       localStorage.setItem(MASTER_PASSWORD_HASH_KEY, hash);
+      
+      // Update the database to mark vault as encrypted
+      if (user) {
+        try {
+          // First check if legacy_locker record exists
+          const { data: existingRecord } = await supabase
+            .from('legacy_locker')
+            .select('id')
+            .eq('user_id', user.id)
+            .maybeSingle();
+          
+          if (existingRecord) {
+            // Update existing record
+            await supabase
+              .from('legacy_locker')
+              .update({ 
+                is_encrypted: true,
+                updated_at: new Date().toISOString()
+              })
+              .eq('user_id', user.id);
+          } else {
+            // Create new record with encryption enabled
+            await supabase
+              .from('legacy_locker')
+              .insert({ 
+                user_id: user.id,
+                is_encrypted: true
+              });
+          }
+          
+          setExistingEncrypted(true);
+        } catch (dbError) {
+          console.error('Error updating encryption status in database:', dbError);
+        }
+      }
+      
       setSessionMasterPassword(password);
       setIsUnlocked(true);
       setIsEncrypted(true);
