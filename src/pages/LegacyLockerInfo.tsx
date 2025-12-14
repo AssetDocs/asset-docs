@@ -28,7 +28,7 @@ const LegacyLockerInfo = () => {
                 <AccordionTrigger className="text-lg font-semibold text-brand-blue hover:no-underline py-6">
                   <div className="flex items-center gap-3">
                     <Lock className="h-5 w-5 text-brand-teal" />
-                    <span>🔐 Encrypted Storage</span>
+                    <span>Encrypted Storage</span>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="text-gray-700 pb-6">
@@ -42,7 +42,7 @@ const LegacyLockerInfo = () => {
                 <AccordionTrigger className="text-lg font-semibold text-brand-blue hover:no-underline py-6">
                   <div className="flex items-center gap-3">
                     <Shield className="h-5 w-5 text-brand-teal" />
-                    <span>🛡️ Two-Factor Authentication (2FA)</span>
+                    <span>Two-Factor Authentication (2FA)</span>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="text-gray-700 pb-6">
@@ -59,7 +59,7 @@ const LegacyLockerInfo = () => {
                 <AccordionTrigger className="text-lg font-semibold text-brand-blue hover:no-underline py-6">
                   <div className="flex items-center gap-3">
                     <Key className="h-5 w-5 text-brand-teal" />
-                    <span>🔑 Time-Based One-Time Passwords (TOTP)</span>
+                    <span>Time-Based One-Time Passwords (TOTP)</span>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="text-gray-700 pb-6">
@@ -76,7 +76,7 @@ const LegacyLockerInfo = () => {
                 <AccordionTrigger className="text-lg font-semibold text-brand-blue hover:no-underline py-6">
                   <div className="flex items-center gap-3">
                     <Users className="h-5 w-5 text-brand-teal" />
-                    <span>👥 Trusted Contact Controls</span>
+                    <span>Trusted Contact Controls</span>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="text-gray-700 pb-6">
@@ -93,7 +93,7 @@ const LegacyLockerInfo = () => {
                 <AccordionTrigger className="text-lg font-semibold text-brand-blue hover:no-underline py-6">
                   <div className="flex items-center gap-3">
                     <Clock className="h-5 w-5 text-brand-teal" />
-                    <span>⏳ Purpose-Driven Access</span>
+                    <span>Purpose-Driven Access</span>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="text-gray-700 pb-6">
