@@ -112,12 +112,6 @@ serve(async (req) => {
       cancel_url: `${req.headers.get("origin")}/pricing`,
       // Immediate payment - no trial period
       payment_method_collection: 'always',
-      // Save payment method for future use
-      payment_method_options: {
-        card: {
-          setup_future_usage: 'off_session',
-        },
-      },
       // Enable automatic tax collection
       automatic_tax: {
         enabled: true,
