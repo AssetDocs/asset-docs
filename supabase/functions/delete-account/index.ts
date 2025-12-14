@@ -235,20 +235,21 @@ Deno.serve(async (req) => {
     }
 
     // Delete user's data from all tables with user_id column
+    // Order matters - delete from tables with foreign keys first
     const tablesWithUserId = [
+      'voice_note_attachments',
+      'receipts',
+      'legacy_locker_voice_notes',
+      'legacy_locker_files',
+      'legacy_locker_folders',
+      'legacy_locker',
+      'property_files',
+      'items',
+      'properties', 
       'subscribers',
       'contacts',
       'profiles',
-      'properties', 
-      'property_files',
-      'items',
-      'receipts',
       'storage_usage',
-      'legacy_locker',
-      'legacy_locker_files',
-      'legacy_locker_folders',
-      'legacy_locker_voice_notes',
-      'voice_note_attachments',
       'password_catalog',
       'trust_information',
       'photo_folders',
@@ -256,8 +257,51 @@ Deno.serve(async (req) => {
       'document_folders',
       'source_websites',
       'financial_accounts',
-      'paint_codes'
+      'paint_codes',
+      'audit_logs',
+      'user_roles',
+      'events',
+      'payment_events'
     ];
+
+    // Delete from recovery_requests (uses owner_user_id and delegate_user_id)
+    try {
+      await supabaseAdmin
+        .from('recovery_requests')
+        .delete()
+        .eq('owner_user_id', targetAccountId);
+      
+      await supabaseAdmin
+        .from('recovery_requests')
+        .delete()
+        .eq('delegate_user_id', targetAccountId);
+      
+      console.log('[DELETE-ACCOUNT] Successfully deleted recovery requests');
+    } catch (error) {
+      console.log('[DELETE-ACCOUNT] Error deleting recovery requests:', error);
+    }
+
+    // Delete from gift_subscriptions (uses multiple user ID columns)
+    try {
+      await supabaseAdmin
+        .from('gift_subscriptions')
+        .delete()
+        .eq('purchaser_user_id', targetAccountId);
+      
+      await supabaseAdmin
+        .from('gift_subscriptions')
+        .delete()
+        .eq('recipient_user_id', targetAccountId);
+      
+      await supabaseAdmin
+        .from('gift_subscriptions')
+        .delete()
+        .eq('redeemed_by_user_id', targetAccountId);
+      
+      console.log('[DELETE-ACCOUNT] Successfully deleted gift subscriptions');
+    } catch (error) {
+      console.log('[DELETE-ACCOUNT] Error deleting gift subscriptions:', error);
+    }
 
     // Delete data from tables with user_id column
     for (const table of tablesWithUserId) {
