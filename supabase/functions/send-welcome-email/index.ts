@@ -90,9 +90,9 @@ const handler = async (req: Request): Promise<Response> => {
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${req.headers.get("origin") || 'https://www.assetsafe.net'}/account" 
+            <a href="https://www.assetsafe.net/account" 
                style="background: #1e40af; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block; font-size: 16px;">
-              Start Your Free Trial Now
+              Go to My Dashboard
             </a>
           </div>
           
