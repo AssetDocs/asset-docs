@@ -419,17 +419,20 @@ const ContributorsTab: React.FC = () => {
           ) : (
             <div className="space-y-4">
               {contributors.map((contributor) => (
-                <div key={contributor.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">
+                <div key={contributor.id} className="flex flex-col gap-3 p-4 border rounded-lg">
+                  {/* Contributor Info */}
+                  <div className="space-y-2 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-medium truncate">
                         {contributor.first_name || contributor.last_name 
                           ? `${contributor.first_name || ''} ${contributor.last_name || ''}`.trim()
                           : contributor.contributor_email}
                       </span>
-                      {(contributor.first_name || contributor.last_name) && (
-                        <span className="text-sm text-muted-foreground">({contributor.contributor_email})</span>
-                      )}
+                    </div>
+                    {(contributor.first_name || contributor.last_name) && (
+                      <p className="text-sm text-muted-foreground break-all">{contributor.contributor_email}</p>
+                    )}
+                    <div className="flex flex-wrap gap-2">
                       <Badge variant="outline" className={getRoleColor(contributor.role)}>
                         <div className="flex items-center gap-1">
                           {getRoleIcon(contributor.role)}
@@ -440,20 +443,23 @@ const ContributorsTab: React.FC = () => {
                         {contributor.status}
                       </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       Invited: {new Date(contributor.invited_at).toLocaleDateString()}
                       {contributor.accepted_at && (
                         <> • Accepted: {new Date(contributor.accepted_at).toLocaleDateString()}</>
                       )}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  
+                  {/* Actions */}
+                  <div className="flex flex-wrap items-center gap-2">
                     {contributor.status === 'pending' && (
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => resendInvitation(contributor.id, contributor.contributor_email, contributor.role)}
                         disabled={loading}
+                        className="flex-shrink-0"
                       >
                         <Mail className="h-4 w-4 mr-1" />
                         Resend
@@ -463,7 +469,7 @@ const ContributorsTab: React.FC = () => {
                       value={contributor.role}
                       onValueChange={(value) => updateContributorRole(contributor.id, value as any)}
                     >
-                      <SelectTrigger className="w-32">
+                      <SelectTrigger className="w-32 flex-shrink-0">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
