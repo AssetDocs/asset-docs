@@ -41,13 +41,6 @@ const Auth: React.FC = () => {
     },
   });
 
-  // Redirect if already logged in
-  useEffect(() => {
-    if (user) {
-      navigate('/account');
-    }
-  }, [user, navigate]);
-
   // Pre-fill gift code from URL parameter and check for contributor mode
   useEffect(() => {
     const codeFromUrl = searchParams.get('giftCode');
@@ -64,6 +57,17 @@ const Auth: React.FC = () => {
       setContributorEmail(email);
     }
   }, [searchParams, signInForm]);
+
+  // Redirect if already logged in (but not if in contributor mode with different email)
+  useEffect(() => {
+    if (user && !isContributorMode) {
+      navigate('/account');
+    }
+    // If logged in user's email matches contributor email, redirect to account
+    if (user && isContributorMode && user.email?.toLowerCase() === contributorEmail.toLowerCase()) {
+      navigate('/account');
+    }
+  }, [user, navigate, isContributorMode, contributorEmail]);
 
   const onSignIn = async (data: SignInFormData) => {
     setIsLoading(true);
@@ -203,77 +207,131 @@ const Auth: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const { error } = await signUp(contributorEmail, contributorPassword, contributorFirstName.trim(), contributorLastName.trim());
+      // For contributors, we sign up directly without email verification redirect
+      // since they were already invited via email (email is pre-validated)
+      const { data: signUpData, error } = await supabase.auth.signUp({
+        email: contributorEmail,
+        password: contributorPassword,
+        options: {
+          data: {
+            first_name: contributorFirstName.trim(),
+            last_name: contributorLastName.trim()
+          }
+        }
+      });
       
       if (error) {
+        // Check if user already exists
+        if (error.message?.includes('User already registered') || error.message?.includes('already exists')) {
+          toast({
+            title: "Account Already Exists",
+            description: "An account with this email already exists. Please sign in instead.",
+            variant: "destructive",
+          });
+          setIsContributorMode(false);
+          signInForm.setValue('email', contributorEmail);
+          return;
+        }
         throw error;
       }
 
-      // Wait for session to be established before accepting invitation
-      const waitForSession = async (maxAttempts = 5) => {
-        for (let i = 0; i < maxAttempts; i++) {
-          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
-          const { data: session } = await supabase.auth.getSession();
-          
-          if (session?.session?.access_token) {
-            console.log('Session established, accepting invitation...');
-            return session.session.access_token;
-          }
-          console.log(`Waiting for session... attempt ${i + 1}/${maxAttempts}`);
-        }
-        return null;
-      };
-
-      // After successful signup, wait for session and accept the contributor invitation
-      try {
-        const accessToken = await waitForSession();
+      // If signup created a session directly (email confirmation disabled), use it
+      if (signUpData?.session?.access_token) {
+        console.log('Session created directly after signup, accepting invitation...');
         
-        if (accessToken) {
-          const { data: invitationData, error: inviteError } = await supabase.functions.invoke(
-            'accept-contributor-invitation',
-            {
-              headers: {
-                Authorization: `Bearer ${accessToken}`
-              }
+        const { data: invitationData, error: inviteError } = await supabase.functions.invoke(
+          'accept-contributor-invitation',
+          {
+            headers: {
+              Authorization: `Bearer ${signUpData.session.access_token}`
             }
-          );
-          
-          if (inviteError) {
-            console.error('Invitation acceptance error:', inviteError);
-            throw inviteError;
           }
-          
-          if (invitationData?.invitations?.length > 0) {
-            toast({
-              title: "Account Created!",
-              description: `Your contributor account has been created. You now have access to ${invitationData.invitations.length} account(s).`,
-            });
-          } else {
-            toast({
-              title: "Account Created!",
-              description: "Your contributor account has been created. You now have access to the dashboard.",
-            });
-          }
-        } else {
-          console.error('Failed to establish session after signup');
-          toast({
-            title: "Account Created",
-            description: "Please sign in again to complete the process.",
-          });
-          setIsContributorMode(false);
-          return;
+        );
+        
+        if (inviteError) {
+          console.error('Invitation acceptance error:', inviteError);
         }
-      } catch (inviteError) {
-        console.error('Error accepting contributor invitation:', inviteError);
-        toast({
-          title: "Setup Incomplete",
-          description: "Your account was created, but there was an issue setting up access. Please contact support.",
-          variant: "destructive",
-        });
+        
+        if (invitationData?.invitations?.length > 0) {
+          toast({
+            title: "Account Created!",
+            description: `Your contributor account has been created. You now have access to ${invitationData.invitations.length} account(s).`,
+          });
+        } else {
+          toast({
+            title: "Account Created!",
+            description: "Your contributor account has been created. You now have access to the dashboard.",
+          });
+        }
+        
+        navigate('/account');
         return;
       }
-
-      navigate('/account');
+      
+      // If email confirmation is required, user will need to verify first
+      // But since contributor was invited via email, we can try signing in directly
+      // This handles the case where Supabase's "Confirm email" is disabled
+      
+      // Wait a moment for the user to be created
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Try to sign in with the credentials
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: contributorEmail,
+        password: contributorPassword
+      });
+      
+      if (signInError) {
+        // If email confirmation is required, inform user
+        if (signInError.message?.includes('Email not confirmed')) {
+          toast({
+            title: "Please Verify Your Email",
+            description: "A verification email has been sent. Please verify your email and then sign in.",
+          });
+          setIsContributorMode(false);
+          signInForm.setValue('email', contributorEmail);
+          return;
+        }
+        throw signInError;
+      }
+      
+      if (signInData?.session?.access_token) {
+        console.log('Signed in after signup, accepting invitation...');
+        
+        const { data: invitationData, error: inviteError } = await supabase.functions.invoke(
+          'accept-contributor-invitation',
+          {
+            headers: {
+              Authorization: `Bearer ${signInData.session.access_token}`
+            }
+          }
+        );
+        
+        if (inviteError) {
+          console.error('Invitation acceptance error:', inviteError);
+        }
+        
+        if (invitationData?.invitations?.length > 0) {
+          toast({
+            title: "Account Created!",
+            description: `Your contributor account has been created. You now have access to ${invitationData.invitations.length} account(s).`,
+          });
+        } else {
+          toast({
+            title: "Account Created!",
+            description: "Your contributor account has been created. You now have access to the dashboard.",
+          });
+        }
+        
+        navigate('/account');
+      } else {
+        toast({
+          title: "Account Created",
+          description: "Please sign in to complete the process.",
+        });
+        setIsContributorMode(false);
+        signInForm.setValue('email', contributorEmail);
+      }
     } catch (error: any) {
       console.error('Contributor signup error:', error);
       toast({

@@ -18,6 +18,22 @@ interface UserRecord {
   subscription_tier: string | null;
   created_at: string;
   subscribed: boolean | null;
+  isContributor?: boolean;
+  contributorRole?: string | null;
+  ownerEmail?: string | null;
+  ownerName?: string | null;
+}
+
+interface ContributorRecord {
+  id: string;
+  contributor_email: string;
+  contributor_user_id: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  role: string;
+  status: string;
+  account_owner_id: string;
+  created_at: string;
 }
 
 interface GiftSubscription {
@@ -70,6 +86,12 @@ const AdminUsers = () => {
         `)
         .order('created_at', { ascending: false });
 
+      // Fetch all contributors
+      const { data: contributorsData } = await supabase
+        .from('contributors')
+        .select('*')
+        .order('created_at', { ascending: false });
+
       if (usersData) {
         // Get subscriber info
         const { data: subscribersData } = await supabase
@@ -91,12 +113,35 @@ const AdminUsers = () => {
           subscribersData?.map(s => [s.user_id, s]) || []
         );
 
-        const mergedUsers = usersData.map(user => ({
-          ...user,
-          email: subscriberMap.get(user.user_id)?.email || authEmails[user.user_id] || null,
-          subscription_tier: subscriberMap.get(user.user_id)?.subscription_tier || null,
-          subscribed: subscriberMap.get(user.user_id)?.subscribed || null,
-        }));
+        // Create a map of owner user_id to their profile info
+        const ownerProfileMap = new Map(
+          usersData.map(u => [u.user_id, u])
+        );
+
+        // Create a map of contributor user_id to their contributor record
+        const contributorMap = new Map<string, ContributorRecord>();
+        contributorsData?.forEach(c => {
+          if (c.contributor_user_id) {
+            contributorMap.set(c.contributor_user_id, c);
+          }
+        });
+
+        const mergedUsers = usersData.map(user => {
+          const contributorRecord = contributorMap.get(user.user_id);
+          const ownerProfile = contributorRecord ? ownerProfileMap.get(contributorRecord.account_owner_id) : null;
+          const ownerEmail = ownerProfile ? (subscriberMap.get(ownerProfile.user_id)?.email || authEmails[ownerProfile.user_id]) : null;
+          
+          return {
+            ...user,
+            email: subscriberMap.get(user.user_id)?.email || authEmails[user.user_id] || null,
+            subscription_tier: subscriberMap.get(user.user_id)?.subscription_tier || null,
+            subscribed: subscriberMap.get(user.user_id)?.subscribed || null,
+            isContributor: !!contributorRecord,
+            contributorRole: contributorRecord?.role || null,
+            ownerEmail: ownerEmail || null,
+            ownerName: ownerProfile ? `${ownerProfile.first_name || ''} ${ownerProfile.last_name || ''}`.trim() : null
+          };
+        });
 
         setUsers(mergedUsers);
       }
@@ -257,6 +302,8 @@ const AdminUsers = () => {
                     <TableRow>
                       <TableHead>Name</TableHead>
                       <TableHead>Email</TableHead>
+                      <TableHead>Role/Type</TableHead>
+                      <TableHead>Linked Owner</TableHead>
                       <TableHead>Plan</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Created</TableHead>
@@ -269,6 +316,25 @@ const AdminUsers = () => {
                           {user.first_name} {user.last_name}
                         </TableCell>
                         <TableCell>{user.email || '-'}</TableCell>
+                        <TableCell>
+                          {user.isContributor ? (
+                            <Badge variant="outline" className="capitalize">
+                              {user.contributorRole}
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-primary">Owner</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {user.isContributor && user.ownerEmail ? (
+                            <div>
+                              <p className="text-sm font-medium">{user.ownerName || '-'}</p>
+                              <p className="text-xs text-muted-foreground">{user.ownerEmail}</p>
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
                         <TableCell>{user.subscription_tier || user.plan_id || 'None'}</TableCell>
                         <TableCell>{getStatusBadge(user.plan_status, user.subscribed)}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">
@@ -278,7 +344,7 @@ const AdminUsers = () => {
                     ))}
                     {filteredUsers.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={5} className="text-center text-muted-foreground">
+                        <TableCell colSpan={7} className="text-center text-muted-foreground">
                           No users found
                         </TableCell>
                       </TableRow>
