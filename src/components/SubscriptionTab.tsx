@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { CheckIcon, ExternalLink, CreditCard, Shield, Star, Zap, Trash2, Clock, AlertTriangle, X, Check } from 'lucide-react';
+import { CheckIcon, ExternalLink, CreditCard, Shield, Star, Zap, Trash2, Clock, AlertTriangle, X, Check, HardDrive } from 'lucide-react';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -618,6 +618,11 @@ const SubscriptionTab: React.FC = () => {
     : subscriptionStatus.subscription_tier?.toLowerCase() || 'standard';
   const activeStorageGb = subscriptionStatus.storage_quota_gb || 25;
   const activePropertyLimit = subscriptionStatus.property_limit || 3;
+  
+  // Calculate base storage and add-on storage
+  const baseStorageGb = activeTier === 'premium' ? 100 : 25;
+  const addOnStorageGb = activeStorageGb > baseStorageGb ? activeStorageGb - baseStorageGb : 0;
+  const hasStorageAddOn = addOnStorageGb > 0;
 
   // If user is subscribed, show subscription management
   return (
@@ -656,8 +661,11 @@ const SubscriptionTab: React.FC = () => {
                   </p>
                 </div>
                 <div>
-                  <Label className="text-sm text-muted-foreground">Storage</Label>
+                  <Label className="text-sm text-muted-foreground">Total Storage</Label>
                   <p className="text-xl font-bold text-gray-900">{activeStorageGb} GB</p>
+                  {hasStorageAddOn && (
+                    <p className="text-xs text-muted-foreground">({baseStorageGb} GB base + {addOnStorageGb} GB add-on)</p>
+                  )}
                 </div>
                 {subscriptionStatus.subscription_end && (
                   <div>
@@ -669,6 +677,31 @@ const SubscriptionTab: React.FC = () => {
                 )}
               </div>
             </div>
+
+            {/* Active Add-ons Section */}
+            {hasStorageAddOn && (
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
+                  <HardDrive className="h-5 w-5" />
+                  Active Add-ons
+                </h4>
+                <div className="flex items-center justify-between bg-white/60 rounded-lg p-3">
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
+                      <HardDrive className="h-4 w-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-blue-900">Storage Add-on - {addOnStorageGb} GB</p>
+                      <p className="text-sm text-blue-700">Additional cloud storage</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold text-blue-900">$9.99/mo</p>
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200">Active</Badge>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Available Plans */}
             <div>
