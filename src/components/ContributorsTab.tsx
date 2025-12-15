@@ -33,7 +33,7 @@ const ContributorsTab: React.FC = () => {
   const [role, setRole] = useState<'administrator' | 'contributor' | 'viewer'>('viewer');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const { subscriptionStatus, isInTrial } = useSubscription();
+  const { subscriptionStatus, subscriptionTier, isInTrial } = useSubscription();
 
   useEffect(() => {
     fetchContributors();
@@ -74,7 +74,7 @@ const ContributorsTab: React.FC = () => {
     // Check contributor limits
     const limitCheck = checkContributorLimit(
       contributors.length,
-      subscriptionStatus?.subscription_tier as any,
+      subscriptionTier,
       isInTrial
     );
     
@@ -339,8 +339,8 @@ const ContributorsTab: React.FC = () => {
           {/* Show current usage and limits */}
           <div className="bg-muted/30 rounded-lg p-3 mb-4">
             <p className="text-sm text-muted-foreground">
-              Contributors: {contributors.length} of {checkContributorLimit(0, subscriptionStatus?.subscription_tier as any, isInTrial).limit}
-              {!subscriptionStatus?.subscription_tier && (
+              Contributors: {contributors.length} of {checkContributorLimit(0, subscriptionTier, isInTrial).limit}
+              {!subscriptionTier && (
                 <span className="ml-2 text-destructive">• Upgrade to invite contributors</span>
               )}
             </p>
