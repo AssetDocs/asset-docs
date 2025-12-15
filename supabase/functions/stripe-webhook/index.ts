@@ -369,7 +369,7 @@ async function handlePaymentFailed(supabase: any, invoice: Stripe.Invoice) {
 }
 
 async function handleCheckoutCompleted(supabase: any, session: Stripe.Checkout.Session) {
-  logStep('Handling checkout completion', { sessionId: session.id });
+  logStep('Handling checkout completion', { sessionId: session.id, mode: session.mode });
 
   // Handle gift subscriptions
   if (session.metadata?.gift_code) {
@@ -380,6 +380,71 @@ async function handleCheckoutCompleted(supabase: any, session: Stripe.Checkout.S
 
     if (error) {
       logStep('Error updating gift subscription', error);
+    }
+  }
+
+  // Handle regular subscription checkout - activate profile immediately
+  if (session.mode === 'subscription' && session.customer_email) {
+    logStep('Activating subscription from checkout', { email: session.customer_email });
+    
+    // Find user by email
+    const { data: usersData } = await supabase.auth.admin.listUsers();
+    const user = usersData?.users?.find((u: any) => u.email === session.customer_email);
+    
+    if (user) {
+      // Get plan type from metadata or default to standard
+      const planType = session.metadata?.plan_type || 'standard';
+      const limits = getPlanLimitsFromType(planType);
+      
+      // Update profile to active status
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          stripe_customer_id: session.customer,
+          plan_id: planType,
+          plan_status: 'active',
+          property_limit: limits.propertyLimit,
+          storage_quota_gb: limits.storageQuotaGb,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id);
+
+      if (profileError) {
+        logStep('Error updating profile from checkout', profileError);
+      } else {
+        logStep('Profile activated from checkout', { userId: user.id, planType });
+      }
+
+      // Update subscribers table for backwards compatibility
+      const { error: subscriberError } = await supabase
+        .from('subscribers')
+        .upsert({
+          user_id: user.id,
+          email: session.customer_email,
+          stripe_customer_id: session.customer,
+          subscribed: true,
+          subscription_tier: limits.tier,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
+        });
+
+      if (subscriberError) {
+        logStep('Error updating subscriber from checkout', subscriberError);
+      }
+
+      // Send welcome email
+      try {
+        await supabase.functions.invoke('send-subscription-welcome-email', {
+          body: {
+            email: session.customer_email,
+            subscription_tier: limits.tier
+          }
+        });
+        logStep('Welcome email sent');
+      } catch (error) {
+        logStep('Failed to send welcome email', error);
+      }
     }
   }
 }
@@ -405,11 +470,30 @@ function getPlanLimits(priceId: string): { propertyLimit: number; storageQuotaGb
     };
   }
   
-  // Fallback to basic/free tier
+  // Fallback to standard tier for any other subscription
   return {
-    propertyLimit: 1,
-    storageQuotaGb: 5,
-    tier: 'basic'
+    propertyLimit: 3,
+    storageQuotaGb: 25,
+    tier: 'standard'
+  };
+}
+
+function getPlanLimitsFromType(planType: string): { propertyLimit: number; storageQuotaGb: number; tier: string } {
+  const typeLower = planType.toLowerCase();
+  
+  if (typeLower === 'premium' || typeLower === 'professional') {
+    return {
+      propertyLimit: -1,
+      storageQuotaGb: 100,
+      tier: 'premium'
+    };
+  }
+  
+  // Default to standard
+  return {
+    propertyLimit: 3,
+    storageQuotaGb: 25,
+    tier: 'standard'
   };
 }
 
