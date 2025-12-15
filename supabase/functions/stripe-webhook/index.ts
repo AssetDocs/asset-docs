@@ -163,7 +163,7 @@ async function handleSubscriptionChange(supabase: any, subscription: Stripe.Subs
   }
 
   const priceId = subscription.items.data[0]?.price?.id || '';
-  const planStatus = subscription.status;
+  const stripeStatus = subscription.status;
   const currentPeriodEnd = subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : null;
   
   // Check if this is a storage add-on subscription
@@ -217,14 +217,26 @@ async function handleSubscriptionChange(supabase: any, subscription: Stripe.Subs
   const user = usersData?.users?.find((u: any) => u.email === customer.email);
   
   if (user) {
-    // Check if profile exists with subscription
+    // Check current profile status to prevent downgrading from 'active' to 'incomplete'
     const { data: existingProfile } = await supabase
       .from('profiles')
       .select('stripe_customer_id, plan_status')
       .eq('user_id', user.id)
       .single();
 
-    const isNewSubscription = !existingProfile?.stripe_customer_id && (planStatus === 'active' || planStatus === 'trialing');
+    // Determine the final plan status - don't downgrade from 'active' to 'incomplete'
+    let finalPlanStatus = stripeStatus;
+    if (existingProfile?.plan_status === 'active' && stripeStatus === 'incomplete') {
+      logStep('Keeping active status instead of downgrading to incomplete');
+      finalPlanStatus = 'active';
+    }
+    
+    // Map Stripe statuses to ensure 'active' is properly set
+    if (stripeStatus === 'trialing' || stripeStatus === 'active') {
+      finalPlanStatus = 'active';
+    }
+
+    const isNewSubscription = !existingProfile?.stripe_customer_id && (finalPlanStatus === 'active');
 
     // Update profile with subscription data
     const { error: profileError } = await supabase
@@ -232,7 +244,7 @@ async function handleSubscriptionChange(supabase: any, subscription: Stripe.Subs
       .update({
         stripe_customer_id: subscription.customer,
         plan_id: priceId,
-        plan_status: planStatus,
+        plan_status: finalPlanStatus,
         current_period_end: currentPeriodEnd?.toISOString(),
         property_limit: propertyLimit,
         storage_quota_gb: storageQuotaGb,
@@ -243,7 +255,7 @@ async function handleSubscriptionChange(supabase: any, subscription: Stripe.Subs
     if (profileError) {
       logStep('Error updating profile', profileError);
     } else {
-      logStep('Profile updated successfully');
+      logStep('Profile updated successfully', { planStatus: finalPlanStatus, stripeStatus });
     }
 
     // Also maintain backwards compatibility with subscribers table
@@ -253,7 +265,7 @@ async function handleSubscriptionChange(supabase: any, subscription: Stripe.Subs
         user_id: user.id,
         email: customer.email,
         stripe_customer_id: subscription.customer,
-        subscribed: planStatus === 'active' || planStatus === 'trialing',
+        subscribed: finalPlanStatus === 'active',
         subscription_tier: tier,
         subscription_end: currentPeriodEnd?.toISOString(),
         updated_at: new Date().toISOString()
