@@ -35,12 +35,29 @@ const LegacyLockerSection: React.FC = () => {
     <section className="py-20 bg-gradient-to-br from-blue-50 to-teal-50">
       <div className="container mx-auto px-4">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
-            <img src={legacyLockerLogo} alt="Legacy Locker - Secure Digital Estate Planning Vault" className="w-20 h-20 mx-auto mb-6" loading="lazy" />
-            <h2 className="text-4xl font-bold text-brand-blue mb-4">Introducing Legacy Locker</h2>
-            <p className="text-xl text-gray-700">
-              A secure vault for organizing the information that matters most to your loved ones
-            </p>
+          <div className="flex flex-col lg:flex-row items-center gap-8 mb-12">
+            <div className="flex-1 text-center lg:text-left">
+              <img src={legacyLockerLogo} alt="Legacy Locker - Secure Digital Estate Planning Vault" className="w-20 h-20 mx-auto lg:mx-0 mb-6" loading="lazy" />
+              <h2 className="text-4xl font-bold text-brand-blue mb-4">Introducing Legacy Locker</h2>
+              <p className="text-xl text-gray-700">
+                A secure vault for organizing the information that matters most to your loved ones
+              </p>
+            </div>
+            <div className="flex-1 w-full max-w-md lg:max-w-none">
+              <div className="relative w-full aspect-video rounded-lg overflow-hidden shadow-lg">
+                <iframe 
+                  width="100%" 
+                  height="100%" 
+                  src="https://www.youtube.com/embed/V9MvVbn7qfg?controls=0" 
+                  title="Legacy Locker Introduction Video"
+                  frameBorder="0" 
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                  referrerPolicy="strict-origin-when-cross-origin" 
+                  allowFullScreen
+                  className="absolute inset-0"
+                ></iframe>
+              </div>
+            </div>
           </div>
 
           <div className="flex flex-col gap-4 mb-8">
