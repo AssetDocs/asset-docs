@@ -71,10 +71,10 @@ const AuthCallback = () => {
 
         // Show success message based on the type
         if (type === 'signup' || type === 'email_change_confirm_new') {
-          // If user is a contributor, skip subscription flow and go directly to dashboard
+          // If user is a contributor, show success and redirect to dashboard
           if (isContributor) {
             toast({
-              title: "Welcome to Asset Safe!",
+              title: "Email Verified Successfully!",
               description: "Your contributor account is ready. Redirecting to dashboard...",
             });
             navigate('/account', { replace: true });
