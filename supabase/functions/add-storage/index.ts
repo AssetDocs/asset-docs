@@ -78,6 +78,13 @@ Deno.serve(async (req) => {
         type: 'storage_addon',
         storage_amount_gb: '50',
       },
+      // Pass metadata to the subscription so webhook can detect storage add-on
+      subscription_data: {
+        metadata: {
+          type: 'storage_addon',
+          storage_amount_gb: '50',
+        },
+      },
     });
 
     console.log('[ADD-STORAGE] Checkout session created:', session.id);
