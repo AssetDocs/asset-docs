@@ -234,14 +234,16 @@ export const checkContributorLimit = (
   userTier: SubscriptionTier | null | undefined,
   _isInTrial?: boolean // Deprecated - trial no longer supported
 ): { canAdd: boolean; limit: number; message?: string } => {
-  const limit = getContributorLimit(userTier);
+  // Default limit is 3 for all paid subscribers
+  const DEFAULT_CONTRIBUTOR_LIMIT = 3;
+  const limit = userTier ? getContributorLimit(userTier) : DEFAULT_CONTRIBUTOR_LIMIT;
   const canAdd = currentCount < limit;
   
   if (!canAdd) {
     return {
       canAdd: false,
       limit,
-      message: 'You have reached the maximum number of contributors for your plan.'
+      message: `You have reached the maximum of ${limit} contributors for your plan.`
     };
   }
   

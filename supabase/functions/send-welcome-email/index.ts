@@ -89,12 +89,6 @@ const handler = async (req: Request): Promise<Response> => {
             </div>
           </div>
           
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="https://www.assetsafe.net/account" 
-               style="background: #1e40af; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block; font-size: 16px;">
-              Go to My Dashboard
-            </a>
-          </div>
           
           <div style="background: #ecfdf5; border-left: 4px solid #10b981; padding: 15px; margin: 30px 0;">
             <h3 style="color: #065f46; margin-top: 0; font-size: 16px;">💡 Getting Started Tip:</h3>
