@@ -216,12 +216,33 @@ export class StorageService {
   }
 
   /**
-   * Check storage quota for a user
+   * Check storage quota for a user (uses tier defaults)
    */
   static async getStorageQuota(userId: string, subscriptionTier: SubscriptionTier | null): Promise<StorageQuota> {
     const totalUsed = await this.getTotalStorageUsage(userId);
     const limit = getStorageLimit(subscriptionTier);
     const isUnlimited = false; // No more unlimited storage
+    const percentage = limit ? Math.min((totalUsed / limit) * 100, 100) : 0;
+    const isNearLimit = limit ? percentage >= 80 : false;
+    const isOverLimit = limit ? totalUsed > limit : false;
+
+    return {
+      used: totalUsed,
+      limit,
+      percentage,
+      isUnlimited,
+      isNearLimit,
+      isOverLimit
+    };
+  }
+
+  /**
+   * Check storage quota for a user with explicit limit (uses actual profile quota)
+   */
+  static async getStorageQuotaWithLimit(userId: string, storageQuotaGb: number): Promise<StorageQuota> {
+    const totalUsed = await this.getTotalStorageUsage(userId);
+    const limit = storageQuotaGb * 1024 * 1024 * 1024; // Convert GB to bytes
+    const isUnlimited = false;
     const percentage = limit ? Math.min((totalUsed / limit) * 100, 100) : 0;
     const isNearLimit = limit ? percentage >= 80 : false;
     const isOverLimit = limit ? totalUsed > limit : false;

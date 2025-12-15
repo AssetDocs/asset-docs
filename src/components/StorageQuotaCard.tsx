@@ -14,7 +14,7 @@ interface StorageQuotaCardProps {
 }
 
 const StorageQuotaCard: React.FC<StorageQuotaCardProps> = ({ className }) => {
-  const { subscriptionTier } = useSubscription();
+  const { subscriptionTier, storageQuotaGb } = useSubscription();
   const [quota, setQuota] = useState<StorageQuota | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -24,7 +24,8 @@ const StorageQuotaCard: React.FC<StorageQuotaCardProps> = ({ className }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const storageQuota = await StorageService.getStorageQuota(user.id, subscriptionTier);
+      // Use actual storage quota from profile, not tier defaults
+      const storageQuota = await StorageService.getStorageQuotaWithLimit(user.id, storageQuotaGb);
       setQuota(storageQuota);
     } catch (error) {
       console.error('Failed to load storage quota:', error);
@@ -53,7 +54,7 @@ const StorageQuotaCard: React.FC<StorageQuotaCardProps> = ({ className }) => {
 
   useEffect(() => {
     loadStorageQuota();
-  }, [subscriptionTier]);
+  }, [subscriptionTier, storageQuotaGb]);
 
   if (loading) {
     return (
