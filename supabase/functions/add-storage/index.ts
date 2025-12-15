@@ -71,8 +71,8 @@ Deno.serve(async (req) => {
         },
       ],
       mode: 'subscription',
-      success_url: `${req.headers.get('origin')}/account-settings?tab=subscription&storage_added=true`,
-      cancel_url: `${req.headers.get('origin')}/account-settings?tab=subscription`,
+      success_url: `${req.headers.get('origin') || 'https://www.assetsafe.net'}/account?storage_added=true`,
+      cancel_url: `${req.headers.get('origin') || 'https://www.assetsafe.net'}/account-settings?tab=subscription`,
       metadata: {
         user_id: user.id,
         type: 'storage_addon',
