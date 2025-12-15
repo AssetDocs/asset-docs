@@ -84,7 +84,7 @@ import CRM from "./pages/CRM";
 import AcknowledgeAccess from "./pages/AcknowledgeAccess";
 import ForgotPassword from "./pages/ForgotPassword";
 import LegacyLockerInfo from "./pages/LegacyLockerInfo";
-
+import ContributorWelcome from "./pages/ContributorWelcome";
 
 const queryClient = new QueryClient();
 
@@ -247,6 +247,7 @@ const AppContent = () => {
         
         {/* Welcome page - public to allow unverified users to see it */}
         <Route path="/welcome" element={<Welcome />} />
+        <Route path="/contributor-welcome" element={<ContributorWelcome />} />
         
         {/* Protected routes */}
         <Route path="/subscription-success" element={<ProtectedRoute skipSubscriptionCheck={true}><SubscriptionSuccess /></ProtectedRoute>} />

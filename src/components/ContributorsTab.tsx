@@ -301,6 +301,19 @@ const ContributorsTab: React.FC = () => {
     }
   };
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'accepted':
+        return 'confirmed';
+      case 'pending':
+        return 'pending';
+      case 'declined':
+        return 'declined';
+      default:
+        return status;
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -440,7 +453,7 @@ const ContributorsTab: React.FC = () => {
                         </div>
                       </Badge>
                       <Badge variant="outline" className={getStatusColor(contributor.status)}>
-                        {contributor.status}
+                        {getStatusLabel(contributor.status)}
                       </Badge>
                     </div>
                     <p className="text-xs text-muted-foreground">

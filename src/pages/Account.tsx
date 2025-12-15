@@ -45,8 +45,52 @@ import {
 // Welcome Message Component
 const WelcomeMessage: React.FC = () => {
   const { profile, user } = useAuth();
+  const [contributorInfo, setContributorInfo] = useState<{
+    first_name: string | null;
+    last_name: string | null;
+    role: string;
+    ownerName: string;
+  } | null>(null);
+
+  useEffect(() => {
+    const fetchContributorInfo = async () => {
+      if (!user) return;
+
+      // Check if user is a contributor
+      const { data: contributorData } = await supabase
+        .from('contributors')
+        .select('account_owner_id, first_name, last_name, role')
+        .eq('contributor_user_id', user.id)
+        .eq('status', 'accepted')
+        .maybeSingle();
+
+      if (contributorData) {
+        // Get owner's name
+        const { data: ownerProfile } = await supabase
+          .from('profiles')
+          .select('first_name, last_name')
+          .eq('user_id', contributorData.account_owner_id)
+          .single();
+
+        setContributorInfo({
+          first_name: contributorData.first_name,
+          last_name: contributorData.last_name,
+          role: contributorData.role,
+          ownerName: ownerProfile ? `${ownerProfile.first_name || ''} ${ownerProfile.last_name || ''}`.trim() : ''
+        });
+      }
+    };
+
+    fetchContributorInfo();
+  }, [user]);
   
   const getDisplayName = () => {
+    // If contributor, show their name from contributor record
+    if (contributorInfo) {
+      const name = `${contributorInfo.first_name || ''} ${contributorInfo.last_name || ''}`.trim();
+      return name || user?.email?.split('@')[0] || 'Contributor';
+    }
+    // Owner - show their profile name
     if (profile?.first_name) {
       return profile.first_name;
     }
@@ -59,14 +103,31 @@ const WelcomeMessage: React.FC = () => {
     return 'User';
   };
 
+  const getRoleDisplay = (role: string) => {
+    return role.charAt(0).toUpperCase() + role.slice(1);
+  };
+
   return (
     <div className="bg-gradient-to-r from-brand-blue to-brand-lightBlue p-6 rounded-lg text-white">
       <h1 className="text-2xl font-bold">
         Welcome, {getDisplayName()}!
       </h1>
-      <p className="text-brand-blue/80 mt-1">
-        Manage your assets and documentation from your dashboard
-      </p>
+      {contributorInfo ? (
+        <div className="mt-1 space-y-1">
+          <p className="text-white/90 font-medium">
+            Contributor - {getRoleDisplay(contributorInfo.role)}
+          </p>
+          {contributorInfo.ownerName && (
+            <p className="text-white/70 text-sm">
+              Account Owner: {contributorInfo.ownerName}
+            </p>
+          )}
+        </div>
+      ) : (
+        <p className="text-brand-blue/80 mt-1">
+          Manage your assets and documentation from your dashboard
+        </p>
+      )}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { Eye, EyeOff, ArrowLeft, ShieldCheck } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -21,24 +22,55 @@ interface SignUpFormData {
 }
 
 const Signup: React.FC = () => {
+  const [searchParams] = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [emailExistsError, setEmailExistsError] = useState(false);
+  const [isContributorSignup, setIsContributorSignup] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, signUp } = useAuth();
+
+  // Check if this is a contributor signup
+  const contributorEmail = searchParams.get('email');
+  const isContributorMode = searchParams.get('mode') === 'contributor';
 
   const signUpForm = useForm<SignUpFormData>({
     defaultValues: {
       firstName: '',
       lastName: '',
-      email: '',
+      email: contributorEmail || '',
       password: '',
       confirmPassword: '',
       acceptTerms: false,
     },
   });
+
+  // Pre-fill contributor email and check if they have a pending invitation
+  useEffect(() => {
+    const checkContributorInvitation = async () => {
+      if (isContributorMode && contributorEmail) {
+        setIsContributorSignup(true);
+        signUpForm.setValue('email', contributorEmail);
+        
+        // Try to get the contributor's name from the invitation
+        const { data: contributorData } = await supabase
+          .from('contributors')
+          .select('first_name, last_name')
+          .eq('contributor_email', contributorEmail)
+          .eq('status', 'pending')
+          .maybeSingle();
+        
+        if (contributorData) {
+          if (contributorData.first_name) signUpForm.setValue('firstName', contributorData.first_name);
+          if (contributorData.last_name) signUpForm.setValue('lastName', contributorData.last_name);
+        }
+      }
+    };
+    
+    checkContributorInvitation();
+  }, [isContributorMode, contributorEmail, signUpForm]);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -83,8 +115,26 @@ const Signup: React.FC = () => {
         // This happens when "user_repeated_signup" occurs - no email is sent
         setEmailExistsError(true);
       } else {
-        // Redirect to welcome page with email verification notice
-        navigate('/welcome');
+        // If contributor signup, accept the invitation first then redirect to contributor welcome
+        if (isContributorSignup && signUpData?.user) {
+          try {
+            // Accept the contributor invitation
+            const { data: session } = await supabase.auth.getSession();
+            if (session?.session?.access_token) {
+              await supabase.functions.invoke('accept-contributor-invitation', {
+                headers: {
+                  Authorization: `Bearer ${session.session.access_token}`
+                }
+              });
+            }
+          } catch (err) {
+            console.error('Error accepting contributor invitation:', err);
+          }
+          navigate('/contributor-welcome');
+        } else {
+          // Redirect to welcome page with email verification notice
+          navigate('/welcome');
+        }
       }
     } catch (error: any) {
       console.error('Sign up error:', error);
