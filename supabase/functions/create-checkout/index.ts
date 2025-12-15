@@ -127,6 +127,11 @@ serve(async (req) => {
         name: 'auto',
         address: 'auto'
       } : undefined,
+      // Pass plan type in metadata for webhook processing
+      metadata: {
+        plan_type: planType,
+        user_id: user?.id || ''
+      }
     });
 
     logStep("Checkout session created", { sessionId: session.id, url: session.url });

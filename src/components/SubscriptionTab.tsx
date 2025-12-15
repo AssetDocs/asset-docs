@@ -46,7 +46,8 @@ const commonFeatures = [
   "Post damage documentation",
   "Export detailed reports",
   "Email support",
-  "Share with 3 trusted contacts"
+  "Share with 3 trusted contacts",
+  "Legacy Locker"
 ];
 
 interface DeletionRequest {
