@@ -56,7 +56,15 @@ serve(async (req) => {
     });
 
     // Check if user has an active subscription (no more trial logic)
+    // Also treat 'incomplete' as subscribed if plan_id is set (webhook sync issue workaround)
     let isSubscribed = profile?.plan_status === 'active' || profile?.plan_status === 'trialing';
+    
+    // If plan_status is 'incomplete' but plan_id is set, treat as active (Stripe webhook sync issue)
+    if (!isSubscribed && profile?.plan_status === 'incomplete' && profile?.plan_id) {
+      isSubscribed = true;
+      logStep("Treating incomplete status as subscribed due to plan_id being set");
+    }
+    
     let subscriptionTier = 'basic';
     let propertyLimit = profile?.property_limit || 1;
     let storageQuotaGb = profile?.storage_quota_gb || 5;

@@ -86,6 +86,9 @@ const SubscriptionTab: React.FC = () => {
     subscribed: boolean;
     subscription_tier?: string;
     subscription_end?: string;
+    plan_status?: string;
+    property_limit?: number;
+    storage_quota_gb?: number;
   }>({ subscribed: false });
 
   const checkIfContributor = async () => {
@@ -428,8 +431,11 @@ const SubscriptionTab: React.FC = () => {
     }
   };
 
-  // If user is not subscribed, show checkout form
-  if (!subscriptionStatus.subscribed) {
+  // If user is not subscribed AND plan_status is not 'active', show checkout form
+  // This handles cases where webhook might have set plan_status but not synced subscribers table
+  const hasActivePlan = subscriptionStatus.plan_status === 'active' || subscriptionStatus.subscribed;
+  
+  if (!hasActivePlan) {
     const currentPlan = planConfigs[selectedPlan];
     
     return (
@@ -606,6 +612,13 @@ const SubscriptionTab: React.FC = () => {
     );
   }
 
+  // Determine the active tier from subscription status
+  const activeTier = subscriptionStatus.subscription_tier?.toLowerCase().includes('premium') ? 'premium' 
+    : subscriptionStatus.subscription_tier?.toLowerCase().includes('standard') ? 'standard'
+    : subscriptionStatus.subscription_tier?.toLowerCase() || 'standard';
+  const activeStorageGb = subscriptionStatus.storage_quota_gb || 25;
+  const activePropertyLimit = subscriptionStatus.property_limit || 3;
+
   // If user is subscribed, show subscription management
   return (
     <div className="space-y-6">
@@ -627,20 +640,24 @@ const SubscriptionTab: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Current Plan</p>
-                    <h3 className="text-2xl font-bold text-green-900">
-                      {subscriptionStatus.subscription_tier} Plan
+                    <h3 className="text-2xl font-bold text-green-900 capitalize">
+                      {activeTier} Plan
                     </h3>
                   </div>
                 </div>
                 <Badge variant="secondary" className="bg-green-600 text-white border-green-700 px-4 py-2 text-sm">Active</Badge>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                 <div>
                   <Label className="text-sm text-muted-foreground">Monthly Price</Label>
                   <p className="text-xl font-bold text-gray-900">
-                    {subscriptionStatus.subscription_tier?.toLowerCase() === 'standard' && '$12.99/mo'}
-                    {subscriptionStatus.subscription_tier?.toLowerCase() === 'premium' && '$18.99/mo'}
+                    {activeTier === 'standard' && '$12.99/mo'}
+                    {activeTier === 'premium' && '$18.99/mo'}
                   </p>
+                </div>
+                <div>
+                  <Label className="text-sm text-muted-foreground">Storage</Label>
+                  <p className="text-xl font-bold text-gray-900">{activeStorageGb} GB</p>
                 </div>
                 {subscriptionStatus.subscription_end && (
                   <div>
@@ -658,13 +675,13 @@ const SubscriptionTab: React.FC = () => {
               <h4 className="font-semibold text-lg mb-4">Available Plans</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {Object.entries(planConfigs).map(([key, plan]) => {
-                  const isCurrentPlan = subscriptionStatus.subscription_tier?.toLowerCase() === key;
+                  const isCurrentPlan = activeTier === key;
                   return (
                     <Card key={key} className={isCurrentPlan ? 'border-2 border-green-500 shadow-lg' : 'border-2'}>
                       <CardContent className="pt-6">
                         {isCurrentPlan && (
                           <div className="mb-4">
-                            <Badge className="bg-green-600 text-white text-sm px-3 py-1">Current Plan</Badge>
+                            <Badge className="bg-green-600 text-white text-sm px-3 py-1">Your Current Plan</Badge>
                           </div>
                         )}
                         <div className="flex items-center gap-2 mb-3">

@@ -158,6 +158,18 @@ const TOTPChallenge: React.FC<TOTPChallengeProps> = ({
                 Set Up Authenticator
               </Button>
 
+              <Button 
+                variant="outline" 
+                onClick={async () => {
+                  // Refetch factors in case user already set up TOTP elsewhere
+                  await refetch();
+                }}
+                className="w-full"
+              >
+                <Shield className="h-4 w-4 mr-2" />
+                I Have an Authenticator App
+              </Button>
+
               <Button variant="ghost" onClick={handleClose} className="w-full">
                 Cancel
               </Button>
