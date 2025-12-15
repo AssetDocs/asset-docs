@@ -381,7 +381,7 @@ async function handlePaymentFailed(supabase: any, invoice: Stripe.Invoice) {
 }
 
 async function handleCheckoutCompleted(supabase: any, session: Stripe.Checkout.Session) {
-  logStep('Handling checkout completion', { sessionId: session.id, mode: session.mode });
+  logStep('Handling checkout completion', { sessionId: session.id, mode: session.mode, metadata: session.metadata });
 
   // Handle gift subscriptions
   if (session.metadata?.gift_code) {
@@ -393,6 +393,48 @@ async function handleCheckoutCompleted(supabase: any, session: Stripe.Checkout.S
     if (error) {
       logStep('Error updating gift subscription', error);
     }
+  }
+
+  // Handle storage add-on checkout
+  if (session.metadata?.type === 'storage_addon') {
+    logStep('Processing storage add-on from checkout', { 
+      userId: session.metadata.user_id, 
+      storageAmount: session.metadata.storage_amount_gb 
+    });
+    
+    const userId = session.metadata.user_id;
+    const storageAmountGb = parseInt(session.metadata.storage_amount_gb || '50');
+    
+    if (userId) {
+      // Get current storage quota
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('storage_quota_gb')
+        .eq('user_id', userId)
+        .single();
+      
+      const currentQuota = profile?.storage_quota_gb || 25;
+      const newQuota = currentQuota + storageAmountGb;
+      
+      // Update profile with additional storage
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          storage_quota_gb: newQuota,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', userId);
+      
+      if (profileError) {
+        logStep('Error updating storage quota from checkout', profileError);
+      } else {
+        logStep('Storage quota updated from checkout', { 
+          previousQuota: currentQuota, 
+          newQuota: newQuota 
+        });
+      }
+    }
+    return; // Don't process as regular subscription
   }
 
   // Handle regular subscription checkout - activate profile immediately
