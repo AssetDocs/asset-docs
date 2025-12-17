@@ -5,6 +5,7 @@ import Footer from '@/components/Footer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Play, BookOpen, UserPlus, Camera, Upload, Building, FileText, Settings } from 'lucide-react';
+import walkthroughCover from '@/assets/youtube-cover-walkthrough.jpg';
 
 const VideoHelp: React.FC = () => {
   const handleWatchVideo = (videoUrl: string) => {
@@ -131,7 +132,7 @@ const VideoHelp: React.FC = () => {
                 </div>
                 <div className="w-full md:w-80 h-48 rounded-lg overflow-hidden relative group cursor-pointer" onClick={() => handleWatchVideo('https://youtu.be/SgJuSe52umM')}>
                   <img 
-                    src="https://img.youtube.com/vi/SgJuSe52umM/maxresdefault.jpg" 
+                    src={walkthroughCover} 
                     alt="Account Creation & Dashboard Overview Tutorial"
                     className="w-full h-full object-cover"
                   />
