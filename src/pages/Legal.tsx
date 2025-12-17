@@ -65,6 +65,11 @@ const Legal: React.FC = () => {
                     <li>• For insurance claims, estate planning, legal proceedings, or high-value items, users should consult licensed appraisers or qualified professionals</li>
                   </ul>
                 </div>
+                <div className="pt-4 border-t border-gray-200">
+                  <p className="text-sm text-gray-600 italic">
+                    To the fullest extent permitted by law, Asset Safe disclaims any liability arising from reliance on asset values recorded within the platform.
+                  </p>
+                </div>
               </CardContent>
             </Card>
 
