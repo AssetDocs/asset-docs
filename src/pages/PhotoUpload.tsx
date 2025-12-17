@@ -25,16 +25,22 @@ const PhotoUpload: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  const { properties } = useProperties();
+  const { properties, isLoading: propertiesLoading } = useProperties();
   const { subscriptionTier } = useSubscription();
   const [selectedPropertyId, setSelectedPropertyId] = useState<string>('');
   const [selectedFolderId, setSelectedFolderId] = useState<string>('');
   const [folders, setFolders] = useState<Folder[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
+  const [isInitialized, setIsInitialized] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const cameraInputRef = React.useRef<HTMLInputElement>(null);
   const { uploadFiles, isUploading } = usePropertyFiles(selectedPropertyId || null, 'photo');
+
+  React.useEffect(() => {
+    console.log('PhotoUpload mounted, user:', user?.id);
+    setIsInitialized(true);
+  }, []);
 
   React.useEffect(() => {
     if (user) {
@@ -58,6 +64,19 @@ const PhotoUpload: React.FC = () => {
       console.error('Error fetching folders:', error);
     }
   };
+
+  // Show loading state while initializing
+  if (!isInitialized) {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <Navbar />
+        <div className="flex-grow flex items-center justify-center bg-gray-50">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-blue"></div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
