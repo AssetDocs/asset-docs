@@ -28,7 +28,13 @@ const VideoUpload: React.FC = () => {
   const [defaultPropertyId, setDefaultPropertyId] = useState('');
   const [selectedFolderId, setSelectedFolderId] = useState<string>('');
   const [folders, setFolders] = useState<Folder[]>([]);
+  const [isInitialized, setIsInitialized] = useState(false);
   const { uploadFiles, isUploading } = usePropertyFiles(defaultPropertyId, 'video');
+
+  useEffect(() => {
+    console.log('VideoUpload mounted, user:', user?.id);
+    setIsInitialized(true);
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -49,6 +55,19 @@ const VideoUpload: React.FC = () => {
       console.error('Error fetching folders:', error);
     }
   };
+
+  // Show loading state while initializing
+  if (!isInitialized) {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <Navbar />
+        <div className="flex-grow flex items-center justify-center bg-gray-50">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-blue"></div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && fileInputRef.current) {
