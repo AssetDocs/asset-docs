@@ -7,15 +7,20 @@ import { Button } from '@/components/ui/button';
 import { Play, BookOpen, UserPlus, Camera, Upload, Building, FileText, Settings } from 'lucide-react';
 
 const VideoHelp: React.FC = () => {
+  const handleWatchVideo = (videoUrl: string) => {
+    window.open(videoUrl, '_blank');
+  };
+
   const tutorials = [
     {
       id: 1,
-      title: "Getting Started: Create Your Account",
-      description: "Learn how to sign up and set up your Asset Docs account in just a few minutes.",
-      duration: "3:45",
+      title: "Account Creation, Payment & Dashboard Overview",
+      description: "Complete walkthrough of creating your Asset Safe account, completing payment, and an overview of your dashboard features.",
+      duration: "5:00",
       icon: UserPlus,
       category: "Getting Started",
-      thumbnail: "/placeholder.svg"
+      thumbnail: "/placeholder.svg",
+      videoUrl: "https://youtu.be/SgJuSe52umM"
     },
     {
       id: 2,
@@ -24,7 +29,8 @@ const VideoHelp: React.FC = () => {
       duration: "5:20",
       icon: Building,
       category: "Property Management",
-      thumbnail: "/placeholder.svg"
+      thumbnail: "/placeholder.svg",
+      videoUrl: ""
     },
     {
       id: 4,
@@ -33,7 +39,8 @@ const VideoHelp: React.FC = () => {
       duration: "6:30",
       icon: Camera,
       category: "Photo Management",
-      thumbnail: "/placeholder.svg"
+      thumbnail: "/placeholder.svg",
+      videoUrl: ""
     },
     {
       id: 5,
@@ -42,7 +49,8 @@ const VideoHelp: React.FC = () => {
       duration: "4:50",
       icon: Upload,
       category: "Video Management",
-      thumbnail: "/placeholder.svg"
+      thumbnail: "/placeholder.svg",
+      videoUrl: ""
     },
     {
       id: 6,
@@ -51,7 +59,8 @@ const VideoHelp: React.FC = () => {
       duration: "5:40",
       icon: FileText,
       category: "Document Management",
-      thumbnail: "/placeholder.svg"
+      thumbnail: "/placeholder.svg",
+      videoUrl: ""
     },
     {
       id: 7,
@@ -60,7 +69,8 @@ const VideoHelp: React.FC = () => {
       duration: "6:10",
       icon: Settings,
       category: "Documentation",
-      thumbnail: "/placeholder.svg"
+      thumbnail: "/placeholder.svg",
+      videoUrl: ""
     },
     {
       id: 8,
@@ -69,15 +79,19 @@ const VideoHelp: React.FC = () => {
       duration: "8:25",
       icon: FileText,
       category: "Reports",
-      thumbnail: "/placeholder.svg"
+      thumbnail: "/placeholder.svg",
+      videoUrl: ""
     }
   ];
 
   const categories = [...new Set(tutorials.map(t => t.category))];
 
-  const handlePlayVideo = (tutorialId: number) => {
-    console.log(`Playing tutorial ${tutorialId}`);
-    // TODO: Implement video player functionality
+  const handlePlayVideo = (tutorial: typeof tutorials[0]) => {
+    if (tutorial.videoUrl) {
+      window.open(tutorial.videoUrl, '_blank');
+    } else {
+      console.log(`Video coming soon for: ${tutorial.title}`);
+    }
   };
 
   return (
@@ -92,7 +106,7 @@ const VideoHelp: React.FC = () => {
               Video Help Center
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Learn how to use Asset Docs with our comprehensive video tutorials. 
+              Learn how to use Asset Safe with our comprehensive video tutorials. 
               From getting started to advanced features, we'll guide you through every step.
             </p>
           </div>
@@ -105,14 +119,14 @@ const VideoHelp: React.FC = () => {
                   <h2 className="text-2xl font-bold mb-2">New User? Start Here!</h2>
                   <p className="text-blue-100 mb-4">
                     Watch our comprehensive getting started guide that covers account creation, 
-                    adding your first property, and uploading your first photos.
+                    payment setup, and a complete dashboard overview.
                   </p>
                   <Button 
-                    onClick={() => handlePlayVideo(1)}
+                    onClick={() => handleWatchVideo('https://youtu.be/SgJuSe52umM')}
                     className="bg-white text-brand-blue hover:bg-gray-100"
                   >
                     <Play className="h-4 w-4 mr-2" />
-                    Watch Now (3:45)
+                    Watch Now
                   </Button>
                 </div>
                 <div className="w-full md:w-80 h-48 bg-white/20 rounded-lg flex items-center justify-center">
@@ -154,15 +168,16 @@ const VideoHelp: React.FC = () => {
                             <CardDescription className="text-sm mb-3">
                               {tutorial.description}
                             </CardDescription>
-                            <Button 
-                              onClick={() => handlePlayVideo(tutorial.id)}
-                              variant="outline" 
-                              size="sm"
-                              className="w-full"
-                            >
-                              <Play className="h-4 w-4 mr-2" />
-                              Watch Tutorial
-                            </Button>
+                        <Button 
+                          onClick={() => handlePlayVideo(tutorial)}
+                          variant="outline" 
+                          size="sm"
+                          className="w-full"
+                          disabled={!tutorial.videoUrl}
+                        >
+                          <Play className="h-4 w-4 mr-2" />
+                          {tutorial.videoUrl ? 'Watch Tutorial' : 'Coming Soon'}
+                        </Button>
                           </div>
                         </div>
                       </CardContent>
@@ -181,7 +196,7 @@ const VideoHelp: React.FC = () => {
               </h3>
               <p className="text-gray-700 mb-6 max-w-2xl mx-auto">
                 Can't find what you're looking for? Our support team is here to help you 
-                get the most out of Asset Docs.
+                get the most out of Asset Safe.
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
                 <Button asChild className="bg-brand-blue hover:bg-brand-lightBlue">
