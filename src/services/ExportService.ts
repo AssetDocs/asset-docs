@@ -33,6 +33,49 @@ export interface AssetSummary {
     url: string;
     uploadDate: string;
   }>;
+  properties: Array<{
+    id: string;
+    name: string;
+    address: string;
+    type: string;
+    estimatedValue: number;
+    squareFootage?: number;
+    yearBuilt?: number;
+  }>;
+  voiceNotes: Array<{
+    id: string;
+    title: string;
+    description?: string;
+    audioUrl?: string;
+    duration?: number;
+    createdAt: string;
+  }>;
+  paintCodes: Array<{
+    id: string;
+    brand: string;
+    name: string;
+    code: string;
+    roomLocation?: string;
+    isInterior: boolean;
+    propertyName?: string;
+  }>;
+  sourceWebsites: Array<{
+    id: string;
+    websiteName: string;
+    websiteUrl: string;
+    description?: string;
+    category?: string;
+  }>;
+  items: Array<{
+    id: string;
+    name: string;
+    category?: string;
+    brand?: string;
+    model?: string;
+    estimatedValue?: number;
+    location?: string;
+    condition?: string;
+  }>;
 }
 
 export class ExportService {
@@ -56,7 +99,7 @@ export class ExportService {
     // Header
     pdf.setFontSize(20);
     pdf.setFont(undefined, 'bold');
-    pdf.text('Asset Documentation Summary', 20, yPosition);
+    pdf.text('Asset Safe - Complete Asset Summary', 20, yPosition);
     yPosition += 15;
 
     // User info
@@ -73,7 +116,7 @@ export class ExportService {
     yPosition += 20;
 
     // Summary statistics
-    checkPageSpace(50);
+    checkPageSpace(80);
     pdf.setFontSize(16);
     pdf.setFont(undefined, 'bold');
     pdf.text('Summary Statistics', 20, yPosition);
@@ -81,14 +124,79 @@ export class ExportService {
 
     pdf.setFontSize(12);
     pdf.setFont(undefined, 'normal');
-    pdf.text(`Total Photos: ${assets.photos.length}`, 30, yPosition);
+    pdf.text(`Properties: ${assets.properties.length}`, 30, yPosition);
     yPosition += lineHeight;
-    pdf.text(`Total Videos: ${assets.videos.length}`, 30, yPosition);
+    pdf.text(`Photos: ${assets.photos.length}`, 30, yPosition);
     yPosition += lineHeight;
-    pdf.text(`Total Documents: ${assets.documents.length}`, 30, yPosition);
+    pdf.text(`Videos: ${assets.videos.length}`, 30, yPosition);
     yPosition += lineHeight;
-    pdf.text(`Total Floor Plans: ${assets.floorPlans.length}`, 30, yPosition);
+    pdf.text(`Documents: ${assets.documents.length}`, 30, yPosition);
+    yPosition += lineHeight;
+    pdf.text(`Floor Plans: ${assets.floorPlans.length}`, 30, yPosition);
+    yPosition += lineHeight;
+    pdf.text(`Inventory Items: ${assets.items.length}`, 30, yPosition);
+    yPosition += lineHeight;
+    pdf.text(`Voice Notes: ${assets.voiceNotes.length}`, 30, yPosition);
+    yPosition += lineHeight;
+    pdf.text(`Paint Codes: ${assets.paintCodes.length}`, 30, yPosition);
+    yPosition += lineHeight;
+    pdf.text(`Source Websites: ${assets.sourceWebsites.length}`, 30, yPosition);
     yPosition += 20;
+
+    // Properties section
+    if (assets.properties.length > 0) {
+      checkPageSpace(30);
+      pdf.setFontSize(16);
+      pdf.setFont(undefined, 'bold');
+      pdf.text('Properties', 20, yPosition);
+      yPosition += 10;
+
+      assets.properties.forEach((property, index) => {
+        checkPageSpace(25);
+        pdf.setFontSize(10);
+        pdf.setFont(undefined, 'bold');
+        pdf.text(`${index + 1}. ${property.name}`, 30, yPosition);
+        yPosition += lineHeight;
+        pdf.setFont(undefined, 'normal');
+        pdf.text(`   Address: ${property.address}`, 30, yPosition);
+        yPosition += lineHeight;
+        pdf.text(`   Type: ${property.type} | Value: $${property.estimatedValue?.toLocaleString() || 'N/A'}`, 30, yPosition);
+        yPosition += lineHeight;
+        if (property.squareFootage) {
+          pdf.text(`   Square Footage: ${property.squareFootage.toLocaleString()} sq ft`, 30, yPosition);
+          yPosition += lineHeight;
+        }
+        yPosition += 3;
+      });
+      yPosition += 10;
+    }
+
+    // Inventory Items section
+    if (assets.items.length > 0) {
+      checkPageSpace(30);
+      pdf.setFontSize(16);
+      pdf.setFont(undefined, 'bold');
+      pdf.text('Inventory Items', 20, yPosition);
+      yPosition += 10;
+
+      assets.items.forEach((item, index) => {
+        checkPageSpace(20);
+        pdf.setFontSize(10);
+        pdf.setFont(undefined, 'normal');
+        pdf.text(`${index + 1}. ${item.name}`, 30, yPosition);
+        yPosition += lineHeight;
+        const details = [
+          item.category && `Category: ${item.category}`,
+          item.brand && `Brand: ${item.brand}`,
+          item.estimatedValue && `Value: $${item.estimatedValue.toLocaleString()}`
+        ].filter(Boolean).join(' | ');
+        if (details) {
+          pdf.text(`   ${details}`, 30, yPosition);
+          yPosition += lineHeight;
+        }
+      });
+      yPosition += 10;
+    }
 
     // Photos section
     if (assets.photos.length > 0) {
@@ -104,9 +212,7 @@ export class ExportService {
         pdf.setFont(undefined, 'normal');
         pdf.text(`${index + 1}. ${photo.name}`, 30, yPosition);
         yPosition += lineHeight;
-        pdf.text(`   Category: ${photo.category || 'Uncategorized'}`, 30, yPosition);
-        yPosition += lineHeight;
-        pdf.text(`   Upload Date: ${new Date(photo.uploadDate).toLocaleDateString()}`, 30, yPosition);
+        pdf.text(`   Category: ${photo.category || 'Uncategorized'} | Date: ${new Date(photo.uploadDate).toLocaleDateString()}`, 30, yPosition);
         yPosition += lineHeight + 2;
       });
       yPosition += 10;
@@ -126,11 +232,7 @@ export class ExportService {
         pdf.setFont(undefined, 'normal');
         pdf.text(`${index + 1}. ${video.name}`, 30, yPosition);
         yPosition += lineHeight;
-        if (video.duration) {
-          pdf.text(`   Duration: ${video.duration}`, 30, yPosition);
-          yPosition += lineHeight;
-        }
-        pdf.text(`   Upload Date: ${new Date(video.uploadDate).toLocaleDateString()}`, 30, yPosition);
+        pdf.text(`   Date: ${new Date(video.uploadDate).toLocaleDateString()}`, 30, yPosition);
         yPosition += lineHeight + 2;
       });
       yPosition += 10;
@@ -150,12 +252,85 @@ export class ExportService {
         pdf.setFont(undefined, 'normal');
         pdf.text(`${index + 1}. ${doc.name}`, 30, yPosition);
         yPosition += lineHeight;
-        pdf.text(`   Type: ${doc.type}`, 30, yPosition);
-        yPosition += lineHeight;
-        pdf.text(`   Upload Date: ${new Date(doc.uploadDate).toLocaleDateString()}`, 30, yPosition);
+        pdf.text(`   Type: ${doc.type} | Date: ${new Date(doc.uploadDate).toLocaleDateString()}`, 30, yPosition);
         yPosition += lineHeight + 2;
       });
       yPosition += 10;
+    }
+
+    // Voice Notes section
+    if (assets.voiceNotes.length > 0) {
+      checkPageSpace(30);
+      pdf.setFontSize(16);
+      pdf.setFont(undefined, 'bold');
+      pdf.text('Voice Notes', 20, yPosition);
+      yPosition += 10;
+
+      assets.voiceNotes.forEach((note, index) => {
+        checkPageSpace(20);
+        pdf.setFontSize(10);
+        pdf.setFont(undefined, 'bold');
+        pdf.text(`${index + 1}. ${note.title}`, 30, yPosition);
+        yPosition += lineHeight;
+        pdf.setFont(undefined, 'normal');
+        if (note.description) {
+          // Wrap long descriptions
+          const maxWidth = 150;
+          const lines = pdf.splitTextToSize(`   ${note.description}`, maxWidth);
+          lines.forEach((line: string) => {
+            checkPageSpace(lineHeight);
+            pdf.text(line, 30, yPosition);
+            yPosition += lineHeight;
+          });
+        }
+        pdf.text(`   Date: ${new Date(note.createdAt).toLocaleDateString()}${note.duration ? ` | Duration: ${Math.round(note.duration)}s` : ''}`, 30, yPosition);
+        yPosition += lineHeight + 3;
+      });
+      yPosition += 10;
+    }
+
+    // Paint Codes section
+    if (assets.paintCodes.length > 0) {
+      checkPageSpace(30);
+      pdf.setFontSize(16);
+      pdf.setFont(undefined, 'bold');
+      pdf.text('Paint Codes', 20, yPosition);
+      yPosition += 10;
+
+      assets.paintCodes.forEach((paint, index) => {
+        checkPageSpace(20);
+        pdf.setFontSize(10);
+        pdf.setFont(undefined, 'normal');
+        pdf.text(`${index + 1}. ${paint.brand} - ${paint.name} (${paint.code})`, 30, yPosition);
+        yPosition += lineHeight;
+        pdf.text(`   Location: ${paint.roomLocation || 'N/A'} | ${paint.isInterior ? 'Interior' : 'Exterior'}${paint.propertyName ? ` | Property: ${paint.propertyName}` : ''}`, 30, yPosition);
+        yPosition += lineHeight + 2;
+      });
+      yPosition += 10;
+    }
+
+    // Source Websites section
+    if (assets.sourceWebsites.length > 0) {
+      checkPageSpace(30);
+      pdf.setFontSize(16);
+      pdf.setFont(undefined, 'bold');
+      pdf.text('Source Websites', 20, yPosition);
+      yPosition += 10;
+
+      assets.sourceWebsites.forEach((site, index) => {
+        checkPageSpace(20);
+        pdf.setFontSize(10);
+        pdf.setFont(undefined, 'normal');
+        pdf.text(`${index + 1}. ${site.websiteName}`, 30, yPosition);
+        yPosition += lineHeight;
+        pdf.text(`   URL: ${site.websiteUrl}`, 30, yPosition);
+        yPosition += lineHeight;
+        if (site.description) {
+          pdf.text(`   ${site.description}`, 30, yPosition);
+          yPosition += lineHeight;
+        }
+        yPosition += 2;
+      });
     }
 
     // Floor Plans section
@@ -178,7 +353,7 @@ export class ExportService {
     }
 
     // Save the PDF
-    const fileName = `asset-summary-${new Date().toISOString().split('T')[0]}.pdf`;
+    const fileName = `asset-safe-summary-${new Date().toISOString().split('T')[0]}.pdf`;
     pdf.save(fileName);
   }
 
@@ -188,12 +363,12 @@ export class ExportService {
   static async downloadAssetsZip(assets: AssetSummary): Promise<void> {
     const zip = new JSZip();
     let downloadedCount = 0;
-    const totalFiles = assets.photos.length + assets.videos.length + assets.documents.length + assets.floorPlans.length;
+    const totalFiles = assets.photos.length + assets.videos.length + assets.documents.length + assets.floorPlans.length + assets.voiceNotes.filter(n => n.audioUrl).length;
 
     if (totalFiles === 0) {
       toast({
-        title: "No Assets Found",
-        description: "There are no assets to download.",
+        title: "No Files Found",
+        description: "There are no files to download.",
         variant: "destructive"
       });
       return;
@@ -219,6 +394,7 @@ export class ExportService {
     const videosFolder = zip.folder('videos');
     const documentsFolder = zip.folder('documents');
     const floorPlansFolder = zip.folder('floor-plans');
+    const voiceNotesFolder = zip.folder('voice-notes');
 
     const downloadPromises: Promise<void>[] = [];
 
@@ -250,13 +426,21 @@ export class ExportService {
       }
     });
 
+    // Download voice notes
+    assets.voiceNotes.forEach((note) => {
+      if (voiceNotesFolder && note.audioUrl) {
+        const fileName = `${note.title.replace(/[^a-zA-Z0-9]/g, '_')}.mp3`;
+        downloadPromises.push(downloadFile(note.audioUrl, voiceNotesFolder, fileName));
+      }
+    });
+
     try {
       // Wait for all downloads to complete
       await Promise.allSettled(downloadPromises);
 
       // Generate and save the zip
       const zipBlob = await zip.generateAsync({ type: 'blob' });
-      const fileName = `assets-backup-${new Date().toISOString().split('T')[0]}.zip`;
+      const fileName = `asset-safe-backup-${new Date().toISOString().split('T')[0]}.zip`;
       saveAs(zipBlob, fileName);
 
       toast({
@@ -281,19 +465,40 @@ export class ExportService {
       photos: [],
       videos: [],
       documents: [],
-      floorPlans: []
+      floorPlans: [],
+      properties: [],
+      voiceNotes: [],
+      paintCodes: [],
+      sourceWebsites: [],
+      items: []
     };
 
     try {
+      // Fetch properties
+      const { data: properties, error: propertiesError } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('user_id', userId);
+
+      if (!propertiesError && properties) {
+        assets.properties = properties.map(p => ({
+          id: p.id,
+          name: p.name,
+          address: p.address,
+          type: p.type,
+          estimatedValue: p.estimated_value || 0,
+          squareFootage: p.square_footage || undefined,
+          yearBuilt: p.year_built || undefined
+        }));
+      }
+
       // Fetch property files (photos, videos, documents, floor-plans)
       const { data: propertyFiles, error: propertyFilesError } = await supabase
         .from('property_files')
         .select('*')
         .eq('user_id', userId);
 
-      if (propertyFilesError) {
-        console.error('Error fetching property files:', propertyFilesError);
-      } else if (propertyFiles) {
+      if (!propertyFilesError && propertyFiles) {
         propertyFiles.forEach(file => {
           const fileData = {
             id: file.id,
@@ -331,9 +536,7 @@ export class ExportService {
         .select('*')
         .eq('user_id', userId);
 
-      if (legacyFilesError) {
-        console.error('Error fetching legacy locker files:', legacyFilesError);
-      } else if (legacyFiles) {
+      if (!legacyFilesError && legacyFiles) {
         legacyFiles.forEach(file => {
           const fileData = {
             id: file.id,
@@ -354,16 +557,25 @@ export class ExportService {
         });
       }
 
-      // Fetch item photos from items table
+      // Fetch inventory items
       const { data: items, error: itemsError } = await supabase
         .from('items')
-        .select('id, name, photo_url, created_at, category')
-        .eq('user_id', userId)
-        .not('photo_url', 'is', null);
+        .select('*')
+        .eq('user_id', userId);
 
-      if (itemsError) {
-        console.error('Error fetching items:', itemsError);
-      } else if (items) {
+      if (!itemsError && items) {
+        assets.items = items.map(item => ({
+          id: item.id,
+          name: item.name,
+          category: item.category || undefined,
+          brand: item.brand || undefined,
+          model: item.model || undefined,
+          estimatedValue: item.estimated_value || undefined,
+          location: item.location || undefined,
+          condition: item.condition || undefined
+        }));
+
+        // Also add item photos
         items.forEach(item => {
           if (item.photo_url) {
             assets.photos.push({
@@ -383,9 +595,7 @@ export class ExportService {
         .select('id, receipt_name, receipt_url, created_at')
         .eq('user_id', userId);
 
-      if (receiptsError) {
-        console.error('Error fetching receipts:', receiptsError);
-      } else if (receipts) {
+      if (!receiptsError && receipts) {
         receipts.forEach(receipt => {
           assets.documents.push({
             id: receipt.id,
@@ -395,6 +605,57 @@ export class ExportService {
             uploadDate: receipt.created_at || new Date().toISOString()
           });
         });
+      }
+
+      // Fetch voice notes
+      const { data: voiceNotes, error: voiceNotesError } = await supabase
+        .from('legacy_locker_voice_notes')
+        .select('*')
+        .eq('user_id', userId);
+
+      if (!voiceNotesError && voiceNotes) {
+        assets.voiceNotes = voiceNotes.map(note => ({
+          id: note.id,
+          title: note.title,
+          description: note.description || undefined,
+          audioUrl: note.audio_url || undefined,
+          duration: note.duration || undefined,
+          createdAt: note.created_at || new Date().toISOString()
+        }));
+      }
+
+      // Fetch paint codes with property names
+      const { data: paintCodes, error: paintCodesError } = await supabase
+        .from('paint_codes')
+        .select('*, properties(name)')
+        .eq('user_id', userId);
+
+      if (!paintCodesError && paintCodes) {
+        assets.paintCodes = paintCodes.map(paint => ({
+          id: paint.id,
+          brand: paint.paint_brand,
+          name: paint.paint_name,
+          code: paint.paint_code,
+          roomLocation: paint.room_location || undefined,
+          isInterior: paint.is_interior,
+          propertyName: (paint.properties as any)?.name || undefined
+        }));
+      }
+
+      // Fetch source websites
+      const { data: sourceWebsites, error: sourceWebsitesError } = await supabase
+        .from('source_websites')
+        .select('*')
+        .eq('user_id', userId);
+
+      if (!sourceWebsitesError && sourceWebsites) {
+        assets.sourceWebsites = sourceWebsites.map(site => ({
+          id: site.id,
+          websiteName: site.website_name,
+          websiteUrl: site.website_url,
+          description: site.description || undefined,
+          category: site.category || undefined
+        }));
       }
 
     } catch (error) {

@@ -90,12 +90,12 @@ const WelcomeMessage: React.FC = () => {
       const name = `${contributorInfo.first_name || ''} ${contributorInfo.last_name || ''}`.trim();
       return name || user?.email?.split('@')[0] || 'Contributor';
     }
-    // Owner - show their profile name
-    if (profile?.first_name) {
-      return profile.first_name;
-    }
-    if (user?.user_metadata?.first_name) {
-      return user.user_metadata.first_name;
+    // Owner - show their full name from profile
+    const firstName = profile?.first_name || user?.user_metadata?.first_name || '';
+    const lastName = profile?.last_name || user?.user_metadata?.last_name || '';
+    const fullName = `${firstName} ${lastName}`.trim();
+    if (fullName) {
+      return fullName;
     }
     if (user?.email) {
       return user.email.split('@')[0];
