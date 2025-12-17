@@ -9,6 +9,7 @@ import useScrollToTop from "@/hooks/useScrollToTop";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { TranslationProvider } from "@/contexts/TranslationContext";
+import { ContributorProvider } from "@/contexts/ContributorContext";
 import CookieConsent from "@/components/CookieConsent";
 import MobileCTA from "@/components/MobileCTA";
 import { supabase } from "@/integrations/supabase/client";
@@ -311,8 +312,10 @@ const App = () => {
           <TranslationProvider>
             <AuthProvider>
               <SubscriptionProvider>
-                <AppContent />
-                <CookieConsent />
+                <ContributorProvider>
+                  <AppContent />
+                  <CookieConsent />
+                </ContributorProvider>
               </SubscriptionProvider>
             </AuthProvider>
           </TranslationProvider>

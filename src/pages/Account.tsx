@@ -16,6 +16,8 @@ import DashboardTour from '@/components/DashboardTour';
 import { FeatureGuard } from '@/components/FeatureGuard';
 import DocumentationChecklist from '@/components/DocumentationChecklist';
 import { useSubscription } from '@/contexts/SubscriptionContext';
+import { useContributor } from '@/contexts/ContributorContext';
+import { ViewerRestrictionBanner, ViewerRestriction } from '@/components/ViewerRestriction';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
 import EmailVerificationNotice from '@/components/EmailVerificationNotice';
@@ -39,7 +41,8 @@ import {
   Plus, 
   Eye, 
   Users,
-  Paintbrush 
+  Paintbrush,
+  Lock
 } from 'lucide-react';
 
 // Welcome Message Component
@@ -138,9 +141,22 @@ const Account: React.FC = () => {
   const { toast } = useToast();
   const [showTour, setShowTour] = useState(false);
   const { subscriptionTier } = useSubscription();
+  const { isViewer, showViewerRestriction, canEdit } = useContributor();
   const isMobile = useIsMobile();
   
   const showFloorPlans = true; // All subscription tiers now have access to floor plans
+
+  // Helper function to handle viewer-restricted actions
+  const handleRestrictedAction = (action: () => void, isViewAction = false) => {
+    const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
+    if (isOnSampleDashboard) return action();
+    
+    if (!isViewAction && isViewer) {
+      showViewerRestriction();
+      return;
+    }
+    action();
+  };
 
   // Sync subscription and show success message if redirected from successful payment
   useEffect(() => {
@@ -204,6 +220,8 @@ const Account: React.FC = () => {
       <div className="flex-grow py-8 px-4 bg-gray-50">
         <div className="max-w-6xl mx-auto">
           
+          {/* Viewer Restriction Banner */}
+          <ViewerRestrictionBanner />
           
           {/* Welcome Message */}
           <div className="mb-6">
@@ -265,14 +283,9 @@ const Account: React.FC = () => {
                   <CardContent>
                     <div className="space-y-3">
                       <Button 
-                        onClick={() => {
-                          const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
-                          if (isOnSampleDashboard) {
-                            alert('AssetSafe.net says\n\nDemo: This allows you to update your profile, security settings, and preferences.');
-                            return;
-                          }
+                        onClick={() => handleRestrictedAction(() => {
                           window.location.href = '/account/settings';
-                        }}
+                        }, true)}
                         variant="orange" 
                         className="w-full"
                       >
@@ -280,19 +293,16 @@ const Account: React.FC = () => {
                         Manage Settings
                       </Button>
                       <Button 
-                        onClick={() => {
-                          const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
-                          if (isOnSampleDashboard) {
-                            alert('AssetSafe.net says\n\nDemo: This allows you to add and manage users who can help document your assets.');
-                            return;
-                          }
+                        onClick={() => handleRestrictedAction(() => {
                           window.location.href = '/account/settings?tab=contributors';
-                        }}
+                        })}
                         variant="outline" 
                         className="w-full"
+                        disabled={isViewer}
                       >
                         <Users className="h-4 w-4 mr-2" />
                         Manage Contributors
+                        {isViewer && <Lock className="h-3 w-3 ml-1" />}
                       </Button>
                     </div>
                   </CardContent>
@@ -312,28 +322,20 @@ const Account: React.FC = () => {
                   <CardContent>
                     <div className="space-y-3">
                       <Button 
-                        onClick={() => {
-                          const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
-                          if (isOnSampleDashboard) {
-                            alert('AssetSafe.net says\n\nDemo: This allows you to create new property profiles with square footage, room details, and property information.');
-                            return;
-                          }
+                        onClick={() => handleRestrictedAction(() => {
                           window.location.href = '/account/properties/new';
-                        }}
+                        })}
                         className="w-full bg-brand-blue hover:bg-brand-lightBlue"
+                        disabled={isViewer}
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         Create New Property
+                        {isViewer && <Lock className="h-3 w-3 ml-1" />}
                       </Button>
                       <Button 
-                        onClick={() => {
-                          const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
-                          if (isOnSampleDashboard) {
-                            alert('AssetSafe.net says\n\nDemo: This allows you to view and manage all your documented properties.');
-                            return;
-                          }
+                        onClick={() => handleRestrictedAction(() => {
                           window.location.href = '/account/properties';
-                        }}
+                        }, true)}
                         variant="outline" 
                         className="w-full"
                       >
@@ -358,28 +360,20 @@ const Account: React.FC = () => {
                   <CardContent>
                     <div className="space-y-3">
                       <Button
-                        onClick={() => {
-                          const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
-                          if (isOnSampleDashboard) {
-                            alert('AssetSafe.net says\n\nDemo: This allows you to upload photos and document your items with estimated values.');
-                            return;
-                          }
+                        onClick={() => handleRestrictedAction(() => {
                           navigate('/account/photos/upload');
-                        }}
+                        })}
                         className="w-full bg-brand-blue hover:bg-brand-lightBlue"
+                        disabled={isViewer}
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         Upload Photos
+                        {isViewer && <Lock className="h-3 w-3 ml-1" />}
                       </Button>
                       <Button 
-                        onClick={() => {
-                          const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
-                          if (isOnSampleDashboard) {
-                            alert('AssetSafe.net says\n\nDemo: This allows you to view, organize, download, and categorize your uploaded photos.');
-                            return;
-                          }
+                        onClick={() => handleRestrictedAction(() => {
                           navigate('/account/photos');
-                        }}
+                        }, true)}
                         variant="outline" 
                         className="w-full"
                       >
@@ -407,28 +401,20 @@ const Account: React.FC = () => {
                   <CardContent>
                     <div className="space-y-3">
                       <Button
-                        onClick={() => {
-                          const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
-                          if (isOnSampleDashboard) {
-                            alert('AssetSafe.net says\n\nDemo: This allows you to upload and manage video recordings of your property and belongings.');
-                            return;
-                          }
+                        onClick={() => handleRestrictedAction(() => {
                           navigate('/account/videos/upload');
-                        }}
+                        })}
                         className="w-full bg-brand-blue hover:bg-brand-lightBlue"
+                        disabled={isViewer}
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         Upload Videos
+                        {isViewer && <Lock className="h-3 w-3 ml-1" />}
                       </Button>
                       <Button 
-                        onClick={() => {
-                          const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
-                          if (isOnSampleDashboard) {
-                            alert('AssetSafe.net says\n\nDemo: This allows you to view, watch, download, and categorize your uploaded videos.');
-                            return;
-                          }
+                        onClick={() => handleRestrictedAction(() => {
                           navigate('/account/videos');
-                        }}
+                        }, true)}
                         variant="outline" 
                         className="w-full"
                       >
@@ -453,28 +439,20 @@ const Account: React.FC = () => {
                   <CardContent>
                     <div className="space-y-3">
                       <Button 
-                        onClick={() => {
-                          const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
-                          if (isOnSampleDashboard) {
-                            alert('AssetSafe.net says\n\nDemo: This allows you to store PDFs, receipts, warranties, licenses, titles, and other important documents.');
-                            return;
-                          }
+                        onClick={() => handleRestrictedAction(() => {
                           window.location.href = '/account/documents/upload';
-                        }}
+                        })}
                         className="w-full bg-brand-blue hover:bg-brand-lightBlue"
+                        disabled={isViewer}
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         Upload Documents
+                        {isViewer && <Lock className="h-3 w-3 ml-1" />}
                       </Button>
                       <Button 
-                        onClick={() => {
-                          const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
-                          if (isOnSampleDashboard) {
-                            alert('AssetSafe.net says\n\nDemo: This allows you to view, organize, download, and manage your stored documents.');
-                            return;
-                          }
+                        onClick={() => handleRestrictedAction(() => {
                           window.location.href = '/account/documents';
-                        }}
+                        }, true)}
                         variant="outline" 
                         className="w-full"
                       >
@@ -499,18 +477,15 @@ const Account: React.FC = () => {
                   <CardContent>
                     <div className="space-y-3">
                       <Button
-                        onClick={() => {
-                          const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
-                          if (isOnSampleDashboard) {
-                            alert('AssetSafe.net says\n\nDemo: This allows you to manually add items to your inventory without photos.');
-                            return;
-                          }
+                        onClick={() => handleRestrictedAction(() => {
                           window.location.href = '/inventory?mode=manual';
-                        }}
+                        })}
                         className="w-full bg-brand-blue hover:bg-brand-lightBlue"
+                        disabled={isViewer}
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         Add Manual Entry
+                        {isViewer && <Lock className="h-3 w-3 ml-1" />}
                       </Button>
                     </div>
                   </CardContent>
@@ -538,28 +513,20 @@ const Account: React.FC = () => {
                   <CardContent>
                     <div className="space-y-3">
                       <Button 
-                        onClick={() => {
-                          const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
-                          if (isOnSampleDashboard) {
-                            alert('AssetSafe.net says\n\nDemo: This allows you to add and manage insurance policies, claims, and related documentation.');
-                            return;
-                          }
+                        onClick={() => handleRestrictedAction(() => {
                           window.location.href = '/account/insurance/new';
-                        }}
+                        })}
                         className="w-full bg-brand-blue hover:bg-brand-lightBlue"
+                        disabled={isViewer}
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         Add Insurance Policy
+                        {isViewer && <Lock className="h-3 w-3 ml-1" />}
                       </Button>
                       <Button 
-                        onClick={() => {
-                          const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
-                          if (isOnSampleDashboard) {
-                            alert('AssetSafe.net says\n\nDemo: This allows you to view and manage your insurance policies and claims.');
-                            return;
-                          }
+                        onClick={() => handleRestrictedAction(() => {
                           window.location.href = '/account/insurance';
-                        }}
+                        }, true)}
                         variant="outline" 
                         className="w-full"
                       >

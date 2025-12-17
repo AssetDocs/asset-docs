@@ -11,7 +11,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import HouseholdIncomeSection from '@/components/HouseholdIncomeSection';
 
-const ProfileTab: React.FC = () => {
+interface ProfileTabProps {
+  viewerMode?: boolean;
+}
+
+const ProfileTab: React.FC<ProfileTabProps> = ({ viewerMode = false }) => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
@@ -218,7 +222,10 @@ const ProfileTab: React.FC = () => {
         <CardHeader>
           <CardTitle>Profile Information</CardTitle>
           <CardDescription>
-            Update your personal information and contact details
+            {viewerMode 
+              ? 'Update your personal information (name, email, and password only)'
+              : 'Update your personal information and contact details'
+            }
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -257,27 +264,31 @@ const ProfileTab: React.FC = () => {
             </p>
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="phone">Phone Number</Label>
-            <Input 
-              id="phone" 
-              type="tel" 
-              placeholder="Enter your phone number" 
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="bio">Bio (Optional)</Label>
-            <Textarea 
-              id="bio" 
-              placeholder="Tell us about yourself (hobbies, interests, background, etc.)" 
-              rows={3}
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-            />
-          </div>
+          {!viewerMode && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input 
+                  id="phone" 
+                  type="tel" 
+                  placeholder="Enter your phone number" 
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="bio">Bio (Optional)</Label>
+                <Textarea 
+                  id="bio" 
+                  placeholder="Tell us about yourself (hobbies, interests, background, etc.)" 
+                  rows={3}
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                />
+              </div>
+            </>
+          )}
           
           <Button onClick={handleSaveProfile} disabled={isLoading}>
             <Save className="h-4 w-4 mr-2" />
@@ -325,7 +336,7 @@ const ProfileTab: React.FC = () => {
         </CardContent>
       </Card>
 
-      <HouseholdIncomeSection />
+      {!viewerMode && <HouseholdIncomeSection />}
     </div>
   );
 };

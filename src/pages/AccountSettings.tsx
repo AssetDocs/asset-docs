@@ -10,24 +10,57 @@ import ContributorsTab from '@/components/ContributorsTab';
 import CookieSettings from '@/components/CookieSettings';
 import TOTPSettings from '@/components/TOTPSettings';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
+import { ViewerRestriction, ViewerRestrictionBanner } from '@/components/ViewerRestriction';
+import { useContributor } from '@/contexts/ContributorContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, User, CreditCard, Package, Bell, Copy, Check, Shield, Users, Lock } from 'lucide-react';
+import { ArrowLeft, User, CreditCard, Package, Bell, Copy, Check, Shield, Users, Lock, Eye } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+
+// Viewer-restricted profile tab - only allows name, email, password changes
+const ViewerProfileTab: React.FC = () => {
+  return (
+    <div>
+      <Card className="border-amber-200 bg-amber-50 mb-4">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-amber-800 text-lg">
+            <Eye className="h-5 w-5" />
+            Viewer Access - Limited Profile Settings
+          </CardTitle>
+          <CardDescription className="text-amber-700">
+            As a viewer, you can only update your own name, email, and password. Other settings are managed by the account owner.
+          </CardDescription>
+        </CardHeader>
+      </Card>
+      <ProfileTab viewerMode={true} />
+    </div>
+  );
+};
 
 const AccountSettings: React.FC = () => {
   const [accountNumber, setAccountNumber] = useState<string>('');
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
   const location = useLocation();
+  const { isViewer, isContributor, contributorRole, ownerName } = useContributor();
+  
+  // Restricted tabs for viewers
+  const restrictedTabs = ['billing', 'subscription', 'contributors', 'security', 'notifications', 'privacy'];
   
   // Get default tab from URL parameters
   const getDefaultTab = () => {
     const urlParams = new URLSearchParams(location.search);
     const tab = urlParams.get('tab');
+    
+    // If viewer and trying to access restricted tab, default to profile
+    if (isViewer && restrictedTabs.includes(tab || '')) {
+      return 'profile';
+    }
+    
     return ['profile', 'billing', 'subscription', 'contributors', 'notifications', 'security', 'privacy'].includes(tab || '') 
       ? tab || 'profile' 
       : 'profile';
@@ -64,6 +97,17 @@ const AccountSettings: React.FC = () => {
     }
   };
 
+  const handleRestrictedTabClick = (e: React.MouseEvent) => {
+    if (isViewer) {
+      e.preventDefault();
+      toast({
+        title: "Access Restricted",
+        description: "Contributors with a viewer role are not allowed to access this section.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
@@ -72,9 +116,16 @@ const AccountSettings: React.FC = () => {
         <div className="max-w-4xl mx-auto">
           <DashboardBreadcrumb />
           
+          <ViewerRestrictionBanner />
+          
           <div className="mb-6">
             <h1 className="text-3xl font-bold text-brand-blue">Account Settings</h1>
-            <p className="text-gray-600">Manage your profile, billing, and subscription preferences</p>
+            <p className="text-gray-600">
+              {isViewer 
+                ? `Viewing ${ownerName || 'account owner'}'s settings (read-only access)`
+                : 'Manage your profile, billing, and subscription preferences'
+              }
+            </p>
             {accountNumber && (
               <div className="flex items-center gap-2 mt-3">
                 <Badge variant="outline" className="text-sm font-medium border-brand-blue text-brand-blue px-3 py-1">
@@ -97,64 +148,72 @@ const AccountSettings: React.FC = () => {
           </div>
 
           <Tabs defaultValue={getDefaultTab()} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-7">
+            <TabsList className={`grid w-full ${isViewer ? 'grid-cols-1' : 'grid-cols-7'}`}>
               <TabsTrigger value="profile" className="flex items-center gap-2">
                 <User className="h-4 w-4" />
                 <span className="hidden sm:inline">Profile</span>
               </TabsTrigger>
-              <TabsTrigger value="billing" className="flex items-center gap-2">
-                <CreditCard className="h-4 w-4" />
-                <span className="hidden sm:inline">Billing</span>
-              </TabsTrigger>
-              <TabsTrigger value="subscription" className="flex items-center gap-2">
-                <Package className="h-4 w-4" />
-                <span className="hidden sm:inline">Plan</span>
-              </TabsTrigger>
-              <TabsTrigger value="contributors" className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                <span className="hidden sm:inline">Contributors</span>
-              </TabsTrigger>
-              <TabsTrigger value="security" className="flex items-center gap-2">
-                <Lock className="h-4 w-4" />
-                <span className="hidden sm:inline">Security</span>
-              </TabsTrigger>
-              <TabsTrigger value="notifications" className="flex items-center gap-2">
-                <Bell className="h-4 w-4" />
-                <span className="hidden sm:inline">Alerts</span>
-              </TabsTrigger>
-              <TabsTrigger value="privacy" className="flex items-center gap-2">
-                <Shield className="h-4 w-4" />
-                <span className="hidden sm:inline">Privacy</span>
-              </TabsTrigger>
+              {!isViewer && (
+                <>
+                  <TabsTrigger value="billing" className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4" />
+                    <span className="hidden sm:inline">Billing</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="subscription" className="flex items-center gap-2">
+                    <Package className="h-4 w-4" />
+                    <span className="hidden sm:inline">Plan</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="contributors" className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    <span className="hidden sm:inline">Contributors</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="security" className="flex items-center gap-2">
+                    <Lock className="h-4 w-4" />
+                    <span className="hidden sm:inline">Security</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="notifications" className="flex items-center gap-2">
+                    <Bell className="h-4 w-4" />
+                    <span className="hidden sm:inline">Alerts</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="privacy" className="flex items-center gap-2">
+                    <Shield className="h-4 w-4" />
+                    <span className="hidden sm:inline">Privacy</span>
+                  </TabsTrigger>
+                </>
+              )}
             </TabsList>
 
             <TabsContent value="profile">
-              <ProfileTab />
+              {isViewer ? <ViewerProfileTab /> : <ProfileTab />}
             </TabsContent>
 
-            <TabsContent value="billing">
-              <BillingTab />
-            </TabsContent>
+            {!isViewer && (
+              <>
+                <TabsContent value="billing">
+                  <BillingTab />
+                </TabsContent>
 
-            <TabsContent value="subscription">
-              <SubscriptionTab />
-            </TabsContent>
+                <TabsContent value="subscription">
+                  <SubscriptionTab />
+                </TabsContent>
 
-            <TabsContent value="contributors">
-              <ContributorsTab />
-            </TabsContent>
+                <TabsContent value="contributors">
+                  <ContributorsTab />
+                </TabsContent>
 
-            <TabsContent value="notifications">
-              <NotificationsTab />
-            </TabsContent>
+                <TabsContent value="notifications">
+                  <NotificationsTab />
+                </TabsContent>
 
-            <TabsContent value="security">
-              <TOTPSettings />
-            </TabsContent>
+                <TabsContent value="security">
+                  <TOTPSettings />
+                </TabsContent>
 
-            <TabsContent value="privacy">
-              <CookieSettings />
-            </TabsContent>
+                <TabsContent value="privacy">
+                  <CookieSettings />
+                </TabsContent>
+              </>
+            )}
           </Tabs>
         </div>
       </div>
