@@ -129,8 +129,15 @@ const VideoHelp: React.FC = () => {
                     Watch Now
                   </Button>
                 </div>
-                <div className="w-full md:w-80 h-48 bg-white/20 rounded-lg flex items-center justify-center">
-                  <Play className="h-16 w-16 text-white/80" />
+                <div className="w-full md:w-80 h-48 rounded-lg overflow-hidden relative group cursor-pointer" onClick={() => handleWatchVideo('https://youtu.be/SgJuSe52umM')}>
+                  <img 
+                    src="https://img.youtube.com/vi/SgJuSe52umM/maxresdefault.jpg" 
+                    alt="Account Creation & Dashboard Overview Tutorial"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/30 flex items-center justify-center group-hover:bg-black/40 transition-colors">
+                    <Play className="h-16 w-16 text-white" />
+                  </div>
                 </div>
               </div>
             </CardContent>
