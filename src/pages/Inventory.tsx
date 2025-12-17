@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Search, Package, DollarSign, FileText, Eye, Plus } from 'lucide-react';
+import { Search, Package, DollarSign, FileText, Eye, Plus, ArrowLeft } from 'lucide-react';
 import { ItemService, Item } from '@/services/ItemService';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
@@ -13,6 +13,7 @@ import ReceiptUpload from '@/components/ReceiptUpload';
 import ItemReceiptsSection from '@/components/ItemReceiptsSection';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import ManualEntrySection from '@/components/ManualEntrySection';
 
@@ -81,6 +82,14 @@ const Inventory: React.FC = () => {
       <Navbar />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <DashboardBreadcrumb 
+          items={[
+            { label: 'Dashboard', href: '/account' },
+            { label: 'My Inventory', href: '/inventory' }
+          ]}
+          showBackButton={true}
+        />
+        
         <div className="mb-8">
           <div className="flex justify-between items-start mb-4">
             <div>
