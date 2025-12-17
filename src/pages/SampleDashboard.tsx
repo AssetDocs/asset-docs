@@ -63,7 +63,7 @@ const SampleDashboard: React.FC = () => {
               size="sm"
               variant="ghost"
               className="h-4 w-4 p-0"
-              onClick={() => alert('AssetDocs.net says\n\nDemo: Account number copied to clipboard!')}
+              onClick={() => alert('AssetSafe.net says\n\nDemo: Account number copied to clipboard!')}
             >
               <Copy className="h-3 w-3" />
             </Button>
@@ -74,7 +74,7 @@ const SampleDashboard: React.FC = () => {
         <Button 
           variant="outline" 
           size="sm"
-          onClick={() => alert('AssetDocs.net says\n\nDemo: This would show video tutorials and help content.')}
+          onClick={() => alert('AssetSafe.net says\n\nDemo: This would show video tutorials and help content.')}
         >
           <HelpCircle className="h-4 w-4 mr-2" />
           Video Help
@@ -82,7 +82,7 @@ const SampleDashboard: React.FC = () => {
         <Button 
           variant="outline" 
           size="sm"
-          onClick={() => alert('AssetDocs.net says\n\nDemo: This would allow sharing your account with others.')}
+          onClick={() => alert('AssetSafe.net says\n\nDemo: This would allow sharing your account with others.')}
         >
           <Share2 className="h-4 w-4 mr-2" />
           Share
@@ -296,7 +296,7 @@ const SampleDashboard: React.FC = () => {
               </CardDescription>
             </div>
             <Button 
-              onClick={() => alert('AssetDocs.net says\n\nDemo: This would allow you to add a new source website to track where you purchased items.')}
+              onClick={() => alert('AssetSafe.net says\n\nDemo: This would allow you to add a new source website to track where you purchased items.')}
               className="bg-brand-blue hover:bg-brand-lightBlue"
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -322,7 +322,7 @@ const SampleDashboard: React.FC = () => {
                       )}
                       <p className="text-sm text-gray-600 mb-3">{website.description}</p>
                       <Button
-                        onClick={() => alert('AssetDocs.net says\n\nDemo: This would open the website in a new tab.')}
+                        onClick={() => alert('AssetSafe.net says\n\nDemo: This would open the website in a new tab.')}
                         variant="outline"
                         size="sm"
                         className="w-full"
@@ -352,7 +352,7 @@ const SampleDashboard: React.FC = () => {
             <Eye className="h-4 w-4" />
             <AlertDescription className="flex items-center justify-between">
               <span>
-                <strong>Demo Dashboard</strong> - This is a sample view of the Asset Docs dashboard. 
+                <strong>Demo Dashboard</strong> - This is a sample view of the Asset Safe dashboard. 
                 Features are read-only for demonstration purposes.
               </span>
             </AlertDescription>
@@ -404,7 +404,7 @@ const SampleDashboard: React.FC = () => {
                   <CardContent>
                     <div className="space-y-3">
                       <Button 
-                        onClick={() => alert('AssetDocs.net says\n\nDemo: This allows you to update your profile, security settings, and preferences.')}
+                        onClick={() => alert('AssetSafe.net says\n\nDemo: This allows you to update your profile, security settings, and preferences.')}
                         variant="orange" 
                         className="w-full"
                       >
@@ -412,7 +412,7 @@ const SampleDashboard: React.FC = () => {
                         Manage Settings
                       </Button>
                       <Button 
-                        onClick={() => alert('AssetDocs.net says\n\nDemo: This allows you to add and manage users who can help document your assets.')}
+                        onClick={() => alert('AssetSafe.net says\n\nDemo: This allows you to add and manage users who can help document your assets.')}
                         variant="outline" 
                         className="w-full"
                       >
@@ -437,14 +437,14 @@ const SampleDashboard: React.FC = () => {
                   <CardContent>
                     <div className="space-y-3">
                       <Button 
-                        onClick={() => alert('AssetDocs.net says\n\nDemo: This allows you to create new property profiles with square footage, room details, and property information.')}
+                        onClick={() => alert('AssetSafe.net says\n\nDemo: This allows you to create new property profiles with square footage, room details, and property information.')}
                         className="w-full bg-brand-blue hover:bg-brand-lightBlue"
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         Create New Property
                       </Button>
                       <Button 
-                        onClick={() => alert('AssetDocs.net says\n\nDemo: This allows you to view and manage all your documented properties.')}
+                        onClick={() => alert('AssetSafe.net says\n\nDemo: This allows you to view and manage all your documented properties.')}
                         variant="outline" 
                         className="w-full"
                       >
@@ -469,14 +469,14 @@ const SampleDashboard: React.FC = () => {
                   <CardContent>
                     <div className="space-y-3">
                       <Button
-                        onClick={() => alert('AssetDocs.net says\n\nDemo: This allows you to upload photos and document your items with estimated values.')}
+                        onClick={() => alert('AssetSafe.net says\n\nDemo: This allows you to upload photos and document your items with estimated values.')}
                         className="w-full bg-brand-blue hover:bg-brand-lightBlue"
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         Upload Photos
                       </Button>
                       <Button 
-                        onClick={() => alert('AssetDocs.net says\n\nDemo: This allows you to view, organize, download, and categorize your uploaded photos.')}
+                        onClick={() => alert('AssetSafe.net says\n\nDemo: This allows you to view, organize, download, and categorize your uploaded photos.')}
                         variant="outline" 
                         className="w-full"
                       >
@@ -504,14 +504,14 @@ const SampleDashboard: React.FC = () => {
                   <CardContent>
                     <div className="space-y-3">
                       <Button
-                        onClick={() => alert('AssetDocs.net says\n\nDemo: This allows you to upload and manage video recordings of your property and belongings.')}
+                        onClick={() => alert('AssetSafe.net says\n\nDemo: This allows you to upload and manage video recordings of your property and belongings.')}
                         className="w-full bg-brand-blue hover:bg-brand-lightBlue"
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         Upload Videos
                       </Button>
                       <Button 
-                        onClick={() => alert('AssetDocs.net says\n\nDemo: This allows you to view, watch, download, and categorize your uploaded videos.')}
+                        onClick={() => alert('AssetSafe.net says\n\nDemo: This allows you to view, watch, download, and categorize your uploaded videos.')}
                         variant="outline" 
                         className="w-full"
                       >
@@ -536,14 +536,14 @@ const SampleDashboard: React.FC = () => {
                   <CardContent>
                     <div className="space-y-3">
                       <Button 
-                        onClick={() => alert('AssetDocs.net says\n\nDemo: This allows you to store PDFs, receipts, warranties, licenses, titles, and other important documents.')}
+                        onClick={() => alert('AssetSafe.net says\n\nDemo: This allows you to store PDFs, receipts, warranties, licenses, titles, and other important documents.')}
                         className="w-full bg-brand-blue hover:bg-brand-lightBlue"
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         Upload Documents
                       </Button>
                       <Button 
-                        onClick={() => alert('AssetDocs.net says\n\nDemo: This allows you to view, organize, download, and manage your stored documents.')}
+                        onClick={() => alert('AssetSafe.net says\n\nDemo: This allows you to view, organize, download, and manage your stored documents.')}
                         variant="outline" 
                         className="w-full"
                       >
@@ -568,7 +568,7 @@ const SampleDashboard: React.FC = () => {
                   <CardContent>
                     <div className="space-y-3">
                       <Button
-                        onClick={() => alert('AssetDocs.net says\n\nDemo: This allows you to manually add items to your inventory without photos.')}
+                        onClick={() => alert('AssetSafe.net says\n\nDemo: This allows you to manually add items to your inventory without photos.')}
                         className="w-full bg-brand-blue hover:bg-brand-lightBlue"
                       >
                         <Plus className="h-4 w-4 mr-2" />
@@ -604,7 +604,7 @@ const SampleDashboard: React.FC = () => {
                       </Alert>
                       <div className="flex gap-3">
                         <Button 
-                          onClick={() => alert("AssetDocs.net says\n\nDemo: This would allow you to unlock and access your password and accounts catalog with your master password.")}
+                          onClick={() => alert("AssetSafe.net says\n\nDemo: This would allow you to unlock and access your password and accounts catalog with your master password.")}
                           className="flex-1 bg-brand-blue hover:bg-brand-lightBlue"
                         >
                           <Lock className="h-4 w-4 mr-2" />
@@ -635,14 +635,14 @@ const SampleDashboard: React.FC = () => {
                   <CardContent>
                     <div className="space-y-3">
                       <Button 
-                        onClick={() => alert('AssetDocs.net says\n\nDemo: This allows you to add and manage insurance policies, claims, and related documentation.')}
+                        onClick={() => alert('AssetSafe.net says\n\nDemo: This allows you to add and manage insurance policies, claims, and related documentation.')}
                         className="w-full bg-brand-blue hover:bg-brand-lightBlue"
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         Add Insurance Policy
                       </Button>
                       <Button 
-                        onClick={() => alert('AssetDocs.net says\n\nDemo: This allows you to view and manage your insurance policies and claims.')}
+                        onClick={() => alert('AssetSafe.net says\n\nDemo: This allows you to view and manage your insurance policies and claims.')}
                         variant="outline" 
                         className="w-full"
                       >
@@ -666,7 +666,7 @@ const SampleDashboard: React.FC = () => {
                   </CardHeader>
                   <CardContent>
                     <Button 
-                      onClick={() => alert('AssetDocs.net says\n\nDemo: This would export your complete asset summary as a PDF and ZIP file.')}
+                      onClick={() => alert('AssetSafe.net says\n\nDemo: This would export your complete asset summary as a PDF and ZIP file.')}
                       variant="default"
                       className="w-full bg-brand-green hover:bg-brand-green/90"
                     >
@@ -689,7 +689,7 @@ const SampleDashboard: React.FC = () => {
                   </CardHeader>
                   <CardContent>
                     <Button 
-                      onClick={() => alert('AssetDocs.net says\n\nDemo: This would download all your files in a ZIP archive.')}
+                      onClick={() => alert('AssetSafe.net says\n\nDemo: This would download all your files in a ZIP archive.')}
                       variant="outline"
                       className="w-full"
                     >
