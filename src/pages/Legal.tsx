@@ -31,26 +31,38 @@ const Legal: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Scale className="h-5 w-5 text-brand-blue" />
-                  Valuation Disclaimers
+                  Valuation Disclaimer
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <h4 className="font-medium text-gray-900 mb-2">Estimates vs. Official Appraisals</h4>
+                  <h4 className="font-medium text-gray-900 mb-2">Informational Use Only</h4>
                   <ul className="text-sm text-gray-600 space-y-1">
-                    <li>• Valuations are AI-generated estimates based on available data</li>
-                    <li>• Not substitute for professional property appraisals</li>
-                    <li>• Market conditions and local factors may affect actual values</li>
-                    <li>• Estimates may vary from current market prices</li>
+                    <li>• Any values associated with assets are provided for personal record-keeping and reference purposes only</li>
+                    <li>• Asset Safe does not provide certified appraisals or guaranteed valuations</li>
+                    <li>• Recorded values should not be considered legal, insurance, tax, or financial advice</li>
                   </ul>
                 </div>
                 <div>
-                  <h4 className="font-medium text-gray-900 mb-2">Accuracy Limitations</h4>
+                  <h4 className="font-medium text-gray-900 mb-2">User-Provided Values</h4>
                   <ul className="text-sm text-gray-600 space-y-1">
-                    <li>• Based on automated analysis of provided documentation</li>
-                    <li>• May not reflect recent market changes</li>
-                    <li>• Property condition assessments are preliminary</li>
-                    <li>• Individual item valuations are approximate</li>
+                    <li>• Asset values may be entered or adjusted by the user</li>
+                    <li>• Asset Safe does not verify, validate, or independently confirm user-entered values</li>
+                    <li>• Users are responsible for ensuring accuracy when values are used for official purposes</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-2">Market & Condition Variability</h4>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• Asset values may fluctuate due to market conditions, geographic factors, and item condition</li>
+                    <li>• Recorded values may not reflect current replacement cost or resale value</li>
+                    <li>• Physical condition assessments are not performed by Asset Safe</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-2">Professional Verification Recommended</h4>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• For insurance claims, estate planning, legal proceedings, or high-value items, users should consult licensed appraisers or qualified professionals</li>
                   </ul>
                 </div>
               </CardContent>
