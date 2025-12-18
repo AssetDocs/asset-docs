@@ -19,7 +19,6 @@ interface SignUpFormData {
   password: string;
   confirmPassword: string;
   acceptTerms: boolean;
-  giftCode: string;
 }
 
 const Signup: React.FC = () => {
@@ -29,7 +28,6 @@ const Signup: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [emailExistsError, setEmailExistsError] = useState(false);
   const [isContributorSignup, setIsContributorSignup] = useState(false);
-  const [isValidatingGiftCode, setIsValidatingGiftCode] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, signUp } = useAuth();
@@ -46,7 +44,6 @@ const Signup: React.FC = () => {
       password: '',
       confirmPassword: '',
       acceptTerms: false,
-      giftCode: '',
     },
   });
 
@@ -135,9 +132,7 @@ const Signup: React.FC = () => {
           }
           navigate('/contributor-welcome');
         } else {
-          // If gift code provided, pass it to welcome page for validation after email verification
-          const giftCodeParam = data.giftCode?.trim() ? `?giftCode=${encodeURIComponent(data.giftCode.trim())}` : '';
-          navigate(`/welcome${giftCodeParam}`);
+          navigate('/welcome');
         }
       }
     } catch (error: any) {
@@ -341,29 +336,6 @@ const Signup: React.FC = () => {
                   )}
                 />
 
-                {/* Gift Code Field - for lifetime access */}
-                <FormField
-                  control={signUpForm.control}
-                  name="giftCode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Gift Code (Optional)</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="Enter gift code if you have one"
-                          {...field}
-                          onChange={(e) => field.onChange(e.target.value.toUpperCase())}
-                        />
-                      </FormControl>
-                      {field.value && (
-                        <p className="text-sm text-green-600 mt-1">
-                          🎁 Gift code will be validated after email verification
-                        </p>
-                      )}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
                 <FormField
                   control={signUpForm.control}
