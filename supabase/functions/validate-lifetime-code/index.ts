@@ -6,8 +6,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Valid lifetime gift codes
-const LIFETIME_CODES = ["ASLT2025"];
+// Valid lifetime gift codes - ASL = Asset Safe Lifetime
+const LIFETIME_CODES = ["ASL2025"];
 
 interface ValidateCodeRequest {
   code: string;
