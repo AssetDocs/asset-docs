@@ -1,24 +1,29 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
-import { Video, BookOpen, CheckCircle2, RefreshCw } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Video, BookOpen, CheckCircle2, RefreshCw, Gift } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 const Welcome: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [isResending, setIsResending] = useState(false);
+  const [isValidatingCode, setIsValidatingCode] = useState(false);
+  
+  // Get gift code from URL if present
+  const giftCode = searchParams.get('giftCode');
 
   // Prevent back navigation
   useEffect(() => {
     const handlePopState = (e: PopStateEvent) => {
       e.preventDefault();
-      window.history.pushState(null, '', window.location.pathname);
+      window.history.pushState(null, '', window.location.pathname + window.location.search);
     };
 
-    window.history.pushState(null, '', window.location.pathname);
+    window.history.pushState(null, '', window.location.pathname + window.location.search);
     window.addEventListener('popstate', handlePopState);
 
     return () => {
@@ -26,13 +31,55 @@ const Welcome: React.FC = () => {
     };
   }, []);
 
+  // Validate lifetime gift code and activate subscription
+  const validateGiftCode = async (userId: string) => {
+    if (!giftCode) return false;
+    
+    setIsValidatingCode(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('validate-lifetime-code', {
+        body: { code: giftCode, user_id: userId }
+      });
+
+      if (error) {
+        console.error('Gift code validation error:', error);
+        return false;
+      }
+
+      if (data?.success) {
+        toast({
+          title: "🎁 Gift Code Applied!",
+          description: "You now have lifetime access to Asset Safe. Welcome!",
+        });
+        return true;
+      } else {
+        // Code was invalid, but don't show error - just proceed to pricing
+        console.log('Gift code invalid or expired:', data?.error);
+        return false;
+      }
+    } catch (err) {
+      console.error('Error validating gift code:', err);
+      return false;
+    } finally {
+      setIsValidatingCode(false);
+    }
+  };
+
   // Check email verification status
   const checkEmailStatus = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     // Only redirect if user exists AND email is confirmed
-    // This prevents redirecting before the user has verified
     if (user?.email_confirmed_at) {
-      // Redirect to pricing/subscription selection after email verification
+      // If gift code present, validate it first
+      if (giftCode) {
+        const isValid = await validateGiftCode(user.id);
+        if (isValid) {
+          // Gift code valid - go directly to dashboard
+          navigate('/account');
+          return;
+        }
+      }
+      // No gift code or invalid - redirect to pricing/subscription selection
       navigate('/pricing');
     }
   };
@@ -44,7 +91,7 @@ const Welcome: React.FC = () => {
     // Then check every 3 seconds
     const interval = setInterval(checkEmailStatus, 3000);
     return () => clearInterval(interval);
-  }, [navigate]);
+  }, [navigate, giftCode]);
 
   const handleResendEmail = async () => {
     setIsResending(true);
@@ -64,7 +111,7 @@ const Welcome: React.FC = () => {
         type: 'signup',
         email: user.email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?type=signup&redirect_to=/welcome`,
+          emailRedirectTo: `${window.location.origin}/auth/callback?type=signup&redirect_to=/welcome${giftCode ? `?giftCode=${encodeURIComponent(giftCode)}` : ''}`,
         },
       });
 
@@ -98,7 +145,7 @@ const Welcome: React.FC = () => {
               <CheckCircle2 className="w-10 h-10 text-primary-foreground" />
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-              Welcome to Asset Docs
+              Welcome to Asset Safe
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-4">
               Thank you for taking proactive steps to protect your assets and minimize your risks. 
@@ -109,13 +156,30 @@ const Welcome: React.FC = () => {
             </p>
           </div>
 
+          {/* Gift Code Notice */}
+          {giftCode && (
+            <div className="bg-green-50 dark:bg-green-900/20 border-2 border-green-400 dark:border-green-600 rounded-lg p-6 mb-6">
+              <div className="flex items-center justify-center gap-2 text-green-900 dark:text-green-100 font-medium">
+                <Gift className="w-5 h-5" />
+                <span>Gift Code: {giftCode}</span>
+              </div>
+              <p className="text-center text-sm text-green-800 dark:text-green-200 mt-2">
+                {isValidatingCode 
+                  ? "Validating your gift code..." 
+                  : "Your gift code will be applied after email verification."}
+              </p>
+            </div>
+          )}
+
           {/* Email Verification Notice */}
           <div className="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-400 dark:border-yellow-600 rounded-lg p-6 mb-6">
             <p className="text-center text-yellow-900 dark:text-yellow-100 font-medium">
               ⏳ Checking email verification status...
             </p>
             <p className="text-center text-sm text-yellow-800 dark:text-yellow-200 mt-2">
-              Once you verify your email, you'll be automatically redirected to complete your subscription.
+              {giftCode 
+                ? "Once you verify your email, your gift code will be applied and you'll have instant access."
+                : "Once you verify your email, you'll be automatically redirected to complete your subscription."}
             </p>
             <div className="flex justify-center mt-4">
               <Button
@@ -152,7 +216,7 @@ const Welcome: React.FC = () => {
                       Video Help Center
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      Watch step-by-step tutorials to make the most of Asset Docs features.
+                      Watch step-by-step tutorials to make the most of Asset Safe features.
                     </p>
                   </div>
                 </div>

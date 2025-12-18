@@ -15,7 +15,6 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [giftCode, setGiftCode] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -23,14 +22,6 @@ const Login: React.FC = () => {
   const [loginError, setLoginError] = useState(false);
   const { signIn, user } = useAuth();
   const { toast } = useToast();
-
-  useEffect(() => {
-    // Pre-fill gift code from URL parameter
-    const codeFromUrl = searchParams.get('giftCode');
-    if (codeFromUrl) {
-      setGiftCode(codeFromUrl);
-    }
-  }, [searchParams]);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -85,12 +76,7 @@ const Login: React.FC = () => {
           });
         }
         
-        // Redirect with gift code if present
-        if (giftCode) {
-          navigate(`/gift-claim?code=${giftCode}`);
-        } else {
-          navigate('/account');
-        }
+        navigate('/account');
       }
     } catch (error: any) {
       toast({
@@ -181,23 +167,6 @@ const Login: React.FC = () => {
                   )}
                 </Button>
               </div>
-            </div>
-            
-            <div>
-              <Label htmlFor="giftCode">Gift Code (Optional)</Label>
-              <Input 
-                id="giftCode" 
-                type="text" 
-                placeholder="GIFT-XXXXXXXXXXXX" 
-                className="input-field" 
-                value={giftCode}
-                onChange={(e) => setGiftCode(e.target.value.toUpperCase())}
-              />
-              {giftCode && (
-                <p className="text-sm text-green-600 mt-1">
-                  🎁 Gift code will be applied after login
-                </p>
-              )}
             </div>
             
             <div className="flex items-center">
