@@ -23,12 +23,15 @@ const Login: React.FC = () => {
   const { signIn, user } = useAuth();
   const { toast } = useToast();
 
+  // Get redirect URL from params (e.g., for gift code users)
+  const redirectTo = searchParams.get('redirect') || '/account';
+
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      navigate('/account');
+      navigate(redirectTo);
     }
-  }, [user, navigate]);
+  }, [user, navigate, redirectTo]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,7 +79,7 @@ const Login: React.FC = () => {
           });
         }
         
-        navigate('/account');
+        navigate(redirectTo);
       }
     } catch (error: any) {
       toast({
