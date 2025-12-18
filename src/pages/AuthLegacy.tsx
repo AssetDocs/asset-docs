@@ -13,14 +13,12 @@ import { supabase } from '@/integrations/supabase/client';
 interface SignInFormData {
   email: string;
   password: string;
-  giftCode?: string;
   remember?: boolean;
 }
 
 const Auth: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [giftCode, setGiftCode] = useState('');
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -36,27 +34,20 @@ const Auth: React.FC = () => {
     defaultValues: {
       email: '',
       password: '',
-      giftCode: '',
       remember: false,
     },
   });
 
-  // Pre-fill gift code from URL parameter and check for contributor mode
+  // Check for contributor mode
   useEffect(() => {
-    const codeFromUrl = searchParams.get('giftCode');
     const mode = searchParams.get('mode');
     const email = searchParams.get('email');
-    
-    if (codeFromUrl) {
-      setGiftCode(codeFromUrl);
-      signInForm.setValue('giftCode', codeFromUrl);
-    }
     
     if (mode === 'contributor' && email) {
       setIsContributorMode(true);
       setContributorEmail(email);
     }
-  }, [searchParams, signInForm]);
+  }, [searchParams]);
 
   // Redirect if already logged in (but not if in contributor mode with different email)
   useEffect(() => {
@@ -94,34 +85,6 @@ const Auth: React.FC = () => {
       } else {
         // Get current session for API calls
         const { data: session } = await supabase.auth.getSession();
-        
-        // Check for lifetime gift code (ASLT2025)
-        if (giftCode && session?.session?.user?.id) {
-          try {
-            const { data: codeResult, error: codeError } = await supabase.functions.invoke(
-              'validate-lifetime-code',
-              {
-                body: {
-                  code: giftCode,
-                  user_id: session.session.user.id
-                }
-              }
-            );
-            
-            if (codeResult?.success) {
-              toast({
-                title: "🎉 Lifetime Access Activated!",
-                description: "Welcome to Asset Safe! Your lifetime premium subscription is now active.",
-              });
-              navigate('/account');
-              return;
-            } else if (codeError || codeResult?.error) {
-              console.log('Gift code not a lifetime code, checking standard gift codes...');
-            }
-          } catch (codeCheckError) {
-            console.error('Error checking lifetime code:', codeCheckError);
-          }
-        }
         
         // If this is a contributor login, accept pending invitations
         if (isContributorMode) {
@@ -554,33 +517,6 @@ const Auth: React.FC = () => {
                    )}
                  />
 
-                 <FormField
-                   control={signInForm.control}
-                   name="giftCode"
-                   render={({ field }) => (
-                     <FormItem>
-                       <FormLabel>Gift Code (Optional)</FormLabel>
-                       <FormControl>
-                         <Input 
-                           type="text"
-                           placeholder="GIFT-XXXXXXXXXXXX"
-                           value={giftCode}
-                           onChange={(e) => {
-                             const value = e.target.value.toUpperCase();
-                             setGiftCode(value);
-                             field.onChange(value);
-                           }}
-                         />
-                       </FormControl>
-                       {giftCode && (
-                         <p className="text-sm text-green-600 mt-1">
-                           🎁 Gift code will be applied after login
-                         </p>
-                       )}
-                       <FormMessage />
-                     </FormItem>
-                   )}
-                 />
 
                  <FormField
                    control={signInForm.control}
