@@ -74,8 +74,8 @@ const Welcome: React.FC = () => {
       if (giftCode) {
         const isValid = await validateGiftCode(user.id);
         if (isValid) {
-          // Gift code valid - go directly to dashboard
-          navigate('/account');
+          // Gift code valid - redirect to login, which will then go to dashboard
+          navigate('/login?redirect=/account');
           return;
         }
       }
