@@ -168,7 +168,7 @@ const Signup: React.FC = () => {
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold text-brand-blue">Create Your Account</CardTitle>
             <CardDescription>
-              Join Asset Safe to protect your property documentation
+              Your Digital Safety Net for Asset Protection & Unexpected Events
             </CardDescription>
           </CardHeader>
           <CardContent>
