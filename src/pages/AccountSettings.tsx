@@ -21,18 +21,18 @@ import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-// Viewer-restricted profile tab - only allows name, email, password changes
-const ViewerProfileTab: React.FC = () => {
+// Restricted profile tab - only allows name, email, password changes
+const RestrictedProfileTab: React.FC<{ roleLabel: string }> = ({ roleLabel }) => {
   return (
     <div>
       <Card className="border-amber-200 bg-amber-50 mb-4">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-amber-800 text-lg">
             <Eye className="h-5 w-5" />
-            Viewer Access - Limited Profile Settings
+            {roleLabel} - Limited Profile Settings
           </CardTitle>
           <CardDescription className="text-amber-700">
-            As a viewer, you can only update your own name, email, and password. Other settings are managed by the account owner.
+            You can only update your own name, email, and password. Other settings are managed by the account owner.
           </CardDescription>
         </CardHeader>
       </Card>
@@ -46,18 +46,21 @@ const AccountSettings: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
   const location = useLocation();
-  const { isViewer, isContributor, contributorRole, ownerName } = useContributor();
+  const { isViewer, isContributor, isContributorRole, contributorRole, ownerName, canAccessSettings } = useContributor();
   
-  // Restricted tabs for viewers
+  // Restricted tabs for viewers and contributors (only administrators can access these)
   const restrictedTabs = ['billing', 'subscription', 'contributors', 'security', 'notifications', 'privacy'];
+  
+  // Check if user has restricted access (viewer or contributor role)
+  const hasRestrictedAccess = isViewer || isContributorRole;
   
   // Get default tab from URL parameters
   const getDefaultTab = () => {
     const urlParams = new URLSearchParams(location.search);
     const tab = urlParams.get('tab');
     
-    // If viewer and trying to access restricted tab, default to profile
-    if (isViewer && restrictedTabs.includes(tab || '')) {
+    // If restricted access and trying to access restricted tab, default to profile
+    if (hasRestrictedAccess && restrictedTabs.includes(tab || '')) {
       return 'profile';
     }
     
@@ -98,14 +101,22 @@ const AccountSettings: React.FC = () => {
   };
 
   const handleRestrictedTabClick = (e: React.MouseEvent) => {
-    if (isViewer) {
+    if (hasRestrictedAccess) {
       e.preventDefault();
       toast({
         title: "Access Restricted",
-        description: "Contributors with a viewer role are not allowed to access this section.",
+        description: isViewer 
+          ? "Contributors with a viewer role are not allowed to access this section."
+          : "Contributors with limited access cannot modify account settings. Please contact the account owner.",
         variant: "destructive",
       });
     }
+  };
+  
+  const getRoleLabel = () => {
+    if (isViewer) return "Viewer Access";
+    if (isContributorRole) return "Contributor Access";
+    return "";
   };
 
   return (
@@ -121,8 +132,8 @@ const AccountSettings: React.FC = () => {
           <div className="mb-6">
             <h1 className="text-3xl font-bold text-brand-blue">Account Settings</h1>
             <p className="text-gray-600">
-              {isViewer 
-                ? `Viewing ${ownerName || 'account owner'}'s settings (read-only access)`
+              {hasRestrictedAccess 
+                ? `Viewing ${ownerName || 'account owner'}'s settings (${isViewer ? 'read-only' : 'limited'} access)`
                 : 'Manage your profile, billing, and subscription preferences'
               }
             </p>
@@ -148,12 +159,12 @@ const AccountSettings: React.FC = () => {
           </div>
 
           <Tabs defaultValue={getDefaultTab()} className="space-y-6">
-            <TabsList className={`grid w-full ${isViewer ? 'grid-cols-1' : 'grid-cols-7'}`}>
+            <TabsList className={`grid w-full ${hasRestrictedAccess ? 'grid-cols-1' : 'grid-cols-7'}`}>
               <TabsTrigger value="profile" className="flex items-center gap-2">
                 <User className="h-4 w-4" />
                 <span className="hidden sm:inline">Profile</span>
               </TabsTrigger>
-              {!isViewer && (
+              {!hasRestrictedAccess && (
                 <>
                   <TabsTrigger value="billing" className="flex items-center gap-2">
                     <CreditCard className="h-4 w-4" />
@@ -184,10 +195,10 @@ const AccountSettings: React.FC = () => {
             </TabsList>
 
             <TabsContent value="profile">
-              {isViewer ? <ViewerProfileTab /> : <ProfileTab />}
+              {hasRestrictedAccess ? <RestrictedProfileTab roleLabel={getRoleLabel()} /> : <ProfileTab />}
             </TabsContent>
 
-            {!isViewer && (
+            {!hasRestrictedAccess && (
               <>
                 <TabsContent value="billing">
                   <BillingTab />

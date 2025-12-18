@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Lock, Shield, Unlock, Info, ChevronDown, ChevronRight } from 'lucide-react';
+import { Lock, Shield, Unlock, Info, ChevronDown, ChevronRight, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useContributor } from '@/contexts/ContributorContext';
 import { useToast } from '@/hooks/use-toast';
 import MasterPasswordModal from './MasterPasswordModal';
 import { createPasswordVerificationHash, verifyMasterPassword } from '@/utils/encryption';
@@ -20,6 +21,7 @@ import TOTPChallenge from './TOTPChallenge';
 
 const SecureVault: React.FC = () => {
   const { user } = useAuth();
+  const { isContributor, canAccessEncryptedVault, isViewer, isContributorRole, contributorRole } = useContributor();
   const { toast } = useToast();
   const [isEncrypted, setIsEncrypted] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
@@ -33,13 +35,12 @@ const SecureVault: React.FC = () => {
   const [totpVerified, setTotpVerified] = useState(false);
   
   // Recovery delegate state
-  const [contributors, setContributors] = useState<any[]>([]);
+  const [contributorsList, setContributorsList] = useState<any[]>([]);
   const [selectedDelegateId, setSelectedDelegateId] = useState<string | null>(null);
   const [gracePeriodDays, setGracePeriodDays] = useState(14);
   const [hasPendingRequest, setHasPendingRequest] = useState(false);
   const [legacyLockerId, setLegacyLockerId] = useState<string | null>(null);
   const [isDelegate, setIsDelegate] = useState(false);
-  const [isContributor, setIsContributor] = useState(false);
   const [existingEncrypted, setExistingEncrypted] = useState(false);
   const [passwordCatalogOpen, setPasswordCatalogOpen] = useState(false);
   const [legacyLockerOpen, setLegacyLockerOpen] = useState(false);
@@ -53,29 +54,10 @@ const SecureVault: React.FC = () => {
 
   useEffect(() => {
     fetchVaultStatus();
-    fetchContributors();
-    checkContributorStatus();
+    fetchContributorsList();
   }, [user]);
 
-  const checkContributorStatus = async () => {
-    if (!user) return;
-    try {
-      const { data: contributorData } = await supabase
-        .from('contributors')
-        .select('role, account_owner_id')
-        .eq('contributor_user_id', user.id)
-        .eq('status', 'accepted')
-        .maybeSingle();
-
-      if (contributorData) {
-        setIsContributor(true);
-      }
-    } catch (error) {
-      console.error('Error checking contributor status:', error);
-    }
-  };
-
-  const fetchContributors = async () => {
+  const fetchContributorsList = async () => {
     if (!user) return;
     try {
       const { data, error } = await supabase
@@ -85,7 +67,7 @@ const SecureVault: React.FC = () => {
         .eq('status', 'accepted');
 
       if (error) throw error;
-      setContributors(data || []);
+      setContributorsList(data || []);
     } catch (error) {
       console.error('Error fetching contributors:', error);
     }
@@ -284,6 +266,39 @@ const SecureVault: React.FC = () => {
     );
   }
 
+  // Contributor restriction - show access denied for encrypted vault
+  if (isEncrypted && !canAccessEncryptedVault) {
+    return (
+      <Card className="w-full border-4 border-yellow-400 shadow-lg">
+        <CardHeader className="bg-yellow-50 dark:bg-yellow-900/20 border-b border-yellow-400">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Lock className="h-6 w-6 text-yellow-600" />
+                Secure Vault (Restricted)
+              </CardTitle>
+              <CardDescription className="text-yellow-700 dark:text-yellow-300">
+                Password Catalog & Legacy Locker - Protected with End-to-End Encryption
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="py-12">
+          <div className="text-center">
+            <AlertTriangle className="h-20 w-20 mx-auto mb-6 text-amber-500" />
+            <h3 className="text-xl font-semibold mb-3">Access Restricted</h3>
+            <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+              Contributors with {contributorRole === 'viewer' ? 'viewer' : 'limited'} access cannot access encrypted vaults.
+            </p>
+            <p className="text-sm text-muted-foreground max-w-md mx-auto">
+              Please contact the account owner if you need access to this information.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   // Locked state - show unlock prompt
   if (isEncrypted && !isUnlocked) {
     return (
@@ -392,7 +407,7 @@ const SecureVault: React.FC = () => {
           {/* Recovery Delegate Selector - only show for owners when encrypted */}
           {isEncrypted && !isDelegate && !isContributor && (
             <RecoveryDelegateSelector
-              contributors={contributors}
+              contributors={contributorsList}
               selectedDelegateId={selectedDelegateId}
               gracePeriodDays={gracePeriodDays}
               onDelegateChange={setSelectedDelegateId}

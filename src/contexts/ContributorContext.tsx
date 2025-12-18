@@ -13,11 +13,14 @@ interface ContributorContextType {
   isAdministrator: boolean;
   canEdit: boolean;
   canDelete: boolean;
+  canAccessSettings: boolean;
+  canAccessEncryptedVault: boolean;
   accountOwnerId: string | null;
   contributorName: string;
   ownerName: string;
   loading: boolean;
   showViewerRestriction: () => void;
+  showContributorRestriction: () => void;
 }
 
 const ContributorContext = createContext<ContributorContextType | undefined>(undefined);
@@ -108,14 +111,28 @@ export const ContributorProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const isContributorRole = isContributor && contributorRole === 'contributor';
   const isAdministrator = isContributor && contributorRole === 'administrator';
   
-  // Viewers can only view, contributors can edit but not delete, administrators can do everything
+  // Viewers can only view, contributors can edit but have settings restrictions, administrators can do everything
   const canEdit = !isContributor || contributorRole === 'contributor' || contributorRole === 'administrator';
   const canDelete = !isContributor || contributorRole === 'administrator';
+  
+  // Only administrators and owners can access settings tabs (billing, subscription, TFA, alerts, privacy, contributors)
+  const canAccessSettings = !isContributor || contributorRole === 'administrator';
+  
+  // Only administrators and owners can access encrypted vault
+  const canAccessEncryptedVault = !isContributor || contributorRole === 'administrator';
 
   const showViewerRestriction = () => {
     toast({
       title: "Access Restricted",
       description: "Contributors with a viewer role are not allowed to make changes to this user's dashboard.",
+      variant: "destructive",
+    });
+  };
+
+  const showContributorRestriction = () => {
+    toast({
+      title: "Access Restricted",
+      description: "Contributors with limited access cannot modify account settings. Please contact the account owner.",
       variant: "destructive",
     });
   };
@@ -130,11 +147,14 @@ export const ContributorProvider: React.FC<{ children: React.ReactNode }> = ({ c
         isAdministrator,
         canEdit,
         canDelete,
+        canAccessSettings,
+        canAccessEncryptedVault,
         accountOwnerId,
         contributorName,
         ownerName,
         loading,
         showViewerRestriction,
+        showContributorRestriction,
       }}
     >
       {children}
