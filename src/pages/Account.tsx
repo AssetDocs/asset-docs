@@ -358,29 +358,15 @@ const Account: React.FC = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3">
-                      <Button
-                        onClick={() => handleRestrictedAction(() => {
-                          navigate('/account/photos/upload');
-                        })}
-                        className="w-full bg-brand-blue hover:bg-brand-lightBlue"
-                        disabled={isViewer}
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Upload Photos
-                        {isViewer && <Lock className="h-3 w-3 ml-1" />}
-                      </Button>
-                      <Button 
-                        onClick={() => handleRestrictedAction(() => {
-                          navigate('/account/photos');
-                        }, true)}
-                        variant="outline" 
-                        className="w-full"
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        View Photo Gallery
-                      </Button>
-                    </div>
+                    <Button 
+                      onClick={() => handleRestrictedAction(() => {
+                        navigate('/account/photos');
+                      }, true)}
+                      className="w-full bg-brand-blue hover:bg-brand-lightBlue"
+                    >
+                      <Camera className="h-4 w-4 mr-2" />
+                      Photo Gallery
+                    </Button>
                   </CardContent>
                 </Card>
               </div>
@@ -399,29 +385,15 @@ const Account: React.FC = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3">
-                      <Button
-                        onClick={() => handleRestrictedAction(() => {
-                          navigate('/account/videos/upload');
-                        })}
-                        className="w-full bg-brand-blue hover:bg-brand-lightBlue"
-                        disabled={isViewer}
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Upload Videos
-                        {isViewer && <Lock className="h-3 w-3 ml-1" />}
-                      </Button>
-                      <Button 
-                        onClick={() => handleRestrictedAction(() => {
-                          navigate('/account/videos');
-                        }, true)}
-                        variant="outline" 
-                        className="w-full"
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        View Video Gallery
-                      </Button>
-                    </div>
+                    <Button 
+                      onClick={() => handleRestrictedAction(() => {
+                        navigate('/account/videos');
+                      }, true)}
+                      className="w-full bg-brand-blue hover:bg-brand-lightBlue"
+                    >
+                      <Video className="h-4 w-4 mr-2" />
+                      Video Gallery
+                    </Button>
                   </CardContent>
                 </Card>
 
@@ -437,29 +409,15 @@ const Account: React.FC = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3">
-                      <Button 
-                        onClick={() => handleRestrictedAction(() => {
-                          window.location.href = '/account/documents/upload';
-                        })}
-                        className="w-full bg-brand-blue hover:bg-brand-lightBlue"
-                        disabled={isViewer}
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Upload Documents
-                        {isViewer && <Lock className="h-3 w-3 ml-1" />}
-                      </Button>
-                      <Button 
-                        onClick={() => handleRestrictedAction(() => {
-                          window.location.href = '/account/documents';
-                        }, true)}
-                        variant="outline" 
-                        className="w-full"
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        View Documents
-                      </Button>
-                    </div>
+                    <Button 
+                      onClick={() => handleRestrictedAction(() => {
+                        navigate('/account/documents');
+                      }, true)}
+                      className="w-full bg-brand-blue hover:bg-brand-lightBlue"
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Document Storage
+                    </Button>
                   </CardContent>
                 </Card>
 
