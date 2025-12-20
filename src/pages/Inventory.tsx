@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Search, Package, DollarSign, FileText, Eye, Plus, ArrowLeft } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Search, Package, DollarSign, FileText, Eye, Plus, ArrowLeft, Trash2, CheckSquare, Square } from 'lucide-react';
 import { ItemService, Item } from '@/services/ItemService';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
@@ -16,9 +17,11 @@ import Footer from '@/components/Footer';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import ManualEntrySection from '@/components/ManualEntrySection';
+import { useToast } from '@/hooks/use-toast';
 
 const Inventory: React.FC = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [items, setItems] = useState<Item[]>([]);
@@ -28,6 +31,8 @@ const Inventory: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [receiptRefresh, setReceiptRefresh] = useState(0);
   const [showManualEntry, setShowManualEntry] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (searchParams.get('mode') === 'manual') {
@@ -68,6 +73,78 @@ const Inventory: React.FC = () => {
   const handleReceiptUploaded = () => {
     setReceiptRefresh(prev => prev + 1);
   };
+
+  const toggleItemSelection = (itemId: string) => {
+    setSelectedItems(prev =>
+      prev.includes(itemId)
+        ? prev.filter(id => id !== itemId)
+        : [...prev, itemId]
+    );
+  };
+
+  const selectAllItems = () => {
+    setSelectedItems(filteredItems.map(item => item.id));
+  };
+
+  const deselectAllItems = () => {
+    setSelectedItems([]);
+  };
+
+  const handleDeleteItem = async (itemId: string) => {
+    if (!confirm('Are you sure you want to delete this item?')) return;
+    
+    try {
+      const success = await ItemService.deleteItem(itemId);
+      if (success) {
+        setItems(prev => prev.filter(item => item.id !== itemId));
+        setSelectedItems(prev => prev.filter(id => id !== itemId));
+        toast({
+          title: 'Item deleted',
+          description: 'The item has been removed from your inventory.',
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete item',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedItems.length === 0) return;
+    if (!confirm(`Are you sure you want to delete ${selectedItems.length} item(s)?`)) return;
+    
+    setIsDeleting(true);
+    try {
+      let deletedCount = 0;
+      for (const itemId of selectedItems) {
+        const success = await ItemService.deleteItem(itemId);
+        if (success) deletedCount++;
+      }
+      
+      setItems(prev => prev.filter(item => !selectedItems.includes(item.id)));
+      setSelectedItems([]);
+      
+      toast({
+        title: 'Items deleted',
+        description: `${deletedCount} item(s) removed from your inventory.`,
+      });
+    } catch (error) {
+      console.error('Error deleting items:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete some items',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  
 
   if (!user) {
     return (
@@ -155,7 +232,7 @@ const Inventory: React.FC = () => {
             </Card>
           </div>
 
-          {/* Filters */}
+          {/* Filters and Actions */}
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -179,7 +256,44 @@ const Inventory: React.FC = () => {
                 ))}
               </SelectContent>
             </Select>
+            {filteredItems.length > 0 && (
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={selectedItems.length === filteredItems.length ? deselectAllItems : selectAllItems}
+                >
+                  {selectedItems.length === filteredItems.length ? (
+                    <>
+                      <Square className="h-4 w-4 mr-2" />
+                      Deselect All
+                    </>
+                  ) : (
+                    <>
+                      <CheckSquare className="h-4 w-4 mr-2" />
+                      Select All
+                    </>
+                  )}
+                </Button>
+                {selectedItems.length > 0 && (
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={handleBulkDelete}
+                    disabled={isDeleting}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete ({selectedItems.length})
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
+          {selectedItems.length > 0 && (
+            <p className="text-sm text-muted-foreground mb-4">
+              {selectedItems.length} item{selectedItems.length !== 1 ? 's' : ''} selected
+            </p>
+          )}
         </div>
 
         {/* Items Grid */}
@@ -206,8 +320,15 @@ const Inventory: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredItems.map((item) => (
-              <Card key={item.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
+              <Card key={item.id} className={`hover:shadow-md transition-shadow relative ${selectedItems.includes(item.id) ? 'ring-2 ring-primary' : ''}`}>
+                <div className="absolute top-4 left-4 z-10">
+                  <Checkbox
+                    checked={selectedItems.includes(item.id)}
+                    onCheckedChange={() => toggleItemSelection(item.id)}
+                    className="bg-background"
+                  />
+                </div>
+                <CardContent className="p-6 pl-12">
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <h3 className="font-semibold text-lg mb-2">{item.name}</h3>
@@ -220,13 +341,23 @@ const Inventory: React.FC = () => {
                         )}
                       </div>
                     </div>
-                    {item.photo_url && (
-                      <img 
-                        src={item.photo_url} 
-                        alt={item.name}
-                        className="w-16 h-16 object-cover rounded-md"
-                      />
-                    )}
+                    <div className="flex flex-col items-end gap-2">
+                      {item.photo_url && (
+                        <img 
+                          src={item.photo_url} 
+                          alt={item.name}
+                          className="w-16 h-16 object-cover rounded-md"
+                        />
+                      )}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleDeleteItem(item.id)}
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
 
                   {item.description && (

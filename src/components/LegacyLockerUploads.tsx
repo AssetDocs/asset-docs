@@ -266,6 +266,38 @@ const LegacyLockerUploads = () => {
     }
   };
 
+  const handleBulkDelete = async () => {
+    if (selectedFiles.length === 0) return;
+    if (!confirm(`Are you sure you want to delete ${selectedFiles.length} file(s)?`)) return;
+
+    try {
+      const filesToDelete = files.filter(f => selectedFiles.includes(f.id));
+      
+      for (const file of filesToDelete) {
+        await supabase.storage.from(file.bucket_name).remove([file.file_path]);
+        await supabase
+          .from('legacy_locker_files')
+          .delete()
+          .eq('id', file.id);
+      }
+
+      toast({
+        title: 'Success',
+        description: `${selectedFiles.length} file(s) deleted successfully`,
+      });
+
+      setSelectedFiles([]);
+      fetchFiles();
+    } catch (error) {
+      console.error('Error deleting files:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete files',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const getFileIcon = (fileType: string) => {
     if (fileType.startsWith('image/')) {
       return <ImageIcon className="h-5 w-5" />;
@@ -439,14 +471,24 @@ const LegacyLockerUploads = () => {
                 </Button>
               )}
               {selectedFiles.length > 0 && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleCopyFiles(selectedFiles)}
-                >
-                  <Copy className="h-4 w-4 mr-2" />
-                  Copy
-                </Button>
+                <>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleCopyFiles(selectedFiles)}
+                  >
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copy
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={handleBulkDelete}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete ({selectedFiles.length})
+                  </Button>
+                </>
               )}
               <input
                 type="file"
