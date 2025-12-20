@@ -11,7 +11,9 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { CheckIcon, ExternalLink, CreditCard, Shield, Star, Zap, Trash2, Clock, AlertTriangle, X, Check, HardDrive } from 'lucide-react';
+import { CheckIcon, ExternalLink, CreditCard, Shield, Star, Zap, Trash2, Clock, AlertTriangle, X, Check, HardDrive, XCircle } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -76,6 +78,9 @@ const SubscriptionTab: React.FC = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showDeletionRequestDialog, setShowDeletionRequestDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isCanceling, setIsCanceling] = useState(false);
+  const [showCancelConfirmation, setShowCancelConfirmation] = useState(false);
+  const [cancelConfirmed, setCancelConfirmed] = useState(false);
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
   const [deletionReason, setDeletionReason] = useState('');
   const [isContributor, setIsContributor] = useState(false);
@@ -431,9 +436,50 @@ const SubscriptionTab: React.FC = () => {
     }
   };
 
+  const handleCancelSubscription = async (shouldCancel: boolean) => {
+    if (!user) return;
+
+    setIsCanceling(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      
+      const { data, error } = await supabase.functions.invoke('cancel-subscription', {
+        body: {
+          action: shouldCancel ? 'cancel' : 'reactivate'
+        },
+        headers: {
+          Authorization: `Bearer ${sessionData.session?.access_token}`
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: shouldCancel ? "Subscription Canceled" : "Subscription Reactivated",
+        description: shouldCancel 
+          ? "Your subscription will remain active until the end of your billing period."
+          : "Your subscription has been reactivated successfully.",
+      });
+      
+      // Refresh subscription status
+      await checkSubscription();
+      setShowCancelConfirmation(false);
+      setCancelConfirmed(false);
+    } catch (error: any) {
+      console.error('Error managing subscription:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update subscription. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCanceling(false);
+    }
+  };
+
   // If user is not subscribed AND plan_status is not 'active', show checkout form
   // This handles cases where webhook might have set plan_status but not synced subscribers table
-  const hasActivePlan = subscriptionStatus.plan_status === 'active' || subscriptionStatus.subscribed;
+  const hasActivePlan = subscriptionStatus.plan_status === 'active' || subscriptionStatus.plan_status === 'canceling' || subscriptionStatus.subscribed;
   
   if (!hasActivePlan) {
     const currentPlan = planConfigs[selectedPlan];
@@ -823,6 +869,142 @@ const SubscriptionTab: React.FC = () => {
             })}
           </AlertDescription>
         </Alert>
+      )}
+
+      {/* Cancel Subscription Section - Only show for account owners with active subscription */}
+      {!isContributor && hasActivePlan && (
+        <Card className="border-orange-200 bg-orange-50/30">
+          <CardHeader>
+            <CardTitle className="text-orange-700 flex items-center gap-2">
+              <XCircle className="h-5 w-5" />
+              Cancel Subscription
+            </CardTitle>
+            <CardDescription>
+              {subscriptionStatus.plan_status === 'canceling' 
+                ? "Your subscription is scheduled to cancel at the end of your billing period"
+                : "Cancel your subscription - you'll have access until the end of your billing period"
+              }
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {subscriptionStatus.plan_status === 'canceling' ? (
+                <>
+                  <Alert className="border-orange-300 bg-orange-100">
+                    <Clock className="h-4 w-4 text-orange-600" />
+                    <AlertTitle className="text-orange-800">Subscription Ending Soon</AlertTitle>
+                    <AlertDescription className="text-orange-700">
+                      Your subscription is set to cancel. You'll retain access until{' '}
+                      {subscriptionStatus.subscription_end 
+                        ? new Date(subscriptionStatus.subscription_end).toLocaleDateString()
+                        : 'the end of your billing period'
+                      }.
+                    </AlertDescription>
+                  </Alert>
+                  <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-orange-200">
+                    <div>
+                      <p className="font-medium text-foreground">Subscription Status</p>
+                      <p className="text-sm text-muted-foreground">Toggle to reactivate your subscription</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm text-orange-600 font-medium">Canceling</span>
+                      <Switch
+                        checked={false}
+                        onCheckedChange={() => handleCancelSubscription(false)}
+                        disabled={isCanceling}
+                      />
+                      <span className="text-sm text-muted-foreground">Active</span>
+                    </div>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => handleCancelSubscription(false)}
+                    disabled={isCanceling}
+                    className="w-full border-green-500 text-green-700 hover:bg-green-50"
+                  >
+                    {isCanceling ? 'Processing...' : 'Reactivate My Subscription'}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    Once you cancel, you'll have access to your account until the end of your current billing period. 
+                    You can reactivate anytime before your subscription expires.
+                  </p>
+                  
+                  {!showCancelConfirmation ? (
+                    <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-orange-200">
+                      <div>
+                        <p className="font-medium text-foreground">Subscription Status</p>
+                        <p className="text-sm text-muted-foreground">Toggle to cancel your subscription</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm text-muted-foreground">Cancel</span>
+                        <Switch
+                          checked={true}
+                          onCheckedChange={() => setShowCancelConfirmation(true)}
+                          disabled={isCanceling}
+                        />
+                        <span className="text-sm text-green-600 font-medium">Active</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4 p-4 bg-orange-100 rounded-lg border border-orange-300">
+                      <div className="flex items-start gap-3">
+                        <AlertTriangle className="h-5 w-5 text-orange-600 mt-0.5" />
+                        <div>
+                          <p className="font-medium text-orange-800">Are you sure you want to cancel?</p>
+                          <p className="text-sm text-orange-700 mt-1">
+                            You can reactivate your account anytime before your subscription expires on{' '}
+                            {subscriptionStatus.subscription_end 
+                              ? new Date(subscriptionStatus.subscription_end).toLocaleDateString()
+                              : 'the end of your billing period'
+                            }.
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="confirm-cancel" 
+                          checked={cancelConfirmed}
+                          onCheckedChange={(checked) => setCancelConfirmed(checked === true)}
+                        />
+                        <label
+                          htmlFor="confirm-cancel"
+                          className="text-sm text-orange-800 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          I understand I will lose access at the end of my billing period
+                        </label>
+                      </div>
+                      
+                      <div className="flex gap-3">
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setShowCancelConfirmation(false);
+                            setCancelConfirmed(false);
+                          }}
+                          className="flex-1"
+                        >
+                          Keep My Subscription
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          onClick={() => handleCancelSubscription(true)}
+                          disabled={!cancelConfirmed || isCanceling}
+                          className="flex-1 bg-orange-600 hover:bg-orange-700"
+                        >
+                          {isCanceling ? 'Canceling...' : 'Cancel Subscription'}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Delete Account Section - Only show for account owners */}
