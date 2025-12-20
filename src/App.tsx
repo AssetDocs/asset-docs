@@ -261,9 +261,9 @@ const AppContent = () => {
         
         <Route path="/account/insurance" element={<ProtectedRoute><Insurance /></ProtectedRoute>} />
         <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
-        <Route path="/account/photos/upload" element={<ProtectedRoute><PhotoUpload /></ProtectedRoute>} />
-        <Route path="/account/videos/upload" element={<ProtectedRoute><VideoUpload /></ProtectedRoute>} />
-        <Route path="/account/documents/upload" element={<ProtectedRoute><DocumentUpload /></ProtectedRoute>} />
+        <Route path="/account/photos/upload" element={<Navigate to="/account/photos" replace />} />
+        <Route path="/account/videos/upload" element={<Navigate to="/account/videos" replace />} />
+        <Route path="/account/documents/upload" element={<Navigate to="/account/documents" replace />} />
         <Route path="/damage/photos/upload" element={<ProtectedRoute><DamagePhotoUpload /></ProtectedRoute>} />
         <Route path="/damage/videos/upload" element={<ProtectedRoute><DamageVideoUpload /></ProtectedRoute>} />
         
