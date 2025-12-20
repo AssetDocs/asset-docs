@@ -13,6 +13,8 @@ interface UserRecord {
   first_name: string | null;
   last_name: string | null;
   email: string | null;
+  phone: string | null;
+  account_number: string | null;
   plan_id: string | null;
   plan_status: string | null;
   subscription_tier: string | null;
@@ -22,6 +24,7 @@ interface UserRecord {
   contributorRole?: string | null;
   ownerEmail?: string | null;
   ownerName?: string | null;
+  ownerAccountNumber?: string | null;
 }
 
 interface ContributorRecord {
@@ -80,6 +83,8 @@ const AdminUsers = () => {
           user_id,
           first_name,
           last_name,
+          phone,
+          account_number,
           plan_id,
           plan_status,
           created_at
@@ -133,13 +138,16 @@ const AdminUsers = () => {
           
           return {
             ...user,
+            phone: user.phone || null,
+            account_number: user.account_number || null,
             email: subscriberMap.get(user.user_id)?.email || authEmails[user.user_id] || null,
             subscription_tier: subscriberMap.get(user.user_id)?.subscription_tier || null,
             subscribed: subscriberMap.get(user.user_id)?.subscribed || null,
             isContributor: !!contributorRecord,
             contributorRole: contributorRecord?.role || null,
             ownerEmail: ownerEmail || null,
-            ownerName: ownerProfile ? `${ownerProfile.first_name || ''} ${ownerProfile.last_name || ''}`.trim() : null
+            ownerName: ownerProfile ? `${ownerProfile.first_name || ''} ${ownerProfile.last_name || ''}`.trim() : null,
+            ownerAccountNumber: ownerProfile?.account_number || null
           };
         });
 
@@ -301,7 +309,8 @@ const AdminUsers = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Name</TableHead>
-                      <TableHead>Email</TableHead>
+                      <TableHead>Account #</TableHead>
+                      <TableHead>Contact</TableHead>
                       <TableHead>Role/Type</TableHead>
                       <TableHead>Linked Owner</TableHead>
                       <TableHead>Plan</TableHead>
@@ -315,7 +324,19 @@ const AdminUsers = () => {
                         <TableCell className="font-medium">
                           {user.first_name} {user.last_name}
                         </TableCell>
-                        <TableCell>{user.email || '-'}</TableCell>
+                        <TableCell>
+                          <span className="font-mono text-xs bg-muted px-2 py-1 rounded">
+                            {user.account_number || '-'}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <p className="text-sm">{user.email || '-'}</p>
+                            {user.phone && (
+                              <p className="text-xs text-muted-foreground">{user.phone}</p>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell>
                           {user.isContributor ? (
                             <Badge variant="outline" className="capitalize">
@@ -330,6 +351,11 @@ const AdminUsers = () => {
                             <div>
                               <p className="text-sm font-medium">{user.ownerName || '-'}</p>
                               <p className="text-xs text-muted-foreground">{user.ownerEmail}</p>
+                              {user.ownerAccountNumber && (
+                                <p className="text-xs font-mono text-muted-foreground mt-1">
+                                  {user.ownerAccountNumber}
+                                </p>
+                              )}
                             </div>
                           ) : (
                             <span className="text-muted-foreground">-</span>
@@ -344,7 +370,7 @@ const AdminUsers = () => {
                     ))}
                     {filteredUsers.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center text-muted-foreground">
+                        <TableCell colSpan={8} className="text-center text-muted-foreground">
                           No users found
                         </TableCell>
                       </TableRow>
