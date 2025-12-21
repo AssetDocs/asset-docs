@@ -659,9 +659,9 @@ const SubscriptionTab: React.FC = () => {
   }
 
   // Determine the active tier from subscription status
-  const activeTier = subscriptionStatus.subscription_tier?.toLowerCase().includes('premium') ? 'premium' 
-    : subscriptionStatus.subscription_tier?.toLowerCase().includes('standard') ? 'standard'
-    : subscriptionStatus.subscription_tier?.toLowerCase() || 'standard';
+  // Map any tier to 'standard' or 'premium' - 'basic' maps to 'standard'
+  const rawTier = subscriptionStatus.subscription_tier?.toLowerCase() || '';
+  const activeTier = rawTier.includes('premium') ? 'premium' : 'standard';
   const activeStorageGb = subscriptionStatus.storage_quota_gb || 25;
   const activePropertyLimit = subscriptionStatus.property_limit || 3;
   
@@ -691,8 +691,8 @@ const SubscriptionTab: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Current Plan</p>
-                    <h3 className="text-2xl font-bold text-green-900 capitalize">
-                      {activeTier} Plan
+                    <h3 className="text-2xl font-bold text-green-900">
+                      {planConfigs[activeTier as keyof typeof planConfigs]?.title || 'Standard Plan'}
                     </h3>
                   </div>
                 </div>
@@ -749,20 +749,15 @@ const SubscriptionTab: React.FC = () => {
               </div>
             )}
 
-            {/* Available Plans */}
+            {/* Available Plans - Only show plans different from current */}
             <div>
-              <h4 className="font-semibold text-lg mb-4">Available Plans</h4>
+              <h4 className="font-semibold text-lg mb-4">Change Plan</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {Object.entries(planConfigs).map(([key, plan]) => {
-                  const isCurrentPlan = activeTier === key;
-                  return (
-                    <Card key={key} className={isCurrentPlan ? 'border-2 border-green-500 shadow-lg' : 'border-2'}>
+                {Object.entries(planConfigs)
+                  .filter(([key]) => key !== activeTier)
+                  .map(([key, plan]) => (
+                    <Card key={key} className="border-2">
                       <CardContent className="pt-6">
-                        {isCurrentPlan && (
-                          <div className="mb-4">
-                            <Badge className="bg-green-600 text-white text-sm px-3 py-1">Your Current Plan</Badge>
-                          </div>
-                        )}
                         <div className="flex items-center gap-2 mb-3">
                           {plan.icon}
                           <h3 className="font-semibold text-lg">{plan.title}</h3>
@@ -780,20 +775,17 @@ const SubscriptionTab: React.FC = () => {
                             </li>
                           ))}
                         </ul>
-                        {!isCurrentPlan && (
-                          <Button 
-                            onClick={handleManageSubscription}
-                            disabled={isLoading}
-                            variant={key === 'premium' ? 'default' : 'outline'}
-                            className="w-full"
-                          >
-                            {isLoading ? 'Loading...' : 'Change to This Plan'}
-                          </Button>
-                        )}
+                        <Button 
+                          onClick={handleManageSubscription}
+                          disabled={isLoading}
+                          variant={key === 'premium' ? 'default' : 'outline'}
+                          className="w-full"
+                        >
+                          {isLoading ? 'Loading...' : `Switch to ${key === 'premium' ? 'Premium' : 'Standard'}`}
+                        </Button>
                       </CardContent>
                     </Card>
-                  );
-                })}
+                  ))}
               </div>
               <p className="text-sm text-muted-foreground text-center mt-4">
                 Click "Change to This Plan" to modify your subscription through Stripe
