@@ -6,6 +6,7 @@ import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
 import UnderConstructionBanner from '@/components/UnderConstructionBanner';
 import HeroSection from '@/components/HeroSection';
+import KeyBenefitsSection from '@/components/KeyBenefitsSection';
 import AboutSection from '@/components/AboutSection';
 import TrialCTASection from '@/components/TrialCTASection';
 import GiftSection from '@/components/GiftSection';
@@ -43,6 +44,7 @@ const Index: React.FC = () => {
       <UnderConstructionBanner />
       <Navbar />
       <HeroSection />
+      <KeyBenefitsSection />
       <AboutSection />
       <GiftSection />
       <LegacyLockerSection />
