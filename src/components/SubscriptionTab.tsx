@@ -882,7 +882,7 @@ const SubscriptionTab: React.FC = () => {
             <CardDescription>
               {subscriptionStatus.plan_status === 'canceling' 
                 ? "Your subscription is scheduled to cancel at the end of your billing period"
-                : "Cancel your subscription - you'll have access until the end of your billing period"
+                : "Cancel anytime—access remains until your billing period ends, and you can reactivate before it expires."
               }
             </CardDescription>
           </CardHeader>
@@ -927,10 +927,6 @@ const SubscriptionTab: React.FC = () => {
                 </>
               ) : (
                 <>
-                  <p className="text-sm text-muted-foreground">
-                    Once you cancel, you'll have access to your account until the end of your current billing period. 
-                    You can reactivate anytime before your subscription expires.
-                  </p>
                   
                   {!showCancelConfirmation ? (
                     <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-orange-200">
