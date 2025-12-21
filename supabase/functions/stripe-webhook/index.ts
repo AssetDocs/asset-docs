@@ -117,6 +117,14 @@ serve(async (req) => {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
         await handleCheckoutCompleted(supabase, session);
+        // Send payment receipt email
+        await sendPaymentReceipt(supabase, session);
+        break;
+      }
+      
+      case 'payment_intent.succeeded': {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        await sendPaymentReceiptFromIntent(supabase, paymentIntent);
         break;
       }
       
@@ -564,5 +572,75 @@ async function getCustomerEmail(customerId: string) {
   } catch (error) {
     logStep('Error retrieving customer', error);
     return null;
+  }
+}
+
+async function sendPaymentReceipt(supabase: any, session: Stripe.Checkout.Session) {
+  try {
+    logStep('Triggering payment receipt email', { sessionId: session.id });
+    
+    const customerEmail = session.customer_details?.email || session.customer_email;
+    const customerName = session.customer_details?.name || 'Customer';
+    
+    if (!customerEmail) {
+      logStep('No customer email for receipt');
+      return;
+    }
+
+    await supabase.functions.invoke('send-payment-receipt-internal', {
+      body: {
+        customerEmail,
+        customerName,
+        amount: session.amount_total || 0,
+        currency: session.currency || 'usd',
+        transactionId: session.id,
+        planType: session.metadata?.plan_type || 'standard'
+      }
+    });
+    
+    logStep('Payment receipt triggered successfully');
+  } catch (error) {
+    logStep('Failed to trigger payment receipt', error);
+  }
+}
+
+async function sendPaymentReceiptFromIntent(supabase: any, paymentIntent: Stripe.PaymentIntent) {
+  try {
+    logStep('Triggering payment receipt from intent', { paymentIntentId: paymentIntent.id });
+    
+    const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY');
+    if (!stripeSecretKey) return;
+    
+    const stripe = new Stripe(stripeSecretKey, { apiVersion: '2023-10-16' });
+    
+    // Get customer email if customer exists
+    let customerEmail = paymentIntent.receipt_email;
+    let customerName = 'Customer';
+    
+    if (!customerEmail && paymentIntent.customer) {
+      const customer = await stripe.customers.retrieve(paymentIntent.customer as string) as Stripe.Customer;
+      customerEmail = customer.email || '';
+      customerName = customer.name || 'Customer';
+    }
+    
+    if (!customerEmail) {
+      logStep('No customer email for receipt from intent');
+      return;
+    }
+
+    await supabase.functions.invoke('send-payment-receipt-internal', {
+      body: {
+        customerEmail,
+        customerName,
+        amount: paymentIntent.amount || 0,
+        currency: paymentIntent.currency || 'usd',
+        transactionId: paymentIntent.id,
+        planType: 'subscription'
+      }
+    });
+    
+    logStep('Payment receipt from intent triggered successfully');
+  } catch (error) {
+    logStep('Failed to trigger payment receipt from intent', error);
   }
 }

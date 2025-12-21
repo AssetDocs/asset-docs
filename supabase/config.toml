@@ -152,6 +152,9 @@ verify_jwt = false
 [functions.send-payment-receipt]
 verify_jwt = false
 
+[functions.send-payment-receipt-internal]
+verify_jwt = false
+
 [functions.send-delegate-access-email]
 verify_jwt = false
 
