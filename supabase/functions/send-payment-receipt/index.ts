@@ -57,7 +57,7 @@ async function shouldSendBillingEmail(customerEmail: string): Promise<boolean> {
     // Check notification preferences
     const { data: preferences, error } = await supabase
       .from("notification_preferences")
-      .select("billing_notifications")
+      .select("email_notifications, billing_notifications")
       .eq("user_id", user.id)
       .single();
     
@@ -66,8 +66,9 @@ async function shouldSendBillingEmail(customerEmail: string): Promise<boolean> {
       return true;
     }
     
-    if (preferences?.billing_notifications === false) {
-      console.log(`User ${user.id} has billing notifications disabled`);
+    // Check master email toggle first, then specific preference
+    if (preferences?.email_notifications === false || preferences?.billing_notifications === false) {
+      console.log(`User ${user.id} has email or billing notifications disabled`);
       return false;
     }
     

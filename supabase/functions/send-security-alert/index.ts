@@ -56,19 +56,19 @@ const handler = async (req: Request): Promise<Response> => {
     
     const { data: preferences, error: prefError } = await supabase
       .from("notification_preferences")
-      .select("security_alerts")
+      .select("email_notifications, security_alerts")
       .eq("user_id", userId)
       .single();
     
     if (prefError) {
       console.log("Could not fetch notification preferences, defaulting to send:", prefError.message);
-    } else if (preferences && preferences.security_alerts === false) {
-      console.log(`User ${userId} has security alerts disabled, skipping email`);
+    } else if (preferences && (preferences.email_notifications === false || preferences.security_alerts === false)) {
+      console.log(`User ${userId} has email or security alerts disabled, skipping email`);
       return new Response(
         JSON.stringify({ 
           success: true, 
           skipped: true,
-          reason: "User has disabled security alerts"
+          reason: "User has disabled notifications"
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
