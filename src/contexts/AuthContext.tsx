@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
+import { SecurityAlertService } from '@/services/SecurityAlertService';
 
 interface Profile {
   id: string;
@@ -39,6 +39,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const previousEmailRef = useRef<string | null>(null);
 
   useEffect(() => {
     // Set up auth state listener
@@ -73,12 +74,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   console.error('Error checking contributor invitations:', inviteError);
                 }
               }
+
+              // Send security alert for new login
+              if (event === 'SIGNED_IN') {
+                SecurityAlertService.notifyNewLogin(
+                  session.user.id,
+                  session.user.email || ''
+                ).catch(console.error);
+              }
+
+              // Detect email change
+              if (event === 'USER_UPDATED' && previousEmailRef.current && session.user.email) {
+                if (previousEmailRef.current !== session.user.email) {
+                  SecurityAlertService.notifyEmailChanged(
+                    session.user.id,
+                    previousEmailRef.current,
+                    session.user.email
+                  ).catch(console.error);
+                }
+              }
+
+              // Track current email for change detection
+              previousEmailRef.current = session.user.email || null;
+
             } catch (error) {
               console.error('Error fetching profile or checking subscription:', error);
             }
           }, 0);
         } else {
           setProfile(null);
+          previousEmailRef.current = null;
+        }
+        
+        // Detect password recovery completion
+        if (event === 'PASSWORD_RECOVERY') {
+          // User clicked password reset link - alert will be sent after they set new password
         }
         
         setLoading(false);
@@ -89,6 +119,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      if (session?.user?.email) {
+        previousEmailRef.current = session.user.email;
+      }
       setLoading(false);
     });
 

@@ -175,3 +175,6 @@ verify_jwt = false
 
 [functions.cancel-subscription]
 verify_jwt = true
+
+[functions.send-security-alert]
+verify_jwt = false
