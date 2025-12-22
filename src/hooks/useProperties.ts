@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Property, PropertyService } from '@/services/PropertyService';
+import { PropertyNotificationService } from '@/services/PropertyNotificationService';
 import { useToast } from '@/hooks/use-toast';
 
 export const useProperties = () => {
@@ -36,6 +37,8 @@ export const useProperties = () => {
         title: 'Property Added',
         description: 'The new property has been successfully created.',
       });
+      // Send notification (non-blocking)
+      PropertyNotificationService.notifyPropertyCreated(newProperty.name, newProperty.address);
       return newProperty;
     } else {
       toast({
@@ -48,6 +51,7 @@ export const useProperties = () => {
   };
 
   const updateProperty = async (propertyId: string, updates: Partial<Property>) => {
+    const existingProperty = properties.find(p => p.id === propertyId);
     const updatedProperty = await PropertyService.updateProperty(propertyId, updates);
     if (updatedProperty) {
       setProperties(prev => prev.map(p => p.id === propertyId ? updatedProperty : p));
@@ -55,6 +59,13 @@ export const useProperties = () => {
         title: 'Property Updated',
         description: 'The property has been successfully updated.',
       });
+      // Send notification with change details (non-blocking)
+      const changedFields = Object.keys(updates).filter(key => key !== 'updated_at' && key !== 'last_updated');
+      PropertyNotificationService.notifyPropertyUpdated(
+        updatedProperty.name,
+        updatedProperty.address,
+        changedFields.length > 0 ? changedFields.join(', ') : undefined
+      );
       return updatedProperty;
     } else {
       toast({
@@ -67,6 +78,7 @@ export const useProperties = () => {
   };
 
   const deleteProperty = async (propertyId: string) => {
+    const propertyToDelete = properties.find(p => p.id === propertyId);
     const success = await PropertyService.deleteProperty(propertyId);
     if (success) {
       setProperties(prev => prev.filter(p => p.id !== propertyId));
@@ -74,6 +86,10 @@ export const useProperties = () => {
         title: 'Property Deleted',
         description: 'The property has been successfully removed.',
       });
+      // Send notification (non-blocking)
+      if (propertyToDelete) {
+        PropertyNotificationService.notifyPropertyDeleted(propertyToDelete.name);
+      }
       return true;
     } else {
       toast({
