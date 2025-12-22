@@ -917,6 +917,42 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          billing_notifications: boolean
+          created_at: string
+          email_notifications: boolean
+          id: string
+          marketing_communications: boolean
+          property_updates: boolean
+          security_alerts: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          billing_notifications?: boolean
+          created_at?: string
+          email_notifications?: boolean
+          id?: string
+          marketing_communications?: boolean
+          property_updates?: boolean
+          security_alerts?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          billing_notifications?: boolean
+          created_at?: string
+          email_notifications?: boolean
+          id?: string
+          marketing_communications?: boolean
+          property_updates?: boolean
+          security_alerts?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       paint_codes: {
         Row: {
           created_at: string
