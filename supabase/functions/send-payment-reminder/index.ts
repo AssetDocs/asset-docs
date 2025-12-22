@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,6 +11,7 @@ interface PaymentReminderRequest {
   email: string;
   customerName: string;
   subscriptionTier: string;
+  userId?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -30,7 +32,60 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { email, customerName, subscriptionTier }: PaymentReminderRequest = await req.json();
+    const { email, customerName, subscriptionTier, userId }: PaymentReminderRequest = await req.json();
+
+    // Check user's billing notification preferences
+    const supabase = createClient(supabaseUrl, serviceKey);
+    
+    let shouldSend = true;
+    
+    if (userId) {
+      const { data: preferences, error: prefError } = await supabase
+        .from("notification_preferences")
+        .select("billing_notifications")
+        .eq("user_id", userId)
+        .single();
+      
+      if (prefError) {
+        console.log("Could not fetch notification preferences, defaulting to send:", prefError.message);
+      } else if (preferences && preferences.billing_notifications === false) {
+        console.log(`User ${userId} has billing notifications disabled, skipping email`);
+        shouldSend = false;
+      }
+    } else {
+      // Try to find user by email if userId not provided
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("user_id")
+        .eq("user_id", (
+          await supabase.auth.admin.listUsers()
+        ).data.users.find(u => u.email === email)?.id)
+        .single();
+      
+      if (profile?.user_id) {
+        const { data: preferences } = await supabase
+          .from("notification_preferences")
+          .select("billing_notifications")
+          .eq("user_id", profile.user_id)
+          .single();
+        
+        if (preferences?.billing_notifications === false) {
+          console.log(`User with email ${email} has billing notifications disabled, skipping email`);
+          shouldSend = false;
+        }
+      }
+    }
+
+    if (!shouldSend) {
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          skipped: true,
+          reason: "User has disabled billing notifications"
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     const resend = new Resend(resendKey);
 
