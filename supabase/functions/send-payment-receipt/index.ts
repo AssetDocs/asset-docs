@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from 'https://esm.sh/stripe@14.21.0?target=deno';
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { Resend } from "npm:resend@4.0.0";
 import React from 'npm:react@18.3.1';
 import { renderAsync } from 'npm:@react-email/components@0.0.22';
@@ -29,6 +30,52 @@ interface StripeCheckoutSession extends Stripe.Checkout.Session {
     };
   };
   payment_intent?: string | Stripe.PaymentIntent;
+}
+
+// Helper function to check billing notification preferences
+async function shouldSendBillingEmail(customerEmail: string): Promise<boolean> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  
+  if (!supabaseUrl || !serviceKey) {
+    console.log("Missing Supabase credentials, defaulting to send email");
+    return true;
+  }
+  
+  const supabase = createClient(supabaseUrl, serviceKey);
+  
+  try {
+    // Find user by email
+    const { data: users } = await supabase.auth.admin.listUsers();
+    const user = users?.users.find(u => u.email === customerEmail);
+    
+    if (!user) {
+      console.log(`No user found for email ${customerEmail}, defaulting to send email`);
+      return true;
+    }
+    
+    // Check notification preferences
+    const { data: preferences, error } = await supabase
+      .from("notification_preferences")
+      .select("billing_notifications")
+      .eq("user_id", user.id)
+      .single();
+    
+    if (error) {
+      console.log(`Could not fetch preferences for user ${user.id}, defaulting to send:`, error.message);
+      return true;
+    }
+    
+    if (preferences?.billing_notifications === false) {
+      console.log(`User ${user.id} has billing notifications disabled`);
+      return false;
+    }
+    
+    return true;
+  } catch (err) {
+    console.error("Error checking notification preferences:", err);
+    return true; // Default to sending if there's an error
+  }
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -110,6 +157,24 @@ const handler = async (req: Request): Promise<Response> => {
           JSON.stringify({ error: 'No customer email found' }),
           { 
             status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" }
+          }
+        );
+      }
+
+      // Check if user wants billing notifications
+      const shouldSend = await shouldSendBillingEmail(customerEmail);
+      
+      if (!shouldSend) {
+        console.log(`Skipping payment receipt email for ${customerEmail} - billing notifications disabled`);
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            skipped: true,
+            reason: "User has disabled billing notifications"
+          }),
+          {
+            status: 200,
             headers: { ...corsHeaders, "Content-Type": "application/json" }
           }
         );
