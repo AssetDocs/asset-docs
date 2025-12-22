@@ -63,14 +63,15 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { data: preferences } = await supabase
       .from('notification_preferences')
-      .select('property_updates')
+      .select('email_notifications, property_updates')
       .eq('user_id', userId)
       .single();
 
-    if (preferences?.property_updates === false) {
-      console.log(`Property updates disabled for user ${userId}, skipping email`);
+    // Check master email toggle first, then specific preference
+    if (preferences?.email_notifications === false || preferences?.property_updates === false) {
+      console.log(`Email or property updates disabled for user ${userId}, skipping email`);
       return new Response(
-        JSON.stringify({ success: true, skipped: true, reason: 'Property updates disabled' }),
+        JSON.stringify({ success: true, skipped: true, reason: 'Notifications disabled' }),
         { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }

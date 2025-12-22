@@ -42,14 +42,14 @@ const handler = async (req: Request): Promise<Response> => {
     if (userId) {
       const { data: preferences, error: prefError } = await supabase
         .from("notification_preferences")
-        .select("billing_notifications")
+        .select("email_notifications, billing_notifications")
         .eq("user_id", userId)
         .single();
       
       if (prefError) {
         console.log("Could not fetch notification preferences, defaulting to send:", prefError.message);
-      } else if (preferences && preferences.billing_notifications === false) {
-        console.log(`User ${userId} has billing notifications disabled, skipping email`);
+      } else if (preferences && (preferences.email_notifications === false || preferences.billing_notifications === false)) {
+        console.log(`User ${userId} has email or billing notifications disabled, skipping email`);
         shouldSend = false;
       }
     } else {
@@ -65,12 +65,12 @@ const handler = async (req: Request): Promise<Response> => {
       if (profile?.user_id) {
         const { data: preferences } = await supabase
           .from("notification_preferences")
-          .select("billing_notifications")
+          .select("email_notifications, billing_notifications")
           .eq("user_id", profile.user_id)
           .single();
         
-        if (preferences?.billing_notifications === false) {
-          console.log(`User with email ${email} has billing notifications disabled, skipping email`);
+        if (preferences?.email_notifications === false || preferences?.billing_notifications === false) {
+          console.log(`User with email ${email} has email or billing notifications disabled, skipping email`);
           shouldSend = false;
         }
       }
