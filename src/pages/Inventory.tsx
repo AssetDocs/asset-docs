@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,6 +30,23 @@ const Inventory: React.FC = () => {
   const [receiptRefresh, setReceiptRefresh] = useState(0);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAddItemsClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      // Navigate to photo upload page with files selected
+      navigate('/account/photos/upload');
+    }
+    // Reset the input so the same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   useEffect(() => {
     if (user?.id) {
@@ -167,7 +184,15 @@ const Inventory: React.FC = () => {
               </p>
             </div>
             <div className="flex gap-2">
-              <Button onClick={() => navigate('/account/photos/upload')} className="flex items-center">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/*"
+                multiple
+                className="hidden"
+              />
+              <Button onClick={handleAddItemsClick} className="flex items-center">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Items
               </Button>
@@ -293,7 +318,7 @@ const Inventory: React.FC = () => {
                   ? "Try adjusting your search or filters" 
                   : "Start by adding your first item to begin building your inventory"}
               </p>
-              <Button onClick={() => navigate('/account/photos/upload')}>
+              <Button onClick={handleAddItemsClick}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Your First Item
               </Button>
