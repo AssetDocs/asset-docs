@@ -181,3 +181,6 @@ verify_jwt = true
 
 [functions.send-security-alert]
 verify_jwt = false
+
+[functions.sync-activecampaign]
+verify_jwt = true

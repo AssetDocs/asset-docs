@@ -123,6 +123,27 @@ const NotificationsTab: React.FC = () => {
 
       if (error) throw error;
 
+      // Sync marketing preference with ActiveCampaign
+      if (originalPreferences?.marketing_communications !== preferences.marketing_communications) {
+        try {
+          const { error: acError } = await supabase.functions.invoke('sync-activecampaign', {
+            body: {
+              marketingEnabled: preferences.marketing_communications,
+            },
+          });
+          
+          if (acError) {
+            console.error('ActiveCampaign sync warning:', acError);
+            // Don't fail the whole save if ActiveCampaign sync fails
+          } else {
+            console.log('ActiveCampaign sync successful');
+          }
+        } catch (acError) {
+          console.error('ActiveCampaign sync error:', acError);
+          // Continue even if ActiveCampaign sync fails
+        }
+      }
+
       setOriginalPreferences(preferences);
       setHasChanges(false);
       
