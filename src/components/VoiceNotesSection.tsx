@@ -134,9 +134,12 @@ export const VoiceNotesSection = () => {
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
+      // Use signed URL for private bucket
+      const { data: signedData, error: signedError } = await supabase.storage
         .from('documents')
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 86400); // 24 hour expiry
+
+      if (signedError) throw signedError;
 
       const { error: insertError } = await supabase
         .from('legacy_locker_voice_notes')
@@ -145,7 +148,7 @@ export const VoiceNotesSection = () => {
           title: newNote.title,
           description: newNote.description,
           audio_path: fileName,
-          audio_url: publicUrl,
+          audio_url: signedData.signedUrl,
           file_size: audioBlob.size,
         });
 
@@ -220,9 +223,12 @@ export const VoiceNotesSection = () => {
 
         if (uploadError) throw uploadError;
 
-        const { data: { publicUrl } } = supabase.storage
+        // Use signed URL for private bucket
+        const { data: signedData, error: signedError } = await supabase.storage
           .from('documents')
-          .getPublicUrl(fileName);
+          .createSignedUrl(fileName, 86400); // 24 hour expiry
+
+        if (signedError) throw signedError;
 
         const { error: insertError } = await supabase
           .from('voice_note_attachments')
@@ -231,7 +237,7 @@ export const VoiceNotesSection = () => {
             user_id: user.id,
             file_name: file.name,
             file_path: fileName,
-            file_url: publicUrl,
+            file_url: signedData.signedUrl,
             file_size: file.size,
             file_type: file.type,
           });

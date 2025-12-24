@@ -96,12 +96,18 @@ export class StorageService {
       throw new Error(`Upload failed: ${error.message}`);
     }
 
-    const { data: urlData } = supabase.storage
+    // Generate a signed URL for private bucket access
+    const { data: signedData, error: signedError } = await supabase.storage
       .from(bucket)
-      .getPublicUrl(path);
+      .createSignedUrl(path, 86400); // 24 hour expiry for initial URL
+
+    if (signedError) {
+      console.error('Failed to create signed URL:', signedError);
+      // Fall back to path-based URL that can be refreshed later
+    }
 
     return {
-      url: urlData.publicUrl,
+      url: signedData?.signedUrl || path, // Use signed URL or path as fallback
       path: data.path,
       fullPath: data.fullPath
     };
@@ -181,14 +187,29 @@ export class StorageService {
   }
 
   /**
-   * Get public URL for a file
+   * Get signed URL for a file (buckets are now private)
+   * @deprecated Use getSignedUrl instead for explicit async handling
    */
   static getPublicUrl(bucket: FileType, path: string): string {
-    const { data } = supabase.storage
-      .from(bucket)
-      .getPublicUrl(path);
+    // This method is deprecated - buckets are now private
+    // Return the path so it can be used with useSignedUrl hook
+    console.warn('getPublicUrl is deprecated. Use getSignedUrl or useSignedUrl hook instead.');
+    return path;
+  }
 
-    return data.publicUrl;
+  /**
+   * Get signed URL for a file asynchronously
+   */
+  static async getFileUrl(bucket: FileType, path: string, expiresIn: number = 3600): Promise<string> {
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .createSignedUrl(path, expiresIn);
+
+    if (error) {
+      throw new Error(`Failed to get signed URL: ${error.message}`);
+    }
+
+    return data.signedUrl;
   }
 
   /**
