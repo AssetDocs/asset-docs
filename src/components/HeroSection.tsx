@@ -16,9 +16,6 @@ const HeroSection: React.FC = () => {
             <p className="text-xl mb-4 animate-slide-up opacity-90">
               Complete property documentation platform for homeowners, renters, and businesses. Secure digital inventory, insurance claims support, legacy planning, and estate management tools—all in one comprehensive solution.
             </p>
-            <p className="text-lg mb-8 animate-slide-up opacity-80 font-bold">
-              Trusted by thousands across the United States for insurance claims, estate transitions, property management, and peace of mind.
-            </p>
             
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 animate-slide-up">
               <div className="flex flex-col items-center sm:items-start">
