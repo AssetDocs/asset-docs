@@ -81,7 +81,7 @@ const DamagePhotoUpload: React.FC = () => {
         // Upload to photos bucket (damage photos stored there)
         const uploadResult = await StorageService.uploadFile(file, 'photos', user.id);
         const filePath = typeof uploadResult === 'string' ? uploadResult : uploadResult.path;
-        const fileUrl = StorageService.getPublicUrl('photos', filePath);
+        const fileUrl = uploadResult.url; // Use the signed URL from upload result
 
         // Add to property_files table
         await PropertyService.addPropertyFile({

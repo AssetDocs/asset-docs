@@ -118,11 +118,14 @@ const PaintCodesSection: React.FC = () => {
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
+      // Use signed URL for private bucket
+      const { data: signedData, error: signedError } = await supabase.storage
         .from('photos')
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 86400); // 24 hour expiry
 
-      return { path: fileName, url: publicUrl };
+      if (signedError) throw signedError;
+
+      return { path: fileName, url: signedData.signedUrl };
     } catch (error) {
       console.error('Error uploading swatch:', error);
       return null;

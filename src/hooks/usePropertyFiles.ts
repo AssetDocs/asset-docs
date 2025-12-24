@@ -4,6 +4,7 @@ import { StorageService } from '@/services/StorageService';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
+import { supabase } from '@/integrations/supabase/client';
 
 export const usePropertyFiles = (propertyId: string | null, fileType?: 'photo' | 'video' | 'document' | 'floor-plan') => {
   const [files, setFiles] = useState<PropertyFile[]>([]);
@@ -12,6 +13,50 @@ export const usePropertyFiles = (propertyId: string | null, fileType?: 'photo' |
   const { toast } = useToast();
   const { user } = useAuth();
   const { subscriptionTier } = useSubscription();
+
+  const refreshSignedUrls = async (fileList: PropertyFile[]): Promise<PropertyFile[]> => {
+    // Group files by bucket for batch signing
+    const bucketGroups: Record<string, PropertyFile[]> = {};
+    
+    for (const file of fileList) {
+      if (!bucketGroups[file.bucket_name]) {
+        bucketGroups[file.bucket_name] = [];
+      }
+      bucketGroups[file.bucket_name].push(file);
+    }
+
+    const updatedFiles: PropertyFile[] = [];
+
+    for (const [bucketName, bucketFiles] of Object.entries(bucketGroups)) {
+      const paths = bucketFiles.map(f => f.file_path);
+      
+      try {
+        const { data: signedUrls, error } = await supabase.storage
+          .from(bucketName)
+          .createSignedUrls(paths, 3600); // 1 hour expiry
+
+        if (error) {
+          console.error('Error creating signed URLs:', error);
+          // Keep original files if signing fails
+          updatedFiles.push(...bucketFiles);
+          continue;
+        }
+
+        for (const file of bucketFiles) {
+          const signedData = signedUrls?.find(s => s.path === file.file_path);
+          updatedFiles.push({
+            ...file,
+            file_url: signedData?.signedUrl || file.file_url,
+          });
+        }
+      } catch (err) {
+        console.error('Error refreshing signed URLs:', err);
+        updatedFiles.push(...bucketFiles);
+      }
+    }
+
+    return updatedFiles;
+  };
 
   const fetchFiles = async () => {
     if (!propertyId) {
@@ -22,7 +67,9 @@ export const usePropertyFiles = (propertyId: string | null, fileType?: 'photo' |
     setIsLoading(true);
     try {
       const data = await PropertyService.getPropertyFiles(propertyId, fileType);
-      setFiles(data);
+      // Refresh signed URLs for all fetched files
+      const filesWithSignedUrls = await refreshSignedUrls(data);
+      setFiles(filesWithSignedUrls);
     } catch (error) {
       console.error('Error fetching property files:', error);
       toast({

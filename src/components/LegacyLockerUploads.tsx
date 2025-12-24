@@ -195,9 +195,12 @@ const LegacyLockerUploads = () => {
 
         if (uploadError) throw uploadError;
 
-        const { data: { publicUrl } } = supabase.storage
+        // Use signed URL for private bucket
+        const { data: signedData, error: signedError } = await supabase.storage
           .from(bucketName)
-          .getPublicUrl(fileName);
+          .createSignedUrl(fileName, 86400); // 24 hour expiry
+
+        if (signedError) throw signedError;
 
         const { error: dbError } = await supabase
           .from('legacy_locker_files')
@@ -206,7 +209,7 @@ const LegacyLockerUploads = () => {
             folder_id: selectedFolder,
             file_name: file.name,
             file_path: fileName,
-            file_url: publicUrl,
+            file_url: signedData.signedUrl,
             file_type: file.type,
             file_size: file.size,
             bucket_name: bucketName,

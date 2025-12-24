@@ -81,7 +81,7 @@ const DamageVideoUpload: React.FC = () => {
         // Upload to videos bucket (damage videos stored there)
         const uploadResult = await StorageService.uploadFile(file, 'videos', user.id);
         const filePath = typeof uploadResult === 'string' ? uploadResult : uploadResult.path;
-        const fileUrl = StorageService.getPublicUrl('videos', filePath);
+        const fileUrl = uploadResult.url; // Use the signed URL from upload result
 
         // Add to property_files table
         await PropertyService.addPropertyFile({
