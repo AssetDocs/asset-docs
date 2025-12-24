@@ -107,17 +107,6 @@ const ComparisonSection: React.FC = () => {
             ))}
           </div>
 
-          <div className="mt-8 text-center">
-            <p className="text-lg text-muted-foreground mb-4">
-              Ready to experience the difference?
-            </p>
-            <a 
-              href="/signup" 
-              className="inline-block bg-primary text-primary-foreground px-8 py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors"
-            >
-              Activate Your Account
-            </a>
-          </div>
         </div>
       </div>
     </section>
