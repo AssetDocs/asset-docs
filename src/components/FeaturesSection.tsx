@@ -51,7 +51,7 @@ const FeaturesSection: React.FC = () => {
               <Link to="/features">{translate('features.viewAll')}</Link>
             </Button>
             <Button asChild size="lg" variant="outline">
-              <Link to="/sample-dashboard">View Sample Dashboard</Link>
+              <Link to="/scenarios">Solutions</Link>
             </Button>
           </div>
         </div>
