@@ -24,14 +24,6 @@ const HeroSection: React.FC = () => {
               <Button asChild size="lg" className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 hover:from-yellow-500 hover:to-yellow-600 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold border-2 border-white/30">
                 <Link to="/sample-dashboard">View Sample Dashboard</Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="bg-transparent border-white text-white hover:bg-white/10">
-                <Link to="/features">Solutions</Link>
-              </Button>
-              <ShareButton 
-                variant="outline" 
-                size="lg" 
-                className="bg-transparent border-white text-white hover:bg-white/10"
-              />
             </div>
             <p className="text-xs mt-3 opacity-70 animate-slide-up">Cancel anytime • No long-term commitment</p>
             
