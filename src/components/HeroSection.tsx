@@ -17,13 +17,10 @@ const HeroSection: React.FC = () => {
               Complete property documentation platform for homeowners, renters, and businesses. Secure digital inventory, insurance claims support, legacy planning, and estate management tools—all in one comprehensive solution.
             </p>
             
-            <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 animate-slide-up">
-              <div className="flex flex-col items-center sm:items-start">
-                <Button asChild size="lg" className="bg-white text-orange-500 hover:bg-gray-100">
-                  <Link to="/signup">Activate Your Account</Link>
-                </Button>
-                <p className="text-sm mt-2 opacity-80">Cancel anytime • No long-term commitment</p>
-              </div>
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 animate-slide-up">
+              <Button asChild size="lg" className="bg-white text-orange-500 hover:bg-gray-100">
+                <Link to="/signup">Activate Your Account</Link>
+              </Button>
               <Button asChild size="lg" className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 hover:from-yellow-500 hover:to-yellow-600 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold border-2 border-white/30">
                 <Link to="/sample-dashboard">View Sample Dashboard</Link>
               </Button>
@@ -36,6 +33,7 @@ const HeroSection: React.FC = () => {
                 className="bg-transparent border-white text-white hover:bg-white/10"
               />
             </div>
+            <p className="text-xs mt-3 opacity-70 animate-slide-up">Cancel anytime • No long-term commitment</p>
             
             {/* Security & Trust Badges */}
             <div className="mt-8 pt-6 border-t border-white/20 animate-fade-in">
