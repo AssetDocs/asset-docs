@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useParams } from 'react-router-dom';
+import DOMPurify from 'dompurify';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
@@ -368,7 +369,7 @@ const BlogPost = () => {
                       prose-ul:text-muted-foreground prose-ul:my-6 prose-ul:ml-6
                       prose-ol:text-muted-foreground prose-ol:my-6 prose-ol:ml-6
                       prose-li:mb-3 prose-li:leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: post.content }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
                   />
                 </CardContent>
               </Card>
