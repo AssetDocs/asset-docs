@@ -32,23 +32,15 @@ const SocialImpactShortcut: React.FC = () => {
               prepare for the unexpected and recover faster when life happens.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button 
-                asChild 
-                className="bg-gradient-to-r from-brand-orange to-brand-orange/90 hover:from-brand-orange/90 hover:to-brand-orange text-white font-semibold"
-              >
-                <Link to="/social-impact" className="flex items-center gap-2">
-                  <span>Learn More</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </Button>
-              
-              <Button variant="outline" asChild className="border-brand-orange text-brand-orange hover:bg-brand-orange hover:text-white">
-                <Link to="/about">
-                  About Us
-                </Link>
-              </Button>
-            </div>
+            <Button 
+              asChild 
+              className="bg-gradient-to-r from-brand-orange to-brand-orange/90 hover:from-brand-orange/90 hover:to-brand-orange text-white font-semibold"
+            >
+              <Link to="/social-impact" className="flex items-center gap-2">
+                <span>Learn More</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </Button>
           </div>
         </div>
         
