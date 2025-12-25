@@ -68,34 +68,6 @@ const SocialImpact: React.FC = () => {
               </div>
             </section>
 
-            {/* Accessibility */}
-            <section className="bg-card p-8 rounded-lg border">
-              <div className="flex items-start space-x-4 mb-6">
-                <div className="text-3xl">🎯</div>
-                <div>
-                  <h2 className="text-2xl font-semibold text-foreground mb-4">
-                    Making Documentation More Accessible
-                  </h2>
-                  <p className="text-muted-foreground leading-relaxed mb-6">
-                    We believe everyone deserves the ability to protect what matters most. That's why we offer:
-                  </p>
-                  <ul className="space-y-3 text-muted-foreground">
-                    <li className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0"></div>
-                      <span>Free inventory templates and checklists</span>
-                    </li>
-                    <li className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0"></div>
-                      <span>Discounted services for seniors, veterans, and low-income families</span>
-                    </li>
-                    <li className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0"></div>
-                      <span>Custom support for non-profits, churches, and schools</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </section>
 
             {/* Partnerships */}
             <section className="bg-card p-8 rounded-lg border">
