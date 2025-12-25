@@ -33,23 +33,15 @@ const FeaturedGuideShortcut: React.FC = () => {
               methods simply can't match.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button 
-                asChild 
-                className="bg-gradient-to-r from-brand-blue to-brand-blue/90 hover:from-brand-blue/90 hover:to-brand-blue text-white font-semibold"
-              >
-                <Link to="/press-news/digital-documentation-guide" className="flex items-center gap-2">
-                  <span>Read the Guide</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </Button>
-              
-              <Button variant="outline" asChild className="border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white">
-                <Link to="/features">
-                  See How It Works
-                </Link>
-              </Button>
-            </div>
+            <Button 
+              asChild 
+              className="bg-gradient-to-r from-brand-blue to-brand-blue/90 hover:from-brand-blue/90 hover:to-brand-blue text-white font-semibold"
+            >
+              <Link to="/press-news/digital-documentation-guide" className="flex items-center gap-2">
+                <span>Read the Guide</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </Button>
           </div>
         </div>
         
