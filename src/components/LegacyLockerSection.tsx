@@ -92,11 +92,6 @@ const LegacyLockerSection: React.FC = () => {
             </ExpandableBox>
           </div>
 
-          <div className="text-center mb-12">
-            <Button asChild variant="outline" size="lg" className="border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white">
-              <Link to="/legacy-locker-info">Learn More</Link>
-            </Button>
-          </div>
 
           <div className="bg-brand-blue text-white p-10 rounded-lg text-center">
             <h3 className="text-2xl font-bold mb-4">A Simple, Powerful Way to Protect Your Legacy</h3>
