@@ -123,9 +123,6 @@ const Navbar: React.FC = () => {
                    <Link to="/pricing" className="text-gray-700 hover:text-brand-blue transition-colors">
                      {translate('nav.pricing')}
                    </Link>
-                   <Link to="/about" className="text-gray-700 hover:text-brand-blue transition-colors">
-                     About
-                   </Link>
                    <Link to="/gift" className="text-gray-700 hover:text-brand-blue transition-colors">
                      Gift
                    </Link>
@@ -275,17 +272,8 @@ const Navbar: React.FC = () => {
                     >
                       {translate('nav.pricing')}
                     </NavLink>
-                   <NavLink 
-                     to="/about" 
-                     className={({ isActive }) => 
-                       `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
-                     }
-                     onClick={() => setIsMenuOpen(false)}
-                   >
-                     About
-                   </NavLink>
                     <NavLink 
-                      to="/gift" 
+                      to="/gift"
                       className={({ isActive }) => 
                         `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
                       }
