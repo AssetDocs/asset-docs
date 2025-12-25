@@ -55,16 +55,11 @@ const HeroSection: React.FC = () => {
                   <span>GDPR Ready</span>
                 </div>
               </div>
-              <div className="mt-3 text-center lg:text-left">
-                <Link to="/legal" className="text-sm underline opacity-80 hover:opacity-100 transition-opacity">
-                  Privacy Policy & Compliance Information
-                </Link>
-              </div>
             </div>
           </div>
           
           {/* YouTube Video */}
-          <div className="lg:w-1/3">
+          <div className="lg:w-1/3 lg:self-start lg:mt-4">
             <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-4 animate-fade-in">
               <div className="aspect-video">
                 <iframe 
