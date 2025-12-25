@@ -13,7 +13,7 @@ const Scenarios: React.FC = () => {
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl font-bold mb-6">Scenarios</h1>
           <p className="text-xl max-w-4xl mx-auto">
-            Asset Docs is invaluable in these situations where comprehensive documentation protects your interests and streamlines the claims process.
+            Asset Safe is invaluable in these situations where comprehensive documentation protects your interests and streamlines the claims process.
           </p>
         </div>
       </section>
@@ -114,7 +114,7 @@ const Scenarios: React.FC = () => {
               <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                 <h4 className="font-medium text-brand-blue mb-2">Why Documentation Matters</h4>
                 <p className="text-sm text-gray-700">
-                  In any of these scenarios, having comprehensive pre-incident documentation through Asset Docs can:
+                  In any of these scenarios, having comprehensive pre-incident documentation through Asset Safe can:
                 </p>
                 <ul className="text-sm text-gray-600 mt-2 space-y-1">
                   <li>• Expedite insurance claims processing</li>
@@ -133,7 +133,7 @@ const Scenarios: React.FC = () => {
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center">
-            <h3 className="text-2xl font-semibold text-brand-blue mb-4">Why Choose Asset Docs?</h3>
+            <h3 className="text-2xl font-semibold text-brand-blue mb-4">Why Choose Asset Safe?</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
               <div className="text-center">
                 <Shield className="h-12 w-12 text-brand-blue mx-auto mb-3" />
@@ -160,11 +160,11 @@ const Scenarios: React.FC = () => {
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-6">Protect What Matters Most</h2>
           <p className="text-xl mb-8 max-w-3xl mx-auto">
-            Join thousands of property owners, renters, and business professionals who trust Asset Docs for comprehensive asset protection.
+            Join thousands of property owners, renters, and business professionals who trust Asset Safe for comprehensive asset protection.
           </p>
           <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
             <a href="/auth" className="bg-white text-orange-500 hover:bg-gray-100 px-6 py-3 rounded-md font-medium">
-              Start Your Free Trial
+              Secure Your Account
             </a>
             <a href="/pricing" className="bg-transparent border-2 border-white text-white hover:bg-white/10 px-6 py-3 rounded-md font-medium">
               View Pricing
