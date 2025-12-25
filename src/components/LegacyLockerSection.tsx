@@ -103,9 +103,14 @@ const LegacyLockerSection: React.FC = () => {
             <p className="text-lg mb-6 max-w-3xl mx-auto">
               Start organizing the information your loved ones will need, all in one secure, encrypted location.
             </p>
-            <Button asChild size="lg" className="bg-white text-brand-blue hover:bg-gray-100">
-              <Link to="/signup">Get Started Today</Link>
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button asChild size="lg" className="bg-white text-brand-blue hover:bg-gray-100">
+                <Link to="/signup">Get Started Today</Link>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="border-white text-white hover:bg-white/10">
+                <Link to="/legacy-locker-info">Learn More</Link>
+              </Button>
+            </div>
           </div>
         </div>
       </div>
