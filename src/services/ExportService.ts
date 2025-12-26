@@ -75,6 +75,7 @@ export interface AssetSummary {
     estimatedValue?: number;
     location?: string;
     condition?: string;
+    createdAt: string;
   }>;
 }
 
@@ -180,7 +181,7 @@ export class ExportService {
       yPosition += 10;
 
       assets.items.forEach((item, index) => {
-        checkPageSpace(20);
+        checkPageSpace(25);
         pdf.setFontSize(10);
         pdf.setFont(undefined, 'normal');
         pdf.text(`${index + 1}. ${item.name}`, 30, yPosition);
@@ -194,6 +195,8 @@ export class ExportService {
           pdf.text(`   ${details}`, 30, yPosition);
           yPosition += lineHeight;
         }
+        pdf.text(`   Added: ${new Date(item.createdAt).toLocaleDateString()}`, 30, yPosition);
+        yPosition += lineHeight;
       });
       yPosition += 10;
     }
@@ -572,7 +575,8 @@ export class ExportService {
           model: item.model || undefined,
           estimatedValue: item.estimated_value || undefined,
           location: item.location || undefined,
-          condition: item.condition || undefined
+          condition: item.condition || undefined,
+          createdAt: item.created_at || new Date().toISOString()
         }));
 
         // Also add item photos
