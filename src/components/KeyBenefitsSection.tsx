@@ -32,8 +32,8 @@ const KeyBenefitsSection: React.FC = () => {
     },
     {
       icon: Scale,
-      title: "Independent third-party verification for claims and estate matters",
-      description: "Provide credible, unbiased documentation trusted by insurers, adjusters, and legal professionals when it matters most.",
+      title: "Legacy Locker — peace of mind for the people you love",
+      description: "A secure, encrypted space to store important information, personal notes, and access details — helping loved ones navigate life's hardest moments.",
       showSecurityBadges: false
     },
     {
