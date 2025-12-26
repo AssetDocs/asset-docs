@@ -170,17 +170,10 @@ const Gift: React.FC = () => {
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
               Give a Gift That Truly Matters
             </h2>
-            <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+            <p className="text-xl text-blue-100 max-w-2xl mx-auto">
               Show someone you care about their security and peace of mind. Asset Safe makes the perfect gift 
               for new homeowners, property investors, or anyone who values protection.
             </p>
-            <Button 
-              size="lg" 
-              className="bg-brand-orange hover:bg-brand-orange/90 text-white px-8 py-3 text-lg"
-              onClick={() => window.scrollTo({ top: 600, behavior: 'smooth' })}
-            >
-              Browse Gift Plans
-            </Button>
           </div>
         </section>
       </main>
