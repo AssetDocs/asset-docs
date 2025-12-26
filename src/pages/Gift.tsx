@@ -16,15 +16,7 @@ const Gift: React.FC = () => {
       description: "Our most popular plan for comprehensive home documentation",
       features: [
         "Up to 3 properties",
-        "25GB secure cloud storage",
-        "Unlimited photo and video uploads",
-        "Full web platform access",
-        "Voice notes for item details",
-        "Post damage documentation",
-        "Export detailed reports",
-        "Email support",
-        "Share with 3 trusted contacts",
-        "12-month gift subscription"
+        "25GB secure cloud storage"
       ],
       planType: "standard",
       icon: <Zap className="h-6 w-6" />
@@ -35,19 +27,22 @@ const Gift: React.FC = () => {
       description: "Best suited for estate managers, multiple-property owners, or businesses",
       features: [
         "Unlimited properties",
-        "100GB secure cloud storage",
-        "Unlimited photo and video uploads",
-        "Full web platform access",
-        "Voice notes for item details",
-        "Post damage documentation",
-        "Export detailed reports",
-        "Email support",
-        "Share with 3 trusted contacts",
-        "12-month gift subscription"
+        "100GB secure cloud storage"
       ],
       planType: "premium",
       icon: <Star className="h-6 w-6" />
     }
+  ];
+
+  const commonFeatures = [
+    "Photo, video, and document upload",
+    "Full web platform access",
+    "Voice notes for item details",
+    "Post damage documentation",
+    "Export detailed reports",
+    "Email support",
+    "Share with 3 trusted contacts",
+    "12-month gift subscription"
   ];
 
   const handleGiftPurchase = (planType: string) => {
@@ -120,9 +115,9 @@ const Gift: React.FC = () => {
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-              {giftPlans.map((plan, index) => (
-                <div key={plan.title} className="relative">
+            <div className="flex justify-center gap-8 max-w-4xl mx-auto">
+              {giftPlans.map((plan) => (
+                <div key={plan.title} className="w-full max-w-sm">
                   <SubscriptionPlan
                     title={plan.title}
                     price={plan.price}
@@ -134,6 +129,25 @@ const Gift: React.FC = () => {
                   />
                 </div>
               ))}
+            </div>
+
+            {/* Common Features Section */}
+            <div className="mt-12 bg-blue-50 rounded-lg p-8 max-w-4xl mx-auto">
+              <h3 className="text-xl font-semibold text-gray-900 mb-6 text-center">
+                Features included in both plans
+              </h3>
+              <div className="grid md:grid-cols-2 gap-x-8 gap-y-3">
+                {commonFeatures.map((feature, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <div className="h-5 w-5 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                      <svg className="h-3 w-3 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <span className="text-gray-700">{feature}</span>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="text-center mt-12">
