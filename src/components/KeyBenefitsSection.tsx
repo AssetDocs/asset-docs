@@ -32,14 +32,14 @@ const KeyBenefitsSection: React.FC = () => {
     },
     {
       icon: Scale,
-      title: "Legacy Locker — peace of mind for the people you love",
-      description: "A secure, encrypted space to store important information, personal notes, and access details — helping loved ones navigate life's hardest moments.",
+      title: "Legacy Locker — encrypted storage for life's most important details",
+      description: "Keep essential records, account access, and personal instructions organized in one secure place - peace of mind for the people you love.",
       showSecurityBadges: false
     },
     {
       icon: Users,
       title: "Permission-based access for trusted parties",
-      description: "Grant secure access to the right people — insurers, executors, or heirs — without handing over passwords or digging through files during stressful moments.",
+      description: "Grant secure access to the right people — spouse, executors, or heirs — without digging through account information and files during stressful moments.",
       showSecurityBadges: false
     }
   ];
