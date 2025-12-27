@@ -212,21 +212,30 @@ export const checkPropertyLimit = (
   _isInTrial?: boolean // Deprecated - trial no longer supported
 ): { canAdd: boolean; limit: number; message?: string } => {
   const limit = getPropertyLimit(userTier);
+  
+  // If no tier but current count is 0, allow at least one property
+  // This handles edge cases where subscription hasn't loaded yet
+  if (!userTier && currentCount === 0) {
+    return { canAdd: true, limit: 1 };
+  }
+  
   const canAdd = currentCount < limit;
   
   if (!canAdd) {
     const upgradeMessage = userTier === 'standard'
       ? 'Upgrade to Premium for unlimited properties.'
-      : 'You have reached the maximum number of properties for your plan.';
+      : !userTier 
+        ? 'Please subscribe to add more properties.'
+        : 'You have reached the maximum number of properties for your plan.';
     
     return {
       canAdd: false,
-      limit,
+      limit: limit || 1,
       message: upgradeMessage
     };
   }
   
-  return { canAdd: true, limit };
+  return { canAdd: true, limit: limit || 1 };
 };
 
 export const checkContributorLimit = (
