@@ -68,9 +68,12 @@ const Gift: React.FC = () => {
                 <GiftIcon className="h-12 w-12 text-brand-orange" />
               </div>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
               Give the Gift of Protection and Peace of Mind
             </h1>
+            <p className="text-lg font-medium text-brand-orange mb-6">
+              Practical, Not Disposable – A gift that provides long-term value
+            </p>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
               Help your loved ones protect their most valuable assets with Asset Safe. 
               A thoughtful gift that provides lasting security and organization for their properties and belongings.
@@ -219,11 +222,6 @@ const Gift: React.FC = () => {
               <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
                 <h3 className="font-semibold text-lg text-gray-900 mb-2">Graduates & Young Adults</h3>
                 <p className="text-gray-600">A smart foundation for independent life</p>
-              </div>
-              
-              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                <h3 className="font-semibold text-lg text-gray-900 mb-2">Practical, Not Disposable</h3>
-                <p className="text-gray-600">A gift that provides long-term value</p>
               </div>
             </div>
           </div>
