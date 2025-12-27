@@ -167,13 +167,7 @@ const Inventory: React.FC = () => {
       <Navbar />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <DashboardBreadcrumb 
-          items={[
-            { label: 'Dashboard', href: '/account' },
-            { label: 'My Inventory', href: '/inventory' }
-          ]}
-          showBackButton={true}
-        />
+        <DashboardBreadcrumb showBackButton={true} />
         
         <div className="mb-8">
           <div className="flex justify-between items-start mb-4">

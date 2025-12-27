@@ -101,19 +101,9 @@ const VideoGalleryHeader: React.FC<VideoGalleryHeaderProps> = ({
   return (
     <div className="mb-6">
       <div className="flex items-center gap-4 mb-6">
-        <Button 
-          variant="ghost" 
-          onClick={onBack}
-          className="flex items-center gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Properties
-        </Button>
-        
         <div className="flex items-center gap-2">
           <Video className="h-6 w-6 text-brand-blue" />
-          <h1 className="text-2xl font-bold text-brand-blue">Video Gallery</h1>
-          <Badge variant="secondary">{currentFolderName}</Badge>
+          <h1 className="text-2xl font-bold text-brand-blue">{currentFolderName}</h1>
         </div>
       </div>
 

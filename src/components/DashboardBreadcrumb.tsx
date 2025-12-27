@@ -1,19 +1,13 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
-import { Home, ChevronLeft } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface DashboardBreadcrumbProps {
-  items?: Array<{
-    label: string;
-    href?: string;
-  }>;
   showBackButton?: boolean;
 }
 
 const DashboardBreadcrumb: React.FC<DashboardBreadcrumbProps> = ({ 
-  items = [], 
   showBackButton = true 
 }) => {
   const location = useLocation();
@@ -21,7 +15,7 @@ const DashboardBreadcrumb: React.FC<DashboardBreadcrumbProps> = ({
   // Define route mappings for automatic breadcrumb generation
   const routeMap: Record<string, string> = {
     '/account': 'Dashboard',
-    '/account/properties': 'Properties',
+    '/account/properties': 'My Properties',
     '/account/properties/new': 'Add Property',
     '/account/photos': 'Photo Gallery',
     '/account/photos/upload': 'Upload Photos',
@@ -31,42 +25,34 @@ const DashboardBreadcrumb: React.FC<DashboardBreadcrumbProps> = ({
     '/account/documents/upload': 'Upload Documents',
     '/account/insurance': 'Insurance',
     '/account/insurance/new': 'Add Insurance',
-    '/account/settings': 'Account Settings'
+    '/account/settings': 'Account Settings',
+    '/account/inventory': 'Inventory',
+    '/account/legacy-locker': 'Legacy Locker'
   };
 
-  // Generate breadcrumb items from current path if none provided
-  const breadcrumbItems = items.length > 0 ? items : (() => {
-    const pathSegments = location.pathname.split('/').filter(Boolean);
-    const generatedItems = [];
-    
-    // Always start with Dashboard
-    generatedItems.push({
-      label: 'Dashboard',
-      href: '/account'
-    });
-
-    // Build path incrementally
-    let currentPath = '';
-    for (const segment of pathSegments) {
-      currentPath += `/${segment}`;
-      
-      // Skip the base 'account' segment as it's already included as Dashboard
-      if (segment === 'account') continue;
-      
-      const label = routeMap[currentPath] || segment.charAt(0).toUpperCase() + segment.slice(1);
-      generatedItems.push({
-        label,
-        href: currentPath
-      });
+  // Get current page name
+  const getCurrentPageName = () => {
+    // Try exact match first
+    if (routeMap[location.pathname]) {
+      return routeMap[location.pathname];
     }
-
-    return generatedItems;
-  })();
+    
+    // Try to find a partial match for dynamic routes
+    const pathSegments = location.pathname.split('/').filter(Boolean);
+    if (pathSegments.length > 1) {
+      const lastSegment = pathSegments[pathSegments.length - 1];
+      return lastSegment.charAt(0).toUpperCase() + lastSegment.slice(1).replace(/-/g, ' ');
+    }
+    
+    return 'Page';
+  };
 
   // Don't show breadcrumb on the main dashboard
   if (location.pathname === '/account') {
     return null;
   }
+
+  const currentPageName = getCurrentPageName();
 
   return (
     <div className="flex items-center gap-4 mb-6">
@@ -75,7 +61,7 @@ const DashboardBreadcrumb: React.FC<DashboardBreadcrumbProps> = ({
           variant="outline"
           size="sm"
           asChild
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 bg-white text-brand-orange border-brand-orange hover:bg-brand-orange/10"
         >
           <Link to="/account">
             <ChevronLeft className="h-4 w-4" />
@@ -84,30 +70,10 @@ const DashboardBreadcrumb: React.FC<DashboardBreadcrumbProps> = ({
         </Button>
       )}
       
-      <Breadcrumb className="flex-1">
-        <BreadcrumbList>
-          {breadcrumbItems.map((item, index) => (
-            <div key={item.href || item.label} className="contents">
-              <BreadcrumbItem>
-                {index === breadcrumbItems.length - 1 ? (
-                  <BreadcrumbPage className="flex items-center gap-1">
-                    {index === 0 && <Home className="h-4 w-4" />}
-                    {item.label}
-                  </BreadcrumbPage>
-                ) : (
-                  <BreadcrumbLink asChild>
-                    <Link to={item.href!} className="flex items-center gap-1">
-                      {index === 0 && <Home className="h-4 w-4" />}
-                      {item.label}
-                    </Link>
-                  </BreadcrumbLink>
-                )}
-              </BreadcrumbItem>
-              {index < breadcrumbItems.length - 1 && <BreadcrumbSeparator />}
-            </div>
-          ))}
-        </BreadcrumbList>
-      </Breadcrumb>
+      <div className="flex items-center gap-2 text-gray-600">
+        <ChevronRight className="h-4 w-4" />
+        <span className="font-medium text-gray-900">{currentPageName}</span>
+      </div>
     </div>
   );
 };
