@@ -353,25 +353,15 @@ const Documents: React.FC = () => {
           
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
-            <div className="flex items-center mb-4 sm:mb-0">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleBack}
-                className="mr-4"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-                  <FileText className="h-6 w-6 mr-2 text-brand-blue" />
-                  {currentFolderName}
-                </h1>
-                <p className="text-sm text-gray-500">
-                  {sortedDocuments.length} document{sortedDocuments.length !== 1 ? 's' : ''} 
-                  {selectedDocuments.length > 0 && ` • ${selectedDocuments.length} selected`}
-                </p>
-              </div>
+            <div className="mb-4 sm:mb-0">
+              <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+                <FileText className="h-6 w-6 mr-2 text-brand-blue" />
+                {currentFolderName}
+              </h1>
+              <p className="text-sm text-gray-500">
+                {sortedDocuments.length} document{sortedDocuments.length !== 1 ? 's' : ''} 
+                {selectedDocuments.length > 0 && ` • ${selectedDocuments.length} selected`}
+              </p>
             </div>
 
             <Button asChild size="sm">

@@ -89,22 +89,16 @@ const PhotoGalleryHeader: React.FC<PhotoGalleryHeaderProps> = ({
   return (
     <div className="mb-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={onBack} className="flex items-center gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Back to Properties
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-brand-blue">{currentFolderName}</h1>
-            <p className="text-gray-600">
-              {photoCount} photo{photoCount !== 1 ? 's' : ''}
-              {selectedCount > 0 && (
-                <Badge variant="secondary" className="ml-2">
-                  {selectedCount} selected
-                </Badge>
-              )}
-            </p>
-          </div>
+        <div>
+          <h1 className="text-3xl font-bold text-brand-blue">{currentFolderName}</h1>
+          <p className="text-gray-600">
+            {photoCount} photo{photoCount !== 1 ? 's' : ''}
+            {selectedCount > 0 && (
+              <Badge variant="secondary" className="ml-2">
+                {selectedCount} selected
+              </Badge>
+            )}
+          </p>
         </div>
 
         <div className="flex items-center gap-2">
