@@ -73,24 +73,15 @@ const Properties: React.FC = () => {
 
             {/* Property Details */}
             <div className="lg:col-span-2">
-              {properties.length === 0 ? (
-                <Card>
-                  <CardContent className="p-8 text-center text-gray-500">
-                    <div className="flex flex-col items-center gap-4">
-                      <Plus className="h-12 w-12 text-gray-300" />
-                      <div>
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">No Properties Yet</h3>
-                        <p className="text-gray-600 mb-4">Get started by adding your first property to begin documenting your valuable assets.</p>
-                        <Button onClick={() => navigate('/account/property-form')}>
-                          Add Your First Property
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : selectedProperty ? (
+              {selectedProperty ? (
                 <Card>
                   <PropertyHeader property={selectedProperty} />
+                </Card>
+              ) : properties.length > 0 ? (
+                <Card>
+                  <CardContent className="p-8 text-center text-muted-foreground">
+                    Select a property from the list to view details
+                  </CardContent>
                 </Card>
               ) : null}
             </div>
