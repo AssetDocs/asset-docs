@@ -272,16 +272,59 @@ const Pricing: React.FC = () => {
 
               {/* As a Gift Tab Content */}
               <TabsContent value="gift" className="mt-0">
-                <div className="mb-8">
+                {/* Hero Section */}
+                <div className="mb-12">
                   <div className="flex justify-center mb-6">
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full">
                       <span className="text-3xl">🎁</span>
                     </div>
                   </div>
                   <h3 className="text-2xl font-bold mb-4">Give the Gift of Protection and Peace of Mind</h3>
-                  <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                    Help your loved ones protect their most valuable assets with Asset Docs. 
+                  <p className="text-lg font-medium text-brand-orange mb-6">
+                    Practical, Not Disposable – A gift that provides long-term value
+                  </p>
+                  <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+                    Help your loved ones protect their most valuable assets with Asset Safe. 
                     A thoughtful gift that provides lasting security and organization for their properties and belongings.
+                  </p>
+                </div>
+
+                {/* Three Benefit Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
+                  <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-border text-center">
+                    <div className="flex justify-center mb-4">
+                      <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full">
+                        <Shield className="h-6 w-6 text-blue-600" />
+                      </div>
+                    </div>
+                    <h4 className="font-semibold text-lg text-foreground mb-2">Comprehensive Protection</h4>
+                    <p className="text-muted-foreground text-sm">Safeguard valuable assets with detailed documentation and organization</p>
+                  </div>
+                  <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-border text-center">
+                    <div className="flex justify-center mb-4">
+                      <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full">
+                        <CheckIcon className="h-6 w-6 text-green-600" />
+                      </div>
+                    </div>
+                    <h4 className="font-semibold text-lg text-foreground mb-2">Peace of Mind</h4>
+                    <p className="text-muted-foreground text-sm">Know that important documents and photos are secure and accessible</p>
+                  </div>
+                  <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-border text-center">
+                    <div className="flex justify-center mb-4">
+                      <div className="inline-flex items-center justify-center w-12 h-12 bg-orange-100 rounded-full">
+                        <Gift className="h-6 w-6 text-orange-600" />
+                      </div>
+                    </div>
+                    <h4 className="font-semibold text-lg text-foreground mb-2">Family Security</h4>
+                    <p className="text-muted-foreground text-sm">Protect multiple properties and keep family assets organized</p>
+                  </div>
+                </div>
+
+                {/* Choose the Perfect Gift Plan */}
+                <div className="mb-8">
+                  <h3 className="text-2xl font-bold mb-4">Choose the Perfect Gift Plan</h3>
+                  <p className="text-muted-foreground max-w-2xl mx-auto">
+                    All gift subscriptions include a full year of service. Your recipient will receive immediate access to all features and can start protecting their assets right away.
                   </p>
                 </div>
                 
@@ -310,12 +353,12 @@ const Pricing: React.FC = () => {
                   />
                 </div>
 
-                {/* Common Features for Gift Plans */}
+                {/* Features included in both plans */}
                 <div className="mt-12 max-w-4xl mx-auto">
                   <div className="bg-muted/30 rounded-lg p-8">
-                    <h3 className="text-xl font-semibold text-center mb-6">Included in Both Gift Plans</h3>
+                    <h3 className="text-xl font-semibold text-center mb-6">Features included in both plans</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
-                      {commonFeatures.map((feature, index) => (
+                      {[...commonFeatures.map(f => f === "Photo and video uploads" ? "Photo, video, and document upload" : f), "12-month gift subscription"].map((feature, index) => (
                         <div key={index} className="flex items-center gap-2">
                           <div className="h-5 w-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
                             <svg className="h-3 w-3 text-primary" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
@@ -325,14 +368,86 @@ const Pricing: React.FC = () => {
                           <span className="text-foreground">{feature}</span>
                         </div>
                       ))}
-                      <div className="flex items-center gap-2">
-                        <div className="h-5 w-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                          <svg className="h-3 w-3 text-primary" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                            <path d="M5 13l4 4L19 7"></path>
-                          </svg>
-                        </div>
-                        <span className="text-foreground">12-month gift subscription</span>
-                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* How Gift Subscriptions Work */}
+                <div className="mt-12 max-w-4xl mx-auto">
+                  <h3 className="text-2xl font-bold mb-8">How Gift Subscriptions Work</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-border">
+                      <h4 className="font-semibold text-lg text-foreground mb-4">For Gift Givers:</h4>
+                      <ul className="space-y-3 text-muted-foreground">
+                        <li className="flex items-start gap-2">
+                          <span className="text-primary mt-1">•</span>
+                          <span>Purchase a 12-month subscription</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-primary mt-1">•</span>
+                          <span>Enter recipient information during checkout</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-primary mt-1">•</span>
+                          <span>Automatic gift certificate delivered to recipient</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-primary mt-1">•</span>
+                          <span>No recurring charges - one-time payment</span>
+                        </li>
+                      </ul>
+                    </div>
+                    <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-border">
+                      <h4 className="font-semibold text-lg text-foreground mb-4">For Recipients:</h4>
+                      <ul className="space-y-3 text-muted-foreground">
+                        <li className="flex items-start gap-2">
+                          <span className="text-primary mt-1">•</span>
+                          <span>Create an Asset Safe account</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-primary mt-1">•</span>
+                          <span>Enter the gift code during setup</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-primary mt-1">•</span>
+                          <span>Enjoy full access for 12 months</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-primary mt-1">•</span>
+                          <span>Option to continue with their own subscription</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Who Is Asset Safe a Great Gift For? */}
+                <div className="mt-12 max-w-5xl mx-auto">
+                  <h3 className="text-2xl font-bold mb-8">Who Is Asset Safe a Great Gift For?</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-border">
+                      <h4 className="font-semibold text-lg text-foreground mb-2">Homebuyers & Sellers</h4>
+                      <p className="text-muted-foreground">A meaningful closing gift that lasts well beyond move-in day</p>
+                    </div>
+                    <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-border">
+                      <h4 className="font-semibold text-lg text-foreground mb-2">Newlyweds & Couples</h4>
+                      <p className="text-muted-foreground">Start life together organized, protected, and prepared</p>
+                    </div>
+                    <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-border">
+                      <h4 className="font-semibold text-lg text-foreground mb-2">Business Owners & Entrepreneurs</h4>
+                      <p className="text-muted-foreground">Secure important documents and assets in one place</p>
+                    </div>
+                    <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-border">
+                      <h4 className="font-semibold text-lg text-foreground mb-2">Parents & Growing Families</h4>
+                      <p className="text-muted-foreground">Protect what matters most and plan ahead with confidence</p>
+                    </div>
+                    <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-border">
+                      <h4 className="font-semibold text-lg text-foreground mb-2">Adult Children Gifting Parents</h4>
+                      <p className="text-muted-foreground">A thoughtful way to help organize important records</p>
+                    </div>
+                    <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-border">
+                      <h4 className="font-semibold text-lg text-foreground mb-2">Graduates & Young Adults</h4>
+                      <p className="text-muted-foreground">A smart foundation for independent life</p>
                     </div>
                   </div>
                 </div>
