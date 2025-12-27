@@ -178,6 +178,52 @@ const Gift: React.FC = () => {
           </div>
         </section>
 
+        {/* Who Is Asset Safe a Great Gift For Section */}
+        <section className="py-20 bg-gray-50">
+          <div className="container mx-auto px-6">
+            <div className="text-center mb-12">
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <GiftIcon className="h-8 w-8 text-brand-orange" />
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+                  Who Is Asset Safe a Great Gift For?
+                </h2>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                <h3 className="font-semibold text-lg text-gray-900 mb-2">Homebuyers & Sellers</h3>
+                <p className="text-gray-600">A meaningful closing gift that lasts well beyond move-in day</p>
+              </div>
+              
+              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                <h3 className="font-semibold text-lg text-gray-900 mb-2">Newlyweds & Couples</h3>
+                <p className="text-gray-600">Start life together organized, protected, and prepared</p>
+              </div>
+              
+              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                <h3 className="font-semibold text-lg text-gray-900 mb-2">Business Owners & Entrepreneurs</h3>
+                <p className="text-gray-600">Secure important documents and assets in one place</p>
+              </div>
+              
+              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                <h3 className="font-semibold text-lg text-gray-900 mb-2">Parents & Growing Families</h3>
+                <p className="text-gray-600">Protect what matters most and plan ahead with confidence</p>
+              </div>
+              
+              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                <h3 className="font-semibold text-lg text-gray-900 mb-2">Adult Children Gifting Parents</h3>
+                <p className="text-gray-600">A thoughtful way to help organize important records</p>
+              </div>
+              
+              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                <h3 className="font-semibold text-lg text-gray-900 mb-2">Graduates & Young Adults</h3>
+                <p className="text-gray-600">A smart foundation for independent life</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* CTA Section */}
         <section className="bg-gradient-to-r from-brand-blue to-brand-lightBlue py-16">
           <div className="container mx-auto px-6 text-center">
