@@ -12,7 +12,6 @@ import GoogleMapsAutocomplete from './GoogleMapsAutocomplete';
 import RealEstateDataService from '@/services/RealEstateDataService';
 import { useToast } from '@/hooks/use-toast';
 import { useSubscription } from '@/contexts/SubscriptionContext';
-import { checkPropertyLimit } from '@/config/subscriptionFeatures';
 import { useProperties } from '@/hooks/useProperties';
 import { Property } from '@/services/PropertyService';
 
@@ -35,7 +34,7 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
   selectedPropertyId
 }) => {
   const { properties, isLoading, addProperty, updateProperty, deleteProperty } = useProperties();
-  const { subscriptionStatus, isInTrial } = useSubscription();
+  const { subscriptionStatus, isInTrial, propertyLimit } = useSubscription();
   const { toast } = useToast();
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -120,17 +119,17 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
   };
 
   const handleAddProperty = () => {
-    // Check property limits before opening dialog
-    const limitCheck = checkPropertyLimit(
-      properties.length,
-      subscriptionStatus?.subscription_tier as any,
-      isInTrial
-    );
+    // Use propertyLimit from subscription context directly
+    const canAdd = properties.length < propertyLimit;
     
-    if (!limitCheck.canAdd) {
+    if (!canAdd) {
+      const upgradeMessage = subscriptionStatus?.subscription_tier === 'standard'
+        ? 'Upgrade to Premium for unlimited properties.'
+        : 'You have reached the maximum number of properties for your plan.';
+      
       toast({
         title: "Property Limit Reached",
-        description: limitCheck.message,
+        description: upgradeMessage,
         variant: "destructive",
       });
       return;
@@ -144,13 +143,8 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
     
     // Double-check property limits for new properties (not edits)
     if (!editingProperty) {
-      const limitCheck = checkPropertyLimit(
-        properties.length,
-        subscriptionStatus?.subscription_tier as any,
-        isInTrial
-      );
-      
-      if (!limitCheck.canAdd) {
+      const canAdd = properties.length < propertyLimit;
+      if (!canAdd) {
         return;
       }
     }
@@ -186,7 +180,7 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
         <div>
           <h2 className="text-xl font-semibold text-gray-800">Properties ({properties.length})</h2>
           <p className="text-sm text-muted-foreground">
-            {checkPropertyLimit(0, subscriptionStatus?.subscription_tier as any, isInTrial).limit} properties allowed on your plan
+            {propertyLimit >= 999999 ? 'Unlimited' : propertyLimit} properties allowed on your plan
           </p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
