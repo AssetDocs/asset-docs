@@ -74,6 +74,24 @@ const VideoGalleryFolders: React.FC<VideoGalleryFoldersProps> = ({
           Create Folder
         </Button>
         
+        {/* ALL Videos Option */}
+        <Button
+          variant={selectedFolder === null ? 'default' : 'ghost'}
+          className="w-full justify-start p-3 h-auto"
+          onClick={() => onFolderSelect(null)}
+        >
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-gray-500 to-gray-600 flex items-center justify-center mr-3">
+            <Video className="h-4 w-4 text-white" />
+          </div>
+          <div className="flex-1 text-left min-w-0">
+            <div className="font-medium text-sm">All Videos</div>
+            <div className="text-xs text-muted-foreground">View all videos</div>
+          </div>
+          <Badge variant="secondary" className="ml-2">
+            {videos.length}
+          </Badge>
+        </Button>
+        
         {folders.length === 0 ? (
           <div className="text-center py-4 text-muted-foreground">
             <Folder className="h-8 w-8 mx-auto mb-2 opacity-50" />
