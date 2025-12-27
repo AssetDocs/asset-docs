@@ -220,6 +220,11 @@ const Gift: React.FC = () => {
                 <h3 className="font-semibold text-lg text-gray-900 mb-2">Graduates & Young Adults</h3>
                 <p className="text-gray-600">A smart foundation for independent life</p>
               </div>
+              
+              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                <h3 className="font-semibold text-lg text-gray-900 mb-2">Practical, Not Disposable</h3>
+                <p className="text-gray-600">A gift that provides long-term value</p>
+              </div>
             </div>
           </div>
         </section>
