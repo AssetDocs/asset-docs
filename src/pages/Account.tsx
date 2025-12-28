@@ -113,7 +113,7 @@ const WelcomeMessage: React.FC = () => {
       <h1 className="text-2xl font-bold">
         Welcome, {getDisplayName()}!
       </h1>
-      {contributorInfo ? (
+      {contributorInfo && (
         <div className="mt-1 space-y-1">
           <p className="text-white/90 font-medium">
             Contributor - {getRoleDisplay(contributorInfo.role)}
@@ -124,11 +124,21 @@ const WelcomeMessage: React.FC = () => {
             </p>
           )}
         </div>
-      ) : (
-        <p className="text-brand-blue/80 mt-1">
-          Manage your assets and documentation from your dashboard
-        </p>
       )}
+      <div className="flex flex-wrap gap-2 mt-4">
+        <Button asChild variant="outline" className="bg-brand-orange hover:bg-brand-orange/90 text-white border-brand-orange">
+          <a href="/account-settings">
+            <Settings className="mr-2 h-4 w-4" />
+            Account Settings
+          </a>
+        </Button>
+        <Button asChild variant="outline" className="bg-brand-orange hover:bg-brand-orange/90 text-white border-brand-orange">
+          <a href="/properties">
+            <Home className="mr-2 h-4 w-4" />
+            Property Profiles
+          </a>
+        </Button>
+      </div>
     </div>
   );
 };
@@ -263,83 +273,6 @@ const Account: React.FC = () => {
               
               {/* First Row */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Account Settings Card */}
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Settings className="h-6 w-6 mr-2 text-brand-blue" />
-                      Account Settings
-                    </CardTitle>
-                    <CardDescription>
-                      Update your profile, security settings, and preferences
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <Button 
-                        onClick={() => handleRestrictedAction(() => {
-                          window.location.href = '/account/settings';
-                        }, true)}
-                        variant="orange" 
-                        className="w-full"
-                      >
-                        <Settings className="h-4 w-4 mr-2" />
-                        Manage Settings
-                      </Button>
-                      <Button 
-                        onClick={() => handleRestrictedAction(() => {
-                          window.location.href = '/account/settings?tab=contributors';
-                        })}
-                        variant="outline" 
-                        className="w-full"
-                        disabled={isViewer}
-                      >
-                        <Users className="h-4 w-4 mr-2" />
-                        Manage Contributors
-                        {isViewer && <Lock className="h-3 w-3 ml-1" />}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Property Profiles Card */}
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Home className="h-6 w-6 mr-2 text-brand-blue" />
-                      Property Profiles
-                    </CardTitle>
-                    <CardDescription>
-                      Create and manage property information, square footage, and details
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <Button 
-                        onClick={() => handleRestrictedAction(() => {
-                          window.location.href = '/account/properties/new';
-                        })}
-                        className="w-full bg-brand-blue hover:bg-brand-lightBlue"
-                        disabled={isViewer}
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Create New Property
-                        {isViewer && <Lock className="h-3 w-3 ml-1" />}
-                      </Button>
-                      <Button 
-                        onClick={() => handleRestrictedAction(() => {
-                          window.location.href = '/account/properties';
-                        }, true)}
-                        variant="outline" 
-                        className="w-full"
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        View All Properties
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
                 {/* Photo Management Card */}
                 <Card className="hover:shadow-lg transition-shadow">
                   <CardHeader>
