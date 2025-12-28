@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import ShareButton from '@/components/ShareButton';
 
 import { Copy, Check, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -134,9 +133,6 @@ const AccountHeader: React.FC = () => {
               </Button>
             </div>
           )}
-        </div>
-        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <ShareButton className="bg-brand-blue hover:bg-brand-lightBlue w-full sm:w-auto" />
         </div>
       </div>
 

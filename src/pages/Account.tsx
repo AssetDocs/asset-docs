@@ -586,8 +586,8 @@ const Account: React.FC = () => {
                           return;
                         }
                       }}
-                      variant="outline"
-                      className="w-full"
+                      variant="default"
+                      className="w-full bg-brand-green hover:bg-brand-green/90"
                     >
                       <FileImage className="mr-2 h-4 w-4" />
                       Download All
