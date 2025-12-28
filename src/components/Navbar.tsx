@@ -49,7 +49,7 @@ const Navbar: React.FC = () => {
                  <NavLink 
                    to="/account" 
                    className={({ isActive }) => 
-                     `flex items-center px-3 py-2 transition-all rounded-md font-medium ${isActive ? 'bg-yellow-400 text-gray-900' : 'bg-brand-blue/10 text-brand-blue hover:bg-brand-blue hover:text-white'}`
+                     `flex items-center px-3 py-2 transition-all rounded-md font-medium ${isActive ? 'bg-brand-orange text-white' : 'bg-brand-orange/90 text-white hover:bg-brand-orange'}`
                    }
                  >
                    <Home className="h-4 w-4 mr-1" />
@@ -178,7 +178,7 @@ const Navbar: React.FC = () => {
                    <NavLink 
                      to="/account" 
                      className={({ isActive }) => 
-                       `flex items-center px-3 py-2 transition-all rounded-md font-medium w-fit ${isActive ? 'bg-yellow-400 text-gray-900' : 'bg-brand-blue/10 text-brand-blue hover:bg-brand-blue hover:text-white'}`
+                       `flex items-center px-3 py-2 transition-all rounded-md font-medium w-fit ${isActive ? 'bg-brand-orange text-white' : 'bg-brand-orange/90 text-white hover:bg-brand-orange'}`
                      }
                      onClick={() => setIsMenuOpen(false)}
                    >
