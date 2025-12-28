@@ -268,25 +268,25 @@ const Account: React.FC = () => {
             <div className="space-y-2">
               {/* First Row - 3 tabs */}
               <TabsList className={`${isMobile ? 'flex overflow-x-auto' : 'grid grid-cols-3'} w-full`}>
-                <TabsTrigger value="overview" className={`${isMobile ? 'flex-shrink-0' : ''} border-2 border-yellow-400`}>
+                <TabsTrigger value="overview" className={`${isMobile ? 'flex-shrink-0' : ''} border-2 border-green-500`}>
                   Storage
                 </TabsTrigger>
-                <TabsTrigger value="asset-values" className={`${isMobile ? 'flex-shrink-0' : ''} border-2 border-yellow-400`}>
+                <TabsTrigger value="asset-values" className={`${isMobile ? 'flex-shrink-0' : ''} border-2 border-green-500`}>
                   {isMobile ? 'Assets' : 'Asset Values'}
                 </TabsTrigger>
-                <TabsTrigger value="source-websites" className={`${isMobile ? 'flex-shrink-0' : ''} border-2 border-yellow-400`}>
+                <TabsTrigger value="source-websites" className={`${isMobile ? 'flex-shrink-0' : ''} border-2 border-green-500`}>
                   {isMobile ? 'Websites' : 'Source Websites'}
                 </TabsTrigger>
               </TabsList>
               {/* Second Row - 3 tabs */}
               <TabsList className={`${isMobile ? 'flex overflow-x-auto' : 'grid grid-cols-3'} w-full`}>
-                <TabsTrigger value="damage" className={`${isMobile ? 'flex-shrink-0' : ''} border-2 border-yellow-400`}>
+                <TabsTrigger value="damage" className={`${isMobile ? 'flex-shrink-0' : ''} border-2 border-green-500`}>
                   {isMobile ? 'Damage' : 'Post Damage'}
                 </TabsTrigger>
-                <TabsTrigger value="voice-notes" className={`${isMobile ? 'flex-shrink-0' : ''} border-2 border-yellow-400`}>
+                <TabsTrigger value="voice-notes" className={`${isMobile ? 'flex-shrink-0' : ''} border-2 border-green-500`}>
                   {isMobile ? 'Notes' : 'Voice Notes'}
                 </TabsTrigger>
-                <TabsTrigger value="paint-codes" className={`${isMobile ? 'flex-shrink-0' : ''} border-2 border-yellow-400`}>
+                <TabsTrigger value="paint-codes" className={`${isMobile ? 'flex-shrink-0' : ''} border-2 border-green-500`}>
                   {isMobile ? 'Paint' : 'Paint Codes'}
                 </TabsTrigger>
               </TabsList>
