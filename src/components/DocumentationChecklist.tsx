@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
-import { Button } from '@/components/ui/button';
-import { Calendar } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ChevronDown, ChevronRight, ClipboardList } from 'lucide-react';
 
 interface ChecklistItem {
   id: string;
@@ -19,6 +19,7 @@ interface ChecklistSection {
 
 const DocumentationChecklist: React.FC = () => {
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
+  const [isOpen, setIsOpen] = useState(false);
 
   const toggleChecked = (itemId: string) => {
     const newCheckedItems = new Set(checkedItems);
@@ -202,16 +203,25 @@ const DocumentationChecklist: React.FC = () => {
     }
   ];
 
+  // Calculate overall progress for all checklists combined
+  const allChecklists = [...homeownersChecklist, ...businessChecklist, ...managementChecklist, ...industrialChecklist];
+  const totalItems = allChecklists.reduce((sum, section) => sum + section.items.length, 0);
+  const completedItems = allChecklists.reduce(
+    (sum, section) => sum + section.items.filter(item => checkedItems.has(item.id)).length,
+    0
+  );
+  const overallPercentage = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
+
   const ChecklistComponent: React.FC<{
     title: string;
     checklist: ChecklistSection[];
   }> = ({ title, checklist }) => {
-    const totalItems = checklist.reduce((sum, section) => sum + section.items.length, 0);
-    const completedItems = checklist.reduce(
+    const sectionTotalItems = checklist.reduce((sum, section) => sum + section.items.length, 0);
+    const sectionCompletedItems = checklist.reduce(
       (sum, section) => sum + section.items.filter(item => checkedItems.has(item.id)).length,
       0
     );
-    const completionPercentage = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
+    const completionPercentage = sectionTotalItems > 0 ? (sectionCompletedItems / sectionTotalItems) * 100 : 0;
 
     return (
       <div className="space-y-6">
@@ -220,7 +230,7 @@ const DocumentationChecklist: React.FC = () => {
           <div className="space-y-2">
             <Progress value={completionPercentage} className="w-full max-w-md mx-auto" />
             <p className="text-sm text-gray-600">
-              {completedItems} of {totalItems} items completed ({Math.round(completionPercentage)}%)
+              {sectionCompletedItems} of {sectionTotalItems} items completed ({Math.round(completionPercentage)}%)
             </p>
           </div>
         </div>
@@ -262,53 +272,86 @@ const DocumentationChecklist: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="text-center">
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">
-          Complete Documentation Checklist
-        </h2>
-        <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-6">
-          Comprehensive checklists tailored to your property type to ensure complete documentation coverage
-        </p>
-      </div>
+    <Card className="w-full">
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <CollapsibleTrigger asChild>
+          <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <ClipboardList className="h-6 w-6 text-brand-blue" />
+                <div>
+                  <CardTitle className="text-xl">Complete Documentation Checklist</CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {completedItems} of {totalItems} items completed
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="w-32 hidden sm:block">
+                  <Progress value={overallPercentage} className="h-2" />
+                  <p className="text-xs text-muted-foreground mt-1 text-right">
+                    {Math.round(overallPercentage)}%
+                  </p>
+                </div>
+                {isOpen ? (
+                  <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                ) : (
+                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                )}
+              </div>
+            </div>
+            {/* Mobile progress bar */}
+            <div className="sm:hidden mt-3">
+              <Progress value={overallPercentage} className="h-2" />
+              <p className="text-xs text-muted-foreground mt-1">
+                {Math.round(overallPercentage)}% complete
+              </p>
+            </div>
+          </CardHeader>
+        </CollapsibleTrigger>
 
-      <Tabs defaultValue="homeowners" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="homeowners">Homeowners</TabsTrigger>
-          <TabsTrigger value="business">Business</TabsTrigger>
-          <TabsTrigger value="management">Management</TabsTrigger>
-          <TabsTrigger value="industrial">Industrial</TabsTrigger>
-        </TabsList>
+        <CollapsibleContent>
+          <CardContent className="pt-0">
+            <Tabs defaultValue="homeowners" className="space-y-6">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="homeowners">Homeowners</TabsTrigger>
+                <TabsTrigger value="business">Business</TabsTrigger>
+                <TabsTrigger value="management">Management</TabsTrigger>
+                <TabsTrigger value="industrial">Industrial</TabsTrigger>
+              </TabsList>
 
-        <TabsContent value="homeowners">
-          <ChecklistComponent
-            title="Homeowners Documentation Checklist"
-            checklist={homeownersChecklist}
-          />
-        </TabsContent>
+              <TabsContent value="homeowners">
+                <ChecklistComponent
+                  title="Homeowners Documentation Checklist"
+                  checklist={homeownersChecklist}
+                />
+              </TabsContent>
 
-        <TabsContent value="business">
-          <ChecklistComponent
-            title="Business Property Documentation Checklist"
-            checklist={businessChecklist}
-          />
-        </TabsContent>
+              <TabsContent value="business">
+                <ChecklistComponent
+                  title="Business Property Documentation Checklist"
+                  checklist={businessChecklist}
+                />
+              </TabsContent>
 
-        <TabsContent value="management">
-          <ChecklistComponent
-            title="Property Management Documentation Checklist"
-            checklist={managementChecklist}
-          />
-        </TabsContent>
+              <TabsContent value="management">
+                <ChecklistComponent
+                  title="Property Management Documentation Checklist"
+                  checklist={managementChecklist}
+                />
+              </TabsContent>
 
-        <TabsContent value="industrial">
-          <ChecklistComponent
-            title="Industrial Property Documentation Checklist"
-            checklist={industrialChecklist}
-          />
-        </TabsContent>
-      </Tabs>
-    </div>
+              <TabsContent value="industrial">
+                <ChecklistComponent
+                  title="Industrial Property Documentation Checklist"
+                  checklist={industrialChecklist}
+                />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </CollapsibleContent>
+      </Collapsible>
+    </Card>
   );
 };
 

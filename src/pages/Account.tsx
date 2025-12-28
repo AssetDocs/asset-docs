@@ -267,26 +267,26 @@ const Account: React.FC = () => {
           <Tabs defaultValue="overview" className="space-y-6" id="tabs-content">
             <div className="space-y-2">
               {/* First Row - 3 tabs */}
-              <TabsList className={`${isMobile ? 'flex overflow-x-auto' : 'grid grid-cols-3'} w-full`}>
-                <TabsTrigger value="overview" className={`${isMobile ? 'flex-shrink-0' : ''} border-2 border-green-500`}>
+              <TabsList className={`${isMobile ? 'flex overflow-x-auto' : 'grid grid-cols-3'} w-full gap-2 bg-transparent h-auto p-0`}>
+                <TabsTrigger value="overview" className={`${isMobile ? 'flex-shrink-0' : ''} bg-brand-green text-white text-xs py-1.5 px-2 data-[state=active]:bg-brand-green/80 data-[state=active]:text-white hover:bg-brand-green/90`}>
                   Storage
                 </TabsTrigger>
-                <TabsTrigger value="asset-values" className={`${isMobile ? 'flex-shrink-0' : ''} border-2 border-green-500`}>
+                <TabsTrigger value="asset-values" className={`${isMobile ? 'flex-shrink-0' : ''} bg-brand-green text-white text-xs py-1.5 px-2 data-[state=active]:bg-brand-green/80 data-[state=active]:text-white hover:bg-brand-green/90`}>
                   {isMobile ? 'Assets' : 'Asset Values'}
                 </TabsTrigger>
-                <TabsTrigger value="source-websites" className={`${isMobile ? 'flex-shrink-0' : ''} border-2 border-green-500`}>
+                <TabsTrigger value="source-websites" className={`${isMobile ? 'flex-shrink-0' : ''} bg-brand-green text-white text-xs py-1.5 px-2 data-[state=active]:bg-brand-green/80 data-[state=active]:text-white hover:bg-brand-green/90`}>
                   {isMobile ? 'Websites' : 'Source Websites'}
                 </TabsTrigger>
               </TabsList>
               {/* Second Row - 3 tabs */}
-              <TabsList className={`${isMobile ? 'flex overflow-x-auto' : 'grid grid-cols-3'} w-full`}>
-                <TabsTrigger value="damage" className={`${isMobile ? 'flex-shrink-0' : ''} border-2 border-green-500`}>
+              <TabsList className={`${isMobile ? 'flex overflow-x-auto' : 'grid grid-cols-3'} w-full gap-2 bg-transparent h-auto p-0`}>
+                <TabsTrigger value="damage" className={`${isMobile ? 'flex-shrink-0' : ''} bg-brand-green text-white text-xs py-1.5 px-2 data-[state=active]:bg-brand-green/80 data-[state=active]:text-white hover:bg-brand-green/90`}>
                   {isMobile ? 'Damage' : 'Post Damage'}
                 </TabsTrigger>
-                <TabsTrigger value="voice-notes" className={`${isMobile ? 'flex-shrink-0' : ''} border-2 border-green-500`}>
+                <TabsTrigger value="voice-notes" className={`${isMobile ? 'flex-shrink-0' : ''} bg-brand-green text-white text-xs py-1.5 px-2 data-[state=active]:bg-brand-green/80 data-[state=active]:text-white hover:bg-brand-green/90`}>
                   {isMobile ? 'Notes' : 'Voice Notes'}
                 </TabsTrigger>
-                <TabsTrigger value="paint-codes" className={`${isMobile ? 'flex-shrink-0' : ''} border-2 border-green-500`}>
+                <TabsTrigger value="paint-codes" className={`${isMobile ? 'flex-shrink-0' : ''} bg-brand-green text-white text-xs py-1.5 px-2 data-[state=active]:bg-brand-green/80 data-[state=active]:text-white hover:bg-brand-green/90`}>
                   {isMobile ? 'Paint' : 'Paint Codes'}
                 </TabsTrigger>
               </TabsList>
@@ -490,8 +490,16 @@ const Account: React.FC = () => {
                 </Card>
               </div>
 
-              {/* Third Row - Export Assets, Download All Files */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Documentation Checklist - Above Secure Vault */}
+              <DocumentationChecklist />
+
+              {/* Secure Vault */}
+              <div className="mt-6">
+                <SecureVault />
+              </div>
+
+              {/* Export Assets, Download All Files - Bottom of page */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                 {/* Export Assets Card */}
                 <Card className="hover:shadow-lg transition-shadow">
                   <CardHeader>
@@ -550,13 +558,6 @@ const Account: React.FC = () => {
                   </CardContent>
                 </Card>
               </div>
-
-              {/* Secure Vault - Moved to bottom, above Documentation Checklist */}
-              <div className="mt-6">
-                <SecureVault />
-              </div>
-
-              <DocumentationChecklist />
             </TabsContent>
 
 
