@@ -275,7 +275,7 @@ const SecureVault: React.FC = () => {
             <div>
               <CardTitle className="flex items-center gap-2 text-xl">
                 <Lock className="h-6 w-6 text-yellow-600" />
-                Secure Vault (Restricted)
+                Secure Vault (Advanced Protection) - Restricted
               </CardTitle>
               <CardDescription className="text-yellow-700 dark:text-yellow-300">
                 Password Catalog & Legacy Locker - Protected with End-to-End Encryption
@@ -307,9 +307,9 @@ const SecureVault: React.FC = () => {
           <CardHeader className="bg-yellow-50 dark:bg-yellow-900/20 border-b border-yellow-400">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="flex items-center gap-2 text-xl">
-                  <Lock className="h-6 w-6 text-yellow-600" />
-                  Secure Vault (Locked)
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Lock className="h-6 w-6 text-yellow-600" />
+                Secure Vault (Advanced Protection) - Locked
                 </CardTitle>
                 <CardDescription className="text-yellow-700 dark:text-yellow-300">
                   Password Catalog & Legacy Locker - Protected with End-to-End Encryption
@@ -356,7 +356,7 @@ const SecureVault: React.FC = () => {
             <div>
               <CardTitle className="flex items-center gap-2 text-2xl">
                 <Shield className="h-7 w-7 text-yellow-600" />
-                Secure Vault {isUnlocked ? '(Unlocked)' : ''}
+                Secure Vault (Advanced Protection) {isUnlocked ? '- Unlocked' : ''}
               </CardTitle>
               <CardDescription className="text-yellow-700 dark:text-yellow-300 text-base mt-1">
                 Password Catalog & Legacy Locker — Your Most Sensitive Information
