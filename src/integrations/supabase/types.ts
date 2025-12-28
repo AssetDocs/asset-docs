@@ -528,6 +528,69 @@ export type Database = {
         }
         Relationships: []
       }
+      insurance_policies: {
+        Row: {
+          agent_email: string | null
+          agent_name: string | null
+          agent_phone: string | null
+          coverage_amount: number | null
+          coverage_details: string | null
+          created_at: string
+          deductible: number | null
+          id: string
+          insurance_company: string
+          notes: string | null
+          policy_end_date: string | null
+          policy_number: string
+          policy_start_date: string | null
+          policy_type: string
+          premium_amount: number | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agent_email?: string | null
+          agent_name?: string | null
+          agent_phone?: string | null
+          coverage_amount?: number | null
+          coverage_details?: string | null
+          created_at?: string
+          deductible?: number | null
+          id?: string
+          insurance_company: string
+          notes?: string | null
+          policy_end_date?: string | null
+          policy_number: string
+          policy_start_date?: string | null
+          policy_type?: string
+          premium_amount?: number | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agent_email?: string | null
+          agent_name?: string | null
+          agent_phone?: string | null
+          coverage_amount?: number | null
+          coverage_details?: string | null
+          created_at?: string
+          deductible?: number | null
+          id?: string
+          insurance_company?: string
+          notes?: string | null
+          policy_end_date?: string | null
+          policy_number?: string
+          policy_start_date?: string | null
+          policy_type?: string
+          premium_amount?: number | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       items: {
         Row: {
           ai_generated: boolean | null

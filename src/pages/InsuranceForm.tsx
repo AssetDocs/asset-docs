@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -9,10 +8,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { ArrowLeft, Save, Upload } from 'lucide-react';
+import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { InsuranceService } from '@/services/InsuranceService';
 
 const InsuranceForm: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     policyType: 'homeowners',
     insuranceCompany: '',
@@ -31,12 +36,64 @@ const InsuranceForm: React.FC = () => {
 
   const [attachments, setAttachments] = useState<File[]>([]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Insurance data:', formData);
-    console.log('Attachments:', attachments);
-    // Here you would save to your backend/database
-    navigate('/account/insurance');
+    
+    if (!user?.id) {
+      toast({
+        title: 'Authentication required',
+        description: 'Please log in to add an insurance policy.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!formData.insuranceCompany || !formData.policyNumber) {
+      toast({
+        title: 'Required fields missing',
+        description: 'Please fill in the insurance company and policy number.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    try {
+      await InsuranceService.createPolicy({
+        user_id: user.id,
+        policy_type: formData.policyType,
+        insurance_company: formData.insuranceCompany,
+        policy_number: formData.policyNumber,
+        agent_name: formData.agentName || undefined,
+        agent_phone: formData.agentPhone || undefined,
+        agent_email: formData.agentEmail || undefined,
+        policy_start_date: formData.policyStartDate || undefined,
+        policy_end_date: formData.policyEndDate || undefined,
+        premium_amount: formData.premiumAmount ? parseFloat(formData.premiumAmount) : undefined,
+        deductible: formData.deductible ? parseFloat(formData.deductible) : undefined,
+        coverage_amount: formData.coverageAmount ? parseFloat(formData.coverageAmount) : undefined,
+        coverage_details: formData.coverageDetails || undefined,
+        notes: formData.notes || undefined,
+        status: 'active',
+      });
+
+      toast({
+        title: 'Policy saved!',
+        description: 'Your insurance policy has been added successfully.',
+      });
+
+      navigate('/account/insurance');
+    } catch (error) {
+      console.error('Error saving policy:', error);
+      toast({
+        title: 'Failed to save policy',
+        description: 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -66,11 +123,11 @@ const InsuranceForm: React.FC = () => {
           <div className="mb-6">
             <Button 
               variant="ghost" 
-              onClick={() => navigate('/account')}
+              onClick={() => navigate('/account/insurance')}
               className="mb-4"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Dashboard
+              Back to Insurance Policies
             </Button>
             <h1 className="text-3xl font-bold text-brand-blue mb-2">Add Insurance Policy</h1>
             <p className="text-gray-600">Document your insurance coverage and important details</p>
@@ -109,6 +166,10 @@ const InsuranceForm: React.FC = () => {
                       <Label htmlFor="umbrella">Umbrella</Label>
                     </div>
                     <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="flood" id="flood" />
+                      <Label htmlFor="flood">Flood</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
                       <RadioGroupItem value="other" id="other" />
                       <Label htmlFor="other">Other</Label>
                     </div>
@@ -117,7 +178,7 @@ const InsuranceForm: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <Label htmlFor="insuranceCompany">Insurance Company</Label>
+                    <Label htmlFor="insuranceCompany">Insurance Company *</Label>
                     <Input
                       id="insuranceCompany"
                       name="insuranceCompany"
@@ -129,7 +190,7 @@ const InsuranceForm: React.FC = () => {
                   </div>
                   
                   <div>
-                    <Label htmlFor="policyNumber">Policy Number</Label>
+                    <Label htmlFor="policyNumber">Policy Number *</Label>
                     <Input
                       id="policyNumber"
                       name="policyNumber"
@@ -186,7 +247,6 @@ const InsuranceForm: React.FC = () => {
                       type="date"
                       value={formData.policyStartDate}
                       onChange={handleInputChange}
-                      required
                     />
                   </div>
                   
@@ -198,14 +258,13 @@ const InsuranceForm: React.FC = () => {
                       type="date"
                       value={formData.policyEndDate}
                       onChange={handleInputChange}
-                      required
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="premiumAmount">Annual Premium</Label>
+                    <Label htmlFor="premiumAmount">Annual Premium ($)</Label>
                     <Input
                       id="premiumAmount"
                       name="premiumAmount"
@@ -217,7 +276,7 @@ const InsuranceForm: React.FC = () => {
                   </div>
                   
                   <div>
-                    <Label htmlFor="deductible">Deductible</Label>
+                    <Label htmlFor="deductible">Deductible ($)</Label>
                     <Input
                       id="deductible"
                       name="deductible"
@@ -229,7 +288,7 @@ const InsuranceForm: React.FC = () => {
                   </div>
                   
                   <div>
-                    <Label htmlFor="coverageAmount">Coverage Amount</Label>
+                    <Label htmlFor="coverageAmount">Coverage Amount ($)</Label>
                     <Input
                       id="coverageAmount"
                       name="coverageAmount"
@@ -300,14 +359,27 @@ const InsuranceForm: React.FC = () => {
                 </div>
 
                 <div className="flex space-x-4">
-                  <Button type="submit" className="bg-brand-blue hover:bg-brand-lightBlue">
-                    <Save className="h-4 w-4 mr-2" />
-                    Save Policy
+                  <Button 
+                    type="submit" 
+                    className="bg-brand-blue hover:bg-brand-lightBlue"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Policy
+                      </>
+                    )}
                   </Button>
                   <Button 
                     type="button" 
                     variant="outline" 
-                    onClick={() => navigate('/account')}
+                    onClick={() => navigate('/account/insurance')}
                   >
                     Cancel
                   </Button>

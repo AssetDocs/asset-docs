@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -10,18 +10,16 @@ import {
   Plus,
   Search,
   SortAsc,
-  SortDesc,
   Calendar,
   Type,
   Grid3X3,
   List,
   Eye,
-  Download,
-  Move,
   Trash2,
   FileText,
   CheckSquare,
-  Square
+  Square,
+  Loader2
 } from 'lucide-react';
 import { 
   DropdownMenu,
@@ -32,107 +30,83 @@ import {
 import { useNavigate } from 'react-router-dom';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
-
-
-// Mock data for demonstration
-const mockInsurancePolicies = [
-  {
-    id: 1,
-    name: "Home Insurance Policy 2024",
-    policyNumber: "HI-2024-001234",
-    provider: "State Farm",
-    type: "Homeowners",
-    status: "Active",
-    premium: "$1,250/year",
-    coverage: "$500,000",
-    startDate: "2024-01-01",
-    endDate: "2024-12-31",
-    propertyId: 1,
-    propertyName: "Main Residence",
-    folderId: null,
-    tags: ["homeowners", "active"]
-  },
-  {
-    id: 2,
-    name: "Flood Insurance Policy",
-    policyNumber: "FL-2024-005678", 
-    provider: "FEMA",
-    type: "Flood",
-    status: "Active",
-    premium: "$450/year",
-    coverage: "$250,000",
-    startDate: "2024-02-15",
-    endDate: "2025-02-15",
-    propertyId: 1,
-    propertyName: "Main Residence",
-    folderId: 1,
-    tags: ["flood", "active"]
-  },
-  {
-    id: 3,
-    name: "Umbrella Policy",
-    policyNumber: "UM-2024-009876",
-    provider: "Allstate",
-    type: "Umbrella",
-    status: "Active", 
-    premium: "$300/year",
-    coverage: "$1,000,000",
-    startDate: "2024-01-01",
-    endDate: "2024-12-31",
-    propertyId: 1,
-    propertyName: "Main Residence",
-    folderId: 2,
-    tags: ["umbrella", "liability"]
-  }
-];
-
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { InsuranceService, InsurancePolicy } from '@/services/InsuranceService';
 
 type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'premium-desc' | 'premium-asc';
 type ViewMode = 'grid' | 'list';
 
 const Insurance: React.FC = () => {
   const navigate = useNavigate();
-  const [policies, setPolicies] = useState(mockInsurancePolicies);
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [policies, setPolicies] = useState<InsurancePolicy[]>([]);
+  const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<SortOption>('date-desc');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedPolicies, setSelectedPolicies] = useState<number[]>([]);
+  const [selectedPolicies, setSelectedPolicies] = useState<string[]>([]);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [policyToDelete, setPolicyToDelete] = useState<number | null>(null);
+  const [policyToDelete, setPolicyToDelete] = useState<string | null>(null);
   const [bulkDeleteMode, setBulkDeleteMode] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    if (user?.id) {
+      loadPolicies();
+    }
+  }, [user]);
+
+  const loadPolicies = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const data = await InsuranceService.getUserPolicies(user.id);
+      setPolicies(data);
+    } catch (error) {
+      console.error('Error loading policies:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load insurance policies',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleBack = () => {
     navigate('/account');
   };
 
   const filteredPolicies = policies.filter(policy => {
-    const matchesSearch = policy.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         policy.provider.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         policy.policyNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         policy.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesSearch = policy.insurance_company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         policy.policy_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         policy.policy_type?.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesSearch;
   });
 
   const sortedPolicies = [...filteredPolicies].sort((a, b) => {
     switch (sortBy) {
       case 'date-desc':
-        return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       case 'date-asc':
-        return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
       case 'name-asc':
-        return a.name.localeCompare(b.name);
+        return (a.insurance_company || '').localeCompare(b.insurance_company || '');
       case 'name-desc':
-        return b.name.localeCompare(a.name);
+        return (b.insurance_company || '').localeCompare(a.insurance_company || '');
       case 'premium-desc':
-        return parseFloat(b.premium.replace(/[^0-9.]/g, '')) - parseFloat(a.premium.replace(/[^0-9.]/g, ''));
+        return (b.premium_amount || 0) - (a.premium_amount || 0);
       case 'premium-asc':
-        return parseFloat(a.premium.replace(/[^0-9.]/g, '')) - parseFloat(b.premium.replace(/[^0-9.]/g, ''));
+        return (a.premium_amount || 0) - (b.premium_amount || 0);
       default:
         return 0;
     }
   });
 
-  const togglePolicySelection = (policyId: number) => {
+  const togglePolicySelection = (policyId: string) => {
     setSelectedPolicies(prev => 
       prev.includes(policyId) 
         ? prev.filter(id => id !== policyId)
@@ -148,7 +122,7 @@ const Insurance: React.FC = () => {
     setSelectedPolicies([]);
   };
 
-  const handleDeletePolicy = (policyId: number) => {
+  const handleDeletePolicy = (policyId: string) => {
     setPolicyToDelete(policyId);
     setBulkDeleteMode(false);
     setShowDeleteDialog(true);
@@ -159,17 +133,41 @@ const Insurance: React.FC = () => {
     setShowDeleteDialog(true);
   };
 
-  const confirmDelete = () => {
-    if (bulkDeleteMode) {
-      setPolicies(prev => prev.filter(policy => !selectedPolicies.includes(policy.id)));
-      setSelectedPolicies([]);
-    } else if (policyToDelete) {
-      setPolicies(prev => prev.filter(policy => policy.id !== policyToDelete));
-      setSelectedPolicies(prev => prev.filter(id => id !== policyToDelete));
+  const confirmDelete = async () => {
+    setIsDeleting(true);
+    try {
+      if (bulkDeleteMode) {
+        for (const policyId of selectedPolicies) {
+          await InsuranceService.deletePolicy(policyId);
+        }
+        setPolicies(prev => prev.filter(policy => !selectedPolicies.includes(policy.id)));
+        toast({
+          title: 'Policies deleted',
+          description: `${selectedPolicies.length} policy(ies) have been deleted.`,
+        });
+        setSelectedPolicies([]);
+      } else if (policyToDelete) {
+        await InsuranceService.deletePolicy(policyToDelete);
+        setPolicies(prev => prev.filter(policy => policy.id !== policyToDelete));
+        setSelectedPolicies(prev => prev.filter(id => id !== policyToDelete));
+        toast({
+          title: 'Policy deleted',
+          description: 'The insurance policy has been deleted.',
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting policy:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete policy',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+      setPolicyToDelete(null);
+      setBulkDeleteMode(false);
     }
-    setShowDeleteDialog(false);
-    setPolicyToDelete(null);
-    setBulkDeleteMode(false);
   };
 
   const cancelDelete = () => {
@@ -178,8 +176,8 @@ const Insurance: React.FC = () => {
     setBulkDeleteMode(false);
   };
 
-
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -188,7 +186,7 @@ const Insurance: React.FC = () => {
   };
 
   const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case 'active':
         return 'bg-green-100 text-green-800';
       case 'expired':
@@ -199,6 +197,23 @@ const Insurance: React.FC = () => {
         return 'bg-gray-100 text-gray-800';
     }
   };
+
+  const formatCurrency = (amount: number | undefined) => {
+    if (!amount) return 'N/A';
+    return `$${amount.toLocaleString()}`;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <Navbar />
+        <div className="flex-grow flex items-center justify-center bg-gray-50">
+          <Loader2 className="h-8 w-8 animate-spin text-brand-blue" />
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -232,26 +247,28 @@ const Insurance: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <Button 
-                onClick={selectedPolicies.length === sortedPolicies.length ? unselectAll : selectAll} 
-                variant="outline" 
-                size="sm"
-              >
-                {selectedPolicies.length === sortedPolicies.length ? (
-                  <>
-                    <Square className="h-4 w-4 mr-2" />
-                    Unselect All
-                  </>
-                ) : (
-                  <>
-                    <CheckSquare className="h-4 w-4 mr-2" />
-                    Select All
-                  </>
-                )}
-              </Button>
+              {sortedPolicies.length > 0 && (
+                <Button 
+                  onClick={selectedPolicies.length === sortedPolicies.length ? unselectAll : selectAll} 
+                  variant="outline" 
+                  size="sm"
+                >
+                  {selectedPolicies.length === sortedPolicies.length ? (
+                    <>
+                      <Square className="h-4 w-4 mr-2" />
+                      Unselect All
+                    </>
+                  ) : (
+                    <>
+                      <CheckSquare className="h-4 w-4 mr-2" />
+                      Select All
+                    </>
+                  )}
+                </Button>
+              )}
               
               {selectedPolicies.length > 0 && (
-                <Button onClick={handleBulkDelete} variant="destructive" size="sm">
+                <Button onClick={handleBulkDelete} variant="destructive" size="sm" disabled={isDeleting}>
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete ({selectedPolicies.length})
                 </Button>
@@ -329,129 +346,142 @@ const Insurance: React.FC = () => {
           </div>
 
           <div className="w-full">
-            {/* Policies Grid */}
-            <div className="w-full">
-              {viewMode === 'grid' ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {sortedPolicies.map((policy) => (
-                    <Card key={policy.id} className="hover:shadow-lg transition-shadow cursor-pointer">
-                      <CardContent className="p-6">
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex items-center">
-                            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                              <Shield className="h-6 w-6 text-blue-600" />
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-lg">{policy.name}</h3>
-                              <p className="text-sm text-gray-500">{policy.provider}</p>
-                            </div>
+            {sortedPolicies.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <Shield className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold mb-2">No insurance policies yet</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Add your first insurance policy to keep track of your coverage.
+                  </p>
+                  <Button asChild>
+                    <a href="/account/insurance/new">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Your First Policy
+                    </a>
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : viewMode === 'grid' ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {sortedPolicies.map((policy) => (
+                  <Card key={policy.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center">
+                          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                            <Shield className="h-6 w-6 text-blue-600" />
                           </div>
+                          <div>
+                            <h3 className="font-semibold text-lg">{policy.insurance_company}</h3>
+                            <p className="text-sm text-gray-500 capitalize">{policy.policy_type}</p>
+                          </div>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={selectedPolicies.includes(policy.id)}
+                          onChange={() => togglePolicySelection(policy.id)}
+                          className="h-4 w-4"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2 mb-4">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600">Policy #:</span>
+                          <span className="text-sm font-medium">{policy.policy_number}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600">Coverage:</span>
+                          <span className="text-sm font-medium">{formatCurrency(policy.coverage_amount)}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600">Premium:</span>
+                          <span className="text-sm font-medium">{formatCurrency(policy.premium_amount)}/year</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600">Expires:</span>
+                          <span className="text-sm font-medium">{formatDate(policy.policy_end_date)}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600">Status:</span>
+                          <Badge className={getStatusColor(policy.status)}>
+                            {policy.status}
+                          </Badge>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" className="flex-1">
+                          <Eye className="h-3 w-3 mr-1" />
+                          View
+                        </Button>
+                        <Button size="sm" variant="outline" className="flex-1">
+                          <FileText className="h-3 w-3 mr-1" />
+                          Details
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="destructive"
+                          onClick={() => handleDeletePolicy(policy.id)}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {sortedPolicies.map((policy) => (
+                  <Card key={policy.id} className="hover:shadow-sm transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
                           <input
                             type="checkbox"
                             checked={selectedPolicies.includes(policy.id)}
                             onChange={() => togglePolicySelection(policy.id)}
-                            className="h-4 w-4"
+                            className="h-4 w-4 mr-3"
                           />
-                        </div>
-                        
-                        <div className="space-y-2 mb-4">
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-600">Policy #:</span>
-                            <span className="text-sm font-medium">{policy.policyNumber}</span>
+                          <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center mr-3">
+                            <Shield className="h-4 w-4 text-blue-600" />
                           </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-600">Type:</span>
-                            <span className="text-sm font-medium">{policy.type}</span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-600">Coverage:</span>
-                            <span className="text-sm font-medium">{policy.coverage}</span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-600">Premium:</span>
-                            <span className="text-sm font-medium">{policy.premium}</span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-600">Status:</span>
-                            <Badge className={getStatusColor(policy.status)}>
-                              {policy.status}
-                            </Badge>
+                          <div>
+                            <h3 className="font-medium">{policy.insurance_company}</h3>
+                            <p className="text-sm text-gray-500">
+                              {policy.policy_type} • {policy.policy_number} • {formatCurrency(policy.premium_amount)}/year
+                            </p>
                           </div>
                         </div>
-                        
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline" className="flex-1">
-                            <Eye className="h-3 w-3 mr-1" />
-                            View
-                          </Button>
-                          <Button size="sm" variant="outline" className="flex-1">
-                            <FileText className="h-3 w-3 mr-1" />
-                            Details
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="destructive"
-                            onClick={() => handleDeletePolicy(policy.id)}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {sortedPolicies.map((policy) => (
-                    <Card key={policy.id} className="hover:shadow-sm transition-shadow">
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <input
-                              type="checkbox"
-                              checked={selectedPolicies.includes(policy.id)}
-                              onChange={() => togglePolicySelection(policy.id)}
-                              className="h-4 w-4 mr-3"
-                            />
-                            <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center mr-3">
-                              <Shield className="h-4 w-4 text-blue-600" />
-                            </div>
-                            <div>
-                              <h3 className="font-medium">{policy.name}</h3>
-                              <p className="text-sm text-gray-500">
-                                {policy.provider} • {policy.policyNumber} • {policy.premium}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <Badge className={getStatusColor(policy.status)}>
-                              {policy.status}
-                            </Badge>
-                            <div className="flex gap-2">
-                              <Button size="sm" variant="outline">
-                                <Eye className="h-4 w-4 mr-1" />
-                                View
-                              </Button>
-                              <Button size="sm" variant="outline">
-                                <FileText className="h-4 w-4 mr-1" />
-                                Details
-                              </Button>
-                              <Button 
-                                size="sm" 
-                                variant="destructive"
-                                onClick={() => handleDeletePolicy(policy.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
+                        <div className="flex items-center gap-3">
+                          <Badge className={getStatusColor(policy.status)}>
+                            {policy.status}
+                          </Badge>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="outline">
+                              <Eye className="h-4 w-4 mr-1" />
+                              View
+                            </Button>
+                            <Button size="sm" variant="outline">
+                              <FileText className="h-4 w-4 mr-1" />
+                              Details
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="destructive"
+                              onClick={() => handleDeletePolicy(policy.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -462,8 +492,11 @@ const Insurance: React.FC = () => {
         isOpen={showDeleteDialog}
         onClose={cancelDelete}
         onConfirm={confirmDelete}
-        title={bulkDeleteMode ? "Delete Selected Policies" : "Delete Policy"}
-        itemCount={bulkDeleteMode ? selectedPolicies.length : 1}
+        title={bulkDeleteMode ? "Delete Multiple Policies" : "Delete Policy"}
+        description={bulkDeleteMode 
+          ? `Are you sure you want to delete ${selectedPolicies.length} selected policies? This action cannot be undone.`
+          : "Are you sure you want to delete this insurance policy? This action cannot be undone."
+        }
       />
     </div>
   );
