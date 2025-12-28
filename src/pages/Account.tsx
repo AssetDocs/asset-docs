@@ -269,7 +269,7 @@ const Account: React.FC = () => {
               {/* First Row - 3 tabs */}
               <TabsList className={`${isMobile ? 'flex overflow-x-auto' : 'grid grid-cols-3'} w-full`}>
                 <TabsTrigger value="overview" className={`${isMobile ? 'flex-shrink-0' : ''} border-2 border-yellow-400`}>
-                  {isMobile ? 'Home' : 'Overview'}
+                  Storage
                 </TabsTrigger>
                 <TabsTrigger value="asset-values" className={`${isMobile ? 'flex-shrink-0' : ''} border-2 border-yellow-400`}>
                   {isMobile ? 'Assets' : 'Asset Values'}
@@ -294,7 +294,7 @@ const Account: React.FC = () => {
 
             <TabsContent value="overview" className="space-y-6">
               
-              {/* First Row */}
+              {/* First Row - Photo Management, Document Storage, Insurance Information */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {/* Photo Management Card */}
                 <Card className="hover:shadow-lg transition-shadow">
@@ -323,47 +323,6 @@ const Account: React.FC = () => {
                       <Button 
                         onClick={() => handleRestrictedAction(() => {
                           navigate('/account/photos');
-                        }, true)}
-                        variant="outline"
-                        className="w-full"
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        View Gallery
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Second Row */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Video Documentation Card */}
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Video className="h-6 w-6 mr-2 text-brand-blue" />
-                      Video Documentation
-                    </CardTitle>
-                    <CardDescription>
-                      Upload and manage video recordings of your property and belongings
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <Button 
-                        onClick={() => handleRestrictedAction(() => {
-                          navigate('/account/videos/upload');
-                        })}
-                        className="w-full bg-brand-blue hover:bg-brand-lightBlue"
-                        disabled={isViewer}
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Upload Videos
-                        {isViewer && <Lock className="h-3 w-3 ml-1" />}
-                      </Button>
-                      <Button 
-                        onClick={() => handleRestrictedAction(() => {
-                          navigate('/account/videos');
                         }, true)}
                         variant="outline"
                         className="w-full"
@@ -413,6 +372,85 @@ const Account: React.FC = () => {
                   </CardContent>
                 </Card>
 
+                {/* Insurance Information Card */}
+                <Card className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Shield className="h-6 w-6 mr-2 text-brand-blue" />
+                      Insurance Information
+                    </CardTitle>
+                    <CardDescription>
+                      Manage insurance policies, claims, and related documentation
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <Button 
+                        onClick={() => handleRestrictedAction(() => {
+                          window.location.href = '/account/insurance/new';
+                        })}
+                        className="w-full bg-brand-blue hover:bg-brand-lightBlue"
+                        disabled={isViewer}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Insurance Policy
+                        {isViewer && <Lock className="h-3 w-3 ml-1" />}
+                      </Button>
+                      <Button 
+                        onClick={() => handleRestrictedAction(() => {
+                          window.location.href = '/account/insurance';
+                        }, true)}
+                        variant="outline" 
+                        className="w-full"
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        View Insurance
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Second Row - Video Documentation, Manual Entry */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Video Documentation Card */}
+                <Card className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Video className="h-6 w-6 mr-2 text-brand-blue" />
+                      Video Documentation
+                    </CardTitle>
+                    <CardDescription>
+                      Upload and manage video recordings of your property and belongings
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <Button 
+                        onClick={() => handleRestrictedAction(() => {
+                          navigate('/account/videos/upload');
+                        })}
+                        className="w-full bg-brand-blue hover:bg-brand-lightBlue"
+                        disabled={isViewer}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Upload Videos
+                        {isViewer && <Lock className="h-3 w-3 ml-1" />}
+                      </Button>
+                      <Button 
+                        onClick={() => handleRestrictedAction(() => {
+                          navigate('/account/videos');
+                        }, true)}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        View Gallery
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
                 {/* Manual Entry Card */}
                 <Card className="hover:shadow-lg transition-shadow">
                   <CardHeader>
@@ -452,47 +490,8 @@ const Account: React.FC = () => {
                 </Card>
               </div>
 
-              {/* Third Row - Other Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                
-                {/* Insurance Information Card */}
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Shield className="h-6 w-6 mr-2 text-brand-blue" />
-                      Insurance Information
-                    </CardTitle>
-                    <CardDescription>
-                      Manage insurance policies, claims, and related documentation
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <Button 
-                        onClick={() => handleRestrictedAction(() => {
-                          window.location.href = '/account/insurance/new';
-                        })}
-                        className="w-full bg-brand-blue hover:bg-brand-lightBlue"
-                        disabled={isViewer}
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Insurance Policy
-                        {isViewer && <Lock className="h-3 w-3 ml-1" />}
-                      </Button>
-                      <Button 
-                        onClick={() => handleRestrictedAction(() => {
-                          window.location.href = '/account/insurance';
-                        }, true)}
-                        variant="outline" 
-                        className="w-full"
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        View Insurance
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
+              {/* Third Row - Export Assets, Download All Files */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Export Assets Card */}
                 <Card className="hover:shadow-lg transition-shadow">
                   <CardHeader>
