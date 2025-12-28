@@ -15,13 +15,15 @@ import ItemReceiptsSection from '@/components/ItemReceiptsSection';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
-import { useNavigate } from 'react-router-dom';
+import AddInventoryItemForm from '@/components/AddInventoryItemForm';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
 const Inventory: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -30,6 +32,7 @@ const Inventory: React.FC = () => {
   const [receiptRefresh, setReceiptRefresh] = useState(0);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(searchParams.get('mode') === 'manual');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAddItemsClick = () => {
@@ -186,13 +189,32 @@ const Inventory: React.FC = () => {
                 multiple
                 className="hidden"
               />
-              <Button onClick={handleAddItemsClick} className="flex items-center">
+              <Button variant="outline" onClick={handleAddItemsClick} className="flex items-center">
                 <Plus className="h-4 w-4 mr-2" />
-                Add Items
+                Add with Photo
+              </Button>
+              <Button 
+                onClick={() => setShowAddForm(!showAddForm)} 
+                className="flex items-center bg-brand-blue hover:bg-brand-lightBlue"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Manually
               </Button>
             </div>
           </div>
 
+          {/* Add Item Form */}
+          {showAddForm && (
+            <div className="mb-6">
+              <AddInventoryItemForm 
+                onItemAdded={() => {
+                  loadItems();
+                  setShowAddForm(false);
+                }}
+                onCancel={() => setShowAddForm(false)}
+              />
+            </div>
+          )}
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">

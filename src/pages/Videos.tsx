@@ -22,7 +22,7 @@ type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'size-de
 type ViewMode = 'grid' | 'list';
 
 interface Folder {
-  id: number;
+  id: string;
   name: string;
   description: string;
   photoCount: number;
@@ -38,7 +38,7 @@ const Videos: React.FC = () => {
   const [videos, setVideos] = useState<PropertyFile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [folders, setFolders] = useState<Folder[]>([]);
-  const [selectedFolder, setSelectedFolder] = useState<number | null>(null);
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('date-desc');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [searchTerm, setSearchTerm] = useState('');
@@ -48,7 +48,7 @@ const Videos: React.FC = () => {
   const [videoToDelete, setVideoToDelete] = useState<string | null>(null);
   const [bulkDeleteMode, setBulkDeleteMode] = useState(false);
   const [showDeleteFolderDialog, setShowDeleteFolderDialog] = useState(false);
-  const [folderToDelete, setFolderToDelete] = useState<number | null>(null);
+  const [folderToDelete, setFolderToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     fetchVideos();
@@ -84,8 +84,8 @@ const Videos: React.FC = () => {
 
       if (error) throw error;
       
-      const mappedFolders = data?.map(folder => ({
-        id: parseInt(folder.id),
+      const mappedFolders: Folder[] = data?.map(folder => ({
+        id: folder.id,
         name: folder.folder_name,
         description: folder.description || '',
         photoCount: 0,
@@ -136,7 +136,7 @@ const Videos: React.FC = () => {
     propertyId: parseInt(video.property_id) || 0,
     propertyName: getPropertyName(video.property_id),
     duration: '--:--', // TODO: Store duration in database
-    folderId: null,
+    folderId: video.folder_id || null,
     tags: []
   }));
 
@@ -180,7 +180,7 @@ const Videos: React.FC = () => {
     setSelectedVideos([]);
   };
 
-  const handleMoveVideos = (targetFolderId: number | null) => {
+  const handleMoveVideos = (targetFolderId: string | null) => {
     // TODO: Implement folder functionality
     setSelectedVideos([]);
   };
@@ -218,7 +218,7 @@ const Videos: React.FC = () => {
     }
   };
 
-  const handleDeleteFolder = (folderId: number) => {
+  const handleDeleteFolder = (folderId: string) => {
     setFolderToDelete(folderId);
     setShowDeleteFolderDialog(true);
   };
@@ -231,7 +231,7 @@ const Videos: React.FC = () => {
       const { error: updateError } = await supabase
         .from('property_files')
         .update({ folder_id: null })
-        .eq('folder_id', folderToDelete.toString());
+        .eq('folder_id', folderToDelete);
 
       if (updateError) throw updateError;
 
@@ -239,7 +239,7 @@ const Videos: React.FC = () => {
       const { error: deleteError } = await supabase
         .from('video_folders')
         .delete()
-        .eq('id', folderToDelete.toString());
+        .eq('id', folderToDelete);
 
       if (deleteError) throw deleteError;
       

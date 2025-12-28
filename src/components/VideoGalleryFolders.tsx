@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Folder, Video, Trash2, Plus } from 'lucide-react';
 
 interface Folder {
-  id: number;
+  id: string;
   name: string;
   description: string;
   photoCount: number;
@@ -24,16 +24,16 @@ interface VideoData {
   size: string;
   propertyId: number;
   propertyName: string;
-  folderId: number | null;
+  folderId: string | null;
   tags: string[];
 }
 
 interface VideoGalleryFoldersProps {
   folders: Folder[];
-  selectedFolder: number | null;
-  onFolderSelect: (folderId: number | null) => void;
+  selectedFolder: string | null;
+  onFolderSelect: (folderId: string | null) => void;
   videos: VideoData[];
-  onDeleteFolder: (folderId: number) => void;
+  onDeleteFolder: (folderId: string) => void;
   onCreateFolder: () => void;
 }
 
