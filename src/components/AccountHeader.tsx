@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
-import { Copy, Check, Users } from 'lucide-react';
+import { Copy, Check, Users, Settings, Home } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -97,7 +97,6 @@ const AccountHeader: React.FC = () => {
       <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-brand-blue mb-2">Account Dashboard</h1>
-          <p className="text-gray-600">Manage your properties and asset documentation</p>
           
           {/* Show contributor info if applicable */}
           {contributorInfo && (
@@ -133,6 +132,22 @@ const AccountHeader: React.FC = () => {
               </Button>
             </div>
           )}
+
+          {/* Navigation buttons */}
+          <div className="flex flex-wrap gap-2 mt-4">
+            <Button asChild variant="outline" className="border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white">
+              <Link to="/account-settings">
+                <Settings className="mr-2 h-4 w-4" />
+                Account Settings
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white">
+              <Link to="/properties">
+                <Home className="mr-2 h-4 w-4" />
+                Property Profiles
+              </Link>
+            </Button>
+          </div>
         </div>
       </div>
 
