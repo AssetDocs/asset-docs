@@ -232,9 +232,6 @@ const Account: React.FC = () => {
             <AccountHeader />
           </div>
 
-          <div id="storage-dashboard" className="mb-6">
-            <StorageDashboard />
-          </div>
 
           <Tabs defaultValue="overview" className="space-y-6" id="tabs-content">
             <div className="space-y-2">
@@ -265,7 +262,6 @@ const Account: React.FC = () => {
             </div>
 
             <TabsContent value="overview" className="space-y-6">
-              <AccountStats />
               
               {/* First Row */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
