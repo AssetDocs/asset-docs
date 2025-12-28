@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -10,6 +9,7 @@ import ContributorsTab from '@/components/ContributorsTab';
 import CookieSettings from '@/components/CookieSettings';
 import TOTPSettings from '@/components/TOTPSettings';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
+import StorageDashboard from '@/components/StorageDashboard';
 import { ViewerRestriction, ViewerRestrictionBanner } from '@/components/ViewerRestriction';
 import { useContributor } from '@/contexts/ContributorContext';
 import { Button } from '@/components/ui/button';
