@@ -487,6 +487,16 @@ const Account: React.FC = () => {
                         Add Manual Entry
                         {isViewer && <Lock className="h-3 w-3 ml-1" />}
                       </Button>
+                      <Button 
+                        onClick={() => handleRestrictedAction(() => {
+                          navigate('/inventory');
+                        }, true)}
+                        variant="outline" 
+                        className="w-full"
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        View Entries
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>

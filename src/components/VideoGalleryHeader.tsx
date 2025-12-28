@@ -30,7 +30,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 interface Folder {
-  id: number;
+  id: string;
   name: string;
   description: string;
   photoCount: number;
@@ -52,7 +52,7 @@ interface VideoGalleryHeaderProps {
   onSortChange: (sort: SortOption) => void;
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
-  onMoveVideos: (folderId: number | null) => void;
+  onMoveVideos: (folderId: string | null) => void;
   onBulkDelete: () => void;
   onSelectAll: () => void;
   onUnselectAll: () => void;
