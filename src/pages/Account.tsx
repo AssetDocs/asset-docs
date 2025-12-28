@@ -178,6 +178,7 @@ const Account: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [showTour, setShowTour] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
   const { subscriptionTier } = useSubscription();
   const { isViewer, showViewerRestriction, canEdit } = useContributor();
   const isMobile = useIsMobile();
@@ -271,7 +272,7 @@ const Account: React.FC = () => {
           </div>
 
 
-          <Tabs defaultValue="overview" className="space-y-6" id="tabs-content">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6" id="tabs-content">
             {/* Insights & Tools Dropdown */}
             <div className="w-full">
               <DropdownMenu>
@@ -283,63 +284,37 @@ const Account: React.FC = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] bg-brand-green border-brand-green">
                   <DropdownMenuItem 
-                    onClick={() => {
-                      const tabsElement = document.querySelector('[data-state="active"][value="asset-values"]');
-                      const tabsTrigger = document.querySelector('[value="asset-values"]') as HTMLButtonElement;
-                      tabsTrigger?.click();
-                    }}
+                    onClick={() => setActiveTab('asset-values')}
                     className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
                   >
                     Asset Values
                   </DropdownMenuItem>
                   <DropdownMenuItem 
-                    onClick={() => {
-                      const tabsTrigger = document.querySelector('[value="source-websites"]') as HTMLButtonElement;
-                      tabsTrigger?.click();
-                    }}
+                    onClick={() => setActiveTab('source-websites')}
                     className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
                   >
                     Source Websites
                   </DropdownMenuItem>
                   <DropdownMenuItem 
-                    onClick={() => {
-                      const tabsTrigger = document.querySelector('[value="damage"]') as HTMLButtonElement;
-                      tabsTrigger?.click();
-                    }}
+                    onClick={() => setActiveTab('damage')}
                     className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
                   >
                     Post Damage
                   </DropdownMenuItem>
                   <DropdownMenuItem 
-                    onClick={() => {
-                      const tabsTrigger = document.querySelector('[value="voice-notes"]') as HTMLButtonElement;
-                      tabsTrigger?.click();
-                    }}
+                    onClick={() => setActiveTab('voice-notes')}
                     className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
                   >
                     Voice Notes
                   </DropdownMenuItem>
                   <DropdownMenuItem 
-                    onClick={() => {
-                      const tabsTrigger = document.querySelector('[value="paint-codes"]') as HTMLButtonElement;
-                      tabsTrigger?.click();
-                    }}
+                    onClick={() => setActiveTab('paint-codes')}
                     className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
                   >
                     Paint Codes
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              
-              {/* Hidden TabsList for programmatic control */}
-              <TabsList className="hidden">
-                <TabsTrigger value="overview">Storage</TabsTrigger>
-                <TabsTrigger value="asset-values">Asset Values</TabsTrigger>
-                <TabsTrigger value="source-websites">Source Websites</TabsTrigger>
-                <TabsTrigger value="damage">Post Damage</TabsTrigger>
-                <TabsTrigger value="voice-notes">Voice Notes</TabsTrigger>
-                <TabsTrigger value="paint-codes">Paint Codes</TabsTrigger>
-              </TabsList>
             </div>
 
             <TabsContent value="overview" className="space-y-6">
