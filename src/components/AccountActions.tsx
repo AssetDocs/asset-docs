@@ -3,7 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Home, Camera, Video, FileImage, FileText, Shield, Settings, Plus, Eye, Building, Users } from 'lucide-react';
+import { Camera, Video, FileText, Shield, Plus, Eye } from 'lucide-react';
 import DownloadAllFilesButton from './DownloadAllFilesButton';
 import { ExportAssetsButton } from './ExportAssetsButton';
 import { FeatureButton } from '@/components/FeatureGuard';
@@ -16,97 +16,6 @@ const AccountActions: React.FC<AccountActionsProps> = () => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <Card className="hover:shadow-lg transition-shadow">
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Settings className="h-6 w-6 mr-2 text-brand-blue" />
-            Account Settings
-          </CardTitle>
-          <CardDescription>
-            Update your profile, security settings, and preferences
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <Button 
-              onClick={() => {
-                const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
-                if (isOnSampleDashboard) {
-                  alert('AssetSafe.net says\n\nDemo: This allows you to update your profile, security settings, and preferences.');
-                  return;
-                }
-                window.location.href = '/account/settings';
-              }}
-              variant="orange" 
-              className="w-full"
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              Manage Settings
-            </Button>
-            <Button 
-              onClick={() => {
-                const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
-                if (isOnSampleDashboard) {
-                  alert('AssetSafe.net says\n\nDemo: This allows you to add and manage users who can help document your assets.');
-                  return;
-                }
-                window.location.href = '/account/settings?tab=contributors';
-              }}
-              variant="outline" 
-              className="w-full"
-            >
-              <Users className="h-4 w-4 mr-2" />
-              Manage Contributors
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="hover:shadow-lg transition-shadow">
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Home className="h-6 w-6 mr-2 text-brand-blue" />
-            Property Profiles
-          </CardTitle>
-          <CardDescription>
-            Create and manage property information, square footage, and details
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <Button 
-              onClick={() => {
-                const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
-                if (isOnSampleDashboard) {
-                  alert('AssetSafe.net says\n\nDemo: This allows you to create new property profiles with square footage, room details, and property information.');
-                  return;
-                }
-                window.location.href = '/account/properties/new';
-              }}
-              className="w-full bg-brand-blue hover:bg-brand-lightBlue"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Create New Property
-            </Button>
-            <Button 
-              onClick={() => {
-                const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
-                if (isOnSampleDashboard) {
-                  alert('AssetSafe.net says\n\nDemo: This allows you to view and manage all your documented properties.');
-                  return;
-                }
-                window.location.href = '/account/properties';
-              }}
-              variant="outline" 
-              className="w-full"
-            >
-              <Eye className="h-4 w-4 mr-2" />
-              View All Properties
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
       <Card className="hover:shadow-lg transition-shadow">
         <CardHeader>
           <CardTitle className="flex items-center">
