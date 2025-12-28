@@ -3,6 +3,9 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { SecurityAlertService } from '@/services/SecurityAlertService';
 
+// Session ID for which we've already sent a login alert (prevents duplicates on token refresh)
+const alertedSessionIds = new Set<string>();
+
 interface Profile {
   id: string;
   user_id: string;
@@ -75,12 +78,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 }
               }
 
-              // Send security alert for new login
-              if (event === 'SIGNED_IN') {
-                SecurityAlertService.notifyNewLogin(
-                  session.user.id,
-                  session.user.email || ''
-                ).catch(console.error);
+              // Send security alert for new login (only once per unique session)
+              if (event === 'SIGNED_IN' && session.access_token) {
+                // Use session access_token hash as unique identifier to prevent duplicate alerts
+                // on token refresh or page reload
+                const sessionKey = `${session.user.id}-${session.access_token.slice(-20)}`;
+                if (!alertedSessionIds.has(sessionKey)) {
+                  alertedSessionIds.add(sessionKey);
+                  // Clean up old session keys to prevent memory leak (keep last 10)
+                  if (alertedSessionIds.size > 10) {
+                    const iterator = alertedSessionIds.values();
+                    alertedSessionIds.delete(iterator.next().value);
+                  }
+                  SecurityAlertService.notifyNewLogin(
+                    session.user.id,
+                    session.user.email || ''
+                  ).catch(console.error);
+                }
               }
 
               // Detect email change
