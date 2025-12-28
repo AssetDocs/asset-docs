@@ -93,65 +93,9 @@ const AccountHeader: React.FC = () => {
     : '';
 
   return (
-    <>
-      <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-brand-blue mb-2">Account Dashboard</h1>
-          
-          {/* Show contributor info if applicable */}
-          {contributorInfo && (
-            <div className="flex items-center gap-2 mt-2">
-              <Badge variant="outline" className="text-sm font-medium border-purple-500 text-purple-600 px-3 py-1">
-                <Users className="h-3 w-3 mr-1" />
-                {contributorName || 'Contributor'} • {contributorInfo.role}
-              </Badge>
-              {ownerName && (
-                <span className="text-sm text-muted-foreground">
-                  on {ownerName}'s account
-                </span>
-              )}
-            </div>
-          )}
-          
-          {accountNumber && (
-            <div className="flex items-center gap-2 mt-3">
-              <Badge variant="outline" className="text-sm font-medium border-brand-blue text-brand-blue px-3 py-1">
-                Account #: {accountNumber}
-              </Badge>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={copyAccountNumber}
-                className="h-6 w-6 p-0 hover:bg-gray-100"
-              >
-                {copied ? (
-                  <Check className="h-3 w-3 text-green-500" />
-                ) : (
-                  <Copy className="h-3 w-3 text-gray-500" />
-                )}
-              </Button>
-            </div>
-          )}
-
-          {/* Navigation buttons */}
-          <div className="flex flex-wrap gap-2 mt-4">
-            <Button asChild variant="outline" className="border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white">
-              <Link to="/account-settings">
-                <Settings className="mr-2 h-4 w-4" />
-                Account Settings
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white">
-              <Link to="/properties">
-                <Home className="mr-2 h-4 w-4" />
-                Property Profiles
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </div>
-
-    </>
+    <div className="mb-8">
+      {/* This component is kept for potential future use but buttons moved to WelcomeMessage */}
+    </div>
   );
 };
 

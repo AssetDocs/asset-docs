@@ -52,10 +52,22 @@ const WelcomeMessage: React.FC = () => {
     role: string;
     ownerName: string;
   } | null>(null);
+  const [accountNumber, setAccountNumber] = useState<string>('');
 
   useEffect(() => {
     const fetchContributorInfo = async () => {
       if (!user) return;
+
+      // Get user's profile for account number
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('account_number')
+        .eq('user_id', user.id)
+        .single();
+
+      if (userProfile?.account_number) {
+        setAccountNumber(userProfile.account_number);
+      }
 
       // Check if user is a contributor
       const { data: contributorData } = await supabase
@@ -66,12 +78,16 @@ const WelcomeMessage: React.FC = () => {
         .maybeSingle();
 
       if (contributorData) {
-        // Get owner's name
+        // Get owner's name and account number
         const { data: ownerProfile } = await supabase
           .from('profiles')
-          .select('first_name, last_name')
+          .select('first_name, last_name, account_number')
           .eq('user_id', contributorData.account_owner_id)
           .single();
+
+        if (ownerProfile?.account_number) {
+          setAccountNumber(ownerProfile.account_number);
+        }
 
         setContributorInfo({
           first_name: contributorData.first_name,
@@ -110,9 +126,16 @@ const WelcomeMessage: React.FC = () => {
 
   return (
     <div className="bg-gradient-to-r from-brand-blue to-brand-lightBlue p-6 rounded-lg text-white">
-      <h1 className="text-2xl font-bold">
-        Welcome, {getDisplayName()}!
-      </h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <h1 className="text-2xl font-bold">
+          Welcome, {getDisplayName()}!
+        </h1>
+        {accountNumber && (
+          <span className="text-white/90 font-medium text-sm bg-white/20 px-3 py-1 rounded-md">
+            Account #: {accountNumber}
+          </span>
+        )}
+      </div>
       {contributorInfo && (
         <div className="mt-1 space-y-1">
           <p className="text-white/90 font-medium">
@@ -126,13 +149,13 @@ const WelcomeMessage: React.FC = () => {
         </div>
       )}
       <div className="flex flex-wrap gap-2 mt-4">
-        <Button asChild variant="outline" className="bg-brand-orange hover:bg-brand-orange/90 text-white border-brand-orange">
+        <Button asChild variant="outline" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 border-yellow-400">
           <Link to="/account-settings">
             <Settings className="mr-2 h-4 w-4" />
             Account Settings
           </Link>
         </Button>
-        <Button asChild variant="outline" className="bg-brand-orange hover:bg-brand-orange/90 text-white border-brand-orange">
+        <Button asChild variant="outline" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 border-yellow-400">
           <Link to="/properties">
             <Home className="mr-2 h-4 w-4" />
             Property Profiles
