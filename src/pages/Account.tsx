@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import AssetValuesSection from '@/components/AssetValuesSection';
@@ -127,16 +127,16 @@ const WelcomeMessage: React.FC = () => {
       )}
       <div className="flex flex-wrap gap-2 mt-4">
         <Button asChild variant="outline" className="bg-brand-orange hover:bg-brand-orange/90 text-white border-brand-orange">
-          <a href="/account-settings">
+          <Link to="/account-settings">
             <Settings className="mr-2 h-4 w-4" />
             Account Settings
-          </a>
+          </Link>
         </Button>
         <Button asChild variant="outline" className="bg-brand-orange hover:bg-brand-orange/90 text-white border-brand-orange">
-          <a href="/properties">
+          <Link to="/properties">
             <Home className="mr-2 h-4 w-4" />
             Property Profiles
-          </a>
+          </Link>
         </Button>
       </div>
     </div>
