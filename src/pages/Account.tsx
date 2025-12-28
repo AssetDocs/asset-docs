@@ -40,8 +40,15 @@ import {
   Eye, 
   Users,
   Paintbrush,
-  Lock
+  Lock,
+  ChevronDown
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // Welcome Message Component
 const WelcomeMessage: React.FC = () => {
@@ -265,30 +272,73 @@ const Account: React.FC = () => {
 
 
           <Tabs defaultValue="overview" className="space-y-6" id="tabs-content">
-            <div className="space-y-2">
-              {/* First Row - 3 tabs */}
-              <TabsList className={`${isMobile ? 'flex overflow-x-auto' : 'grid grid-cols-3'} w-full gap-2 bg-transparent h-auto p-0`}>
-                <TabsTrigger value="overview" className={`${isMobile ? 'flex-shrink-0' : ''} bg-brand-green text-white text-xs py-1.5 px-2 data-[state=active]:bg-brand-green/80 data-[state=active]:text-white hover:bg-brand-green/90`}>
-                  Storage
-                </TabsTrigger>
-                <TabsTrigger value="asset-values" className={`${isMobile ? 'flex-shrink-0' : ''} bg-brand-green text-white text-xs py-1.5 px-2 data-[state=active]:bg-brand-green/80 data-[state=active]:text-white hover:bg-brand-green/90`}>
-                  {isMobile ? 'Assets' : 'Asset Values'}
-                </TabsTrigger>
-                <TabsTrigger value="source-websites" className={`${isMobile ? 'flex-shrink-0' : ''} bg-brand-green text-white text-xs py-1.5 px-2 data-[state=active]:bg-brand-green/80 data-[state=active]:text-white hover:bg-brand-green/90`}>
-                  {isMobile ? 'Websites' : 'Source Websites'}
-                </TabsTrigger>
-              </TabsList>
-              {/* Second Row - 3 tabs */}
-              <TabsList className={`${isMobile ? 'flex overflow-x-auto' : 'grid grid-cols-3'} w-full gap-2 bg-transparent h-auto p-0`}>
-                <TabsTrigger value="damage" className={`${isMobile ? 'flex-shrink-0' : ''} bg-brand-green text-white text-xs py-1.5 px-2 data-[state=active]:bg-brand-green/80 data-[state=active]:text-white hover:bg-brand-green/90`}>
-                  {isMobile ? 'Damage' : 'Post Damage'}
-                </TabsTrigger>
-                <TabsTrigger value="voice-notes" className={`${isMobile ? 'flex-shrink-0' : ''} bg-brand-green text-white text-xs py-1.5 px-2 data-[state=active]:bg-brand-green/80 data-[state=active]:text-white hover:bg-brand-green/90`}>
-                  {isMobile ? 'Notes' : 'Voice Notes'}
-                </TabsTrigger>
-                <TabsTrigger value="paint-codes" className={`${isMobile ? 'flex-shrink-0' : ''} bg-brand-green text-white text-xs py-1.5 px-2 data-[state=active]:bg-brand-green/80 data-[state=active]:text-white hover:bg-brand-green/90`}>
-                  {isMobile ? 'Paint' : 'Paint Codes'}
-                </TabsTrigger>
+            {/* Insights & Tools Dropdown */}
+            <div className="w-full">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button className="w-full bg-brand-green hover:bg-brand-green/90 text-white justify-between">
+                    Insights & Tools
+                    <ChevronDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] bg-brand-green border-brand-green">
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      const tabsElement = document.querySelector('[data-state="active"][value="asset-values"]');
+                      const tabsTrigger = document.querySelector('[value="asset-values"]') as HTMLButtonElement;
+                      tabsTrigger?.click();
+                    }}
+                    className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+                  >
+                    Asset Values
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      const tabsTrigger = document.querySelector('[value="source-websites"]') as HTMLButtonElement;
+                      tabsTrigger?.click();
+                    }}
+                    className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+                  >
+                    Source Websites
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      const tabsTrigger = document.querySelector('[value="damage"]') as HTMLButtonElement;
+                      tabsTrigger?.click();
+                    }}
+                    className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+                  >
+                    Post Damage
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      const tabsTrigger = document.querySelector('[value="voice-notes"]') as HTMLButtonElement;
+                      tabsTrigger?.click();
+                    }}
+                    className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+                  >
+                    Voice Notes
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      const tabsTrigger = document.querySelector('[value="paint-codes"]') as HTMLButtonElement;
+                      tabsTrigger?.click();
+                    }}
+                    className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+                  >
+                    Paint Codes
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
+              {/* Hidden TabsList for programmatic control */}
+              <TabsList className="hidden">
+                <TabsTrigger value="overview">Storage</TabsTrigger>
+                <TabsTrigger value="asset-values">Asset Values</TabsTrigger>
+                <TabsTrigger value="source-websites">Source Websites</TabsTrigger>
+                <TabsTrigger value="damage">Post Damage</TabsTrigger>
+                <TabsTrigger value="voice-notes">Voice Notes</TabsTrigger>
+                <TabsTrigger value="paint-codes">Paint Codes</TabsTrigger>
               </TabsList>
             </div>
 
