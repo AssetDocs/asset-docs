@@ -87,6 +87,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import LegacyLockerInfo from "./pages/LegacyLockerInfo";
 import ContributorWelcome from "./pages/ContributorWelcome";
 import CookiePolicy from "./pages/CookiePolicy";
+import Install from "./pages/Install";
 
 const queryClient = new QueryClient();
 
@@ -219,6 +220,7 @@ const AppContent = () => {
         <Route path="/scenarios" element={<Scenarios />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/cookie-policy" element={<CookiePolicy />} />
+        <Route path="/install" element={<Install />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/legal" element={<Legal />} />
