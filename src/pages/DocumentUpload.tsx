@@ -38,12 +38,11 @@ const DocumentUpload: React.FC = () => {
   const [defaultPropertyId, setDefaultPropertyId] = useState('');
   const [selectedFolderId, setSelectedFolderId] = useState<string>('');
   const [folders, setFolders] = useState<DocumentFolder[]>([]);
-  const [isInitialized, setIsInitialized] = useState(false);
+  
 
   React.useEffect(() => {
     console.log('DocumentUpload mounted, user:', user?.id);
-    setIsInitialized(true);
-  }, []);
+  }, [user]);
 
   React.useEffect(() => {
     if (user) {
@@ -68,18 +67,6 @@ const DocumentUpload: React.FC = () => {
     }
   };
 
-  // Show loading state while initializing
-  if (!isInitialized) {
-    return (
-      <div className="flex flex-col min-h-screen">
-        <Navbar />
-        <div className="flex-grow flex items-center justify-center bg-gray-50">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-blue"></div>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {

@@ -32,15 +32,14 @@ const PhotoUpload: React.FC = () => {
   const [folders, setFolders] = useState<Folder[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
-  const [isInitialized, setIsInitialized] = useState(false);
+  
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const cameraInputRef = React.useRef<HTMLInputElement>(null);
   const { uploadFiles, isUploading } = usePropertyFiles(selectedPropertyId || null, 'photo');
 
   React.useEffect(() => {
-    console.log('PhotoUpload mounted, user:', user?.id);
-    setIsInitialized(true);
-  }, []);
+    console.log('PhotoUpload mounted, user:', user?.id, 'properties:', properties.length, 'propertiesLoading:', propertiesLoading);
+  }, [user, properties, propertiesLoading]);
 
   React.useEffect(() => {
     if (user) {
@@ -65,8 +64,8 @@ const PhotoUpload: React.FC = () => {
     }
   };
 
-  // Show loading state while initializing
-  if (!isInitialized) {
+  // Show loading state only while properties are initially loading
+  if (propertiesLoading) {
     return (
       <div className="flex flex-col min-h-screen">
         <Navbar />
