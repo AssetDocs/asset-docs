@@ -175,30 +175,18 @@ const Inventory: React.FC = () => {
         <div className="mb-8">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <h1 className="text-3xl font-bold text-foreground">My Inventory</h1>
+              <h1 className="text-3xl font-bold text-foreground">Manual Entry</h1>
               <p className="text-muted-foreground mt-2">
                 Manage your items and their documentation
               </p>
             </div>
             <div className="flex gap-2">
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                accept="image/*"
-                multiple
-                className="hidden"
-              />
-              <Button variant="outline" onClick={handleAddItemsClick} className="flex items-center">
-                <Plus className="h-4 w-4 mr-2" />
-                Add with Photo
-              </Button>
               <Button 
                 onClick={() => setShowAddForm(!showAddForm)} 
                 className="flex items-center bg-brand-blue hover:bg-brand-lightBlue"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Add Manually
+                Add New Item
               </Button>
             </div>
           </div>

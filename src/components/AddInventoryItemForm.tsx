@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Save, Loader2, X } from 'lucide-react';
+import { Plus, Save, Loader2, X, Upload, Image, Video, FileText, Trash2 } from 'lucide-react';
 import PropertySelector from '@/components/PropertySelector';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -47,11 +47,21 @@ interface AddInventoryItemFormProps {
   onCancel?: () => void;
 }
 
+interface UploadedFile {
+  file: File;
+  preview?: string;
+  type: 'image' | 'video' | 'document';
+}
+
 const AddInventoryItemForm: React.FC<AddInventoryItemFormProps> = ({ onItemAdded, onCancel }) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+  const documentInputRef = useRef<HTMLInputElement>(null);
+
   const [formData, setFormData] = useState({
     propertyId: '',
     name: '',
@@ -64,8 +74,43 @@ const AddInventoryItemForm: React.FC<AddInventoryItemFormProps> = ({ onItemAdded
     condition: ''
   });
 
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, fileType: 'image' | 'video' | 'document') => {
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      const newFiles: UploadedFile[] = files.map(file => {
+        const uploadedFile: UploadedFile = {
+          file,
+          type: fileType,
+        };
+        
+        // Create preview for images
+        if (fileType === 'image') {
+          uploadedFile.preview = URL.createObjectURL(file);
+        }
+        
+        return uploadedFile;
+      });
+      
+      setUploadedFiles(prev => [...prev, ...newFiles]);
+    }
+    // Reset the input
+    e.target.value = '';
+  };
+
+  const removeFile = (index: number) => {
+    setUploadedFiles(prev => {
+      const file = prev[index];
+      if (file.preview) {
+        URL.revokeObjectURL(file.preview);
+      }
+      return prev.filter((_, i) => i !== index);
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -97,9 +142,18 @@ const AddInventoryItemForm: React.FC<AddInventoryItemFormProps> = ({ onItemAdded
         is_manual_entry: true
       });
 
+      // TODO: Handle file uploads to storage when implemented
+
       toast({
         title: "Item added!",
         description: "Your item has been saved to your inventory.",
+      });
+
+      // Cleanup previews
+      uploadedFiles.forEach(file => {
+        if (file.preview) {
+          URL.revokeObjectURL(file.preview);
+        }
       });
 
       // Reset form
@@ -114,6 +168,7 @@ const AddInventoryItemForm: React.FC<AddInventoryItemFormProps> = ({ onItemAdded
         model: '',
         condition: ''
       });
+      setUploadedFiles([]);
 
       onItemAdded?.();
     } catch (error) {
@@ -128,6 +183,10 @@ const AddInventoryItemForm: React.FC<AddInventoryItemFormProps> = ({ onItemAdded
     }
   };
 
+  const imageFiles = uploadedFiles.filter(f => f.type === 'image');
+  const videoFiles = uploadedFiles.filter(f => f.type === 'video');
+  const documentFiles = uploadedFiles.filter(f => f.type === 'document');
+
   return (
     <Card>
       <CardHeader>
@@ -135,10 +194,10 @@ const AddInventoryItemForm: React.FC<AddInventoryItemFormProps> = ({ onItemAdded
           <div>
             <CardTitle className="flex items-center gap-2">
               <Plus className="h-5 w-5 text-brand-blue" />
-              Add New Item
+              Manual Entry
             </CardTitle>
             <CardDescription>
-              Add an item to your inventory manually. All fields are optional.
+              Add an item to your inventory with photos, videos, and documents.
             </CardDescription>
           </div>
           {onCancel && (
@@ -266,6 +325,156 @@ const AddInventoryItemForm: React.FC<AddInventoryItemFormProps> = ({ onItemAdded
               placeholder="Add any additional details about this item..."
               rows={3}
             />
+          </div>
+
+          {/* File Upload Section */}
+          <div className="space-y-4 pt-4 border-t">
+            <Label className="text-base font-semibold">Attachments</Label>
+            
+            {/* Upload Buttons */}
+            <div className="flex flex-wrap gap-2">
+              <input
+                ref={photoInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={(e) => handleFileSelect(e, 'image')}
+              />
+              <input
+                ref={videoInputRef}
+                type="file"
+                accept="video/*"
+                multiple
+                className="hidden"
+                onChange={(e) => handleFileSelect(e, 'video')}
+              />
+              <input
+                ref={documentInputRef}
+                type="file"
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.txt"
+                multiple
+                className="hidden"
+                onChange={(e) => handleFileSelect(e, 'document')}
+              />
+              
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => photoInputRef.current?.click()}
+              >
+                <Image className="h-4 w-4 mr-2" />
+                Add Photos
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => videoInputRef.current?.click()}
+              >
+                <Video className="h-4 w-4 mr-2" />
+                Add Videos
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => documentInputRef.current?.click()}
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Add Documents
+              </Button>
+            </div>
+
+            {/* Uploaded Files Display */}
+            {uploadedFiles.length > 0 && (
+              <div className="space-y-3">
+                {/* Images */}
+                {imageFiles.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-2">Photos ({imageFiles.length})</p>
+                    <div className="flex flex-wrap gap-2">
+                      {imageFiles.map((file, idx) => {
+                        const globalIdx = uploadedFiles.findIndex(f => f === file);
+                        return (
+                          <div key={idx} className="relative group">
+                            <img
+                              src={file.preview}
+                              alt={file.file.name}
+                              className="h-20 w-20 object-cover rounded-md border"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeFile(globalIdx)}
+                              className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Videos */}
+                {videoFiles.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-2">Videos ({videoFiles.length})</p>
+                    <div className="space-y-1">
+                      {videoFiles.map((file, idx) => {
+                        const globalIdx = uploadedFiles.findIndex(f => f === file);
+                        return (
+                          <div key={idx} className="flex items-center justify-between bg-muted p-2 rounded-md">
+                            <div className="flex items-center gap-2">
+                              <Video className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm truncate max-w-[200px]">{file.file.name}</span>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeFile(globalIdx)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Documents */}
+                {documentFiles.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-2">Documents ({documentFiles.length})</p>
+                    <div className="space-y-1">
+                      {documentFiles.map((file, idx) => {
+                        const globalIdx = uploadedFiles.findIndex(f => f === file);
+                        return (
+                          <div key={idx} className="flex items-center justify-between bg-muted p-2 rounded-md">
+                            <div className="flex items-center gap-2">
+                              <FileText className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm truncate max-w-[200px]">{file.file.name}</span>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeFile(globalIdx)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Submit Button */}
