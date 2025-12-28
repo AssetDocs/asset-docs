@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -10,6 +9,7 @@ import ContributorsTab from '@/components/ContributorsTab';
 import CookieSettings from '@/components/CookieSettings';
 import TOTPSettings from '@/components/TOTPSettings';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
+import StorageDashboard from '@/components/StorageDashboard';
 import { ViewerRestriction, ViewerRestrictionBanner } from '@/components/ViewerRestriction';
 import { useContributor } from '@/contexts/ContributorContext';
 import { Button } from '@/components/ui/button';
@@ -128,6 +128,11 @@ const AccountSettings: React.FC = () => {
           <DashboardBreadcrumb />
           
           <ViewerRestrictionBanner />
+
+          {/* Storage Dashboard at top */}
+          <div className="mb-6">
+            <StorageDashboard />
+          </div>
           
           <div className="mb-6">
             <h1 className="text-3xl font-bold text-brand-blue">Account Settings</h1>

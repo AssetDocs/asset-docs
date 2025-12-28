@@ -4,11 +4,9 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import AssetValuesSection from '@/components/AssetValuesSection';
 import AccountHeader from '@/components/AccountHeader';
-import AccountStats from '@/components/AccountStats';
 import AccountActions from '@/components/AccountActions';
 import ManualEntrySection from '@/components/ManualEntrySection';
 import StorageAlert from '@/components/StorageAlert';
-import StorageDashboard from '@/components/StorageDashboard';
 import PostDamageSection from '@/components/PostDamageSection';
 import VoiceNotesSection from '@/components/VoiceNotesSection';
 import SourceWebsitesSection from '@/components/SourceWebsitesSection';
@@ -232,40 +230,36 @@ const Account: React.FC = () => {
             <AccountHeader />
           </div>
 
-          <div id="storage-dashboard" className="mb-6">
-            <StorageDashboard />
-          </div>
 
           <Tabs defaultValue="overview" className="space-y-6" id="tabs-content">
             <div className="space-y-2">
               {/* First Row - 3 tabs */}
               <TabsList className={`${isMobile ? 'flex overflow-x-auto' : 'grid grid-cols-3'} w-full`}>
-                <TabsTrigger value="overview" className={isMobile ? 'flex-shrink-0' : ''}>
+                <TabsTrigger value="overview" className={`${isMobile ? 'flex-shrink-0' : ''} border-2 border-yellow-400`}>
                   {isMobile ? 'Home' : 'Overview'}
                 </TabsTrigger>
-                <TabsTrigger value="asset-values" className={isMobile ? 'flex-shrink-0' : ''}>
+                <TabsTrigger value="asset-values" className={`${isMobile ? 'flex-shrink-0' : ''} border-2 border-yellow-400`}>
                   {isMobile ? 'Assets' : 'Asset Values'}
                 </TabsTrigger>
-                <TabsTrigger value="source-websites" className={isMobile ? 'flex-shrink-0' : ''}>
+                <TabsTrigger value="source-websites" className={`${isMobile ? 'flex-shrink-0' : ''} border-2 border-yellow-400`}>
                   {isMobile ? 'Websites' : 'Source Websites'}
                 </TabsTrigger>
               </TabsList>
               {/* Second Row - 3 tabs */}
               <TabsList className={`${isMobile ? 'flex overflow-x-auto' : 'grid grid-cols-3'} w-full`}>
-                <TabsTrigger value="damage" className={isMobile ? 'flex-shrink-0' : ''}>
+                <TabsTrigger value="damage" className={`${isMobile ? 'flex-shrink-0' : ''} border-2 border-yellow-400`}>
                   {isMobile ? 'Damage' : 'Post Damage'}
                 </TabsTrigger>
-                <TabsTrigger value="voice-notes" className={isMobile ? 'flex-shrink-0' : ''}>
+                <TabsTrigger value="voice-notes" className={`${isMobile ? 'flex-shrink-0' : ''} border-2 border-yellow-400`}>
                   {isMobile ? 'Notes' : 'Voice Notes'}
                 </TabsTrigger>
-                <TabsTrigger value="paint-codes" className={isMobile ? 'flex-shrink-0' : ''}>
+                <TabsTrigger value="paint-codes" className={`${isMobile ? 'flex-shrink-0' : ''} border-2 border-yellow-400`}>
                   {isMobile ? 'Paint' : 'Paint Codes'}
                 </TabsTrigger>
               </TabsList>
             </div>
 
             <TabsContent value="overview" className="space-y-6">
-              <AccountStats />
               
               {/* First Row */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -502,12 +496,8 @@ const Account: React.FC = () => {
                 </Card>
               </div>
 
-              {/* Third Row - Secure Vault (Password Catalog + Legacy Locker) */}
+              {/* Third Row - Other Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Secure Vault - Combines Password Catalog and Legacy Locker */}
-                <div className="col-span-1 md:col-span-2 lg:col-span-3">
-                  <SecureVault />
-                </div>
                 
                 {/* Insurance Information Card */}
                 <Card className="hover:shadow-lg transition-shadow">
@@ -604,6 +594,11 @@ const Account: React.FC = () => {
                     </Button>
                   </CardContent>
                 </Card>
+              </div>
+
+              {/* Secure Vault - Moved to bottom, above Documentation Checklist */}
+              <div className="mt-6">
+                <SecureVault />
               </div>
 
               <DocumentationChecklist />

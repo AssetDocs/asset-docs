@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import ShareButton from '@/components/ShareButton';
 
-import { Video, Copy, Check, Users } from 'lucide-react';
+import { Copy, Check, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -136,12 +136,6 @@ const AccountHeader: React.FC = () => {
           )}
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <Button asChild variant="outline" className="border-green-500 text-green-500 w-full sm:w-auto">
-            <Link to="/video-help">
-              <Video className="h-4 w-4 mr-2" />
-              Video Help
-            </Link>
-          </Button>
           <ShareButton className="bg-brand-blue hover:bg-brand-lightBlue w-full sm:w-auto" />
         </div>
       </div>
