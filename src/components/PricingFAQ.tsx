@@ -51,9 +51,8 @@ const PricingFAQ: React.FC = () => {
             <AccordionItem value="item-7">
               <AccordionTrigger className="text-lg font-medium">How does receipt integration work?</AccordionTrigger>
               <AccordionContent>
-                When you upload photos of your possessions, you can also upload associated receipts. Our system 
-                will automatically match receipts with the correct items in your inventory, creating a comprehensive 
-                record that includes both visual documentation and proof of purchase.
+                When you upload photos of your possessions, you can also upload associated receipts. This creates 
+                a comprehensive record that includes both visual documentation and proof of purchase.
               </AccordionContent>
             </AccordionItem>
             
