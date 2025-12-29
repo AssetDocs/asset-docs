@@ -296,6 +296,12 @@ const Account: React.FC = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] bg-brand-green border-brand-green">
                   <DropdownMenuItem 
+                    onClick={() => navigate('/inventory')}
+                    className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+                  >
+                    Manual Entry
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
                     onClick={() => setActiveTab('asset-values')}
                     className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
                   >
@@ -333,39 +339,39 @@ const Account: React.FC = () => {
               
               {/* First Row - Photo Management, Document Storage, Insurance Information */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Photo Management Card */}
+                {/* Photo/Video Management Card */}
                 <Card className="hover:shadow-lg transition-shadow">
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <Camera className="h-6 w-6 mr-2 text-brand-blue" />
-                      Photo Management
+                      Photo/Video Management
                     </CardTitle>
                     <CardDescription>
-                      Upload photos and document your items with estimated values
+                      Capture photos or videos to document your property and belongings
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
                       <Button 
                         onClick={() => handleRestrictedAction(() => {
-                          navigate('/account/photos/upload');
+                          navigate('/account/media/upload');
                         })}
                         className="w-full bg-brand-blue hover:bg-brand-lightBlue"
                         disabled={isViewer}
                       >
                         <Plus className="h-4 w-4 mr-2" />
-                        Upload Photos
+                        Upload Photos/Videos
                         {isViewer && <Lock className="h-3 w-3 ml-1" />}
                       </Button>
                       <Button 
                         onClick={() => handleRestrictedAction(() => {
-                          navigate('/account/photos');
+                          navigate('/account/media');
                         }, true)}
                         variant="outline"
                         className="w-full"
                       >
                         <Eye className="h-4 w-4 mr-2" />
-                        View Gallery
+                        View All Photos & Videos
                       </Button>
                     </div>
                   </CardContent>
@@ -448,84 +454,6 @@ const Account: React.FC = () => {
                 </Card>
               </div>
 
-              {/* Second Row - Video Documentation, Manual Entry */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Video Documentation Card */}
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Video className="h-6 w-6 mr-2 text-brand-blue" />
-                      Video Documentation
-                    </CardTitle>
-                    <CardDescription>
-                      Upload and manage video recordings of your property and belongings
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <Button 
-                        onClick={() => handleRestrictedAction(() => {
-                          navigate('/account/videos/upload');
-                        })}
-                        className="w-full bg-brand-blue hover:bg-brand-lightBlue"
-                        disabled={isViewer}
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Upload Videos
-                        {isViewer && <Lock className="h-3 w-3 ml-1" />}
-                      </Button>
-                      <Button 
-                        onClick={() => handleRestrictedAction(() => {
-                          navigate('/account/videos');
-                        }, true)}
-                        variant="outline"
-                        className="w-full"
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        View Gallery
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Manual Entry Card */}
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <FileText className="h-6 w-6 mr-2 text-brand-blue" />
-                      Manual Entry
-                    </CardTitle>
-                    <CardDescription>
-                      Add items to your inventory without photos
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <Button
-                        onClick={() => handleRestrictedAction(() => {
-                          window.location.href = '/inventory?mode=manual';
-                        })}
-                        className="w-full bg-brand-blue hover:bg-brand-lightBlue"
-                        disabled={isViewer}
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Manual Entry
-                        {isViewer && <Lock className="h-3 w-3 ml-1" />}
-                      </Button>
-                      <Button 
-                        onClick={() => handleRestrictedAction(() => {
-                          navigate('/inventory');
-                        }, true)}
-                        variant="outline" 
-                        className="w-full"
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        View Entries
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
 
               {/* Documentation Checklist - Above Secure Vault */}
               <DocumentationChecklist />
