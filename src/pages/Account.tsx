@@ -31,15 +31,11 @@ import PaintCodesSection from '@/components/PaintCodesSection';
 import { 
   Home, 
   Camera, 
-  Video, 
   FileImage, 
   FileText, 
-  Shield, 
   Settings, 
   Plus, 
   Eye, 
-  Users,
-  Paintbrush,
   Lock,
   ChevronDown,
   ChevronLeft
@@ -391,8 +387,8 @@ const Account: React.FC = () => {
 
             <TabsContent value="overview" className="space-y-6">
               
-              {/* First Row - Photo Management, Document Storage, Insurance Information */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Primary Blocks - Photo/Video Management and Documents & Records */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Photo/Video Management Card */}
                 <Card className="hover:shadow-lg transition-shadow">
                   <CardHeader>
@@ -431,15 +427,15 @@ const Account: React.FC = () => {
                   </CardContent>
                 </Card>
 
-                {/* Document Storage Card */}
+                {/* Documents & Records Card (Combined Documents + Insurance) */}
                 <Card className="hover:shadow-lg transition-shadow">
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <FileText className="h-6 w-6 mr-2 text-brand-blue" />
-                      Document Storage
+                      Documents & Records
                     </CardTitle>
                     <CardDescription>
-                      Store PDFs, receipts, warranties, licenses, titles, and other important documents
+                      Store policies, receipts, warranties, titles, licenses, and other critical records
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -463,45 +459,7 @@ const Account: React.FC = () => {
                         className="w-full"
                       >
                         <Eye className="h-4 w-4 mr-2" />
-                        View Documents
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Insurance Information Card */}
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Shield className="h-6 w-6 mr-2 text-brand-blue" />
-                      Insurance Information
-                    </CardTitle>
-                    <CardDescription>
-                      Manage insurance policies, claims, and related documentation
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <Button 
-                        onClick={() => handleRestrictedAction(() => {
-                          window.location.href = '/account/insurance/new';
-                        })}
-                        className="w-full bg-brand-blue hover:bg-brand-lightBlue"
-                        disabled={isViewer}
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Insurance Policy
-                        {isViewer && <Lock className="h-3 w-3 ml-1" />}
-                      </Button>
-                      <Button 
-                        onClick={() => handleRestrictedAction(() => {
-                          window.location.href = '/account/insurance';
-                        }, true)}
-                        variant="outline" 
-                        className="w-full"
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        View Insurance
+                        View Documents & Insurance
                       </Button>
                     </div>
                   </CardContent>
