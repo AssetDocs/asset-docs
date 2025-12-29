@@ -126,12 +126,12 @@ const AccountActions: React.FC<AccountActionsProps> = () => {
                   alert('AssetSafe.net says\n\nDemo: This allows you to store PDFs, receipts, warranties, licenses, titles, and other important documents.');
                   return;
                 }
-                window.location.href = '/account/documents/upload';
+                window.location.href = '/account/documents?add=1';
               }}
               className="w-full bg-brand-blue hover:bg-brand-lightBlue"
             >
               <Plus className="h-4 w-4 mr-2" />
-              Upload Documents
+              Add Document
             </Button>
             <Button 
               onClick={() => {

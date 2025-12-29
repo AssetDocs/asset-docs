@@ -28,7 +28,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import CreateFolderModal from '@/components/CreateFolderModal';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
@@ -55,6 +55,7 @@ interface Folder {
 
 const Documents: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const { user } = useAuth();
   const { properties } = useProperties();
@@ -86,6 +87,14 @@ const Documents: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
+    // Support deep-linking directly into the "Add Document" modal
+    if (searchParams.get('add') === '1') {
+      setShowTypeSelector(true);
+      const next = new URLSearchParams(searchParams);
+      next.delete('add');
+      setSearchParams(next, { replace: true });
+    }
+
     fetchDocuments();
     fetchFolders();
     loadPolicies();

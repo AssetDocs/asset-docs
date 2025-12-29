@@ -149,7 +149,7 @@ const DocumentUpload: React.FC = () => {
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Documents
             </Button>
-            <h1 className="text-3xl font-bold text-brand-blue mb-2 flex items-center gap-3">
+            <h1 className="text-2xl sm:text-3xl font-bold text-brand-blue mb-2 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
               Upload Document
               <Badge className={typeInfo.color} variant="secondary">
                 <TypeIcon className="h-3 w-3 mr-1" />
