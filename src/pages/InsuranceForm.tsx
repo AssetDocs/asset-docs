@@ -83,7 +83,7 @@ const InsuranceForm: React.FC = () => {
         description: 'Your insurance policy has been added successfully.',
       });
 
-      navigate('/account/insurance');
+      navigate('/account/documents');
     } catch (error) {
       console.error('Error saving policy:', error);
       toast({
@@ -123,11 +123,11 @@ const InsuranceForm: React.FC = () => {
           <div className="mb-6">
             <Button 
               variant="ghost" 
-              onClick={() => navigate('/account/insurance')}
+              onClick={() => navigate('/account/documents')}
               className="mb-4"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Insurance Policies
+              Back to Documents
             </Button>
             <h1 className="text-3xl font-bold text-brand-blue mb-2">Add Insurance Policy</h1>
             <p className="text-gray-600">Document your insurance coverage and important details</p>
@@ -379,7 +379,7 @@ const InsuranceForm: React.FC = () => {
                   <Button 
                     type="button" 
                     variant="outline" 
-                    onClick={() => navigate('/account/insurance')}
+                    onClick={() => navigate('/account/documents')}
                   >
                     Cancel
                   </Button>
