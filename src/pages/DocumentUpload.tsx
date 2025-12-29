@@ -33,14 +33,14 @@ interface UploadedDocument {
 }
 
 const documentTypeLabels: Record<DocumentType, { label: string; icon: React.ElementType; color: string }> = {
-  insurance_policy: { label: 'Insurance Policy', icon: Shield, color: 'bg-blue-100 text-blue-800' },
-  insurance_claim: { label: 'Insurance Claim', icon: FileWarning, color: 'bg-orange-100 text-orange-800' },
-  warranty: { label: 'Warranty', icon: FileCheck, color: 'bg-green-100 text-green-800' },
-  receipt: { label: 'Receipt', icon: Receipt, color: 'bg-purple-100 text-purple-800' },
-  inspection_report: { label: 'Inspection Report', icon: ClipboardCheck, color: 'bg-teal-100 text-teal-800' },
-  appraisal: { label: 'Appraisal', icon: FileText, color: 'bg-yellow-100 text-yellow-800' },
-  title_deed: { label: 'Title / Deed', icon: Home, color: 'bg-indigo-100 text-indigo-800' },
-  other: { label: 'Other', icon: Files, color: 'bg-gray-100 text-gray-800' }
+  insurance_policy: { label: 'Insurance Policy', icon: Shield, color: 'bg-yellow text-yellow-foreground' },
+  insurance_claim: { label: 'Insurance Claim', icon: FileWarning, color: 'bg-yellow text-yellow-foreground' },
+  warranty: { label: 'Warranty', icon: FileCheck, color: 'bg-yellow text-yellow-foreground' },
+  receipt: { label: 'Receipt', icon: Receipt, color: 'bg-yellow text-yellow-foreground' },
+  inspection_report: { label: 'Inspection Report', icon: ClipboardCheck, color: 'bg-yellow text-yellow-foreground' },
+  appraisal: { label: 'Appraisal', icon: FileText, color: 'bg-yellow text-yellow-foreground' },
+  title_deed: { label: 'Title / Deed', icon: Home, color: 'bg-yellow text-yellow-foreground' },
+  other: { label: 'Other', icon: Files, color: 'bg-yellow text-yellow-foreground' }
 };
 
 const DocumentUpload: React.FC = () => {
