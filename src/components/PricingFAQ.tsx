@@ -66,14 +66,6 @@ const PricingFAQ: React.FC = () => {
             </AccordionItem>
             
             
-            <AccordionItem value="item-10">
-              <AccordionTrigger className="text-lg font-medium">How do I get started with Asset Safe?</AccordionTrigger>
-              <AccordionContent>
-                Getting started is easy! Sign up for a free 30-day trial and start using our web platform. 
-                You can begin documenting your possessions right away by taking photos, videos, and uploading documents.
-              </AccordionContent>
-            </AccordionItem>
-            
             <AccordionItem value="item-11">
               <AccordionTrigger className="text-lg font-medium">Can I share my documentation with others?</AccordionTrigger>
               <AccordionContent>
