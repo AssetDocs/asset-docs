@@ -515,7 +515,7 @@ const CombinedMedia: React.FC = () => {
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <Camera className="h-5 w-5" />
-                        {selectedPhotoFolder ? photoFolders.find(f => f.id === selectedPhotoFolder)?.folder_name : 'All Photos'}
+                        {selectedPhotoFolder ? photoFolders.find(f => f.id === selectedPhotoFolder)?.folder_name : 'All Photos and Videos'}
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
