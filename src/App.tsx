@@ -44,6 +44,8 @@ import PhotoUpload from "./pages/PhotoUpload";
 import VideoUpload from "./pages/VideoUpload";
 import DocumentUpload from "./pages/DocumentUpload";
 import Inventory from "./pages/Inventory";
+import CombinedMedia from "./pages/CombinedMedia";
+import CombinedMediaUpload from "./pages/CombinedMediaUpload";
 
 import InsuranceForm from "./pages/InsuranceForm";
 import ScheduleProfessional from "./pages/ScheduleProfessional";
@@ -262,6 +264,8 @@ const AppContent = () => {
         <Route path="/account/photos" element={<ProtectedRoute><PhotoGallery /></ProtectedRoute>} />
         <Route path="/account/videos" element={<ProtectedRoute><Videos /></ProtectedRoute>} />
         <Route path="/account/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
+        <Route path="/account/media" element={<ProtectedRoute><CombinedMedia /></ProtectedRoute>} />
+        <Route path="/account/media/upload" element={<ProtectedRoute><CombinedMediaUpload /></ProtectedRoute>} />
         
         <Route path="/account/insurance" element={<ProtectedRoute><Insurance /></ProtectedRoute>} />
         <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
