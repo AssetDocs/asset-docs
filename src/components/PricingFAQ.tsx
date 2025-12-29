@@ -60,7 +60,8 @@ const PricingFAQ: React.FC = () => {
               <AccordionTrigger className="text-lg font-medium">What types of assets can I document?</AccordionTrigger>
               <AccordionContent>
                 Asset Safe supports documentation of virtually any physical asset, including electronics, furniture, 
-                artwork, jewelry, collectibles, appliances, vehicles, and real estate.
+                artwork, jewelry, collectibles, appliances, vehicles, and real estate. And non-physical assets like 
+                software licenses, intellectual property, digital accounts, and business records.
               </AccordionContent>
             </AccordionItem>
             
