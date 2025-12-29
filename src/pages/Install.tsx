@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Smartphone, Download, Check, Apple, Chrome, Monitor } from "lucide-react";
+import { Smartphone, Download, Check, Apple, Chrome, Monitor, Wifi, WifiOff, Shield, Compass } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -58,10 +58,27 @@ const Install = () => {
         <div className="max-w-2xl mx-auto space-y-8">
           <div className="text-center space-y-4">
             <Smartphone className="w-16 h-16 mx-auto text-brand-orange" />
-            <h1 className="text-3xl font-bold text-foreground">Install Asset Safe</h1>
-            <p className="text-muted-foreground">
-              Add Asset Safe to your home screen for quick access and an app-like experience.
+            <h1 className="text-3xl font-bold text-foreground">📲 Add Asset Safe to Your Home Screen</h1>
+            <p className="text-lg text-muted-foreground font-medium">
+              (App-Like Access)
             </p>
+            <div className="text-left bg-muted/50 rounded-lg p-6 space-y-4">
+              <p className="text-muted-foreground">
+                Asset Safe is not a traditional app from the App Store or Google Play. Instead, it uses modern browser technology that lets you save Asset Safe to your device's home screen and use it like an app.
+              </p>
+              <p className="text-foreground font-medium">This gives you:</p>
+              <ul className="space-y-2 text-muted-foreground">
+                <li className="flex items-center gap-2">
+                  <span>🚀</span> One-tap access to your dashboard
+                </li>
+                <li className="flex items-center gap-2">
+                  <span>📶</span> Continued access even with limited or no internet (helpful during emergencies or disasters)
+                </li>
+                <li className="flex items-center gap-2">
+                  <span>🔐</span> The same secure experience as the full website
+                </li>
+              </ul>
+            </div>
           </div>
 
           {isInstalled ? (
@@ -100,123 +117,158 @@ const Install = () => {
                 </Card>
               )}
 
-              {/* iOS Instructions */}
+              {/* Chrome Instructions */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Apple className="w-6 h-6" />
-                    Install on iPhone / iPad (Safari)
+                    <Chrome className="w-6 h-6" />
+                    🌐 Chrome (Android, Windows, Mac)
                   </CardTitle>
                   <CardDescription>
-                    Follow these steps to add Asset Safe to your home screen
+                    How to add Asset Safe in Chrome
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <ol className="list-decimal list-inside space-y-3 text-muted-foreground">
-                    <li>Open <strong>Safari</strong> and navigate to Asset Safe</li>
-                    <li>Tap the <strong>Share</strong> icon (square with an upward arrow)</li>
-                    <li>Scroll down and tap <strong>"Add to Home Screen"</strong></li>
-                    <li>Confirm the name, then tap <strong>"Add"</strong></li>
-                    <li>Asset Safe will now appear on your home screen like an app</li>
+                    <li>Open <strong>Chrome</strong></li>
+                    <li>Go to <strong>https://assetsafe.net</strong></li>
+                    <li>Tap or click the <strong>menu icon (⋮)</strong> in the top-right corner</li>
+                    <li>Select <strong>"Add to Home Screen"</strong> or <strong>"Install App"</strong></li>
+                    <li>Confirm when prompted</li>
                   </ol>
-                  <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-md">
-                    <p className="text-sm text-amber-800 dark:text-amber-200">
-                      <strong>⚠️ Note:</strong> This option only appears in Safari on iOS — not Chrome or Edge.
+                  <div className="mt-4 p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-md">
+                    <p className="text-sm text-green-800 dark:text-green-200">
+                      ✅ Asset Safe will now appear on your home screen or desktop and open in its own app-style window.
                     </p>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Microsoft Edge Desktop Instructions */}
+              {/* Microsoft Edge Instructions */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Monitor className="w-6 h-6" />
-                    Install on Microsoft Edge (Desktop – Windows or macOS)
+                    🌐 Microsoft Edge (Windows, Mac, Android)
                   </CardTitle>
                   <CardDescription>
-                    Follow these steps to install Asset Safe as a desktop app
+                    How to add Asset Safe in Edge
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <ol className="list-decimal list-inside space-y-3 text-muted-foreground">
-                    <li>Open <strong>Microsoft Edge</strong> and go to Asset Safe</li>
-                    <li>Click the <strong>three-dot menu</strong> in the top-right corner</li>
-                    <li>Select <strong>Apps → Install this site as an app</strong></li>
-                    <li>Click <strong>Install</strong> to confirm</li>
-                    <li>Asset Safe will now launch in its own window and appear in your Start Menu / Dock</li>
+                    <li>Open <strong>Microsoft Edge</strong></li>
+                    <li>Visit <strong>https://assetsafe.net</strong></li>
+                    <li>Click the <strong>menu icon (⋯)</strong> in the top-right corner</li>
+                    <li>Choose <strong>Apps</strong></li>
+                    <li>Select <strong>"Install this site as an app"</strong></li>
+                    <li>Confirm installation</li>
                   </ol>
+                  <div className="mt-4 p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-md">
+                    <p className="text-sm text-green-800 dark:text-green-200">
+                      ✅ Asset Safe will now behave like a standalone app and can be pinned to your desktop or taskbar.
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
 
-              {/* Android Edge Instructions */}
+              {/* iOS Safari Instructions */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Smartphone className="w-6 h-6" />
-                    Install on Android (Microsoft Edge)
+                    <Apple className="w-6 h-6" />
+                    🍎 Safari (iPhone & iPad)
                   </CardTitle>
                   <CardDescription>
-                    Follow these steps to add Asset Safe to your home screen
+                    Apple devices require Safari for this feature
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  <p className="text-muted-foreground font-medium">How to add Asset Safe on iOS:</p>
                   <ol className="list-decimal list-inside space-y-3 text-muted-foreground">
-                    <li>Open <strong>Microsoft Edge</strong> on your Android device</li>
-                    <li>Navigate to Asset Safe</li>
-                    <li>Tap the <strong>three-dot menu</strong></li>
-                    <li>Tap <strong>"Add to phone"</strong> or <strong>"Install app"</strong></li>
-                    <li>Confirm by tapping <strong>Add</strong></li>
-                    <li>Asset Safe will now appear on your home screen</li>
+                    <li>Open <strong>Safari</strong></li>
+                    <li>Go to <strong>https://assetsafe.net</strong></li>
+                    <li>Tap the <strong>Share icon</strong> (square with arrow)</li>
+                    <li>Scroll down and tap <strong>"Add to Home Screen"</strong></li>
+                    <li>Rename it if desired, then tap <strong>Add</strong></li>
                   </ol>
+                  <div className="mt-4 p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-md">
+                    <p className="text-sm text-green-800 dark:text-green-200">
+                      ✅ Asset Safe will appear on your home screen just like an app.
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
 
-              {/* Android Chrome Instructions */}
+              {/* Offline Access Notes */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Chrome className="w-6 h-6" />
-                    Install on Android (Chrome)
+                    <WifiOff className="w-6 h-6" />
+                    ⚠️ Important Notes About Offline Access
                   </CardTitle>
-                  <CardDescription>
-                    Follow these steps to add Asset Safe to your home screen
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <ol className="list-decimal list-inside space-y-3 text-muted-foreground">
-                    <li>Tap the <strong>menu icon</strong> (three dots) in Chrome</li>
-                    <li>Tap <strong>"Add to Home screen"</strong> or <strong>"Install app"</strong></li>
-                    <li>Tap <strong>"Add"</strong> to confirm</li>
-                    <li>Asset Safe will now appear on your home screen</li>
-                  </ol>
-                </CardContent>
-              </Card>
-
-              {/* Benefits */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Why Install?</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-3">
                     <li className="flex items-start gap-3">
-                      <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                      <span className="text-muted-foreground">Quick access from your home screen</span>
+                      <Wifi className="w-5 h-5 text-brand-orange mt-0.5 flex-shrink-0" />
+                      <span className="text-muted-foreground">Asset Safe uses secure caching to allow limited access during internet outages</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                      <span className="text-muted-foreground">Full-screen app experience without browser bars</span>
+                      <span className="text-muted-foreground">Previously loaded data (such as photos, reports, and key records) may still be viewable</span>
                     </li>
                     <li className="flex items-start gap-3">
-                      <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                      <span className="text-muted-foreground">Faster loading with cached resources</span>
+                      <WifiOff className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                      <span className="text-muted-foreground">Some features (uploads, syncing, new reports) require an internet connection</span>
                     </li>
                     <li className="flex items-start gap-3">
-                      <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                      <span className="text-muted-foreground">Works offline for viewing cached content</span>
+                      <Shield className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                      <span className="text-muted-foreground">This is especially helpful during natural disasters, insurance events, or power outages</span>
                     </li>
                   </ul>
+                </CardContent>
+              </Card>
+
+              {/* Security Reminder */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="w-6 h-6" />
+                    🔒 Security Reminder
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground mb-4">Even when added to your home screen:</p>
+                  <ul className="space-y-3">
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                      <span className="text-muted-foreground">All security protections still apply</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                      <span className="text-muted-foreground">You may be prompted to log in again for sensitive areas</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                      <span className="text-muted-foreground">Secure Vault and encrypted content remain protected</span>
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
+
+              {/* Best Practice Tip */}
+              <Card className="border-brand-orange/50 bg-brand-orange/5">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Compass className="w-6 h-6 text-brand-orange" />
+                    🧭 Best Practice Tip
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    We recommend adding Asset Safe to your home screen as soon as your account is created, so your documentation is always just one tap away — especially when you need it most.
+                  </p>
                 </CardContent>
               </Card>
             </>
