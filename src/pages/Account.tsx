@@ -280,10 +280,10 @@ const Account: React.FC = () => {
               {activeTab !== 'overview' && (
                 <Button
                   onClick={() => setActiveTab('overview')}
-                  className="bg-orange-500 hover:bg-orange-600 text-white h-10 w-10 p-0 rounded-lg flex-shrink-0"
+                  className="bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white h-12 w-12 min-w-12 p-0 rounded-lg flex-shrink-0 shadow-md"
                   aria-label="Back to Dashboard"
                 >
-                  <ChevronLeft className="h-6 w-6" />
+                  <ChevronLeft className="h-7 w-7" />
                 </Button>
               )}
               
