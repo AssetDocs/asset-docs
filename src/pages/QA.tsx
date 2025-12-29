@@ -102,9 +102,8 @@ const QA: React.FC = () => {
               <AccordionItem value="item-10">
                 <AccordionTrigger className="text-lg font-medium">What support options are available?</AccordionTrigger>
                 <AccordionContent>
-                  We offer comprehensive support including a 24/7 chat feature and email assistance. We also 
-                  provide video tutorials and resource information under the References section in the footer, 
-                  to help you get the most out of Asset Safe.
+                  We provide video tutorials and resource information under the References section in the footer, 
+                  to help you get the most out of Asset Safe. Comprehensive 24/7 chat feature coming soon!
                 </AccordionContent>
               </AccordionItem>
               
