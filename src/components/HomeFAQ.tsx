@@ -22,7 +22,7 @@ const HomeFAQ: React.FC = () => {
     },
     {
       question: "Can I use Asset Safe for insurance claims?",
-      answer: "Yes! Asset Safe is designed to streamline insurance claims by providing pre-documented proof of ownership, purchase receipts, condition photos, and detailed item descriptions. This comprehensive documentation can significantly speed up the claims process and maximize your recovery."
+      answer: "Yes. Asset Safe is designed to support and streamline insurance claims by helping you document your property before and after a loss. Asset Safe provides time-stamped, organized documentation—including proof of ownership, condition records, photos, videos, and user-entered values—that insurers commonly request during the claims process. These records can help reduce delays, minimize disputes, and improve communication with your insurance provider."
     },
     {
       question: "How do I get started with Asset Safe?",
