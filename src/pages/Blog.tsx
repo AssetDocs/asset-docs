@@ -11,6 +11,16 @@ const Blog = () => {
   // Sample blog posts - in production, this would come from a CMS or database
   const blogPosts = [
     {
+      id: 'what-documents-to-upload',
+      title: 'What Documents Should I Upload to Asset Safe?',
+      excerpt: "A comprehensive guide to the types of documents you should store in Asset Safe—and why each one matters for insurance claims, legal matters, and estate planning.",
+      category: 'Guides',
+      date: '2025-01-22',
+      readTime: '10 min read',
+      image: 'https://images.unsplash.com/photo-1568234928966-359c35dd8327?w=800&h=400&fit=crop',
+      featured: true
+    },
+    {
       id: 'welcome-to-asset-safe',
       title: 'Welcome to Asset Safe — Your Home, Your Legacy, Our Mission',
       excerpt: "We're here to help you preserve, document, and protect what matters most — not just as property, but as part of your life, legacy, and peace of mind.",
@@ -18,7 +28,7 @@ const Blog = () => {
       date: '2025-01-20',
       readTime: '6 min read',
       image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&h=400&fit=crop',
-      featured: true
+      featured: false
     },
     {
       id: 'legacy-locker-modern-protection',

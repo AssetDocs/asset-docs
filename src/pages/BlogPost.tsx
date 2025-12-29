@@ -14,6 +14,201 @@ const BlogPost = () => {
 
   // Sample blog post data - in production, this would come from a CMS or database
   const blogPosts: Record<string, any> = {
+    'what-documents-to-upload': {
+      title: 'What Documents Should I Upload to Asset Safe?',
+      category: 'Guides',
+      date: '2025-01-22',
+      readTime: '10 min read',
+      image: 'https://images.unsplash.com/photo-1568234928966-359c35dd8327?w=1200&h=600&fit=crop',
+      author: 'Asset Safe Team',
+      content: `
+        <p>When it comes to protecting your life, your home, and everything you've worked hard for, documentation is everything.</p>
+
+        <p>Asset Safe was built to be your central, secure digital vault—a place where critical documents are organized, protected, and ready when you need them most. Whether you're dealing with an insurance claim, legal matter, estate planning, or a sudden emergency, having the right documents uploaded can save you time, stress, and money.</p>
+
+        <p>Below is a comprehensive guide to the types of documents you should store in Asset Safe—and why each one matters.</p>
+
+        <h2>🏠 1. Home & Property Documents</h2>
+        
+        <p>These documents establish ownership, responsibility, and value for your property.</p>
+
+        <h3>Recommended uploads:</h3>
+        <ul>
+          <li>Property deeds & titles</li>
+          <li>Mortgage agreements</li>
+          <li>Rental or lease agreements</li>
+          <li>Property surveys & boundary documents</li>
+          <li>Closing documents</li>
+          <li>Home inspection reports</li>
+          <li>Appraisals</li>
+        </ul>
+
+        <p><strong>Why it matters:</strong> In the event of a sale, dispute, insurance claim, or estate transfer, these documents provide legal proof and clarity.</p>
+
+        <h2>📄 2. Insurance Documents</h2>
+        
+        <p>Insurance paperwork is often the first thing requested during a claim.</p>
+
+        <h3>Recommended uploads:</h3>
+        <ul>
+          <li>Homeowners insurance policies</li>
+          <li>Renters insurance policies</li>
+          <li>Flood insurance policies</li>
+          <li>Umbrella policies</li>
+          <li>Insurance declarations pages</li>
+          <li>Past claim documentation</li>
+          <li>Adjuster reports</li>
+        </ul>
+
+        <p><strong>Why it matters:</strong> Having immediate access to policy details and coverage limits can significantly speed up the claims process.</p>
+
+        <h2>🛠️ 3. Warranties & Service Records</h2>
+        
+        <p>These documents help protect your investments and reduce out-of-pocket repair costs.</p>
+
+        <h3>Recommended uploads:</h3>
+        <ul>
+          <li>Appliance warranties</li>
+          <li>HVAC warranties</li>
+          <li>Roof warranties</li>
+          <li>Solar panel warranties</li>
+          <li>Manufacturer manuals</li>
+          <li>Repair invoices & service receipts</li>
+        </ul>
+
+        <p><strong>Why it matters:</strong> Proof of warranty coverage can mean the difference between a free repair and a costly replacement.</p>
+
+        <h2>🚗 4. Vehicle & Equipment Documents</h2>
+        
+        <p>Vehicles, trailers, boats, and equipment often represent significant value.</p>
+
+        <h3>Recommended uploads:</h3>
+        <ul>
+          <li>Vehicle titles</li>
+          <li>Registration documents</li>
+          <li>Purchase receipts</li>
+          <li>Maintenance records</li>
+          <li>Insurance policies</li>
+          <li>VIN documentation</li>
+        </ul>
+
+        <p><strong>Why it matters:</strong> These records help with insurance claims, resale, theft recovery, and estate planning.</p>
+
+        <h2>🪪 5. Personal Identification & Legal Documents</h2>
+        
+        <p>These documents confirm identity, relationships, and legal authority.</p>
+
+        <h3>Recommended uploads:</h3>
+        <ul>
+          <li>Driver's licenses (secure access only)</li>
+          <li>Passports</li>
+          <li>Birth certificates</li>
+          <li>Marriage certificates</li>
+          <li>Divorce decrees</li>
+          <li>Adoption paperwork</li>
+        </ul>
+
+        <p><strong>Why it matters:</strong> Critical during emergencies, legal proceedings, travel, and estate administration.</p>
+
+        <h2>💼 6. Financial & Tax Records</h2>
+        
+        <p>These documents provide a financial snapshot and are often required by lenders, attorneys, or executors.</p>
+
+        <h3>Recommended uploads:</h3>
+        <ul>
+          <li>Tax returns</li>
+          <li>W-2s / 1099s</li>
+          <li>Investment statements</li>
+          <li>Retirement account summaries</li>
+          <li>Loan agreements</li>
+          <li>Promissory notes</li>
+        </ul>
+
+        <p><strong>Why it matters:</strong> Having organized financial records simplifies audits, loans, and long-term planning.</p>
+
+        <h2>🕊️ 7. Estate Planning & Legacy Documents</h2>
+        
+        <p>These documents protect your wishes and your loved ones.</p>
+
+        <h3>Recommended uploads:</h3>
+        <ul>
+          <li>Wills</li>
+          <li>Trust documents</li>
+          <li>Power of attorney</li>
+          <li>Medical directives / living wills</li>
+          <li>Beneficiary designations</li>
+          <li>Executor instructions</li>
+        </ul>
+
+        <p><strong>Why it matters:</strong> Clear documentation reduces confusion, delays, and legal disputes during emotionally difficult times.</p>
+
+        <h2>🏢 8. Business & Professional Documents</h2>
+        
+        <p>For business owners, freelancers, or property managers.</p>
+
+        <h3>Recommended uploads:</h3>
+        <ul>
+          <li>Business licenses</li>
+          <li>Professional certifications</li>
+          <li>Operating agreements</li>
+          <li>Vendor contracts</li>
+          <li>Commercial leases</li>
+          <li>Equipment inventories</li>
+        </ul>
+
+        <p><strong>Why it matters:</strong> Protects your livelihood and supports continuity during transitions or disputes.</p>
+
+        <h2>🔐 9. Digital Life & Account Records</h2>
+        
+        <p>Your digital footprint is just as important as your physical one.</p>
+
+        <h3>Recommended uploads:</h3>
+        <ul>
+          <li>Subscription records</li>
+          <li>Software licenses</li>
+          <li>Domain ownership documentation</li>
+          <li>Instructions for digital accounts</li>
+          <li>Encrypted credential references</li>
+        </ul>
+
+        <p><strong>Why it matters:</strong> Ensures continuity and access for trusted individuals when needed.</p>
+
+        <h2>📸 10. Photos, Videos & Supporting Evidence</h2>
+        
+        <p>Documentation isn't just paperwork—it's proof.</p>
+
+        <h3>Recommended uploads:</h3>
+        <ul>
+          <li>Home walkthrough photos</li>
+          <li>Room-by-room video documentation</li>
+          <li>High-value item photos</li>
+          <li>Serial numbers & close-ups</li>
+          <li>Receipts tied to visual evidence</li>
+        </ul>
+
+        <p><strong>Why it matters:</strong> Visual documentation strengthens insurance claims and establishes condition and ownership.</p>
+
+        <h2>✔ Best Practices for Uploading Documents</h2>
+        
+        <ul>
+          <li>Use clear, legible scans or photos</li>
+          <li>Label files with descriptive names</li>
+          <li>Keep documents updated annually</li>
+          <li>Store sensitive documents in secure, restricted-access folders</li>
+          <li>Pair documents with photos or videos whenever possible</li>
+        </ul>
+
+        <h2>Final Thoughts</h2>
+        
+        <p>Asset Safe isn't just storage—it's preparedness.</p>
+
+        <p>By uploading the right documents today, you're protecting yourself from uncertainty tomorrow. Whether it's a natural disaster, legal request, insurance claim, or family transition, having everything securely organized gives you peace of mind when it matters most.</p>
+
+        <p><strong>Your documents. Your proof. Your digital safety net.</strong></p>
+
+        <p>— The Asset Safe Team</p>
+      `
+    },
     'welcome-to-asset-safe': {
       title: 'Welcome to Asset Safe — Your Home, Your Legacy, Our Mission',
       category: 'Company News',
