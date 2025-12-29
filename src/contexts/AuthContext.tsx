@@ -3,8 +3,36 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { SecurityAlertService } from '@/services/SecurityAlertService';
 
-// Session ID for which we've already sent a login alert (prevents duplicates on token refresh)
-const alertedSessionIds = new Set<string>();
+// Helper to check if we've already alerted for this session (persisted in localStorage)
+const ALERTED_SESSIONS_KEY = 'alerted_login_sessions';
+
+const getAlertedSessions = (): Set<string> => {
+  try {
+    const stored = localStorage.getItem(ALERTED_SESSIONS_KEY);
+    return stored ? new Set(JSON.parse(stored)) : new Set();
+  } catch {
+    return new Set();
+  }
+};
+
+const addAlertedSession = (sessionKey: string) => {
+  try {
+    const sessions = getAlertedSessions();
+    sessions.add(sessionKey);
+    // Keep only last 20 sessions to prevent localStorage bloat
+    const arr = Array.from(sessions);
+    if (arr.length > 20) {
+      arr.splice(0, arr.length - 20);
+    }
+    localStorage.setItem(ALERTED_SESSIONS_KEY, JSON.stringify(arr));
+  } catch {
+    // Ignore storage errors
+  }
+};
+
+const hasAlertedSession = (sessionKey: string): boolean => {
+  return getAlertedSessions().has(sessionKey);
+};
 
 interface Profile {
   id: string;
@@ -80,16 +108,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
               // Send security alert for new login (only once per unique session)
               if (event === 'SIGNED_IN' && session.access_token) {
-                // Use session access_token hash as unique identifier to prevent duplicate alerts
-                // on token refresh or page reload
+                // Use a hash of user ID + access token end as unique session key
+                // Persisted in localStorage to survive page reloads
                 const sessionKey = `${session.user.id}-${session.access_token.slice(-20)}`;
-                if (!alertedSessionIds.has(sessionKey)) {
-                  alertedSessionIds.add(sessionKey);
-                  // Clean up old session keys to prevent memory leak (keep last 10)
-                  if (alertedSessionIds.size > 10) {
-                    const iterator = alertedSessionIds.values();
-                    alertedSessionIds.delete(iterator.next().value);
-                  }
+                if (!hasAlertedSession(sessionKey)) {
+                  addAlertedSession(sessionKey);
                   SecurityAlertService.notifyNewLogin(
                     session.user.id,
                     session.user.email || ''
