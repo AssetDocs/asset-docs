@@ -1,15 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronRight, ClipboardList } from 'lucide-react';
+import { ChevronDown, ChevronRight, ClipboardList, Home, Building2, Users, Factory } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { useToast } from '@/hooks/use-toast';
 
 interface ChecklistItem {
   id: string;
   text: string;
-  category?: string;
 }
 
 interface ChecklistSection {
@@ -17,194 +18,464 @@ interface ChecklistSection {
   items: ChecklistItem[];
 }
 
+interface ChecklistData {
+  roomView: ChecklistSection[];
+  categoryView: ChecklistSection[];
+}
+
+// Encouragement messages for when users check items
+const encouragementMessages = [
+  "One step closer to asset protection! 🛡️",
+  "You're on the right track! 🎯",
+  "Great progress! Keep going! 💪",
+  "Well done! Your assets are more secure! ✅",
+  "Excellent documentation work! 📋",
+  "That's the spirit! Stay organized! 🌟",
+  "Amazing! Every item counts! 🏆",
+  "You're building a solid record! 📚",
+  "Protection in progress! 🔒",
+  "Smart move! Keep documenting! 🧠",
+];
+
 const DocumentationChecklist: React.FC = () => {
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const [isOpen, setIsOpen] = useState(false);
+  const [viewModes, setViewModes] = useState<Record<string, 'room' | 'category'>>({
+    homeowners: 'room',
+    business: 'room',
+    management: 'room',
+    industrial: 'room',
+  });
+  const { toast } = useToast();
 
-  const toggleChecked = (itemId: string) => {
+  const toggleChecked = (itemId: string, wasChecked: boolean) => {
     const newCheckedItems = new Set(checkedItems);
     if (newCheckedItems.has(itemId)) {
       newCheckedItems.delete(itemId);
     } else {
       newCheckedItems.add(itemId);
+      // Show encouragement only when checking (not unchecking)
+      const randomMessage = encouragementMessages[Math.floor(Math.random() * encouragementMessages.length)];
+      toast({
+        title: randomMessage,
+        duration: 2000,
+      });
     }
     setCheckedItems(newCheckedItems);
   };
 
-  const homeownersChecklist: ChecklistSection[] = [
-    {
-      title: "Property Overview Documentation",
-      items: [
-        { id: "h1", text: "Property deed and ownership documents" },
-        { id: "h2", text: "Property survey and boundary maps" },
-        { id: "h3", text: "Recent property appraisal or assessment" },
-        { id: "h4", text: "Homeowner's insurance policy and declarations page" },
-        { id: "h5", text: "Property tax records" }
-      ]
-    },
-    {
-      title: "Structural Documentation",
-      items: [
-        { id: "h6", text: "Complete exterior photos (all sides, roof, foundation)" },
-        { id: "h7", text: "Interior photos of each room (multiple angles)" },
-        
-        { id: "h9", text: "Recent inspection reports (home, pest, radon)" },
-        { id: "h10", text: "HVAC system documentation and maintenance records" }
-      ]
-    },
-    {
-      title: "Systems & Utilities",
-      items: [
-        { id: "h11", text: "Electrical panel and major electrical work documentation" },
-        { id: "h12", text: "Plumbing system overview and recent repairs" },
-        { id: "h13", text: "Water heater specifications and maintenance" },
-        { id: "h14", text: "Septic system or sewer connection documentation" },
-        { id: "h15", text: "Well water system documentation (if applicable)" }
-      ]
-    },
-    {
-      title: "High-Value Items Inventory",
-      items: [
-        { id: "h16", text: "Electronics and appliances with serial numbers" },
-        { id: "h17", text: "Jewelry and valuable collections" },
-        { id: "h18", text: "Artwork and antiques with appraisals" },
-        { id: "h19", text: "Tools and equipment in garage/workshop" },
-        { id: "h20", text: "Outdoor equipment and recreational items" }
-      ]
-    }
-  ];
+  const toggleViewMode = (tab: string) => {
+    setViewModes(prev => ({
+      ...prev,
+      [tab]: prev[tab] === 'room' ? 'category' : 'room',
+    }));
+  };
 
-  const businessChecklist: ChecklistSection[] = [
-    {
-      title: "Business Property Documentation",
-      items: [
-        { id: "b1", text: "Commercial property lease or ownership documents" },
-        { id: "b2", text: "Business license and operational permits" },
-        { id: "b3", text: "Commercial insurance policies (property, liability, business interruption)" },
-        { id: "b4", text: "Property management agreements (if applicable)" },
-        { id: "b5", text: "Zoning compliance documentation" }
-      ]
-    },
-    {
-      title: "Equipment & Inventory",
-      items: [
-        { id: "b6", text: "Complete equipment inventory with serial numbers" },
-        { id: "b7", text: "Machinery and specialized equipment documentation" },
-        { id: "b8", text: "IT infrastructure and technology assets" },
-        { id: "b9", text: "Office furniture and fixtures inventory" },
-        { id: "b10", text: "Vehicle fleet documentation (if applicable)" }
-      ]
-    },
-    {
-      title: "Operational Documentation",
-      items: [
-        { id: "b11", text: "Security system installation and monitoring records" },
-        { id: "b12", text: "Emergency procedures and evacuation plans" },
-        { id: "b13", text: "Maintenance contracts and service agreements" },
-        { id: "b14", text: "Utility accounts and consumption records" },
-        { id: "b15", text: "Waste management and disposal documentation" }
-      ]
-    },
-    {
-      title: "Financial & Legal Records",
-      items: [
-        { id: "b16", text: "Business financial statements and tax returns" },
-        { id: "b17", text: "Accounts receivable and payable records" },
-        { id: "b18", text: "Employee records and payroll documentation" },
-        { id: "b19", text: "Vendor and supplier agreements" },
-        { id: "b20", text: "Intellectual property documentation" }
-      ]
-    }
-  ];
+  // ==================== HOMEOWNER DATA ====================
+  const homeownerData: ChecklistData = {
+    roomView: [
+      {
+        title: "Exterior",
+        items: [
+          { id: "hr1", text: "Front, sides, rear of home" },
+          { id: "hr2", text: "Roof" },
+          { id: "hr3", text: "Foundation" },
+          { id: "hr4", text: "Garage exterior" },
+          { id: "hr5", text: "Driveway / walkways" },
+          { id: "hr6", text: "Fence, sheds, outdoor structures" },
+        ]
+      },
+      {
+        title: "Living Areas",
+        items: [
+          { id: "hr7", text: "Living room" },
+          { id: "hr8", text: "Dining room" },
+          { id: "hr9", text: "Hallways / common spaces" },
+        ]
+      },
+      {
+        title: "Kitchen",
+        items: [
+          { id: "hr10", text: "Wide shots" },
+          { id: "hr11", text: "Appliances (serial numbers)" },
+          { id: "hr12", text: "Cabinets & counters" },
+          { id: "hr13", text: "Plumbing under sink" },
+        ]
+      },
+      {
+        title: "Bedrooms",
+        items: [
+          { id: "hr14", text: "Bedroom 1" },
+          { id: "hr15", text: "Bedroom 2+" },
+          { id: "hr16", text: "Closets" },
+        ]
+      },
+      {
+        title: "Bathrooms",
+        items: [
+          { id: "hr17", text: "Fixtures" },
+          { id: "hr18", text: "Vanities" },
+          { id: "hr19", text: "Plumbing access" },
+        ]
+      },
+      {
+        title: "Utility Areas",
+        items: [
+          { id: "hr20", text: "Electrical panel" },
+          { id: "hr21", text: "HVAC system" },
+          { id: "hr22", text: "Water heater" },
+          { id: "hr23", text: "Attic / crawlspace / basement" },
+        ]
+      },
+      {
+        title: "Garage / Workshop",
+        items: [
+          { id: "hr24", text: "Tools & equipment" },
+          { id: "hr25", text: "Vehicles (if applicable)" },
+          { id: "hr26", text: "Storage items" },
+        ]
+      },
+    ],
+    categoryView: [
+      {
+        title: "Property Overview",
+        items: [
+          { id: "hc1", text: "Deed & ownership docs" },
+          { id: "hc2", text: "Survey & boundary maps" },
+          { id: "hc3", text: "Appraisals / assessments" },
+          { id: "hc4", text: "Tax records" },
+        ]
+      },
+      {
+        title: "Structural Documentation",
+        items: [
+          { id: "hc5", text: "Exterior photos" },
+          { id: "hc6", text: "Interior room photos" },
+          { id: "hc7", text: "Roof, foundation" },
+          { id: "hc8", text: "Inspection reports" },
+        ]
+      },
+      {
+        title: "Systems & Utilities",
+        items: [
+          { id: "hc9", text: "Electrical" },
+          { id: "hc10", text: "Plumbing" },
+          { id: "hc11", text: "HVAC" },
+          { id: "hc12", text: "Septic / sewer / well" },
+        ]
+      },
+      {
+        title: "High-Value Items",
+        items: [
+          { id: "hc13", text: "Electronics & appliances" },
+          { id: "hc14", text: "Jewelry & collectibles" },
+          { id: "hc15", text: "Artwork & antiques" },
+          { id: "hc16", text: "Tools & equipment" },
+        ]
+      },
+      {
+        title: "Insurance",
+        items: [
+          { id: "hc17", text: "Policy & declarations" },
+          { id: "hc18", text: "Claims history" },
+          { id: "hc19", text: "Endorsements" },
+        ]
+      },
+    ],
+  };
 
-  const managementChecklist: ChecklistSection[] = [
-    {
-      title: "Portfolio Overview",
-      items: [
-        { id: "m1", text: "Complete property portfolio inventory" },
-        { id: "m2", text: "Individual property deeds and titles" },
-        { id: "m3", text: "Master insurance policies for all properties" },
-        { id: "m4", text: "Property management agreements and contracts" },
-        { id: "m5", text: "Local regulations and compliance requirements" }
-      ]
-    },
-    {
-      title: "Tenant & Lease Documentation",
-      items: [
-        { id: "m6", text: "Current lease agreements for all units" },
-        { id: "m7", text: "Tenant screening and application records" },
-        { id: "m8", text: "Security deposit documentation" },
-        { id: "m9", text: "Rent payment history and arrears records" },
-        { id: "m10", text: "Tenant correspondence and communication logs" }
-      ]
-    },
-    {
-      title: "Maintenance & Operations",
-      items: [
-        { id: "m11", text: "Property condition assessments and inspection reports" },
-        { id: "m12", text: "Maintenance request logs and resolution records" },
-        { id: "m13", text: "Vendor and contractor agreements" },
-        { id: "m14", text: "Utility account management and billing" },
-        { id: "m15", text: "Emergency contact lists and procedures" }
-      ]
-    },
-    {
-      title: "Financial Management",
-      items: [
-        { id: "m16", text: "Monthly and annual financial statements" },
-        { id: "m17", text: "Operating expense tracking and budgets" },
-        { id: "m18", text: "Capital improvement plans and records" },
-        { id: "m19", text: "Tax documentation and depreciation schedules" },
-        { id: "m20", text: "Reserve fund documentation and planning" }
-      ]
-    }
-  ];
+  // ==================== BUSINESS DATA ====================
+  const businessData: ChecklistData = {
+    roomView: [
+      {
+        title: "Exterior",
+        items: [
+          { id: "br1", text: "Building exterior" },
+          { id: "br2", text: "Parking areas" },
+          { id: "br3", text: "Signage" },
+        ]
+      },
+      {
+        title: "Public Areas",
+        items: [
+          { id: "br4", text: "Lobby / reception" },
+          { id: "br5", text: "Waiting areas" },
+          { id: "br6", text: "Showroom / retail floor" },
+        ]
+      },
+      {
+        title: "Work Areas",
+        items: [
+          { id: "br7", text: "Offices" },
+          { id: "br8", text: "Cubicles" },
+          { id: "br9", text: "Conference rooms" },
+        ]
+      },
+      {
+        title: "Operational Areas",
+        items: [
+          { id: "br10", text: "Storage rooms" },
+          { id: "br11", text: "Back offices" },
+          { id: "br12", text: "Supply rooms" },
+        ]
+      },
+      {
+        title: "Equipment Areas",
+        items: [
+          { id: "br13", text: "Server rooms" },
+          { id: "br14", text: "Machinery areas" },
+          { id: "br15", text: "Specialized equipment spaces" },
+        ]
+      },
+      {
+        title: "Utility Areas",
+        items: [
+          { id: "br16", text: "Electrical" },
+          { id: "br17", text: "HVAC" },
+          { id: "br18", text: "Security systems" },
+        ]
+      },
+    ],
+    categoryView: [
+      {
+        title: "Business Property",
+        items: [
+          { id: "bc1", text: "Lease or ownership docs" },
+          { id: "bc2", text: "Floor plans" },
+          { id: "bc3", text: "Permits" },
+        ]
+      },
+      {
+        title: "Assets & Equipment",
+        items: [
+          { id: "bc4", text: "Furniture" },
+          { id: "bc5", text: "Computers & electronics" },
+          { id: "bc6", text: "Machinery & tools" },
+        ]
+      },
+      {
+        title: "IT & Systems",
+        items: [
+          { id: "bc7", text: "Servers" },
+          { id: "bc8", text: "Network equipment" },
+          { id: "bc9", text: "Security systems" },
+        ]
+      },
+      {
+        title: "Insurance & Compliance",
+        items: [
+          { id: "bc10", text: "Business insurance policies" },
+          { id: "bc11", text: "Certificates" },
+          { id: "bc12", text: "Claims history" },
+        ]
+      },
+      {
+        title: "Records & Contracts",
+        items: [
+          { id: "bc13", text: "Vendor contracts" },
+          { id: "bc14", text: "Warranties" },
+          { id: "bc15", text: "Licenses" },
+        ]
+      },
+    ],
+  };
 
-  const industrialChecklist: ChecklistSection[] = [
-    {
-      title: "Facility Documentation",
-      items: [
-        { id: "i1", text: "Industrial property ownership or lease documentation" },
-        { id: "i2", text: "Environmental compliance certificates and permits" },
-        { id: "i3", text: "Safety and health compliance documentation (OSHA)" },
-        { id: "i4", text: "Specialized industrial insurance policies" },
-        { id: "i5", text: "Facility engineering drawings and schematics" }
-      ]
-    },
-    {
-      title: "Equipment & Machinery",
-      items: [
-        { id: "i6", text: "Complete machinery inventory with specifications" },
-        { id: "i7", text: "Equipment maintenance schedules and history" },
-        { id: "i8", text: "Calibration records and certifications" },
-        { id: "i9", text: "Spare parts inventory and supplier information" },
-        { id: "i10", text: "Equipment warranties and service contracts" }
-      ]
-    },
-    {
-      title: "Safety & Compliance",
-      items: [
-        { id: "i11", text: "Material Safety Data Sheets (MSDS) for all chemicals" },
-        { id: "i12", text: "Emergency response plans and procedures" },
-        { id: "i13", text: "Fire suppression and safety system documentation" },
-        { id: "i14", text: "Personal protective equipment inventory" },
-        { id: "i15", text: "Incident reports and safety training records" }
-      ]
-    },
-    {
-      title: "Operational Records",
-      items: [
-        { id: "i16", text: "Production records and quality control documentation" },
-        { id: "i17", text: "Inventory management and tracking systems" },
-        { id: "i18", text: "Supply chain and vendor documentation" },
-        { id: "i19", text: "Transportation and logistics records" },
-        { id: "i20", text: "Research and development documentation" }
-      ]
-    }
-  ];
+  // ==================== MANAGEMENT DATA ====================
+  const managementData: ChecklistData = {
+    roomView: [
+      {
+        title: "Exterior (Property-Level)",
+        items: [
+          { id: "mr1", text: "Building exterior" },
+          { id: "mr2", text: "Roof" },
+          { id: "mr3", text: "Parking" },
+          { id: "mr4", text: "Common outdoor areas" },
+        ]
+      },
+      {
+        title: "Common Areas",
+        items: [
+          { id: "mr5", text: "Hallways" },
+          { id: "mr6", text: "Stairwells" },
+          { id: "mr7", text: "Elevators" },
+          { id: "mr8", text: "Laundry rooms" },
+        ]
+      },
+      {
+        title: "Unit Interior",
+        items: [
+          { id: "mr9", text: "Living areas" },
+          { id: "mr10", text: "Kitchen" },
+          { id: "mr11", text: "Bedrooms" },
+          { id: "mr12", text: "Bathrooms" },
+        ]
+      },
+      {
+        title: "Unit Systems",
+        items: [
+          { id: "mr13", text: "Electrical panel" },
+          { id: "mr14", text: "HVAC" },
+          { id: "mr15", text: "Plumbing" },
+        ]
+      },
+      {
+        title: "Storage & Utility",
+        items: [
+          { id: "mr16", text: "Storage lockers" },
+          { id: "mr17", text: "Mechanical rooms" },
+        ]
+      },
+    ],
+    categoryView: [
+      {
+        title: "Property & Units",
+        items: [
+          { id: "mc1", text: "Unit inventory" },
+          { id: "mc2", text: "Floor plans" },
+          { id: "mc3", text: "Square footage" },
+        ]
+      },
+      {
+        title: "Tenant Turnover",
+        items: [
+          { id: "mc4", text: "Move-in condition" },
+          { id: "mc5", text: "Move-out condition" },
+          { id: "mc6", text: "Damage documentation" },
+        ]
+      },
+      {
+        title: "Maintenance & Repairs",
+        items: [
+          { id: "mc7", text: "Work orders" },
+          { id: "mc8", text: "Vendor invoices" },
+          { id: "mc9", text: "Warranties" },
+        ]
+      },
+      {
+        title: "Systems & Infrastructure",
+        items: [
+          { id: "mc10", text: "Electrical" },
+          { id: "mc11", text: "HVAC" },
+          { id: "mc12", text: "Plumbing" },
+          { id: "mc13", text: "Fire systems" },
+        ]
+      },
+      {
+        title: "Insurance & Risk",
+        items: [
+          { id: "mc14", text: "Property insurance" },
+          { id: "mc15", text: "Claims & incidents" },
+        ]
+      },
+    ],
+  };
 
-  // Calculate overall progress for all checklists combined
-  const allChecklists = [...homeownersChecklist, ...businessChecklist, ...managementChecklist, ...industrialChecklist];
+  // ==================== INDUSTRIAL DATA ====================
+  const industrialData: ChecklistData = {
+    roomView: [
+      {
+        title: "Exterior & Grounds",
+        items: [
+          { id: "ir1", text: "Building exterior" },
+          { id: "ir2", text: "Loading docks" },
+          { id: "ir3", text: "Yards & fencing" },
+        ]
+      },
+      {
+        title: "Production Areas",
+        items: [
+          { id: "ir4", text: "Manufacturing floor" },
+          { id: "ir5", text: "Assembly lines" },
+          { id: "ir6", text: "Processing zones" },
+        ]
+      },
+      {
+        title: "Storage Areas",
+        items: [
+          { id: "ir7", text: "Raw materials" },
+          { id: "ir8", text: "Finished goods" },
+          { id: "ir9", text: "Hazardous materials (if applicable)" },
+        ]
+      },
+      {
+        title: "Equipment Zones",
+        items: [
+          { id: "ir10", text: "Heavy machinery" },
+          { id: "ir11", text: "Control panels" },
+          { id: "ir12", text: "Robotics / automation" },
+        ]
+      },
+      {
+        title: "Utility & Safety Areas",
+        items: [
+          { id: "ir13", text: "Electrical rooms" },
+          { id: "ir14", text: "Boiler rooms" },
+          { id: "ir15", text: "Fire suppression systems" },
+          { id: "ir16", text: "Emergency exits" },
+        ]
+      },
+    ],
+    categoryView: [
+      {
+        title: "Facilities",
+        items: [
+          { id: "ic1", text: "Building documentation" },
+          { id: "ic2", text: "Floor plans" },
+          { id: "ic3", text: "Permits" },
+        ]
+      },
+      {
+        title: "Machinery & Equipment",
+        items: [
+          { id: "ic4", text: "Asset lists" },
+          { id: "ic5", text: "Serial numbers" },
+          { id: "ic6", text: "Maintenance logs" },
+        ]
+      },
+      {
+        title: "Safety & Compliance",
+        items: [
+          { id: "ic7", text: "OSHA documentation" },
+          { id: "ic8", text: "Safety inspections" },
+          { id: "ic9", text: "Incident reports" },
+        ]
+      },
+      {
+        title: "Utilities & Infrastructure",
+        items: [
+          { id: "ic10", text: "Electrical systems" },
+          { id: "ic11", text: "HVAC / ventilation" },
+          { id: "ic12", text: "Plumbing" },
+        ]
+      },
+      {
+        title: "Insurance & Risk",
+        items: [
+          { id: "ic13", text: "Industrial insurance policies" },
+          { id: "ic14", text: "Claims" },
+          { id: "ic15", text: "Environmental reports" },
+        ]
+      },
+    ],
+  };
+
+  // Calculate progress for a specific checklist
+  const calculateProgress = (checklist: ChecklistSection[]) => {
+    const totalItems = checklist.reduce((sum, section) => sum + section.items.length, 0);
+    const completedItems = checklist.reduce(
+      (sum, section) => sum + section.items.filter(item => checkedItems.has(item.id)).length,
+      0
+    );
+    return { totalItems, completedItems, percentage: totalItems > 0 ? (completedItems / totalItems) * 100 : 0 };
+  };
+
+  // Calculate overall progress
+  const allChecklists = [
+    ...homeownerData.roomView, ...homeownerData.categoryView,
+    ...businessData.roomView, ...businessData.categoryView,
+    ...managementData.roomView, ...managementData.categoryView,
+    ...industrialData.roomView, ...industrialData.categoryView,
+  ];
   const totalItems = allChecklists.reduce((sum, section) => sum + section.items.length, 0);
   const completedItems = allChecklists.reduce(
     (sum, section) => sum + section.items.filter(item => checkedItems.has(item.id)).length,
@@ -213,53 +484,121 @@ const DocumentationChecklist: React.FC = () => {
   const overallPercentage = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
 
   const ChecklistComponent: React.FC<{
+    tabKey: string;
     title: string;
-    checklist: ChecklistSection[];
-  }> = ({ title, checklist }) => {
-    const sectionTotalItems = checklist.reduce((sum, section) => sum + section.items.length, 0);
-    const sectionCompletedItems = checklist.reduce(
-      (sum, section) => sum + section.items.filter(item => checkedItems.has(item.id)).length,
-      0
-    );
-    const completionPercentage = sectionTotalItems > 0 ? (sectionCompletedItems / sectionTotalItems) * 100 : 0;
+    icon: React.ReactNode;
+    data: ChecklistData;
+  }> = ({ tabKey, title, icon, data }) => {
+    const currentView = viewModes[tabKey];
+    const roomProgress = calculateProgress(data.roomView);
+    const categoryProgress = calculateProgress(data.categoryView);
+    const currentChecklist = currentView === 'room' ? data.roomView : data.categoryView;
 
     return (
       <div className="space-y-6">
+        {/* Header with title */}
         <div className="text-center">
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">{title}</h3>
-          <div className="space-y-2">
-            <Progress value={completionPercentage} className="w-full max-w-md mx-auto" />
-            <p className="text-sm text-gray-600">
-              {sectionCompletedItems} of {sectionTotalItems} items completed ({Math.round(completionPercentage)}%)
-            </p>
+          <div className="flex items-center justify-center gap-2 mb-4">
+            {icon}
+            <h3 className="text-2xl font-bold text-foreground">{title}</h3>
           </div>
         </div>
 
-        <div className="grid gap-6">
-          {checklist.map((section, sectionIndex) => (
-            <Card key={sectionIndex}>
-              <CardHeader>
+        {/* View Toggle */}
+        <div className="flex items-center justify-center gap-4 p-4 bg-muted/50 rounded-lg">
+          <span className={`text-sm font-medium transition-colors ${currentView === 'room' ? 'text-primary' : 'text-muted-foreground'}`}>
+            🏠 Room View
+          </span>
+          <Switch
+            checked={currentView === 'category'}
+            onCheckedChange={() => toggleViewMode(tabKey)}
+          />
+          <span className={`text-sm font-medium transition-colors ${currentView === 'category' ? 'text-primary' : 'text-muted-foreground'}`}>
+            📂 Category View
+          </span>
+        </div>
+
+        {/* Dual Progress Bars */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card className={`transition-all ${currentView === 'room' ? 'ring-2 ring-primary' : ''}`}>
+            <CardContent className="pt-4">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">🏠 Room View Progress</span>
+                  <span className="text-sm text-muted-foreground">
+                    {roomProgress.completedItems}/{roomProgress.totalItems}
+                  </span>
+                </div>
+                <Progress value={roomProgress.percentage} className="h-2" />
+                <p className="text-xs text-muted-foreground text-right">
+                  {Math.round(roomProgress.percentage)}% complete
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className={`transition-all ${currentView === 'category' ? 'ring-2 ring-primary' : ''}`}>
+            <CardContent className="pt-4">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">📂 Category View Progress</span>
+                  <span className="text-sm text-muted-foreground">
+                    {categoryProgress.completedItems}/{categoryProgress.totalItems}
+                  </span>
+                </div>
+                <Progress value={categoryProgress.percentage} className="h-2" />
+                <p className="text-xs text-muted-foreground text-right">
+                  {Math.round(categoryProgress.percentage)}% complete
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Current View Label */}
+        <div className="text-center">
+          <span className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium">
+            {currentView === 'room' ? '🏠 Room View' : '📂 Category View'} Active
+          </span>
+        </div>
+
+        {/* Checklist Items */}
+        <div className="grid gap-4">
+          {currentChecklist.map((section, sectionIndex) => (
+            <Card key={sectionIndex} className="animate-fade-in">
+              <CardHeader className="pb-3">
                 <CardTitle className="text-lg">{section.title}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   {section.items.map((item) => (
-                    <div key={item.id} className="flex items-center space-x-3">
+                    <div 
+                      key={item.id} 
+                      className={`flex items-center space-x-3 p-2 rounded-lg transition-all duration-300 ${
+                        checkedItems.has(item.id) 
+                          ? 'bg-green-50 dark:bg-green-950/30' 
+                          : 'hover:bg-muted/50'
+                      }`}
+                    >
                       <Checkbox
                         id={item.id}
                         checked={checkedItems.has(item.id)}
-                        onCheckedChange={() => toggleChecked(item.id)}
+                        onCheckedChange={() => toggleChecked(item.id, checkedItems.has(item.id))}
+                        className="transition-transform duration-200 data-[state=checked]:scale-110"
                       />
                       <label
                         htmlFor={item.id}
-                        className={`text-sm cursor-pointer flex-1 ${
+                        className={`text-sm cursor-pointer flex-1 transition-all duration-300 ${
                           checkedItems.has(item.id) 
-                            ? 'line-through text-gray-500' 
-                            : 'text-gray-700'
+                            ? 'line-through text-muted-foreground' 
+                            : 'text-foreground'
                         }`}
                       >
                         {item.text}
                       </label>
+                      {checkedItems.has(item.id) && (
+                        <span className="text-green-500 text-lg animate-scale-in">✓</span>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -278,7 +617,7 @@ const DocumentationChecklist: React.FC = () => {
           <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <ClipboardList className="h-6 w-6 text-brand-blue" />
+                <ClipboardList className="h-6 w-6 text-primary" />
                 <div>
                   <CardTitle className="text-xl">Complete Documentation Checklist</CardTitle>
                   <p className="text-sm text-muted-foreground mt-1">
@@ -314,37 +653,57 @@ const DocumentationChecklist: React.FC = () => {
           <CardContent className="pt-0">
             <Tabs defaultValue="homeowners" className="space-y-6">
               <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="homeowners">Homeowners</TabsTrigger>
-                <TabsTrigger value="business">Business</TabsTrigger>
-                <TabsTrigger value="management">Management</TabsTrigger>
-                <TabsTrigger value="industrial">Industrial</TabsTrigger>
+                <TabsTrigger value="homeowners" className="text-xs sm:text-sm">
+                  <Home className="h-4 w-4 mr-1 hidden sm:inline" />
+                  Homeowner
+                </TabsTrigger>
+                <TabsTrigger value="business" className="text-xs sm:text-sm">
+                  <Building2 className="h-4 w-4 mr-1 hidden sm:inline" />
+                  Business
+                </TabsTrigger>
+                <TabsTrigger value="management" className="text-xs sm:text-sm">
+                  <Users className="h-4 w-4 mr-1 hidden sm:inline" />
+                  Management
+                </TabsTrigger>
+                <TabsTrigger value="industrial" className="text-xs sm:text-sm">
+                  <Factory className="h-4 w-4 mr-1 hidden sm:inline" />
+                  Industrial
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="homeowners">
                 <ChecklistComponent
-                  title="Homeowners Documentation Checklist"
-                  checklist={homeownersChecklist}
+                  tabKey="homeowners"
+                  title="Homeowner Documentation"
+                  icon={<Home className="h-6 w-6 text-primary" />}
+                  data={homeownerData}
                 />
               </TabsContent>
 
               <TabsContent value="business">
                 <ChecklistComponent
-                  title="Business Property Documentation Checklist"
-                  checklist={businessChecklist}
+                  tabKey="business"
+                  title="Business Documentation"
+                  icon={<Building2 className="h-6 w-6 text-primary" />}
+                  data={businessData}
                 />
               </TabsContent>
 
               <TabsContent value="management">
                 <ChecklistComponent
-                  title="Property Management Documentation Checklist"
-                  checklist={managementChecklist}
+                  tabKey="management"
+                  title="Management / Landlord Documentation"
+                  icon={<Users className="h-6 w-6 text-primary" />}
+                  data={managementData}
                 />
               </TabsContent>
 
               <TabsContent value="industrial">
                 <ChecklistComponent
-                  title="Industrial Property Documentation Checklist"
-                  checklist={industrialChecklist}
+                  tabKey="industrial"
+                  title="Industrial Documentation"
+                  icon={<Factory className="h-6 w-6 text-primary" />}
+                  data={industrialData}
                 />
               </TabsContent>
             </Tabs>
