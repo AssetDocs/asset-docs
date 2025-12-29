@@ -49,11 +49,12 @@ const DocumentUpload: React.FC = () => {
   const documentType = (searchParams.get('type') as DocumentType) || 'other';
   const typeInfo = documentTypeLabels[documentType] || documentTypeLabels.other;
   const TypeIcon = typeInfo.icon;
-  
+
   const { user } = useAuth();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadedDocuments, setUploadedDocuments] = useState<UploadedDocument[]>([]);
   const [defaultPropertyId, setDefaultPropertyId] = useState('');
+  const NO_FOLDER_VALUE = '__none__';
   const [selectedFolderId, setSelectedFolderId] = useState<string>('');
   const [folders, setFolders] = useState<DocumentFolder[]>([]);
 
@@ -180,12 +181,15 @@ const DocumentUpload: React.FC = () => {
                   <Label htmlFor="default-folder" className="text-sm font-medium">
                     Default Folder (optional)
                   </Label>
-                  <Select value={selectedFolderId} onValueChange={setSelectedFolderId}>
+                  <Select
+                    value={selectedFolderId || NO_FOLDER_VALUE}
+                    onValueChange={(v) => setSelectedFolderId(v === NO_FOLDER_VALUE ? '' : v)}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select a folder" />
                     </SelectTrigger>
                     <SelectContent className="bg-background z-50">
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value={NO_FOLDER_VALUE}>None</SelectItem>
                       {folders.map((folder) => (
                         <SelectItem key={folder.id} value={folder.id}>
                           <div className="flex items-center gap-2">

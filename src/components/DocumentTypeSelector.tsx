@@ -121,14 +121,16 @@ const DocumentTypeSelector: React.FC<DocumentTypeSelectorProps> = ({
             <Button
               key={docType.type}
               variant="outline"
-              className="h-auto py-4 px-3 flex flex-col items-center text-center hover:border-brand-blue hover:bg-brand-blue/5 transition-colors"
+              className="h-auto min-h-28 py-4 px-3 flex flex-col items-center text-center hover:border-brand-blue hover:bg-brand-blue/5 transition-colors"
               onClick={() => onSelect(docType.type)}
             >
               <div className={`w-10 h-10 rounded-full ${docType.color} flex items-center justify-center mb-2`}>
                 <docType.icon className="h-5 w-5" />
               </div>
               <span className="font-medium text-sm">{docType.label}</span>
-              <span className="text-xs text-muted-foreground mt-1">{docType.description}</span>
+              <span className="mt-1 text-xs leading-snug text-muted-foreground line-clamp-2">
+                {docType.description}
+              </span>
             </Button>
           ))}
         </div>
