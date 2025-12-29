@@ -187,6 +187,13 @@ const WelcomeMessage: React.FC = () => {
               Property Profiles
             </Link>
           </Button>
+          {isMobile && (
+            <Button asChild variant="outline" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 border-yellow-400">
+              <Link to="/install">
+                Add to Home Screen
+              </Link>
+            </Button>
+          )}
         </div>
       </div>
 
@@ -442,13 +449,13 @@ const Account: React.FC = () => {
                     <div className="space-y-3">
                       <Button 
                         onClick={() => handleRestrictedAction(() => {
-                          navigate('/account/documents/upload');
+                          navigate('/account/documents?add=1');
                         })}
                         className="w-full bg-brand-blue hover:bg-brand-lightBlue"
                         disabled={isViewer}
                       >
                         <Plus className="h-4 w-4 mr-2" />
-                        Upload Documents
+                        Add Document
                         {isViewer && <Lock className="h-3 w-3 ml-1" />}
                       </Button>
                       <Button 
