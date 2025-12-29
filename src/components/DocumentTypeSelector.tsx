@@ -33,66 +33,57 @@ interface DocumentTypeOption {
   label: string;
   description: string;
   icon: React.ElementType;
-  color: string;
 }
 
 const documentTypes: DocumentTypeOption[] = [
   {
     type: 'insurance_policy',
     label: 'Insurance Policy',
-    description: 'Coverage documents and declarations',
+    description: 'Coverage documents\nand declarations',
     icon: Shield,
-    color: 'bg-blue-100 text-blue-600'
   },
   {
     type: 'insurance_claim',
     label: 'Insurance Claim',
-    description: 'Claim documents and correspondence',
+    description: 'Claim documents\nand correspondence',
     icon: FileWarning,
-    color: 'bg-orange-100 text-orange-600'
   },
   {
     type: 'warranty',
     label: 'Warranty',
-    description: 'Product warranties and guarantees',
+    description: 'Product warranties\nand guarantees',
     icon: FileCheck,
-    color: 'bg-green-100 text-green-600'
   },
   {
     type: 'receipt',
     label: 'Receipt',
-    description: 'Purchase receipts and invoices',
+    description: 'Purchase receipts\nand invoices',
     icon: Receipt,
-    color: 'bg-purple-100 text-purple-600'
   },
   {
     type: 'inspection_report',
     label: 'Inspection Report',
-    description: 'Home and property inspections',
+    description: 'Home and property\ninspections',
     icon: ClipboardCheck,
-    color: 'bg-teal-100 text-teal-600'
   },
   {
     type: 'appraisal',
     label: 'Appraisal',
-    description: 'Property and item valuations',
+    description: 'Property and item\nvaluations',
     icon: FileText,
-    color: 'bg-yellow-100 text-yellow-600'
   },
   {
     type: 'title_deed',
     label: 'Title / Deed',
-    description: 'Property ownership documents',
+    description: 'Property ownership\ndocuments',
     icon: Home,
-    color: 'bg-indigo-100 text-indigo-600'
   },
   {
     type: 'other',
     label: 'Other',
-    description: 'Other important documents',
+    description: 'Other important\ndocuments',
     icon: Files,
-    color: 'bg-gray-100 text-gray-600'
-  }
+  },
 ];
 
 interface DocumentTypeSelectorProps {
@@ -121,14 +112,14 @@ const DocumentTypeSelector: React.FC<DocumentTypeSelectorProps> = ({
             <Button
               key={docType.type}
               variant="outline"
-              className="h-auto min-h-28 py-4 px-3 flex flex-col items-center text-center hover:border-brand-blue hover:bg-brand-blue/5 transition-colors"
+              className="h-auto min-h-32 py-4 px-3 flex flex-col items-center text-center hover:border-brand-blue hover:bg-brand-blue/5 transition-colors"
               onClick={() => onSelect(docType.type)}
             >
-              <div className={`w-10 h-10 rounded-full ${docType.color} flex items-center justify-center mb-2`}>
+              <div className="w-10 h-10 rounded-full bg-yellow text-yellow-foreground flex items-center justify-center mb-2">
                 <docType.icon className="h-5 w-5" />
               </div>
               <span className="font-medium text-sm">{docType.label}</span>
-              <span className="mt-1 text-xs leading-snug text-muted-foreground line-clamp-2">
+              <span className="mt-1 text-xs leading-snug text-muted-foreground whitespace-pre-line min-h-[2.25rem]">
                 {docType.description}
               </span>
             </Button>
