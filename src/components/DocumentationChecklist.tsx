@@ -23,19 +23,25 @@ interface ChecklistData {
   categoryView: ChecklistSection[];
 }
 
-// Encouragement messages for when users check items
-const encouragementMessages = [
-  "One step closer to asset protection! 🛡️",
-  "You're on the right track! 🎯",
-  "Great progress! Keep going! 💪",
-  "Well done! Your assets are more secure! ✅",
-  "Excellent documentation work! 📋",
-  "That's the spirit! Stay organized! 🌟",
-  "Amazing! Every item counts! 🏆",
-  "You're building a solid record! 📚",
-  "Protection in progress! 🔒",
-  "Smart move! Keep documenting! 🧠",
+// Individual check encouragement messages (shown in rotation)
+const individualMessages = [
+  "Saved securely",
+  "Item documented",
+  "Recorded successfully",
+  "Progress saved",
+  "Information secured",
+  "Nice progress",
+  "One step closer",
 ];
+
+// Block completion messages
+const blockCompletionMessages = [
+  "This information is ready if you ever need it",
+  "You're building a solid record",
+];
+
+// Track message index for rotation
+let messageIndex = 0;
 
 const DocumentationChecklist: React.FC = () => {
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
@@ -47,22 +53,6 @@ const DocumentationChecklist: React.FC = () => {
     industrial: 'room',
   });
   const { toast } = useToast();
-
-  const toggleChecked = (itemId: string, wasChecked: boolean) => {
-    const newCheckedItems = new Set(checkedItems);
-    if (newCheckedItems.has(itemId)) {
-      newCheckedItems.delete(itemId);
-    } else {
-      newCheckedItems.add(itemId);
-      // Show encouragement only when checking (not unchecking)
-      const randomMessage = encouragementMessages[Math.floor(Math.random() * encouragementMessages.length)];
-      toast({
-        title: randomMessage,
-        duration: 2000,
-      });
-    }
-    setCheckedItems(newCheckedItems);
-  };
 
   const toggleViewMode = (tab: string) => {
     setViewModes(prev => ({
@@ -459,6 +449,50 @@ const DocumentationChecklist: React.FC = () => {
     ],
   };
 
+  // Toggle checked with encouragement messages
+  const toggleChecked = (itemId: string) => {
+    const newCheckedItems = new Set(checkedItems);
+    if (newCheckedItems.has(itemId)) {
+      newCheckedItems.delete(itemId);
+    } else {
+      newCheckedItems.add(itemId);
+      
+      // Check if this completes a block
+      const allSections = [
+        ...homeownerData.roomView, ...homeownerData.categoryView,
+        ...businessData.roomView, ...businessData.categoryView,
+        ...managementData.roomView, ...managementData.categoryView,
+        ...industrialData.roomView, ...industrialData.categoryView,
+      ];
+      const section = allSections.find(s => s.items.some(item => item.id === itemId));
+      
+      if (section) {
+        const allItemsInSection = section.items.map(item => item.id);
+        const isBlockComplete = allItemsInSection.every(id => 
+          id === itemId || newCheckedItems.has(id)
+        );
+        
+        if (isBlockComplete) {
+          // Show block completion message
+          const blockMessage = blockCompletionMessages[Math.floor(Math.random() * blockCompletionMessages.length)];
+          toast({
+            title: blockMessage,
+            duration: 2500,
+          });
+        } else {
+          // Show individual message in rotation
+          const message = individualMessages[messageIndex % individualMessages.length];
+          messageIndex++;
+          toast({
+            title: message,
+            duration: 1500,
+          });
+        }
+      }
+    }
+    setCheckedItems(newCheckedItems);
+  };
+
   // Calculate progress for a specific checklist
   const calculateProgress = (checklist: ChecklistSection[]) => {
     const totalItems = checklist.reduce((sum, section) => sum + section.items.length, 0);
@@ -583,7 +617,7 @@ const DocumentationChecklist: React.FC = () => {
                       <Checkbox
                         id={item.id}
                         checked={checkedItems.has(item.id)}
-                        onCheckedChange={() => toggleChecked(item.id, checkedItems.has(item.id))}
+                        onCheckedChange={() => toggleChecked(item.id)}
                         className="transition-transform duration-200 data-[state=checked]:scale-110"
                       />
                       <label
