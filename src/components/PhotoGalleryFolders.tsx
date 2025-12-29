@@ -49,7 +49,7 @@ const PhotoGalleryFolders: React.FC<PhotoGalleryFoldersProps> = ({
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">
           <Images className="h-5 w-5" />
-          Photo Organization
+          Photo/Video Organization
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -72,8 +72,8 @@ const PhotoGalleryFolders: React.FC<PhotoGalleryFoldersProps> = ({
             <Images className="h-4 w-4 text-white" />
           </div>
           <div className="flex-1 text-left min-w-0">
-            <div className="font-medium text-sm">All Photos</div>
-            <div className="text-xs text-muted-foreground">View all photos</div>
+            <div className="font-medium text-sm">All Photos and Videos</div>
+            <div className="text-xs text-muted-foreground">View all photos and videos</div>
           </div>
           <Badge variant="secondary" className="ml-2">
             {photoCount}
