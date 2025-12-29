@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -7,11 +7,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Upload, FileText, Trash2, Plus, Folder } from 'lucide-react';
+import { ArrowLeft, Upload, FileText, Trash2, Plus, Folder, Shield, FileWarning, FileCheck, Receipt, ClipboardCheck, Home, Files } from 'lucide-react';
 import PropertySelector from '@/components/PropertySelector';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { DocumentType } from '@/components/DocumentTypeSelector';
 
 interface DocumentFolder {
   id: string;
@@ -30,15 +32,30 @@ interface UploadedDocument {
   folderId: string;
 }
 
+const documentTypeLabels: Record<DocumentType, { label: string; icon: React.ElementType; color: string }> = {
+  insurance_policy: { label: 'Insurance Policy', icon: Shield, color: 'bg-blue-100 text-blue-800' },
+  insurance_claim: { label: 'Insurance Claim', icon: FileWarning, color: 'bg-orange-100 text-orange-800' },
+  warranty: { label: 'Warranty', icon: FileCheck, color: 'bg-green-100 text-green-800' },
+  receipt: { label: 'Receipt', icon: Receipt, color: 'bg-purple-100 text-purple-800' },
+  inspection_report: { label: 'Inspection Report', icon: ClipboardCheck, color: 'bg-teal-100 text-teal-800' },
+  appraisal: { label: 'Appraisal', icon: FileText, color: 'bg-yellow-100 text-yellow-800' },
+  title_deed: { label: 'Title / Deed', icon: Home, color: 'bg-indigo-100 text-indigo-800' },
+  other: { label: 'Other', icon: Files, color: 'bg-gray-100 text-gray-800' }
+};
+
 const DocumentUpload: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const documentType = (searchParams.get('type') as DocumentType) || 'other';
+  const typeInfo = documentTypeLabels[documentType] || documentTypeLabels.other;
+  const TypeIcon = typeInfo.icon;
+  
   const { user } = useAuth();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadedDocuments, setUploadedDocuments] = useState<UploadedDocument[]>([]);
   const [defaultPropertyId, setDefaultPropertyId] = useState('');
   const [selectedFolderId, setSelectedFolderId] = useState<string>('');
   const [folders, setFolders] = useState<DocumentFolder[]>([]);
-  
 
   React.useEffect(() => {
     console.log('DocumentUpload mounted, user:', user?.id);
@@ -132,8 +149,14 @@ const DocumentUpload: React.FC = () => {
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Documents
             </Button>
-            <h1 className="text-3xl font-bold text-brand-blue mb-2">Upload Documents</h1>
-            <p className="text-gray-600">Upload important documents like insurance policies, warranties, and contracts</p>
+            <h1 className="text-3xl font-bold text-brand-blue mb-2 flex items-center gap-3">
+              Upload Document
+              <Badge className={typeInfo.color} variant="secondary">
+                <TypeIcon className="h-3 w-3 mr-1" />
+                {typeInfo.label}
+              </Badge>
+            </h1>
+            <p className="text-gray-600">Upload your {typeInfo.label.toLowerCase()} document with optional notes</p>
           </div>
 
           {/* Default Settings */}

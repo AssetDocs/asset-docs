@@ -4,27 +4,23 @@ import Footer from '@/components/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  ArrowLeft,
   FileText,
   Plus,
   FolderPlus,
   Search,
   SortAsc,
-  SortDesc,
   Calendar,
   Type,
   Grid3X3,
   List,
   Eye,
-  Download,
-  Move,
   Trash2,
   Shield,
   CheckSquare,
   Square,
-  Loader2
+  Loader2,
+  Upload
 } from 'lucide-react';
 import { 
   DropdownMenu,
@@ -32,12 +28,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import CreateFolderModal from '@/components/CreateFolderModal';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import MediaGalleryGrid from '@/components/MediaGalleryGrid';
 import DocumentFolders from '@/components/DocumentFolders';
+import DocumentTypeSelector, { DocumentType } from '@/components/DocumentTypeSelector';
 import { PropertyService, PropertyFile } from '@/services/PropertyService';
 import { InsuranceService, InsurancePolicy } from '@/services/InsuranceService';
 import { useToast } from '@/hooks/use-toast';
@@ -45,7 +42,7 @@ import { useProperties } from '@/hooks/useProperties';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
-type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'size-desc' | 'size-asc';
+type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc';
 type ViewMode = 'grid' | 'list';
 
 interface Folder {
@@ -58,7 +55,6 @@ interface Folder {
 
 const Documents: React.FC = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { user } = useAuth();
   const { properties } = useProperties();
@@ -77,13 +73,12 @@ const Documents: React.FC = () => {
   const [showDeleteFolderDialog, setShowDeleteFolderDialog] = useState(false);
   const [folderToDelete, setFolderToDelete] = useState<string | null>(null);
   
+  // Document type selector
+  const [showTypeSelector, setShowTypeSelector] = useState(false);
+  
   // Insurance state
-  const [activeTab, setActiveTab] = useState<string>(searchParams.get('tab') || 'documents');
   const [policies, setPolicies] = useState<InsurancePolicy[]>([]);
   const [insuranceLoading, setInsuranceLoading] = useState(true);
-  const [insuranceSortBy, setInsuranceSortBy] = useState<'date-desc' | 'date-asc' | 'name-asc' | 'name-desc'>('date-desc');
-  const [insuranceViewMode, setInsuranceViewMode] = useState<ViewMode>('grid');
-  const [insuranceSearchTerm, setInsuranceSearchTerm] = useState('');
   const [selectedPolicies, setSelectedPolicies] = useState<string[]>([]);
   const [showInsuranceDeleteDialog, setShowInsuranceDeleteDialog] = useState(false);
   const [policyToDelete, setPolicyToDelete] = useState<string | null>(null);
@@ -213,6 +208,29 @@ const Documents: React.FC = () => {
     }
   });
 
+  // Filter and sort policies
+  const filteredPolicies = policies.filter(policy => {
+    const matchesSearch = policy.insurance_company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         policy.policy_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         policy.policy_type?.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
+  });
+
+  const sortedPolicies = [...filteredPolicies].sort((a, b) => {
+    switch (sortBy) {
+      case 'date-desc':
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      case 'date-asc':
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      case 'name-asc':
+        return (a.insurance_company || '').localeCompare(b.insurance_company || '');
+      case 'name-desc':
+        return (b.insurance_company || '').localeCompare(a.insurance_company || '');
+      default:
+        return 0;
+    }
+  });
+
   const toggleDocumentSelection = (documentId: string) => {
     setSelectedDocuments(prev => 
       prev.includes(documentId) 
@@ -226,11 +244,6 @@ const Documents: React.FC = () => {
   };
 
   const unselectAllDocuments = () => {
-    setSelectedDocuments([]);
-  };
-
-  const handleMoveDocuments = (targetFolderId: number | null) => {
-    // TODO: Implement folder functionality
     setSelectedDocuments([]);
   };
 
@@ -250,7 +263,6 @@ const Documents: React.FC = () => {
   const confirmDelete = async () => {
     try {
       if (bulkDeleteMode) {
-        // Delete multiple documents
         const deletePromises = selectedDocuments.map(documentId => {
           const document = documents.find(d => d.id === documentId);
           if (document) {
@@ -265,7 +277,6 @@ const Documents: React.FC = () => {
           description: `${selectedDocuments.length} document(s) deleted successfully`
         });
       } else if (documentToDelete) {
-        // Delete single document
         const document = documents.find(d => d.id === documentToDelete);
         if (document) {
           const success = await PropertyService.deletePropertyFile(document.id, document.file_path, document.bucket_name);
@@ -278,7 +289,7 @@ const Documents: React.FC = () => {
         }
       }
       
-      await fetchDocuments(); // Refresh the list
+      await fetchDocuments();
       setSelectedDocuments([]);
     } catch (error) {
       console.error('Error deleting document(s):', error);
@@ -342,7 +353,6 @@ const Documents: React.FC = () => {
     if (!folderToDelete) return;
     
     try {
-      // First, update all documents in this folder to remove folder_id
       const { error: updateError } = await supabase
         .from('property_files')
         .update({ folder_id: null })
@@ -350,7 +360,6 @@ const Documents: React.FC = () => {
 
       if (updateError) throw updateError;
 
-      // Then delete the folder
       const { error: deleteError } = await supabase
         .from('document_folders')
         .delete()
@@ -391,42 +400,12 @@ const Documents: React.FC = () => {
   };
 
   // Insurance helper functions
-  const filteredPolicies = policies.filter(policy => {
-    const matchesSearch = policy.insurance_company?.toLowerCase().includes(insuranceSearchTerm.toLowerCase()) ||
-                         policy.policy_number?.toLowerCase().includes(insuranceSearchTerm.toLowerCase()) ||
-                         policy.policy_type?.toLowerCase().includes(insuranceSearchTerm.toLowerCase());
-    return matchesSearch;
-  });
-
-  const sortedPolicies = [...filteredPolicies].sort((a, b) => {
-    switch (insuranceSortBy) {
-      case 'date-desc':
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      case 'date-asc':
-        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-      case 'name-asc':
-        return (a.insurance_company || '').localeCompare(b.insurance_company || '');
-      case 'name-desc':
-        return (b.insurance_company || '').localeCompare(a.insurance_company || '');
-      default:
-        return 0;
-    }
-  });
-
   const togglePolicySelection = (policyId: string) => {
     setSelectedPolicies(prev => 
       prev.includes(policyId) 
         ? prev.filter(id => id !== policyId)
         : [...prev, policyId]
     );
-  };
-
-  const selectAllPolicies = () => {
-    setSelectedPolicies(sortedPolicies.map(policy => policy.id));
-  };
-
-  const unselectAllPolicies = () => {
-    setSelectedPolicies([]);
   };
 
   const handleDeletePolicy = (policyId: string) => {
@@ -501,6 +480,21 @@ const Documents: React.FC = () => {
     return `$${amount.toLocaleString()}`;
   };
 
+  // Handle document type selection
+  const handleDocumentTypeSelect = (type: DocumentType) => {
+    setShowTypeSelector(false);
+    
+    if (type === 'insurance_policy') {
+      navigate('/account/insurance/new');
+    } else {
+      // Navigate to document upload with the selected type as a query param
+      navigate(`/account/documents/upload?type=${type}`);
+    }
+  };
+
+  const totalRecords = sortedDocuments.length + sortedPolicies.length;
+  const totalSelected = selectedDocuments.length + selectedPolicies.length;
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
@@ -520,319 +514,144 @@ const Documents: React.FC = () => {
                 Store policies, receipts, warranties, titles, licenses, and other critical records
               </p>
             </div>
+            
+            <Button onClick={() => setShowTypeSelector(true)} size="sm">
+              <Plus className="h-4 w-4 mr-1" />
+              Add Document
+            </Button>
           </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2 max-w-md">
-              <TabsTrigger value="documents" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Documents
-              </TabsTrigger>
-              <TabsTrigger value="insurance" className="flex items-center gap-2">
-                <Shield className="h-4 w-4" />
-                Insurance
-              </TabsTrigger>
-            </TabsList>
+          {/* Search and Controls */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <input
+                type="text"
+                placeholder="Search documents and policies..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent"
+              />
+            </div>
+            
+            <div className="flex gap-2">
+              {(selectedDocuments.length > 0 || selectedPolicies.length > 0) && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => {
+                    if (selectedDocuments.length > 0) handleBulkDelete();
+                    if (selectedPolicies.length > 0) handleInsuranceBulkDelete();
+                  }}
+                >
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Delete ({totalSelected})
+                </Button>
+              )}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <SortAsc className="h-4 w-4 mr-1" />
+                    Sort
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => setSortBy('date-desc')}>
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Newest First
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSortBy('date-asc')}>
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Oldest First
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSortBy('name-asc')}>
+                    <Type className="h-4 w-4 mr-2" />
+                    Name A-Z
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSortBy('name-desc')}>
+                    <Type className="h-4 w-4 mr-2" />
+                    Name Z-A
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-            {/* Documents Tab */}
-            <TabsContent value="documents" className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
-                <div className="mb-4 sm:mb-0">
-                  <p className="text-sm text-gray-500">
-                    {sortedDocuments.length} document{sortedDocuments.length !== 1 ? 's' : ''} 
-                    {selectedDocuments.length > 0 && ` • ${selectedDocuments.length} selected`}
-                  </p>
-                </div>
-
-                <Button asChild size="sm">
-                  <a href="/account/documents/upload">
-                    <Plus className="h-4 w-4 mr-1" />
-                    Upload Documents
-                  </a>
+              <div className="flex border border-gray-300 rounded-md overflow-hidden">
+                <Button
+                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('grid')}
+                  className="rounded-none"
+                >
+                  <Grid3X3 className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'list' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                  className="rounded-none"
+                >
+                  <List className="h-4 w-4" />
                 </Button>
               </div>
+            </div>
+          </div>
 
-              {/* Search and Controls */}
-              <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <input
-                    type="text"
-                    placeholder="Search documents..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent"
-                  />
-                </div>
-                
-                <div className="flex gap-2">
-                  {selectedDocuments.length > 0 && (
-                    <>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={selectAllDocuments}
-                      >
-                        Select All
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={unselectAllDocuments}
-                      >
-                        Unselect All
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={handleBulkDelete}
-                      >
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        Delete ({selectedDocuments.length})
-                      </Button>
-                    </>
-                  )}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm">
-                        <SortAsc className="h-4 w-4 mr-1" />
-                        Sort
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem onClick={() => setSortBy('date-desc')}>
-                        <Calendar className="h-4 w-4 mr-2" />
-                        Newest First
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setSortBy('date-asc')}>
-                        <Calendar className="h-4 w-4 mr-2" />
-                        Oldest First
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setSortBy('name-asc')}>
-                        <Type className="h-4 w-4 mr-2" />
-                        Name A-Z
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setSortBy('name-desc')}>
-                        <Type className="h-4 w-4 mr-2" />
-                        Name Z-A
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Sidebar with Folders */}
+            <div className="lg:col-span-1">
+              <DocumentFolders
+                folders={folders}
+                selectedFolder={selectedFolder}
+                onFolderSelect={setSelectedFolder}
+                documentCount={documents.length}
+                onDeleteFolder={handleDeleteFolder}
+                onCreateFolder={() => setShowCreateFolder(true)}
+              />
+            </div>
 
-                  <div className="flex border border-gray-300 rounded-md overflow-hidden">
-                    <Button
-                      variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                      size="sm"
-                      onClick={() => setViewMode('grid')}
-                      className="rounded-none"
-                    >
-                      <Grid3X3 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant={viewMode === 'list' ? 'default' : 'ghost'}
-                      size="sm"
-                      onClick={() => setViewMode('list')}
-                      className="rounded-none"
-                    >
-                      <List className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                {/* Sidebar with Folders */}
-                <div className="lg:col-span-1">
-                  <DocumentFolders
-                    folders={folders}
-                    selectedFolder={selectedFolder}
-                    onFolderSelect={setSelectedFolder}
-                    documentCount={documents.length}
-                    onDeleteFolder={handleDeleteFolder}
-                    onCreateFolder={() => setShowCreateFolder(true)}
-                  />
-                </div>
-
-                {/* Documents Grid */}
-                <div className="lg:col-span-3">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <FileText className="h-5 w-5" />
-                        {selectedFolder 
-                          ? folders.find(f => f.id === selectedFolder)?.folder_name || 'Documents'
-                          : 'All Documents'
-                        }
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {isLoading ? (
-                        <div className="p-12 text-center">
-                          <Loader2 className="h-8 w-8 animate-spin text-brand-blue mx-auto" />
-                          <p className="text-muted-foreground mt-2">Loading documents...</p>
-                        </div>
-                      ) : (
-                        <MediaGalleryGrid
-                          files={sortedDocuments}
-                          viewMode={viewMode}
-                          selectedFiles={selectedDocuments}
-                          onFileSelect={toggleDocumentSelection}
-                          onDeleteFile={handleDeleteDocument}
-                          mediaType="document"
-                        />
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            </TabsContent>
-
-            {/* Insurance Tab */}
-            <TabsContent value="insurance" className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
-                <div className="mb-4 sm:mb-0">
-                  <p className="text-sm text-gray-500">
-                    {sortedPolicies.length} polic{sortedPolicies.length !== 1 ? 'ies' : 'y'} 
-                    {selectedPolicies.length > 0 && ` • ${selectedPolicies.length} selected`}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  {sortedPolicies.length > 0 && (
-                    <Button 
-                      onClick={selectedPolicies.length === sortedPolicies.length ? unselectAllPolicies : selectAllPolicies} 
-                      variant="outline" 
-                      size="sm"
-                    >
-                      {selectedPolicies.length === sortedPolicies.length ? (
-                        <>
-                          <Square className="h-4 w-4 mr-2" />
-                          Unselect All
-                        </>
-                      ) : (
-                        <>
-                          <CheckSquare className="h-4 w-4 mr-2" />
-                          Select All
-                        </>
-                      )}
-                    </Button>
-                  )}
-                  
-                  {selectedPolicies.length > 0 && (
-                    <Button onClick={handleInsuranceBulkDelete} variant="destructive" size="sm" disabled={isDeleting}>
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete ({selectedPolicies.length})
-                    </Button>
-                  )}
-
-                  <Button asChild size="sm">
-                    <a href="/account/insurance/new">
-                      <Plus className="h-4 w-4 mr-1" />
-                      Add Policy
-                    </a>
-                  </Button>
-                </div>
-              </div>
-
-              {/* Insurance Search and Controls */}
-              <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <input
-                    type="text"
-                    placeholder="Search policies..."
-                    value={insuranceSearchTerm}
-                    onChange={(e) => setInsuranceSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent"
-                  />
-                </div>
-                
-                <div className="flex gap-2">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm">
-                        <SortAsc className="h-4 w-4 mr-1" />
-                        Sort
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem onClick={() => setInsuranceSortBy('date-desc')}>
-                        <Calendar className="h-4 w-4 mr-2" />
-                        Newest First
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setInsuranceSortBy('date-asc')}>
-                        <Calendar className="h-4 w-4 mr-2" />
-                        Oldest First
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setInsuranceSortBy('name-asc')}>
-                        <Type className="h-4 w-4 mr-2" />
-                        Name A-Z
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setInsuranceSortBy('name-desc')}>
-                        <Type className="h-4 w-4 mr-2" />
-                        Name Z-A
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-
-                  <div className="flex border border-gray-300 rounded-md overflow-hidden">
-                    <Button
-                      variant={insuranceViewMode === 'grid' ? 'default' : 'ghost'}
-                      size="sm"
-                      onClick={() => setInsuranceViewMode('grid')}
-                      className="rounded-none"
-                    >
-                      <Grid3X3 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant={insuranceViewMode === 'list' ? 'default' : 'ghost'}
-                      size="sm"
-                      onClick={() => setInsuranceViewMode('list')}
-                      className="rounded-none"
-                    >
-                      <List className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="w-full">
-                {insuranceLoading ? (
-                  <Card>
-                    <CardContent className="py-12 text-center">
-                      <Loader2 className="h-8 w-8 animate-spin text-brand-blue mx-auto" />
-                      <p className="text-muted-foreground mt-2">Loading insurance policies...</p>
-                    </CardContent>
-                  </Card>
-                ) : sortedPolicies.length === 0 ? (
-                  <Card>
-                    <CardContent className="text-center py-12">
-                      <Shield className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-                      <h3 className="text-lg font-semibold mb-2">No insurance policies yet</h3>
-                      <p className="text-muted-foreground mb-4">
+            {/* Main Content */}
+            <div className="lg:col-span-3 space-y-6">
+              {/* Insurance Policies Section */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Shield className="h-5 w-5 text-blue-600" />
+                      Insurance Policies
+                      <Badge variant="secondary" className="ml-2">{sortedPolicies.length}</Badge>
+                    </div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {insuranceLoading ? (
+                    <div className="py-8 text-center">
+                      <Loader2 className="h-6 w-6 animate-spin text-brand-blue mx-auto" />
+                      <p className="text-muted-foreground mt-2 text-sm">Loading policies...</p>
+                    </div>
+                  ) : sortedPolicies.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Shield className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
+                      <h3 className="text-base font-semibold mb-1">No insurance policies yet</h3>
+                      <p className="text-muted-foreground text-sm mb-3">
                         Add your first insurance policy to keep track of your coverage.
                       </p>
-                      <Button asChild>
-                        <a href="/account/insurance/new">
-                          <Plus className="h-4 w-4 mr-2" />
-                          Add Your First Policy
-                        </a>
+                      <Button size="sm" onClick={() => navigate('/account/insurance/new')}>
+                        <Plus className="h-4 w-4 mr-1" />
+                        Add Your First Policy
                       </Button>
-                    </CardContent>
-                  </Card>
-                ) : insuranceViewMode === 'grid' ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {sortedPolicies.map((policy) => (
-                      <Card key={policy.id} className="hover:shadow-lg transition-shadow cursor-pointer">
-                        <CardContent className="p-6">
-                          <div className="flex items-start justify-between mb-4">
+                    </div>
+                  ) : viewMode === 'grid' ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {sortedPolicies.map((policy) => (
+                        <div key={policy.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                          <div className="flex items-start justify-between mb-3">
                             <div className="flex items-center">
-                              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                                <Shield className="h-6 w-6 text-blue-600" />
+                              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                                <Shield className="h-5 w-5 text-blue-600" />
                               </div>
                               <div>
-                                <h3 className="font-semibold text-lg">{policy.insurance_company}</h3>
-                                <p className="text-sm text-gray-500 capitalize">{policy.policy_type}</p>
+                                <h3 className="font-semibold">{policy.insurance_company}</h3>
+                                <p className="text-xs text-gray-500 capitalize">{policy.policy_type}</p>
                               </div>
                             </div>
                             <input
@@ -843,26 +662,18 @@ const Documents: React.FC = () => {
                             />
                           </div>
                           
-                          <div className="space-y-2 mb-4">
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-gray-600">Policy #:</span>
-                              <span className="text-sm font-medium">{policy.policy_number}</span>
+                          <div className="space-y-1 text-sm mb-3">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Policy #:</span>
+                              <span className="font-medium">{policy.policy_number}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Coverage:</span>
+                              <span className="font-medium">{formatCurrency(policy.coverage_amount)}</span>
                             </div>
                             <div className="flex justify-between items-center">
-                              <span className="text-sm text-gray-600">Coverage:</span>
-                              <span className="text-sm font-medium">{formatCurrency(policy.coverage_amount)}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-gray-600">Premium:</span>
-                              <span className="text-sm font-medium">{formatCurrency(policy.premium_amount)}/year</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-gray-600">Expires:</span>
-                              <span className="text-sm font-medium">{formatDate(policy.policy_end_date)}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-gray-600">Status:</span>
-                              <Badge className={getStatusColor(policy.status)}>
+                              <span className="text-gray-600">Status:</span>
+                              <Badge className={getStatusColor(policy.status)} variant="secondary">
                                 {policy.status}
                               </Badge>
                             </div>
@@ -873,10 +684,6 @@ const Documents: React.FC = () => {
                               <Eye className="h-3 w-3 mr-1" />
                               View
                             </Button>
-                            <Button size="sm" variant="outline" className="flex-1">
-                              <FileText className="h-3 w-3 mr-1" />
-                              Details
-                            </Button>
                             <Button 
                               size="sm" 
                               variant="destructive"
@@ -885,15 +692,13 @@ const Documents: React.FC = () => {
                               <Trash2 className="h-3 w-3" />
                             </Button>
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {sortedPolicies.map((policy) => (
-                      <Card key={policy.id} className="hover:shadow-sm transition-shadow">
-                        <CardContent className="p-4">
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {sortedPolicies.map((policy) => (
+                        <div key={policy.id} className="border rounded-lg p-3 hover:shadow-sm transition-shadow">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center">
                               <input
@@ -908,12 +713,12 @@ const Documents: React.FC = () => {
                               <div>
                                 <h3 className="font-medium">{policy.insurance_company}</h3>
                                 <p className="text-sm text-gray-500">
-                                  {policy.policy_type} • {policy.policy_number} • {formatCurrency(policy.premium_amount)}/year
+                                  {policy.policy_type} • {policy.policy_number}
                                 </p>
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
-                              <Badge className={getStatusColor(policy.status)}>
+                              <Badge className={getStatusColor(policy.status)} variant="secondary">
                                 {policy.status}
                               </Badge>
                               <Button size="sm" variant="ghost">
@@ -928,16 +733,54 @@ const Documents: React.FC = () => {
                               </Button>
                             </div>
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </TabsContent>
-          </Tabs>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Documents Section */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    {selectedFolder 
+                      ? folders.find(f => f.id === selectedFolder)?.folder_name || 'Documents'
+                      : 'All Documents'
+                    }
+                    <Badge variant="secondary" className="ml-2">{sortedDocuments.length}</Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {isLoading ? (
+                    <div className="p-8 text-center">
+                      <Loader2 className="h-6 w-6 animate-spin text-brand-blue mx-auto" />
+                      <p className="text-muted-foreground mt-2 text-sm">Loading documents...</p>
+                    </div>
+                  ) : (
+                    <MediaGalleryGrid
+                      files={sortedDocuments}
+                      viewMode={viewMode}
+                      selectedFiles={selectedDocuments}
+                      onFileSelect={toggleDocumentSelection}
+                      onDeleteFile={handleDeleteDocument}
+                      mediaType="document"
+                    />
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Document Type Selector Modal */}
+      <DocumentTypeSelector
+        open={showTypeSelector}
+        onOpenChange={setShowTypeSelector}
+        onSelect={handleDocumentTypeSelect}
+      />
 
       <CreateFolderModal 
         isOpen={showCreateFolder}
