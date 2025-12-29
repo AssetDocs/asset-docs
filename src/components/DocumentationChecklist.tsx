@@ -660,25 +660,12 @@ const DocumentationChecklist: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <div className="w-32 hidden sm:block">
-                  <Progress value={overallPercentage} className="h-2" />
-                  <p className="text-xs text-muted-foreground mt-1 text-right">
-                    {Math.round(overallPercentage)}%
-                  </p>
-                </div>
                 {isOpen ? (
                   <ChevronDown className="h-5 w-5 text-muted-foreground" />
                 ) : (
                   <ChevronRight className="h-5 w-5 text-muted-foreground" />
                 )}
               </div>
-            </div>
-            {/* Mobile progress bar */}
-            <div className="sm:hidden mt-3">
-              <Progress value={overallPercentage} className="h-2" />
-              <p className="text-xs text-muted-foreground mt-1">
-                {Math.round(overallPercentage)}% complete
-              </p>
             </div>
           </CardHeader>
         </CollapsibleTrigger>
