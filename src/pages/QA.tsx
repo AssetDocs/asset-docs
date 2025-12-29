@@ -78,14 +78,6 @@ const QA: React.FC = () => {
                 </AccordionContent>
               </AccordionItem>
               
-              <AccordionItem value="item-7">
-                <AccordionTrigger className="text-lg font-medium">How do I get started with Asset Safe?</AccordionTrigger>
-                <AccordionContent>
-                  Getting started is easy! Subscribe to a plan and start using our web platform. 
-                  You can begin documenting your possessions right away by taking photos, videos, and uploading documents.
-                </AccordionContent>
-              </AccordionItem>
-              
               <AccordionItem value="item-8">
                 <AccordionTrigger className="text-lg font-medium">Can I share my documentation with others?</AccordionTrigger>
                 <AccordionContent>
