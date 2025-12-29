@@ -41,7 +41,8 @@ import {
   Users,
   Paintbrush,
   Lock,
-  ChevronDown
+  ChevronDown,
+  ChevronLeft
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -273,8 +274,19 @@ const Account: React.FC = () => {
 
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6" id="tabs-content">
-            {/* Insights & Tools Dropdown */}
-            <div className="w-full">
+            {/* Insights & Tools Dropdown with Back Button */}
+            <div className="w-full flex items-center gap-2">
+              {/* Back to Dashboard Button - only show when not on overview */}
+              {activeTab !== 'overview' && (
+                <Button
+                  onClick={() => setActiveTab('overview')}
+                  className="bg-orange-500 hover:bg-orange-600 text-white h-10 w-10 p-0 rounded-lg flex-shrink-0"
+                  aria-label="Back to Dashboard"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </Button>
+              )}
+              
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button className="w-full bg-brand-green hover:bg-brand-green/90 text-white justify-between">
