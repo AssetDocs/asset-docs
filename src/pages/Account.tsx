@@ -132,44 +132,98 @@ const WelcomeMessage: React.FC = () => {
     return role.charAt(0).toUpperCase() + role.slice(1);
   };
 
+  const isMobile = useIsMobile();
+  const [hideInstallPrompt, setHideInstallPrompt] = useState(false);
+  const [isAppInstalled, setIsAppInstalled] = useState(false);
+
+  useEffect(() => {
+    // Check if app is already installed (standalone mode)
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsAppInstalled(true);
+    }
+    // Check if user dismissed the prompt before
+    const dismissed = localStorage.getItem('installPromptDismissed');
+    if (dismissed) {
+      setHideInstallPrompt(true);
+    }
+  }, []);
+
+  const handleDismissInstallPrompt = () => {
+    setHideInstallPrompt(true);
+    localStorage.setItem('installPromptDismissed', 'true');
+  };
+
   return (
-    <div className="bg-gradient-to-r from-brand-blue to-brand-lightBlue p-6 rounded-lg text-white">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <h1 className="text-2xl font-bold">
-          Welcome, {getDisplayName()}!
-        </h1>
-        {accountNumber && (
-          <span className="text-white/90 font-medium text-sm bg-white/20 px-3 py-1 rounded-md">
-            Account #: {accountNumber}
-          </span>
-        )}
-      </div>
-      {contributorInfo && (
-        <div className="mt-1 space-y-1">
-          <p className="text-white/90 font-medium">
-            Contributor - {getRoleDisplay(contributorInfo.role)}
-          </p>
-          {contributorInfo.ownerName && (
-            <p className="text-white/70 text-sm">
-              Account Owner: {contributorInfo.ownerName}
-            </p>
+    <div className="space-y-3">
+      <div className="bg-gradient-to-r from-brand-blue to-brand-lightBlue p-6 rounded-lg text-white">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <h1 className="text-2xl font-bold">
+            Welcome, {getDisplayName()}!
+          </h1>
+          {accountNumber && (
+            <span className="text-white/90 font-medium text-sm bg-white/20 px-3 py-1 rounded-md">
+              Account #: {accountNumber}
+            </span>
           )}
         </div>
-      )}
-      <div className="flex flex-wrap gap-2 mt-4">
-        <Button asChild variant="outline" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 border-yellow-400">
-          <Link to="/account-settings">
-            <Settings className="mr-2 h-4 w-4" />
-            Account Settings
-          </Link>
-        </Button>
-        <Button asChild variant="outline" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 border-yellow-400">
-          <Link to="/properties">
-            <Home className="mr-2 h-4 w-4" />
-            Property Profiles
-          </Link>
-        </Button>
+        {contributorInfo && (
+          <div className="mt-1 space-y-1">
+            <p className="text-white/90 font-medium">
+              Contributor - {getRoleDisplay(contributorInfo.role)}
+            </p>
+            {contributorInfo.ownerName && (
+              <p className="text-white/70 text-sm">
+                Account Owner: {contributorInfo.ownerName}
+              </p>
+            )}
+          </div>
+        )}
+        <div className="flex flex-wrap gap-2 mt-4">
+          <Button asChild variant="outline" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 border-yellow-400">
+            <Link to="/account-settings">
+              <Settings className="mr-2 h-4 w-4" />
+              Account Settings
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 border-yellow-400">
+            <Link to="/properties">
+              <Home className="mr-2 h-4 w-4" />
+              Property Profiles
+            </Link>
+          </Button>
+        </div>
       </div>
+
+      {/* Mobile Install Prompt - only shows on mobile devices, not already installed, and not dismissed */}
+      {isMobile && !isAppInstalled && !hideInstallPrompt && (
+        <div className="bg-gradient-to-r from-brand-orange to-orange-500 p-4 rounded-lg text-white relative">
+          <button 
+            onClick={handleDismissInstallPrompt}
+            className="absolute top-2 right-2 text-white/70 hover:text-white text-lg font-bold leading-none"
+            aria-label="Dismiss"
+          >
+            ×
+          </button>
+          <div className="flex items-start gap-3 pr-6">
+            <span className="text-2xl">📲</span>
+            <div className="flex-1">
+              <p className="font-semibold text-sm">Add Asset Safe to Your Home Screen</p>
+              <p className="text-white/90 text-xs mt-1">
+                One-tap access to your dashboard — even during emergencies with limited internet.
+              </p>
+              <Button 
+                asChild 
+                size="sm"
+                className="mt-2 bg-white text-brand-orange hover:bg-white/90 font-medium"
+              >
+                <Link to="/install">
+                  Learn How
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
