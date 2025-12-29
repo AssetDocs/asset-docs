@@ -102,28 +102,6 @@ const PricingFAQ: React.FC = () => {
               </AccordionContent>
             </AccordionItem>
             
-            <AccordionItem value="item-15">
-              <AccordionTrigger className="text-lg font-medium">Is there a free trial available?</AccordionTrigger>
-              <AccordionContent>
-                Yes, we offer a 30-day free trial for both Standard and Premium plans.
-              </AccordionContent>
-            </AccordionItem>
-            
-            <AccordionItem value="item-16">
-              <AccordionTrigger className="text-lg font-medium">What is included in my 30-day free trial?</AccordionTrigger>
-              <AccordionContent>
-                Your 30-day free trial includes full access to all features with no limitations:
-                <ul className="list-disc list-inside mt-2 ml-4 space-y-1">
-                  <li>Photo and video uploads</li>
-                  <li>Full web platform access</li>
-                  <li>Voice notes for item details</li>
-                  <li>Post damage documentation</li>
-                  <li>Export detailed reports</li>
-                  <li>Email support</li>
-                </ul>
-              </AccordionContent>
-            </AccordionItem>
-            
             <AccordionItem value="item-17">
               <AccordionTrigger className="text-lg font-medium">Can I upgrade or downgrade my plan?</AccordionTrigger>
               <AccordionContent>
