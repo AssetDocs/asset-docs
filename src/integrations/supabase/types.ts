@@ -1735,6 +1735,78 @@ export type Database = {
         }
         Relationships: []
       }
+      user_documents: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          document_name: string | null
+          document_type: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string
+          file_url: string
+          folder_id: string | null
+          id: string
+          property_id: string | null
+          tags: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          document_name?: string | null
+          document_type?: string
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type: string
+          file_url: string
+          folder_id?: string | null
+          id?: string
+          property_id?: string | null
+          tags?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          document_name?: string | null
+          document_type?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string
+          file_url?: string
+          folder_id?: string | null
+          id?: string
+          property_id?: string | null
+          tags?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_documents_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "document_folders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_documents_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
