@@ -59,7 +59,7 @@ const Documents: React.FC = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const { properties } = useProperties();
-  const [documents, setDocuments] = useState<PropertyFile[]>([]);
+  const [documents, setDocuments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [folders, setFolders] = useState<Folder[]>([]);
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
@@ -94,14 +94,12 @@ const Documents: React.FC = () => {
       next.delete('add');
       setSearchParams(next, { replace: true });
     }
-
-    fetchDocuments();
-    fetchFolders();
-    loadPolicies();
-  }, []);
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
     if (user?.id) {
+      fetchDocuments();
+      fetchFolders();
       loadPolicies();
     }
   }, [user]);
@@ -126,10 +124,18 @@ const Documents: React.FC = () => {
   };
 
   const fetchDocuments = async () => {
+    if (!user?.id) return;
+    
     setIsLoading(true);
     try {
-      const files = await PropertyService.getAllUserFiles('document');
-      setDocuments(files);
+      const { data, error } = await supabase
+        .from('user_documents')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setDocuments(data || []);
     } catch (error) {
       console.error('Error fetching documents:', error);
       toast({
@@ -185,12 +191,17 @@ const Documents: React.FC = () => {
 
   const transformedDocuments = documents.map(doc => ({
     id: doc.id,
-    name: doc.file_name,
+    name: doc.document_name || doc.file_name,
     url: doc.file_url,
     uploadDate: doc.created_at,
     size: formatFileSize(doc.file_size),
-    propertyName: getPropertyName(doc.property_id),
-    type: doc.file_name.split('.').pop()?.toUpperCase() || 'FILE'
+    propertyName: doc.property_id ? getPropertyName(doc.property_id) : 'No Property',
+    type: doc.file_name?.split('.').pop()?.toUpperCase() || 'FILE',
+    tags: doc.tags,
+    description: doc.description,
+    category: doc.category,
+    documentType: doc.document_type,
+    folderId: doc.folder_id
   }));
 
   const currentFolderName = selectedFolder 
@@ -198,8 +209,9 @@ const Documents: React.FC = () => {
     : 'All Documents';
 
   const filteredDocuments = transformedDocuments.filter(document => {
-    const matchesSearch = document.name.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesSearch;
+    const matchesSearch = document.name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFolder = selectedFolder ? document.folderId === selectedFolder : true;
+    return matchesSearch && matchesFolder;
   });
 
   const sortedDocuments = [...filteredDocuments].sort((a, b) => {
@@ -272,12 +284,16 @@ const Documents: React.FC = () => {
   const confirmDelete = async () => {
     try {
       if (bulkDeleteMode) {
-        const deletePromises = selectedDocuments.map(documentId => {
+        const deletePromises = selectedDocuments.map(async (documentId) => {
           const document = documents.find(d => d.id === documentId);
           if (document) {
-            return PropertyService.deletePropertyFile(document.id, document.file_path, document.bucket_name);
+            // Delete from storage first
+            if (document.file_path) {
+              await supabase.storage.from('documents').remove([document.file_path]);
+            }
+            // Delete from user_documents table
+            await supabase.from('user_documents').delete().eq('id', documentId);
           }
-          return Promise.resolve(false);
         });
         
         await Promise.all(deletePromises);
@@ -288,8 +304,13 @@ const Documents: React.FC = () => {
       } else if (documentToDelete) {
         const document = documents.find(d => d.id === documentToDelete);
         if (document) {
-          const success = await PropertyService.deletePropertyFile(document.id, document.file_path, document.bucket_name);
-          if (success) {
+          // Delete from storage first
+          if (document.file_path) {
+            await supabase.storage.from('documents').remove([document.file_path]);
+          }
+          // Delete from user_documents table
+          const { error } = await supabase.from('user_documents').delete().eq('id', documentToDelete);
+          if (!error) {
             toast({
               title: "Success",
               description: "Document deleted successfully"
