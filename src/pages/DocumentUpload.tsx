@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -9,27 +9,18 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Upload, FileText, Trash2, Plus, Folder, Shield, FileWarning, FileCheck, Receipt, ClipboardCheck, Home, Files } from 'lucide-react';
+import { ArrowLeft, Upload, FileText, Trash2, Folder, Shield, FileWarning, FileCheck, Receipt, ClipboardCheck, Home, Files, Loader2 } from 'lucide-react';
 import PropertySelector from '@/components/PropertySelector';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { DocumentType } from '@/components/DocumentTypeSelector';
+import { useFileUpload } from '@/hooks/useFileUpload';
+import { useToast } from '@/hooks/use-toast';
 
 interface DocumentFolder {
   id: string;
   folder_name: string;
   gradient_color: string;
-}
-
-interface UploadedDocument {
-  id: string;
-  file: File;
-  name: string;
-  category: string;
-  description: string;
-  propertyId: string;
-  tags: string;
-  folderId: string;
 }
 
 const documentTypeLabels: Record<DocumentType, { label: string; icon: React.ElementType; color: string }> = {
@@ -43,6 +34,9 @@ const documentTypeLabels: Record<DocumentType, { label: string; icon: React.Elem
   other: { label: 'Other', icon: Files, color: 'bg-yellow text-yellow-foreground' }
 };
 
+const NO_FOLDER_VALUE = '__none__';
+const NO_PROPERTY_VALUE = '__none__';
+
 const DocumentUpload: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -51,18 +45,32 @@ const DocumentUpload: React.FC = () => {
   const TypeIcon = typeInfo.icon;
 
   const { user } = useAuth();
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [uploadedDocuments, setUploadedDocuments] = useState<UploadedDocument[]>([]);
-  const [defaultPropertyId, setDefaultPropertyId] = useState('');
-  const NO_FOLDER_VALUE = '__none__';
-  const [selectedFolderId, setSelectedFolderId] = useState<string>('');
+  const { toast } = useToast();
+  
+  // Form state
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [documentName, setDocumentName] = useState('');
+  const [category, setCategory] = useState('general');
+  const [description, setDescription] = useState('');
+  const [tags, setTags] = useState('');
+  const [selectedPropertyId, setSelectedPropertyId] = useState('');
+  const [selectedFolderId, setSelectedFolderId] = useState('');
   const [folders, setFolders] = useState<DocumentFolder[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
 
-  React.useEffect(() => {
-    console.log('DocumentUpload mounted, user:', user?.id);
-  }, [user]);
+  const { uploadSingleFile, isUploading } = useFileUpload({
+    bucket: 'documents',
+    onError: (error) => {
+      console.error('Upload error:', error);
+      toast({
+        title: "Upload failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (user) {
       fetchFolders();
     }
@@ -85,46 +93,19 @@ const DocumentUpload: React.FC = () => {
     }
   };
 
-
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const files = Array.from(e.target.files);
-      setSelectedFiles(files);
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setSelectedFile(file);
+      // Set default document name from file name
+      if (!documentName) {
+        setDocumentName(file.name.split('.')[0]);
+      }
     }
   };
 
-  const processDocuments = () => {
-    const newDocuments: UploadedDocument[] = selectedFiles.map((file, index) => ({
-      id: `doc-${Date.now()}-${index}`,
-      file,
-      name: file.name.split('.')[0],
-      category: 'general',
-      description: '',
-      propertyId: defaultPropertyId,
-      tags: '',
-      folderId: selectedFolderId
-    }));
-
-    setUploadedDocuments([...uploadedDocuments, ...newDocuments]);
-    setSelectedFiles([]);
-  };
-
-  const updateDocumentValue = (id: string, field: string, value: string) => {
-    setUploadedDocuments(docs =>
-      docs.map(doc =>
-        doc.id === id ? { ...doc, [field]: value } : doc
-      )
-    );
-  };
-
-  const removeDocument = (id: string) => {
-    setUploadedDocuments(docs => docs.filter(doc => doc.id !== id));
-  };
-
-  const saveDocuments = () => {
-    console.log('Saving documents:', uploadedDocuments);
-    // Here you would save to your backend/database
-    navigate('/account/documents');
+  const removeFile = () => {
+    setSelectedFile(null);
   };
 
   const formatFileSize = (bytes: number) => {
@@ -135,12 +116,76 @@ const DocumentUpload: React.FC = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  const saveDocument = async () => {
+    if (!user || !selectedFile) {
+      toast({
+        title: "Missing information",
+        description: "Please select a file to upload.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      // 1. Upload file to storage
+      const uploadResult = await uploadSingleFile(selectedFile);
+      
+      if (!uploadResult) {
+        throw new Error('Failed to upload file');
+      }
+
+      // 2. Save document metadata to database
+      const { error: dbError } = await supabase
+        .from('user_documents')
+        .insert({
+          user_id: user.id,
+          file_name: selectedFile.name,
+          file_path: uploadResult.path,
+          file_url: uploadResult.url,
+          file_size: selectedFile.size,
+          file_type: selectedFile.type || 'application/octet-stream',
+          document_type: documentType,
+          category: category,
+          document_name: documentName || selectedFile.name.split('.')[0],
+          description: description || null,
+          tags: tags || null,
+          property_id: selectedPropertyId || null,
+          folder_id: selectedFolderId || null
+        });
+
+      if (dbError) {
+        console.error('Database error:', dbError);
+        throw new Error('Failed to save document metadata');
+      }
+
+      toast({
+        title: "Document saved",
+        description: "Your document has been uploaded successfully.",
+      });
+
+      navigate('/account/documents');
+    } catch (error) {
+      console.error('Save error:', error);
+      toast({
+        title: "Save failed",
+        description: error instanceof Error ? error.message : "Failed to save document.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const isLoading = isUploading || isSaving;
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
       
       <div className="flex-grow py-8 px-4 bg-gray-50">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-2xl mx-auto">
           <div className="mb-6">
             <Button
               variant="ghost"
@@ -160,202 +205,176 @@ const DocumentUpload: React.FC = () => {
             <p className="text-gray-600">Upload your {typeInfo.label.toLowerCase()} document with optional notes</p>
           </div>
 
-          {/* Default Settings */}
-          <Card className="mb-6">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Default Settings</CardTitle>
+              <CardTitle className="flex items-center">
+                <Upload className="h-5 w-5 mr-2" />
+                Document Details
+              </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="default-property" className="text-sm font-medium">
-                    Default Property (optional)
-                  </Label>
-                  <PropertySelector
-                    value={defaultPropertyId}
-                    onChange={setDefaultPropertyId}
-                    placeholder="Select a default property"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="default-folder" className="text-sm font-medium">
-                    Default Folder (optional)
-                  </Label>
-                  <Select
-                    value={selectedFolderId || NO_FOLDER_VALUE}
-                    onValueChange={(v) => setSelectedFolderId(v === NO_FOLDER_VALUE ? '' : v)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a folder" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-background z-50">
-                      <SelectItem value={NO_FOLDER_VALUE}>None</SelectItem>
-                      {folders.map((folder) => (
-                        <SelectItem key={folder.id} value={folder.id}>
-                          <div className="flex items-center gap-2">
-                            <div className={`w-4 h-4 rounded ${folder.gradient_color}`} />
-                            {folder.folder_name}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Document Upload */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Upload className="h-5 w-5 mr-2" />
-                  Document Upload
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
+            <CardContent className="space-y-6">
+              {/* File Upload */}
+              <div>
+                <Label htmlFor="file-upload" className="text-sm font-medium">
+                  Select Document *
+                </Label>
+                {!selectedFile ? (
+                  <div className="mt-2">
                     <Input
+                      id="file-upload"
                       type="file"
-                      accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
-                      multiple
+                      accept=".pdf,.doc,.docx,.txt"
                       onChange={handleFileSelect}
-                      className="mb-4"
                     />
-                    <p className="text-sm text-gray-500">
-                      Supported formats: PDF, DOC, DOCX, TXT, JPG, PNG
+                    <p className="text-sm text-gray-500 mt-1">
+                      Supported formats: PDF, DOC, DOCX, TXT (max 25MB)
                     </p>
                   </div>
-
-                  {selectedFiles.length > 0 && (
-                    <div className="border rounded-lg p-4 bg-gray-50">
-                      <h4 className="font-medium mb-2">Selected Files ({selectedFiles.length})</h4>
-                      <div className="space-y-2">
-                        {selectedFiles.map((file, index) => (
-                          <div key={index} className="flex items-center justify-between text-sm">
-                            <div className="flex items-center">
-                              <FileText className="h-4 w-4 mr-2 text-blue-600" />
-                              <span>{file.name}</span>
-                            </div>
-                            <span className="text-gray-500">{formatFileSize(file.size)}</span>
-                          </div>
-                        ))}
-                      </div>
-                      <Button onClick={processDocuments} className="w-full mt-4">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Process Documents
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Document Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Document Details</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {uploadedDocuments.length === 0 ? (
-                  <p className="text-gray-500 text-center py-8">
-                    Upload documents to add details here
-                  </p>
                 ) : (
-                  <div className="space-y-4 max-h-96 overflow-y-auto">
-                    {uploadedDocuments.map((document) => (
-                      <div key={document.id} className="border rounded-lg p-4 bg-white">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-center">
-                            <FileText className="h-5 w-5 mr-2 text-blue-600" />
-                            <div>
-                              <p className="font-medium text-sm">{document.file.name}</p>
-                              <p className="text-xs text-gray-500">{formatFileSize(document.file.size)}</p>
-                            </div>
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => removeDocument(document.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        
-                        <div className="space-y-3">
-                          <div>
-                            <Label className="text-xs">Document Name</Label>
-                            <Input
-                              value={document.name}
-                              onChange={(e) => updateDocumentValue(document.id, 'name', e.target.value)}
-                              placeholder="Enter document name"
-                            />
-                          </div>
-
-                          <div>
-                            <Label className="text-xs">Category</Label>
-                            <Select value={document.category} onValueChange={(value) => updateDocumentValue(document.id, 'category', value)}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select category" />
-                              </SelectTrigger>
-                              <SelectContent className="bg-background z-50">
-                                <SelectItem value="insurance">Insurance</SelectItem>
-                                <SelectItem value="warranty">Warranty</SelectItem>
-                                <SelectItem value="legal">Legal</SelectItem>
-                                <SelectItem value="taxes">Taxes</SelectItem>
-                                <SelectItem value="receipt">Receipt</SelectItem>
-                                <SelectItem value="contract">Contract</SelectItem>
-                                <SelectItem value="general">General</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          <div>
-                            <Label className="text-xs">Property</Label>
-                            <PropertySelector
-                              value={document.propertyId}
-                              onChange={(value) => updateDocumentValue(document.id, 'propertyId', value)}
-                              placeholder="Select property"
-                            />
-                          </div>
-
-                          <div>
-                            <Label className="text-xs">Tags (comma separated)</Label>
-                            <Input
-                              value={document.tags}
-                              onChange={(e) => updateDocumentValue(document.id, 'tags', e.target.value)}
-                              placeholder="e.g. policy, home, 2024"
-                            />
-                          </div>
-
-                          <div>
-                            <Label className="text-xs">Description</Label>
-                            <Textarea
-                              value={document.description}
-                              onChange={(e) => updateDocumentValue(document.id, 'description', e.target.value)}
-                              placeholder="Enter document description"
-                              rows={2}
-                            />
-                          </div>
-                        </div>
+                  <div className="mt-2 border rounded-lg p-4 bg-gray-50 flex items-center justify-between">
+                    <div className="flex items-center">
+                      <FileText className="h-5 w-5 mr-3 text-blue-600" />
+                      <div>
+                        <p className="font-medium text-sm">{selectedFile.name}</p>
+                        <p className="text-xs text-gray-500">{formatFileSize(selectedFile.size)}</p>
                       </div>
-                    ))}
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={removeFile}
+                      disabled={isLoading}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 )}
-                
-                {uploadedDocuments.length > 0 && (
-                  <Button 
-                    onClick={saveDocuments} 
-                    className="w-full mt-4 bg-brand-blue hover:bg-brand-lightBlue"
-                  >
-                    Save All Documents ({uploadedDocuments.length})
-                  </Button>
+              </div>
+
+              {/* Document Name */}
+              <div>
+                <Label htmlFor="document-name" className="text-sm font-medium">
+                  Document Name
+                </Label>
+                <Input
+                  id="document-name"
+                  value={documentName}
+                  onChange={(e) => setDocumentName(e.target.value)}
+                  placeholder="Enter document name"
+                  className="mt-1"
+                />
+              </div>
+
+              {/* Property Selection */}
+              <div>
+                <Label className="text-sm font-medium">
+                  Property (optional)
+                </Label>
+                <div className="mt-1">
+                  <PropertySelector
+                    value={selectedPropertyId}
+                    onChange={setSelectedPropertyId}
+                    placeholder="Select a property"
+                  />
+                </div>
+              </div>
+
+              {/* Folder Selection */}
+              <div>
+                <Label className="text-sm font-medium">
+                  Folder (optional)
+                </Label>
+                <Select
+                  value={selectedFolderId || NO_FOLDER_VALUE}
+                  onValueChange={(v) => setSelectedFolderId(v === NO_FOLDER_VALUE ? '' : v)}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select a folder" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background z-50">
+                    <SelectItem value={NO_FOLDER_VALUE}>None</SelectItem>
+                    {folders.map((folder) => (
+                      <SelectItem key={folder.id} value={folder.id}>
+                        <div className="flex items-center gap-2">
+                          <Folder className="h-4 w-4" />
+                          {folder.folder_name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Category */}
+              <div>
+                <Label className="text-sm font-medium">
+                  Category
+                </Label>
+                <Select value={category} onValueChange={setCategory}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background z-50">
+                    <SelectItem value="insurance">Insurance</SelectItem>
+                    <SelectItem value="warranty">Warranty</SelectItem>
+                    <SelectItem value="legal">Legal</SelectItem>
+                    <SelectItem value="taxes">Taxes</SelectItem>
+                    <SelectItem value="receipt">Receipt</SelectItem>
+                    <SelectItem value="contract">Contract</SelectItem>
+                    <SelectItem value="general">General</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Tags */}
+              <div>
+                <Label htmlFor="tags" className="text-sm font-medium">
+                  Tags (comma separated)
+                </Label>
+                <Input
+                  id="tags"
+                  value={tags}
+                  onChange={(e) => setTags(e.target.value)}
+                  placeholder="e.g. policy, home, 2024"
+                  className="mt-1"
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <Label htmlFor="description" className="text-sm font-medium">
+                  Description (optional)
+                </Label>
+                <Textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Enter document description"
+                  rows={3}
+                  className="mt-1"
+                />
+              </div>
+
+              {/* Save Button */}
+              <Button 
+                onClick={saveDocument} 
+                className="w-full bg-brand-blue hover:bg-brand-lightBlue"
+                disabled={!selectedFile || isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Save Document
+                  </>
                 )}
-              </CardContent>
-            </Card>
-          </div>
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
