@@ -625,7 +625,7 @@ const Documents: React.FC = () => {
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Shield className="h-5 w-5 text-blue-600" />
+                      <Shield className="h-5 w-5" />
                       Insurance Policies
                       <Badge variant="secondary" className="ml-2">{sortedPolicies.length}</Badge>
                     </div>
@@ -655,8 +655,8 @@ const Documents: React.FC = () => {
                         <div key={policy.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
                           <div className="flex items-start justify-between mb-3">
                             <div className="flex items-center">
-                              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                                <Shield className="h-5 w-5 text-blue-600" />
+                              <div className="w-10 h-10 bg-yellow rounded-lg flex items-center justify-center mr-3">
+                                <Shield className="h-5 w-5 text-yellow-foreground" />
                               </div>
                               <div>
                                 <h3 className="font-semibold">{policy.insurance_company}</h3>
@@ -716,8 +716,8 @@ const Documents: React.FC = () => {
                                 onChange={() => togglePolicySelection(policy.id)}
                                 className="h-4 w-4 mr-3"
                               />
-                              <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center mr-3">
-                                <Shield className="h-4 w-4 text-blue-600" />
+                              <div className="w-8 h-8 bg-yellow rounded flex items-center justify-center mr-3">
+                                <Shield className="h-4 w-4 text-yellow-foreground" />
                               </div>
                               <div>
                                 <h3 className="font-medium">{policy.insurance_company}</h3>
