@@ -110,6 +110,18 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
   
   const [activeSection, setActiveSection] = useState<string>('personal');
 
+  // Reference for scrolling to content
+  const contentRef = React.useRef<HTMLDivElement>(null);
+
+  // Scroll to top of content when section changes
+  const handleSectionChange = (section: string) => {
+    setActiveSection(section);
+    // On desktop, scroll to content smoothly
+    if (contentRef.current && window.innerWidth >= 768) {
+      contentRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   // Completion status calculation for each section
   const getSectionStatus = (section: string): 'completed' | 'in_progress' | 'not_started' => {
     switch (section) {
@@ -183,6 +195,34 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
     }
   };
 
+  // Calculate category-level progress
+  const getCategoryStatus = (category: 'aboutYou' | 'peopleTrust' | 'assetsOwnership' | 'yourWishes'): 'completed' | 'in_progress' | 'not_started' => {
+    let sections: string[] = [];
+    
+    switch (category) {
+      case 'aboutYou':
+        sections = ['personal', 'voicenotes'];
+        break;
+      case 'peopleTrust':
+        sections = ['contacts', 'executor', 'guardians'];
+        break;
+      case 'assetsOwnership':
+        sections = ['assets', 'property', 'trust'];
+        break;
+      case 'yourWishes':
+        sections = ['wishes', 'uploads'];
+        break;
+    }
+
+    const statuses = sections.map(s => getSectionStatus(s));
+    const completedCount = statuses.filter(s => s === 'completed').length;
+    const inProgressCount = statuses.filter(s => s === 'in_progress').length;
+
+    if (completedCount === sections.length) return 'completed';
+    if (completedCount > 0 || inProgressCount > 0) return 'in_progress';
+    return 'not_started';
+  };
+
   const StatusIndicator = ({ status }: { status: 'completed' | 'in_progress' | 'not_started' }) => {
     if (status === 'completed') {
       return <Check className="h-4 w-4 text-green-500 ml-auto" />;
@@ -191,6 +231,21 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
       return <Circle className="h-3 w-3 fill-amber-500 text-amber-500 ml-auto" />;
     }
     return <Circle className="h-3 w-3 text-muted-foreground ml-auto" />;
+  };
+
+  const CategoryStatusIndicator = ({ status }: { status: 'completed' | 'in_progress' | 'not_started' }) => {
+    if (status === 'completed') {
+      return <Check className="h-3 w-3 text-green-500" />;
+    }
+    if (status === 'in_progress') {
+      return (
+        <svg className="h-3 w-3 text-amber-500" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="2" />
+          <path d="M8 1 A7 7 0 0 1 15 8" fill="currentColor" />
+        </svg>
+      );
+    }
+    return <Circle className="h-3 w-3 text-muted-foreground" />;
   };
   
   const [formData, setFormData] = useState<LegacyLockerData>({
@@ -722,62 +777,74 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-64 bg-background border shadow-lg z-50">
-                <DropdownMenuLabel className="text-xs uppercase text-muted-foreground font-semibold">About You</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => setActiveSection('personal')} className="cursor-pointer flex items-center">
+                <DropdownMenuLabel className="text-xs uppercase text-muted-foreground font-semibold flex items-center gap-2">
+                  <CategoryStatusIndicator status={getCategoryStatus('aboutYou')} />
+                  About You
+                </DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => handleSectionChange('personal')} className="cursor-pointer flex items-center">
                   <FileText className="h-4 w-4 mr-2" />
                   Personal
                   <StatusIndicator status={getSectionStatus('personal')} />
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setActiveSection('voicenotes')} className="cursor-pointer flex items-center">
+                <DropdownMenuItem onClick={() => handleSectionChange('voicenotes')} className="cursor-pointer flex items-center">
                   <Mic className="h-4 w-4 mr-2" />
                   Voice
                   <StatusIndicator status={getSectionStatus('voicenotes')} />
                 </DropdownMenuItem>
                 
                 <DropdownMenuSeparator />
-                <DropdownMenuLabel className="text-xs uppercase text-muted-foreground font-semibold">People You Trust</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => setActiveSection('contacts')} className="cursor-pointer flex items-center">
+                <DropdownMenuLabel className="text-xs uppercase text-muted-foreground font-semibold flex items-center gap-2">
+                  <CategoryStatusIndicator status={getCategoryStatus('peopleTrust')} />
+                  People You Trust
+                </DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => handleSectionChange('contacts')} className="cursor-pointer flex items-center">
                   <Contact className="h-4 w-4 mr-2" />
                   Contacts
                   <StatusIndicator status={getSectionStatus('contacts')} />
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setActiveSection('executor')} className="cursor-pointer flex items-center">
+                <DropdownMenuItem onClick={() => handleSectionChange('executor')} className="cursor-pointer flex items-center">
                   <Users className="h-4 w-4 mr-2" />
                   Executor
                   <StatusIndicator status={getSectionStatus('executor')} />
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setActiveSection('guardians')} className="cursor-pointer flex items-center">
+                <DropdownMenuItem onClick={() => handleSectionChange('guardians')} className="cursor-pointer flex items-center">
                   <Shield className="h-4 w-4 mr-2" />
                   Guardians
                   <StatusIndicator status={getSectionStatus('guardians')} />
                 </DropdownMenuItem>
                 
                 <DropdownMenuSeparator />
-                <DropdownMenuLabel className="text-xs uppercase text-muted-foreground font-semibold">Assets & Structure</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => setActiveSection('assets')} className="cursor-pointer flex items-center">
+                <DropdownMenuLabel className="text-xs uppercase text-muted-foreground font-semibold flex items-center gap-2">
+                  <CategoryStatusIndicator status={getCategoryStatus('assetsOwnership')} />
+                  Assets & Ownership
+                </DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => handleSectionChange('assets')} className="cursor-pointer flex items-center">
                   <DollarSign className="h-4 w-4 mr-2" />
                   Assets
                   <StatusIndicator status={getSectionStatus('assets')} />
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setActiveSection('property')} className="cursor-pointer flex items-center">
+                <DropdownMenuItem onClick={() => handleSectionChange('property')} className="cursor-pointer flex items-center">
                   <Home className="h-4 w-4 mr-2" />
                   Property
                   <StatusIndicator status={getSectionStatus('property')} />
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setActiveSection('trust')} className="cursor-pointer flex items-center">
+                <DropdownMenuItem onClick={() => handleSectionChange('trust')} className="cursor-pointer flex items-center">
                   <Scale className="h-4 w-4 mr-2" />
                   Trust
                   <StatusIndicator status={getSectionStatus('trust')} />
                 </DropdownMenuItem>
                 
                 <DropdownMenuSeparator />
-                <DropdownMenuLabel className="text-xs uppercase text-muted-foreground font-semibold">Your Wishes</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => setActiveSection('wishes')} className="cursor-pointer flex items-center">
+                <DropdownMenuLabel className="text-xs uppercase text-muted-foreground font-semibold flex items-center gap-2">
+                  <CategoryStatusIndicator status={getCategoryStatus('yourWishes')} />
+                  Your Wishes
+                </DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => handleSectionChange('wishes')} className="cursor-pointer flex items-center">
                   <Heart className="h-4 w-4 mr-2" />
                   Wishes
                   <StatusIndicator status={getSectionStatus('wishes')} />
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setActiveSection('uploads')} className="cursor-pointer flex items-center">
+                <DropdownMenuItem onClick={() => handleSectionChange('uploads')} className="cursor-pointer flex items-center">
                   <Upload className="h-4 w-4 mr-2" />
                   Uploads
                   <StatusIndicator status={getSectionStatus('uploads')} />
@@ -787,7 +854,7 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
           </div>
 
           {/* Section Content */}
-          <div className="w-full">
+          <div ref={contentRef} className="w-full scroll-mt-4">
             {activeSection === 'personal' && (
               <div className="space-y-4 mt-6">
                 <Alert className="mb-4">
