@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -108,10 +108,110 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
   const isUnlocked = isUnlockedFromParent ?? localIsUnlocked;
   const isControlledByParent = isUnlockedFromParent !== undefined;
   
-  const [activeSection, setActiveSection] = useState<string>('personal');
+  // Persist activeSection to localStorage
+  const [activeSection, setActiveSection] = useState<string>(() => {
+    const saved = localStorage.getItem('legacyLocker_activeSection');
+    return saved || 'personal';
+  });
+
+  // Persist activeSection changes
+  useEffect(() => {
+    localStorage.setItem('legacyLocker_activeSection', activeSection);
+  }, [activeSection]);
 
   // Reference for scrolling to content
-  const contentRef = React.useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  
+  // Auto-save draft to localStorage to prevent data loss
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const [formData, setFormData] = useState<LegacyLockerData>({
+    full_legal_name: '',
+    address: '',
+    executor_name: '',
+    executor_relationship: '',
+    executor_contact: '',
+    backup_executor_name: '',
+    backup_executor_contact: '',
+    guardian_name: '',
+    guardian_relationship: '',
+    guardian_contact: '',
+    backup_guardian_name: '',
+    backup_guardian_contact: '',
+    spouse_name: '',
+    spouse_contact: '',
+    attorney_name: '',
+    attorney_firm: '',
+    attorney_contact: '',
+    business_partner_name: '',
+    business_partner_company: '',
+    business_partner_contact: '',
+    investment_firm_name: '',
+    investment_advisor_name: '',
+    investment_firm_contact: '',
+    financial_advisor_name: '',
+    financial_advisor_firm: '',
+    financial_advisor_contact: '',
+    residuary_estate: '',
+    digital_assets: '',
+    real_estate_instructions: '',
+    debts_expenses: '',
+    funeral_wishes: '',
+    burial_or_cremation: '',
+    ceremony_preferences: '',
+    organ_donation: false,
+    no_contest_clause: true,
+    letters_to_loved_ones: '',
+    pet_care_instructions: '',
+    business_succession_plan: '',
+    ethical_will: '',
+  });
+  
+  // Save form data to localStorage as draft
+  const saveDraftToLocalStorage = useCallback((data: LegacyLockerData) => {
+    try {
+      localStorage.setItem('legacyLocker_formDraft', JSON.stringify(data));
+    } catch (e) {
+      console.error('Failed to save draft:', e);
+    }
+  }, []);
+
+  // Clear draft from localStorage (called after successful save)
+  const clearDraftFromLocalStorage = useCallback(() => {
+    localStorage.removeItem('legacyLocker_formDraft');
+  }, []);
+
+  // Load draft from localStorage on mount (only if no existing data from DB)
+  useEffect(() => {
+    const savedDraft = localStorage.getItem('legacyLocker_formDraft');
+    if (savedDraft && !existingData) {
+      try {
+        const parsed = JSON.parse(savedDraft);
+        setFormData(prev => ({ ...prev, ...parsed }));
+      } catch (e) {
+        console.error('Failed to parse draft:', e);
+      }
+    }
+  }, [existingData]);
+
+  // Auto-save draft with debounce when formData changes
+  useEffect(() => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    
+    saveTimeoutRef.current = setTimeout(() => {
+      if (isUnlocked || !isEncrypted) {
+        saveDraftToLocalStorage(formData);
+      }
+    }, 1000); // Save after 1 second of inactivity
+    
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [formData, isUnlocked, isEncrypted, saveDraftToLocalStorage]);
 
   // Scroll to top of content when section changes
   const handleSectionChange = (section: string) => {
@@ -205,49 +305,6 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
     }
     return <Circle className="h-3 w-3 text-muted-foreground ml-auto" />;
   };
-
-  
-  const [formData, setFormData] = useState<LegacyLockerData>({
-    full_legal_name: '',
-    address: '',
-    executor_name: '',
-    executor_relationship: '',
-    executor_contact: '',
-    backup_executor_name: '',
-    backup_executor_contact: '',
-    guardian_name: '',
-    guardian_relationship: '',
-    guardian_contact: '',
-    backup_guardian_name: '',
-    backup_guardian_contact: '',
-    spouse_name: '',
-    spouse_contact: '',
-    attorney_name: '',
-    attorney_firm: '',
-    attorney_contact: '',
-    business_partner_name: '',
-    business_partner_company: '',
-    business_partner_contact: '',
-    investment_firm_name: '',
-    investment_advisor_name: '',
-    investment_firm_contact: '',
-    financial_advisor_name: '',
-    financial_advisor_firm: '',
-    financial_advisor_contact: '',
-    residuary_estate: '',
-    digital_assets: '',
-    real_estate_instructions: '',
-    debts_expenses: '',
-    funeral_wishes: '',
-    burial_or_cremation: '',
-    ceremony_preferences: '',
-    organ_donation: false,
-    no_contest_clause: true,
-    letters_to_loved_ones: '',
-    pet_care_instructions: '',
-    business_succession_plan: '',
-    ethical_will: '',
-  });
 
   useEffect(() => {
     checkContributorStatus();
@@ -512,6 +569,9 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
         if (error) throw error;
       }
 
+      // Clear the local draft since we saved successfully
+      clearDraftFromLocalStorage();
+      
       toast({
         title: 'Success',
         description: 'Legacy Locker saved successfully',
