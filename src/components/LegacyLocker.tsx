@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Lock, Unlock, Save, FileText, Users, Home, DollarSign, Heart, Shield, Upload, Mic, Contact, X, Plus, Scale, ChevronDown, ChevronLeft } from 'lucide-react';
+import { Lock, Unlock, Save, FileText, Users, Home, DollarSign, Heart, Shield, Upload, Mic, Contact, X, Plus, Scale, ChevronDown, ChevronLeft, Check, Circle } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -109,6 +109,89 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
   const isControlledByParent = isUnlockedFromParent !== undefined;
   
   const [activeSection, setActiveSection] = useState<string>('personal');
+
+  // Completion status calculation for each section
+  const getSectionStatus = (section: string): 'completed' | 'in_progress' | 'not_started' => {
+    switch (section) {
+      case 'personal':
+        const personalFields = [formData.full_legal_name, formData.address];
+        const personalFilled = personalFields.filter(f => f && f.trim()).length;
+        if (personalFilled === personalFields.length) return 'completed';
+        if (personalFilled > 0) return 'in_progress';
+        return 'not_started';
+      
+      case 'voicenotes':
+        // Voice notes have their own component - we'll check if any exist via existingData
+        return 'not_started'; // Will be updated when VoiceNotesSection provides data
+      
+      case 'contacts':
+        try {
+          const contacts = JSON.parse(formData.digital_assets || '[]');
+          if (Array.isArray(contacts) && contacts.length > 0) {
+            const hasComplete = contacts.some((c: any) => c.name && c.contact);
+            if (hasComplete) return 'completed';
+            return 'in_progress';
+          }
+        } catch {}
+        return 'not_started';
+      
+      case 'executor':
+        const executorFields = [formData.executor_name, formData.executor_contact];
+        const executorFilled = executorFields.filter(f => f && f.trim()).length;
+        if (executorFilled === executorFields.length) return 'completed';
+        if (executorFilled > 0) return 'in_progress';
+        return 'not_started';
+      
+      case 'guardians':
+        const guardianFields = [formData.guardian_name, formData.guardian_contact];
+        const guardianFilled = guardianFields.filter(f => f && f.trim()).length;
+        if (guardianFilled === guardianFields.length) return 'completed';
+        if (guardianFilled > 0) return 'in_progress';
+        return 'not_started';
+      
+      case 'assets':
+        const assetFields = [formData.residuary_estate, formData.debts_expenses];
+        const assetFilled = assetFields.filter(f => f && f.trim()).length;
+        if (assetFilled === assetFields.length) return 'completed';
+        if (assetFilled > 0) return 'in_progress';
+        return 'not_started';
+      
+      case 'property':
+        const propertyFields = [formData.real_estate_instructions];
+        const propertyFilled = propertyFields.filter(f => f && f.trim()).length;
+        if (propertyFilled === propertyFields.length) return 'completed';
+        if (propertyFilled > 0) return 'in_progress';
+        return 'not_started';
+      
+      case 'trust':
+        // Trust info managed by TrustInformation component
+        return 'not_started';
+      
+      case 'wishes':
+        const wishesFields = [formData.funeral_wishes, formData.burial_or_cremation, formData.letters_to_loved_ones];
+        const wishesFilled = wishesFields.filter(f => f && f.trim()).length;
+        if (wishesFilled >= 2) return 'completed';
+        if (wishesFilled > 0) return 'in_progress';
+        return 'not_started';
+      
+      case 'uploads':
+        // Uploads managed by LegacyLockerUploads component
+        return 'not_started';
+      
+      default:
+        return 'not_started';
+    }
+  };
+
+  const StatusIndicator = ({ status }: { status: 'completed' | 'in_progress' | 'not_started' }) => {
+    if (status === 'completed') {
+      return <Check className="h-4 w-4 text-green-500 ml-auto" />;
+    }
+    if (status === 'in_progress') {
+      return <Circle className="h-3 w-3 fill-amber-500 text-amber-500 ml-auto" />;
+    }
+    return <Circle className="h-3 w-3 text-muted-foreground ml-auto" />;
+  };
   
   const [formData, setFormData] = useState<LegacyLockerData>({
     full_legal_name: '',
@@ -638,56 +721,66 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                   <ChevronDown className="h-4 w-4 ml-2" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56 bg-background border shadow-lg z-50">
+              <DropdownMenuContent className="w-64 bg-background border shadow-lg z-50">
                 <DropdownMenuLabel className="text-xs uppercase text-muted-foreground font-semibold">About You</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => setActiveSection('personal')} className="cursor-pointer">
+                <DropdownMenuItem onClick={() => setActiveSection('personal')} className="cursor-pointer flex items-center">
                   <FileText className="h-4 w-4 mr-2" />
                   Personal
+                  <StatusIndicator status={getSectionStatus('personal')} />
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setActiveSection('voicenotes')} className="cursor-pointer">
+                <DropdownMenuItem onClick={() => setActiveSection('voicenotes')} className="cursor-pointer flex items-center">
                   <Mic className="h-4 w-4 mr-2" />
                   Voice
+                  <StatusIndicator status={getSectionStatus('voicenotes')} />
                 </DropdownMenuItem>
                 
                 <DropdownMenuSeparator />
                 <DropdownMenuLabel className="text-xs uppercase text-muted-foreground font-semibold">People You Trust</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => setActiveSection('contacts')} className="cursor-pointer">
+                <DropdownMenuItem onClick={() => setActiveSection('contacts')} className="cursor-pointer flex items-center">
                   <Contact className="h-4 w-4 mr-2" />
                   Contacts
+                  <StatusIndicator status={getSectionStatus('contacts')} />
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setActiveSection('executor')} className="cursor-pointer">
+                <DropdownMenuItem onClick={() => setActiveSection('executor')} className="cursor-pointer flex items-center">
                   <Users className="h-4 w-4 mr-2" />
                   Executor
+                  <StatusIndicator status={getSectionStatus('executor')} />
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setActiveSection('guardians')} className="cursor-pointer">
+                <DropdownMenuItem onClick={() => setActiveSection('guardians')} className="cursor-pointer flex items-center">
                   <Shield className="h-4 w-4 mr-2" />
                   Guardians
+                  <StatusIndicator status={getSectionStatus('guardians')} />
                 </DropdownMenuItem>
                 
                 <DropdownMenuSeparator />
                 <DropdownMenuLabel className="text-xs uppercase text-muted-foreground font-semibold">Assets & Structure</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => setActiveSection('assets')} className="cursor-pointer">
+                <DropdownMenuItem onClick={() => setActiveSection('assets')} className="cursor-pointer flex items-center">
                   <DollarSign className="h-4 w-4 mr-2" />
                   Assets
+                  <StatusIndicator status={getSectionStatus('assets')} />
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setActiveSection('property')} className="cursor-pointer">
+                <DropdownMenuItem onClick={() => setActiveSection('property')} className="cursor-pointer flex items-center">
                   <Home className="h-4 w-4 mr-2" />
                   Property
+                  <StatusIndicator status={getSectionStatus('property')} />
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setActiveSection('trust')} className="cursor-pointer">
+                <DropdownMenuItem onClick={() => setActiveSection('trust')} className="cursor-pointer flex items-center">
                   <Scale className="h-4 w-4 mr-2" />
                   Trust
+                  <StatusIndicator status={getSectionStatus('trust')} />
                 </DropdownMenuItem>
                 
                 <DropdownMenuSeparator />
                 <DropdownMenuLabel className="text-xs uppercase text-muted-foreground font-semibold">Your Wishes</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => setActiveSection('wishes')} className="cursor-pointer">
+                <DropdownMenuItem onClick={() => setActiveSection('wishes')} className="cursor-pointer flex items-center">
                   <Heart className="h-4 w-4 mr-2" />
                   Wishes
+                  <StatusIndicator status={getSectionStatus('wishes')} />
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setActiveSection('uploads')} className="cursor-pointer">
+                <DropdownMenuItem onClick={() => setActiveSection('uploads')} className="cursor-pointer flex items-center">
                   <Upload className="h-4 w-4 mr-2" />
                   Uploads
+                  <StatusIndicator status={getSectionStatus('uploads')} />
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
