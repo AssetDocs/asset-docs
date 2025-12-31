@@ -6,10 +6,18 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Lock, Unlock, Save, FileText, Users, Home, DollarSign, Heart, Shield, Upload, Mic, Contact, X, Plus, Scale } from 'lucide-react';
+import { Lock, Unlock, Save, FileText, Users, Home, DollarSign, Heart, Shield, Upload, Mic, Contact, X, Plus, Scale, ChevronDown, ChevronLeft } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { encryptPassword, decryptPassword } from '@/utils/encryption';
 import MasterPasswordModal from './MasterPasswordModal';
 import { MASTER_PASSWORD_HASH_KEY } from './PasswordCatalog';
@@ -99,6 +107,8 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
   const sessionMasterPassword = sessionMasterPasswordFromParent ?? localSessionMasterPassword;
   const isUnlocked = isUnlockedFromParent ?? localIsUnlocked;
   const isControlledByParent = isUnlockedFromParent !== undefined;
+  
+  const [activeSection, setActiveSection] = useState<string>('personal');
   
   const [formData, setFormData] = useState<LegacyLockerData>({
     full_legal_name: '',
@@ -584,6 +594,10 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
             </AlertDescription>
           </Alert>
 
+          <p className="text-sm text-muted-foreground mb-4 italic">
+            Most people complete this in short sessions over time. You don't need to finish everything today.
+          </p>
+
           {/* Only show encryption status alert when not controlled by parent */}
           {!hideEncryptionControls && (
             <Alert className="mb-4">
@@ -606,675 +620,726 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
             />
           )}
 
-          <Tabs defaultValue="personal" className="w-full">
-            <TabsList className="grid w-full grid-cols-5 grid-rows-2 gap-3 p-2 h-auto">
-              <TabsTrigger value="personal" className="text-xs md:text-sm px-1 py-2">
-                <FileText className="h-3 w-3 md:h-4 md:w-4 mr-1 hidden sm:inline" />
-                <span className="truncate">Personal</span>
-              </TabsTrigger>
-              <TabsTrigger value="contacts" className="text-xs md:text-sm px-1 py-2">
-                <Contact className="h-3 w-3 md:h-4 md:w-4 mr-1 hidden sm:inline" />
-                <span className="truncate">Contacts</span>
-              </TabsTrigger>
-              <TabsTrigger value="executor" className="text-xs md:text-sm px-1 py-2">
-                <Users className="h-3 w-3 md:h-4 md:w-4 mr-1 hidden sm:inline" />
-                <span className="truncate">Executor</span>
-              </TabsTrigger>
-              <TabsTrigger value="guardians" className="text-xs md:text-sm px-1 py-2">
-                <Shield className="h-3 w-3 md:h-4 md:w-4 mr-1 hidden sm:inline" />
-                <span className="truncate">Guardians</span>
-              </TabsTrigger>
-              <TabsTrigger value="assets" className="text-xs md:text-sm px-1 py-2">
-                <DollarSign className="h-3 w-3 md:h-4 md:w-4 mr-1 hidden sm:inline" />
-                <span className="truncate">Assets</span>
-              </TabsTrigger>
-              <TabsTrigger value="property" className="text-xs md:text-sm px-1 py-2">
-                <Home className="h-3 w-3 md:h-4 md:w-4 mr-1 hidden sm:inline" />
-                <span className="truncate">Property</span>
-              </TabsTrigger>
-              <TabsTrigger value="trust" className="text-xs md:text-sm px-1 py-2">
-                <Scale className="h-3 w-3 md:h-4 md:w-4 mr-1 hidden sm:inline" />
-                <span className="truncate">Trust</span>
-              </TabsTrigger>
-              <TabsTrigger value="wishes" className="text-xs md:text-sm px-1 py-2">
-                <Heart className="h-3 w-3 md:h-4 md:w-4 mr-1 hidden sm:inline" />
-                <span className="truncate">Wishes</span>
-              </TabsTrigger>
-              <TabsTrigger value="voicenotes" className="text-xs md:text-sm px-1 py-2">
-                <Mic className="h-3 w-3 md:h-4 md:w-4 mr-1 hidden sm:inline" />
-                <span className="truncate">Voice</span>
-              </TabsTrigger>
-              <TabsTrigger value="uploads" className="text-xs md:text-sm px-1 py-2">
-                <Upload className="h-3 w-3 md:h-4 md:w-4 mr-1 hidden sm:inline" />
-                <span className="truncate">Uploads</span>
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="personal" className="space-y-4 mt-6">
-              <Alert className="mb-4">
-                <AlertDescription>
-                  <strong>Why this matters:</strong> Human meaning + clarity = fewer misunderstandings after death.
-                </AlertDescription>
-              </Alert>
-
-              <div className="space-y-2">
-                <Label htmlFor="full_legal_name">Full Legal Name</Label>
-                <Input
-                  id="full_legal_name"
-                  value={formData.full_legal_name}
-                  onChange={(e) => handleInputChange('full_legal_name', e.target.value)}
-                  placeholder="Your full legal name"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
-                <Textarea
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) => handleInputChange('address', e.target.value)}
-                  placeholder="Your full address"
-                  rows={3}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="life_overview">Life overview / personal background</Label>
-                <Textarea
-                  id="life_overview"
-                  placeholder="A short narrative for family: upbringing, values, principles."
-                  rows={4}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="digital_identity">Digital identity preferences</Label>
-                <Textarea
-                  id="digital_identity"
-                  placeholder="How they want social media handled, memorialized, or deleted."
-                  rows={3}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="personal_philosophies">Personal philosophies or reminders for loved ones</Label>
-                <Textarea
-                  id="personal_philosophies"
-                  placeholder="Example: Always take the family trip. Don't wait."
-                  rows={3}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="medical_preferences">Medical or ethical preferences not covered by legal docs</Label>
-                <Textarea
-                  id="medical_preferences"
-                  placeholder="Example: organ donation rationale, cultural preferences, music they'd want at a memorial."
-                  rows={4}
-                />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="contacts" className="space-y-4 mt-6">
-              <Alert className="mb-4">
-                <AlertDescription>
-                  <strong>Why this matters:</strong> Essential VIP contacts your loved ones may need to reach immediately.
-                </AlertDescription>
-              </Alert>
-
-              <div className="space-y-4">
-                {(JSON.parse(formData.digital_assets || '[]') as any[]).map((contact: any, index: number) => (
-                  <div key={index} className="space-y-4 p-4 border rounded-lg bg-muted/30 relative">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute top-2 right-2"
-                      onClick={() => {
-                        const contacts = JSON.parse(formData.digital_assets || '[]');
-                        contacts.splice(index, 1);
-                        handleInputChange('digital_assets', JSON.stringify(contacts));
-                      }}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                    
-                    <div className="space-y-2">
-                      <Label>Name</Label>
-                      <Input
-                        value={contact.name || ''}
-                        onChange={(e) => {
-                          const contacts = JSON.parse(formData.digital_assets || '[]');
-                          contacts[index] = { ...contacts[index], name: e.target.value };
-                          handleInputChange('digital_assets', JSON.stringify(contacts));
-                        }}
-                        placeholder="Enter contact name"
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label>Relationship / Title / Business</Label>
-                      <Input
-                        value={contact.relationship || ''}
-                        onChange={(e) => {
-                          const contacts = JSON.parse(formData.digital_assets || '[]');
-                          contacts[index] = { ...contacts[index], relationship: e.target.value };
-                          handleInputChange('digital_assets', JSON.stringify(contacts));
-                        }}
-                        placeholder="e.g., Spouse, Attorney, Business Partner, Financial Advisor"
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label>Contact Information</Label>
-                      <Textarea
-                        value={contact.contact || ''}
-                        onChange={(e) => {
-                          const contacts = JSON.parse(formData.digital_assets || '[]');
-                          contacts[index] = { ...contacts[index], contact: e.target.value };
-                          handleInputChange('digital_assets', JSON.stringify(contacts));
-                        }}
-                        placeholder="Phone, email, address, or any other contact details"
-                        rows={3}
-                      />
-                    </div>
-                  </div>
-                ))}
-                
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => {
-                    const contacts = JSON.parse(formData.digital_assets || '[]');
-                    contacts.push({ name: '', relationship: '', contact: '' });
-                    handleInputChange('digital_assets', JSON.stringify(contacts));
-                  }}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Contact
+          {/* Category Navigation Dropdown */}
+          <div className="flex items-center gap-3 mb-6">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="default" className="bg-primary hover:bg-primary/90">
+                  {activeSection === 'personal' && <><FileText className="h-4 w-4 mr-2" />Personal</>}
+                  {activeSection === 'voicenotes' && <><Mic className="h-4 w-4 mr-2" />Voice</>}
+                  {activeSection === 'contacts' && <><Contact className="h-4 w-4 mr-2" />Contacts</>}
+                  {activeSection === 'executor' && <><Users className="h-4 w-4 mr-2" />Executor</>}
+                  {activeSection === 'guardians' && <><Shield className="h-4 w-4 mr-2" />Guardians</>}
+                  {activeSection === 'assets' && <><DollarSign className="h-4 w-4 mr-2" />Assets</>}
+                  {activeSection === 'property' && <><Home className="h-4 w-4 mr-2" />Property</>}
+                  {activeSection === 'trust' && <><Scale className="h-4 w-4 mr-2" />Trust</>}
+                  {activeSection === 'wishes' && <><Heart className="h-4 w-4 mr-2" />Wishes</>}
+                  {activeSection === 'uploads' && <><Upload className="h-4 w-4 mr-2" />Uploads</>}
+                  <ChevronDown className="h-4 w-4 ml-2" />
                 </Button>
-              </div>
-            </TabsContent>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56 bg-background border shadow-lg z-50">
+                <DropdownMenuLabel className="text-xs uppercase text-muted-foreground font-semibold">About You</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => setActiveSection('personal')} className="cursor-pointer">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Personal
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveSection('voicenotes')} className="cursor-pointer">
+                  <Mic className="h-4 w-4 mr-2" />
+                  Voice
+                </DropdownMenuItem>
+                
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel className="text-xs uppercase text-muted-foreground font-semibold">People You Trust</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => setActiveSection('contacts')} className="cursor-pointer">
+                  <Contact className="h-4 w-4 mr-2" />
+                  Contacts
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveSection('executor')} className="cursor-pointer">
+                  <Users className="h-4 w-4 mr-2" />
+                  Executor
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveSection('guardians')} className="cursor-pointer">
+                  <Shield className="h-4 w-4 mr-2" />
+                  Guardians
+                </DropdownMenuItem>
+                
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel className="text-xs uppercase text-muted-foreground font-semibold">Assets & Structure</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => setActiveSection('assets')} className="cursor-pointer">
+                  <DollarSign className="h-4 w-4 mr-2" />
+                  Assets
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveSection('property')} className="cursor-pointer">
+                  <Home className="h-4 w-4 mr-2" />
+                  Property
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveSection('trust')} className="cursor-pointer">
+                  <Scale className="h-4 w-4 mr-2" />
+                  Trust
+                </DropdownMenuItem>
+                
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel className="text-xs uppercase text-muted-foreground font-semibold">Your Wishes</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => setActiveSection('wishes')} className="cursor-pointer">
+                  <Heart className="h-4 w-4 mr-2" />
+                  Wishes
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveSection('uploads')} className="cursor-pointer">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Uploads
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
-            <TabsContent value="executor" className="space-y-4 mt-6">
-              <Alert className="mb-4">
-                <AlertDescription>
-                  <strong>Why this matters:</strong> Executors are often overwhelmed. Giving them a roadmap is huge.
-                </AlertDescription>
-              </Alert>
+          {/* Section Content */}
+          <div className="w-full">
+            {activeSection === 'personal' && (
+              <div className="space-y-4 mt-6">
+                <Alert className="mb-4">
+                  <AlertDescription>
+                    <strong>Why this matters:</strong> Human meaning + clarity = fewer misunderstandings after death.
+                  </AlertDescription>
+                </Alert>
 
-              <div className="space-y-4 p-4 border rounded-lg">
-                <h3 className="font-semibold">Primary Executor</h3>
                 <div className="space-y-2">
-                  <Label htmlFor="executor_name">Name</Label>
+                  <Label htmlFor="full_legal_name">Full Legal Name</Label>
                   <Input
-                    id="executor_name"
-                    value={formData.executor_name}
-                    onChange={(e) => handleInputChange('executor_name', e.target.value)}
-                    placeholder="Executor's full name"
+                    id="full_legal_name"
+                    value={formData.full_legal_name}
+                    onChange={(e) => handleInputChange('full_legal_name', e.target.value)}
+                    placeholder="Your full legal name"
                   />
                 </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="executor_relationship">Relationship</Label>
-                  <Input
-                    id="executor_relationship"
-                    value={formData.executor_relationship}
-                    onChange={(e) => handleInputChange('executor_relationship', e.target.value)}
-                    placeholder="e.g., Spouse, Sibling, Friend"
+                  <Label htmlFor="address">Address</Label>
+                  <Textarea
+                    id="address"
+                    value={formData.address}
+                    onChange={(e) => handleInputChange('address', e.target.value)}
+                    placeholder="Your full address"
+                    rows={3}
                   />
                 </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="executor_contact">Contact Information</Label>
-                  <Input
-                    id="executor_contact"
-                    value={formData.executor_contact}
-                    onChange={(e) => handleInputChange('executor_contact', e.target.value)}
-                    placeholder="Phone and/or email"
+                  <Label htmlFor="life_overview">Life overview / personal background</Label>
+                  <Textarea
+                    id="life_overview"
+                    placeholder="A short narrative for family: upbringing, values, principles."
+                    rows={4}
                   />
                 </div>
-              </div>
 
-              <div className="space-y-4 p-4 border rounded-lg">
-                <h3 className="font-semibold">Backup Executor</h3>
                 <div className="space-y-2">
-                  <Label htmlFor="backup_executor_name">Name</Label>
-                  <Input
-                    id="backup_executor_name"
-                    value={formData.backup_executor_name}
-                    onChange={(e) => handleInputChange('backup_executor_name', e.target.value)}
-                    placeholder="Backup executor's full name"
+                  <Label htmlFor="digital_identity">Digital identity preferences</Label>
+                  <Textarea
+                    id="digital_identity"
+                    placeholder="How they want social media handled, memorialized, or deleted."
+                    rows={3}
                   />
                 </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="backup_executor_contact">Contact Information</Label>
-                  <Input
-                    id="backup_executor_contact"
-                    value={formData.backup_executor_contact}
-                    onChange={(e) => handleInputChange('backup_executor_contact', e.target.value)}
-                    placeholder="Phone and/or email"
+                  <Label htmlFor="personal_philosophies">Personal philosophies or reminders for loved ones</Label>
+                  <Textarea
+                    id="personal_philosophies"
+                    placeholder="Example: Always take the family trip. Don't wait."
+                    rows={3}
                   />
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="executor_instructions">Step-by-step instructions for your specific situation</Label>
-                <Textarea
-                  id="executor_instructions"
-                  placeholder='Ex: "Contact my financial advisor, then my CPA. Here are their numbers."'
-                  rows={4}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="subscriptions">List of recurring subscriptions and services to cancel</Label>
-                <Textarea
-                  id="subscriptions"
-                  placeholder="Netflix, Amazon, insurance policies, memberships."
-                  rows={3}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="household_operations">Household operations guide</Label>
-                <Textarea
-                  id="household_operations"
-                  placeholder="Alarm codes, how the sprinkler system works, who services the HVAC."
-                  rows={4}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="financial_crypto">Financial/crypto explanation in plain English</Label>
-                <Textarea
-                  id="financial_crypto"
-                  placeholder="Legal wills often state 'I have crypto,' but don't explain how to access it."
-                  rows={4}
-                />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="guardians" className="space-y-4 mt-6">
-              <Alert className="mb-4">
-                <AlertDescription>
-                  <strong>Why this matters:</strong> A will names a guardian; Legacy Locker teaches them how to parent the way you would.
-                </AlertDescription>
-              </Alert>
-              
-              <div className="space-y-4 p-4 border rounded-lg">
-                <h3 className="font-semibold">Primary Guardian</h3>
                 <div className="space-y-2">
-                  <Label htmlFor="guardian_name">Name</Label>
-                  <Input
-                    id="guardian_name"
-                    value={formData.guardian_name}
-                    onChange={(e) => handleInputChange('guardian_name', e.target.value)}
-                    placeholder="Guardian's full name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="guardian_relationship">Relationship</Label>
-                  <Input
-                    id="guardian_relationship"
-                    value={formData.guardian_relationship}
-                    onChange={(e) => handleInputChange('guardian_relationship', e.target.value)}
-                    placeholder="e.g., Grandparent, Aunt, Uncle"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="guardian_contact">Contact Information</Label>
-                  <Input
-                    id="guardian_contact"
-                    value={formData.guardian_contact}
-                    onChange={(e) => handleInputChange('guardian_contact', e.target.value)}
-                    placeholder="Phone and/or email"
+                  <Label htmlFor="medical_preferences">Medical or ethical preferences not covered by legal docs</Label>
+                  <Textarea
+                    id="medical_preferences"
+                    placeholder="Example: organ donation rationale, cultural preferences, music they'd want at a memorial."
+                    rows={4}
                   />
                 </div>
               </div>
+            )}
 
-              <div className="space-y-4 p-4 border rounded-lg">
-                <h3 className="font-semibold">Backup Guardian</h3>
+            {activeSection === 'contacts' && (
+              <div className="space-y-4 mt-6">
+                <Alert className="mb-4">
+                  <AlertDescription>
+                    <strong>Why this matters:</strong> Essential VIP contacts your loved ones may need to reach immediately.
+                  </AlertDescription>
+                </Alert>
+
+                <div className="space-y-4">
+                  {(JSON.parse(formData.digital_assets || '[]') as any[]).map((contact: any, index: number) => (
+                    <div key={index} className="space-y-4 p-4 border rounded-lg bg-muted/30 relative">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute top-2 right-2"
+                        onClick={() => {
+                          const contacts = JSON.parse(formData.digital_assets || '[]');
+                          contacts.splice(index, 1);
+                          handleInputChange('digital_assets', JSON.stringify(contacts));
+                        }}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                      
+                      <div className="space-y-2">
+                        <Label>Name</Label>
+                        <Input
+                          value={contact.name || ''}
+                          onChange={(e) => {
+                            const contacts = JSON.parse(formData.digital_assets || '[]');
+                            contacts[index] = { ...contacts[index], name: e.target.value };
+                            handleInputChange('digital_assets', JSON.stringify(contacts));
+                          }}
+                          placeholder="Enter contact name"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label>Relationship / Title / Business</Label>
+                        <Input
+                          value={contact.relationship || ''}
+                          onChange={(e) => {
+                            const contacts = JSON.parse(formData.digital_assets || '[]');
+                            contacts[index] = { ...contacts[index], relationship: e.target.value };
+                            handleInputChange('digital_assets', JSON.stringify(contacts));
+                          }}
+                          placeholder="e.g., Spouse, Attorney, Business Partner, Financial Advisor"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label>Contact Information</Label>
+                        <Textarea
+                          value={contact.contact || ''}
+                          onChange={(e) => {
+                            const contacts = JSON.parse(formData.digital_assets || '[]');
+                            contacts[index] = { ...contacts[index], contact: e.target.value };
+                            handleInputChange('digital_assets', JSON.stringify(contacts));
+                          }}
+                          placeholder="Phone, email, address, or any other contact details"
+                          rows={3}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => {
+                      const contacts = JSON.parse(formData.digital_assets || '[]');
+                      contacts.push({ name: '', relationship: '', contact: '' });
+                      handleInputChange('digital_assets', JSON.stringify(contacts));
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Contact
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {activeSection === 'executor' && (
+              <div className="space-y-4 mt-6">
+                <Alert className="mb-4">
+                  <AlertDescription>
+                    <strong>Why this matters:</strong> Executors are often overwhelmed. Giving them a roadmap is huge.
+                  </AlertDescription>
+                </Alert>
+
+                <div className="space-y-4 p-4 border rounded-lg">
+                  <h3 className="font-semibold">Primary Executor</h3>
+                  <div className="space-y-2">
+                    <Label htmlFor="executor_name">Name</Label>
+                    <Input
+                      id="executor_name"
+                      value={formData.executor_name}
+                      onChange={(e) => handleInputChange('executor_name', e.target.value)}
+                      placeholder="Executor's full name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="executor_relationship">Relationship</Label>
+                    <Input
+                      id="executor_relationship"
+                      value={formData.executor_relationship}
+                      onChange={(e) => handleInputChange('executor_relationship', e.target.value)}
+                      placeholder="e.g., Spouse, Sibling, Friend"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="executor_contact">Contact Information</Label>
+                    <Input
+                      id="executor_contact"
+                      value={formData.executor_contact}
+                      onChange={(e) => handleInputChange('executor_contact', e.target.value)}
+                      placeholder="Phone and/or email"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-4 p-4 border rounded-lg">
+                  <h3 className="font-semibold">Backup Executor</h3>
+                  <div className="space-y-2">
+                    <Label htmlFor="backup_executor_name">Name</Label>
+                    <Input
+                      id="backup_executor_name"
+                      value={formData.backup_executor_name}
+                      onChange={(e) => handleInputChange('backup_executor_name', e.target.value)}
+                      placeholder="Backup executor's full name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="backup_executor_contact">Contact Information</Label>
+                    <Input
+                      id="backup_executor_contact"
+                      value={formData.backup_executor_contact}
+                      onChange={(e) => handleInputChange('backup_executor_contact', e.target.value)}
+                      placeholder="Phone and/or email"
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="backup_guardian_name">Name</Label>
-                  <Input
-                    id="backup_guardian_name"
-                    value={formData.backup_guardian_name}
-                    onChange={(e) => handleInputChange('backup_guardian_name', e.target.value)}
-                    placeholder="Backup guardian's full name"
+                  <Label htmlFor="executor_instructions">Step-by-step instructions for your specific situation</Label>
+                  <Textarea
+                    id="executor_instructions"
+                    placeholder='Ex: "Contact my financial advisor, then my CPA. Here are their numbers."'
+                    rows={4}
                   />
                 </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="backup_guardian_contact">Contact Information</Label>
-                  <Input
-                    id="backup_guardian_contact"
-                    value={formData.backup_guardian_contact}
-                    onChange={(e) => handleInputChange('backup_guardian_contact', e.target.value)}
-                    placeholder="Phone and/or email"
+                  <Label htmlFor="subscriptions">List of recurring subscriptions and services to cancel</Label>
+                  <Textarea
+                    id="subscriptions"
+                    placeholder="Netflix, Amazon, insurance policies, memberships."
+                    rows={3}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="household_operations">Household operations guide</Label>
+                  <Textarea
+                    id="household_operations"
+                    placeholder="Alarm codes, how the sprinkler system works, who services the HVAC."
+                    rows={4}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="financial_crypto">Financial/crypto explanation in plain English</Label>
+                  <Textarea
+                    id="financial_crypto"
+                    placeholder="Legal wills often state 'I have crypto,' but don't explain how to access it."
+                    rows={4}
                   />
                 </div>
               </div>
+            )}
 
-              <div className="space-y-2">
-                <Label htmlFor="parenting_preferences">Parenting preferences</Label>
-                <Textarea
-                  id="parenting_preferences"
-                  placeholder="Routines, bedtimes, diets, schooling preferences."
-                  rows={4}
+            {activeSection === 'guardians' && (
+              <div className="space-y-4 mt-6">
+                <Alert className="mb-4">
+                  <AlertDescription>
+                    <strong>Why this matters:</strong> A will names a guardian; Legacy Locker teaches them how to parent the way you would.
+                  </AlertDescription>
+                </Alert>
+                
+                <div className="space-y-4 p-4 border rounded-lg">
+                  <h3 className="font-semibold">Primary Guardian</h3>
+                  <div className="space-y-2">
+                    <Label htmlFor="guardian_name">Name</Label>
+                    <Input
+                      id="guardian_name"
+                      value={formData.guardian_name}
+                      onChange={(e) => handleInputChange('guardian_name', e.target.value)}
+                      placeholder="Guardian's full name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="guardian_relationship">Relationship</Label>
+                    <Input
+                      id="guardian_relationship"
+                      value={formData.guardian_relationship}
+                      onChange={(e) => handleInputChange('guardian_relationship', e.target.value)}
+                      placeholder="e.g., Grandparent, Aunt, Uncle"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="guardian_contact">Contact Information</Label>
+                    <Input
+                      id="guardian_contact"
+                      value={formData.guardian_contact}
+                      onChange={(e) => handleInputChange('guardian_contact', e.target.value)}
+                      placeholder="Phone and/or email"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-4 p-4 border rounded-lg">
+                  <h3 className="font-semibold">Backup Guardian</h3>
+                  <div className="space-y-2">
+                    <Label htmlFor="backup_guardian_name">Name</Label>
+                    <Input
+                      id="backup_guardian_name"
+                      value={formData.backup_guardian_name}
+                      onChange={(e) => handleInputChange('backup_guardian_name', e.target.value)}
+                      placeholder="Backup guardian's full name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="backup_guardian_contact">Contact Information</Label>
+                    <Input
+                      id="backup_guardian_contact"
+                      value={formData.backup_guardian_contact}
+                      onChange={(e) => handleInputChange('backup_guardian_contact', e.target.value)}
+                      placeholder="Phone and/or email"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="parenting_preferences">Parenting preferences</Label>
+                  <Textarea
+                    id="parenting_preferences"
+                    placeholder="Routines, bedtimes, diets, schooling preferences."
+                    rows={4}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="emotional_behavioral">Emotional/behavioral notes</Label>
+                  <Textarea
+                    id="emotional_behavioral"
+                    placeholder="Fears, allergies, quirks, triggers, strengths."
+                    rows={3}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="developmental_goals">Developmental goals</Label>
+                  <Textarea
+                    id="developmental_goals"
+                    placeholder="Faith, character, education, extracurriculars."
+                    rows={3}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="letters_to_children">Letters to children at key ages</Label>
+                  <Textarea
+                    id="letters_to_children"
+                    placeholder="10, 16, 18, wedding day, etc."
+                    rows={4}
+                  />
+                </div>
+              </div>
+            )}
+
+            {activeSection === 'assets' && (
+              <div className="space-y-4 mt-6">
+                <Alert className="mb-4">
+                  <AlertDescription>
+                    <strong>Why this matters:</strong> Evidence + clarity reduces disputes and attorney fees dramatically.
+                  </AlertDescription>
+                </Alert>
+
+                <div className="space-y-2">
+                  <Label htmlFor="residuary_estate">Residuary Estate Instructions</Label>
+                  <Textarea
+                    id="residuary_estate"
+                    value={formData.residuary_estate}
+                    onChange={(e) => handleInputChange('residuary_estate', e.target.value)}
+                    placeholder="Who receives what's left after debts, taxes, and specific gifts? (e.g., spouse, children, charity)"
+                    rows={4}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="digital_assets">Digital Assets & Online Accounts</Label>
+                  <Textarea
+                    id="digital_assets"
+                    value={formData.digital_assets}
+                    onChange={(e) => handleInputChange('digital_assets', e.target.value)}
+                    placeholder="Social media, cryptocurrency, cloud storage, email accounts, digital business properties. Who gets access? What should be deleted or preserved?"
+                    rows={6}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="debts_expenses">Debts & Expenses Instructions</Label>
+                  <Textarea
+                    id="debts_expenses"
+                    value={formData.debts_expenses}
+                    onChange={(e) => handleInputChange('debts_expenses', e.target.value)}
+                    placeholder="Outstanding loans, funeral expenses, taxes, legal fees"
+                    rows={4}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="photo_video_documentation">Photo/video documentation of every major item</Label>
+                  <Textarea
+                    id="photo_video_documentation"
+                    placeholder="This solves disputes, reduces fraud, accelerates probate."
+                    rows={3}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="physical_documents">Where to find physical documents</Label>
+                  <Textarea
+                    id="physical_documents"
+                    placeholder="Deeds, titles, receipts, service histories."
+                    rows={3}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="sentimental_items">Plain-language explanation of sentimental items</Label>
+                  <Textarea
+                    id="sentimental_items"
+                    placeholder="Why something matters (wills don't capture value beyond $$)."
+                    rows={3}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="crypto_passwords">Crypto wallets, passwords, digital accounts</Label>
+                  <Textarea
+                    id="crypto_passwords"
+                    placeholder="Not included in normal wills."
+                    rows={3}
+                  />
+                </div>
+              </div>
+            )}
+
+            {activeSection === 'property' && (
+              <div className="space-y-4 mt-6">
+                <Alert className="mb-4">
+                  <AlertDescription>
+                    <strong>Why this matters:</strong> Property transitions are expensive and confusing — this minimizes friction.
+                  </AlertDescription>
+                </Alert>
+
+                <div className="space-y-2">
+                  <Label htmlFor="real_estate_instructions">Real Estate Instructions</Label>
+                  <Textarea
+                    id="real_estate_instructions"
+                    value={formData.real_estate_instructions}
+                    onChange={(e) => handleInputChange('real_estate_instructions', e.target.value)}
+                    placeholder="Who inherits your home or investment properties? Should any property be sold? Any conditions?"
+                    rows={6}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="property_walkthrough">Property walk-through videos</Label>
+                  <Textarea
+                    id="property_walkthrough"
+                    placeholder="Explaining what's valuable, what to donate, what to toss."
+                    rows={3}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="home_maintenance">Home maintenance list</Label>
+                  <Textarea
+                    id="home_maintenance"
+                    placeholder="Water shutoff, HVAC filters, annual tasks."
+                    rows={3}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="neighborhood_contacts">Neighborhood or tenant contacts</Label>
+                  <Textarea
+                    id="neighborhood_contacts"
+                    placeholder="Important contacts for property management."
+                    rows={2}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="rental_property">Rental property instructions</Label>
+                  <Textarea
+                    id="rental_property"
+                    placeholder="Lease locations, key contacts, payout preferences."
+                    rows={3}
+                  />
+                </div>
+              </div>
+            )}
+
+            {activeSection === 'trust' && (
+              <div className="space-y-4 mt-6">
+                <TrustInformation 
+                  isUnlockedFromParent={isUnlocked}
+                  sessionMasterPasswordFromParent={sessionMasterPassword}
                 />
               </div>
+            )}
 
-              <div className="space-y-2">
-                <Label htmlFor="emotional_behavioral">Emotional/behavioral notes</Label>
-                <Textarea
-                  id="emotional_behavioral"
-                  placeholder="Fears, allergies, quirks, triggers, strengths."
-                  rows={3}
-                />
+            {activeSection === 'wishes' && (
+              <div className="space-y-4 mt-6">
+                <div className="space-y-2">
+                  <Label htmlFor="funeral_wishes">Funeral/memorial preferences (with reasoning)</Label>
+                  <Textarea
+                    id="funeral_wishes"
+                    value={formData.funeral_wishes}
+                    onChange={(e) => handleInputChange('funeral_wishes', e.target.value)}
+                    placeholder="Songs, colors, location, faith elements."
+                    rows={4}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="burial_or_cremation">Burial or Cremation</Label>
+                  <Input
+                    id="burial_or_cremation"
+                    value={formData.burial_or_cremation}
+                    onChange={(e) => handleInputChange('burial_or_cremation', e.target.value)}
+                    placeholder="Burial, Cremation, or Other"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="ceremony_preferences">Ceremony Preferences</Label>
+                  <Textarea
+                    id="ceremony_preferences"
+                    value={formData.ceremony_preferences}
+                    onChange={(e) => handleInputChange('ceremony_preferences', e.target.value)}
+                    placeholder="Any specific wishes for the ceremony"
+                    rows={3}
+                  />
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="organ_donation"
+                    checked={formData.organ_donation}
+                    onCheckedChange={(checked) => handleInputChange('organ_donation', checked)}
+                  />
+                  <Label htmlFor="organ_donation">Organ Donation</Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="no_contest_clause"
+                    checked={formData.no_contest_clause}
+                    onCheckedChange={(checked) => handleInputChange('no_contest_clause', checked)}
+                  />
+                  <Label htmlFor="no_contest_clause">Include No-Contest Clause</Label>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="sentimental_distribution">How to distribute sentimental items</Label>
+                  <Textarea
+                    id="sentimental_distribution"
+                    placeholder="Often the #1 cause of family arguments."
+                    rows={3}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="legacy_messages">Legacy messages</Label>
+                  <Textarea
+                    id="legacy_messages"
+                    placeholder="What you hope your children carry forward."
+                    rows={3}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="charitable_giving">Charitable giving rationale</Label>
+                  <Textarea
+                    id="charitable_giving"
+                    placeholder="Why certain donations matter."
+                    rows={3}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="letters_to_loved_ones">Letters to Loved Ones</Label>
+                  <Textarea
+                    id="letters_to_loved_ones"
+                    value={formData.letters_to_loved_ones}
+                    onChange={(e) => handleInputChange('letters_to_loved_ones', e.target.value)}
+                    placeholder="Personal messages to family and friends"
+                    rows={4}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="pet_care_instructions">Pet Care Instructions</Label>
+                  <Textarea
+                    id="pet_care_instructions"
+                    value={formData.pet_care_instructions}
+                    onChange={(e) => handleInputChange('pet_care_instructions', e.target.value)}
+                    placeholder="Who will care for your pets? Include guardian name and any specific instructions or funding"
+                    rows={4}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="business_succession_plan">Business Succession Plan</Label>
+                  <Textarea
+                    id="business_succession_plan"
+                    value={formData.business_succession_plan}
+                    onChange={(e) => handleInputChange('business_succession_plan', e.target.value)}
+                    placeholder="Plans for family businesses"
+                    rows={4}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="ethical_will">Ethical Will / Legacy Message</Label>
+                  <Textarea
+                    id="ethical_will"
+                    value={formData.ethical_will}
+                    onChange={(e) => handleInputChange('ethical_will', e.target.value)}
+                    placeholder="Your values, life lessons, and what you want to be remembered for"
+                    rows={6}
+                  />
+                </div>
               </div>
+            )}
 
-              <div className="space-y-2">
-                <Label htmlFor="developmental_goals">Developmental goals</Label>
-                <Textarea
-                  id="developmental_goals"
-                  placeholder="Faith, character, education, extracurriculars."
-                  rows={3}
-                />
+            {activeSection === 'voicenotes' && (
+              <div className="space-y-4 mt-6">
+                <Alert className="mb-4">
+                  <AlertDescription>
+                    <strong>Why this matters:</strong> Video/audio preserves emotion, not just text.
+                    <br /><br />
+                    <strong>Examples of high-value recordings:</strong>
+                    <ul className="list-disc ml-6 mt-2 space-y-1">
+                      <li>Messages to children, spouse, parents.</li>
+                      <li>"If something happens to me" guidance.</li>
+                      <li>Why certain inheritance decisions were made.</li>
+                      <li>Encouragement for difficult life moments.</li>
+                      <li>Oral instructions for asset access (but not legal directives).</li>
+                    </ul>
+                  </AlertDescription>
+                </Alert>
+                <VoiceNotesSection />
               </div>
+            )}
 
-              <div className="space-y-2">
-                <Label htmlFor="letters_to_children">Letters to children at key ages</Label>
-                <Textarea
-                  id="letters_to_children"
-                  placeholder="10, 16, 18, wedding day, etc."
-                  rows={4}
-                />
+            {activeSection === 'uploads' && (
+              <div className="space-y-4 mt-6">
+                <LegacyLockerUploads />
               </div>
-            </TabsContent>
-
-            <TabsContent value="assets" className="space-y-4 mt-6">
-              <Alert className="mb-4">
-                <AlertDescription>
-                  <strong>Why this matters:</strong> Evidence + clarity reduces disputes and attorney fees dramatically.
-                </AlertDescription>
-              </Alert>
-
-              <div className="space-y-2">
-                <Label htmlFor="residuary_estate">Residuary Estate Instructions</Label>
-                <Textarea
-                  id="residuary_estate"
-                  value={formData.residuary_estate}
-                  onChange={(e) => handleInputChange('residuary_estate', e.target.value)}
-                  placeholder="Who receives what's left after debts, taxes, and specific gifts? (e.g., spouse, children, charity)"
-                  rows={4}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="digital_assets">Digital Assets & Online Accounts</Label>
-                <Textarea
-                  id="digital_assets"
-                  value={formData.digital_assets}
-                  onChange={(e) => handleInputChange('digital_assets', e.target.value)}
-                  placeholder="Social media, cryptocurrency, cloud storage, email accounts, digital business properties. Who gets access? What should be deleted or preserved?"
-                  rows={6}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="debts_expenses">Debts & Expenses Instructions</Label>
-                <Textarea
-                  id="debts_expenses"
-                  value={formData.debts_expenses}
-                  onChange={(e) => handleInputChange('debts_expenses', e.target.value)}
-                  placeholder="Outstanding loans, funeral expenses, taxes, legal fees"
-                  rows={4}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="photo_video_documentation">Photo/video documentation of every major item</Label>
-                <Textarea
-                  id="photo_video_documentation"
-                  placeholder="This solves disputes, reduces fraud, accelerates probate."
-                  rows={3}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="physical_documents">Where to find physical documents</Label>
-                <Textarea
-                  id="physical_documents"
-                  placeholder="Deeds, titles, receipts, service histories."
-                  rows={3}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="sentimental_items">Plain-language explanation of sentimental items</Label>
-                <Textarea
-                  id="sentimental_items"
-                  placeholder="Why something matters (wills don't capture value beyond $$)."
-                  rows={3}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="crypto_passwords">Crypto wallets, passwords, digital accounts</Label>
-                <Textarea
-                  id="crypto_passwords"
-                  placeholder="Not included in normal wills."
-                  rows={3}
-                />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="property" className="space-y-4 mt-6">
-              <Alert className="mb-4">
-                <AlertDescription>
-                  <strong>Why this matters:</strong> Property transitions are expensive and confusing — this minimizes friction.
-                </AlertDescription>
-              </Alert>
-
-              <div className="space-y-2">
-                <Label htmlFor="real_estate_instructions">Real Estate Instructions</Label>
-                <Textarea
-                  id="real_estate_instructions"
-                  value={formData.real_estate_instructions}
-                  onChange={(e) => handleInputChange('real_estate_instructions', e.target.value)}
-                  placeholder="Who inherits your home or investment properties? Should any property be sold? Any conditions?"
-                  rows={6}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="property_walkthrough">Property walk-through videos</Label>
-                <Textarea
-                  id="property_walkthrough"
-                  placeholder="Explaining what's valuable, what to donate, what to toss."
-                  rows={3}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="home_maintenance">Home maintenance list</Label>
-                <Textarea
-                  id="home_maintenance"
-                  placeholder="Water shutoff, HVAC filters, annual tasks."
-                  rows={3}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="neighborhood_contacts">Neighborhood or tenant contacts</Label>
-                <Textarea
-                  id="neighborhood_contacts"
-                  placeholder="Important contacts for property management."
-                  rows={2}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="rental_property">Rental property instructions</Label>
-                <Textarea
-                  id="rental_property"
-                  placeholder="Lease locations, key contacts, payout preferences."
-                  rows={3}
-                />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="trust" className="space-y-4 mt-6">
-              <TrustInformation 
-                isUnlockedFromParent={isUnlocked}
-                sessionMasterPasswordFromParent={sessionMasterPassword}
-              />
-            </TabsContent>
-
-            <TabsContent value="wishes" className="space-y-4 mt-6">
-              <div className="space-y-2">
-                <Label htmlFor="funeral_wishes">Funeral/memorial preferences (with reasoning)</Label>
-                <Textarea
-                  id="funeral_wishes"
-                  value={formData.funeral_wishes}
-                  onChange={(e) => handleInputChange('funeral_wishes', e.target.value)}
-                  placeholder="Songs, colors, location, faith elements."
-                  rows={4}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="burial_or_cremation">Burial or Cremation</Label>
-                <Input
-                  id="burial_or_cremation"
-                  value={formData.burial_or_cremation}
-                  onChange={(e) => handleInputChange('burial_or_cremation', e.target.value)}
-                  placeholder="Burial, Cremation, or Other"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="ceremony_preferences">Ceremony Preferences</Label>
-                <Textarea
-                  id="ceremony_preferences"
-                  value={formData.ceremony_preferences}
-                  onChange={(e) => handleInputChange('ceremony_preferences', e.target.value)}
-                  placeholder="Any specific wishes for the ceremony"
-                  rows={3}
-                />
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="organ_donation"
-                  checked={formData.organ_donation}
-                  onCheckedChange={(checked) => handleInputChange('organ_donation', checked)}
-                />
-                <Label htmlFor="organ_donation">Organ Donation</Label>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="no_contest_clause"
-                  checked={formData.no_contest_clause}
-                  onCheckedChange={(checked) => handleInputChange('no_contest_clause', checked)}
-                />
-                <Label htmlFor="no_contest_clause">Include No-Contest Clause</Label>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="sentimental_distribution">How to distribute sentimental items</Label>
-                <Textarea
-                  id="sentimental_distribution"
-                  placeholder="Often the #1 cause of family arguments."
-                  rows={3}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="legacy_messages">Legacy messages</Label>
-                <Textarea
-                  id="legacy_messages"
-                  placeholder="What you hope your children carry forward."
-                  rows={3}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="charitable_giving">Charitable giving rationale</Label>
-                <Textarea
-                  id="charitable_giving"
-                  placeholder="Why certain donations matter."
-                  rows={3}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="letters_to_loved_ones">Letters to Loved Ones</Label>
-                <Textarea
-                  id="letters_to_loved_ones"
-                  value={formData.letters_to_loved_ones}
-                  onChange={(e) => handleInputChange('letters_to_loved_ones', e.target.value)}
-                  placeholder="Personal messages to family and friends"
-                  rows={4}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="pet_care_instructions">Pet Care Instructions</Label>
-                <Textarea
-                  id="pet_care_instructions"
-                  value={formData.pet_care_instructions}
-                  onChange={(e) => handleInputChange('pet_care_instructions', e.target.value)}
-                  placeholder="Who will care for your pets? Include guardian name and any specific instructions or funding"
-                  rows={4}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="business_succession_plan">Business Succession Plan</Label>
-                <Textarea
-                  id="business_succession_plan"
-                  value={formData.business_succession_plan}
-                  onChange={(e) => handleInputChange('business_succession_plan', e.target.value)}
-                  placeholder="Plans for family businesses"
-                  rows={4}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="ethical_will">Ethical Will / Legacy Message</Label>
-                <Textarea
-                  id="ethical_will"
-                  value={formData.ethical_will}
-                  onChange={(e) => handleInputChange('ethical_will', e.target.value)}
-                  placeholder="Your values, life lessons, and what you want to be remembered for"
-                  rows={6}
-                />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="voicenotes" className="space-y-4 mt-6">
-              <Alert className="mb-4">
-                <AlertDescription>
-                  <strong>Why this matters:</strong> Video/audio preserves emotion, not just text.
-                  <br /><br />
-                  <strong>Examples of high-value recordings:</strong>
-                  <ul className="list-disc ml-6 mt-2 space-y-1">
-                    <li>Messages to children, spouse, parents.</li>
-                    <li>"If something happens to me" guidance.</li>
-                    <li>Why certain inheritance decisions were made.</li>
-                    <li>Encouragement for difficult life moments.</li>
-                    <li>Oral instructions for asset access (but not legal directives).</li>
-                  </ul>
-                </AlertDescription>
-              </Alert>
-              <VoiceNotesSection />
-            </TabsContent>
-
-            <TabsContent value="uploads" className="space-y-4 mt-6">
-              <LegacyLockerUploads />
-            </TabsContent>
-          </Tabs>
+            )}
+          </div>
 
           <div className="mt-6">
             <Button onClick={handleSave} disabled={loading} className="w-full">
