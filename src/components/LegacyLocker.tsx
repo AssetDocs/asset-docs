@@ -195,33 +195,6 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
     }
   };
 
-  // Calculate category-level progress
-  const getCategoryStatus = (category: 'aboutYou' | 'peopleTrust' | 'assetsOwnership' | 'yourWishes'): 'completed' | 'in_progress' | 'not_started' => {
-    let sections: string[] = [];
-    
-    switch (category) {
-      case 'aboutYou':
-        sections = ['personal', 'voicenotes'];
-        break;
-      case 'peopleTrust':
-        sections = ['contacts', 'executor', 'guardians'];
-        break;
-      case 'assetsOwnership':
-        sections = ['assets', 'property', 'trust'];
-        break;
-      case 'yourWishes':
-        sections = ['wishes', 'uploads'];
-        break;
-    }
-
-    const statuses = sections.map(s => getSectionStatus(s));
-    const completedCount = statuses.filter(s => s === 'completed').length;
-    const inProgressCount = statuses.filter(s => s === 'in_progress').length;
-
-    if (completedCount === sections.length) return 'completed';
-    if (completedCount > 0 || inProgressCount > 0) return 'in_progress';
-    return 'not_started';
-  };
 
   const StatusIndicator = ({ status }: { status: 'completed' | 'in_progress' | 'not_started' }) => {
     if (status === 'completed') {
@@ -233,20 +206,6 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
     return <Circle className="h-3 w-3 text-muted-foreground ml-auto" />;
   };
 
-  const CategoryStatusIndicator = ({ status }: { status: 'completed' | 'in_progress' | 'not_started' }) => {
-    if (status === 'completed') {
-      return <Check className="h-3 w-3 text-green-500" />;
-    }
-    if (status === 'in_progress') {
-      return (
-        <svg className="h-3 w-3 text-amber-500" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="2" />
-          <path d="M8 1 A7 7 0 0 1 15 8" fill="currentColor" />
-        </svg>
-      );
-    }
-    return <Circle className="h-3 w-3 text-muted-foreground" />;
-  };
   
   const [formData, setFormData] = useState<LegacyLockerData>({
     full_legal_name: '',
@@ -777,8 +736,7 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-64 bg-background border shadow-lg z-50">
-                <DropdownMenuLabel className="text-xs uppercase text-muted-foreground font-semibold flex items-center gap-2">
-                  <CategoryStatusIndicator status={getCategoryStatus('aboutYou')} />
+                <DropdownMenuLabel className="text-xs uppercase text-muted-foreground font-semibold">
                   About You
                 </DropdownMenuLabel>
                 <DropdownMenuItem onClick={() => handleSectionChange('personal')} className="cursor-pointer flex items-center">
@@ -793,8 +751,7 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                 </DropdownMenuItem>
                 
                 <DropdownMenuSeparator />
-                <DropdownMenuLabel className="text-xs uppercase text-muted-foreground font-semibold flex items-center gap-2">
-                  <CategoryStatusIndicator status={getCategoryStatus('peopleTrust')} />
+                <DropdownMenuLabel className="text-xs uppercase text-muted-foreground font-semibold">
                   People You Trust
                 </DropdownMenuLabel>
                 <DropdownMenuItem onClick={() => handleSectionChange('contacts')} className="cursor-pointer flex items-center">
@@ -814,8 +771,7 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                 </DropdownMenuItem>
                 
                 <DropdownMenuSeparator />
-                <DropdownMenuLabel className="text-xs uppercase text-muted-foreground font-semibold flex items-center gap-2">
-                  <CategoryStatusIndicator status={getCategoryStatus('assetsOwnership')} />
+                <DropdownMenuLabel className="text-xs uppercase text-muted-foreground font-semibold">
                   Assets & Ownership
                 </DropdownMenuLabel>
                 <DropdownMenuItem onClick={() => handleSectionChange('assets')} className="cursor-pointer flex items-center">
@@ -835,8 +791,7 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                 </DropdownMenuItem>
                 
                 <DropdownMenuSeparator />
-                <DropdownMenuLabel className="text-xs uppercase text-muted-foreground font-semibold flex items-center gap-2">
-                  <CategoryStatusIndicator status={getCategoryStatus('yourWishes')} />
+                <DropdownMenuLabel className="text-xs uppercase text-muted-foreground font-semibold">
                   Your Wishes
                 </DropdownMenuLabel>
                 <DropdownMenuItem onClick={() => handleSectionChange('wishes')} className="cursor-pointer flex items-center">
