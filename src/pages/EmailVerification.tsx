@@ -20,7 +20,7 @@ const EmailVerification: React.FC = () => {
           type: 'signup',
           email: user.email,
           options: {
-            emailRedirectTo: `${window.location.origin}/account-settings?tab=subscription`
+            emailRedirectTo: `${window.location.origin}/account/settings?tab=subscription`
           }
         });
 
