@@ -184,3 +184,6 @@ verify_jwt = false
 
 [functions.sync-activecampaign]
 verify_jwt = true
+
+[functions.add-storage-25gb]
+verify_jwt = true

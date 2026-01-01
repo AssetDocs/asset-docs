@@ -16,12 +16,15 @@ import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-// Plan configurations
+// Plan configurations with monthly and yearly pricing
 const planConfigs = {
   standard: {
     title: "Standard (Homeowner Plan)", 
-    price: "$12.99",
+    monthlyPrice: "$12.99",
+    yearlyPrice: "$129",
+    yearlySavings: "Save when you pay yearly",
     description: "Our most popular plan for comprehensive home documentation",
     features: [
       "Up to 3 properties",
@@ -31,7 +34,9 @@ const planConfigs = {
   },
   premium: {
     title: "Premium (Professional Plan)",
-    price: "$18.99", 
+    monthlyPrice: "$18.99",
+    yearlyPrice: "$189",
+    yearlySavings: "Save when you pay yearly",
     description: "Best suited for estate managers, multiple-property owners, or businesses",
     features: [
       "Unlimited properties",
@@ -50,6 +55,11 @@ const commonFeatures = [
   "Email support",
   "Share with 3 trusted contacts",
   "Legacy Locker"
+];
+
+const storageAddOns = [
+  { size: 25, price: "$4.99", priceInCents: 499, functionName: 'add-storage-25gb' },
+  { size: 50, price: "$9.99", priceInCents: 999, functionName: 'add-storage' }
 ];
 
 interface DeletionRequest {
@@ -75,6 +85,7 @@ const SubscriptionTab: React.FC = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<keyof typeof planConfigs>('standard');
+  const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('month');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showDeletionRequestDialog, setShowDeletionRequestDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -100,7 +111,6 @@ const SubscriptionTab: React.FC = () => {
     if (!user) return;
     
     try {
-      // Check if user is a contributor to someone else's account
       const { data, error } = await supabase
         .from('contributors')
         .select('account_owner_id, role, status')
@@ -117,7 +127,6 @@ const SubscriptionTab: React.FC = () => {
         setIsContributor(true);
         setContributorInfo(data[0] as ContributorInfo);
         
-        // If admin contributor, check for their pending deletion request
         if (data[0].role === 'administrator') {
           const { data: requestData } = await supabase
             .from('account_deletion_requests')
@@ -179,14 +188,12 @@ const SubscriptionTab: React.FC = () => {
       checkIfContributor();
       checkIncomingDeletionRequests();
       
-      // Check for storage add-on success
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('storage_added') === 'true') {
         toast({
           title: "Storage Added Successfully!",
-          description: "Your additional 50GB storage has been activated.",
+          description: "Your additional storage has been activated.",
         });
-        // Clear the URL parameter
         window.history.replaceState({}, '', window.location.pathname + '?tab=subscription');
       }
     }
@@ -252,7 +259,6 @@ const SubscriptionTab: React.FC = () => {
           : "The deletion request has been rejected.",
       });
       
-      // Refresh the incoming requests
       checkIncomingDeletionRequests();
     } catch (error: any) {
       console.error('Error responding to deletion request:', error);
@@ -285,7 +291,6 @@ const SubscriptionTab: React.FC = () => {
         description: "The account has been permanently deleted.",
       });
       
-      // Sign out and redirect
       await signOut();
       navigate('/');
     } catch (error: any) {
@@ -307,7 +312,6 @@ const SubscriptionTab: React.FC = () => {
       const { data, error } = await supabase.functions.invoke('customer-portal');
       if (error) throw error;
       
-      // Open Stripe customer portal in a new tab
       window.open(data.url, '_blank');
     } catch (error) {
       console.error('Error opening customer portal:', error);
@@ -333,12 +337,12 @@ const SubscriptionTab: React.FC = () => {
 
     setIsLoading(true);
     try {
-      // Get the current session to pass the auth token
       const { data: sessionData } = await supabase.auth.getSession();
       
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: {
-          planType: selectedPlan
+          planType: selectedPlan,
+          billingInterval: billingInterval
         },
         headers: {
           Authorization: `Bearer ${sessionData.session?.access_token}`
@@ -347,7 +351,6 @@ const SubscriptionTab: React.FC = () => {
 
       if (error) throw error;
 
-      // Redirect to Stripe checkout
       if (data.url) {
         window.location.href = data.url;
       }
@@ -368,14 +371,12 @@ const SubscriptionTab: React.FC = () => {
 
     setIsDeleting(true);
     try {
-      // Call the delete-account edge function
       const { data, error } = await supabase.functions.invoke('delete-account');
       
       if (error) {
         throw error;
       }
 
-      // Sign out the user
       await signOut();
       
       toast({
@@ -383,7 +384,6 @@ const SubscriptionTab: React.FC = () => {
         description: "Your account has been permanently deleted.",
       });
       
-      // Redirect to home page
       navigate('/');
     } catch (error) {
       console.error('Error deleting account:', error);
@@ -398,7 +398,7 @@ const SubscriptionTab: React.FC = () => {
     }
   };
 
-  const handleAddStorage = async () => {
+  const handleAddStorage = async (functionName: string) => {
     if (!user) {
       toast({
         title: "Error",
@@ -412,7 +412,7 @@ const SubscriptionTab: React.FC = () => {
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       
-      const { data, error } = await supabase.functions.invoke('add-storage', {
+      const { data, error } = await supabase.functions.invoke(functionName, {
         headers: {
           Authorization: `Bearer ${sessionData.session?.access_token}`
         }
@@ -420,7 +420,6 @@ const SubscriptionTab: React.FC = () => {
 
       if (error) throw error;
 
-      // Redirect to Stripe checkout
       if (data.url) {
         window.location.href = data.url;
       }
@@ -461,7 +460,6 @@ const SubscriptionTab: React.FC = () => {
           : "Your subscription has been reactivated successfully.",
       });
       
-      // Refresh subscription status
       await checkSubscription();
       setShowCancelConfirmation(false);
       setCancelConfirmed(false);
@@ -477,12 +475,20 @@ const SubscriptionTab: React.FC = () => {
     }
   };
 
-  // If user is not subscribed AND plan_status is not 'active', show checkout form
-  // This handles cases where webhook might have set plan_status but not synced subscribers table
   const hasActivePlan = subscriptionStatus.plan_status === 'active' || subscriptionStatus.plan_status === 'canceling' || subscriptionStatus.subscribed;
   
+  // Storage notation component
+  const StorageNotation = () => (
+    <div className="text-xs text-muted-foreground text-center mt-4 space-y-1">
+      <p>25GB ≈ ~1,500 photos + documents</p>
+      <p>100GB ≈ ~6,000 photos or extensive video</p>
+    </div>
+  );
+
   if (!hasActivePlan) {
     const currentPlan = planConfigs[selectedPlan];
+    const displayPrice = billingInterval === 'year' ? currentPlan.yearlyPrice : currentPlan.monthlyPrice;
+    const priceLabel = billingInterval === 'year' ? '/year' : '/month';
     
     return (
       <div className="space-y-6">
@@ -494,10 +500,23 @@ const SubscriptionTab: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Billing Interval Toggle */}
+            <div className="flex justify-center">
+              <Tabs value={billingInterval} onValueChange={(v) => setBillingInterval(v as 'month' | 'year')}>
+                <TabsList className="grid w-full max-w-xs grid-cols-2">
+                  <TabsTrigger value="month">Monthly</TabsTrigger>
+                  <TabsTrigger value="year">
+                    Yearly
+                    <Badge variant="secondary" className="ml-2 text-xs bg-green-100 text-green-700">Save</Badge>
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+
             {/* Plan Selection */}
             <div>
               <Label htmlFor="plan-select" className="text-base font-semibold">Select Your Plan</Label>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
                 {Object.entries(planConfigs).map(([key, plan]) => (
                   <div
                     key={key}
@@ -512,10 +531,15 @@ const SubscriptionTab: React.FC = () => {
                       {plan.icon}
                       <h3 className="font-semibold">{plan.title}</h3>
                     </div>
-                    <div className="text-2xl font-bold mb-2">
-                      {plan.price}
-                      <span className="text-sm font-normal text-muted-foreground">/month</span>
+                    <div className="text-2xl font-bold mb-1">
+                      {billingInterval === 'year' ? plan.yearlyPrice : plan.monthlyPrice}
+                      <span className="text-sm font-normal text-muted-foreground">
+                        {billingInterval === 'year' ? '/year' : '/month'}
+                      </span>
                     </div>
+                    {billingInterval === 'year' && (
+                      <p className="text-sm text-green-600 font-medium mb-2">{plan.yearlySavings}</p>
+                    )}
                     <p className="text-sm text-muted-foreground mb-3">{plan.description}</p>
                     <ul className="space-y-1">
                       {plan.features.map((feature, index) => (
@@ -546,27 +570,30 @@ const SubscriptionTab: React.FC = () => {
                     </div>
                   ))}
                 </div>
+                <StorageNotation />
               </div>
             </div>
 
-            {/* Storage Add-on */}
+            {/* Storage Add-ons */}
             <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <p className="text-base font-semibold text-foreground mb-1">
-                    Need more space? Add 50 GB for just $9.99/month.
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Expand your storage capacity for more photos, videos, and documents.
-                  </p>
-                </div>
-                <Button
-                  onClick={handleAddStorage}
-                  disabled={isLoading}
-                  className="ml-4"
-                >
-                  {isLoading ? 'Processing...' : 'Add Storage'}
-                </Button>
+              <p className="text-base font-semibold text-foreground mb-3">Need more space?</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {storageAddOns.map((addon) => (
+                  <div key={addon.size} className="flex items-center justify-between bg-background/60 rounded-lg p-3">
+                    <div>
+                      <p className="font-medium">+{addon.size}GB Storage</p>
+                      <p className="text-sm text-muted-foreground">{addon.price}/month</p>
+                    </div>
+                    <Button
+                      onClick={() => handleAddStorage(addon.functionName)}
+                      disabled={isLoading}
+                      size="sm"
+                      variant="outline"
+                    >
+                      Add
+                    </Button>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -593,14 +620,17 @@ const SubscriptionTab: React.FC = () => {
                 <div className="flex items-center gap-3 mb-4">
                   {currentPlan.icon}
                   <div>
-                    <h4 className="font-semibold">{currentPlan.title} Plan</h4>
+                    <h4 className="font-semibold">{currentPlan.title}</h4>
                     <p className="text-sm text-muted-foreground">{currentPlan.description}</p>
                   </div>
                 </div>
-                <div className="text-3xl font-bold mb-4">
-                  {currentPlan.price}
-                  <span className="text-lg font-normal text-muted-foreground">/month</span>
+                <div className="text-3xl font-bold mb-2">
+                  {displayPrice}
+                  <span className="text-lg font-normal text-muted-foreground">{priceLabel}</span>
                 </div>
+                {billingInterval === 'year' && (
+                  <p className="text-sm text-green-600 font-medium mb-2">{currentPlan.yearlySavings}</p>
+                )}
                 <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 mb-4">
                   <p className="text-xs text-muted-foreground">No long-term contract. Cancel anytime.</p>
                 </div>
@@ -659,7 +689,6 @@ const SubscriptionTab: React.FC = () => {
   }
 
   // Determine the active tier from subscription status
-  // Map any tier to 'standard' or 'premium' - 'basic' maps to 'standard'
   const rawTier = subscriptionStatus.subscription_tier?.toLowerCase() || '';
   const activeTier = rawTier.includes('premium') ? 'premium' : 'standard';
   const activeStorageGb = subscriptionStatus.storage_quota_gb || 25;
@@ -700,10 +729,10 @@ const SubscriptionTab: React.FC = () => {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                 <div>
-                  <Label className="text-sm text-muted-foreground">Monthly Price</Label>
+                  <Label className="text-sm text-muted-foreground">Price</Label>
                   <p className="text-xl font-bold text-gray-900">
-                    {activeTier === 'standard' && '$12.99/mo'}
-                    {activeTier === 'premium' && '$18.99/mo'}
+                    {activeTier === 'standard' && '$12.99/mo or $129/yr'}
+                    {activeTier === 'premium' && '$18.99/mo or $189/yr'}
                   </p>
                 </div>
                 <div>
@@ -742,7 +771,9 @@ const SubscriptionTab: React.FC = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-blue-900">$9.99/mo</p>
+                    <p className="font-semibold text-blue-900">
+                      {addOnStorageGb === 25 ? '$4.99/mo' : addOnStorageGb === 50 ? '$9.99/mo' : `$${(addOnStorageGb / 50 * 9.99).toFixed(2)}/mo`}
+                    </p>
                     <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200">Active</Badge>
                   </div>
                 </div>
@@ -762,9 +793,13 @@ const SubscriptionTab: React.FC = () => {
                           {plan.icon}
                           <h3 className="font-semibold text-lg">{plan.title}</h3>
                         </div>
-                        <div className="text-3xl font-bold mb-2">
-                          {plan.price}
+                        <div className="text-2xl font-bold mb-1">
+                          {plan.monthlyPrice}
                           <span className="text-sm font-normal text-muted-foreground">/month</span>
+                        </div>
+                        <div className="text-lg font-semibold text-green-600 mb-2">
+                          or {plan.yearlyPrice}
+                          <span className="text-sm font-normal">/year</span>
                         </div>
                         <p className="text-sm text-muted-foreground mb-4">{plan.description}</p>
                         <ul className="space-y-2 mb-4">
@@ -788,29 +823,31 @@ const SubscriptionTab: React.FC = () => {
                   ))}
               </div>
               <p className="text-sm text-muted-foreground text-center mt-4">
-                Click "Change to This Plan" to modify your subscription through Stripe
+                Click to modify your subscription through Stripe
               </p>
             </div>
 
-            {/* Storage Add-on */}
+            {/* Storage Add-ons */}
             <div className="mt-6 bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <p className="text-base font-semibold text-foreground mb-1">
-                    Need more space? Add 50 GB for just $9.99/month.
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Expand your storage capacity for more photos, videos, and documents.
-                  </p>
-                </div>
-                <Button
-                  onClick={handleAddStorage}
-                  disabled={isLoading}
-                  className="ml-4"
-                >
-                  {isLoading ? 'Processing...' : 'Add Storage'}
-                </Button>
+              <p className="text-base font-semibold text-foreground mb-3">Need more space?</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {storageAddOns.map((addon) => (
+                  <div key={addon.size} className="flex items-center justify-between bg-background/60 rounded-lg p-3">
+                    <div>
+                      <p className="font-medium">+{addon.size}GB Storage</p>
+                      <p className="text-sm text-muted-foreground">{addon.price}/month</p>
+                    </div>
+                    <Button
+                      onClick={() => handleAddStorage(addon.functionName)}
+                      disabled={isLoading}
+                      size="sm"
+                    >
+                      {isLoading ? 'Processing...' : 'Add Storage'}
+                    </Button>
+                  </div>
+                ))}
               </div>
+              <StorageNotation />
             </div>
           </div>
         </CardContent>
@@ -872,25 +909,21 @@ const SubscriptionTab: React.FC = () => {
               Cancel Subscription
             </CardTitle>
             <CardDescription>
-              {subscriptionStatus.plan_status === 'canceling' 
-                ? "Your subscription is scheduled to cancel at the end of your billing period"
-                : "Cancel anytime—access remains until your billing period ends, and you can reactivate before it expires."
-              }
+              Cancel your subscription to stop future billing
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {subscriptionStatus.plan_status === 'canceling' ? (
                 <>
-                  <Alert className="border-orange-300 bg-orange-100">
-                    <Clock className="h-4 w-4 text-orange-600" />
-                    <AlertTitle className="text-orange-800">Subscription Ending Soon</AlertTitle>
-                    <AlertDescription className="text-orange-700">
-                      Your subscription is set to cancel. You'll retain access until{' '}
-                      {subscriptionStatus.subscription_end 
-                        ? new Date(subscriptionStatus.subscription_end).toLocaleDateString()
-                        : 'the end of your billing period'
-                      }.
+                  <Alert className="border-orange-400 bg-orange-100">
+                    <AlertTriangle className="h-4 w-4 text-orange-600" />
+                    <AlertTitle className="text-orange-700">Subscription Canceling</AlertTitle>
+                    <AlertDescription className="text-orange-600">
+                      Your subscription is set to cancel at the end of your billing period
+                      {subscriptionStatus.subscription_end && (
+                        <> on {new Date(subscriptionStatus.subscription_end).toLocaleDateString()}</>
+                      )}. You can reactivate anytime before then.
                     </AlertDescription>
                   </Alert>
                   <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-orange-200">
@@ -919,7 +952,6 @@ const SubscriptionTab: React.FC = () => {
                 </>
               ) : (
                 <>
-                  
                   {!showCancelConfirmation ? (
                     <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-orange-200">
                       <div>
@@ -1074,7 +1106,6 @@ const SubscriptionTab: React.FC = () => {
                     </Alert>
                   )}
                   
-                  {/* Show delete button if approved OR if pending and grace period expired */}
                   {(pendingDeletionRequest.status === 'approved' || 
                     (pendingDeletionRequest.status === 'pending' && 
                       new Date(pendingDeletionRequest.grace_period_ends_at) <= new Date())) && (
