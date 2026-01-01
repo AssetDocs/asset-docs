@@ -86,7 +86,7 @@ export const usePropertyFiles = (propertyId: string | null, fileType?: 'photo' |
     fetchFiles();
   }, [propertyId, fileType]);
 
-  const uploadFiles = async (filesToUpload: File[]) => {
+  const uploadFiles = async (filesToUpload: File[], folderId?: string) => {
     if (!propertyId || !user) {
       toast({
         title: 'Error',
@@ -129,6 +129,7 @@ export const usePropertyFiles = (propertyId: string | null, fileType?: 'photo' |
             file_url: result.url,
             file_size: file.size,
             bucket_name: bucket,
+            folder_id: folderId || null,
           });
 
           if (propertyFile) {

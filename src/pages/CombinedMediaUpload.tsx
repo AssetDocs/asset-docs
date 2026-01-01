@@ -1,27 +1,70 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Camera, Video, Upload, Image, Film } from 'lucide-react';
+import { ArrowLeft, Camera, Video, Upload, Image, Film, Trash2, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import PropertySelector from '@/components/PropertySelector';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { usePropertyFiles } from '@/hooks/usePropertyFiles';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+
+interface MediaFolder {
+  id: string;
+  folder_name: string;
+  gradient_color: string;
+}
+
+const NO_FOLDER_VALUE = '__none__';
 
 const CombinedMediaUpload: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   
   const [activeTab, setActiveTab] = useState<'photos' | 'videos'>('photos');
   const [selectedPropertyId, setSelectedPropertyId] = useState<string>('');
+  const [selectedFolderId, setSelectedFolderId] = useState<string>('');
+  const [folders, setFolders] = useState<MediaFolder[]>([]);
+  const [mediaName, setMediaName] = useState('');
+  const [description, setDescription] = useState('');
+  const [tags, setTags] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   
   const { uploadFiles, isUploading } = usePropertyFiles(selectedPropertyId || null, activeTab === 'photos' ? 'photo' : 'video');
+
+  // Fetch folders based on active tab
+  useEffect(() => {
+    if (user) {
+      fetchFolders();
+    }
+  }, [user, activeTab]);
+
+  const fetchFolders = async () => {
+    if (!user) return;
+    
+    try {
+      const tableName = activeTab === 'photos' ? 'photo_folders' : 'video_folders';
+      const { data, error } = await supabase
+        .from(tableName)
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setFolders(data || []);
+    } catch (error) {
+      console.error('Error fetching folders:', error);
+    }
+  };
 
   const handleBack = () => {
     navigate('/account/media');
@@ -48,11 +91,24 @@ const CombinedMediaUpload: React.FC = () => {
       });
       
       setSelectedFiles(prev => [...prev, ...validFiles]);
+      
+      // Set default name from first file if not already set
+      if (!mediaName && validFiles.length > 0) {
+        setMediaName(validFiles[0].name.replace(/\.[^/.]+$/, ''));
+      }
     }
   };
 
   const handleRemoveFile = (index: number) => {
     setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   const handleUpload = async () => {
@@ -75,12 +131,16 @@ const CombinedMediaUpload: React.FC = () => {
     }
 
     try {
-      await uploadFiles(selectedFiles);
+      // Upload files with folder_id if selected
+      await uploadFiles(selectedFiles, selectedFolderId || undefined);
       toast({
         title: "Success",
         description: `${selectedFiles.length} file(s) uploaded successfully`
       });
       setSelectedFiles([]);
+      setMediaName('');
+      setDescription('');
+      setTags('');
       navigate('/account/media');
     } catch (error) {
       console.error('Error uploading files:', error);
@@ -92,10 +152,23 @@ const CombinedMediaUpload: React.FC = () => {
     }
   };
 
+  const handleTabChange = (value: string) => {
+    setActiveTab(value as 'photos' | 'videos');
+    setSelectedFiles([]);
+    setSelectedFolderId('');
+    setMediaName('');
+  };
+
   const getAcceptedTypes = () => {
     return activeTab === 'photos' 
       ? "image/jpeg,image/png,image/gif,image/webp,image/heic"
       : "video/mp4,video/quicktime,video/x-msvideo,video/webm";
+  };
+
+  const getSupportedFormats = () => {
+    return activeTab === 'photos'
+      ? "JPG, PNG, GIF, WEBP, HEIC"
+      : "MP4, MOV, AVI, WEBM";
   };
 
   return (
@@ -108,42 +181,41 @@ const CombinedMediaUpload: React.FC = () => {
           
           {/* Header */}
           <div className="mb-6">
-            <div className="flex items-center mb-4">
-              <Button variant="ghost" size="sm" onClick={handleBack} className="mr-4">
-                <ArrowLeft className="h-4 w-4 mr-1" />
-                Back
-              </Button>
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Upload Photos/Videos</h1>
-                <p className="text-gray-600 mt-1">
-                  Add photos or videos to document your property and belongings
-                </p>
-              </div>
-            </div>
+            <Button
+              variant="ghost"
+              onClick={handleBack}
+              className="mb-4"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Media
+            </Button>
+            <h1 className="text-2xl sm:text-3xl font-bold text-brand-orange mb-2">
+              Upload Photos/Videos
+            </h1>
           </div>
 
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Upload className="h-5 w-5" />
-                Upload Media
+                Media Upload
               </CardTitle>
-              <CardDescription>
-                Select the type of media you want to upload
-              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Property Selector */}
+              {/* Property Selection */}
               <div>
-                <Label>Select Property</Label>
-                <PropertySelector
-                  value={selectedPropertyId}
-                  onChange={setSelectedPropertyId}
-                />
+                <Label className="text-sm font-medium">Property</Label>
+                <div className="mt-1">
+                  <PropertySelector
+                    value={selectedPropertyId}
+                    onChange={setSelectedPropertyId}
+                    placeholder="Select a property"
+                  />
+                </div>
               </div>
 
               {/* Tab Selection */}
-              <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v as 'photos' | 'videos'); setSelectedFiles([]); }}>
+              <Tabs value={activeTab} onValueChange={handleTabChange}>
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="photos" className="flex items-center gap-2">
                     <Camera className="h-4 w-4" />
@@ -154,74 +226,122 @@ const CombinedMediaUpload: React.FC = () => {
                     Videos
                   </TabsTrigger>
                 </TabsList>
-
-                <TabsContent value="photos" className="mt-4">
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-brand-blue transition-colors">
-                    <Image className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                    <p className="text-gray-600 mb-4">Drag and drop photos here, or click to browse</p>
-                    <Input
-                      type="file"
-                      accept={getAcceptedTypes()}
-                      multiple
-                      onChange={handleFileChange}
-                      className="hidden"
-                      id="photo-upload"
-                    />
-                    <Label htmlFor="photo-upload" className="cursor-pointer">
-                      <Button type="button" variant="outline" asChild>
-                        <span>Browse Photos</span>
-                      </Button>
-                    </Label>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="videos" className="mt-4">
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-brand-blue transition-colors">
-                    <Film className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                    <p className="text-gray-600 mb-4">Drag and drop videos here, or click to browse</p>
-                    <Input
-                      type="file"
-                      accept={getAcceptedTypes()}
-                      multiple
-                      onChange={handleFileChange}
-                      className="hidden"
-                      id="video-upload"
-                    />
-                    <Label htmlFor="video-upload" className="cursor-pointer">
-                      <Button type="button" variant="outline" asChild>
-                        <span>Browse Videos</span>
-                      </Button>
-                    </Label>
-                  </div>
-                </TabsContent>
               </Tabs>
 
-              {/* Selected Files Preview */}
-              {selectedFiles.length > 0 && (
-                <div className="space-y-3">
-                  <Label>Selected Files ({selectedFiles.length})</Label>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {selectedFiles.map((file, index) => (
-                      <div key={index} className="relative group">
-                        <div className="bg-gray-100 rounded-lg p-3 flex items-center gap-2">
-                          {activeTab === 'photos' ? (
-                            <Image className="h-5 w-5 text-gray-500 flex-shrink-0" />
-                          ) : (
-                            <Film className="h-5 w-5 text-gray-500 flex-shrink-0" />
-                          )}
-                          <span className="text-sm truncate">{file.name}</span>
+              {/* Folder Selection */}
+              <div>
+                <Label className="text-sm font-medium">Folder</Label>
+                <Select
+                  value={selectedFolderId || NO_FOLDER_VALUE}
+                  onValueChange={(v) => setSelectedFolderId(v === NO_FOLDER_VALUE ? '' : v)}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select a folder" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background z-50">
+                    <SelectItem value={NO_FOLDER_VALUE}>None</SelectItem>
+                    {folders.map((folder) => (
+                      <SelectItem key={folder.id} value={folder.id}>
+                        <div className="flex items-center gap-2">
+                          <div className={`w-3 h-3 rounded bg-gradient-to-r ${folder.gradient_color}`}></div>
+                          {folder.folder_name}
                         </div>
-                        <button
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Media Name */}
+              <div>
+                <Label htmlFor="media-name" className="text-sm font-medium">
+                  {activeTab === 'photos' ? 'Photo Name' : 'Video Name'}
+                </Label>
+                <Input
+                  id="media-name"
+                  value={mediaName}
+                  onChange={(e) => setMediaName(e.target.value)}
+                  placeholder={`Enter ${activeTab === 'photos' ? 'photo' : 'video'} name`}
+                  className="mt-1"
+                />
+              </div>
+
+              {/* File Upload */}
+              <div>
+                <Label className="text-sm font-medium">Upload File</Label>
+                <div className="mt-1">
+                  <Input
+                    type="file"
+                    accept={getAcceptedTypes()}
+                    multiple
+                    onChange={handleFileChange}
+                    className="cursor-pointer"
+                    id="media-upload"
+                  />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Supported formats: {getSupportedFormats()}
+                  </p>
+                </div>
+
+                {/* Selected Files Preview */}
+                {selectedFiles.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    {selectedFiles.map((file, index) => (
+                      <div key={index} className="border rounded-lg p-3 bg-muted/50 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          {activeTab === 'photos' ? (
+                            <Image className="h-4 w-4 text-muted-foreground" />
+                          ) : (
+                            <Film className="h-4 w-4 text-muted-foreground" />
+                          )}
+                          <div>
+                            <p className="text-sm font-medium truncate max-w-[250px]">{file.name}</p>
+                            <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
+                          </div>
+                        </div>
+                        <Button
+                          size="icon"
+                          variant="ghost"
                           onClick={() => handleRemoveFile(index)}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          disabled={isUploading}
+                          className="h-8 w-8"
                         >
-                          ×
-                        </button>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
+
+              {/* Description */}
+              <div>
+                <Label htmlFor="description" className="text-sm font-medium">
+                  Description
+                </Label>
+                <Textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Enter description"
+                  rows={3}
+                  className="mt-1"
+                />
+              </div>
+
+              {/* Tags */}
+              <div>
+                <Label htmlFor="tags" className="text-sm font-medium">
+                  Tags (comma separated)
+                </Label>
+                <Input
+                  id="tags"
+                  value={tags}
+                  onChange={(e) => setTags(e.target.value)}
+                  placeholder="e.g. living room, furniture, 2024"
+                  className="mt-1"
+                />
+              </div>
 
               {/* Save Button */}
               <Button 
@@ -230,12 +350,12 @@ const CombinedMediaUpload: React.FC = () => {
                 className="w-full bg-brand-blue hover:bg-brand-lightBlue"
               >
                 {isUploading ? (
-                  <>Saving...</>
-                ) : (
                   <>
-                    <Upload className="h-4 w-4 mr-2" />
-                    Save {selectedFiles.length > 0 ? `${selectedFiles.length} File(s)` : ''}
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
                   </>
+                ) : (
+                  'Save Media'
                 )}
               </Button>
             </CardContent>
