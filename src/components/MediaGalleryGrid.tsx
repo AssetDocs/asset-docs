@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,8 +17,11 @@ import {
   Pencil,
   FileImage,
   FileSpreadsheet,
-  File
+  File,
+  Loader2
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 type ViewMode = 'grid' | 'list';
 type MediaType = 'photo' | 'video' | 'document';
@@ -27,6 +30,8 @@ interface MediaFile {
   id: string;
   name: string;
   url: string;
+  filePath?: string;
+  bucket?: string;
   uploadDate: string;
   size: string;
   propertyName?: string;
@@ -53,6 +58,9 @@ const MediaGalleryGrid: React.FC<MediaGalleryGridProps> = ({
   onEditFile,
   mediaType
 }) => {
+  const { toast } = useToast();
+  const [loadingFileId, setLoadingFileId] = useState<string | null>(null);
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -82,31 +90,74 @@ const MediaGalleryGrid: React.FC<MediaGalleryGridProps> = ({
     return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(type || '');
   };
 
-  const handlePreview = (file: MediaFile) => {
-    window.open(file.url, '_blank');
+  const getSignedUrl = async (file: MediaFile): Promise<string | null> => {
+    if (!file.filePath || !file.bucket) {
+      return file.url;
+    }
+    
+    try {
+      const { data, error } = await supabase.storage
+        .from(file.bucket)
+        .createSignedUrl(file.filePath, 3600);
+      
+      if (error) throw error;
+      return data.signedUrl;
+    } catch (error) {
+      console.error('Error getting signed URL:', error);
+      return null;
+    }
+  };
+
+  const handlePreview = async (file: MediaFile) => {
+    setLoadingFileId(file.id);
+    try {
+      const url = await getSignedUrl(file);
+      if (url) {
+        window.open(url, '_blank');
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to generate preview URL',
+          variant: 'destructive',
+        });
+      }
+    } finally {
+      setLoadingFileId(null);
+    }
   };
 
   const handleDownload = async (file: MediaFile) => {
+    setLoadingFileId(file.id);
     try {
-      const response = await fetch(file.url);
+      const url = await getSignedUrl(file);
+      if (!url) {
+        toast({
+          title: 'Error',
+          description: 'Failed to generate download URL',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const response = await fetch(url);
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+      const blobUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = url;
+      link.href = blobUrl;
       link.download = file.name;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      window.URL.revokeObjectURL(blobUrl);
     } catch (error) {
-      // Fallback to direct link
-      const link = document.createElement('a');
-      link.href = file.url;
-      link.download = file.name;
-      link.target = '_blank';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      console.error('Error downloading file:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to download file',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingFileId(null);
     }
   };
 
@@ -188,16 +239,26 @@ const MediaGalleryGrid: React.FC<MediaGalleryGridProps> = ({
                       size="sm" 
                       variant="outline"
                       onClick={() => handlePreview(file)}
+                      disabled={loadingFileId === file.id}
                     >
-                      <Eye className="h-4 w-4 mr-1" />
+                      {loadingFileId === file.id ? (
+                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                      ) : (
+                        <Eye className="h-4 w-4 mr-1" />
+                      )}
                       View
                     </Button>
                     <Button 
                       size="sm" 
                       variant="outline"
                       onClick={() => handleDownload(file)}
+                      disabled={loadingFileId === file.id}
                     >
-                      <Download className="h-4 w-4 mr-1" />
+                      {loadingFileId === file.id ? (
+                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                      ) : (
+                        <Download className="h-4 w-4 mr-1" />
+                      )}
                       Download
                     </Button>
                     {onEditFile && (
@@ -275,16 +336,26 @@ const MediaGalleryGrid: React.FC<MediaGalleryGridProps> = ({
                   variant="secondary"
                   onClick={() => handlePreview(file)}
                   title="Preview"
+                  disabled={loadingFileId === file.id}
                 >
-                  <Eye className="h-4 w-4" />
+                  {loadingFileId === file.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </Button>
                 <Button 
                   size="sm" 
                   variant="secondary"
                   onClick={() => handleDownload(file)}
                   title="Download"
+                  disabled={loadingFileId === file.id}
                 >
-                  <Download className="h-4 w-4" />
+                  {loadingFileId === file.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Download className="h-4 w-4" />
+                  )}
                 </Button>
                 {onEditFile && (
                   <Button 
