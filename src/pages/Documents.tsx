@@ -194,6 +194,8 @@ const Documents: React.FC = () => {
     id: doc.id,
     name: doc.document_name || doc.file_name,
     url: doc.file_url,
+    filePath: doc.file_path,
+    bucket: 'documents',
     uploadDate: doc.created_at,
     size: formatFileSize(doc.file_size),
     propertyName: doc.property_id ? getPropertyName(doc.property_id) : 'No Property',
