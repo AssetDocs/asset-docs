@@ -120,23 +120,23 @@ serve(async (req) => {
       logStep("Creating new customer for purchaser");
     }
 
-    // Define pricing based on plan type (annual pricing for gifts)
+    // Define pricing based on plan type (annual pricing for gifts - new pricing)
     let priceData;
     let amount;
     switch (planType) {
       case 'standard':
-        amount = 15588; // $155.88
+        amount = 12900; // $129.00 (matches yearly rate)
         priceData = {
           currency: "usd",
-          product_data: { name: "Standard Plan - 12 Month Gift Subscription" },
+          product_data: { name: "Gift – Standard (1 Year)" },
           unit_amount: amount,
         };
         break;
       case 'premium':
-        amount = 22788; // $227.88
+        amount = 18900; // $189.00 (matches yearly rate)
         priceData = {
           currency: "usd",
-          product_data: { name: "Premium Plan - 12 Month Gift Subscription" },
+          product_data: { name: "Gift – Premium (1 Year)" },
           unit_amount: amount,
         };
         break;
