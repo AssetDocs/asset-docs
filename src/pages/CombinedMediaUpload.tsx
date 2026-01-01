@@ -223,18 +223,18 @@ const CombinedMediaUpload: React.FC = () => {
                 </div>
               )}
 
-              {/* Upload Button */}
+              {/* Save Button */}
               <Button 
                 onClick={handleUpload}
                 disabled={isUploading || selectedFiles.length === 0 || !selectedPropertyId}
                 className="w-full bg-brand-blue hover:bg-brand-lightBlue"
               >
                 {isUploading ? (
-                  <>Uploading...</>
+                  <>Saving...</>
                 ) : (
                   <>
                     <Upload className="h-4 w-4 mr-2" />
-                    Upload {selectedFiles.length > 0 ? `${selectedFiles.length} File(s)` : 'Files'}
+                    Save {selectedFiles.length > 0 ? `${selectedFiles.length} File(s)` : ''}
                   </>
                 )}
               </Button>
