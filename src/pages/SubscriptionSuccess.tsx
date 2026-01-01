@@ -59,7 +59,7 @@ const SubscriptionSuccess: React.FC = () => {
             variant: "destructive",
           });
           // Redirect to account settings on error
-          navigate('/account-settings?tab=subscription');
+          navigate('/account/settings?tab=subscription');
         }
       }
     };

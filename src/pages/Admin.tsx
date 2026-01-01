@@ -134,7 +134,7 @@ const Admin = () => {
                   <CardDescription>Manage security settings and access controls</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button className="w-full" onClick={() => navigate('/account-settings')}>
+                  <Button className="w-full" onClick={() => navigate('/account/settings')}>
                     View Settings
                   </Button>
                 </CardContent>
@@ -189,7 +189,7 @@ const Admin = () => {
                   <CardDescription>Manage security configurations</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button className="w-full" onClick={() => navigate('/account-settings')}>
+                  <Button className="w-full" onClick={() => navigate('/account/settings')}>
                     Open Settings
                   </Button>
                 </CardContent>
