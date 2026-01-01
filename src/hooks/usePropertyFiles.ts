@@ -117,7 +117,7 @@ export const usePropertyFiles = (propertyId: string | null, fileType?: 'photo' |
             bucket,
             user.id,
             subscriptionTier,
-            `${user.id}/${propertyId}/${Date.now()}-${file.name}`
+            `${propertyId}/${Date.now()}-${file.name}`
           );
 
           // Add to property_files table
