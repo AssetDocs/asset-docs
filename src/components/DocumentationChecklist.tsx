@@ -654,9 +654,6 @@ const DocumentationChecklist: React.FC = () => {
                 <ClipboardList className="h-6 w-6 text-primary" />
                 <div>
                   <CardTitle className="text-xl">Complete Documentation Checklist</CardTitle>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {completedItems} of {totalItems} items completed
-                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
