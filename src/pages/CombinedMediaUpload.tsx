@@ -346,7 +346,7 @@ const CombinedMediaUpload: React.FC = () => {
               {/* Save Button */}
               <Button 
                 onClick={handleUpload}
-                disabled={isUploading || selectedFiles.length === 0 || !selectedPropertyId}
+                disabled={isUploading}
                 className="w-full bg-brand-blue hover:bg-brand-lightBlue"
               >
                 {isUploading ? (
@@ -355,7 +355,7 @@ const CombinedMediaUpload: React.FC = () => {
                     Saving...
                   </>
                 ) : (
-                  'Save Media'
+                  'Save'
                 )}
               </Button>
             </CardContent>
