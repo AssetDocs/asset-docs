@@ -29,10 +29,16 @@ serve(async (req) => {
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
     logStep("Stripe key verified");
 
-    // Parse request body to get plan type and optional email
-    const { planType, email: providedEmail } = await req.json();
+    // Parse request body to get plan type, billing interval, and optional email
+    const { planType, billingInterval = 'month', email: providedEmail } = await req.json();
     if (!planType) throw new Error("Plan type is required");
-    logStep("Request body parsed", { planType, providedEmail });
+    logStep("Request body parsed", { planType, billingInterval, providedEmail });
+
+    // Validate billing interval
+    const validIntervals = ['month', 'year'];
+    if (!validIntervals.includes(billingInterval)) {
+      throw new Error("Invalid billing interval");
+    }
 
     // Attempt to retrieve authenticated user (optional)
     let user = null;
@@ -73,30 +79,40 @@ serve(async (req) => {
       logStep("Creating new customer");
     }
 
-    // Define pricing based on plan type
+    // Define pricing based on plan type and billing interval
     let priceData;
+    const isYearly = billingInterval === 'year';
+    
     switch (planType) {
       case 'standard':
         priceData = {
           currency: "usd",
-          product_data: { name: "Standard Plan (Homeowner Plan)" },
-          unit_amount: 1299, // $12.99
-          recurring: { interval: "month" },
+          product_data: { 
+            name: isYearly 
+              ? "Standard Plan (Homeowner Plan) - Annual" 
+              : "Standard Plan (Homeowner Plan)" 
+          },
+          unit_amount: isYearly ? 12900 : 1299, // $129/year or $12.99/month
+          recurring: { interval: billingInterval as 'month' | 'year' },
         };
         break;
       case 'premium':
         priceData = {
           currency: "usd",
-          product_data: { name: "Premium Plan (Professional Plan)" },
-          unit_amount: 1899, // $18.99
-          recurring: { interval: "month" },
+          product_data: { 
+            name: isYearly 
+              ? "Premium Plan (Professional Plan) - Annual" 
+              : "Premium Plan (Professional Plan)" 
+          },
+          unit_amount: isYearly ? 18900 : 1899, // $189/year or $18.99/month
+          recurring: { interval: billingInterval as 'month' | 'year' },
         };
         break;
       default:
         throw new Error("Invalid plan type");
     }
 
-    logStep("Creating checkout session", { priceData });
+    logStep("Creating checkout session", { priceData, billingInterval });
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -127,9 +143,10 @@ serve(async (req) => {
         name: 'auto',
         address: 'auto'
       } : undefined,
-      // Pass plan type in metadata for webhook processing
+      // Pass plan type and billing interval in metadata for webhook processing
       metadata: {
         plan_type: planType,
+        billing_interval: billingInterval,
         user_id: user?.id || ''
       }
     });

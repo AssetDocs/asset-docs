@@ -11,23 +11,25 @@ const Gift: React.FC = () => {
 
   const giftPlans = [
     {
-      title: "Standard (Homeowner Plan)",
-      price: "$155.88 - 1 year",
-      description: "Our most popular plan for comprehensive home documentation",
+      title: "Gift – Standard",
+      price: "$129 / 1 year",
+      description: "One-time payment, no auto-renew",
       features: [
         "Up to 3 properties",
-        "25GB secure cloud storage"
+        "25GB secure cloud storage",
+        "Recipient opts in to renew monthly or yearly"
       ],
       planType: "standard",
       icon: <Zap className="h-6 w-6" />
     },
     {
-      title: "Premium (Professional Plan)",
-      price: "$227.88 - 1 year",
-      description: "Best suited for estate managers, multiple-property owners, or businesses",
+      title: "Gift – Premium",
+      price: "$189 / 1 year",
+      description: "One-time payment, no auto-renew",
       features: [
         "Unlimited properties",
-        "100GB secure cloud storage"
+        "100GB secure cloud storage",
+        "Recipient opts in to renew monthly or yearly"
       ],
       planType: "premium",
       icon: <Star className="h-6 w-6" />
@@ -113,8 +115,7 @@ const Gift: React.FC = () => {
                 Choose the Perfect Gift Plan
               </h2>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                All gift subscriptions include a full year of service. Your recipient will receive immediate access 
-                to all features and can start protecting their assets right away.
+                All gift subscriptions are for 1 year with no auto-renew. Recipients can choose to renew monthly or yearly when their gift expires.
               </p>
             </div>
 
@@ -132,6 +133,12 @@ const Gift: React.FC = () => {
                   />
                 </div>
               ))}
+            </div>
+
+            {/* Storage Notation */}
+            <div className="text-center text-sm text-gray-500 mt-6 space-y-1">
+              <p>25GB ≈ ~1,500 photos + documents</p>
+              <p>100GB ≈ ~6,000 photos or extensive video</p>
             </div>
 
             {/* Common Features Section */}
@@ -160,10 +167,10 @@ const Gift: React.FC = () => {
                   <div>
                     <h4 className="font-semibold text-lg mb-2">For Gift Givers:</h4>
                     <ul className="space-y-2 text-gray-600">
-                      <li>• Purchase a 12-month subscription</li>
+                      <li>• Purchase a 1-year subscription (no auto-renew)</li>
                       <li>• Enter recipient information during checkout</li>
                       <li>• Automatic gift certificate delivered to recipient</li>
-                      <li>• No recurring charges - one-time payment</li>
+                      <li>• One-time payment only</li>
                     </ul>
                   </div>
                   <div>
@@ -172,7 +179,7 @@ const Gift: React.FC = () => {
                       <li>• Create an Asset Safe account</li>
                       <li>• Enter the gift code during setup</li>
                       <li>• Enjoy full access for 12 months</li>
-                      <li>• Option to continue with their own subscription</li>
+                      <li>• Choose to renew monthly or yearly when gift expires</li>
                     </ul>
                   </div>
                 </div>

@@ -24,6 +24,7 @@ const Pricing: React.FC = () => {
     subscription_end?: string;
   }>({ subscribed: false });
   const [isLoading, setIsLoading] = useState(false);
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
 
   // Structured data for pricing page
   const faqData = [
@@ -72,7 +73,7 @@ const Pricing: React.FC = () => {
     }
   }, [user]);
 
-  const handleSubscribe = async (planType: string) => {
+  const handleSubscribe = async (planType: string, yearly: boolean = false) => {
     // If user is already logged in, go directly to Stripe checkout
     if (user) {
       setIsLoading(true);
@@ -80,6 +81,7 @@ const Pricing: React.FC = () => {
         const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-checkout', {
           body: { 
             planType,
+            billingInterval: yearly ? 'year' : 'month',
             email: user.email,
           },
         });
@@ -102,7 +104,7 @@ const Pricing: React.FC = () => {
     }
     
     // For new users, navigate to signup page
-    window.location.href = `/signup?plan=${planType}`;
+    window.location.href = `/signup?plan=${planType}&billing=${yearly ? 'yearly' : 'monthly'}`;
   };
 
   const planDifferences = {
@@ -129,7 +131,8 @@ const Pricing: React.FC = () => {
   const plans = [
     {
       title: "Standard (Homeowner Plan)",
-      price: "$12.99",
+      monthlyPrice: "$12.99",
+      yearlyPrice: "$129",
       description: "Our most popular plan for comprehensive home documentation",
       features: planDifferences.standard,
       planType: "standard",
@@ -137,13 +140,46 @@ const Pricing: React.FC = () => {
     },
     {
       title: "Premium (Professional Plan)",
-      price: "$18.99",
+      monthlyPrice: "$18.99",
+      yearlyPrice: "$189",
       description: "Best suited for estate managers, multiple-property owners, or businesses",
       features: planDifferences.premium,
       planType: "premium",
       icon: <Star className="h-6 w-6" />
     }
   ];
+
+  const giftPlans = [
+    {
+      title: "Gift – Standard",
+      price: "$129 / 1 year",
+      description: "One-time payment, no auto-renew",
+      features: [
+        "Up to 3 properties",
+        "25GB secure cloud storage",
+        "Recipient opts in to renew monthly or yearly"
+      ],
+      planType: "standard"
+    },
+    {
+      title: "Gift – Premium",
+      price: "$189 / 1 year",
+      description: "One-time payment, no auto-renew",
+      features: [
+        "Unlimited properties",
+        "100GB secure cloud storage",
+        "Recipient opts in to renew monthly or yearly"
+      ],
+      planType: "premium"
+    }
+  ];
+
+  const StorageNotation = () => (
+    <div className="text-center text-sm text-muted-foreground mt-4 space-y-1">
+      <p>25GB ≈ ~1,500 photos + documents</p>
+      <p>100GB ≈ ~6,000 photos or extensive video</p>
+    </div>
+  );
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -190,6 +226,31 @@ const Pricing: React.FC = () => {
                     <p className="text-sm text-muted-foreground">No long-term contract. Cancel anytime</p>
                   </div>
                 </div>
+
+                {/* Billing Cycle Toggle */}
+                <div className="flex items-center justify-center gap-4 mb-8">
+                  <button
+                    onClick={() => setBillingCycle('monthly')}
+                    className={`px-6 py-2 rounded-full font-medium transition-all ${
+                      billingCycle === 'monthly'
+                        ? 'bg-brand-orange text-white'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    }`}
+                  >
+                    Monthly
+                  </button>
+                  <button
+                    onClick={() => setBillingCycle('yearly')}
+                    className={`px-6 py-2 rounded-full font-medium transition-all ${
+                      billingCycle === 'yearly'
+                        ? 'bg-brand-orange text-white'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    }`}
+                  >
+                    Yearly
+                    <span className="ml-2 text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">Save</span>
+                  </button>
+                </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                   {plans.map((plan) => (
@@ -201,19 +262,29 @@ const Pricing: React.FC = () => {
                       )}
                       <SubscriptionPlan
                         title={plan.title}
-                        price={plan.price}
-                        description={plan.description}
-                        features={plan.features}
+                        price={billingCycle === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice}
+                        description={
+                          billingCycle === 'yearly' 
+                            ? `${plan.description} – Save when you pay yearly`
+                            : plan.description
+                        }
+                        features={[
+                          ...plan.features,
+                          billingCycle === 'yearly' ? 'Billed annually' : 'Billed monthly'
+                        ]}
                         buttonText={
                           subscriptionStatus.subscribed && subscriptionStatus.subscription_tier === plan.title 
                             ? "Current Plan" 
                             : isLoading ? "Processing..." : "Get Started"
                         }
-                        onClick={() => handleSubscribe(plan.planType)}
+                        onClick={() => handleSubscribe(plan.planType, billingCycle === 'yearly')}
                       />
                     </div>
                   ))}
                 </div>
+
+                {/* Storage Notation */}
+                <StorageNotation />
 
                 {/* Common Features */}
                 <div className="mt-12 max-w-4xl mx-auto">
@@ -237,9 +308,17 @@ const Pricing: React.FC = () => {
                 {/* Storage Add-on */}
                 <div className="mt-8 max-w-2xl mx-auto">
                   <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg p-6 text-center">
-                    <p className="text-lg font-semibold text-foreground mb-2">
-                      Need more space? Add 50 GB for just $9.99/month.
+                    <p className="text-lg font-semibold text-foreground mb-3">
+                      Need more space?
                     </p>
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                      <div className="bg-background/80 rounded-lg px-4 py-2">
+                        <span className="font-medium">+25GB</span> for <span className="text-brand-orange font-bold">$4.99/mo</span>
+                      </div>
+                      <div className="bg-background/80 rounded-lg px-4 py-2">
+                        <span className="font-medium">+50GB</span> for <span className="text-brand-orange font-bold">$9.99/mo</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -324,34 +403,26 @@ const Pricing: React.FC = () => {
                 <div className="mb-8">
                   <h3 className="text-2xl font-bold mb-4">Choose the Perfect Gift Plan</h3>
                   <p className="text-muted-foreground max-w-2xl mx-auto">
-                    All gift subscriptions include a full year of service. Your recipient will receive immediate access to all features and can start protecting their assets right away.
+                    All gift subscriptions are for 1 year with no auto-renew. Recipients can choose to renew monthly or yearly when their gift expires.
                   </p>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                  <SubscriptionPlan
-                    title="Standard (Homeowner Plan)"
-                    price="$155.88 - 1 year"
-                    description="Our most popular plan for comprehensive home documentation"
-                    features={[
-                      "Up to 3 properties",
-                      "25GB secure cloud storage"
-                    ]}
-                    buttonText="Gift This Plan"
-                    onClick={() => window.location.href = '/gift-checkout?plan=standard'}
-                  />
-                  <SubscriptionPlan
-                    title="Premium (Professional Plan)"
-                    price="$227.88 - 1 year"
-                    description="Best suited for estate managers, multiple-property owners, or businesses"
-                    features={[
-                      "Unlimited properties",
-                      "100GB secure cloud storage"
-                    ]}
-                    buttonText="Gift This Plan"
-                    onClick={() => window.location.href = '/gift-checkout?plan=premium'}
-                  />
+                  {giftPlans.map((plan) => (
+                    <SubscriptionPlan
+                      key={plan.title}
+                      title={plan.title}
+                      price={plan.price}
+                      description={plan.description}
+                      features={plan.features}
+                      buttonText="Gift This Plan"
+                      onClick={() => window.location.href = `/gift-checkout?plan=${plan.planType}`}
+                    />
+                  ))}
                 </div>
+
+                {/* Storage Notation for Gifts */}
+                <StorageNotation />
 
                 {/* Features included in both plans */}
                 <div className="mt-12 max-w-4xl mx-auto">
@@ -378,77 +449,45 @@ const Pricing: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-border">
                       <h4 className="font-semibold text-lg text-foreground mb-4">For Gift Givers:</h4>
-                      <ul className="space-y-3 text-muted-foreground">
-                        <li className="flex items-start gap-2">
-                          <span className="text-primary mt-1">•</span>
-                          <span>Purchase a 12-month subscription</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-primary mt-1">•</span>
-                          <span>Enter recipient information during checkout</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-primary mt-1">•</span>
-                          <span>Automatic gift certificate delivered to recipient</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-primary mt-1">•</span>
-                          <span>No recurring charges - one-time payment</span>
-                        </li>
+                      <ul className="space-y-2 text-muted-foreground">
+                        <li>• Purchase a 1-year subscription (no auto-renew)</li>
+                        <li>• Enter recipient information during checkout</li>
+                        <li>• Automatic gift certificate delivered to recipient</li>
+                        <li>• One-time payment only</li>
                       </ul>
                     </div>
                     <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-border">
                       <h4 className="font-semibold text-lg text-foreground mb-4">For Recipients:</h4>
-                      <ul className="space-y-3 text-muted-foreground">
-                        <li className="flex items-start gap-2">
-                          <span className="text-primary mt-1">•</span>
-                          <span>Create an Asset Safe account</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-primary mt-1">•</span>
-                          <span>Enter the gift code during setup</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-primary mt-1">•</span>
-                          <span>Enjoy full access for 12 months</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-primary mt-1">•</span>
-                          <span>Option to continue with their own subscription</span>
-                        </li>
+                      <ul className="space-y-2 text-muted-foreground">
+                        <li>• Create an Asset Safe account</li>
+                        <li>• Enter the gift code during setup</li>
+                        <li>• Enjoy full access for 12 months</li>
+                        <li>• Choose to renew monthly or yearly when gift expires</li>
                       </ul>
                     </div>
                   </div>
                 </div>
 
-                {/* Who Is Asset Safe a Great Gift For? */}
+                {/* Who Is Asset Safe a Great Gift For */}
                 <div className="mt-12 max-w-5xl mx-auto">
-                  <h3 className="text-2xl font-bold mb-8">Who Is Asset Safe a Great Gift For?</h3>
+                  <div className="flex items-center justify-center gap-2 mb-8">
+                    <Gift className="h-6 w-6 text-brand-orange" />
+                    <h3 className="text-2xl font-bold">Who Is Asset Safe a Great Gift For?</h3>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-border">
-                      <h4 className="font-semibold text-lg text-foreground mb-2">Homebuyers & Sellers</h4>
-                      <p className="text-muted-foreground">A meaningful closing gift that lasts well beyond move-in day</p>
-                    </div>
-                    <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-border">
-                      <h4 className="font-semibold text-lg text-foreground mb-2">Newlyweds & Couples</h4>
-                      <p className="text-muted-foreground">Start life together organized, protected, and prepared</p>
-                    </div>
-                    <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-border">
-                      <h4 className="font-semibold text-lg text-foreground mb-2">Business Owners & Entrepreneurs</h4>
-                      <p className="text-muted-foreground">Secure important documents and assets in one place</p>
-                    </div>
-                    <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-border">
-                      <h4 className="font-semibold text-lg text-foreground mb-2">Parents & Growing Families</h4>
-                      <p className="text-muted-foreground">Protect what matters most and plan ahead with confidence</p>
-                    </div>
-                    <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-border">
-                      <h4 className="font-semibold text-lg text-foreground mb-2">Adult Children Gifting Parents</h4>
-                      <p className="text-muted-foreground">A thoughtful way to help organize important records</p>
-                    </div>
-                    <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-border">
-                      <h4 className="font-semibold text-lg text-foreground mb-2">Graduates & Young Adults</h4>
-                      <p className="text-muted-foreground">A smart foundation for independent life</p>
-                    </div>
+                    {[
+                      { title: "Homebuyers & Sellers", desc: "A meaningful closing gift that lasts well beyond move-in day" },
+                      { title: "Newlyweds & Couples", desc: "Start life together organized, protected, and prepared" },
+                      { title: "Business Owners", desc: "Secure important documents and assets in one place" },
+                      { title: "Parents & Growing Families", desc: "Protect what matters most and plan ahead with confidence" },
+                      { title: "Adult Children Gifting Parents", desc: "A thoughtful way to help organize important records" },
+                      { title: "Graduates & Young Adults", desc: "A smart foundation for independent life" }
+                    ].map((item, index) => (
+                      <div key={index} className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-border">
+                        <h4 className="font-semibold text-lg text-foreground mb-2">{item.title}</h4>
+                        <p className="text-muted-foreground text-sm">{item.desc}</p>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </TabsContent>
@@ -456,7 +495,7 @@ const Pricing: React.FC = () => {
           </div>
         </div>
       </section>
-      
+
       <PricingFAQ />
       <PricingContactCTA />
       <Footer />
