@@ -46,6 +46,7 @@ import DocumentUpload from "./pages/DocumentUpload";
 import Inventory from "./pages/Inventory";
 import CombinedMedia from "./pages/CombinedMedia";
 import CombinedMediaUpload from "./pages/CombinedMediaUpload";
+import MediaEdit from "./pages/MediaEdit";
 
 import InsuranceForm from "./pages/InsuranceForm";
 import InsuranceDetail from "./pages/InsuranceDetail";
@@ -269,6 +270,7 @@ const AppContent = () => {
         <Route path="/account/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
         <Route path="/account/media" element={<ProtectedRoute><CombinedMedia /></ProtectedRoute>} />
         <Route path="/account/media/upload" element={<ProtectedRoute><CombinedMediaUpload /></ProtectedRoute>} />
+        <Route path="/account/media/:id/edit" element={<ProtectedRoute><MediaEdit /></ProtectedRoute>} />
         
         <Route path="/account/insurance" element={<ProtectedRoute><Insurance /></ProtectedRoute>} />
         <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />

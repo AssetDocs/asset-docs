@@ -348,6 +348,11 @@ const CombinedMedia: React.FC = () => {
     setShowDeleteDialog(true);
   };
 
+  const handleEditFile = (id: string) => {
+    const mediaType = activeTab === 'photos' ? 'photo' : 'video';
+    navigate(`/account/media/${id}/edit?type=${mediaType}`);
+  };
+
   const handleBulkDelete = () => {
     const selected = activeTab === 'photos' ? selectedPhotos : selectedVideos;
     if (selected.length > 0) {
@@ -530,6 +535,7 @@ const CombinedMedia: React.FC = () => {
                           selectedFiles={selectedPhotos}
                           onFileSelect={toggleSelection}
                           onDeleteFile={handleDeleteItem}
+                          onEditFile={handleEditFile}
                           mediaType="photo"
                         />
                       )}
@@ -571,6 +577,7 @@ const CombinedMedia: React.FC = () => {
                           selectedFiles={selectedVideos}
                           onFileSelect={toggleSelection}
                           onDeleteFile={handleDeleteItem}
+                          onEditFile={handleEditFile}
                           mediaType="video"
                         />
                       )}
