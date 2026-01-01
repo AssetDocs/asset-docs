@@ -20,7 +20,8 @@ import {
   CheckSquare,
   Square,
   Loader2,
-  Upload
+  Upload,
+  Pencil
 } from 'lucide-react';
 import { 
   DropdownMenu,
@@ -710,9 +711,21 @@ const Documents: React.FC = () => {
                           </div>
                           
                           <div className="flex gap-2">
-                            <Button size="sm" variant="outline" className="flex-1">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="flex-1"
+                              onClick={() => navigate(`/account/insurance/${policy.id}`)}
+                            >
                               <Eye className="h-3 w-3 mr-1" />
                               View
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => navigate(`/account/insurance/${policy.id}/edit`)}
+                            >
+                              <Pencil className="h-3 w-3" />
                             </Button>
                             <Button 
                               size="sm" 
@@ -751,8 +764,19 @@ const Documents: React.FC = () => {
                               <Badge className={getStatusColor(policy.status)} variant="secondary">
                                 {policy.status}
                               </Badge>
-                              <Button size="sm" variant="ghost">
+                              <Button 
+                                size="sm" 
+                                variant="ghost"
+                                onClick={() => navigate(`/account/insurance/${policy.id}`)}
+                              >
                                 <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="ghost"
+                                onClick={() => navigate(`/account/insurance/${policy.id}/edit`)}
+                              >
+                                <Pencil className="h-4 w-4" />
                               </Button>
                               <Button 
                                 size="sm" 
@@ -795,6 +819,7 @@ const Documents: React.FC = () => {
                       selectedFiles={selectedDocuments}
                       onFileSelect={toggleDocumentSelection}
                       onDeleteFile={handleDeleteDocument}
+                      onEditFile={(docId) => navigate(`/account/documents/${docId}/edit`)}
                       mediaType="document"
                     />
                   )}

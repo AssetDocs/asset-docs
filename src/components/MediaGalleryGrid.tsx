@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +13,11 @@ import {
   Calendar,
   HardDrive,
   Trash2,
-  Clock
+  Clock,
+  Pencil,
+  FileImage,
+  FileSpreadsheet,
+  File
 } from 'lucide-react';
 
 type ViewMode = 'grid' | 'list';
@@ -36,6 +40,7 @@ interface MediaGalleryGridProps {
   selectedFiles: string[];
   onFileSelect: (fileId: string) => void;
   onDeleteFile: (fileId: string) => void;
+  onEditFile?: (fileId: string) => void;
   mediaType: MediaType;
 }
 
@@ -45,6 +50,7 @@ const MediaGalleryGrid: React.FC<MediaGalleryGridProps> = ({
   selectedFiles,
   onFileSelect,
   onDeleteFile,
+  onEditFile,
   mediaType
 }) => {
   const formatDate = (dateString: string) => {
@@ -60,6 +66,47 @@ const MediaGalleryGrid: React.FC<MediaGalleryGridProps> = ({
       case 'photo': return Camera;
       case 'video': return Video;
       case 'document': return FileText;
+    }
+  };
+
+  const getDocumentIcon = (fileType?: string) => {
+    const type = fileType?.toLowerCase();
+    if (type === 'pdf') return FileText;
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(type || '')) return FileImage;
+    if (['xls', 'xlsx', 'csv'].includes(type || '')) return FileSpreadsheet;
+    return File;
+  };
+
+  const isImageFile = (fileType?: string) => {
+    const type = fileType?.toLowerCase();
+    return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(type || '');
+  };
+
+  const handlePreview = (file: MediaFile) => {
+    window.open(file.url, '_blank');
+  };
+
+  const handleDownload = async (file: MediaFile) => {
+    try {
+      const response = await fetch(file.url);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = file.name;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      // Fallback to direct link
+      const link = document.createElement('a');
+      link.href = file.url;
+      link.download = file.name;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   };
 
@@ -81,171 +128,205 @@ const MediaGalleryGrid: React.FC<MediaGalleryGridProps> = ({
   if (viewMode === 'list') {
     return (
       <div className="space-y-4">
-        {files.map((file) => (
-          <Card key={file.id} className="overflow-hidden hover:shadow-md transition-shadow">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-4">
-                <Checkbox
-                  checked={selectedFiles.includes(file.id)}
-                  onCheckedChange={() => onFileSelect(file.id)}
-                />
-                
-                <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
-                  {mediaType === 'video' ? (
-                    <Play className="h-6 w-6 text-gray-400" />
-                  ) : (
-                    <Icon className="h-6 w-6 text-gray-400" />
-                  )}
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-medium text-lg truncate">{file.name}</h4>
-                  <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      {formatDate(file.uploadDate)}
-                    </span>
-                    {mediaType === 'video' && file.duration && (
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {file.duration}
-                      </span>
-                    )}
-                    <span className="flex items-center gap-1">
-                      <HardDrive className="h-3 w-3" />
-                      {file.size}
-                    </span>
-                    {file.propertyName && (
-                      <Badge variant="outline" className="text-xs">
-                        {file.propertyName}
-                      </Badge>
+        {files.map((file) => {
+          const DocIcon = mediaType === 'document' ? getDocumentIcon(file.type) : Icon;
+          return (
+            <Card key={file.id} className="overflow-hidden hover:shadow-md transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-4">
+                  <Checkbox
+                    checked={selectedFiles.includes(file.id)}
+                    onCheckedChange={() => onFileSelect(file.id)}
+                  />
+                  
+                  <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    {mediaType === 'document' && isImageFile(file.type) && file.url ? (
+                      <img 
+                        src={file.url} 
+                        alt={file.name} 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : mediaType === 'video' ? (
+                      <Play className="h-6 w-6 text-gray-400" />
+                    ) : (
+                      <DocIcon className="h-6 w-6 text-gray-400" />
                     )}
                   </div>
-                </div>
 
-                <div className="flex gap-2 flex-shrink-0">
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => window.open(file.url, '_blank')}
-                  >
-                    <Eye className="h-4 w-4 mr-1" />
-                    View
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => {
-                      const link = document.createElement('a');
-                      link.href = file.url;
-                      link.download = file.name;
-                      document.body.appendChild(link);
-                      link.click();
-                      document.body.removeChild(link);
-                    }}
-                  >
-                    <Download className="h-4 w-4 mr-1" />
-                    Download
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="destructive" 
-                    onClick={() => onDeleteFile(file.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-lg truncate">{file.name}</h4>
+                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {formatDate(file.uploadDate)}
+                      </span>
+                      {mediaType === 'video' && file.duration && (
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {file.duration}
+                        </span>
+                      )}
+                      <span className="flex items-center gap-1">
+                        <HardDrive className="h-3 w-3" />
+                        {file.size}
+                      </span>
+                      {file.type && (
+                        <Badge variant="outline" className="text-xs">
+                          {file.type}
+                        </Badge>
+                      )}
+                      {file.propertyName && (
+                        <Badge variant="outline" className="text-xs">
+                          {file.propertyName}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 flex-shrink-0">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handlePreview(file)}
+                    >
+                      <Eye className="h-4 w-4 mr-1" />
+                      View
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleDownload(file)}
+                    >
+                      <Download className="h-4 w-4 mr-1" />
+                      Download
+                    </Button>
+                    {onEditFile && (
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => onEditFile(file.id)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <Button 
+                      size="sm" 
+                      variant="destructive" 
+                      onClick={() => onDeleteFile(file.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
     );
   }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-      {files.map((file) => (
-        <Card key={file.id} className="overflow-hidden group hover:shadow-lg transition-shadow">
-          <div className={`relative ${mediaType === 'video' ? 'aspect-video' : 'aspect-square'} bg-gray-200 flex items-center justify-center overflow-hidden`}>
-            {mediaType === 'video' ? (
-              <>
-                <Play className="h-12 w-12 text-gray-400" />
-                {file.duration && (
-                  <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-xs">
-                    {file.duration}
-                  </div>
-                )}
-              </>
-            ) : mediaType === 'photo' && file.url ? (
-              <img 
-                src={file.url} 
-                alt={file.name} 
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <Icon className="h-12 w-12 text-gray-400" />
-            )}
-            
-            <div className="absolute top-2 left-2 z-10">
-              <Checkbox
-                checked={selectedFiles.includes(file.id)}
-                onCheckedChange={() => onFileSelect(file.id)}
-                className="bg-white/80 border-white"
-              />
-            </div>
+      {files.map((file) => {
+        const DocIcon = mediaType === 'document' ? getDocumentIcon(file.type) : Icon;
+        const showImageThumbnail = (mediaType === 'photo' || (mediaType === 'document' && isImageFile(file.type))) && file.url;
+        
+        return (
+          <Card key={file.id} className="overflow-hidden group hover:shadow-lg transition-shadow">
+            <div className={`relative ${mediaType === 'video' ? 'aspect-video' : 'aspect-square'} bg-gray-200 flex items-center justify-center overflow-hidden`}>
+              {mediaType === 'video' ? (
+                <>
+                  <Play className="h-12 w-12 text-gray-400" />
+                  {file.duration && (
+                    <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-xs">
+                      {file.duration}
+                    </div>
+                  )}
+                </>
+              ) : showImageThumbnail ? (
+                <img 
+                  src={file.url} 
+                  alt={file.name} 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center">
+                  <DocIcon className="h-12 w-12 text-gray-400" />
+                  {file.type && (
+                    <Badge variant="secondary" className="mt-2 text-xs">
+                      {file.type}
+                    </Badge>
+                  )}
+                </div>
+              )}
+              
+              <div className="absolute top-2 left-2 z-10">
+                <Checkbox
+                  checked={selectedFiles.includes(file.id)}
+                  onCheckedChange={() => onFileSelect(file.id)}
+                  className="bg-white/80 border-white"
+                />
+              </div>
 
-            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 z-[1]">
-              <Button 
-                size="sm" 
-                variant="secondary"
-                onClick={() => window.open(file.url, '_blank')}
-              >
-                <Eye className="h-4 w-4" />
-              </Button>
-              <Button 
-                size="sm" 
-                variant="secondary"
-                onClick={() => {
-                  const link = document.createElement('a');
-                  link.href = file.url;
-                  link.download = file.name;
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-                }}
-              >
-                <Download className="h-4 w-4" />
-              </Button>
-              <Button 
-                size="sm" 
-                variant="destructive"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDeleteFile(file.id);
-                }}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-          
-          <CardContent className="p-3">
-            <h4 className="font-medium text-sm truncate mb-1">{file.name}</h4>
-            
-            <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
-              <span>{formatDate(file.uploadDate)}</span>
-              <span>{file.size}</span>
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 z-[1]">
+                <Button 
+                  size="sm" 
+                  variant="secondary"
+                  onClick={() => handlePreview(file)}
+                  title="Preview"
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="secondary"
+                  onClick={() => handleDownload(file)}
+                  title="Download"
+                >
+                  <Download className="h-4 w-4" />
+                </Button>
+                {onEditFile && (
+                  <Button 
+                    size="sm" 
+                    variant="secondary"
+                    onClick={() => onEditFile(file.id)}
+                    title="Edit"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                )}
+                <Button 
+                  size="sm" 
+                  variant="destructive"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteFile(file.id);
+                  }}
+                  title="Delete"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
             
-            {file.propertyName && (
-              <Badge variant="outline" className="text-xs truncate max-w-full">
-                {file.propertyName}
-              </Badge>
-            )}
-          </CardContent>
-        </Card>
-      ))}
+            <CardContent className="p-3">
+              <h4 className="font-medium text-sm truncate mb-1">{file.name}</h4>
+              
+              <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
+                <span>{formatDate(file.uploadDate)}</span>
+                <span>{file.size}</span>
+              </div>
+              
+              {file.propertyName && (
+                <Badge variant="outline" className="text-xs truncate max-w-full">
+                  {file.propertyName}
+                </Badge>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 };

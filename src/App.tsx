@@ -48,6 +48,9 @@ import CombinedMedia from "./pages/CombinedMedia";
 import CombinedMediaUpload from "./pages/CombinedMediaUpload";
 
 import InsuranceForm from "./pages/InsuranceForm";
+import InsuranceDetail from "./pages/InsuranceDetail";
+import InsuranceEdit from "./pages/InsuranceEdit";
+import DocumentEdit from "./pages/DocumentEdit";
 import ScheduleProfessional from "./pages/ScheduleProfessional";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
@@ -276,6 +279,9 @@ const AppContent = () => {
         <Route path="/damage/videos/upload" element={<ProtectedRoute><DamageVideoUpload /></ProtectedRoute>} />
         
         <Route path="/account/insurance/new" element={<ProtectedRoute><InsuranceForm /></ProtectedRoute>} />
+        <Route path="/account/insurance/:id" element={<ProtectedRoute><InsuranceDetail /></ProtectedRoute>} />
+        <Route path="/account/insurance/:id/edit" element={<ProtectedRoute><InsuranceEdit /></ProtectedRoute>} />
+        <Route path="/account/documents/:id/edit" element={<ProtectedRoute><DocumentEdit /></ProtectedRoute>} />
         <Route path="/account/settings" element={<ProtectedRoute><AccountSettings /></ProtectedRoute>} />
         <Route path="/schedule-professional" element={<ProtectedRoute><ScheduleProfessional /></ProtectedRoute>} />
         <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
