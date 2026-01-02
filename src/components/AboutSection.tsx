@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 const AboutSection: React.FC = () => {
   return (
-    <section className="py-20 pb-8 bg-white">
+    <section className="py-10 pb-8 bg-white">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
           {/* Trust badges */}
