@@ -77,15 +77,6 @@ const KeyBenefitsSection: React.FC = () => {
             </div>
           ))}
 
-          {/* CTA */}
-          <div className="text-center pt-8">
-            <Link
-              to="/pricing"
-              className="inline-block bg-brand-green hover:bg-brand-green/90 text-white font-semibold px-8 py-4 rounded-lg text-lg transition-colors"
-            >
-              Create Your Digital Safety Net
-            </Link>
-          </div>
         </div>
       </div>
     </section>
