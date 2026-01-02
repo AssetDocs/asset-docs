@@ -249,7 +249,7 @@ const Gift: React.FC = () => {
         <section className="bg-gradient-to-r from-brand-blue to-brand-lightBlue py-16">
           <div className="container mx-auto px-6 text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-              Give a Gift That Truly Matters
+              Give a Gift That Protects What Matters Most
             </h2>
             <p className="text-xl text-blue-100 max-w-2xl mx-auto">
               Show someone you care about their security and peace of mind. Asset Safe makes the perfect gift 
