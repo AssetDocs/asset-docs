@@ -22,6 +22,7 @@ import EmailVerificationNotice from '@/components/EmailVerificationNotice';
 import { StripeTestPanel } from '@/components/StripeTestPanel';
 import { useToast } from '@/hooks/use-toast';
 import SecureVault from '@/components/SecureVault';
+import FeedbackSection from '@/components/FeedbackSection';
 import { supabase } from '@/integrations/supabase/client';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -570,6 +571,9 @@ const Account: React.FC = () => {
             </TabsContent>
 
           </Tabs>
+
+          {/* Feedback Section */}
+          <FeedbackSection />
         </div>
       </div>
       

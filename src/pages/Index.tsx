@@ -17,7 +17,6 @@ import LegacyLockerSection from '@/components/LegacyLockerSection';
 import ScrollProgressCue from '@/components/ScrollProgressCue';
 import ComparisonSection from '@/components/ComparisonSection';
 import CTASection from '@/components/CTASection';
-import FeedbackSection from '@/components/FeedbackSection';
 import { organizationSchema, webApplicationSchema, faqSchema } from '@/utils/structuredData';
 
 const Index: React.FC = () => {
@@ -55,7 +54,6 @@ const Index: React.FC = () => {
       <HowItWorksSection />
       <ComparisonSection />
       <CTASection />
-      <FeedbackSection />
       <Footer />
     </div>
   );
