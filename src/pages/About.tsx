@@ -1,8 +1,10 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
+import { Button } from '@/components/ui/button';
 import { organizationSchema, breadcrumbSchema } from '@/utils/structuredData';
 
 const About: React.FC = () => {
@@ -34,18 +36,14 @@ const About: React.FC = () => {
           
           <div className="prose prose-lg max-w-none">
             <section className="mb-12">
-              <h2 className="text-3xl font-semibold mb-6 text-center text-gray-800">
-                Your Digital Guardian for What Matters Most
-              </h2>
-              
               <div className="bg-gradient-to-r from-blue-50 to-teal-50 p-8 rounded-lg mb-8">
-                <p className="text-xl text-gray-700 leading-relaxed text-center mb-6">
+                <p className="text-xl text-gray-700 leading-relaxed text-center">
                   Asset Safe was born from a simple yet powerful belief: protecting your most valuable 
                   possessions shouldn't be complicated, stressful, or uncertain.
                 </p>
               </div>
               
-              <div className="grid md:grid-cols-3 gap-8 mb-12">
+              <div className="grid md:grid-cols-3 gap-8 mb-8">
                 <div className="text-center p-6 bg-white rounded-lg shadow-md">
                   <div className="w-16 h-16 bg-brand-blue rounded-full flex items-center justify-center mx-auto mb-4">
                     <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -85,11 +83,18 @@ const About: React.FC = () => {
                   </p>
                 </div>
               </div>
+
+              {/* CTA Button */}
+              <div className="text-center mb-12">
+                <Button asChild className="bg-brand-orange hover:bg-brand-orange/90 text-white px-8 py-3 text-lg">
+                  <Link to="/pricing">Start Your Documentation</Link>
+                </Button>
+              </div>
               
               <div className="bg-gray-50 p-8 rounded-lg">
                 <h3 className="text-2xl font-semibold mb-4 text-center text-gray-800">Our Mission</h3>
                 <p className="text-lg text-gray-700 leading-relaxed text-center mb-6">
-                  We believe every family deserves the confidence that comes with knowing their most precious 
+                  We believe everyone deserves the confidence that comes with knowing their most precious 
                   belongings are properly documented and protected. Asset Safe transforms the traditional, 
                   tedious process of property documentation into a modern, intuitive experience that actually 
                   works when you need it most.

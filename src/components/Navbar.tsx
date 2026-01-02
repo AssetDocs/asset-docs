@@ -117,6 +117,9 @@ const Navbar: React.FC = () => {
               </>
             ) : (
               <>
+                   <Link to="/about" className="text-gray-700 hover:text-brand-blue transition-colors">
+                     About
+                   </Link>
                    <Link to="/features" className="text-gray-700 hover:text-brand-blue transition-colors">
                      {translate('nav.features')}
                    </Link>
@@ -253,7 +256,16 @@ const Navbar: React.FC = () => {
                    </Button>
                 </>
                ) : (
-                <>
+               <>
+                   <NavLink 
+                      to="/about" 
+                      className={({ isActive }) => 
+                        `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                      }
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      About
+                    </NavLink>
                    <NavLink 
                       to="/features" 
                       className={({ isActive }) => 
