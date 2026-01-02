@@ -25,10 +25,9 @@ const FeaturesList: React.FC = () => {
         </div>
 
         <Tabs defaultValue="core-features" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="core-features">Core Features</TabsTrigger>
             <TabsTrigger value="user-types">User Types</TabsTrigger>
-            <TabsTrigger value="subscription">Subscription</TabsTrigger>
             <TabsTrigger value="technical">Technical</TabsTrigger>
             <TabsTrigger value="workflow">Workflow</TabsTrigger>
           </TabsList>
@@ -107,7 +106,7 @@ const FeaturesList: React.FC = () => {
                 <CardHeader>
                   <div className="flex items-center gap-2 mb-2">
                     <Download className="h-6 w-6 text-primary" />
-                    <Badge variant="outline" className="bg-amber-100 text-amber-800">Standard+</Badge>
+                    <Badge variant="secondary">Export</Badge>
                   </div>
                   <CardTitle>Export & Download</CardTitle>
                   <CardDescription>Flexible data export and sharing options</CardDescription>
@@ -128,7 +127,7 @@ const FeaturesList: React.FC = () => {
                 <CardHeader>
                   <div className="flex items-center gap-2 mb-2">
                     <Mic className="h-6 w-6 text-primary" />
-                    <Badge variant="outline" className="bg-purple-100 text-purple-800">Premium</Badge>
+                    <Badge variant="secondary">Advanced</Badge>
                   </div>
                   <CardTitle>Advanced Features</CardTitle>
                   <CardDescription>Voice notes and damage documentation</CardDescription>
@@ -224,69 +223,6 @@ const FeaturesList: React.FC = () => {
                     <li>• Maintenance and improvement tracking</li>
                     <li>• Rental property protection</li>
                     <li>• Investment property valuation</li>
-                  </ul>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* Subscription Tab */}
-          <TabsContent value="subscription" className="space-y-6">
-            <h2 className="text-2xl font-bold text-primary">Subscription Tiers & Feature Access</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card>
-                <CardHeader>
-                  <Badge variant="outline" className="w-fit mb-2">Basic Tier</Badge>
-                  <CardTitle>Basic Features</CardTitle>
-                  <CardDescription>10GB Storage</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ul className="text-sm space-y-1">
-                    <li>• Photo upload & gallery</li>
-                    <li>• Document upload</li>
-                    <li>• Single property</li>
-                    <li>• Download all files</li>
-                    <li>• Documentation checklists</li>
-                  </ul>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <Badge variant="outline" className="bg-amber-100 text-amber-800 w-fit mb-2">Standard Tier</Badge>
-                  <CardTitle>Standard Features</CardTitle>
-                  <CardDescription>50GB Storage</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ul className="text-sm space-y-1">
-                    <li>• All Basic features +</li>
-                    <li>• Video upload & recording</li>
-                    <li>• Multiple properties</li>
-                    <li>• Voice notes</li>
-                    <li>• Export assets (CSV/PDF)</li>
-                    <li>• Property sharing</li>
-                    <li>• Post-damage documentation</li>
-                    <li>• Priority support</li>
-                  </ul>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <Badge variant="outline" className="bg-purple-100 text-purple-800 w-fit mb-2">Premium Tier</Badge>
-                  <CardTitle>Premium Features</CardTitle>
-                  <CardDescription>500GB Storage</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ul className="text-sm space-y-1">
-                    <li>• All Standard features +</li>
-                    <li>• Advanced AI features</li>
-                    <li>• Professional services</li>
-                    <li>• Advanced reporting</li>
-                    <li>• Custom checklists</li>
-                    <li>• Unlimited collaborators</li>
-                    <li>• Premium support</li>
                   </ul>
                 </CardContent>
               </Card>
