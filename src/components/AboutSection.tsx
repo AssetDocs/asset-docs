@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const AboutSection: React.FC = () => {
   return (
@@ -63,6 +63,16 @@ const AboutSection: React.FC = () => {
                     accessible anywhere, and protected against life's unexpected moments.
                   </p>
                 </div>
+              </div>
+
+              {/* CTA Button */}
+              <div className="text-center mb-12">
+                <Link
+                  to="/pricing"
+                  className="inline-block bg-brand-green hover:bg-brand-green/90 text-white font-semibold px-8 py-4 rounded-lg text-lg transition-colors"
+                >
+                  Start Your Documentation
+                </Link>
               </div>
               
               <div className="bg-gray-50 p-8 rounded-lg">
