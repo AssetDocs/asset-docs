@@ -26,7 +26,7 @@ const KeyBenefitsSection: React.FC = () => {
   const benefits = [
     {
       icon: Shield,
-      title: "Secure, encrypted photo, video, and document storage",
+      title: "Photo, video, and document storage",
       description: "Document your home and belongings with time-stamped, tamper-resistant records — securely stored and accessible when you need them most.",
       showSecurityBadges: true
     },
