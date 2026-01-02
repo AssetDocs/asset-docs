@@ -96,7 +96,7 @@ const LegacyLockerSection: React.FC = () => {
           <div className="bg-brand-blue text-white p-10 rounded-lg text-center">
             <h3 className="text-2xl font-bold mb-4">A Simple, Powerful Way to Protect Your Legacy</h3>
             <p className="text-lg mb-6 max-w-3xl mx-auto">
-              Start organizing the information your loved ones will need, all in one secure, encrypted location.
+              Trusted by homeowners and families preparing for the unexpected.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button asChild size="lg" className="bg-white text-brand-blue hover:bg-gray-100">

@@ -59,7 +59,7 @@ const ComparisonSection: React.FC = () => {
             >
               <div>
                 <h2 className="text-2xl md:text-3xl font-bold text-brand-blue">
-                  Why Choose Asset Safe?
+                  How Asset Safe Is Different
                 </h2>
                 <p className="text-sm text-muted-foreground mt-1">
                   Compare our comprehensive platform to traditional methods
