@@ -259,10 +259,10 @@ const Blog = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link 
-                  to="/auth"
+                  to="/pricing"
                   className="inline-flex items-center justify-center px-8 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-colors"
                 >
-                  Get Started Free
+                  Activate Your Account
                 </Link>
                 <Link 
                   to="/features"

@@ -458,7 +458,173 @@ const BlogPost = () => {
         <h2>Conclusion</h2>
         <p>A comprehensive digital home inventory is an investment in your financial security and peace of mind. While it may seem time-consuming to create initially, the protection it provides is invaluable. Start with your most valuable items and build from there - you'll be glad you did.</p>
 
-        <p>Ready to start your digital home inventory? <a href="/auth">Sign up for Asset Safe</a> and protect what matters most.</p>
+        <p>Ready to start your digital home inventory? <a href="/pricing">Activate your account</a> and protect what matters most.</p>
+      `
+    },
+    'estate-planning-digital-vault': {
+      title: 'Why Every Estate Plan Needs a Digital Vault',
+      category: 'Estate Planning',
+      date: '2025-01-10',
+      readTime: '6 min read',
+      image: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1200&h=600&fit=crop',
+      author: 'Asset Safe Team',
+      content: `
+        <p>Estate planning has evolved significantly in the digital age. While traditional wills and trusts remain essential, they only tell part of the story. A digital vault—like Asset Safe's Legacy Locker—fills the critical gaps that traditional documents leave behind.</p>
+
+        <h2>The Limitations of Traditional Estate Planning</h2>
+        <p>Traditional estate planning documents serve important legal purposes, but they have significant limitations:</p>
+        <ul>
+          <li><strong>They're static:</strong> Once signed, updating them requires legal processes</li>
+          <li><strong>They lack context:</strong> Legal language doesn't capture your intentions or memories</li>
+          <li><strong>They miss digital assets:</strong> Most wills don't address passwords, accounts, or online property</li>
+          <li><strong>They're hard to find:</strong> Safe deposit boxes and attorney offices aren't accessible 24/7</li>
+        </ul>
+
+        <h2>What a Digital Vault Adds to Your Estate Plan</h2>
+        <h3>1. Comprehensive Asset Documentation</h3>
+        <p>A digital vault allows you to document every asset you own—not just the major ones mentioned in your will.</p>
+
+        <h3>2. Digital Asset Management</h3>
+        <p>In today's world, digital assets can be worth as much as physical ones: cryptocurrency, domain names, social media accounts, and cloud storage.</p>
+
+        <h3>3. Personal Messages and Context</h3>
+        <p>A digital vault lets you leave personal messages, voice notes, and videos that explain your wishes in your own words.</p>
+
+        <h2>Conclusion</h2>
+        <p>A comprehensive estate plan in the 21st century needs more than just legal documents. A digital vault provides the context, detail, and accessibility that traditional estate planning lacks.</p>
+        <p>Ready to complete your estate plan with a digital vault? <a href="/pricing">Activate your Asset Safe account</a> today.</p>
+      `
+    },
+    'insurance-claims-documentation': {
+      title: 'How Proper Documentation Speeds Up Insurance Claims',
+      category: 'Insurance',
+      date: '2025-01-05',
+      readTime: '5 min read',
+      image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1200&h=600&fit=crop',
+      author: 'Asset Safe Team',
+      content: `
+        <p>When disaster strikes—whether it's a fire, flood, theft, or storm damage—the last thing you want is a prolonged battle with your insurance company. The difference between a smooth claims process and months of frustration often comes down to one thing: documentation.</p>
+
+        <h2>Why Documentation Matters for Insurance Claims</h2>
+        <p>Insurance companies require proof of ownership, condition, and value before paying claims. Without proper documentation, you're left trying to remember what you owned and prove it existed.</p>
+
+        <h3>What Insurance Adjusters Look For</h3>
+        <ul>
+          <li><strong>Proof of ownership:</strong> Receipts, photos, or other evidence you owned the item</li>
+          <li><strong>Proof of value:</strong> Purchase receipts, appraisals, or comparable pricing</li>
+          <li><strong>Proof of condition:</strong> Photos or videos showing the item's condition before the loss</li>
+          <li><strong>Detailed descriptions:</strong> Brand, model, serial numbers, and specifications</li>
+        </ul>
+
+        <h2>Tips for Effective Documentation</h2>
+        <ol>
+          <li><strong>Start with high-value items:</strong> Focus on what would hurt most to lose</li>
+          <li><strong>Go room by room:</strong> Systematic documentation ensures nothing is missed</li>
+          <li><strong>Record video walkthroughs:</strong> Capture context and spatial relationships</li>
+          <li><strong>Store receipts digitally:</strong> Paper fades; digital copies last forever</li>
+        </ol>
+
+        <h2>Conclusion</h2>
+        <p>The time to document your belongings is before you need to file a claim. <a href="/pricing">Start documenting with Asset Safe today</a>.</p>
+      `
+    },
+    'organizing-receipts-warranties': {
+      title: 'The Smart Way to Organize Receipts and Warranties',
+      category: 'Organization',
+      date: '2024-12-28',
+      readTime: '7 min read',
+      image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&h=600&fit=crop',
+      author: 'Asset Safe Team',
+      content: `
+        <p>We've all been there: you need to return something or file a warranty claim, and the receipt is nowhere to be found. The good news? There's a better way.</p>
+
+        <h2>Why Keeping Receipts and Warranties Matters</h2>
+        <ul>
+          <li><strong>Returns and exchanges:</strong> Most stores require receipts for returns</li>
+          <li><strong>Warranty claims:</strong> Proof of purchase is typically required</li>
+          <li><strong>Insurance claims:</strong> Prove ownership and value of lost or damaged items</li>
+          <li><strong>Tax deductions:</strong> Business expenses need documentation</li>
+        </ul>
+
+        <h2>Building a Digital Receipt System</h2>
+        <h3>Step 1: Digitize Everything</h3>
+        <p>Use your phone's camera or a scanning app to capture receipts the day you make a purchase.</p>
+
+        <h3>Step 2: Create a Consistent Naming System</h3>
+        <p>Name files with the date, store name, and item description for easy searching.</p>
+
+        <h3>Step 3: Track Warranty Expiration Dates</h3>
+        <p>Set calendar reminders before warranties expire.</p>
+
+        <h2>Conclusion</h2>
+        <p>A well-organized digital receipt system pays dividends in time saved and money recovered. <a href="/pricing">Get started with Asset Safe</a>.</p>
+      `
+    },
+    'protecting-high-value-items': {
+      title: "Protecting High-Value Items: A Collector's Guide",
+      category: 'Protection',
+      date: '2024-12-20',
+      readTime: '9 min read',
+      image: 'https://images.unsplash.com/photo-1611312449408-fcece27cdbb7?w=1200&h=600&fit=crop',
+      author: 'Asset Safe Team',
+      content: `
+        <p>Whether you collect fine art, vintage watches, rare coins, or precious jewelry, your collection represents more than monetary value. Protecting these high-value items requires special attention to documentation, insurance, and security.</p>
+
+        <h2>Why High-Value Items Need Special Documentation</h2>
+        <ul>
+          <li><strong>Insurance requirements:</strong> High-value items often need separate riders or scheduled coverage</li>
+          <li><strong>Provenance matters:</strong> The history of an item affects its value</li>
+          <li><strong>Condition is critical:</strong> Minor changes can significantly impact worth</li>
+          <li><strong>Authentication needs:</strong> Proof of authenticity protects against disputes</li>
+        </ul>
+
+        <h2>Documenting Different Types of Collectibles</h2>
+        <h3>Fine Art and Antiques</h3>
+        <p>Document with high-resolution photographs, provenance documentation, certificates of authenticity, and professional appraisals.</p>
+
+        <h3>Jewelry and Watches</h3>
+        <p>Include detailed photographs, gemological reports, original boxes and papers, and service history.</p>
+
+        <h2>Conclusion</h2>
+        <p>Your collection deserves the same care in documentation as you give to acquisition. <a href="/pricing">Create your Asset Safe account</a> today.</p>
+      `
+    },
+    'disaster-preparedness-checklist': {
+      title: 'Disaster Preparedness: Your Essential Checklist',
+      category: 'Preparedness',
+      date: '2024-12-15',
+      readTime: '10 min read',
+      image: 'https://images.unsplash.com/photo-1504253163759-c23fccaebb55?w=1200&h=600&fit=crop',
+      author: 'Asset Safe Team',
+      content: `
+        <p>Disasters don't wait for convenient timing. Being prepared can mean the difference between a manageable recovery and a devastating loss.</p>
+
+        <h2>Before Disaster Strikes: Documentation Essentials</h2>
+        <h3>Home Inventory</h3>
+        <ul>
+          <li>Photograph or video every room, including closets and storage areas</li>
+          <li>Document valuable items with detailed photos and serial numbers</li>
+          <li>Save receipts for major purchases</li>
+          <li>Store documentation in the cloud</li>
+        </ul>
+
+        <h3>Critical Documents</h3>
+        <p>Ensure you have digital copies of property deeds, insurance policies, birth certificates, passports, wills, and tax returns.</p>
+
+        <h2>Emergency Kit Essentials</h2>
+        <ul>
+          <li>Water (one gallon per person per day for at least 3 days)</li>
+          <li>Non-perishable food (3-day supply minimum)</li>
+          <li>First aid kit and medications</li>
+          <li>Flashlights, batteries, and phone chargers</li>
+          <li>Cash and copies of important documents</li>
+        </ul>
+
+        <h2>How Asset Safe Helps</h2>
+        <p>Asset Safe provides cloud-based storage that survives even if your home doesn't, accessible from any device, anywhere.</p>
+
+        <h2>Conclusion</h2>
+        <p>The time you invest in documentation and planning today can save you months of stress tomorrow. <a href="/pricing">Create your Asset Safe account</a> and protect what matters most.</p>
       `
     }
   };
@@ -577,9 +743,9 @@ const BlogPost = () => {
                     Join thousands of homeowners who trust Asset Safe to document and protect their valuable assets.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Link to="/auth">
+                    <Link to="/pricing">
                       <Button size="lg" className="w-full sm:w-auto">
-                        Get Started Free
+                        Activate Your Account
                       </Button>
                     </Link>
                     <Link to="/features">
