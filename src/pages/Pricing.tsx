@@ -272,6 +272,7 @@ const Pricing: React.FC = () => {
                           ...plan.features,
                           billingCycle === 'yearly' ? 'Billed annually' : 'Billed monthly'
                         ]}
+                        billingInterval={billingCycle === 'yearly' ? 'year' : 'month'}
                         buttonText={
                           subscriptionStatus.subscribed && subscriptionStatus.subscription_tier === plan.title 
                             ? "Current Plan" 

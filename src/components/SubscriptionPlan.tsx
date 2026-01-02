@@ -13,6 +13,7 @@ interface SubscriptionPlanProps {
   buttonText?: string;
   onClick?: () => void;
   buttonClassName?: string;
+  billingInterval?: 'month' | 'year';
 }
 
 const SubscriptionPlan: React.FC<SubscriptionPlanProps> = ({
@@ -23,7 +24,8 @@ const SubscriptionPlan: React.FC<SubscriptionPlanProps> = ({
   recommended = false,
   buttonText = "Subscribe",
   onClick,
-  buttonClassName
+  buttonClassName,
+  billingInterval = 'month'
 }) => {
   return (
     <Card className={`flex flex-col h-full ${recommended ? 'border-2 border-brand-orange relative' : ''}`}>
@@ -36,7 +38,9 @@ const SubscriptionPlan: React.FC<SubscriptionPlanProps> = ({
         <h3 className="text-xl font-bold">{title}</h3>
         <div className="mt-2">
           <span className="text-3xl font-bold">{price}</span>
-          {price !== 'Custom' && !price.includes('year') && <span className="text-gray-600 ml-2">/month</span>}
+          {price !== 'Custom' && !price.includes('year') && (
+            <span className="text-gray-600 ml-2">/{billingInterval === 'year' ? 'year' : 'month'}</span>
+          )}
         </div>
         <p className="text-gray-600 mt-2">{description}</p>
       </CardHeader>
