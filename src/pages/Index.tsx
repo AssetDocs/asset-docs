@@ -14,6 +14,7 @@ import FeaturedSection from '@/components/FeaturedSection';
 import FeaturesSection from '@/components/FeaturesSection';
 import HowItWorksSection from '@/components/HowItWorksSection';
 import LegacyLockerSection from '@/components/LegacyLockerSection';
+import ScrollProgressCue from '@/components/ScrollProgressCue';
 import ComparisonSection from '@/components/ComparisonSection';
 import CTASection from '@/components/CTASection';
 import FeedbackSection from '@/components/FeedbackSection';
@@ -47,6 +48,7 @@ const Index: React.FC = () => {
       <KeyBenefitsSection />
       <AboutSection />
       <GiftSection />
+      <ScrollProgressCue />
       <LegacyLockerSection />
       <FeaturedSection />
       <FeaturesSection />
