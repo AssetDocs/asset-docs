@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
+import FeaturedSection from '@/components/FeaturedSection';
 import { Calendar, Clock, ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -247,6 +248,9 @@ const Blog = () => {
               ))}
             </div>
           </section>
+
+          {/* Featured Section */}
+          <FeaturedSection />
 
           {/* CTA Section */}
           <section className="bg-gradient-to-br from-primary/10 via-background to-background py-16">

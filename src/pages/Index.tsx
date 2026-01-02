@@ -8,9 +8,7 @@ import UnderConstructionBanner from '@/components/UnderConstructionBanner';
 import HeroSection from '@/components/HeroSection';
 import KeyBenefitsSection from '@/components/KeyBenefitsSection';
 
-import TrialCTASection from '@/components/TrialCTASection';
 import GiftSection from '@/components/GiftSection';
-import FeaturedSection from '@/components/FeaturedSection';
 import FeaturesSection from '@/components/FeaturesSection';
 import HowItWorksSection from '@/components/HowItWorksSection';
 import LegacyLockerSection from '@/components/LegacyLockerSection';
@@ -49,7 +47,6 @@ const Index: React.FC = () => {
       <GiftSection />
       <ScrollProgressCue />
       <LegacyLockerSection />
-      <FeaturedSection />
       <FeaturesSection />
       <HowItWorksSection />
       <ComparisonSection />
