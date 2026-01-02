@@ -35,13 +35,15 @@ const KeyBenefitsSection: React.FC = () => {
       icon: Scale,
       title: "Legacy Locker — encrypted storage for life's most important details",
       description: "Keep essential records, account access, and personal instructions organized in one secure place - peace of mind for the people you love.",
-      showSecurityBadges: false
+      showSecurityBadges: false,
+      subtext: "🔒 Secure & Encrypted by Design • 🏠 Built for Real Homes & Real Life • 📄 Insurance & Estate Ready"
     },
     {
       icon: Users,
       title: "Permission-based access for trusted parties",
       description: "Grant secure access to the right people — spouse, executors, or heirs — without digging through account information and files during stressful moments.",
-      showSecurityBadges: false
+      showSecurityBadges: false,
+      subtext: "Built for: Homeowners • Renters • Families • Property owners • Small businesses"
     }
   ];
 
@@ -68,21 +70,21 @@ const KeyBenefitsSection: React.FC = () => {
                   {benefit.description}
                 </p>
                 {benefit.showSecurityBadges && <SecurityBadges />}
+                {benefit.subtext && (
+                  <p className="text-xs text-gray-500 mt-2">{benefit.subtext}</p>
+                )}
               </div>
             </div>
           ))}
 
-          {/* CTA and Audience */}
-          <div className="text-center pt-8 space-y-4">
+          {/* CTA */}
+          <div className="text-center pt-8">
             <Link
               to="/pricing"
               className="inline-block bg-brand-green hover:bg-brand-green/90 text-white font-semibold px-8 py-4 rounded-lg text-lg transition-colors"
             >
               Create Your Digital Safety Net
             </Link>
-            <p className="text-gray-600 text-sm md:text-base">
-              Built for: Homeowners • Renters • Families • Property owners • Small businesses
-            </p>
           </div>
         </div>
       </div>

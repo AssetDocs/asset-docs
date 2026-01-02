@@ -7,7 +7,7 @@ import SEOHead from '@/components/SEOHead';
 import UnderConstructionBanner from '@/components/UnderConstructionBanner';
 import HeroSection from '@/components/HeroSection';
 import KeyBenefitsSection from '@/components/KeyBenefitsSection';
-import TrustBadgesSection from '@/components/TrustBadgesSection';
+
 import TrialCTASection from '@/components/TrialCTASection';
 import GiftSection from '@/components/GiftSection';
 import FeaturedSection from '@/components/FeaturedSection';
@@ -46,7 +46,7 @@ const Index: React.FC = () => {
       <Navbar />
       <HeroSection />
       <KeyBenefitsSection />
-      <TrustBadgesSection />
+      
       <GiftSection />
       <ScrollProgressCue />
       <LegacyLockerSection />
