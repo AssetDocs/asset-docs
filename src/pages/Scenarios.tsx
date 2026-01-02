@@ -1,11 +1,35 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import SEOHead from '@/components/SEOHead';
 import { Shield, Timer, UserCheck } from 'lucide-react';
+import { breadcrumbSchema, serviceSchema } from '@/utils/structuredData';
 
 const Scenarios: React.FC = () => {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      serviceSchema(
+        "Property Documentation for Insurance Claims",
+        "Comprehensive pre-incident documentation to expedite insurance claims for natural disasters, theft, fire, and other property losses.",
+        "Insurance Documentation"
+      ),
+      breadcrumbSchema([
+        { name: 'Home', url: 'https://www.assetsafe.net/' },
+        { name: 'Scenarios', url: 'https://www.assetsafe.net/scenarios' }
+      ])
+    ]
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
+      <SEOHead
+        title="Insurance Claim Scenarios - When Documentation Matters Most"
+        description="Protect your property against natural disasters, theft, fire, and more. Learn how Asset Safe documentation helps expedite insurance claims and maximize settlements."
+        keywords="insurance claim scenarios, natural disaster documentation, theft claim, fire damage claim, property loss documentation, hurricane claim, flood damage, home inventory for insurance"
+        canonicalUrl="https://www.assetsafe.net/scenarios"
+        structuredData={structuredData}
+      />
       <Navbar />
       
       {/* Hero Section */}

@@ -1,12 +1,36 @@
-
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import SEOHead from '@/components/SEOHead';
 import { Star } from 'lucide-react';
+import { breadcrumbSchema } from '@/utils/structuredData';
 
 const Testimonials: React.FC = () => {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      breadcrumbSchema([
+        { name: 'Home', url: 'https://www.assetsafe.net/' },
+        { name: 'Testimonials', url: 'https://www.assetsafe.net/testimonials' }
+      ]),
+      {
+        "@type": "WebPage",
+        "name": "Customer Testimonials",
+        "description": "Read what homeowners, business owners, and property managers say about Asset Safe.",
+        "url": "https://www.assetsafe.net/testimonials"
+      }
+    ]
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
+      <SEOHead
+        title="Customer Testimonials - What Users Say About Asset Safe"
+        description="Read real customer reviews about Asset Safe. Homeowners, business owners, and landlords share how digital documentation helped with insurance claims and asset protection."
+        keywords="asset safe reviews, home inventory testimonials, property documentation reviews, insurance claim success stories, digital vault reviews"
+        canonicalUrl="https://www.assetsafe.net/testimonials"
+        structuredData={structuredData}
+      />
       <Navbar />
       
       {/* Hero Section */}

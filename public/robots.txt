@@ -1,4 +1,6 @@
 # Asset Safe - Robots.txt
+# Updated: 2026-01-02
+
 User-agent: *
 Allow: /
 
@@ -8,22 +10,57 @@ Disallow: /login
 Disallow: /signup
 Disallow: /admin
 Disallow: /account
+Disallow: /account-settings
+Disallow: /crm
 
 # Disallow verification and callback pages
 Disallow: /auth/callback
 Disallow: /email-verification
 Disallow: /verify-email
+Disallow: /forgot-password
 
-# Allow public pages
+# Disallow checkout and subscription flows
+Disallow: /subscription-checkout
+Disallow: /subscription-success
+Disallow: /complete-pricing
+Disallow: /gift-checkout
+Disallow: /gift-success
+Disallow: /gift-claim
+
+# Disallow user-specific pages
+Disallow: /properties
+Disallow: /documents
+Disallow: /photos
+Disallow: /videos
+Disallow: /inventory
+Disallow: /insurance
+Disallow: /checklists
+
+# Allow all public marketing pages
 Allow: /
 Allow: /features
 Allow: /pricing
-Allow: /scenarios
 Allow: /about
+Allow: /blog
+Allow: /blog/*
 Allow: /contact
 Allow: /resources
+Allow: /qa
 Allow: /gift
+Allow: /legacy-locker
+Allow: /scenarios
+Allow: /claims
+Allow: /testimonials
+Allow: /social-impact
+Allow: /glossary
+Allow: /awareness-guide
+Allow: /industry-requirements
+Allow: /state-requirements
 Allow: /sample-dashboard
+Allow: /video-help
+Allow: /terms
+Allow: /legal
+Allow: /cookie-policy
 
 # Sitemap location
 Sitemap: https://www.assetsafe.net/sitemap.xml

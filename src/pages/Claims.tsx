@@ -1,12 +1,42 @@
-
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import SEOHead from '@/components/SEOHead';
 import { FileText, Camera, Receipt, Shield, Phone, AlertCircle } from 'lucide-react';
+import { breadcrumbSchema, howToSchema } from '@/utils/structuredData';
 
 const Claims: React.FC = () => {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      howToSchema(
+        "How to File an Insurance Claim with Proper Documentation",
+        "Step-by-step guide to gathering and organizing the essential documents needed for property and contents insurance claims.",
+        [
+          { name: "Document the Damage", text: "Take photos and videos of all damaged property, including before and after images when available." },
+          { name: "Create an Inventory", text: "List all damaged or lost items with descriptions, make, model, serial numbers, and estimated values." },
+          { name: "Gather Proof of Ownership", text: "Collect receipts, credit card statements, warranties, and appraisals for valuable items." },
+          { name: "Obtain Official Reports", text: "Get police reports, fire department reports, or weather service documentation as needed." },
+          { name: "Get Repair Estimates", text: "Obtain professional contractor quotes and inspection reports for repair costs." },
+          { name: "Submit Your Claim", text: "Contact your insurance provider with all documentation organized and ready for review." }
+        ]
+      ),
+      breadcrumbSchema([
+        { name: 'Home', url: 'https://www.assetsafe.net/' },
+        { name: 'Claims', url: 'https://www.assetsafe.net/claims' }
+      ])
+    ]
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
+      <SEOHead
+        title="Insurance Claims Documentation Guide - What You Need"
+        description="Complete guide to insurance claims documentation. Learn what documents, photos, and proof you need to file property and contents insurance claims successfully."
+        keywords="insurance claim documentation, what documents for insurance claim, proof of loss, insurance claim photos, home inventory for claim, property damage claim"
+        canonicalUrl="https://www.assetsafe.net/claims"
+        structuredData={structuredData}
+      />
       <Navbar />
       
       <main className="flex-grow bg-gray-50 py-16">
