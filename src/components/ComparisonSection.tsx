@@ -55,17 +55,17 @@ const ComparisonSection: React.FC = () => {
           <div className="bg-white rounded-lg shadow-lg overflow-hidden border border-border">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="w-full p-6 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
+              className="w-full p-6 flex items-center justify-between text-left bg-brand-green hover:bg-brand-green/90 transition-colors"
             >
               <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-brand-blue">
+                <h2 className="text-2xl md:text-3xl font-bold text-white">
                   Why Asset Safe Works Better
                 </h2>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-sm text-white/80 mt-1">
                   Compare our comprehensive platform to traditional methods
                 </p>
               </div>
-              <ChevronDown className={cn("h-6 w-6 text-brand-blue transition-transform flex-shrink-0 ml-4", isOpen && "rotate-180")} />
+              <ChevronDown className={cn("h-6 w-6 text-white transition-transform flex-shrink-0 ml-4", isOpen && "rotate-180")} />
             </button>
 
             <div className={cn("transition-all", isOpen ? "block" : "hidden")}>
