@@ -399,25 +399,6 @@ const FeaturesList: React.FC = () => {
             </div>
           </TabsContent>
         </Tabs>
-
-        {/* Call to Action */}
-        <div className="mt-12 text-center">
-          <Card className="max-w-2xl mx-auto">
-            <CardContent className="pt-6">
-              <h3 className="text-xl font-bold mb-4">Need More Technical Details?</h3>
-              <p className="text-muted-foreground mb-4">
-                This overview covers the main features and architecture. For implementation details, 
-                database schema, or specific component documentation, please let me know what you need.
-              </p>
-              <div className="flex flex-wrap gap-2 justify-center">
-                <Button variant="outline" size="sm">Component Documentation</Button>
-                <Button variant="outline" size="sm">Database Schema</Button>
-                <Button variant="outline" size="sm">API Endpoints</Button>
-                <Button variant="outline" size="sm">Deployment Guide</Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
       </div>
     </div>
   );
