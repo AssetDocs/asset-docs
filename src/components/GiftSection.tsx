@@ -16,8 +16,7 @@ const GiftSection: React.FC = () => {
             Give the Gift of Protection and Peace of Mind
           </h2>
           <p className="text-xl mb-8 text-white/90 max-w-2xl mx-auto">
-            Share the security of comprehensive asset documentation with someone you care about. 
-            Perfect for new homeowners, growing families, or anyone who values protection.
+            A thoughtful way to help someone stay prepared — today and in the future.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Button asChild size="lg" className="bg-white text-brand-blue hover:bg-gray-100">
