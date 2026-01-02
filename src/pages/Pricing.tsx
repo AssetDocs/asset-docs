@@ -133,7 +133,7 @@ const Pricing: React.FC = () => {
       title: "Standard (Homeowner Plan)",
       monthlyPrice: "$12.99",
       yearlyPrice: "$129",
-      description: "Our most popular plan for comprehensive home documentation",
+      description: "Everything most homeowners need to fully document and protect their home.",
       features: planDifferences.standard,
       planType: "standard",
       icon: <Zap className="h-6 w-6" />
@@ -142,7 +142,7 @@ const Pricing: React.FC = () => {
       title: "Premium (Professional Plan)",
       monthlyPrice: "$18.99",
       yearlyPrice: "$189",
-      description: "Best suited for estate managers, multiple-property owners, or businesses",
+      description: "Built for managing multiple properties, estates, or complex asset portfolios.",
       features: planDifferences.premium,
       planType: "premium",
       icon: <Star className="h-6 w-6" />
