@@ -13,7 +13,7 @@ const CTASection: React.FC = () => {
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-4">
           <Button asChild size="lg" className="bg-white text-orange-500 hover:bg-gray-100 w-full sm:w-auto">
-            <Link to="/signup">Get Started with Asset Safe</Link>
+            <Link to="/signup">Claim your account today!</Link>
           </Button>
           <ShareButton 
             variant="outline" 
