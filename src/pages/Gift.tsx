@@ -76,9 +76,12 @@ const Gift: React.FC = () => {
             <p className="text-lg font-medium text-brand-orange mb-6">
               Practical, Not Disposable – A gift that provides long-term value
             </p>
-            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Help your loved ones protect their most valuable assets with Asset Safe. 
               A thoughtful gift that provides lasting security and organization for their properties and belongings.
+            </p>
+            <p className="text-lg text-gray-500 mb-8 max-w-3xl mx-auto mt-2">
+              Perfect for life transitions, milestones, and the unexpected.
             </p>
             
             <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto mt-12">
