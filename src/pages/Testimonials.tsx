@@ -52,7 +52,7 @@ const Testimonials: React.FC = () => {
                 ))}
               </div>
               <blockquote className="text-gray-600 mb-4">
-                "I never knew a service like this existed! I'm so grateful I found them before it was too late! I've told all of my friends and family about Asset Docs."
+                "I never knew a service like this existed! I'm so grateful I found them before it was too late! I've told all of my friends and family about Asset Safe."
               </blockquote>
               <cite className="text-brand-blue font-semibold">— Mark S.</cite>
             </div>
@@ -65,7 +65,7 @@ const Testimonials: React.FC = () => {
                 ))}
               </div>
               <blockquote className="text-gray-600 mb-4">
-                "I wish I had discovered Asset Docs before our home was destroyed. Now, every member of my family has their possessions securely documented with Asset Docs."
+                "I wish I had discovered Asset Safe before our home was destroyed. Now, every member of my family has their possessions securely documented with Asset Safe."
               </blockquote>
               <cite className="text-brand-blue font-semibold">— Maria G.</cite>
             </div>
@@ -91,7 +91,7 @@ const Testimonials: React.FC = () => {
                 ))}
               </div>
               <blockquote className="text-gray-600 mb-4">
-                "Managing rentals is tough, but with Asset Docs, tracking property condition before and after tenants is quick and easy!"
+                "Managing rentals is tough, but with Asset Safe, tracking property condition before and after tenants is quick and easy!"
               </blockquote>
               <cite className="text-brand-blue font-semibold">— Susan H.</cite>
             </div>
@@ -104,7 +104,7 @@ const Testimonials: React.FC = () => {
                 ))}
               </div>
               <blockquote className="text-gray-600 mb-4">
-                "I run a small construction company and used to worry about lost, stolen, or damaged equipment. With Asset Docs, I know exactly what I own and what it's worth—one less thing to stress about."
+                "I run a small construction company and used to worry about lost, stolen, or damaged equipment. With Asset Safe, I know exactly what I own and what it's worth—one less thing to stress about."
               </blockquote>
               <cite className="text-brand-blue font-semibold">— James T.</cite>
             </div>
@@ -143,7 +143,7 @@ const Testimonials: React.FC = () => {
                 ))}
               </div>
               <blockquote className="text-gray-600 mb-4">
-                "At first, I thought uploading all my information would take forever. Instead, I had every asset secured with Asset Docs in less than two weekends."
+                "At first, I thought uploading all my information would take forever. Instead, I had every asset secured with Asset Safe in less than two weekends."
               </blockquote>
               <cite className="text-brand-blue font-semibold">— Todd W.</cite>
             </div>
@@ -156,7 +156,7 @@ const Testimonials: React.FC = () => {
                 ))}
               </div>
               <blockquote className="text-gray-600 mb-4">
-                "In the mortgage world, a complete and organized list of assets can determine whether a transaction succeeds or falls apart. I suggest Asset Docs to customers every chance I get"
+                "In the mortgage world, a complete and organized list of assets can determine whether a transaction succeeds or falls apart. I suggest Asset Safe to customers every chance I get"
               </blockquote>
               <cite className="text-brand-blue font-semibold">— Navida Y.</cite>
             </div>
