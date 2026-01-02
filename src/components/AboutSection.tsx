@@ -6,6 +6,13 @@ const AboutSection: React.FC = () => {
     <section className="py-20 pb-8 bg-white">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
+          {/* Trust badges */}
+          <div className="flex flex-wrap justify-center gap-4 md:gap-8 mb-10">
+            <span className="text-sm md:text-base font-medium text-gray-700">🔒 Secure & Encrypted by Design</span>
+            <span className="text-sm md:text-base font-medium text-gray-700">🏠 Built for Real Homes & Real Life</span>
+            <span className="text-sm md:text-base font-medium text-gray-700">📄 Insurance & Estate Ready</span>
+          </div>
+          
           <h2 className="text-4xl font-bold text-brand-blue mb-8 text-center">About Asset Safe</h2>
           
           <div className="prose prose-lg max-w-none">
