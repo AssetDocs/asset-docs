@@ -75,16 +75,16 @@ const ComparisonSection: React.FC = () => {
                 </p>
 
                 <div className="bg-secondary/5 rounded-lg overflow-hidden border border-border">
-                  <div className="grid grid-cols-3 gap-4 p-6 bg-primary/5 border-b border-border">
-                    <div className="col-span-1"></div>
-                    <div className="text-center">
-                      <div className="inline-block bg-primary text-primary-foreground px-4 py-2 rounded-lg font-semibold">
+                  <div className="grid grid-cols-[1fr_auto_auto] gap-x-4 md:gap-x-8 p-4 md:p-6 bg-primary/5 border-b border-border">
+                    <div></div>
+                    <div className="text-center min-w-[80px] md:min-w-[120px]">
+                      <div className="inline-block bg-primary text-primary-foreground px-2 md:px-4 py-1 md:py-2 rounded-lg font-semibold text-xs md:text-base whitespace-nowrap">
                         Asset Safe
                       </div>
                     </div>
-                    <div className="text-center">
-                      <div className="inline-block bg-muted text-muted-foreground px-4 py-2 rounded-lg font-semibold">
-                        Traditional Methods
+                    <div className="text-center min-w-[80px] md:min-w-[120px]">
+                      <div className="inline-block bg-muted text-muted-foreground px-2 md:px-4 py-1 md:py-2 rounded-lg font-semibold text-xs md:text-base whitespace-nowrap">
+                        Traditional
                       </div>
                     </div>
                   </div>
@@ -92,30 +92,30 @@ const ComparisonSection: React.FC = () => {
                   {comparisons.map((item, index) => (
                     <div 
                       key={index} 
-                      className={`grid grid-cols-3 gap-4 p-6 ${index !== comparisons.length - 1 ? 'border-b border-border' : ''}`}
+                      className={`grid grid-cols-[1fr_auto_auto] gap-x-4 md:gap-x-8 p-4 md:p-6 ${index !== comparisons.length - 1 ? 'border-b border-border' : ''}`}
                     >
-                      <div className="col-span-1 flex items-center">
-                        <span className="text-foreground font-medium">{item.feature}</span>
+                      <div className="flex items-center">
+                        <span className="text-foreground font-medium text-sm md:text-base">{item.feature}</span>
                       </div>
-                      <div className="flex items-center justify-center">
+                      <div className="flex items-center justify-center min-w-[80px] md:min-w-[120px]">
                         {item.assetSafe ? (
-                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100">
-                            <Check className="h-5 w-5 text-green-600" />
+                          <div className="flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-full bg-green-100">
+                            <Check className="h-4 w-4 md:h-5 md:w-5 text-green-600" />
                           </div>
                         ) : (
-                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-100">
-                            <X className="h-5 w-5 text-red-600" />
+                          <div className="flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-full bg-red-100">
+                            <X className="h-4 w-4 md:h-5 md:w-5 text-red-600" />
                           </div>
                         )}
                       </div>
-                      <div className="flex items-center justify-center">
+                      <div className="flex items-center justify-center min-w-[80px] md:min-w-[120px]">
                         {item.traditional ? (
-                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100">
-                            <Check className="h-5 w-5 text-green-600" />
+                          <div className="flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-full bg-green-100">
+                            <Check className="h-4 w-4 md:h-5 md:w-5 text-green-600" />
                           </div>
                         ) : (
-                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-100">
-                            <X className="h-5 w-5 text-red-600" />
+                          <div className="flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-full bg-red-100">
+                            <X className="h-4 w-4 md:h-5 md:w-5 text-red-600" />
                           </div>
                         )}
                       </div>
