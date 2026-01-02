@@ -58,7 +58,7 @@ const Navbar: React.FC = () => {
                  <NavLink 
                    to="/features" 
                    className={({ isActive }) => 
-                     `text-gray-700 hover:text-brand-blue transition-colors ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                     `text-gray-700 hover:text-brand-blue transition-colors ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
                    }
                  >
                    {translate('nav.features')}
@@ -66,7 +66,7 @@ const Navbar: React.FC = () => {
                  <NavLink 
                    to="/pricing" 
                    className={({ isActive }) => 
-                     `text-gray-700 hover:text-brand-blue transition-colors ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                     `text-gray-700 hover:text-brand-blue transition-colors ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
                    }
                  >
                    {translate('nav.pricing')}
@@ -74,7 +74,7 @@ const Navbar: React.FC = () => {
                  <NavLink 
                    to="/gift" 
                    className={({ isActive }) => 
-                     `text-gray-700 hover:text-brand-blue transition-colors ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                     `text-gray-700 hover:text-brand-blue transition-colors ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
                    }
                  >
                    Gift
@@ -82,7 +82,7 @@ const Navbar: React.FC = () => {
                  <NavLink 
                    to="/blog" 
                    className={({ isActive }) => 
-                     `text-gray-700 hover:text-brand-blue transition-colors ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                     `text-gray-700 hover:text-brand-blue transition-colors ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
                    }
                  >
                    Blog
@@ -90,7 +90,7 @@ const Navbar: React.FC = () => {
                 <NavLink 
                   to="/video-help" 
                   className={({ isActive }) => 
-                    `text-gray-700 hover:text-brand-blue transition-colors flex items-center ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                    `text-gray-700 hover:text-brand-blue transition-colors flex items-center ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
                   }
                 >
                   <Video className="h-4 w-4 mr-1" />
@@ -191,7 +191,7 @@ const Navbar: React.FC = () => {
                    <NavLink 
                      to="/features" 
                      className={({ isActive }) => 
-                       `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                       `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
                      }
                      onClick={() => setIsMenuOpen(false)}
                    >
@@ -200,7 +200,7 @@ const Navbar: React.FC = () => {
                    <NavLink 
                      to="/pricing" 
                      className={({ isActive }) => 
-                       `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                       `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
                      }
                      onClick={() => setIsMenuOpen(false)}
                    >
@@ -209,7 +209,7 @@ const Navbar: React.FC = () => {
                     <NavLink 
                       to="/gift" 
                       className={({ isActive }) => 
-                        `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                        `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
                       }
                       onClick={() => setIsMenuOpen(false)}
                     >
@@ -218,7 +218,7 @@ const Navbar: React.FC = () => {
                     <NavLink 
                       to="/blog" 
                       className={({ isActive }) => 
-                        `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                        `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
                       }
                       onClick={() => setIsMenuOpen(false)}
                     >
@@ -227,7 +227,7 @@ const Navbar: React.FC = () => {
                    <NavLink 
                     to="/video-help" 
                     className={({ isActive }) => 
-                      `text-gray-700 hover:text-brand-blue transition-colors py-2 flex items-center ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                      `text-gray-700 hover:text-brand-blue transition-colors py-2 flex items-center ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
                     }
                     onClick={() => setIsMenuOpen(false)}
                   >
@@ -260,7 +260,7 @@ const Navbar: React.FC = () => {
                    <NavLink 
                       to="/about" 
                       className={({ isActive }) => 
-                        `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                        `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
                       }
                       onClick={() => setIsMenuOpen(false)}
                     >
@@ -269,7 +269,7 @@ const Navbar: React.FC = () => {
                    <NavLink 
                       to="/features" 
                       className={({ isActive }) => 
-                        `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                        `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
                       }
                       onClick={() => setIsMenuOpen(false)}
                     >
@@ -278,7 +278,7 @@ const Navbar: React.FC = () => {
                    <NavLink 
                       to="/pricing" 
                       className={({ isActive }) => 
-                        `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                        `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
                       }
                       onClick={() => setIsMenuOpen(false)}
                     >
@@ -287,7 +287,7 @@ const Navbar: React.FC = () => {
                     <NavLink 
                       to="/gift"
                       className={({ isActive }) => 
-                        `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                        `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
                       }
                       onClick={() => setIsMenuOpen(false)}
                     >
@@ -296,7 +296,7 @@ const Navbar: React.FC = () => {
                     <NavLink 
                       to="/blog" 
                       className={({ isActive }) => 
-                        `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                        `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
                       }
                       onClick={() => setIsMenuOpen(false)}
                     >
@@ -305,7 +305,7 @@ const Navbar: React.FC = () => {
                    <NavLink 
                     to="/video-help" 
                     className={({ isActive }) => 
-                      `text-gray-700 hover:text-brand-blue transition-colors py-2 flex items-center ${isActive ? 'bg-yellow-400 text-gray-900 px-3 py-1 rounded-md font-medium' : ''}`
+                      `text-gray-700 hover:text-brand-blue transition-colors py-2 flex items-center ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
                     }
                     onClick={() => setIsMenuOpen(false)}
                   >
