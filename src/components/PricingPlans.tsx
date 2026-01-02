@@ -77,14 +77,14 @@ const PricingPlans: React.FC = () => {
               <SubscriptionPlan
                 title="Standard (Homeowner Plan)"
                 price="$12.99"
-                description="Our most popular plan for comprehensive home documentation"
+                description="Everything most homeowners need to fully document and protect their home."
                 features={planDifferences.standard}
                 buttonText="Get Started"
               />
               <SubscriptionPlan
                 title="Premium (Professional Plan)"
                 price="$18.99"
-                description="Best suited for estate managers, multiple-property owners, or businesses"
+                description="Built for managing multiple properties, estates, or complex asset portfolios."
                 features={planDifferences.premium}
                 buttonText="Get Started"
               />
