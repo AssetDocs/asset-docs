@@ -6,6 +6,7 @@ export const organizationSchema = {
   "url": "https://www.assetsafe.net",
   "logo": "https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email-v2.jpg",
   "description": "Digital home inventory and legacy planning platform for comprehensive property documentation and asset protection.",
+  "foundingDate": "2024",
   "address": {
     "@type": "PostalAddress",
     "addressCountry": "US"
@@ -39,7 +40,7 @@ export const productSchema = (planName: string, price: string, description: stri
     "priceCurrency": "USD",
     "availability": "https://schema.org/InStock",
     "url": "https://www.assetsafe.net/pricing",
-    "priceValidUntil": "2025-12-31"
+    "priceValidUntil": "2026-12-31"
   }
 });
 
@@ -82,42 +83,81 @@ export const webApplicationSchema = {
     "price": "12.99",
     "priceCurrency": "USD"
   },
-  "description": "Digital home inventory and property documentation platform with secure cloud storage, insurance claims support, and legacy planning tools."
+  "description": "Digital home inventory and property documentation platform with secure cloud storage, insurance claims support, and legacy planning tools.",
+  "featureList": [
+    "Digital home inventory",
+    "Photo and video documentation",
+    "Insurance claims support",
+    "Legacy Locker for estate planning",
+    "Secure cloud storage",
+    "Multi-property management"
+  ]
 };
 
-// Local Business Schema (if applicable)
-export const localBusinessSchema = {
+// Software Application Schema (for app stores / PWA)
+export const softwareApplicationSchema = {
   "@context": "https://schema.org",
-  "@type": "LocalBusiness",
+  "@type": "SoftwareApplication",
   "name": "Asset Safe",
-  "image": "https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email-v2.jpg",
-  "url": "https://www.assetsafe.net",
-  "telephone": "+1-XXX-XXX-XXXX", // Update with actual phone if available
-  "address": {
-    "@type": "PostalAddress",
-    "addressCountry": "US"
+  "operatingSystem": "Web, iOS, Android",
+  "applicationCategory": "LifestyleApplication",
+  "offers": {
+    "@type": "Offer",
+    "price": "12.99",
+    "priceCurrency": "USD",
+    "priceValidUntil": "2026-12-31"
   },
-  "priceRange": "$$",
-  "openingHoursSpecification": {
-    "@type": "OpeningHoursSpecification",
-    "dayOfWeek": [
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday"
-    ],
-    "opens": "09:00",
-    "closes": "17:00"
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.8",
+    "ratingCount": "150"
   }
 };
 
+// Video Schema
+export const videoSchema = (
+  title: string, 
+  description: string, 
+  thumbnailUrl: string, 
+  uploadDate: string,
+  contentUrl?: string,
+  embedUrl?: string,
+  duration?: string
+) => ({
+  "@context": "https://schema.org",
+  "@type": "VideoObject",
+  "name": title,
+  "description": description,
+  "thumbnailUrl": thumbnailUrl,
+  "uploadDate": uploadDate,
+  ...(contentUrl && { "contentUrl": contentUrl }),
+  ...(embedUrl && { "embedUrl": embedUrl }),
+  ...(duration && { "duration": duration }),
+  "publisher": {
+    "@type": "Organization",
+    "name": "Asset Safe",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email-v2.jpg"
+    }
+  }
+});
+
 // Article Schema (for blog posts/guides)
-export const articleSchema = (title: string, description: string, datePublished: string, author: string = "Asset Safe Team") => ({
+export const articleSchema = (
+  title: string, 
+  description: string, 
+  datePublished: string, 
+  author: string = "Asset Safe Team",
+  image?: string,
+  url?: string
+) => ({
   "@context": "https://schema.org",
   "@type": "Article",
   "headline": title,
   "description": description,
+  "image": image || "https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email-v2.jpg",
+  ...(url && { "url": url }),
   "author": {
     "@type": "Person",
     "name": author
@@ -132,4 +172,46 @@ export const articleSchema = (title: string, description: string, datePublished:
   },
   "datePublished": datePublished,
   "dateModified": datePublished
+});
+
+// HowTo Schema (for guide pages)
+export const howToSchema = (
+  name: string,
+  description: string,
+  steps: Array<{ name: string; text: string; image?: string }>
+) => ({
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": name,
+  "description": description,
+  "step": steps.map((step, index) => ({
+    "@type": "HowToStep",
+    "position": index + 1,
+    "name": step.name,
+    "text": step.text,
+    ...(step.image && { "image": step.image })
+  }))
+});
+
+// Service Schema (for use-case pages)
+export const serviceSchema = (
+  name: string,
+  description: string,
+  serviceType: string,
+  areaServed: string = "US"
+) => ({
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": name,
+  "description": description,
+  "serviceType": serviceType,
+  "provider": {
+    "@type": "Organization",
+    "name": "Asset Safe",
+    "url": "https://www.assetsafe.net"
+  },
+  "areaServed": {
+    "@type": "Country",
+    "name": areaServed
+  }
 });

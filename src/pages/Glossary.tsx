@@ -3,10 +3,17 @@ import { BookOpen, Building2, FileText, Shield, TrendingUp, Brain, Scale } from 
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import SEOHead from '@/components/SEOHead';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { breadcrumbSchema } from '@/utils/structuredData';
 
 const Glossary = () => {
+  const structuredData = breadcrumbSchema([
+    { name: 'Home', url: 'https://www.assetsafe.net/' },
+    { name: 'Resources', url: 'https://www.assetsafe.net/resources' },
+    { name: 'Glossary', url: 'https://www.assetsafe.net/glossary' }
+  ]);
   const termSections = [
     {
       title: "General Insurance Terms",
@@ -288,6 +295,13 @@ const Glossary = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <SEOHead
+        title="Insurance & Valuation Glossary - Terms Defined"
+        description="Comprehensive glossary of insurance, valuation, and asset documentation terms. Understand premiums, deductibles, claims, appraisals, and more."
+        keywords="insurance glossary, insurance terms, property valuation terms, deductible definition, premium meaning, insurance claim definition, appraisal terms"
+        canonicalUrl="https://www.assetsafe.net/glossary"
+        structuredData={structuredData}
+      />
       <Navbar />
 
       {/* Header */}

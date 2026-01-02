@@ -8,6 +8,7 @@ import { Calendar, Clock, ArrowLeft, Share2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { articleSchema, breadcrumbSchema } from '@/utils/structuredData';
 
 const BlogPost = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -652,12 +653,34 @@ const BlogPost = () => {
     );
   }
 
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      articleSchema(
+        post.title,
+        post.content.substring(0, 160).replace(/<[^>]*>/g, ''),
+        post.date,
+        post.author,
+        post.image,
+        `https://www.assetsafe.net/blog/${slug}`
+      ),
+      breadcrumbSchema([
+        { name: 'Home', url: 'https://www.assetsafe.net/' },
+        { name: 'Blog', url: 'https://www.assetsafe.net/blog' },
+        { name: post.title, url: `https://www.assetsafe.net/blog/${slug}` }
+      ])
+    ]
+  };
+
   return (
     <>
       <SEOHead 
         title={`${post.title} | Asset Safe Blog`}
         description={post.content.substring(0, 160).replace(/<[^>]*>/g, '')}
         canonicalUrl={`https://www.assetsafe.net/blog/${slug}`}
+        type="article"
+        ogImage={post.image}
+        structuredData={structuredData}
       />
       <div className="min-h-screen flex flex-col bg-background">
         <Navbar />

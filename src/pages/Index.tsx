@@ -15,7 +15,7 @@ import LegacyLockerSection from '@/components/LegacyLockerSection';
 import ScrollProgressCue from '@/components/ScrollProgressCue';
 import ComparisonSection from '@/components/ComparisonSection';
 import CTASection from '@/components/CTASection';
-import { organizationSchema, webApplicationSchema, faqSchema } from '@/utils/structuredData';
+import { organizationSchema, webApplicationSchema, faqSchema, videoSchema } from '@/utils/structuredData';
 
 const Index: React.FC = () => {
   const faqData = [
@@ -25,9 +25,19 @@ const Index: React.FC = () => {
     { question: "Can I use Asset Safe for insurance claims?", answer: "Yes! Asset Safe provides pre-documented proof of ownership, receipts, condition photos, and detailed descriptions to streamline insurance claims and maximize recovery." }
   ];
 
+  const heroVideoData = videoSchema(
+    "Asset Safe Introduction - Digital Home Inventory Platform",
+    "Learn how Asset Safe helps you document, protect, and organize your property, assets, and critical information for insurance claims and estate planning.",
+    "https://www.assetsafe.net/assets/youtube-cover-walkthrough.jpg",
+    "2025-01-01",
+    undefined,
+    "https://www.youtube.com/embed/DPnzWlqTN6Q",
+    "PT3M"
+  );
+
   const structuredData = {
     "@context": "https://schema.org",
-    "@graph": [organizationSchema, webApplicationSchema, faqSchema(faqData)]
+    "@graph": [organizationSchema, webApplicationSchema, faqSchema(faqData), heroVideoData]
   };
 
   return (

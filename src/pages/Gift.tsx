@@ -1,13 +1,27 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import SEOHead from '@/components/SEOHead';
 import SubscriptionPlan from '@/components/SubscriptionPlan';
 import { Gift as GiftIcon, Heart, Shield, Users, Zap, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { productSchema, breadcrumbSchema } from '@/utils/structuredData';
 
 const Gift: React.FC = () => {
   const navigate = useNavigate();
+
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      productSchema("Asset Safe Gift - Standard", "129", "One-year gift subscription for homeowners with 3 properties and 25GB storage"),
+      productSchema("Asset Safe Gift - Premium", "189", "One-year gift subscription for managing unlimited properties with 100GB storage"),
+      breadcrumbSchema([
+        { name: 'Home', url: 'https://www.assetsafe.net/' },
+        { name: 'Gift', url: 'https://www.assetsafe.net/gift' }
+      ])
+    ]
+  };
 
   const giftPlans = [
     {
@@ -59,6 +73,13 @@ const Gift: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <SEOHead
+        title="Gift Asset Safe - Give Protection & Peace of Mind"
+        description="Give the gift of property protection. One-year gift subscriptions starting at $129. Perfect for new homeowners, newlyweds, and families. No auto-renew."
+        keywords="gift subscription, home inventory gift, property protection gift, estate planning gift, digital vault gift, homeowner gift ideas"
+        canonicalUrl="https://www.assetsafe.net/gift"
+        structuredData={structuredData}
+      />
       <Navbar />
       
       <main className="flex-grow">

@@ -1,18 +1,40 @@
 import React from 'react';
-import { Helmet } from 'react-helmet-async';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import SEOHead from '@/components/SEOHead';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Shield, Lock, Key, Users, Clock, Info } from 'lucide-react';
 import legacyLockerLogo from '@/assets/legacy-locker-logo.png';
+import { breadcrumbSchema, faqSchema } from '@/utils/structuredData';
 
 const LegacyLockerInfo = () => {
+  const legacyFaqs = [
+    { question: "What is encrypted storage?", answer: "All credentials are encrypted at rest and in transit, meaning your data is protected whether it's being stored or accessed. Asset Safe cannot view or use your stored passwords." },
+    { question: "What is Two-Factor Authentication (2FA)?", answer: "Access to Legacy Locker requires two forms of verification, adding a critical layer of protection beyond your password." },
+    { question: "What are Trusted Contact Controls?", answer: "You decide who can access your information and what they can see. Grant access to specific categories, update or revoke permissions at any time." },
+    { question: "Is Legacy Locker a legal will?", answer: "Legacy Locker is a secure information vault, not a legal authorization tool. It does not replace a will, trust, or estate plan—but it complements them by handling the practical access details legal documents typically can't include." }
+  ];
+
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      faqSchema(legacyFaqs),
+      breadcrumbSchema([
+        { name: 'Home', url: 'https://www.assetsafe.net/' },
+        { name: 'Legacy Locker', url: 'https://www.assetsafe.net/legacy-locker' }
+      ])
+    ]
+  };
+
   return (
     <>
-      <Helmet>
-        <title>Legacy Locker Security & Features | Asset Safe</title>
-        <meta name="description" content="Learn how Legacy Locker protects your sensitive information with encryption, two-factor authentication, and trusted contact controls." />
-      </Helmet>
+      <SEOHead
+        title="Legacy Locker - Secure Digital Vault for Estate Planning"
+        description="Legacy Locker provides encrypted storage for passwords, accounts, and important documents your loved ones will need. Two-factor authentication, trusted contact controls, and purpose-driven access."
+        keywords="legacy locker, digital estate vault, password storage, estate planning vault, secure digital vault, trusted contacts, encrypted storage, digital legacy"
+        canonicalUrl="https://www.assetsafe.net/legacy-locker"
+        structuredData={structuredData}
+      />
       <Navbar />
       <main className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50 pt-20">
         <div className="container mx-auto px-4 py-12">

@@ -1,10 +1,24 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import SEOHead from '@/components/SEOHead';
+import { breadcrumbSchema } from '@/utils/structuredData';
 
 const SocialImpact: React.FC = () => {
+  const structuredData = breadcrumbSchema([
+    { name: 'Home', url: 'https://www.assetsafe.net/' },
+    { name: 'Social Impact', url: 'https://www.assetsafe.net/social-impact' }
+  ]);
+
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title="Social Impact - How Asset Safe Helps Communities"
+        description="Learn how Asset Safe supports families, small businesses, and communities during disasters, transitions, and recovery. Our mission is to make documentation accessible to everyone."
+        keywords="social impact, community support, disaster recovery, small business protection, family asset protection, estate planning help"
+        canonicalUrl="https://www.assetsafe.net/social-impact"
+        structuredData={structuredData}
+      />
       <Navbar />
       
       <main className="pt-20">
