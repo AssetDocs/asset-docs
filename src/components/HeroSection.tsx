@@ -11,10 +11,13 @@ const HeroSection: React.FC = () => {
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
           <div className="lg:w-2/3 mb-10 lg:mb-0">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 animate-fade-in">
-              Your Digital Safety Net for Asset Protection & Unexpected Events
+              Your Digital Safety Net for What Matters Most
             </h1>
             <p className="text-xl mb-4 animate-slide-up opacity-90">
-              Complete property documentation platform for homeowners, renters, and businesses. Secure digital inventory, insurance claims support, legacy planning, and estate management tools—all in one comprehensive solution.
+              Document, protect, and organize your property, assets, and critical information—so you're prepared for the unexpected.
+            </p>
+            <p className="text-lg mb-4 animate-slide-up opacity-80">
+              Secure digital inventory, insurance claim support, legacy planning, and estate management—built for homeowners, renters, and businesses.
             </p>
             
             <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 animate-slide-up">
