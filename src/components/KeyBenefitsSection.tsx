@@ -47,6 +47,9 @@ const KeyBenefitsSection: React.FC = () => {
   return (
     <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
       <div className="container mx-auto px-4">
+        <p className="text-center text-xl md:text-2xl font-medium text-gray-700 mb-10 max-w-3xl mx-auto">
+          Most people don't realize how unprepared they are—until it's too late.
+        </p>
         <div className="max-w-5xl mx-auto space-y-8">
           {benefits.map((benefit, index) => (
             <div 
