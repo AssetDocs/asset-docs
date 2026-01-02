@@ -13,7 +13,7 @@ const Gift: React.FC = () => {
     {
       title: "Gift – Standard",
       price: "$129 / 1 year",
-      description: "One-time payment, no auto-renew",
+      description: "Everything most homeowners need to fully document and protect their home.",
       features: [
         "Up to 3 properties",
         "25GB secure cloud storage",
@@ -25,7 +25,7 @@ const Gift: React.FC = () => {
     {
       title: "Gift – Premium",
       price: "$189 / 1 year",
-      description: "One-time payment, no auto-renew",
+      description: "Built for managing multiple properties, estates, or complex asset portfolios.",
       features: [
         "Unlimited properties",
         "100GB secure cloud storage",
