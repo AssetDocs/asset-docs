@@ -141,11 +141,11 @@ const QA: React.FC = () => {
               <AccordionItem value="item-11">
                 <AccordionTrigger className="text-lg font-medium">Can I use Asset Safe for inventory management or business operations?</AccordionTrigger>
                 <AccordionContent>
-                  Asset Safe is specifically designed for property documentation and insurance protection, not 
-                  inventory management or business operations. Our platform focuses on helping property owners 
-                  create comprehensive documentation of their personal assets for insurance claims, estate planning, 
-                  and financial records. For business inventory management, we recommend using dedicated inventory 
-                  management software that is designed for tracking business assets and operations.
+                  Asset Safe is designed for documentation, protection, and record-keeping rather than day-to-day 
+                  inventory or operational management. Many users rely on Asset Safe to document assets, preserve 
+                  condition records, store receipts, and support insurance, compliance, and financial reporting needs. 
+                  For active inventory tracking or operational workflows, dedicated inventory management tools are 
+                  typically a better fit.
                 </AccordionContent>
               </AccordionItem>
               
