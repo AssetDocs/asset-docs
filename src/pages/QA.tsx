@@ -32,16 +32,6 @@ const QA: React.FC = () => {
                 </AccordionContent>
               </AccordionItem>
               
-              <AccordionItem value="item-2">
-                <AccordionTrigger className="text-lg font-medium">Can I use Asset Safe for inventory management or business operations?</AccordionTrigger>
-                <AccordionContent>
-                  No, Asset Safe is specifically designed for property documentation and insurance protection, not 
-                  inventory management or business operations. Our platform focuses on helping property owners 
-                  create comprehensive documentation of their personal assets for insurance claims, estate planning, 
-                  and financial records. For business inventory management, we recommend using dedicated inventory 
-                  management software that is designed for tracking business assets and operations.
-                </AccordionContent>
-              </AccordionItem>
               
               <AccordionItem value="item-3">
                 <AccordionTrigger className="text-lg font-medium">Can I use Asset Safe for insurance claims?</AccordionTrigger>
@@ -575,6 +565,17 @@ const QA: React.FC = () => {
                       <span className="font-medium">Strong where it matters. Seamless everywhere else.</span>
                     </p>
                   </div>
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-2">
+                <AccordionTrigger className="text-lg font-medium">Can I use Asset Safe for inventory management or business operations?</AccordionTrigger>
+                <AccordionContent>
+                  No, Asset Safe is specifically designed for property documentation and insurance protection, not 
+                  inventory management or business operations. Our platform focuses on helping property owners 
+                  create comprehensive documentation of their personal assets for insurance claims, estate planning, 
+                  and financial records. For business inventory management, we recommend using dedicated inventory 
+                  management software that is designed for tracking business assets and operations.
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
