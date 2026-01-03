@@ -32,8 +32,7 @@ const QA: React.FC = () => {
                 </AccordionContent>
               </AccordionItem>
               
-              
-              <AccordionItem value="item-3">
+              <AccordionItem value="item-2">
                 <AccordionTrigger className="text-lg font-medium">Can I use Asset Safe for insurance claims?</AccordionTrigger>
                 <AccordionContent>
                   Yes! Asset Safe is specifically designed to help with insurance claims. Our third-party verification 
@@ -43,7 +42,7 @@ const QA: React.FC = () => {
                 </AccordionContent>
               </AccordionItem>
               
-              <AccordionItem value="item-4">
+              <AccordionItem value="item-3">
                 <AccordionTrigger className="text-lg font-medium">Is my data backed up and what happens if I cancel?</AccordionTrigger>
                 <AccordionContent>
                   Yes, all your data is automatically backed up across multiple secure data centers with 99.9% uptime. 
@@ -51,15 +50,7 @@ const QA: React.FC = () => {
                 </AccordionContent>
               </AccordionItem>
               
-              <AccordionItem value="item-5">
-                <AccordionTrigger className="text-lg font-medium">How does receipt integration work?</AccordionTrigger>
-                <AccordionContent>
-                  When you upload photos of your possessions, you can also upload associated receipts. This creates 
-                  a comprehensive record that includes both visual documentation and proof of purchase.
-                </AccordionContent>
-              </AccordionItem>
-              
-              <AccordionItem value="item-6">
+              <AccordionItem value="item-4">
                 <AccordionTrigger className="text-lg font-medium">What types of assets can I document?</AccordionTrigger>
                 <AccordionContent>
                   Asset Safe supports documentation of virtually any physical asset, including electronics, furniture, 
@@ -68,18 +59,16 @@ const QA: React.FC = () => {
                 </AccordionContent>
               </AccordionItem>
               
-              <AccordionItem value="item-8">
-                <AccordionTrigger className="text-lg font-medium">Can I share my documentation with others?</AccordionTrigger>
+              <AccordionItem value="item-5">
+                <AccordionTrigger className="text-lg font-medium">How does receipt and document organization work?</AccordionTrigger>
                 <AccordionContent>
-                  Yes, Asset Safe allows you to securely share selected documentation with specified parties, such as 
-                  insurance agents, estate planners, or family members. You can control exactly what information is 
-                  shared and for how long, and you can revoke access at any time. This feature is particularly useful 
-                  when filing insurance claims or during estate planning.
+                  When you upload photos of your possessions, you can also upload associated receipts. This creates 
+                  a comprehensive record that includes both visual documentation and proof of purchase.
                 </AccordionContent>
               </AccordionItem>
               
-              <AccordionItem value="item-9">
-                <AccordionTrigger className="text-lg font-medium">If I have a drawer or shelf full of tools, kitchen goods, movies, etc. Do I need a photo of every item?</AccordionTrigger>
+              <AccordionItem value="item-6">
+                <AccordionTrigger className="text-lg font-medium">Do I need to photograph every single item?</AccordionTrigger>
                 <AccordionContent>
                   Apart from higher-priced or specialty items, it is not always necessary to document every individual item. 
                   For instance, a kitchen drawer full of forks and knives, a shelf of DVDs or CDs, or a shelf of garage 
@@ -89,7 +78,17 @@ const QA: React.FC = () => {
                 </AccordionContent>
               </AccordionItem>
               
-              <AccordionItem value="item-10">
+              <AccordionItem value="item-7">
+                <AccordionTrigger className="text-lg font-medium">Can I share my documentation with others?</AccordionTrigger>
+                <AccordionContent>
+                  Yes, Asset Safe allows you to securely share selected documentation with specified parties, such as 
+                  insurance agents, estate planners, or family members. You can control exactly what information is 
+                  shared and for how long, and you can revoke access at any time. This feature is particularly useful 
+                  when filing insurance claims or during estate planning.
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-8">
                 <AccordionTrigger className="text-lg font-medium">What support options are available?</AccordionTrigger>
                 <AccordionContent>
                   We provide video tutorials and resource information under the References section in the footer, 
@@ -97,36 +96,14 @@ const QA: React.FC = () => {
                 </AccordionContent>
               </AccordionItem>
               
-              <AccordionItem value="item-11">
-                <AccordionTrigger className="text-lg font-medium">Can I cancel my subscription at any time?</AccordionTrigger>
-                <AccordionContent>
-                  Yes, you can cancel your subscription at any time. Your documentation will remain accessible until the end of your billing period.
-                </AccordionContent>
-              </AccordionItem>
-              
-              <AccordionItem value="item-12">
-                <AccordionTrigger className="text-lg font-medium">What is included in my subscription?</AccordionTrigger>
-                <AccordionContent>
-                  Your subscription includes full access to all features:
-                  <ul className="list-disc list-inside mt-2 ml-4 space-y-1">
-                    <li>Photo and video uploads</li>
-                    <li>Full web platform access</li>
-                    <li>Voice notes for item details</li>
-                    <li>Post damage documentation</li>
-                    <li>Export detailed reports</li>
-                    <li>Email support</li>
-                  </ul>
-                </AccordionContent>
-              </AccordionItem>
-              
-              <AccordionItem value="item-14">
+              <AccordionItem value="item-9">
                 <AccordionTrigger className="text-lg font-medium">Can I upgrade or downgrade my plan?</AccordionTrigger>
                 <AccordionContent>
                   Yes, you can change your plan at any time. When upgrading, you'll have immediate access to new features. When downgrading, changes take effect at the end of your billing cycle.
                 </AccordionContent>
               </AccordionItem>
               
-              <AccordionItem value="item-15">
+              <AccordionItem value="item-10">
                 <AccordionTrigger className="text-lg font-medium">How much storage do I need?</AccordionTrigger>
                 <AccordionContent>
                   <p className="mb-4">
@@ -158,6 +135,17 @@ const QA: React.FC = () => {
                       </tbody>
                     </table>
                   </div>
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-11">
+                <AccordionTrigger className="text-lg font-medium">Can I use Asset Safe for inventory management or business operations?</AccordionTrigger>
+                <AccordionContent>
+                  Asset Safe is specifically designed for property documentation and insurance protection, not 
+                  inventory management or business operations. Our platform focuses on helping property owners 
+                  create comprehensive documentation of their personal assets for insurance claims, estate planning, 
+                  and financial records. For business inventory management, we recommend using dedicated inventory 
+                  management software that is designed for tracking business assets and operations.
                 </AccordionContent>
               </AccordionItem>
               
@@ -565,17 +553,6 @@ const QA: React.FC = () => {
                       <span className="font-medium">Strong where it matters. Seamless everywhere else.</span>
                     </p>
                   </div>
-                </AccordionContent>
-              </AccordionItem>
-              
-              <AccordionItem value="item-2">
-                <AccordionTrigger className="text-lg font-medium">Can I use Asset Safe for inventory management or business operations?</AccordionTrigger>
-                <AccordionContent>
-                  No, Asset Safe is specifically designed for property documentation and insurance protection, not 
-                  inventory management or business operations. Our platform focuses on helping property owners 
-                  create comprehensive documentation of their personal assets for insurance claims, estate planning, 
-                  and financial records. For business inventory management, we recommend using dedicated inventory 
-                  management software that is designed for tracking business assets and operations.
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
