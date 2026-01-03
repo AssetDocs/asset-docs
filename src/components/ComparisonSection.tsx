@@ -69,7 +69,7 @@ const ComparisonSection: React.FC = () => {
             </button>
 
             <div className={cn("transition-all", isOpen ? "block" : "hidden")}>
-              <div className="px-6 pb-6">
+              <div className="px-6 pt-6 pb-6">
                 <p className="text-muted-foreground mb-6">
                   Asset Safe combines property documentation, estate planning, and insurance support in one comprehensive platform—unlike traditional home inventory apps or paper-based systems.
                 </p>
