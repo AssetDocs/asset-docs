@@ -117,28 +117,55 @@ const Navbar: React.FC = () => {
               </>
             ) : (
               <>
-                   <Link to="/about" className="text-gray-700 hover:text-brand-blue transition-colors">
-                     About
-                   </Link>
-                   <Link to="/features" className="text-gray-700 hover:text-brand-blue transition-colors">
-                     {translate('nav.features')}
-                   </Link>
-                   <Link to="/pricing" className="text-gray-700 hover:text-brand-blue transition-colors">
-                     {translate('nav.pricing')}
-                   </Link>
-                   <Link to="/gift" className="text-gray-700 hover:text-brand-blue transition-colors">
-                     Gift
-                   </Link>
-                   <Link to="/blog" className="text-gray-700 hover:text-brand-blue transition-colors">
-                     Blog
-                   </Link>
-                <Link 
-                  to="/video-help" 
-                  className="text-gray-700 hover:text-brand-blue transition-colors flex items-center"
-                >
-                  <Video className="h-4 w-4 mr-1" />
-                  {translate('nav.videoHelp')}
-                </Link>
+                    <NavLink 
+                      to="/about" 
+                      className={({ isActive }) => 
+                        `transition-colors ${isActive ? 'text-brand-green font-medium' : 'text-gray-700 hover:text-brand-blue'}`
+                      }
+                    >
+                      About
+                    </NavLink>
+                    <NavLink 
+                      to="/features" 
+                      className={({ isActive }) => 
+                        `transition-colors ${isActive ? 'text-brand-green font-medium' : 'text-gray-700 hover:text-brand-blue'}`
+                      }
+                    >
+                      {translate('nav.features')}
+                    </NavLink>
+                    <NavLink 
+                      to="/pricing" 
+                      className={({ isActive }) => 
+                        `transition-colors ${isActive ? 'text-brand-green font-medium' : 'text-gray-700 hover:text-brand-blue'}`
+                      }
+                    >
+                      {translate('nav.pricing')}
+                    </NavLink>
+                    <NavLink 
+                      to="/gift" 
+                      className={({ isActive }) => 
+                        `transition-colors ${isActive ? 'text-brand-green font-medium' : 'text-gray-700 hover:text-brand-blue'}`
+                      }
+                    >
+                      Gift
+                    </NavLink>
+                    <NavLink 
+                      to="/blog" 
+                      className={({ isActive }) => 
+                        `transition-colors ${isActive ? 'text-brand-green font-medium' : 'text-gray-700 hover:text-brand-blue'}`
+                      }
+                    >
+                      Blog
+                    </NavLink>
+                 <NavLink 
+                   to="/video-help" 
+                   className={({ isActive }) => 
+                     `transition-colors flex items-center ${isActive ? 'text-brand-green font-medium' : 'text-gray-700 hover:text-brand-blue'}`
+                   }
+                 >
+                   <Video className="h-4 w-4 mr-1" />
+                   {translate('nav.videoHelp')}
+                 </NavLink>
                  <Button asChild variant="outline">
                    <Link 
                      to="/login" 
