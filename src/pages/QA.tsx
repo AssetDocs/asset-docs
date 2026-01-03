@@ -135,18 +135,7 @@ const QA: React.FC = () => {
                       </tbody>
                     </table>
                   </div>
-                </AccordionContent>
-              </AccordionItem>
-              
-              <AccordionItem value="item-11">
-                <AccordionTrigger className="text-lg font-medium">Can I use Asset Safe for inventory management or business operations?</AccordionTrigger>
-                <AccordionContent>
-                  Asset Safe is designed for documentation, protection, and record-keeping rather than day-to-day 
-                  inventory or operational management. Many users rely on Asset Safe to document assets, preserve 
-                  condition records, store receipts, and support insurance, compliance, and financial reporting needs. 
-                  For active inventory tracking or operational workflows, dedicated inventory management tools are 
-                  typically a better fit.
-                </AccordionContent>
+              </AccordionContent>
               </AccordionItem>
               
               {/* Legacy Locker Section */}
@@ -553,6 +542,17 @@ const QA: React.FC = () => {
                       <span className="font-medium">Strong where it matters. Seamless everywhere else.</span>
                     </p>
                   </div>
+                </AccordionContent>
+              </AccordionItem>
+              
+              <AccordionItem value="item-11">
+                <AccordionTrigger className="text-lg font-medium">Can I use Asset Safe for inventory management or business operations?</AccordionTrigger>
+                <AccordionContent>
+                  Asset Safe is designed for documentation, protection, and record-keeping rather than day-to-day 
+                  inventory or operational management. Many users rely on Asset Safe to document assets, preserve 
+                  condition records, store receipts, and support insurance, compliance, and financial reporting needs. 
+                  For active inventory tracking or operational workflows, dedicated inventory management tools are 
+                  typically a better fit.
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
