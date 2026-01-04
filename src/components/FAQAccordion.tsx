@@ -233,29 +233,29 @@ const FAQAccordion: React.FC = () => {
           <AccordionItem value="legacy-1">
             <AccordionTrigger className="text-lg font-medium">What is the Legacy Locker?</AccordionTrigger>
             <AccordionContent>
-              The Legacy Locker is a secure, private vault inside Asset Safe where you can organize important personal information for loved ones—photos, videos, notes, access details, and other clarifying documents. It is designed to provide context and guidance alongside your official estate plans.
+              The Legacy Locker is a private, secure vault within Asset Safe where you can organize personal information intended for loved ones or trusted contacts. It's designed to store context-rich materials—such as notes, messages, media, and access details—that help explain your wishes and provide guidance alongside formal estate documents.
             </AccordionContent>
           </AccordionItem>
           
           <AccordionItem value="legacy-2">
             <AccordionTrigger className="text-lg font-medium">Is the Legacy Locker a legal will?</AccordionTrigger>
             <AccordionContent>
-              No. The Legacy Locker is not a legally recognized will or e-will. Instead, it acts as supporting evidence—helping your executor, family, and trusted contacts better understand your wishes with added detail and documentation.
+              No. The Legacy Locker is not a legal will, e-will, or substitute for formal estate planning documents. Instead, it serves as supplemental information that can help executors, family members, and trusted contacts better understand your intentions when used alongside legally recognized documents.
             </AccordionContent>
           </AccordionItem>
           
           <AccordionItem value="legacy-3">
             <AccordionTrigger className="text-lg font-medium">What kind of information can I store in the Legacy Locker?</AccordionTrigger>
             <AccordionContent>
-              You can store personal messages, executor and guardian details, asset notes, property information, wish statements, financial account summaries, passwords, voice notes, photos, videos, and uploaded documents. Anything that helps tell the story behind your intentions belongs here.
+              You can store a wide range of personal and informational content, including written messages, executor or guardian details, asset notes, property information, wish statements, financial account summaries, passwords, voice recordings, photos, videos, and uploaded documents—anything that adds clarity and context to your plans.
             </AccordionContent>
           </AccordionItem>
           
           <AccordionItem value="legacy-4">
             <AccordionTrigger className="text-lg font-medium">Why is the Legacy Locker valuable?</AccordionTrigger>
             <AccordionContent>
-              <p className="mb-2">Wills state what you want — your Legacy Locker shows why and how.</p>
-              <p>It removes guesswork, reduces stress on your family, and provides an organized record of your wishes with real-life documentation to support your estate plans.</p>
+              <p className="mb-2">Traditional estate documents state what should happen. The Legacy Locker helps explain why and how.</p>
+              <p>By centralizing personal guidance and supporting materials, it reduces uncertainty, minimizes stress for loved ones, and provides a clearer roadmap during difficult or time-sensitive situations.</p>
             </AccordionContent>
           </AccordionItem>
           
@@ -350,14 +350,14 @@ const FAQAccordion: React.FC = () => {
           <AccordionItem value="legacy-6">
             <AccordionTrigger className="text-lg font-medium">Can contributors see my Legacy Locker?</AccordionTrigger>
             <AccordionContent>
-              Only if you authorize it. Your Legacy Locker is private by default, and you can choose whether contributors have full access, partial access, or no access at all.
+              Only if you allow it. The Legacy Locker is private by default, and you control whether contributors have full access, limited access, or no access at all.
             </AccordionContent>
           </AccordionItem>
           
           <AccordionItem value="legacy-7">
             <AccordionTrigger className="text-lg font-medium">Can I revoke access at any time?</AccordionTrigger>
             <AccordionContent>
-              Yes. You can instantly remove or adjust a contributor&apos;s permissions from your dashboard with one click.
+              Yes. You can update or revoke contributor access instantly from your dashboard at any time.
             </AccordionContent>
           </AccordionItem>
         </Accordion>
