@@ -148,48 +148,37 @@ const FAQAccordion: React.FC = () => {
           <AccordionItem value="using-1">
             <AccordionTrigger className="text-lg font-medium">Can I use Asset Safe for insurance claims?</AccordionTrigger>
             <AccordionContent>
-              Yes! Asset Safe is specifically designed to help with insurance claims. Our third-party verification 
-              process creates legally valid documentation of your assets that can expedite claims processing. 
-              You can generate detailed reports that include proof of ownership, condition documentation, and 
-              value assessments that most insurance companies accept as valid evidence during claims.
+              Yes. Asset Safe is designed to help you organize and document your property in a way that can support insurance claims. The platform allows you to create detailed records that may include photos, descriptions, dates, receipts, and user-entered values. While Asset Safe does not verify assets or validate claims, many users find this documentation helpful when working with insurance providers during the claims process.
             </AccordionContent>
           </AccordionItem>
           
           <AccordionItem value="using-2">
             <AccordionTrigger className="text-lg font-medium">What types of assets can I document?</AccordionTrigger>
             <AccordionContent>
-              Asset Safe supports documentation of virtually any physical asset, including electronics, furniture, 
-              artwork, jewelry, collectibles, appliances, vehicles, and real estate. And non-physical assets like 
-              software licenses, intellectual property, digital accounts, and business records.
+              <p className="mb-2">Asset Safe supports documentation for a wide range of assets, including both physical and non-physical items.</p>
+              <p className="mb-1"><strong>Physical assets</strong> may include electronics, furniture, artwork, jewelry, collectibles, appliances, vehicles, and real estate.</p>
+              <p><strong>Non-physical assets</strong> may include software licenses, digital subscriptions, intellectual property records, online accounts, and important business or personal documents.</p>
             </AccordionContent>
           </AccordionItem>
           
           <AccordionItem value="using-3">
             <AccordionTrigger className="text-lg font-medium">Do I need to photograph every single item?</AccordionTrigger>
             <AccordionContent>
-              Apart from higher-priced or specialty items, it is not always necessary to document every individual item. 
-              For instance, a kitchen drawer full of forks and knives, a shelf of DVDs or CDs, or a shelf of garage 
-              tools and equipment, you'll likely only need a wide-angle photo showing the collection. You can then 
-              manually enter the estimated value of the items shown as a whole, making the documentation process 
-              more efficient while still maintaining adequate records for insurance purposes.
+              Not always. While high-value or specialty items should be documented individually, groups of lower-value items can often be captured together. For example, a drawer of kitchen utensils, a shelf of DVDs, or a collection of garage tools can typically be documented with a single wide-angle photo. You can then enter a combined description and estimated value, making the process more efficient while still maintaining useful records.
             </AccordionContent>
           </AccordionItem>
           
           <AccordionItem value="using-4">
             <AccordionTrigger className="text-lg font-medium">How does receipt and document organization work?</AccordionTrigger>
             <AccordionContent>
-              When you upload photos of your possessions, you can also upload associated receipts. This creates 
-              a comprehensive record that includes both visual documentation and proof of purchase.
+              Asset Safe allows you to upload receipts and related documents alongside photos of your items. This creates a centralized record that combines visual documentation with proof of purchase or ownership, helping you keep everything organized in one secure place.
             </AccordionContent>
           </AccordionItem>
           
           <AccordionItem value="using-5">
             <AccordionTrigger className="text-lg font-medium">Can I share my documentation with others?</AccordionTrigger>
             <AccordionContent>
-              Yes, Asset Safe allows you to securely share selected documentation with specified parties, such as 
-              insurance agents, estate planners, or family members. You can control exactly what information is 
-              shared and for how long, and you can revoke access at any time. This feature is particularly useful 
-              when filing insurance claims or during estate planning.
+              Yes. Asset Safe lets you securely share selected documentation with trusted parties such as insurance agents, estate planners, or family members. You control what is shared, who can access it, and for how long. Access can be modified or revoked at any time.
             </AccordionContent>
           </AccordionItem>
           
@@ -197,29 +186,29 @@ const FAQAccordion: React.FC = () => {
             <AccordionTrigger className="text-lg font-medium">How much storage do I need?</AccordionTrigger>
             <AccordionContent>
               <p className="mb-4">
-                Storage needs vary based on file types and usage. Here&apos;s a quick reference for our plans:
+                Storage needs vary depending on how you use the platform and the types of files you upload. Below is a general reference based on common file sizes:
               </p>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b">
                       <th className="text-left py-2">Storage</th>
-                      <th className="text-left py-2">Photos (3MB)</th>
+                      <th className="text-left py-2">Photos (~3 MB)</th>
                       <th className="text-left py-2">1080p Video</th>
                       <th className="text-left py-2">4K Video</th>
                     </tr>
                   </thead>
                   <tbody className="text-muted-foreground">
                     <tr className="border-b">
-                      <td className="py-2 font-medium">25GB</td>
-                      <td className="py-2">~8,300</td>
-                      <td className="py-2">~0.42 hours (25 min)</td>
+                      <td className="py-2 font-medium">25 GB</td>
+                      <td className="py-2">~8,300 photos</td>
+                      <td className="py-2">~25 minutes</td>
                       <td className="py-2">~6.5 minutes</td>
                     </tr>
                     <tr>
-                      <td className="py-2 font-medium">100GB</td>
-                      <td className="py-2">~33,300</td>
-                      <td className="py-2">~1.67 hours (100 min)</td>
+                      <td className="py-2 font-medium">100 GB</td>
+                      <td className="py-2">~33,300 photos</td>
+                      <td className="py-2">~100 minutes</td>
                       <td className="py-2">~26 minutes</td>
                     </tr>
                   </tbody>
@@ -231,7 +220,7 @@ const FAQAccordion: React.FC = () => {
           <AccordionItem value="using-7">
             <AccordionTrigger className="text-lg font-medium">Can I upgrade or downgrade my plan?</AccordionTrigger>
             <AccordionContent>
-              Yes, you can change your plan at any time. When upgrading, you'll have immediate access to new features. When downgrading, changes take effect at the end of your billing cycle.
+              Yes. You can change your subscription at any time. Upgrades take effect immediately, giving you access to additional storage or features right away. Downgrades apply at the end of your current billing cycle, so you won't lose access mid-period.
             </AccordionContent>
           </AccordionItem>
         </Accordion>
