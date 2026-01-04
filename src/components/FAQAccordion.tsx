@@ -11,18 +11,14 @@ const FAQAccordion: React.FC = () => {
           <AccordionItem value="security-1">
             <AccordionTrigger className="text-lg font-medium">How secure is my property documentation?</AccordionTrigger>
             <AccordionContent>
-              Asset Safe uses enterprise-grade encryption and secure cloud storage to protect your valuable 
-              documentation. All data is encrypted both in transit and at rest, and we implement strict access 
-              controls to ensure your information remains private and secure at all times. Our security protocols 
-              are regularly audited and updated to maintain the highest standards of data protection.
+              Asset Safe is built with security as a core priority. Your data is protected using enterprise-grade encryption both in transit and at rest, and strict access controls ensure that only you (and anyone you authorize) can access your information. Our infrastructure and security practices are regularly reviewed and updated to meet modern data-protection standards.
             </AccordionContent>
           </AccordionItem>
           
           <AccordionItem value="security-2">
-            <AccordionTrigger className="text-lg font-medium">Is my data backed up and what happens if I cancel?</AccordionTrigger>
+            <AccordionTrigger className="text-lg font-medium">Is my data backed up, and what happens if I cancel?</AccordionTrigger>
             <AccordionContent>
-              Yes, all your data is automatically backed up across multiple secure data centers with 99.9% uptime. 
-              If you cancel your subscription, you'll have until the end of your billing cycle to download all your documentation and data.
+              Yes. Your data is automatically backed up across multiple secure cloud systems designed for reliability and redundancy. If you choose to cancel your subscription, you'll retain full access to your account and data through the end of your current billing period, during which time you can download any documentation you wish to keep.
             </AccordionContent>
           </AccordionItem>
           
@@ -132,15 +128,14 @@ const FAQAccordion: React.FC = () => {
           <AccordionItem value="security-4">
             <AccordionTrigger className="text-lg font-medium">Is my password information encrypted?</AccordionTrigger>
             <AccordionContent>
-              Yes. Everything in the Password and Accounts Catalog is encrypted at rest and in transit. Only you—and anyone you explicitly grant access—can view this information.
+              Yes. All information stored in the Password & Accounts Catalog is encrypted both at rest and in transit. Asset Safe cannot view this information—only you, and anyone you explicitly grant access to, can see it.
             </AccordionContent>
           </AccordionItem>
           
           <AccordionItem value="security-5">
             <AccordionTrigger className="text-lg font-medium">What support options are available?</AccordionTrigger>
             <AccordionContent>
-              We provide video tutorials and resource information under the References section in the footer, 
-              to help you get the most out of Asset Safe. Comprehensive 24/7 chat feature coming soon!
+              We offer step-by-step video tutorials and helpful resources in the References section of our website footer to guide you through the platform. A built-in 24/7 chat support feature is also in development and will be available soon.
             </AccordionContent>
           </AccordionItem>
         </Accordion>
