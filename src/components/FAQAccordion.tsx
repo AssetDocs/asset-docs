@@ -520,20 +520,20 @@ const FAQAccordion: React.FC = () => {
         <h3 className="text-xl font-semibold text-brand-green mb-4 border-b border-brand-green/30 pb-2">Plans & Access</h3>
         <Accordion type="single" collapsible>
           <AccordionItem value="plans-1">
-            <AccordionTrigger className="text-lg font-medium">Who can add me as a contributor?</AccordionTrigger>
+            <AccordionTrigger className="text-lg font-medium">Who should I add as a contributor?</AccordionTrigger>
             <AccordionContent>
-              You can invite trusted individuals—family members, friends, financial professionals, or advisors—to collaborate on your Asset Safe account. You control exactly what each contributor can see or update.
+              You can invite trusted individuals such as family members, close friends, or professional advisors to collaborate on your Asset Safe account. Each contributor's access is fully customizable, allowing you to decide exactly what they can view or manage.
             </AccordionContent>
           </AccordionItem>
           
           <AccordionItem value="plans-2">
-            <AccordionTrigger className="text-lg font-medium">What are the access levels?</AccordionTrigger>
+            <AccordionTrigger className="text-lg font-medium">What access levels are available?</AccordionTrigger>
             <AccordionContent>
-              <p className="mb-3">Asset Safe offers tiered access options, including:</p>
+              <p className="mb-3">Asset Safe offers tiered access levels so you stay in control at all times:</p>
               <ul className="list-disc list-inside space-y-2 ml-4">
-                <li><strong>View Only</strong> – Contributor can see selected items but cannot edit anything.</li>
-                <li><strong>Edit Access</strong> – Contributor can add, update, or organize information you allow them to manage.</li>
-                <li><strong>Administrator Access</strong> – Full access to all features and settings, including the ability to manage other contributors.</li>
+                <li><strong>View Only</strong> – Contributors can see selected items but cannot make changes.</li>
+                <li><strong>Edit Access</strong> – Contributors can add, update, or organize information you choose to share with them.</li>
+                <li><strong>Administrator Access</strong> – Full access to account features and settings, including the ability to manage contributors.</li>
               </ul>
             </AccordionContent>
           </AccordionItem>
@@ -541,11 +541,7 @@ const FAQAccordion: React.FC = () => {
           <AccordionItem value="plans-3">
             <AccordionTrigger className="text-lg font-medium">Can I use Asset Safe for inventory management or business operations?</AccordionTrigger>
             <AccordionContent>
-              Asset Safe is designed for documentation, protection, and record-keeping rather than day-to-day 
-              inventory or operational management. Many users rely on Asset Safe to document assets, preserve 
-              condition records, store receipts, and support insurance, compliance, and financial reporting needs. 
-              For active inventory tracking or operational workflows, dedicated inventory management tools are 
-              typically a better fit.
+              Asset Safe is designed for documentation, protection, and long-term record-keeping—not for day-to-day inventory tracking or operational management. Many users rely on Asset Safe to document assets, preserve condition records, store receipts, and maintain organized records for insurance, compliance, or financial reference. For active inventory workflows or operational processes, dedicated inventory management software is typically a better fit.
             </AccordionContent>
           </AccordionItem>
         </Accordion>
