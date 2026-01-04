@@ -1961,6 +1961,15 @@ export type Database = {
           has_gift: boolean
         }[]
       }
+      get_feature_adoption: {
+        Args: never
+        Returns: {
+          adoption_percentage: number
+          feature_name: string
+          total_users: number
+          users_with_feature: number
+        }[]
+      }
       get_leads_by_source: {
         Args: never
         Returns: {
@@ -1985,6 +1994,16 @@ export type Database = {
           status: string
         }[]
       }
+      get_recent_activity_summary: {
+        Args: never
+        Returns: {
+          action_count: number
+          action_date: string
+          last_action: string
+          last_action_time: string
+          user_id: string
+        }[]
+      }
       get_recipient_gifts: {
         Args: never
         Returns: {
@@ -1999,6 +2018,49 @@ export type Database = {
           redeemed: boolean
           redeemed_at: string
           status: string
+        }[]
+      }
+      get_revenue_metrics: {
+        Args: never
+        Returns: {
+          metric_name: string
+          metric_period: string
+          metric_value: number
+        }[]
+      }
+      get_storage_stats: {
+        Args: never
+        Returns: {
+          file_count: number
+          storage_quota_gb: number
+          total_used_bytes: number
+          usage_percentage: number
+          user_id: string
+        }[]
+      }
+      get_trial_management_data: {
+        Args: never
+        Returns: {
+          days_remaining: number
+          email: string
+          plan_status: string
+          trial_end: string
+          trial_reminder_sent: boolean
+          user_id: string
+        }[]
+      }
+      get_user_engagement_stats: {
+        Args: never
+        Returns: {
+          document_count: number
+          engagement_score: number
+          item_count: number
+          photo_count: number
+          property_count: number
+          receipt_count: number
+          total_item_value: number
+          total_property_value: number
+          user_id: string
         }[]
       }
       has_any_app_role: {
