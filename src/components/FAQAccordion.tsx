@@ -368,37 +368,36 @@ const FAQAccordion: React.FC = () => {
         <h3 className="text-xl font-semibold text-brand-green mb-4 border-b border-brand-green/30 pb-2">Password & Account Security</h3>
         <Accordion type="single" collapsible>
           <AccordionItem value="password-1">
-            <AccordionTrigger className="text-lg font-medium">What is the Password and Accounts Catalog?</AccordionTrigger>
+            <AccordionTrigger className="text-lg font-medium">What is the Password & Accounts Catalog?</AccordionTrigger>
             <AccordionContent>
-              It&apos;s a secure, encrypted list where you can document login credentials, account numbers, PINs, digital subscriptions, financial accounts, and other access information your loved ones may need in the event of an emergency.
+              The Password & Accounts Catalog is a secure, encrypted section of Asset Safe where you can record login credentials, account numbers, PINs, subscriptions, and other access information that trusted individuals may need during an emergency or transition.
             </AccordionContent>
           </AccordionItem>
           
           <AccordionItem value="password-2">
-            <AccordionTrigger className="text-lg font-medium">Why should I store my passwords here instead of on paper or in a notes app?</AccordionTrigger>
+            <AccordionTrigger className="text-lg font-medium">Why store this information here instead of on paper or in a notes app?</AccordionTrigger>
             <AccordionContent>
-              <p className="mb-2">Paper gets lost. Notes apps aren&apos;t secure.</p>
-              <p>Asset Safe gives you one organized, encrypted place to store digital access information to protect your family from getting locked out of essential accounts.</p>
+              Paper can be lost or damaged, and standard notes apps typically lack strong encryption and access controls. Asset Safe provides a centralized, encrypted location designed specifically to protect sensitive access information while keeping it organized and retrievable when needed.
             </AccordionContent>
           </AccordionItem>
           
           <AccordionItem value="password-3">
             <AccordionTrigger className="text-lg font-medium">Can contributors access my password list?</AccordionTrigger>
             <AccordionContent>
-              Only if you manually enable it. You decide who can view, edit, or be restricted from this section entirely.
+              Only if you explicitly allow it. Access to the Password & Accounts Catalog is disabled by default, and you control who can view, edit, or be restricted from this section entirely.
             </AccordionContent>
           </AccordionItem>
           
           <AccordionItem value="password-4">
             <AccordionTrigger className="text-lg font-medium">What types of accounts can I store?</AccordionTrigger>
             <AccordionContent>
-              <p className="mb-3">Anything you want loved ones or an executor to find easily:</p>
+              <p className="mb-3">You can store access details for virtually any account you want trusted individuals or an executor to locate easily, including:</p>
               <ul className="list-disc list-inside space-y-1 ml-4">
-                <li>Banking & investment accounts</li>
-                <li>Mortgage & insurance logins</li>
-                <li>Email & social accounts</li>
-                <li>Utilities & subscriptions</li>
-                <li>Medical portals</li>
+                <li>Banking and investment accounts</li>
+                <li>Mortgage and insurance portals</li>
+                <li>Email and social media accounts</li>
+                <li>Utilities and subscription services</li>
+                <li>Medical and healthcare portals</li>
                 <li>Cloud storage and photo accounts</li>
               </ul>
             </AccordionContent>
