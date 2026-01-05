@@ -73,14 +73,40 @@ serve(async (req) => {
 
     logStep('Processing event', { type: event.type, id: event.id });
 
-    // Log the event to payment_events table
+    // Extract common fields from event for easier querying
+    const eventObject = event.data.object as any;
+    const customerId = eventObject.customer || eventObject.customer_id || null;
+    const subscriptionId = eventObject.subscription || eventObject.id || null;
+    let amount: number | null = null;
+    let currency: string = 'usd';
+    
+    // Extract amount based on event type
+    if (eventObject.amount_total) {
+      amount = eventObject.amount_total; // checkout.session
+    } else if (eventObject.amount_paid) {
+      amount = eventObject.amount_paid; // invoice
+    } else if (eventObject.amount) {
+      amount = eventObject.amount; // payment_intent
+    } else if (eventObject.plan?.amount) {
+      amount = eventObject.plan.amount; // subscription
+    }
+    
+    if (eventObject.currency) {
+      currency = eventObject.currency;
+    }
+
+    // Log the event to payment_events table with extracted fields
     const { error: logError } = await supabase
       .from('payment_events')
       .insert({
         stripe_event_id: event.id,
         event_type: event.type,
         event_data: event.data,
-        status: 'received'
+        status: 'received',
+        customer_id: customerId,
+        subscription_id: typeof subscriptionId === 'string' ? subscriptionId : null,
+        amount: amount,
+        currency: currency
       });
 
     if (logError) {
