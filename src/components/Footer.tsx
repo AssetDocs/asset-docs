@@ -206,8 +206,8 @@ const Footer: React.FC = () => {
               <p className="mb-4">United States</p>
             </address>
             <div className="flex items-center space-x-2">
-              <MessageCircle className="h-6 w-6 text-gray-300" />
-              <span className="text-gray-300 text-sm">Chat support coming soon</span>
+              <MessageCircle className="h-6 w-6 text-brand-green" />
+              <span className="text-gray-300 text-sm">Ask Asset Safe — Chat support available</span>
             </div>
           </div>
         </div>
