@@ -237,7 +237,7 @@ const AskAssetSafe: React.FC = () => {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-4 right-4 z-50 bg-brand-blue hover:bg-brand-lightBlue text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 group"
+        className="fixed bottom-4 right-4 z-50 bg-brand-green hover:bg-brand-green/90 text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 group"
         aria-label="Ask Asset Safe"
       >
         <MessageCircle className="w-6 h-6" />
@@ -252,7 +252,7 @@ const AskAssetSafe: React.FC = () => {
   if (isMinimized) {
     return (
       <div className="fixed bottom-4 right-4 z-50">
-        <Card className="bg-brand-blue text-white rounded-lg shadow-lg overflow-hidden cursor-pointer" onClick={() => setIsMinimized(false)}>
+        <Card className="bg-brand-green text-white rounded-lg shadow-lg overflow-hidden cursor-pointer" onClick={() => setIsMinimized(false)}>
           <div className="flex items-center justify-between p-3 gap-4">
             <div className="flex items-center gap-2">
               <MessageCircle className="w-5 h-5" />
@@ -287,7 +287,7 @@ const AskAssetSafe: React.FC = () => {
     <div className="fixed bottom-4 right-4 z-50 w-[360px] max-w-[calc(100vw-2rem)]">
       <Card className="border border-gray-200 rounded-lg shadow-xl overflow-hidden">
         {/* Header */}
-        <div className="bg-brand-blue p-3 flex items-center justify-between">
+        <div className="bg-brand-green p-3 flex items-center justify-between">
           <div className="flex items-center text-white">
             <MessageCircle className="w-5 h-5 mr-2" />
             <h3 className="font-medium text-sm">Ask Asset Safe</h3>
