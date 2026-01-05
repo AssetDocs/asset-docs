@@ -69,16 +69,9 @@ interface PaymentEvent {
   status: string | null;
   created_at: string;
   user_id: string | null;
-}
-
-interface PaymentEvent {
-  id: string;
-  event_type: string;
-  amount: number | null;
-  currency: string | null;
-  status: string | null;
-  created_at: string;
-  user_id: string | null;
+  customer_id: string | null;
+  subscription_id: string | null;
+  event_data: any;
 }
 
 const AdminUsers = () => {
@@ -571,32 +564,54 @@ const AdminUsers = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Event Type</TableHead>
+                      <TableHead>Customer</TableHead>
                       <TableHead>Amount</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>User ID</TableHead>
                       <TableHead>Date</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {paymentEvents.map((event) => (
-                      <TableRow key={event.id}>
-                        <TableCell>
-                          <Badge variant="outline">{event.event_type}</Badge>
-                        </TableCell>
-                        <TableCell>{formatAmount(event.amount, event.currency)}</TableCell>
-                        <TableCell>
-                          <Badge variant={event.status === 'succeeded' ? 'default' : 'secondary'}>
-                            {event.status || 'N/A'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="font-mono text-xs">
-                          {event.user_id ? event.user_id.slice(0, 8) + '...' : '-'}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {formatDate(event.created_at)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {paymentEvents.map((event) => {
+                      // Extract amount from event_data if not in dedicated column
+                      let displayAmount = event.amount;
+                      let displayCurrency = event.currency || 'usd';
+                      let customerInfo = event.customer_id;
+                      
+                      if (event.event_data?.object) {
+                        const obj = event.event_data.object;
+                        if (!displayAmount) {
+                          displayAmount = obj.amount_total || obj.amount_paid || obj.amount || obj.plan?.amount || null;
+                        }
+                        if (obj.currency) {
+                          displayCurrency = obj.currency;
+                        }
+                        if (!customerInfo && obj.customer) {
+                          customerInfo = obj.customer;
+                        }
+                      }
+                      
+                      return (
+                        <TableRow key={event.id}>
+                          <TableCell>
+                            <Badge variant="outline" className="text-xs">
+                              {event.event_type.replace('customer.', '').replace('invoice.', '').replace('checkout.', '')}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="font-mono text-xs">
+                            {customerInfo ? customerInfo.slice(0, 12) + '...' : '-'}
+                          </TableCell>
+                          <TableCell>{formatAmount(displayAmount, displayCurrency)}</TableCell>
+                          <TableCell>
+                            <Badge variant={event.status === 'processed' ? 'default' : 'secondary'}>
+                              {event.status || 'N/A'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {formatDate(event.created_at)}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               ) : (
