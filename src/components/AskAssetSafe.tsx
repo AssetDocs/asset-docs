@@ -73,12 +73,46 @@ const AskAssetSafe: React.FC = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [showQuickPrompts, setShowQuickPrompts] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [hasFollowedUp, setHasFollowedUp] = useState(false);
   const location = useLocation();
 
   // Auto-scroll to bottom when messages update
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // 3-minute inactivity follow-up
+  useEffect(() => {
+    // Clear existing timer
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+    }
+
+    // Only set timer if chat is open, has user messages, and hasn't followed up yet
+    const hasUserMessages = messages.some(m => m.sender === 'user');
+    const lastMessage = messages[messages.length - 1];
+    const lastWasBot = lastMessage?.sender === 'bot';
+
+    if (isOpen && hasUserMessages && lastWasBot && !hasFollowedUp) {
+      inactivityTimerRef.current = setTimeout(() => {
+        const followUpMessage: Message = {
+          id: messages.length + 1,
+          text: "If you'd like, I can help you with the next step.",
+          sender: 'bot',
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, followUpMessage]);
+        setHasFollowedUp(true);
+      }, 3 * 60 * 1000); // 3 minutes
+    }
+
+    return () => {
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+      }
+    };
+  }, [messages, isOpen, hasFollowedUp]);
 
   // Hide quick prompts after first user message
   useEffect(() => {
