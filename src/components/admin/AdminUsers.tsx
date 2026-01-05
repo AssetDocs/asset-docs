@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
-import { Users, Gift, CreditCard, UserX, Search, RefreshCw } from 'lucide-react';
+import { Users, Gift, CreditCard, UserX, Search, RefreshCw, UserPlus } from 'lucide-react';
 
 interface UserRecord {
   user_id: string;
@@ -37,6 +37,15 @@ interface ContributorRecord {
   status: string;
   account_owner_id: string;
   created_at: string;
+  accepted_at: string | null;
+}
+
+interface OwnerWithContributors {
+  ownerId: string;
+  ownerName: string;
+  ownerEmail: string | null;
+  accountNumber: string | null;
+  contributors: ContributorRecord[];
 }
 
 interface GiftSubscription {
@@ -62,12 +71,24 @@ interface PaymentEvent {
   user_id: string | null;
 }
 
+interface PaymentEvent {
+  id: string;
+  event_type: string;
+  amount: number | null;
+  currency: string | null;
+  status: string | null;
+  created_at: string;
+  user_id: string | null;
+}
+
 const AdminUsers = () => {
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [giftSubscriptions, setGiftSubscriptions] = useState<GiftSubscription[]>([]);
   const [paymentEvents, setPaymentEvents] = useState<PaymentEvent[]>([]);
+  const [ownersWithContributors, setOwnersWithContributors] = useState<OwnerWithContributors[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [contributorSearchTerm, setContributorSearchTerm] = useState('');
 
   useEffect(() => {
     loadData();
@@ -152,6 +173,31 @@ const AdminUsers = () => {
         });
 
         setUsers(mergedUsers);
+
+        // Build owners with contributors data
+        const ownersMap = new Map<string, OwnerWithContributors>();
+        
+        contributorsData?.forEach(contributor => {
+          const ownerProfile = ownerProfileMap.get(contributor.account_owner_id);
+          if (ownerProfile) {
+            const ownerId = contributor.account_owner_id;
+            if (!ownersMap.has(ownerId)) {
+              ownersMap.set(ownerId, {
+                ownerId,
+                ownerName: `${ownerProfile.first_name || ''} ${ownerProfile.last_name || ''}`.trim(),
+                ownerEmail: subscriberMap.get(ownerId)?.email || authEmails[ownerId] || null,
+                accountNumber: ownerProfile.account_number,
+                contributors: []
+              });
+            }
+            ownersMap.get(ownerId)?.contributors.push({
+              ...contributor,
+              accepted_at: contributor.accepted_at || null
+            });
+          }
+        });
+
+        setOwnersWithContributors(Array.from(ownersMap.values()));
       }
 
       // Fetch gift subscriptions
@@ -184,6 +230,21 @@ const AdminUsers = () => {
       user.last_name?.toLowerCase().includes(searchLower) ||
       user.email?.toLowerCase().includes(searchLower) ||
       user.user_id.toLowerCase().includes(searchLower)
+    );
+  });
+
+  const filteredOwnersWithContributors = ownersWithContributors.filter(owner => {
+    const searchLower = contributorSearchTerm.toLowerCase();
+    if (!searchLower) return true;
+    return (
+      owner.ownerName.toLowerCase().includes(searchLower) ||
+      owner.ownerEmail?.toLowerCase().includes(searchLower) ||
+      owner.accountNumber?.toLowerCase().includes(searchLower) ||
+      owner.contributors.some(c => 
+        c.contributor_email.toLowerCase().includes(searchLower) ||
+        c.first_name?.toLowerCase().includes(searchLower) ||
+        c.last_name?.toLowerCase().includes(searchLower)
+      )
     );
   });
 
@@ -281,6 +342,7 @@ const AdminUsers = () => {
       <Tabs defaultValue="all-users">
         <TabsList>
           <TabsTrigger value="all-users">All Users</TabsTrigger>
+          <TabsTrigger value="contributors">Contributors</TabsTrigger>
           <TabsTrigger value="gifts">Gift Subscriptions</TabsTrigger>
           <TabsTrigger value="payments">Payment Events</TabsTrigger>
         </TabsList>
@@ -490,10 +552,110 @@ const AdminUsers = () => {
                   </TableBody>
                 </Table>
               ) : (
-                <p className="text-center text-muted-foreground py-8">No payment events recorded</p>
+              <p className="text-center text-muted-foreground py-8">No payment events recorded</p>
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="contributors" className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Search className="w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by owner name, account #, or contributor email..."
+              value={contributorSearchTerm}
+              onChange={(e) => setContributorSearchTerm(e.target.value)}
+              className="max-w-sm"
+            />
+          </div>
+
+          {loading ? (
+            <p>Loading...</p>
+          ) : filteredOwnersWithContributors.length > 0 ? (
+            <div className="space-y-6">
+              {filteredOwnersWithContributors.map((owner) => (
+                <Card key={owner.ownerId}>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="flex items-center gap-2">
+                          <Users className="w-5 h-5 text-primary" />
+                          {owner.ownerName || 'Unknown Owner'}
+                        </CardTitle>
+                        <CardDescription className="mt-1">
+                          <span className="font-mono text-xs bg-muted px-2 py-1 rounded mr-2">
+                            {owner.accountNumber || 'No Account #'}
+                          </span>
+                          {owner.ownerEmail && <span>{owner.ownerEmail}</span>}
+                        </CardDescription>
+                      </div>
+                      <Badge className="bg-primary">
+                        <UserPlus className="w-3 h-3 mr-1" />
+                        {owner.contributors.length} Contributor{owner.contributors.length !== 1 ? 's' : ''}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Email</TableHead>
+                          <TableHead>Role</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Invited</TableHead>
+                          <TableHead>Accepted</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {owner.contributors.map((contributor) => (
+                          <TableRow key={contributor.id}>
+                            <TableCell className="font-medium">
+                              {contributor.first_name || contributor.last_name 
+                                ? `${contributor.first_name || ''} ${contributor.last_name || ''}`.trim()
+                                : '-'}
+                            </TableCell>
+                            <TableCell>{contributor.contributor_email}</TableCell>
+                            <TableCell>
+                              <Badge 
+                                variant="outline" 
+                                className={
+                                  contributor.role === 'administrator' 
+                                    ? 'border-green-500 text-green-600' 
+                                    : contributor.role === 'viewer' 
+                                    ? 'border-blue-500 text-blue-600' 
+                                    : 'border-yellow-500 text-yellow-600'
+                                }
+                              >
+                                {contributor.role}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={contributor.status === 'accepted' ? 'default' : 'secondary'}>
+                                {contributor.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
+                              {formatDate(contributor.created_at)}
+                            </TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
+                              {contributor.accepted_at ? formatDate(contributor.accepted_at) : '-'}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="py-8">
+                <p className="text-center text-muted-foreground">No accounts with contributors found</p>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
     </div>
