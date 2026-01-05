@@ -135,7 +135,7 @@ const FAQAccordion: React.FC = () => {
           <AccordionItem value="security-5">
             <AccordionTrigger className="text-lg font-medium">What support options are available?</AccordionTrigger>
             <AccordionContent>
-              We offer step-by-step video tutorials and helpful resources in the References section of our website footer to guide you through the platform. A built-in 24/7 chat support feature is also in development and will be available soon.
+              We offer step-by-step video tutorials and helpful resources in the References section of our website footer to guide you through the platform. You can also use "Ask Asset Safe" — our built-in chat assistant available 24/7 via the chat icon in the bottom-right corner of every page.
             </AccordionContent>
           </AccordionItem>
         </Accordion>
