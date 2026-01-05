@@ -276,6 +276,44 @@ const AdminUsers = () => {
     }).format(amount / 100);
   };
 
+  // Map Stripe price IDs and plan_ids to friendly plan info
+  const getPlanInfo = (planId: string | null, subscriptionTier: string | null) => {
+    if (!planId && !subscriptionTier) {
+      return { name: 'None', price: '-' };
+    }
+    
+    // Lifetime plan
+    if (planId === 'premium_lifetime') {
+      return { name: 'Premium (Lifetime)', price: 'ASL2025' };
+    }
+    
+    // Check subscription_tier first
+    const tier = subscriptionTier?.toLowerCase();
+    if (tier === 'premium') {
+      return { name: 'Premium', price: '$189/yr' };
+    }
+    if (tier === 'standard') {
+      return { name: 'Standard', price: '$129/yr' };
+    }
+    
+    // Map known Stripe price IDs (patterns)
+    if (planId) {
+      const lowerPlanId = planId.toLowerCase();
+      // Check for premium indicators
+      if (lowerPlanId.includes('premium') || lowerPlanId.includes('189')) {
+        return { name: 'Premium', price: '$189/yr' };
+      }
+      // Default Stripe price IDs - check based on amount pattern
+      // price_1SehXDEyVj2Ir7a8nRAVcXwh appears to be Standard based on $129
+      if (planId.startsWith('price_')) {
+        // For Stripe price IDs, we can infer Standard is $129/yr
+        return { name: 'Standard', price: '$129/yr' };
+      }
+    }
+    
+    return { name: subscriptionTier || planId || 'Unknown', price: '-' };
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -423,7 +461,17 @@ const AdminUsers = () => {
                             <span className="text-muted-foreground">-</span>
                           )}
                         </TableCell>
-                        <TableCell>{user.subscription_tier || user.plan_id || 'None'}</TableCell>
+                        <TableCell>
+                          {(() => {
+                            const planInfo = getPlanInfo(user.plan_id, user.subscription_tier);
+                            return (
+                              <div>
+                                <p className="font-medium">{planInfo.name}</p>
+                                <p className="text-xs text-muted-foreground">{planInfo.price}</p>
+                              </div>
+                            );
+                          })()}
+                        </TableCell>
                         <TableCell>{getStatusBadge(user.plan_status, user.subscribed)}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {formatDate(user.created_at)}
