@@ -51,12 +51,13 @@ const Gift: React.FC = () => {
   ];
 
   const commonFeatures = [
+    "Legacy Locker access",
     "Photo, video, and document upload",
     "Full web platform access",
     "Voice notes for item details",
     "Post damage documentation",
     "Export detailed reports",
-    "Email support",
+    "24/7 chat support",
     "Share with 3 trusted contacts",
     "12-month gift subscription"
   ];
