@@ -75,6 +75,14 @@ const AskAssetSafe: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [hasFollowedUp, setHasFollowedUp] = useState(false);
+  const [showFollowUpPrompts, setShowFollowUpPrompts] = useState(false);
+
+  const followUpPrompts = [
+    "How do I get started?",
+    "Which plan is right for me?",
+    "Can I change or cancel my plan later?",
+    "How much storage do I need?",
+  ];
   const location = useLocation();
 
   // Auto-scroll to bottom when messages update
@@ -104,6 +112,7 @@ const AskAssetSafe: React.FC = () => {
         };
         setMessages(prev => [...prev, followUpMessage]);
         setHasFollowedUp(true);
+        setShowFollowUpPrompts(true);
       }, 3 * 60 * 1000); // 3 minutes
     }
 
@@ -341,7 +350,24 @@ const AskAssetSafe: React.FC = () => {
               ))}
             </div>
           )}
-          
+
+          {/* Follow-up Prompts after inactivity message */}
+          {showFollowUpPrompts && (
+            <div className="mt-3 space-y-2">
+              {followUpPrompts.map((prompt, index) => (
+                <button
+                  key={index}
+                  onClick={() => {
+                    setShowFollowUpPrompts(false);
+                    handleQuickPrompt(prompt);
+                  }}
+                  className="w-full text-left p-2 text-sm bg-white border border-gray-200 rounded-lg hover:bg-brand-blue/5 hover:border-brand-blue transition-colors"
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
+          )}
           {isTyping && (
             <div className="flex justify-start mb-3">
               <div className="bg-white border border-gray-200 rounded-lg p-3 max-w-[85%]">
