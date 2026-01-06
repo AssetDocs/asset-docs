@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Upload, CalendarIcon, FileText, Loader2 } from 'lucide-react';
+import { Upload, CalendarIcon, FileText, Loader2, Camera, FolderOpen } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { ItemService } from '@/services/ItemService';
@@ -24,6 +24,8 @@ const ReceiptUpload: React.FC<ReceiptUploadProps> = ({
   onReceiptUploaded
 }) => {
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [purchaseDate, setPurchaseDate] = useState<Date>();
   const [purchaseAmount, setPurchaseAmount] = useState('');
@@ -115,46 +117,68 @@ const ReceiptUpload: React.FC<ReceiptUploadProps> = ({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* File Upload Area */}
-        <div
-          className={cn(
-            "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
-            dragActive ? "border-primary bg-primary/10" : "border-muted",
-            selectedFile ? "border-green-500 bg-green-50" : ""
-          )}
-          onDragEnter={handleDrag}
-          onDragLeave={handleDrag}
-          onDragOver={handleDrag}
-          onDrop={handleDrop}
-          onClick={() => document.getElementById('receipt-upload')?.click()}
-        >
-          <input
-            id="receipt-upload"
-            type="file"
-            accept="image/*,.pdf,.doc,.docx"
-            onChange={handleFileSelect}
-            className="hidden"
-          />
-          {selectedFile ? (
-            <div>
-              <FileText className="h-8 w-8 mx-auto mb-2 text-green-600" />
-              <p className="font-medium">{selectedFile.name}</p>
-              <p className="text-sm text-muted-foreground">
-                {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-              </p>
+        {/* Hidden file inputs */}
+        <Input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*,.pdf,.doc,.docx"
+          onChange={handleFileSelect}
+          className="hidden"
+        />
+        <Input
+          ref={cameraInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          onChange={handleFileSelect}
+          className="hidden"
+        />
+
+        {/* Upload Options */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Button
+            type="button"
+            onClick={() => cameraInputRef.current?.click()}
+            variant="outline"
+            className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-dashed border-primary/30 hover:border-primary/50 hover:bg-primary/5"
+          >
+            <Camera className="h-6 w-6 text-primary" />
+            <div className="text-center">
+              <div className="font-medium text-sm">Take Photo</div>
+              <div className="text-xs text-muted-foreground">Capture receipt</div>
             </div>
-          ) : (
-            <div>
-              <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">
-                Click to upload or drag and drop
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                PDF, PNG, JPG, or Word documents
-              </p>
+          </Button>
+
+          <Button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            variant="outline"
+            className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-dashed border-primary/30 hover:border-primary/50 hover:bg-primary/5"
+          >
+            <FolderOpen className="h-6 w-6 text-primary" />
+            <div className="text-center">
+              <div className="font-medium text-sm">Choose File</div>
+              <div className="text-xs text-muted-foreground">From device</div>
             </div>
-          )}
+          </Button>
         </div>
+
+        {/* Selected File Preview */}
+        {selectedFile && (
+          <div
+            className="border-2 border-green-500 bg-green-50 rounded-lg p-4 text-center"
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+          >
+            <FileText className="h-8 w-8 mx-auto mb-2 text-green-600" />
+            <p className="font-medium">{selectedFile.name}</p>
+            <p className="text-sm text-muted-foreground">
+              {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+            </p>
+          </div>
+        )}
 
         {/* Receipt Details */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

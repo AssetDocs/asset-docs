@@ -42,6 +42,8 @@ const CombinedMediaUpload: React.FC = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const attachmentInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   
   const [activeTab, setActiveTab] = useState<'photos' | 'videos'>('photos');
   const [selectedPropertyId, setSelectedPropertyId] = useState<string>('');
@@ -334,19 +336,57 @@ const CombinedMediaUpload: React.FC = () => {
               {/* File Upload */}
               <div>
                 <Label className="text-sm font-medium">Upload File</Label>
-                <div className="mt-1">
-                  <Input
-                    type="file"
-                    accept={getAcceptedTypes()}
-                    multiple
-                    onChange={handleFileChange}
-                    className="cursor-pointer"
-                    id="media-upload"
-                  />
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Supported formats: {getSupportedFormats()}
-                  </p>
+                
+                {/* Hidden file inputs */}
+                <Input
+                  ref={fileInputRef}
+                  type="file"
+                  accept={getAcceptedTypes()}
+                  multiple
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                <Input
+                  ref={cameraInputRef}
+                  type="file"
+                  accept={activeTab === 'photos' ? 'image/*' : 'video/*'}
+                  capture="environment"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                
+                {/* Upload Options */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+                  <Button
+                    type="button"
+                    onClick={() => cameraInputRef.current?.click()}
+                    variant="outline"
+                    className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-dashed border-brand-blue/30 hover:border-brand-blue/50 hover:bg-brand-blue/5"
+                  >
+                    <Camera className="h-6 w-6 text-brand-blue" />
+                    <div className="text-center">
+                      <div className="font-medium text-sm">{activeTab === 'photos' ? 'Take Photo' : 'Record Video'}</div>
+                      <div className="text-xs text-gray-500">Use camera</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    variant="outline"
+                    className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-dashed border-brand-blue/30 hover:border-brand-blue/50 hover:bg-brand-blue/5"
+                  >
+                    {activeTab === 'photos' ? <Image className="h-6 w-6 text-brand-blue" /> : <Film className="h-6 w-6 text-brand-blue" />}
+                    <div className="text-center">
+                      <div className="font-medium text-sm">{activeTab === 'photos' ? 'Choose Photos' : 'Choose Videos'}</div>
+                      <div className="text-xs text-gray-500">From gallery</div>
+                    </div>
+                  </Button>
                 </div>
+                
+                <p className="text-sm text-muted-foreground mt-2">
+                  Supported formats: {getSupportedFormats()}
+                </p>
 
                 {/* Selected Files Preview */}
                 {selectedFiles.length > 0 && (

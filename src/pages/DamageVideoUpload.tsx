@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import PropertySelector from '@/components/PropertySelector';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
-import { ArrowLeft, Upload, Video, Save } from 'lucide-react';
+import { ArrowLeft, Upload, Video, Film } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -21,6 +21,8 @@ const DamageVideoUpload: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadData, setUploadData] = useState({
@@ -148,19 +150,52 @@ const DamageVideoUpload: React.FC = () => {
               {/* File Selection */}
               <div className="space-y-2">
                 <Label>Select Videos</Label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                  <Video className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <div className="space-y-2">
-                    <p className="text-lg font-medium">Select damage videos to upload</p>
-                    <p className="text-sm text-gray-500">Choose video files (MP4, MOV, AVI)</p>
-                    <Input
-                      type="file"
-                      multiple
-                      accept="video/*"
-                      onChange={handleFileSelect}
-                      className="max-w-xs mx-auto"
-                    />
-                  </div>
+                
+                {/* Hidden file inputs */}
+                <Input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept="video/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+                <Input
+                  ref={cameraInputRef}
+                  type="file"
+                  accept="video/*"
+                  capture="environment"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+                
+                {/* Upload Options */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Button
+                    type="button"
+                    onClick={() => cameraInputRef.current?.click()}
+                    variant="outline"
+                    className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-dashed border-red-300 hover:border-red-500 hover:bg-red-50"
+                  >
+                    <Video className="h-6 w-6 text-red-600" />
+                    <div className="text-center">
+                      <div className="font-medium text-sm">Record Video</div>
+                      <div className="text-xs text-gray-500">Use camera</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    variant="outline"
+                    className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-dashed border-red-300 hover:border-red-500 hover:bg-red-50"
+                  >
+                    <Film className="h-6 w-6 text-red-600" />
+                    <div className="text-center">
+                      <div className="font-medium text-sm">Choose Videos</div>
+                      <div className="text-xs text-gray-500">From gallery</div>
+                    </div>
+                  </Button>
                 </div>
                 {selectedFiles.length > 0 && (
                   <div className="mt-4">
