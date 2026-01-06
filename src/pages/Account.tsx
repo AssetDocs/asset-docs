@@ -188,13 +188,6 @@ const WelcomeMessage: React.FC = () => {
               Property Profiles
             </Link>
           </Button>
-          {isMobile && (
-            <Button asChild variant="outline" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 border-yellow-400">
-              <Link to="/install">
-                Add to Home Screen
-              </Link>
-            </Button>
-          )}
         </div>
       </div>
 
