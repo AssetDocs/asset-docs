@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Video, Upload, Loader2 } from 'lucide-react';
+import { ArrowLeft, Video, Upload, Loader2, Camera } from 'lucide-react';
 import { usePropertyFiles } from '@/hooks/usePropertyFiles';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,6 +25,7 @@ const VideoUpload: React.FC = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const [defaultPropertyId, setDefaultPropertyId] = useState('');
   const [selectedFolderId, setSelectedFolderId] = useState<string>('');
   const [folders, setFolders] = useState<Folder[]>([]);
@@ -170,24 +171,59 @@ const VideoUpload: React.FC = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="videos">Select Videos</Label>
-                <Input
-                  ref={fileInputRef}
-                  id="videos"
-                  type="file"
-                  multiple
-                  accept="video/*"
-                  onChange={handleFileSelect}
-                  className="mt-2"
+              {/* Hidden file inputs */}
+              <Input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="video/*"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              
+              <Input
+                ref={cameraInputRef}
+                type="file"
+                accept="video/*"
+                capture="environment"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+
+              {/* Upload Options */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Button
+                  onClick={() => cameraInputRef.current?.click()}
+                  variant="outline"
+                  className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-dashed border-brand-blue/30 hover:border-brand-blue/50 hover:bg-brand-blue/5"
                   disabled={!defaultPropertyId || isUploading}
-                />
-                {!defaultPropertyId && (
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Please select a property first
-                  </p>
-                )}
+                >
+                  <Camera className="h-6 w-6 text-brand-blue" />
+                  <div className="text-center">
+                    <div className="font-medium text-sm">Record Video</div>
+                    <div className="text-xs text-gray-500">Use camera</div>
+                  </div>
+                </Button>
+
+                <Button
+                  onClick={() => fileInputRef.current?.click()}
+                  variant="outline"
+                  className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-dashed border-brand-blue/30 hover:border-brand-blue/50 hover:bg-brand-blue/5"
+                  disabled={!defaultPropertyId || isUploading}
+                >
+                  <Video className="h-6 w-6 text-brand-blue" />
+                  <div className="text-center">
+                    <div className="font-medium text-sm">Choose Videos</div>
+                    <div className="text-xs text-gray-500">From gallery</div>
+                  </div>
+                </Button>
               </div>
+
+              {!defaultPropertyId && (
+                <p className="text-sm text-muted-foreground text-center py-2">
+                  Please select a property first
+                </p>
+              )}
 
               {isUploading && (
                 <div className="flex items-center justify-center py-4">

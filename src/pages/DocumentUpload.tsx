@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Upload, FileText, Trash2, Shield, FileWarning, FileCheck, Receipt, ClipboardCheck, Home, Files, Loader2 } from 'lucide-react';
+import { ArrowLeft, Upload, FileText, Trash2, Shield, FileWarning, FileCheck, Receipt, ClipboardCheck, Home, Files, Loader2, Camera } from 'lucide-react';
 import PropertySelector from '@/components/PropertySelector';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -56,6 +56,9 @@ const DocumentUpload: React.FC = () => {
   const [selectedFolderId, setSelectedFolderId] = useState('');
   const [folders, setFolders] = useState<DocumentFolder[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const { uploadSingleFile, isUploading } = useFileUpload({
     bucket: 'documents',
@@ -265,18 +268,57 @@ const DocumentUpload: React.FC = () => {
               {/* File Upload */}
               <div>
                 <Label className="text-sm font-medium">Upload File</Label>
-                <div className="mt-1">
-                  <Input
-                    id="file-upload"
-                    type="file"
-                    accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
-                    onChange={handleFileSelect}
-                    className="cursor-pointer"
-                  />
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Supported formats: PDF, DOC, DOCX, TXT, JPG, PNG
-                  </p>
+                
+                {/* Hidden file inputs */}
+                <Input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+                
+                <Input
+                  ref={cameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+
+                {/* Upload Options */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+                  <Button
+                    onClick={() => cameraInputRef.current?.click()}
+                    variant="outline"
+                    className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-dashed border-brand-blue/30 hover:border-brand-blue/50 hover:bg-brand-blue/5"
+                    disabled={isLoading}
+                  >
+                    <Camera className="h-6 w-6 text-brand-blue" />
+                    <div className="text-center">
+                      <div className="font-medium text-sm">Take Photo</div>
+                      <div className="text-xs text-gray-500">Use camera</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    onClick={() => fileInputRef.current?.click()}
+                    variant="outline"
+                    className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-dashed border-brand-blue/30 hover:border-brand-blue/50 hover:bg-brand-blue/5"
+                    disabled={isLoading}
+                  >
+                    <Upload className="h-6 w-6 text-brand-blue" />
+                    <div className="text-center">
+                      <div className="font-medium text-sm">Choose File</div>
+                      <div className="text-xs text-gray-500">From device</div>
+                    </div>
+                  </Button>
                 </div>
+
+                <p className="text-sm text-muted-foreground mt-2">
+                  Supported formats: PDF, DOC, DOCX, TXT, JPG, PNG
+                </p>
 
                 {selectedFile && (
                   <div className="mt-3 border rounded-lg p-3 bg-muted/50 flex items-center justify-between">
