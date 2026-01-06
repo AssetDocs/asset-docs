@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import PropertySelector from '@/components/PropertySelector';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
-import { ArrowLeft, Upload, Camera, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, Upload, Camera, Image as ImageIcon, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -200,10 +200,25 @@ const DamagePhotoUpload: React.FC = () => {
                 {selectedFiles.length > 0 && (
                   <div className="mt-4">
                     <p className="text-sm font-medium mb-2">Selected Photos ({selectedFiles.length}):</p>
-                    <div className="space-y-1">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       {selectedFiles.map((file, index) => (
-                        <div key={index} className="text-sm text-gray-600 bg-gray-100 px-3 py-2 rounded">
-                          {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                        <div key={index} className="relative group">
+                          <img
+                            src={URL.createObjectURL(file)}
+                            alt={file.name}
+                            className="w-full h-32 object-cover rounded-lg border"
+                          />
+                          <Button
+                            size="icon"
+                            variant="destructive"
+                            onClick={() => {
+                              setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+                            }}
+                            className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                          <p className="text-xs truncate mt-1">{file.name}</p>
                         </div>
                       ))}
                     </div>

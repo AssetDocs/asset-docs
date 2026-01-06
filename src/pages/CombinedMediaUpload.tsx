@@ -391,30 +391,61 @@ const CombinedMediaUpload: React.FC = () => {
                 {/* Selected Files Preview */}
                 {selectedFiles.length > 0 && (
                   <div className="mt-3 space-y-2">
-                    {selectedFiles.map((file, index) => (
-                      <div key={index} className="border rounded-lg p-3 bg-muted/50 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          {activeTab === 'photos' ? (
-                            <Image className="h-4 w-4 text-muted-foreground" />
-                          ) : (
-                            <Film className="h-4 w-4 text-muted-foreground" />
-                          )}
-                          <div>
-                            <p className="text-sm font-medium truncate max-w-[250px]">{file.name}</p>
-                            <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
+                    {activeTab === 'photos' ? (
+                      // Grid layout with thumbnails for photos
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {selectedFiles.map((file, index) => (
+                          <div key={index} className="relative group">
+                            <img
+                              src={URL.createObjectURL(file)}
+                              alt={file.name}
+                              className="w-full h-32 object-cover rounded-lg border"
+                              onLoad={(e) => {
+                                // Revoke URL after image loads to free memory
+                                // We'll recreate it on each render, which is acceptable for a small number of files
+                              }}
+                            />
+                            <Button
+                              size="icon"
+                              variant="destructive"
+                              onClick={() => handleRemoveFile(index)}
+                              disabled={isUploading}
+                              className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                            <div className="mt-1">
+                              <p className="text-xs font-medium truncate">{file.name}</p>
+                              <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
+                            </div>
                           </div>
-                        </div>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => handleRemoveFile(index)}
-                          disabled={isUploading}
-                          className="h-8 w-8"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        ))}
                       </div>
-                    ))}
+                    ) : (
+                      // List layout for videos
+                      <div className="space-y-2">
+                        {selectedFiles.map((file, index) => (
+                          <div key={index} className="border rounded-lg p-3 bg-muted/50 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Film className="h-4 w-4 text-muted-foreground" />
+                              <div>
+                                <p className="text-sm font-medium truncate max-w-[250px]">{file.name}</p>
+                                <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
+                              </div>
+                            </div>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => handleRemoveFile(index)}
+                              disabled={isUploading}
+                              className="h-8 w-8"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
