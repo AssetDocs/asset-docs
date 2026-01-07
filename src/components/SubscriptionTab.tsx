@@ -972,29 +972,37 @@ const SubscriptionTab: React.FC = () => {
                     <div className="space-y-4 p-4 bg-orange-100 rounded-lg border border-orange-300">
                       <div className="flex items-start gap-3">
                         <AlertTriangle className="h-5 w-5 text-orange-600 mt-0.5" />
-                        <div>
+                        <div className="space-y-3">
                           <p className="font-medium text-orange-800">Are you sure you want to cancel?</p>
-                          <p className="text-sm text-orange-700 mt-1">
-                            You can reactivate your account anytime before your subscription expires on{' '}
+                          <p className="text-sm text-orange-700">
+                            You can reactivate your account any time before your subscription expires on{' '}
                             {subscriptionStatus.subscription_end 
                               ? new Date(subscriptionStatus.subscription_end).toLocaleDateString()
                               : 'the end of your billing period'
                             }.
                           </p>
+                          <div className="text-sm text-orange-700">
+                            <p className="mb-1">If you choose to cancel:</p>
+                            <ul className="list-disc list-inside space-y-1 ml-1">
+                              <li>Your data will remain securely stored for a limited time in case you return</li>
+                              <li>Your account will remain active until the end of your billing period</li>
+                            </ul>
+                          </div>
                         </div>
                       </div>
                       
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-start space-x-2">
                         <Checkbox 
                           id="confirm-cancel" 
                           checked={cancelConfirmed}
                           onCheckedChange={(checked) => setCancelConfirmed(checked === true)}
+                          className="mt-0.5"
                         />
                         <label
                           htmlFor="confirm-cancel"
-                          className="text-sm text-orange-800 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          className="text-sm text-orange-800 leading-normal peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                         >
-                          I understand I will lose access at the end of my billing period
+                          I understand that I will lose access to account features at the end of my billing period
                         </label>
                       </div>
                       
