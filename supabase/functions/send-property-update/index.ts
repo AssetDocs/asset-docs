@@ -80,7 +80,7 @@ const handler = async (req: Request): Promise<Response> => {
     const message = getUpdateMessage(updateType, propertyName, details);
 
     const emailResponse = await resend.emails.send({
-      from: "AssetDocs <notifications@assetdocs.net>",
+      from: "Asset Safe <notifications@assetsafe.net>",
       to: [email],
       subject: `${title} - ${propertyName}`,
       html: `
@@ -92,19 +92,20 @@ const handler = async (req: Request): Promise<Response> => {
         </head>
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5;">
           <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-            <div style="background: linear-gradient(135deg, #1a365d 0%, #2d5282 100%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
+            <div style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
+              <img src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 150px; margin-bottom: 15px;" />
               <h1 style="color: #ffffff; margin: 0; font-size: 24px;">${title}</h1>
             </div>
             <div style="background-color: #ffffff; padding: 30px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
               <p style="font-size: 16px; color: #333333; line-height: 1.6;">${message}</p>
               ${propertyAddress ? `<p style="font-size: 14px; color: #666666;"><strong>Address:</strong> ${propertyAddress}</p>` : ''}
               <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eeeeee;">
-                <a href="https://assetdocs.net/properties" style="display: inline-block; background-color: #1a365d; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 500;">View Properties</a>
+                <a href="https://www.assetsafe.net/properties" style="display: inline-block; background-color: #f97316; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 500;">View Properties</a>
               </div>
             </div>
             <div style="text-align: center; padding: 20px; color: #888888; font-size: 12px;">
               <p>You're receiving this because you have property update notifications enabled.</p>
-              <p>Manage your notification preferences in your <a href="https://assetdocs.net/account" style="color: #1a365d;">account settings</a>.</p>
+              <p>Manage your notification preferences in your <a href="https://www.assetsafe.net/account" style="color: #f97316;">account settings</a>.</p>
             </div>
           </div>
         </body>
