@@ -11,7 +11,7 @@ interface SecureStorageItem {
 }
 
 class SecureStorage {
-  private static readonly ENCRYPTION_KEY_NAME = 'assetdocs-enc-key';
+  private static readonly ENCRYPTION_KEY_NAME = 'assetsafe-enc-key';
   
   private static async getOrCreateKey(): Promise<CryptoKey> {
     const stored = localStorage.getItem(this.ENCRYPTION_KEY_NAME);
