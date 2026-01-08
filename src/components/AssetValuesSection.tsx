@@ -215,8 +215,60 @@ const AssetValuesSection: React.FC = () => {
           {showIndividualProperties ? 'Individual Property Details' : 'Combined Property Summary'}
         </h3>
         {showIndividualProperties ? (
-          <PropertyValuesSection />
+          // Individual Properties View - Show each property separately
+          <div className="space-y-4">
+            {propertyValuations.length === 0 ? (
+              <Card>
+                <CardContent className="p-6 text-center text-muted-foreground">
+                  No properties found. Add properties to see individual valuations.
+                </CardContent>
+              </Card>
+            ) : (
+              propertyValuations.map((property) => (
+                <Card key={property.propertyId}>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Home className="h-5 w-5 text-brand-blue" />
+                      {property.propertyId}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Estimated Value</p>
+                        <p className="text-xl font-bold text-brand-blue">
+                          ${(property.estimatedValue || 0).toLocaleString()}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Appraisal Value</p>
+                        <p className="text-xl font-bold">
+                          ${(property.appraisalValue || 0).toLocaleString()}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Annual Taxes</p>
+                        <p className="text-xl font-bold">
+                          ${(property.propertyTaxes || 0).toLocaleString()}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Source</p>
+                        <p className="text-sm font-medium">{property.source || 'N/A'}</p>
+                      </div>
+                    </div>
+                    {property.lastUpdated && (
+                      <p className="text-xs text-muted-foreground mt-3">
+                        Last updated: {new Date(property.lastUpdated).toLocaleDateString()}
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
         ) : (
+          // Combined View - Show portfolio summary
           <Card>
             <CardHeader>
               <CardTitle>Total Real Estate Portfolio</CardTitle>
