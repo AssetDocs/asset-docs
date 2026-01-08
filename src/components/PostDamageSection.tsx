@@ -307,22 +307,22 @@ const PostDamageSection: React.FC = () => {
 
           {/* Damage Documentation Tabs */}
           <Tabs defaultValue="photos" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="photos" className="flex items-center">
-                <Camera className="h-4 w-4 mr-1" />
-                Photos ({damagePhotos.length})
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 h-auto gap-1">
+              <TabsTrigger value="photos" className="flex items-center text-xs md:text-sm px-2 py-2">
+                <Camera className="h-3 w-3 md:h-4 md:w-4 mr-1 flex-shrink-0" />
+                <span className="truncate">Photos ({damagePhotos.length})</span>
               </TabsTrigger>
-              <TabsTrigger value="videos" className="flex items-center">
-                <Video className="h-4 w-4 mr-1" />
-                Videos ({damageVideos.length})
+              <TabsTrigger value="videos" className="flex items-center text-xs md:text-sm px-2 py-2">
+                <Video className="h-3 w-3 md:h-4 md:w-4 mr-1 flex-shrink-0" />
+                <span className="truncate">Videos ({damageVideos.length})</span>
               </TabsTrigger>
-              <TabsTrigger value="manual" className="flex items-center">
-                <Edit className="h-4 w-4 mr-1" />
-                Manual Entries
+              <TabsTrigger value="manual" className="flex items-center text-xs md:text-sm px-2 py-2">
+                <Edit className="h-3 w-3 md:h-4 md:w-4 mr-1 flex-shrink-0" />
+                <span className="truncate">Manual</span>
               </TabsTrigger>
-              <TabsTrigger value="reports" className="flex items-center">
-                <FileText className="h-4 w-4 mr-1" />
-                Reports
+              <TabsTrigger value="reports" className="flex items-center text-xs md:text-sm px-2 py-2">
+                <FileText className="h-3 w-3 md:h-4 md:w-4 mr-1 flex-shrink-0" />
+                <span className="truncate">Reports</span>
               </TabsTrigger>
             </TabsList>
 
