@@ -81,7 +81,7 @@ const handler = async (req: Request): Promise<Response> => {
     const dashboardUrl = `${baseUrl}/welcome`;
 
     const emailResponse = await resend.emails.send({
-      from: "Asset Safe <info@assetsafe.net>",
+      from: "Asset Safe <support@assetsafe.net>",
       to: [email],
       subject: `Welcome to Asset Safe — Your ${planName} Plan is Active!`,
       html: `

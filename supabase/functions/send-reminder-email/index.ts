@@ -36,7 +36,7 @@ const handler = async (req: Request): Promise<Response> => {
                            plan_type === 'standard' ? 'Standard' : 'Premium';
 
     const emailResponse = await resend.emails.send({
-      from: "Asset Safe <info@assetsafe.net>",
+      from: "Asset Safe <support@assetsafe.net>",
       to: [recipient_email],
       subject: "⏰ Your Asset Safe subscription expires soon - Update billing to continue",
       html: `
