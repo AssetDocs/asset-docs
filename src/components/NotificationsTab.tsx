@@ -242,7 +242,7 @@ const NotificationsTab: React.FC = () => {
           <div className="flex items-center justify-between p-4 rounded-lg border bg-card">
             <div className="flex-1">
               <h3 className="font-medium">Property Updates</h3>
-              <p className="text-sm text-muted-foreground">Notifications when property values change</p>
+              <p className="text-sm text-muted-foreground">Get notified when you add, edit, or delete properties</p>
               <span className="text-xs text-muted-foreground/70 mt-1 inline-block">Managed by Lovable</span>
             </div>
             <Switch 
