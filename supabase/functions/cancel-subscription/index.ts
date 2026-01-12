@@ -104,6 +104,36 @@ serve(async (req) => {
         })
         .eq('user_id', user.id);
 
+      // Get owner's profile for name
+      const { data: ownerProfile } = await supabaseClient
+        .from('profiles')
+        .select('first_name, last_name')
+        .eq('user_id', user.id)
+        .single();
+
+      const ownerName = ownerProfile 
+        ? `${ownerProfile.first_name || ''} ${ownerProfile.last_name || ''}`.trim() || user.email
+        : user.email;
+
+      // Send cancellation notice to all contributors
+      const billingEndDate = updatedSubscription.current_period_end 
+        ? new Date(updatedSubscription.current_period_end * 1000).toISOString()
+        : new Date().toISOString();
+
+      try {
+        await supabaseClient.functions.invoke('send-cancellation-notice', {
+          body: {
+            owner_user_id: user.id,
+            owner_name: ownerName,
+            billing_end_date: billingEndDate
+          }
+        });
+        logStep("Cancellation notice sent to contributors");
+      } catch (notifyError) {
+        // Don't fail the cancellation if notification fails
+        console.error("Failed to send cancellation notices:", notifyError);
+      }
+
       return new Response(JSON.stringify({ 
         success: true, 
         message: "Subscription will be canceled at the end of the billing period",

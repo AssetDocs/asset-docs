@@ -23,6 +23,7 @@ import { StripeTestPanel } from '@/components/StripeTestPanel';
 import { useToast } from '@/hooks/use-toast';
 import SecureVault from '@/components/SecureVault';
 import FeedbackSection from '@/components/FeedbackSection';
+import AdminContributorPlanInfo from '@/components/AdminContributorPlanInfo';
 import { supabase } from '@/integrations/supabase/client';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -318,6 +319,9 @@ const Account: React.FC = () => {
           <div className="mb-6">
             <WelcomeMessage />
           </div>
+          
+          {/* Admin Contributor Plan Info - shows subscription details for admin contributors */}
+          <AdminContributorPlanInfo />
           
           <div id="account-header">
             <AccountHeader />

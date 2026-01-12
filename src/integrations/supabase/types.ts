@@ -702,6 +702,7 @@ export type Database = {
       legacy_locker: {
         Row: {
           address: string | null
+          allow_admin_access: boolean
           attorney_contact: string | null
           attorney_firm: string | null
           attorney_name: string | null
@@ -756,6 +757,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          allow_admin_access?: boolean
           attorney_contact?: string | null
           attorney_firm?: string | null
           attorney_name?: string | null
@@ -810,6 +812,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          allow_admin_access?: boolean
           attorney_contact?: string | null
           attorney_firm?: string | null
           attorney_name?: string | null
