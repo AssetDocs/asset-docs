@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Lock, Shield, Unlock, Info, ChevronDown, ChevronRight, AlertTriangle } from 'lucide-react';
+import { Lock, Shield, Unlock, Info, ChevronDown, ChevronRight, AlertTriangle, UserX } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useContributor } from '@/contexts/ContributorContext';
@@ -21,7 +21,7 @@ import TOTPChallenge from './TOTPChallenge';
 
 const SecureVault: React.FC = () => {
   const { user } = useAuth();
-  const { isContributor, canAccessEncryptedVault, isViewer, isContributorRole, contributorRole } = useContributor();
+  const { isContributor, canAccessEncryptedVault, isViewer, isContributorRole, contributorRole, isAdministrator } = useContributor();
   const { toast } = useToast();
   const [isEncrypted, setIsEncrypted] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
@@ -49,6 +49,10 @@ const SecureVault: React.FC = () => {
   const [originalDelegateId, setOriginalDelegateId] = useState<string | null>(null);
   const [originalGracePeriodDays, setOriginalGracePeriodDays] = useState(14);
   const [isSavingDelegate, setIsSavingDelegate] = useState(false);
+  
+  // Admin access control
+  const [allowAdminAccess, setAllowAdminAccess] = useState(true);
+  const [isSavingAdminAccess, setIsSavingAdminAccess] = useState(false);
   
   const hasDelegateChanges = selectedDelegateId !== originalDelegateId || gracePeriodDays !== originalGracePeriodDays;
 
@@ -78,9 +82,37 @@ const SecureVault: React.FC = () => {
     
     try {
       setLoading(true);
+      
+      // First check if user is an admin contributor
+      const { data: contributorData } = await supabase
+        .from('contributors')
+        .select('account_owner_id, role')
+        .eq('contributor_user_id', user.id)
+        .eq('status', 'accepted')
+        .maybeSingle();
+      
+      // If admin contributor, fetch owner's vault settings
+      if (contributorData && contributorData.role === 'administrator') {
+        const { data: ownerVaultData, error: ownerError } = await supabase
+          .from('legacy_locker')
+          .select('id, is_encrypted, allow_admin_access')
+          .eq('user_id', contributorData.account_owner_id)
+          .maybeSingle();
+
+        if (!ownerError && ownerVaultData) {
+          setLegacyLockerId(ownerVaultData.id);
+          setIsEncrypted(ownerVaultData.is_encrypted);
+          setExistingEncrypted(ownerVaultData.is_encrypted);
+          setAllowAdminAccess(ownerVaultData.allow_admin_access ?? true);
+        }
+        setLoading(false);
+        return;
+      }
+      
+      // For account owners, fetch their own vault
       const { data, error } = await supabase
         .from('legacy_locker')
-        .select('id, is_encrypted, delegate_user_id, recovery_grace_period_days, recovery_status')
+        .select('id, is_encrypted, delegate_user_id, recovery_grace_period_days, recovery_status, allow_admin_access')
         .eq('user_id', user.id)
         .maybeSingle();
 
@@ -96,6 +128,7 @@ const SecureVault: React.FC = () => {
         setOriginalGracePeriodDays(data.recovery_grace_period_days || 14);
         setHasPendingRequest(data.recovery_status === 'pending');
         setIsDelegate(data.delegate_user_id === user.id);
+        setAllowAdminAccess(data.allow_admin_access ?? true);
       }
     } catch (error) {
       console.error('Error fetching vault status:', error);
@@ -256,6 +289,40 @@ const SecureVault: React.FC = () => {
     }
   };
 
+  const handleAdminAccessToggle = async (checked: boolean) => {
+    if (!user || !legacyLockerId) return;
+    
+    setIsSavingAdminAccess(true);
+    try {
+      const { error } = await supabase
+        .from('legacy_locker')
+        .update({ 
+          allow_admin_access: checked,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', legacyLockerId);
+
+      if (error) throw error;
+
+      setAllowAdminAccess(checked);
+      toast({
+        title: checked ? "Admin Access Enabled" : "Admin Access Disabled",
+        description: checked 
+          ? "Administrator contributors can now access the Secure Vault."
+          : "Administrator contributors are now restricted from the Secure Vault.",
+      });
+    } catch (error: any) {
+      console.error('Error updating admin access:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update admin access settings.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingAdminAccess(false);
+    }
+  };
+
   if (loading) {
     return (
       <Card className="w-full border-4 border-yellow-400 shadow-lg">
@@ -266,8 +333,15 @@ const SecureVault: React.FC = () => {
     );
   }
 
-  // Contributor restriction - show access denied for encrypted vault
-  if (isEncrypted && !canAccessEncryptedVault) {
+  // Check if admin is blocked from vault access
+  const isAdminBlockedFromVault = isAdministrator && !allowAdminAccess;
+
+  // Contributor restriction - show access denied for encrypted vault or blocked admin
+  if ((isEncrypted && !canAccessEncryptedVault) || isAdminBlockedFromVault) {
+    const restrictionMessage = isAdminBlockedFromVault
+      ? "The account owner has restricted administrator access to the Secure Vault."
+      : `Contributors with ${contributorRole === 'viewer' ? 'viewer' : 'limited'} access cannot access encrypted vaults.`;
+    
     return (
       <Card className="w-full border-4 border-yellow-400 shadow-lg">
         <CardHeader className="bg-yellow-50 dark:bg-yellow-900/20 border-b border-yellow-400">
@@ -288,7 +362,7 @@ const SecureVault: React.FC = () => {
             <AlertTriangle className="h-20 w-20 mx-auto mb-6 text-amber-500" />
             <h3 className="text-xl font-semibold mb-3">Access Restricted</h3>
             <p className="text-muted-foreground mb-4 max-w-md mx-auto">
-              Contributors with {contributorRole === 'viewer' ? 'viewer' : 'limited'} access cannot access encrypted vaults.
+              {restrictionMessage}
             </p>
             <p className="text-sm text-muted-foreground max-w-md mx-auto">
               Please contact the account owner if you need access to this information.
@@ -416,6 +490,43 @@ const SecureVault: React.FC = () => {
               isSaving={isSavingDelegate}
               hasChanges={hasDelegateChanges}
             />
+          )}
+
+          {/* Admin Access Control - only show for owners */}
+          {!isContributor && legacyLockerId && (
+            <div className="bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-300 rounded-lg p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <UserX className="h-6 w-6 text-orange-600 mt-0.5" />
+                  <div>
+                    <h4 className="font-semibold text-orange-800 dark:text-orange-300">Admin Access Control</h4>
+                    <p className="text-sm text-orange-700 dark:text-orange-400 mt-1">
+                      {allowAdminAccess 
+                        ? "Administrator contributors can currently access the Secure Vault."
+                        : "Administrator contributors are currently restricted from the Secure Vault."
+                      }
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Note: Viewers and limited-access contributors never have access to the Secure Vault.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 bg-orange-100 dark:bg-orange-800/30 border border-orange-400 rounded-lg px-4 py-3">
+                  <Label 
+                    htmlFor="admin-access-toggle" 
+                    className="font-semibold text-orange-700 dark:text-orange-300 whitespace-nowrap"
+                  >
+                    {allowAdminAccess ? "Allowed" : "Restricted"}
+                  </Label>
+                  <Switch
+                    id="admin-access-toggle"
+                    checked={allowAdminAccess}
+                    onCheckedChange={handleAdminAccessToggle}
+                    disabled={isSavingAdminAccess}
+                  />
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Section 1: Password Catalog */}
