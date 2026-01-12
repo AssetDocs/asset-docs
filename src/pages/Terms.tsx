@@ -133,7 +133,20 @@ const Terms: React.FC = () => {
           </section>
           
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">10. Privacy Policy</h2>
+            <h2 className="text-2xl font-semibold mb-4">10. Billing and Payments</h2>
+            <p>
+              Subscription fees are exclusive of applicable sales, use, or similar taxes, which may be added based on your billing address and applicable law.
+            </p>
+            <p className="mt-4">
+              All subscription fees are billed in advance on a recurring basis (monthly or annually, depending on the plan selected). You authorize Asset Safe to charge the payment method on file for all applicable fees. Failure to pay may result in suspension or termination of your account.
+            </p>
+            <p className="mt-4">
+              Refunds are handled on a case-by-case basis. If you believe you are entitled to a refund, please contact our support team at support@assetsafe.net.
+            </p>
+          </section>
+          
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">11. Privacy Policy</h2>
             <p>
               Your privacy is very important to us. Accordingly, we have developed this Policy in order for 
               you to understand how we collect, use, communicate and disclose and make use of personal information. 
