@@ -27,7 +27,8 @@ const DashboardBreadcrumb: React.FC<DashboardBreadcrumbProps> = ({
     '/account/insurance/new': 'Add Insurance',
     '/account/settings': 'Account Settings',
     '/account/inventory': 'Inventory',
-    '/account/legacy-locker': 'Legacy Locker'
+    '/account/legacy-locker': 'Legacy Locker',
+    '/account/contacts': 'VIP Contacts'
   };
 
   // Get current page name

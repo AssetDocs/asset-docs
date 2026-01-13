@@ -95,6 +95,7 @@ import LegacyLockerInfo from "./pages/LegacyLockerInfo";
 import ContributorWelcome from "./pages/ContributorWelcome";
 import CookiePolicy from "./pages/CookiePolicy";
 import Install from "./pages/Install";
+import VIPContacts from "./pages/VIPContacts";
 
 const queryClient = new QueryClient();
 
@@ -286,6 +287,7 @@ const AppContent = () => {
         <Route path="/account/insurance/:id/edit" element={<ProtectedRoute><InsuranceEdit /></ProtectedRoute>} />
         <Route path="/account/documents/:id/edit" element={<ProtectedRoute><DocumentEdit /></ProtectedRoute>} />
         <Route path="/account/settings" element={<ProtectedRoute><AccountSettings /></ProtectedRoute>} />
+        <Route path="/account/contacts" element={<ProtectedRoute><VIPContacts /></ProtectedRoute>} />
         <Route path="/schedule-professional" element={<ProtectedRoute><ScheduleProfessional /></ProtectedRoute>} />
         <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
         

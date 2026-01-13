@@ -386,6 +386,12 @@ const Account: React.FC = () => {
                   >
                     Paint Codes
                   </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => navigate('/account/contacts')}
+                    className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+                  >
+                    Contacts
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
