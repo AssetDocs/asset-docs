@@ -8,9 +8,10 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, KeyRound } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Separator } from '@/components/ui/separator';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -19,9 +20,26 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isPasskeyLoading, setIsPasskeyLoading] = useState(false);
   const [loginError, setLoginError] = useState(false);
+  const [passkeySupported, setPasskeySupported] = useState(false);
   const { signIn, user } = useAuth();
   const { toast } = useToast();
+
+  // Check if passkey/WebAuthn is supported
+  useEffect(() => {
+    const checkPasskeySupport = async () => {
+      if (window.PublicKeyCredential) {
+        try {
+          const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+          setPasskeySupported(available);
+        } catch {
+          setPasskeySupported(false);
+        }
+      }
+    };
+    checkPasskeySupport();
+  }, []);
 
   // Get redirect URL from params (e.g., for gift code users)
   const redirectTo = searchParams.get('redirect') || '/account';
@@ -92,6 +110,19 @@ const Login: React.FC = () => {
     }
   };
 
+  const handlePasskeySignIn = async () => {
+    setIsPasskeyLoading(true);
+
+    // Note: Supabase doesn't have native passkey support yet
+    // This is a placeholder for future implementation with simplewebauthn
+    toast({
+      title: "Passkey Coming Soon",
+      description: "Passkey authentication will be available in a future update. Please use email and password for now.",
+    });
+    
+    setIsPasskeyLoading(false);
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
@@ -99,9 +130,16 @@ const Login: React.FC = () => {
       <div className="flex-grow flex items-center justify-center py-12 px-4">
         <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md border border-gray-200">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-brand-blue mb-2">Welcome</h1>
+            <div className="flex justify-center mb-4">
+              <img 
+                src="/lovable-uploads/390b9c27-b850-4840-b6dd-ac89f59276df.png" 
+                alt="Asset Safe Logo" 
+                className="h-14 w-auto"
+              />
+            </div>
+            <h1 className="text-3xl font-bold text-brand-blue mb-2">Welcome Back</h1>
             <p className="text-gray-600">
-              Create an account to access your dashboard
+              Sign in to your Asset Safe account
             </p>
           </div>
           
@@ -190,6 +228,28 @@ const Login: React.FC = () => {
             >
               {isLoading ? 'Signing In...' : 'Sign In'}
             </Button>
+
+            {passkeySupported && (
+              <>
+                <div className="relative my-4">
+                  <Separator />
+                  <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-xs text-muted-foreground">
+                    or
+                  </span>
+                </div>
+                
+                <Button 
+                  type="button"
+                  variant="outline"
+                  className="w-full border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white"
+                  onClick={handlePasskeySignIn}
+                  disabled={isPasskeyLoading}
+                >
+                  <KeyRound className="mr-2 h-4 w-4" />
+                  {isPasskeyLoading ? 'Authenticating...' : 'Sign in with Passkey'}
+                </Button>
+              </>
+            )}
             
             <div className="text-center mt-4">
               <p className="text-sm text-muted-foreground">
