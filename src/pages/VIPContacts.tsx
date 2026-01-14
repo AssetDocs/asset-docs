@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
+import ContactAttachments from '@/components/ContactAttachments';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,11 +12,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useContributor } from '@/contexts/ContributorContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Edit, Trash2, Star, Phone, Mail, MapPin, User, ArrowLeft } from 'lucide-react';
+import { Plus, Edit, Trash2, Star, Phone, Mail, MapPin, User, ArrowLeft, ChevronDown, ChevronUp, Paperclip } from 'lucide-react';
 
 interface VIPContact {
   id: string;
@@ -66,6 +68,19 @@ const VIPContacts: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<VIPContact | null>(null);
   const [saving, setSaving] = useState(false);
+  const [expandedContacts, setExpandedContacts] = useState<Set<string>>(new Set());
+
+  const toggleExpanded = (contactId: string) => {
+    setExpandedContacts(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(contactId)) {
+        newSet.delete(contactId);
+      } else {
+        newSet.add(contactId);
+      }
+      return newSet;
+    });
+  };
   
   // Form state
   const [formData, setFormData] = useState({
@@ -498,7 +513,7 @@ const VIPContacts: React.FC = () => {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="space-y-4">
               {contacts.map((contact) => (
                 <Card key={contact.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader className="pb-3">
@@ -591,6 +606,40 @@ const VIPContacts: React.FC = () => {
                         {contact.notes}
                       </p>
                     )}
+
+                    {/* Attachments Collapsible Section */}
+                    <Collapsible 
+                      open={expandedContacts.has(contact.id)}
+                      onOpenChange={() => toggleExpanded(contact.id)}
+                      className="mt-4 pt-4 border-t"
+                    >
+                      <CollapsibleTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          className="w-full flex items-center justify-between p-2 h-auto hover:bg-gray-50"
+                        >
+                          <span className="flex items-center gap-2 text-sm font-medium text-brand-blue">
+                            <Paperclip className="h-4 w-4" />
+                            Attachments (Documents, Images, Voice Notes)
+                          </span>
+                          {expandedContacts.has(contact.id) ? (
+                            <ChevronUp className="h-4 w-4 text-gray-500" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4 text-gray-500" />
+                          )}
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        {effectiveUserId && (
+                          <ContactAttachments
+                            contactId={contact.id}
+                            userId={effectiveUserId}
+                            isViewer={isViewer}
+                            contactName={contact.name}
+                          />
+                        )}
+                      </CollapsibleContent>
+                    </Collapsible>
                   </CardContent>
                 </Card>
               ))}
