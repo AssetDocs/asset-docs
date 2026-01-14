@@ -436,12 +436,26 @@ const Auth: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center p-4 relative">
+      {/* Background image with blur and gradient overlay */}
+      <div 
+        className="fixed inset-0 z-0"
+        style={{
+          backgroundImage: 'url(/images/login-background.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          filter: 'blur(4px)',
+          transform: 'scale(1.05)',
+        }}
+      />
+      {/* Blue gradient overlay similar to hero section */}
+      <div className="fixed inset-0 z-0 bg-gradient-to-br from-brand-blue/80 via-brand-blue/60 to-brand-blue/40" />
+      
+      <div className="w-full max-w-md relative z-10">
         <div className="mb-6">
           <Link 
             to="/" 
-            className="inline-flex items-center text-brand-blue hover:text-brand-blue/80 transition-colors"
+            className="inline-flex items-center text-white hover:text-white/80 transition-colors"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
@@ -450,6 +464,13 @@ const Auth: React.FC = () => {
 
         <Card className="shadow-lg">
           <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <img 
+                src="/lovable-uploads/390b9c27-b850-4840-b6dd-ac89f59276df.png" 
+                alt="Asset Safe Logo" 
+                className="h-14 w-auto"
+              />
+            </div>
             <CardTitle className="text-2xl font-bold text-brand-blue">Welcome Back</CardTitle>
             <CardDescription>
               Sign in to your Asset Safe account
