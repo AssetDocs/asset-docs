@@ -400,14 +400,16 @@ const Signup: React.FC = () => {
                       </FormControl>
                       <div className="space-y-1 leading-none">
                         <FormLabel className="text-sm font-normal cursor-pointer">
-                          By clicking continue, you agree to the Asset Safe{' '}
+                          I agree to the Asset Safe{' '}
+                          <Link to="/subscription-agreement" className="text-brand-blue hover:underline">
+                            Subscription Agreement
+                          </Link>,{' '}
                           <Link to="/terms" className="text-brand-blue hover:underline">
-                            Terms and Conditions
-                          </Link>{' '}
-                          and{' '}
+                            Terms of Service
+                          </Link>, and{' '}
                           <Link to="/legal" className="text-brand-blue hover:underline">
                             Privacy Policy
-                          </Link>
+                          </Link>.
                         </FormLabel>
                         <FormMessage />
                       </div>
