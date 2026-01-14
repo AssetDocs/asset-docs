@@ -124,10 +124,24 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen relative">
+      {/* Background image with blur and gradient overlay */}
+      <div 
+        className="fixed inset-0 z-0"
+        style={{
+          backgroundImage: 'url(/images/login-background.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          filter: 'blur(4px)',
+          transform: 'scale(1.05)', // Prevent blur edge artifacts
+        }}
+      />
+      {/* Blue gradient overlay similar to hero section */}
+      <div className="fixed inset-0 z-0 bg-gradient-to-br from-brand-blue/80 via-brand-blue/60 to-brand-blue/40" />
+      
       <Navbar />
       
-      <div className="flex-grow flex items-center justify-center py-12 px-4">
+      <div className="flex-grow flex items-center justify-center py-12 px-4 relative z-10">
         <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md border border-gray-200">
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
@@ -280,7 +294,9 @@ const Login: React.FC = () => {
         </div>
       </div>
       
-      <Footer />
+      <div className="relative z-10">
+        <Footer />
+      </div>
     </div>
   );
 };
