@@ -144,13 +144,13 @@ const Login: React.FC = () => {
       <div className="flex-grow flex items-center justify-center py-12 px-4 relative z-10">
         <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md border border-gray-200">
           <div className="text-center mb-8">
-            <div className="flex justify-center mb-4">
-              <img 
-                src="/lovable-uploads/390b9c27-b850-4840-b6dd-ac89f59276df.png" 
-                alt="Asset Safe Logo" 
-                className="h-14 w-auto"
-              />
-            </div>
+              <div className="flex justify-center mb-4">
+                <img 
+                  src="/images/asset-safe-logo.png" 
+                  alt="Asset Safe Logo" 
+                  className="h-14 w-auto"
+                />
+              </div>
             <h1 className="text-3xl font-bold text-brand-blue mb-2">Welcome Back</h1>
             <p className="text-gray-600">
               Sign in to your Asset Safe account
