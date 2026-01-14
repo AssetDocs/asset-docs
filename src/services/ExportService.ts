@@ -77,6 +77,25 @@ export interface AssetSummary {
     condition?: string;
     createdAt: string;
   }>;
+  vipContacts: Array<{
+    id: string;
+    name: string;
+    relationship?: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
+    notes?: string;
+    priority: number;
+    attachments: Array<{
+      fileName: string;
+      fileType: string;
+      attachmentType: string;
+      description?: string;
+    }>;
+  }>;
 }
 
 export class ExportService {
@@ -142,6 +161,8 @@ export class ExportService {
     pdf.text(`Paint Codes: ${assets.paintCodes.length}`, 30, yPosition);
     yPosition += lineHeight;
     pdf.text(`Source Websites: ${assets.sourceWebsites.length}`, 30, yPosition);
+    yPosition += lineHeight;
+    pdf.text(`VIP Contacts: ${assets.vipContacts.length}`, 30, yPosition);
     yPosition += 20;
 
     // Properties section
@@ -355,6 +376,62 @@ export class ExportService {
       });
     }
 
+    // VIP Contacts section
+    if (assets.vipContacts.length > 0) {
+      checkPageSpace(30);
+      pdf.setFontSize(16);
+      pdf.setFont(undefined, 'bold');
+      pdf.text('VIP Contacts', 20, yPosition);
+      yPosition += 10;
+
+      assets.vipContacts.forEach((contact, index) => {
+        checkPageSpace(40);
+        pdf.setFontSize(10);
+        pdf.setFont(undefined, 'bold');
+        const priorityStars = '★'.repeat(contact.priority) + '☆'.repeat(5 - contact.priority);
+        pdf.text(`${index + 1}. ${contact.name} ${priorityStars}`, 30, yPosition);
+        yPosition += lineHeight;
+        pdf.setFont(undefined, 'normal');
+        
+        if (contact.relationship) {
+          pdf.text(`   Relationship: ${contact.relationship}`, 30, yPosition);
+          yPosition += lineHeight;
+        }
+        if (contact.phone) {
+          pdf.text(`   Phone: ${contact.phone}`, 30, yPosition);
+          yPosition += lineHeight;
+        }
+        if (contact.email) {
+          pdf.text(`   Email: ${contact.email}`, 30, yPosition);
+          yPosition += lineHeight;
+        }
+        if (contact.address || contact.city || contact.state) {
+          const addressParts = [contact.address, contact.city, contact.state, contact.zipCode].filter(Boolean);
+          pdf.text(`   Address: ${addressParts.join(', ')}`, 30, yPosition);
+          yPosition += lineHeight;
+        }
+        if (contact.notes) {
+          const maxWidth = 150;
+          const lines = pdf.splitTextToSize(`   Notes: ${contact.notes}`, maxWidth);
+          lines.forEach((line: string) => {
+            checkPageSpace(lineHeight);
+            pdf.text(line, 30, yPosition);
+            yPosition += lineHeight;
+          });
+        }
+        if (contact.attachments.length > 0) {
+          pdf.text(`   Attachments: ${contact.attachments.length} file(s)`, 30, yPosition);
+          yPosition += lineHeight;
+          contact.attachments.forEach((att) => {
+            checkPageSpace(lineHeight);
+            pdf.text(`      - ${att.fileName} (${att.attachmentType})`, 35, yPosition);
+            yPosition += lineHeight;
+          });
+        }
+        yPosition += 3;
+      });
+    }
+
     // Save the PDF
     const fileName = `asset-safe-summary-${new Date().toISOString().split('T')[0]}.pdf`;
     pdf.save(fileName);
@@ -473,7 +550,8 @@ export class ExportService {
       voiceNotes: [],
       paintCodes: [],
       sourceWebsites: [],
-      items: []
+      items: [],
+      vipContacts: []
     };
 
     try {
@@ -659,6 +737,42 @@ export class ExportService {
           websiteUrl: site.website_url,
           description: site.description || undefined,
           category: site.category || undefined
+        }));
+      }
+
+      // Fetch VIP contacts with attachments
+      const { data: vipContacts, error: vipContactsError } = await supabase
+        .from('vip_contacts')
+        .select('*')
+        .eq('user_id', userId);
+
+      if (!vipContactsError && vipContacts) {
+        // Fetch attachments for all contacts
+        const { data: allAttachments } = await supabase
+          .from('vip_contact_attachments')
+          .select('*')
+          .eq('user_id', userId);
+
+        assets.vipContacts = vipContacts.map(contact => ({
+          id: contact.id,
+          name: contact.name,
+          relationship: contact.relationship || undefined,
+          email: contact.email || undefined,
+          phone: contact.phone || undefined,
+          address: contact.address || undefined,
+          city: contact.city || undefined,
+          state: contact.state || undefined,
+          zipCode: contact.zip_code || undefined,
+          notes: contact.notes || undefined,
+          priority: contact.priority,
+          attachments: (allAttachments || [])
+            .filter(att => att.contact_id === contact.id)
+            .map(att => ({
+              fileName: att.file_name,
+              fileType: att.file_type,
+              attachmentType: att.attachment_type,
+              description: att.description || undefined
+            }))
         }));
       }
 
