@@ -351,6 +351,12 @@ const Account: React.FC = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] bg-brand-green border-brand-green">
                   <DropdownMenuItem 
+                    onClick={() => navigate('/account/contacts')}
+                    className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+                  >
+                    Contacts
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
                     onClick={() => navigate('/inventory')}
                     className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
                   >
@@ -385,12 +391,6 @@ const Account: React.FC = () => {
                     className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
                   >
                     Paint Codes
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={() => navigate('/account/contacts')}
-                    className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
-                  >
-                    Contacts
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
