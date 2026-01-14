@@ -182,7 +182,7 @@ const Signup: React.FC = () => {
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
               <img 
-                src="/lovable-uploads/390b9c27-b850-4840-b6dd-ac89f59276df.png" 
+                src="/images/asset-safe-logo.png" 
                 alt="Asset Safe Logo" 
                 className="h-14 w-auto"
               />
