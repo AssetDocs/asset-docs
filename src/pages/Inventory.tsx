@@ -6,7 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Search, Package, DollarSign, FileText, Eye, Plus, ArrowLeft, Trash2, CheckSquare, Square } from 'lucide-react';
+import { Search, Package, DollarSign, FileText, Eye, Plus, Trash2, CheckSquare, Square, ChevronLeft, ChevronDown } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ItemService, Item } from '@/services/ItemService';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
@@ -170,10 +171,74 @@ const Inventory: React.FC = () => {
       <Navbar />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <DashboardBreadcrumb showBackButton={true} />
+        <DashboardBreadcrumb />
+        
+        {/* Insights & Tools Dropdown with Back Button */}
+        <div className="w-full flex items-center gap-2 mb-6">
+          <Button
+            onClick={() => navigate('/account')}
+            className="bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white h-12 w-12 min-w-12 p-0 rounded-lg flex-shrink-0 shadow-md"
+            aria-label="Back to Dashboard"
+          >
+            <ChevronLeft className="h-7 w-7" />
+          </Button>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className="w-full bg-brand-green hover:bg-brand-green/90 text-white justify-between">
+                Insights & Tools
+                <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] bg-brand-green border-brand-green">
+              <DropdownMenuItem 
+                onClick={() => navigate('/account/contacts')}
+                className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+              >
+                Contacts
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => navigate('/inventory')}
+                className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+              >
+                Manual Entry
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => navigate('/account?tab=asset-values')}
+                className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+              >
+                Asset Values
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => navigate('/account?tab=source-websites')}
+                className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+              >
+                Source Websites
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => navigate('/account?tab=damage')}
+                className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+              >
+                Post Damage
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => navigate('/account?tab=voice-notes')}
+                className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+              >
+                Voice Notes
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => navigate('/account?tab=paint-codes')}
+                className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+              >
+                Paint Codes
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
         
         <div className="mb-8">
-          <div className="flex justify-between items-start mb-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
             <div>
               <h1 className="text-3xl font-bold text-foreground">Manual Entry</h1>
               <p className="text-muted-foreground mt-2">

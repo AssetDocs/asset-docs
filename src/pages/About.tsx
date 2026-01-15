@@ -63,10 +63,9 @@ const About: React.FC = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <h3 className="text-xl font-semibold mb-3 text-gray-800">Verified Claims</h3>
+                  <h3 className="text-xl font-semibold mb-3 text-gray-800">Insurance Ready</h3>
                   <p className="text-gray-600">
-                    Create bulletproof documentation that insurance companies trust, turning potential 
-                    claim disputes into swift, verified settlements in your favor.
+                    Create clear, time-stamped documentation insurers recognize—reducing disputes and helping claims move forward faster.
                   </p>
                 </div>
                 

@@ -17,7 +17,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useContributor } from '@/contexts/ContributorContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Edit, Trash2, Star, Phone, Mail, MapPin, User, ArrowLeft, ChevronDown, ChevronUp, Paperclip } from 'lucide-react';
+import { Plus, Edit, Trash2, Star, Phone, Mail, MapPin, User, ChevronLeft, ChevronDown, ChevronUp, Paperclip } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface VIPContact {
   id: string;
@@ -318,20 +319,74 @@ const VIPContacts: React.FC = () => {
         <div className="max-w-6xl mx-auto">
           <DashboardBreadcrumb />
           
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-4">
-              <Button
-                onClick={() => navigate('/account')}
-                variant="outline"
-                className="bg-white text-brand-orange hover:bg-gray-50"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">VIP Contacts</h1>
-                <p className="text-gray-600 text-sm">Important people to contact in case of emergency or death</p>
-              </div>
+          {/* Insights & Tools Dropdown with Back Button */}
+          <div className="w-full flex items-center gap-2 mb-6">
+            <Button
+              onClick={() => navigate('/account')}
+              className="bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white h-12 w-12 min-w-12 p-0 rounded-lg flex-shrink-0 shadow-md"
+              aria-label="Back to Dashboard"
+            >
+              <ChevronLeft className="h-7 w-7" />
+            </Button>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="w-full bg-brand-green hover:bg-brand-green/90 text-white justify-between">
+                  Insights & Tools
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] bg-brand-green border-brand-green">
+                <DropdownMenuItem 
+                  onClick={() => navigate('/account/contacts')}
+                  className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+                >
+                  Contacts
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => navigate('/inventory')}
+                  className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+                >
+                  Manual Entry
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => navigate('/account?tab=asset-values')}
+                  className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+                >
+                  Asset Values
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => navigate('/account?tab=source-websites')}
+                  className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+                >
+                  Source Websites
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => navigate('/account?tab=damage')}
+                  className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+                >
+                  Post Damage
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => navigate('/account?tab=voice-notes')}
+                  className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+                >
+                  Voice Notes
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => navigate('/account?tab=paint-codes')}
+                  className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+                >
+                  Paint Codes
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">VIP Contacts</h1>
+              <p className="text-gray-600 text-sm">Important people to contact in case of emergency or death</p>
             </div>
             
             {!isViewer && (

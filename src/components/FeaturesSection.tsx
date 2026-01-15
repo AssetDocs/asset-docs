@@ -21,8 +21,8 @@ const FeaturesSection: React.FC = () => {
           />
           <FeatureCard 
             icon={<Shield size={48} />}
-            title="Third-Party Verification"
-            description="Get professional verification of your assets to ensure accurate insurance claims and valuations."
+            title="Independent Review Support"
+            description="Prepare structured asset records that facilitate review by insurers, appraisers, or other professionals."
           />
           <FeatureCard 
             icon={<Lock size={48} />}
