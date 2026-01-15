@@ -74,7 +74,7 @@ const Features: React.FC = () => {
                 
                 <div className="bg-white p-6 rounded-lg shadow">
                   <TrendingUp className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Value Authentication</h3>
+                  <h3 className="text-xl font-semibold mb-2">Asset Valuation</h3>
                   <p className="text-gray-600">Document home improvements and upgrades to maximize property value when selling.</p>
                 </div>
                 
@@ -278,8 +278,8 @@ const Features: React.FC = () => {
                 
                 <div className="bg-white p-6 rounded-lg shadow">
                   <Calculator className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Asset Valuation</h3>
-                  <p className="text-gray-600">Professional asset valuation for insurance, loans, and business sales.</p>
+                  <h3 className="text-xl font-semibold mb-2">Value Authentication</h3>
+                  <p className="text-gray-600">Document business improvements and upgrades to maximize property value when selling or raising capital.</p>
                 </div>
                 
                 <div className="bg-white p-6 rounded-lg shadow">
