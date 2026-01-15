@@ -4,6 +4,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import ContactAttachments from '@/components/ContactAttachments';
+import WelcomeBanner from '@/components/WelcomeBanner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -318,6 +319,8 @@ const VIPContacts: React.FC = () => {
       <div className="flex-grow py-8 px-4 bg-gray-50">
         <div className="max-w-6xl mx-auto">
           <DashboardBreadcrumb />
+          
+          <WelcomeBanner />
           
           {/* Insights & Tools Dropdown with Back Button */}
           <div className="w-full flex items-center gap-2 mb-6">
