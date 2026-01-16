@@ -151,6 +151,21 @@ const WelcomeMessage: React.FC = () => {
     localStorage.setItem('installPromptDismissed', 'true');
   };
 
+  // Desktop install prompt dismissal
+  const [hideDesktopInstallPrompt, setHideDesktopInstallPrompt] = useState(false);
+
+  useEffect(() => {
+    const desktopDismissed = localStorage.getItem('desktopInstallPromptDismissed');
+    if (desktopDismissed) {
+      setHideDesktopInstallPrompt(true);
+    }
+  }, []);
+
+  const handleDismissDesktopInstallPrompt = () => {
+    setHideDesktopInstallPrompt(true);
+    localStorage.setItem('desktopInstallPromptDismissed', 'true');
+  };
+
   return (
     <div className="space-y-3">
       <div className="bg-gradient-to-r from-brand-blue to-brand-lightBlue p-6 rounded-lg text-white">
@@ -191,6 +206,37 @@ const WelcomeMessage: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      {/* Desktop Install Prompt - only shows on desktop devices and not dismissed */}
+      {!isMobile && !isAppInstalled && !hideDesktopInstallPrompt && (
+        <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg relative">
+          <button 
+            onClick={handleDismissDesktopInstallPrompt}
+            className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-sm font-medium"
+            aria-label="Don't show again"
+          >
+            ✕ Don't show again
+          </button>
+          <div className="flex items-start gap-4 pr-20">
+            <span className="text-3xl">📱</span>
+            <div className="flex-1">
+              <p className="font-semibold text-gray-900 text-base">One-Tap Mobile Access (No App Required)</p>
+              <p className="text-gray-600 text-sm mt-1">
+                Add Asset Safe to your phone's home screen for instant access to your account—private, secure, and available even during emergencies with limited power or connectivity.
+              </p>
+              <Button 
+                asChild 
+                size="sm"
+                className="mt-3 bg-brand-blue hover:bg-brand-lightBlue text-white font-medium"
+              >
+                <Link to="/install">
+                  Learn how to add to home screen
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Mobile Install Prompt - only shows on mobile devices, not already installed, and not dismissed */}
       {isMobile && !isAppInstalled && !hideInstallPrompt && (
