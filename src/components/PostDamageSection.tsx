@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Progress } from '@/components/ui/progress';
 import PropertySelector from '@/components/PropertySelector';
 import ManualDamageEntry from '@/components/ManualDamageEntry';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
@@ -29,74 +30,95 @@ import {
   Loader2,
   X,
   Save,
-  Clock,
-  MapPin,
   Shield,
-  DollarSign,
-  Users,
-  FileUp
+  ChevronDown,
+  ChevronUp,
+  Check,
+  SkipForward,
+  Droplets,
+  Wind,
+  Flame,
+  Zap,
+  Construction,
+  CircleAlert,
+  HelpCircle,
+  Home,
+  Package,
+  Car,
+  Sofa,
+  Tv,
+  Smartphone,
+  ShoppingBag,
+  Wrench,
+  Phone
 } from 'lucide-react';
 
-// Incident type options
+// Incident type options with icons
 const INCIDENT_TYPES = [
-  { id: 'fire', label: 'Fire' },
-  { id: 'water', label: 'Water / Flood' },
-  { id: 'storm', label: 'Storm / Wind / Hail' },
-  { id: 'theft', label: 'Theft / Vandalism' },
-  { id: 'accidental', label: 'Accidental damage' },
-  { id: 'electrical', label: 'Electrical' },
-  { id: 'plumbing', label: 'Plumbing' },
+  { id: 'water', label: 'Water / Flood', icon: Droplets, color: 'text-blue-500' },
+  { id: 'storm', label: 'Storm / Wind / Hail', icon: Wind, color: 'text-gray-600' },
+  { id: 'fire', label: 'Fire', icon: Flame, color: 'text-orange-500' },
+  { id: 'electrical', label: 'Electrical', icon: Zap, color: 'text-yellow-500' },
+  { id: 'accidental', label: 'Accidental', icon: Construction, color: 'text-amber-600' },
+  { id: 'theft', label: 'Theft / Vandalism', icon: CircleAlert, color: 'text-red-500' },
+  { id: 'other', label: 'Other', icon: HelpCircle, color: 'text-gray-400' },
+];
+
+// Area chips
+const AREA_OPTIONS = [
+  { id: 'kitchen', label: 'Kitchen' },
+  { id: 'living_room', label: 'Living Room' },
+  { id: 'bedroom', label: 'Bedroom' },
+  { id: 'bathroom', label: 'Bathroom' },
+  { id: 'garage', label: 'Garage' },
+  { id: 'basement', label: 'Basement' },
+  { id: 'exterior', label: 'Exterior' },
+  { id: 'roof', label: 'Roof' },
   { id: 'other', label: 'Other' },
 ];
 
-// Items/areas affected options
-const ITEMS_AFFECTED = [
-  { id: 'structure', label: 'Structure' },
-  { id: 'personal_property', label: 'Personal property' },
-  { id: 'appliances', label: 'Appliances' },
-  { id: 'electronics', label: 'Electronics' },
-  { id: 'furniture', label: 'Furniture' },
-  { id: 'vehicle', label: 'Vehicle' },
-  { id: 'other', label: 'Other' },
+// Impact buckets
+const IMPACT_BUCKETS = [
+  { id: 'structure', label: 'Structure', icon: Home, description: 'Walls, floors, roof, foundation' },
+  { id: 'belongings', label: 'Belongings', icon: Package, description: 'Personal items & furniture' },
+  { id: 'vehicle', label: 'Vehicle', icon: Car, description: 'Car, boat, RV, etc.' },
 ];
 
-// Visible damage options
+// Belongings sub-items
+const BELONGINGS_ITEMS = [
+  { id: 'furniture', label: 'Furniture', icon: Sofa },
+  { id: 'appliances', label: 'Appliances', icon: Wrench },
+  { id: 'electronics', label: 'Electronics', icon: Tv },
+  { id: 'personal', label: 'Personal items', icon: ShoppingBag },
+  { id: 'other', label: 'Other', icon: Package },
+];
+
+// Simplified visible damage options
 const VISIBLE_DAMAGE = [
-  { id: 'cracks', label: 'Cracks or breaks' },
-  { id: 'water_intrusion', label: 'Water intrusion or staining' },
-  { id: 'smoke', label: 'Smoke, soot, or charring' },
-  { id: 'missing', label: 'Missing or displaced items' },
-  { id: 'broken', label: 'Broken or non-functioning components' },
-  { id: 'other', label: 'Other' },
+  { id: 'water_visible', label: 'Water visible' },
+  { id: 'smoke_soot', label: 'Smoke or soot' },
+  { id: 'broken_missing', label: 'Broken or missing items' },
+  { id: 'staining', label: 'Staining or discoloration' },
+  { id: 'not_working', label: "Something isn't working anymore" },
+  { id: 'not_sure', label: 'Not sure' },
 ];
 
-// Safety concerns options
+// Safety concerns with icons
 const SAFETY_CONCERNS = [
-  { id: 'wiring', label: 'Exposed wiring' },
-  { id: 'water', label: 'Standing water' },
-  { id: 'structural', label: 'Structural instability' },
-  { id: 'odor', label: 'Strong odor (smoke, mold, chemicals)' },
-  { id: 'none', label: 'None observed' },
-  { id: 'other', label: 'Other' },
+  { id: 'wiring', label: 'Exposed wiring', icon: '⚠️' },
+  { id: 'water', label: 'Standing water', icon: '💧' },
+  { id: 'structural', label: 'Structural concerns', icon: '🧱' },
+  { id: 'odors', label: 'Strong odors', icon: '👃' },
+  { id: 'none', label: 'No immediate safety concerns', icon: '✅' },
 ];
 
-// Mitigation options
-const MITIGATION_OPTIONS = [
-  { id: 'water_shutoff', label: 'Water shutoff' },
-  { id: 'boardup', label: 'Board-up or tarping' },
-  { id: 'power', label: 'Power disconnected' },
-  { id: 'cleanup', label: 'Temporary cleanup' },
-  { id: 'none', label: 'None' },
-  { id: 'other', label: 'Other' },
-];
-
-// Professional contacts options
-const PROFESSIONALS = [
-  { id: 'insurance', label: 'Insurance carrier' },
-  { id: 'restoration', label: 'Restoration company' },
-  { id: 'contractor', label: 'Contractor' },
-  { id: 'law_enforcement', label: 'Law enforcement' },
-  { id: 'other', label: 'Other' },
+// Actions taken - timeline language
+const ACTIONS_TAKEN = [
+  { id: 'water_off', label: 'Turned off water' },
+  { id: 'cleaned', label: 'Cleaned up temporarily' },
+  { id: 'covered', label: 'Covered area' },
+  { id: 'power_off', label: 'Turned off power' },
+  { id: 'none', label: 'No action yet' },
 ];
 
 // Cost estimate options
@@ -114,22 +136,18 @@ interface IncidentDetails {
   incidentTypes: string[];
   otherIncidentType: string;
   propertyId: string;
-  areaAffected: string;
-  itemsAffected: string[];
-  otherItemAffected: string;
+  areasAffected: string[];
+  otherArea: string;
+  impactBuckets: string[];
+  belongingsItems: string[];
+  otherBelongings: string;
   visibleDamage: string[];
-  otherVisibleDamage: string;
   damageOngoing: string;
   safetyConcerns: string[];
-  otherSafetyConcern: string;
+  actionsTaken: string[];
   estimatedCost: string;
-  dateNoticed: string;
-  mitigationActions: string[];
-  otherMitigation: string;
-  repairsStatus: string;
-  otherRepairsStatus: string;
+  contactedSomeone: string;
   professionalsContacted: string[];
-  otherProfessional: string;
   claimNumber: string;
   companyNames: string;
   additionalObservations: string;
@@ -141,22 +159,18 @@ const defaultIncidentDetails: IncidentDetails = {
   incidentTypes: [],
   otherIncidentType: '',
   propertyId: '',
-  areaAffected: '',
-  itemsAffected: [],
-  otherItemAffected: '',
+  areasAffected: [],
+  otherArea: '',
+  impactBuckets: [],
+  belongingsItems: [],
+  otherBelongings: '',
   visibleDamage: [],
-  otherVisibleDamage: '',
   damageOngoing: '',
   safetyConcerns: [],
-  otherSafetyConcern: '',
+  actionsTaken: [],
   estimatedCost: '',
-  dateNoticed: '',
-  mitigationActions: [],
-  otherMitigation: '',
-  repairsStatus: '',
-  otherRepairsStatus: '',
+  contactedSomeone: '',
   professionalsContacted: [],
-  otherProfessional: '',
   claimNumber: '',
   companyNames: '',
   additionalObservations: '',
@@ -172,6 +186,17 @@ const PostDamageSection: React.FC = () => {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   
+  // Step states
+  const [openSteps, setOpenSteps] = useState<Record<number, boolean>>({
+    1: true,
+    2: false,
+    3: false,
+    4: false,
+    5: false,
+    6: false,
+  });
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  
   // Incident details form state
   const [incidentDetails, setIncidentDetails] = useState<IncidentDetails>(defaultIncidentDetails);
   
@@ -179,10 +204,15 @@ const PostDamageSection: React.FC = () => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   
   // Real data from database
   const [damagePhotos, setDamagePhotos] = useState<PropertyFile[]>([]);
   const [damageVideos, setDamageVideos] = useState<PropertyFile[]>([]);
+
+  // Calculate progress
+  const totalSteps = 6;
+  const progressPercent = (completedSteps.length / totalSteps) * 100;
 
   // Fetch files when property is selected
   useEffect(() => {
@@ -292,6 +322,24 @@ const PostDamageSection: React.FC = () => {
     });
   };
 
+  const toggleStep = (step: number) => {
+    setOpenSteps(prev => ({ ...prev, [step]: !prev[step] }));
+  };
+
+  const markStepComplete = (step: number) => {
+    if (!completedSteps.includes(step)) {
+      setCompletedSteps(prev => [...prev, step]);
+    }
+    // Open next step
+    if (step < 6) {
+      setOpenSteps(prev => ({ ...prev, [step]: false, [step + 1]: true }));
+    }
+  };
+
+  const skipStep = (step: number) => {
+    setOpenSteps(prev => ({ ...prev, [step]: false, [step + 1]: true }));
+  };
+
   const handleUploadAndSave = async () => {
     if (!user) {
       toast({
@@ -347,13 +395,15 @@ const PostDamageSection: React.FC = () => {
       }
 
       toast({
-        title: "Entry Saved",
-        description: `Damage documentation saved successfully${selectedFiles.length > 0 ? ` with ${selectedFiles.length} file(s)` : ''}.`,
+        title: "You've captured what matters",
+        description: "Your documentation has been saved. You can add to this anytime.",
       });
 
       // Reset form
       setSelectedFiles([]);
       setIncidentDetails(defaultIncidentDetails);
+      setCompletedSteps([]);
+      setOpenSteps({ 1: true, 2: false, 3: false, 4: false, 5: false, 6: false });
       
       // Refresh files if viewing the same property
       if (incidentDetails.propertyId === selectedPropertyId) {
@@ -464,652 +514,854 @@ const PostDamageSection: React.FC = () => {
     }
   };
 
+  // Step header component
+  const StepHeader = ({ step, title, isOpen, isComplete }: { step: number; title: string; isOpen: boolean; isComplete: boolean }) => (
+    <CollapsibleTrigger 
+      className="flex items-center justify-between w-full p-4 hover:bg-gray-50 rounded-lg transition-colors"
+      onClick={() => toggleStep(step)}
+    >
+      <div className="flex items-center gap-3">
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
+          isComplete ? 'bg-green-500 text-white' : isOpen ? 'bg-brand-green text-white' : 'bg-gray-200 text-gray-600'
+        }`}>
+          {isComplete ? <Check className="h-4 w-4" /> : step}
+        </div>
+        <span className={`font-medium ${isOpen ? 'text-gray-900' : 'text-gray-600'}`}>{title}</span>
+      </div>
+      {isOpen ? <ChevronUp className="h-5 w-5 text-gray-400" /> : <ChevronDown className="h-5 w-5 text-gray-400" />}
+    </CollapsibleTrigger>
+  );
+
   return (
-    <Card>
-      <CardHeader>
+    <Card className="border-0 shadow-none bg-transparent">
+      <CardHeader className="pb-2">
         <CardTitle className="flex items-center text-xl">
-          <AlertTriangle className="h-6 w-6 mr-2 text-red-600" />
-          Post Damage Documentation
+          <AlertTriangle className="h-6 w-6 mr-2 text-amber-500" />
+          Document What Happened
         </CardTitle>
-        <CardDescription>
-          Document property damage with photos, videos, and detailed incident information for insurance claims and repairs
+        <CardDescription className="text-base">
+          Take your time. We'll guide you through it.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-6">
-          {/* Upload & Incident Details Section */}
-          <Card className="bg-red-50 border-red-200">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center">
-                <Upload className="h-5 w-5 mr-2 text-red-600" />
-                Document Damage Incident
-              </CardTitle>
-              <CardDescription>
-                Upload files and fill in incident details below
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              
-              {/* 🔹 Incident Details Section */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                  🔹 Incident Details
-                </h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Date of damage */}
-                  <div className="space-y-2">
-                    <Label>Date of damage *</Label>
-                    <Input
-                      type="date"
-                      value={incidentDetails.dateOfDamage}
-                      onChange={(e) => updateIncidentDetails('dateOfDamage', e.target.value)}
-                    />
-                  </div>
-                  
-                  {/* Approximate time */}
-                  <div className="space-y-2">
-                    <Label>Approximate time (if known) <span className="text-gray-500 text-sm">· Optional</span></Label>
-                    <Input
-                      type="time"
-                      value={incidentDetails.approximateTime}
-                      onChange={(e) => updateIncidentDetails('approximateTime', e.target.value)}
-                    />
-                  </div>
-                </div>
-                
-                {/* Type of incident */}
-                <div className="space-y-2">
-                  <Label>Type of incident</Label>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    {INCIDENT_TYPES.map((type) => (
-                      <div key={type.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`incident-${type.id}`}
-                          checked={incidentDetails.incidentTypes.includes(type.id)}
-                          onCheckedChange={() => toggleArrayField('incidentTypes', type.id)}
-                        />
-                        <Label htmlFor={`incident-${type.id}`} className="text-sm font-normal cursor-pointer">
-                          {type.label}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                  {incidentDetails.incidentTypes.includes('other') && (
-                    <Input
-                      placeholder="Describe other incident type..."
-                      value={incidentDetails.otherIncidentType}
-                      onChange={(e) => updateIncidentDetails('otherIncidentType', e.target.value)}
-                      className="mt-2"
-                    />
-                  )}
-                </div>
-                
-                {/* Property / Location */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Property *</Label>
-                    <PropertySelector
-                      value={incidentDetails.propertyId}
-                      onChange={(value) => updateIncidentDetails('propertyId', value)}
-                      placeholder="Select property"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Area affected</Label>
-                    <Input
-                      placeholder="e.g., Kitchen, Garage, Roof"
-                      value={incidentDetails.areaAffected}
-                      onChange={(e) => updateIncidentDetails('areaAffected', e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
-              
-              {/* 🔹 Items or Areas Affected */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                  🔹 Items or Areas Affected
-                </h3>
-                
-                <div className="space-y-2">
-                  <Label>What was impacted? (Select all that apply)</Label>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    {ITEMS_AFFECTED.map((item) => (
-                      <div key={item.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`item-${item.id}`}
-                          checked={incidentDetails.itemsAffected.includes(item.id)}
-                          onCheckedChange={() => toggleArrayField('itemsAffected', item.id)}
-                        />
-                        <Label htmlFor={`item-${item.id}`} className="text-sm font-normal cursor-pointer">
-                          {item.label}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                  {incidentDetails.itemsAffected.includes('other') && (
-                    <Input
-                      placeholder="Describe other items affected..."
-                      value={incidentDetails.otherItemAffected}
-                      onChange={(e) => updateIncidentDetails('otherItemAffected', e.target.value)}
-                      className="mt-2"
-                    />
-                  )}
-                </div>
-              </div>
-              
-              {/* 🔹 Observed Condition */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                  🔹 Observed Condition
-                </h3>
-                <p className="text-sm text-gray-600">Describe what you can see — no technical assessment needed.</p>
-                
-                <div className="space-y-2">
-                  <Label>Visible damage observed (Select all that apply)</Label>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                    {VISIBLE_DAMAGE.map((damage) => (
-                      <div key={damage.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`damage-${damage.id}`}
-                          checked={incidentDetails.visibleDamage.includes(damage.id)}
-                          onCheckedChange={() => toggleArrayField('visibleDamage', damage.id)}
-                        />
-                        <Label htmlFor={`damage-${damage.id}`} className="text-sm font-normal cursor-pointer">
-                          {damage.label}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                  {incidentDetails.visibleDamage.includes('other') && (
-                    <Input
-                      placeholder="Describe other visible damage..."
-                      value={incidentDetails.otherVisibleDamage}
-                      onChange={(e) => updateIncidentDetails('otherVisibleDamage', e.target.value)}
-                      className="mt-2"
-                    />
-                  )}
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Is the damage ongoing?</Label>
-                  <RadioGroup
-                    value={incidentDetails.damageOngoing}
-                    onValueChange={(value) => updateIncidentDetails('damageOngoing', value)}
-                    className="flex flex-wrap gap-4"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="yes" id="ongoing-yes" />
-                      <Label htmlFor="ongoing-yes" className="font-normal cursor-pointer">Yes</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="no" id="ongoing-no" />
-                      <Label htmlFor="ongoing-no" className="font-normal cursor-pointer">No</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="not_sure" id="ongoing-unsure" />
-                      <Label htmlFor="ongoing-unsure" className="font-normal cursor-pointer">Not sure</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Any safety concerns observed?</Label>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                    {SAFETY_CONCERNS.map((concern) => (
-                      <div key={concern.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`safety-${concern.id}`}
-                          checked={incidentDetails.safetyConcerns.includes(concern.id)}
-                          onCheckedChange={() => toggleArrayField('safetyConcerns', concern.id)}
-                        />
-                        <Label htmlFor={`safety-${concern.id}`} className="text-sm font-normal cursor-pointer">
-                          {concern.label}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                  {incidentDetails.safetyConcerns.includes('other') && (
-                    <Input
-                      placeholder="Describe other safety concerns..."
-                      value={incidentDetails.otherSafetyConcern}
-                      onChange={(e) => updateIncidentDetails('otherSafetyConcern', e.target.value)}
-                      className="mt-2"
-                    />
-                  )}
-                </div>
-              </div>
-              
-              {/* 🔹 Estimated Impact */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                  🔹 Estimated Impact
-                </h3>
-                <p className="text-sm text-gray-600">(User-provided estimates only)</p>
-                
-                <div className="space-y-2">
-                  <Label>Estimated replacement cost (if known)</Label>
-                  <RadioGroup
-                    value={incidentDetails.estimatedCost}
-                    onValueChange={(value) => updateIncidentDetails('estimatedCost', value)}
-                    className="space-y-2"
-                  >
-                    {COST_ESTIMATES.map((cost) => (
-                      <div key={cost.id} className="flex items-center space-x-2">
-                        <RadioGroupItem value={cost.id} id={`cost-${cost.id}`} />
-                        <Label htmlFor={`cost-${cost.id}`} className="font-normal cursor-pointer">
-                          {cost.label}
-                        </Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-                </div>
-              </div>
-              
-              {/* 🔹 Timeline & Actions Taken */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                  🔹 Timeline & Actions Taken
-                </h3>
-                
-                <div className="space-y-2">
-                  <Label>When did you first notice the damage?</Label>
-                  <Input
-                    type="date"
-                    value={incidentDetails.dateNoticed}
-                    onChange={(e) => updateIncidentDetails('dateNoticed', e.target.value)}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Any temporary mitigation performed? (Select all that apply)</Label>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                    {MITIGATION_OPTIONS.map((option) => (
-                      <div key={option.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`mitigation-${option.id}`}
-                          checked={incidentDetails.mitigationActions.includes(option.id)}
-                          onCheckedChange={() => toggleArrayField('mitigationActions', option.id)}
-                        />
-                        <Label htmlFor={`mitigation-${option.id}`} className="text-sm font-normal cursor-pointer">
-                          {option.label}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                  {incidentDetails.mitigationActions.includes('other') && (
-                    <Input
-                      placeholder="Describe other mitigation actions..."
-                      value={incidentDetails.otherMitigation}
-                      onChange={(e) => updateIncidentDetails('otherMitigation', e.target.value)}
-                      className="mt-2"
-                    />
-                  )}
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Have repairs begun?</Label>
-                  <RadioGroup
-                    value={incidentDetails.repairsStatus}
-                    onValueChange={(value) => updateIncidentDetails('repairsStatus', value)}
-                    className="space-y-2"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="no" id="repairs-no" />
-                      <Label htmlFor="repairs-no" className="font-normal cursor-pointer">No</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="temporary" id="repairs-temp" />
-                      <Label htmlFor="repairs-temp" className="font-normal cursor-pointer">Temporary only</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="permanent" id="repairs-perm" />
-                      <Label htmlFor="repairs-perm" className="font-normal cursor-pointer">Permanent repairs started</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="other" id="repairs-other" />
-                      <Label htmlFor="repairs-other" className="font-normal cursor-pointer">Other</Label>
-                    </div>
-                  </RadioGroup>
-                  {incidentDetails.repairsStatus === 'other' && (
-                    <Input
-                      placeholder="Describe repair status..."
-                      value={incidentDetails.otherRepairsStatus}
-                      onChange={(e) => updateIncidentDetails('otherRepairsStatus', e.target.value)}
-                      className="mt-2"
-                    />
-                  )}
-                </div>
-              </div>
-              
-              {/* 🔹 Third-Party Involvement */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                  🔹 Third-Party Involvement <span className="text-gray-500 text-sm font-normal">(Optional)</span>
-                </h3>
-                
-                <div className="space-y-2">
-                  <Label>Have any professionals been contacted?</Label>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                    {PROFESSIONALS.map((pro) => (
-                      <div key={pro.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`pro-${pro.id}`}
-                          checked={incidentDetails.professionalsContacted.includes(pro.id)}
-                          onCheckedChange={() => toggleArrayField('professionalsContacted', pro.id)}
-                        />
-                        <Label htmlFor={`pro-${pro.id}`} className="text-sm font-normal cursor-pointer">
-                          {pro.label}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                  {incidentDetails.professionalsContacted.includes('other') && (
-                    <Input
-                      placeholder="Describe other professionals..."
-                      value={incidentDetails.otherProfessional}
-                      onChange={(e) => updateIncidentDetails('otherProfessional', e.target.value)}
-                      className="mt-2"
-                    />
-                  )}
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Claim number (if available)</Label>
-                    <Input
-                      placeholder="Enter claim number..."
-                      value={incidentDetails.claimNumber}
-                      onChange={(e) => updateIncidentDetails('claimNumber', e.target.value)}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Company name(s)</Label>
-                    <Input
-                      placeholder="Enter company names..."
-                      value={incidentDetails.companyNames}
-                      onChange={(e) => updateIncidentDetails('companyNames', e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
-              
-              {/* 🔹 Additional Observations */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                  🔹 Additional Observations <span className="text-gray-500 text-sm font-normal">(Optional)</span>
-                </h3>
-                
-                <div className="space-y-2">
-                  <Label>Anything else you noticed or want to document?</Label>
-                  <Textarea
-                    placeholder="Enter any additional observations..."
-                    value={incidentDetails.additionalObservations}
-                    onChange={(e) => updateIncidentDetails('additionalObservations', e.target.value)}
-                    rows={4}
-                  />
-                </div>
-              </div>
-              
-              {/* File Upload Section */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                  🔹 Upload Files
-                </h3>
-                <p className="text-sm text-gray-600">
-                  Upload photos, videos, documents, or voice notes documenting the damage. You can select multiple files at once.
-                </p>
-                
-                <div>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*,video/*,audio/*,.pdf,.doc,.docx"
-                    multiple
-                    onChange={handleFileSelect}
-                    className="hidden"
-                  />
-                  <Button 
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-full h-16 bg-red-600 hover:bg-red-700"
-                    disabled={uploading}
-                  >
-                    <div className="flex flex-col items-center">
-                      <FileUp className="h-6 w-6 mb-1" />
-                      <span>Select Files (Photos, Videos, Documents, Voice Notes)</span>
-                    </div>
-                  </Button>
-                </div>
+        {/* Reassurance Message */}
+        <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 mb-6">
+          <p className="text-amber-800 text-sm leading-relaxed">
+            <span className="font-medium">You don't need to complete everything today.</span>
+            <br />
+            Even partial documentation is valuable. You can always come back and add more.
+          </p>
+        </div>
 
-                {/* Selected Files Preview */}
-                {selectedFiles.length > 0 && (
-                  <div className="space-y-2">
-                    <Label>Selected Files ({selectedFiles.length})</Label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                      {selectedFiles.map((file, index) => (
-                        <div key={index} className="relative bg-gray-100 rounded-lg p-2 text-xs">
-                          <button
-                            onClick={() => removeSelectedFile(index)}
-                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                          <p className="truncate">{file.name}</p>
-                          <p className="text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+        {/* Progress Bar */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between text-sm text-gray-500 mb-2">
+            <span>Your progress</span>
+            <span>{completedSteps.length} of {totalSteps} sections</span>
+          </div>
+          <Progress value={progressPercent} className="h-2" />
+        </div>
+
+        {/* Steps Container */}
+        <div className="space-y-3">
+          
+          {/* Step 1: Upload Evidence (Made Primary) */}
+          <Collapsible open={openSteps[1]} onOpenChange={() => toggleStep(1)}>
+            <Card className={`transition-all ${openSteps[1] ? 'ring-2 ring-brand-green shadow-md' : ''}`}>
+              <StepHeader step={1} title="Upload Photos & Videos" isOpen={openSteps[1]} isComplete={completedSteps.includes(1)} />
+              <CollapsibleContent>
+                <CardContent className="pt-0 pb-4 px-4">
+                  <div className="space-y-4">
+                    <div className="bg-blue-50 rounded-lg p-3 text-sm text-blue-700">
+                      <p className="font-medium mb-1">📸 Quick tips:</p>
+                      <ul className="list-disc list-inside space-y-1 text-blue-600">
+                        <li>Wide shot of the room</li>
+                        <li>Close-ups of damage</li>
+                        <li>Serial numbers if visible</li>
+                      </ul>
+                    </div>
+
+                    {/* Property Selection */}
+                    <div className="space-y-2">
+                      <Label>Property</Label>
+                      <PropertySelector
+                        value={incidentDetails.propertyId}
+                        onChange={(value) => updateIncidentDetails('propertyId', value)}
+                        placeholder="Select property"
+                      />
+                    </div>
+                    
+                    {/* File Upload */}
+                    <div className="space-y-3">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*,video/*"
+                        multiple
+                        onChange={handleFileSelect}
+                        className="hidden"
+                      />
+                      <input
+                        ref={cameraInputRef}
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        onChange={handleFileSelect}
+                        className="hidden"
+                      />
+                      
+                      <div className="grid grid-cols-2 gap-3">
+                        <Button 
+                          variant="outline"
+                          onClick={() => cameraInputRef.current?.click()}
+                          className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-dashed hover:border-brand-green hover:bg-green-50"
+                          disabled={uploading}
+                        >
+                          <Camera className="h-6 w-6 text-brand-green" />
+                          <span className="text-sm">Take Photo</span>
+                        </Button>
+                        <Button 
+                          variant="outline"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-dashed hover:border-brand-green hover:bg-green-50"
+                          disabled={uploading}
+                        >
+                          <Upload className="h-6 w-6 text-brand-green" />
+                          <span className="text-sm">Upload Files</span>
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Selected Files Preview */}
+                    {selectedFiles.length > 0 && (
+                      <div className="space-y-2">
+                        <Label className="text-green-700">✓ {selectedFiles.length} file(s) ready</Label>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedFiles.map((file, index) => (
+                            <div key={index} className="relative bg-gray-100 rounded-lg p-2 pr-6 text-xs">
+                              <button
+                                onClick={() => removeSelectedFile(index)}
+                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-0.5"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                              <p className="truncate max-w-[120px]">{file.name}</p>
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      </div>
+                    )}
+
+                    <p className="text-xs text-gray-500 text-center">
+                      You can add more photos or notes later.
+                    </p>
+
+                    <div className="flex gap-2 pt-2">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => skipStep(1)}
+                        className="flex-1"
+                      >
+                        <SkipForward className="h-4 w-4 mr-1" />
+                        Skip for now
+                      </Button>
+                      <Button 
+                        onClick={() => markStepComplete(1)}
+                        className="flex-1 bg-brand-green hover:bg-brand-green/90"
+                        disabled={!incidentDetails.propertyId}
+                      >
+                        Continue
+                      </Button>
                     </div>
                   </div>
-                )}
-              </div>
-              
-              {/* Save Button */}
-              <Button 
-                onClick={handleUploadAndSave}
-                className="w-full bg-brand-green hover:bg-brand-green/90 h-12 text-lg"
-                disabled={uploading || saving || !incidentDetails.propertyId}
-              >
-                {(uploading || saving) ? (
-                  <>
-                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-5 w-5 mr-2" />
-                    ✅ Save Entry
-                  </>
-                )}
-              </Button>
-              
-              {/* Footer Disclaimer */}
-              <div className="bg-gray-100 rounded-lg p-3 mt-4">
-                <p className="text-xs text-gray-600 flex items-start gap-2">
-                  <Shield className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                  Asset Safe records user-provided documentation and observations. Damage assessments, valuations, coverage determinations, and claim decisions are made by independent third parties.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
 
-          {/* View Existing Documentation */}
-          <Card className="bg-blue-50 border-blue-200">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center">
-                <Eye className="h-5 w-5 mr-2 text-blue-600" />
-                View Existing Documentation
-              </CardTitle>
-              <CardDescription>
-                Select a property to view and manage existing damage documentation
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <PropertySelector
-                value={selectedPropertyId}
-                onChange={setSelectedPropertyId}
-                placeholder="Select property to view damage documentation"
-              />
-              {selectedPropertyId && (
-                <p className="text-sm text-green-600 mt-2">
-                  ✓ Property selected - viewing damage documentation
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Damage Documentation Tabs */}
-          {selectedPropertyId && (
-            <Tabs defaultValue="photos" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 h-auto gap-1">
-                <TabsTrigger value="photos" className="flex items-center text-xs md:text-sm px-2 py-2">
-                  <Camera className="h-3 w-3 md:h-4 md:w-4 mr-1 flex-shrink-0" />
-                  <span className="truncate">Photos ({damagePhotos.length})</span>
-                </TabsTrigger>
-                <TabsTrigger value="videos" className="flex items-center text-xs md:text-sm px-2 py-2">
-                  <Video className="h-3 w-3 md:h-4 md:w-4 mr-1 flex-shrink-0" />
-                  <span className="truncate">Videos ({damageVideos.length})</span>
-                </TabsTrigger>
-                <TabsTrigger value="manual" className="flex items-center text-xs md:text-sm px-2 py-2">
-                  <Edit className="h-3 w-3 md:h-4 md:w-4 mr-1 flex-shrink-0" />
-                  <span className="truncate">Manual</span>
-                </TabsTrigger>
-                <TabsTrigger value="reports" className="flex items-center text-xs md:text-sm px-2 py-2">
-                  <FileText className="h-3 w-3 md:h-4 md:w-4 mr-1 flex-shrink-0" />
-                  <span className="truncate">Reports</span>
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="photos" className="mt-4">
-                {loading ? (
-                  <div className="flex justify-center py-8">
-                    <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-                  </div>
-                ) : damagePhotos.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Camera className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-600 mb-2">No damage photos yet</h3>
-                    <p className="text-gray-500 mb-4">Start documenting property damage by uploading photos above</p>
-                  </div>
-                ) : (
+          {/* Step 2: What Happened */}
+          <Collapsible open={openSteps[2]} onOpenChange={() => toggleStep(2)}>
+            <Card className={`transition-all ${openSteps[2] ? 'ring-2 ring-brand-green shadow-md' : ''}`}>
+              <StepHeader step={2} title="What Happened?" isOpen={openSteps[2]} isComplete={completedSteps.includes(2)} />
+              <CollapsibleContent>
+                <CardContent className="pt-0 pb-4 px-4">
                   <div className="space-y-4">
-                    <p className="text-sm text-gray-600">Damage photos for this property</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {damagePhotos.map((photo) => (
-                        <Card key={photo.id} className="overflow-hidden relative">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute top-2 right-2 z-10 bg-white/90 hover:bg-red-50 hover:text-red-600"
-                            onClick={() => handleDeleteFile(photo)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                          <div className="aspect-video bg-gray-200 flex items-center justify-center overflow-hidden">
-                            {photo.file_url ? (
-                              <img 
-                                src={photo.file_url} 
-                                alt={photo.file_name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <Camera className="h-8 w-8 text-gray-400" />
-                            )}
-                          </div>
-                          <CardContent className="p-3">
-                            <h4 className="font-medium text-sm mb-2 truncate">{photo.file_name}</h4>
-                            <div className="flex items-center text-xs text-gray-500">
-                              <Calendar className="h-3 w-3 mr-1" />
-                              {formatDate(photo.created_at)}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label>When did it happen?</Label>
+                        <Input
+                          type="date"
+                          value={incidentDetails.dateOfDamage}
+                          onChange={(e) => updateIncidentDetails('dateOfDamage', e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Approximate time <span className="text-gray-400 font-normal">(optional)</span></Label>
+                        <Input
+                          type="time"
+                          value={incidentDetails.approximateTime}
+                          onChange={(e) => updateIncidentDetails('approximateTime', e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Type of incident <span className="text-gray-400 font-normal">(select all that apply)</span></Label>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                        {INCIDENT_TYPES.map((type) => {
+                          const IconComponent = type.icon;
+                          const isSelected = incidentDetails.incidentTypes.includes(type.id);
+                          return (
+                            <button
+                              key={type.id}
+                              onClick={() => toggleArrayField('incidentTypes', type.id)}
+                              className={`flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-all ${
+                                isSelected 
+                                  ? 'border-brand-green bg-green-50' 
+                                  : 'border-gray-200 hover:border-gray-300'
+                              }`}
+                            >
+                              <IconComponent className={`h-5 w-5 ${type.color}`} />
+                              <span className="text-xs text-center">{type.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {incidentDetails.incidentTypes.includes('other') && (
+                        <Input
+                          placeholder="Please describe..."
+                          value={incidentDetails.otherIncidentType}
+                          onChange={(e) => updateIncidentDetails('otherIncidentType', e.target.value)}
+                          className="mt-2"
+                        />
+                      )}
+                    </div>
+
+                    <div className="flex gap-2 pt-2">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => skipStep(2)}
+                        className="flex-1"
+                      >
+                        <SkipForward className="h-4 w-4 mr-1" />
+                        Skip for now
+                      </Button>
+                      <Button 
+                        onClick={() => markStepComplete(2)}
+                        className="flex-1 bg-brand-green hover:bg-brand-green/90"
+                      >
+                        Continue
+                      </Button>
                     </div>
                   </div>
-                )}
-              </TabsContent>
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
 
-              <TabsContent value="videos" className="mt-4">
-                {loading ? (
-                  <div className="flex justify-center py-8">
-                    <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-                  </div>
-                ) : damageVideos.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Video className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-600 mb-2">No damage videos yet</h3>
-                    <p className="text-gray-500 mb-4">Create video walkthroughs of property damage using the upload section above</p>
-                  </div>
-                ) : (
+          {/* Step 3: Where & What Was Affected */}
+          <Collapsible open={openSteps[3]} onOpenChange={() => toggleStep(3)}>
+            <Card className={`transition-all ${openSteps[3] ? 'ring-2 ring-brand-green shadow-md' : ''}`}>
+              <StepHeader step={3} title="Where & What Was Affected" isOpen={openSteps[3]} isComplete={completedSteps.includes(3)} />
+              <CollapsibleContent>
+                <CardContent className="pt-0 pb-4 px-4">
                   <div className="space-y-4">
-                    <p className="text-sm text-gray-600">Damage videos for this property</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {damageVideos.map((video) => (
-                        <Card key={video.id} className="overflow-hidden relative">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute top-2 right-2 z-10 bg-white/90 hover:bg-red-50 hover:text-red-600"
-                            onClick={() => handleDeleteFile(video)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                          <div className="aspect-video bg-gray-200 flex items-center justify-center">
-                            <Video className="h-8 w-8 text-gray-400" />
-                          </div>
-                          <CardContent className="p-3">
-                            <h4 className="font-medium text-sm mb-2 truncate">{video.file_name}</h4>
-                            <div className="flex items-center text-xs text-gray-500">
-                              <Calendar className="h-3 w-3 mr-1" />
-                              {formatDate(video.created_at)}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
+                    <div className="space-y-2">
+                      <Label>Area affected</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {AREA_OPTIONS.map((area) => {
+                          const isSelected = incidentDetails.areasAffected.includes(area.id);
+                          return (
+                            <button
+                              key={area.id}
+                              onClick={() => toggleArrayField('areasAffected', area.id)}
+                              className={`px-3 py-1.5 rounded-full text-sm transition-all ${
+                                isSelected 
+                                  ? 'bg-brand-green text-white' 
+                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                              }`}
+                            >
+                              {area.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {incidentDetails.areasAffected.includes('other') && (
+                        <Input
+                          placeholder="Describe the area..."
+                          value={incidentDetails.otherArea}
+                          onChange={(e) => updateIncidentDetails('otherArea', e.target.value)}
+                          className="mt-2"
+                        />
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>What was impacted?</Label>
+                      <div className="grid grid-cols-3 gap-3">
+                        {IMPACT_BUCKETS.map((bucket) => {
+                          const IconComponent = bucket.icon;
+                          const isSelected = incidentDetails.impactBuckets.includes(bucket.id);
+                          return (
+                            <button
+                              key={bucket.id}
+                              onClick={() => toggleArrayField('impactBuckets', bucket.id)}
+                              className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                                isSelected 
+                                  ? 'border-brand-green bg-green-50' 
+                                  : 'border-gray-200 hover:border-gray-300'
+                              }`}
+                            >
+                              <IconComponent className={`h-8 w-8 ${isSelected ? 'text-brand-green' : 'text-gray-400'}`} />
+                              <span className="text-sm font-medium">{bucket.label}</span>
+                              <span className="text-xs text-gray-500 text-center">{bucket.description}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Belongings sub-items */}
+                    {incidentDetails.impactBuckets.includes('belongings') && (
+                      <div className="space-y-2 bg-gray-50 rounded-lg p-3">
+                        <Label className="text-sm">What belongings were affected?</Label>
+                        <div className="flex flex-wrap gap-2">
+                          {BELONGINGS_ITEMS.map((item) => {
+                            const isSelected = incidentDetails.belongingsItems.includes(item.id);
+                            return (
+                              <button
+                                key={item.id}
+                                onClick={() => toggleArrayField('belongingsItems', item.id)}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all ${
+                                  isSelected 
+                                    ? 'bg-brand-green text-white' 
+                                    : 'bg-white text-gray-700 border hover:bg-gray-50'
+                                }`}
+                              >
+                                <item.icon className="h-3.5 w-3.5" />
+                                {item.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        {incidentDetails.belongingsItems.includes('other') && (
+                          <Input
+                            placeholder="Describe other items..."
+                            value={incidentDetails.otherBelongings}
+                            onChange={(e) => updateIncidentDetails('otherBelongings', e.target.value)}
+                            className="mt-2"
+                          />
+                        )}
+                      </div>
+                    )}
+
+                    <div className="flex gap-2 pt-2">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => skipStep(3)}
+                        className="flex-1"
+                      >
+                        <SkipForward className="h-4 w-4 mr-1" />
+                        Skip for now
+                      </Button>
+                      <Button 
+                        onClick={() => markStepComplete(3)}
+                        className="flex-1 bg-brand-green hover:bg-brand-green/90"
+                      >
+                        Continue
+                      </Button>
                     </div>
                   </div>
-                )}
-              </TabsContent>
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
 
-              <TabsContent value="manual" className="mt-4">
-                <ManualDamageEntry />
-              </TabsContent>
+          {/* Step 4: What You Can See */}
+          <Collapsible open={openSteps[4]} onOpenChange={() => toggleStep(4)}>
+            <Card className={`transition-all ${openSteps[4] ? 'ring-2 ring-brand-green shadow-md' : ''}`}>
+              <StepHeader step={4} title="What You Can See" isOpen={openSteps[4]} isComplete={completedSteps.includes(4)} />
+              <CollapsibleContent>
+                <CardContent className="pt-0 pb-4 px-4">
+                  <div className="space-y-4">
+                    <p className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
+                      💡 Just describe what you can see. No technical assessment needed.
+                    </p>
 
-              <TabsContent value="reports" className="mt-4">
-                <div className="text-center py-8">
-                  <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-600 mb-2">Damage Reports</h3>
-                  <p className="text-gray-500 mb-4">Generate comprehensive damage reports for insurance claims</p>
-                  <Button 
-                    onClick={() => {
-                      const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
-                      if (isOnSampleDashboard) {
-                        alert('AssetSafe.net says\n\nDemo: This would generate comprehensive damage reports for insurance claims with photos, videos, and details.');
-                        return;
-                      }
-                      generateDamageReport();
-                    }}
-                  >
-                    <FileText className="h-4 w-4 mr-2" />
-                    Generate Damage Report
-                  </Button>
-                </div>
-              </TabsContent>
-            </Tabs>
-          )}
+                    <div className="space-y-2">
+                      <Label>What's visible?</Label>
+                      <div className="space-y-2">
+                        {VISIBLE_DAMAGE.map((damage) => {
+                          const isSelected = incidentDetails.visibleDamage.includes(damage.id);
+                          return (
+                            <button
+                              key={damage.id}
+                              onClick={() => toggleArrayField('visibleDamage', damage.id)}
+                              className={`flex items-center gap-3 w-full p-3 rounded-lg border transition-all text-left ${
+                                isSelected 
+                                  ? 'border-brand-green bg-green-50' 
+                                  : 'border-gray-200 hover:border-gray-300'
+                              }`}
+                            >
+                              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                                isSelected ? 'border-brand-green bg-brand-green' : 'border-gray-300'
+                              }`}>
+                                {isSelected && <Check className="h-3 w-3 text-white" />}
+                              </div>
+                              <span className="text-sm">{damage.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
 
-          {!selectedPropertyId && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <p className="text-yellow-800 text-sm">
-                <AlertTriangle className="h-4 w-4 inline mr-1" />
-                Select a property above to view existing damage documentation.
-              </p>
-            </div>
+                    <div className="space-y-2">
+                      <Label>Is the damage ongoing?</Label>
+                      <RadioGroup
+                        value={incidentDetails.damageOngoing}
+                        onValueChange={(value) => updateIncidentDetails('damageOngoing', value)}
+                        className="flex flex-wrap gap-3"
+                      >
+                        {['yes', 'no', 'not_sure'].map((option) => (
+                          <div key={option} className="flex items-center space-x-2">
+                            <RadioGroupItem value={option} id={`ongoing-${option}`} />
+                            <Label htmlFor={`ongoing-${option}`} className="font-normal cursor-pointer capitalize">
+                              {option === 'not_sure' ? 'Not sure' : option}
+                            </Label>
+                          </div>
+                        ))}
+                      </RadioGroup>
+                    </div>
+
+                    <div className="flex gap-2 pt-2">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => skipStep(4)}
+                        className="flex-1"
+                      >
+                        <SkipForward className="h-4 w-4 mr-1" />
+                        Skip for now
+                      </Button>
+                      <Button 
+                        onClick={() => markStepComplete(4)}
+                        className="flex-1 bg-brand-green hover:bg-brand-green/90"
+                      >
+                        Continue
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
+
+          {/* Step 5: Safety & Immediate Actions */}
+          <Collapsible open={openSteps[5]} onOpenChange={() => toggleStep(5)}>
+            <Card className={`transition-all ${openSteps[5] ? 'ring-2 ring-brand-green shadow-md' : ''}`}>
+              <StepHeader step={5} title="Safety & Immediate Actions" isOpen={openSteps[5]} isComplete={completedSteps.includes(5)} />
+              <CollapsibleContent>
+                <CardContent className="pt-0 pb-4 px-4">
+                  <div className="space-y-4">
+                    <p className="text-sm text-gray-500">This section is optional. Fill in what applies.</p>
+
+                    <div className="space-y-2">
+                      <Label>Any safety concerns?</Label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {SAFETY_CONCERNS.map((concern) => {
+                          const isSelected = incidentDetails.safetyConcerns.includes(concern.id);
+                          return (
+                            <button
+                              key={concern.id}
+                              onClick={() => toggleArrayField('safetyConcerns', concern.id)}
+                              className={`flex items-center gap-2 p-3 rounded-lg border transition-all text-left ${
+                                isSelected 
+                                  ? concern.id === 'none' 
+                                    ? 'border-green-500 bg-green-50' 
+                                    : 'border-amber-500 bg-amber-50'
+                                  : 'border-gray-200 hover:border-gray-300'
+                              }`}
+                            >
+                              <span className="text-lg">{concern.icon}</span>
+                              <span className="text-sm">{concern.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>What have you done so far?</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {ACTIONS_TAKEN.map((action) => {
+                          const isSelected = incidentDetails.actionsTaken.includes(action.id);
+                          return (
+                            <button
+                              key={action.id}
+                              onClick={() => toggleArrayField('actionsTaken', action.id)}
+                              className={`px-3 py-1.5 rounded-full text-sm transition-all ${
+                                isSelected 
+                                  ? 'bg-brand-green text-white' 
+                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                              }`}
+                            >
+                              {action.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>If you have a rough idea of cost <span className="text-gray-400 font-normal">(optional)</span></Label>
+                      <div className="flex flex-wrap gap-2">
+                        {COST_ESTIMATES.map((cost) => {
+                          const isSelected = incidentDetails.estimatedCost === cost.id;
+                          return (
+                            <button
+                              key={cost.id}
+                              onClick={() => updateIncidentDetails('estimatedCost', cost.id)}
+                              className={`px-3 py-1.5 rounded-full text-sm transition-all ${
+                                isSelected 
+                                  ? 'bg-brand-green text-white' 
+                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                              }`}
+                            >
+                              {cost.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 pt-2">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => skipStep(5)}
+                        className="flex-1"
+                      >
+                        <SkipForward className="h-4 w-4 mr-1" />
+                        Skip for now
+                      </Button>
+                      <Button 
+                        onClick={() => markStepComplete(5)}
+                        className="flex-1 bg-brand-green hover:bg-brand-green/90"
+                      >
+                        Continue
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
+
+          {/* Step 6: Who You've Talked To */}
+          <Collapsible open={openSteps[6]} onOpenChange={() => toggleStep(6)}>
+            <Card className={`transition-all ${openSteps[6] ? 'ring-2 ring-brand-green shadow-md' : ''}`}>
+              <StepHeader step={6} title="Who You've Talked To (Optional)" isOpen={openSteps[6]} isComplete={completedSteps.includes(6)} />
+              <CollapsibleContent>
+                <CardContent className="pt-0 pb-4 px-4">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Have you already contacted anyone?</Label>
+                      <RadioGroup
+                        value={incidentDetails.contactedSomeone}
+                        onValueChange={(value) => updateIncidentDetails('contactedSomeone', value)}
+                        className="flex gap-4"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="yes" id="contacted-yes" />
+                          <Label htmlFor="contacted-yes" className="font-normal cursor-pointer">Yes</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="no" id="contacted-no" />
+                          <Label htmlFor="contacted-no" className="font-normal cursor-pointer">No</Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+
+                    {incidentDetails.contactedSomeone === 'yes' && (
+                      <div className="space-y-4 bg-gray-50 rounded-lg p-4">
+                        <div className="space-y-2">
+                          <Label>Who have you contacted?</Label>
+                          <div className="flex flex-wrap gap-2">
+                            {['Insurance', 'Contractor', 'Restoration company', 'Other'].map((pro) => {
+                              const id = pro.toLowerCase().replace(' ', '_');
+                              const isSelected = incidentDetails.professionalsContacted.includes(id);
+                              return (
+                                <button
+                                  key={id}
+                                  onClick={() => toggleArrayField('professionalsContacted', id)}
+                                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all ${
+                                    isSelected 
+                                      ? 'bg-brand-green text-white' 
+                                      : 'bg-white text-gray-700 border hover:bg-gray-50'
+                                  }`}
+                                >
+                                  <Phone className="h-3.5 w-3.5" />
+                                  {pro}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="space-y-2">
+                            <Label>Insurance reference <span className="text-gray-400 font-normal">(if you have one)</span></Label>
+                            <Input
+                              placeholder="Claim or reference number"
+                              value={incidentDetails.claimNumber}
+                              onChange={(e) => updateIncidentDetails('claimNumber', e.target.value)}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Company name(s)</Label>
+                            <Input
+                              placeholder="Who you've talked to"
+                              value={incidentDetails.companyNames}
+                              onChange={(e) => updateIncidentDetails('companyNames', e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="space-y-2">
+                      <Label>Anything else you noticed? <span className="text-gray-400 font-normal">(optional)</span></Label>
+                      <Textarea
+                        placeholder="Add any additional observations..."
+                        value={incidentDetails.additionalObservations}
+                        onChange={(e) => updateIncidentDetails('additionalObservations', e.target.value)}
+                        rows={3}
+                      />
+                    </div>
+
+                    <Button 
+                      onClick={() => markStepComplete(6)}
+                      className="w-full bg-brand-green hover:bg-brand-green/90"
+                    >
+                      Complete
+                    </Button>
+                  </div>
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
+        </div>
+
+        {/* Save Button */}
+        <div className="mt-6">
+          <Button 
+            onClick={handleUploadAndSave}
+            className="w-full bg-brand-green hover:bg-brand-green/90 h-14 text-lg rounded-xl"
+            disabled={uploading || saving || !incidentDetails.propertyId}
+          >
+            {(uploading || saving) ? (
+              <>
+                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="h-5 w-5 mr-2" />
+                Save Documentation
+              </>
+            )}
+          </Button>
+          
+          {!incidentDetails.propertyId && (
+            <p className="text-center text-sm text-gray-500 mt-2">
+              Select a property in Step 1 to save
+            </p>
           )}
         </div>
+
+        {/* Footer Disclaimer */}
+        <div className="bg-gray-50 rounded-xl p-4 mt-6">
+          <p className="text-xs text-gray-500 flex items-start gap-2">
+            <Shield className="h-4 w-4 flex-shrink-0 mt-0.5 text-gray-400" />
+            Asset Safe records user-provided documentation and observations. Damage assessments, valuations, coverage determinations, and claim decisions are made by independent third parties.
+          </p>
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-gray-200 my-8" />
+
+        {/* View Existing Documentation */}
+        <Card className="bg-blue-50/50 border-blue-100">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center">
+              <Eye className="h-5 w-5 mr-2 text-blue-600" />
+              View Existing Documentation
+            </CardTitle>
+            <CardDescription>
+              Select a property to view and manage existing damage documentation
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <PropertySelector
+              value={selectedPropertyId}
+              onChange={setSelectedPropertyId}
+              placeholder="Select property to view damage documentation"
+            />
+            {selectedPropertyId && (
+              <p className="text-sm text-green-600 mt-2">
+                ✓ Property selected - viewing damage documentation
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Damage Documentation Tabs */}
+        {selectedPropertyId && (
+          <Tabs defaultValue="photos" className="w-full mt-4">
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 h-auto gap-1">
+              <TabsTrigger value="photos" className="flex items-center text-xs md:text-sm px-2 py-2">
+                <Camera className="h-3 w-3 md:h-4 md:w-4 mr-1 flex-shrink-0" />
+                <span className="truncate">Photos ({damagePhotos.length})</span>
+              </TabsTrigger>
+              <TabsTrigger value="videos" className="flex items-center text-xs md:text-sm px-2 py-2">
+                <Video className="h-3 w-3 md:h-4 md:w-4 mr-1 flex-shrink-0" />
+                <span className="truncate">Videos ({damageVideos.length})</span>
+              </TabsTrigger>
+              <TabsTrigger value="manual" className="flex items-center text-xs md:text-sm px-2 py-2">
+                <Edit className="h-3 w-3 md:h-4 md:w-4 mr-1 flex-shrink-0" />
+                <span className="truncate">Manual</span>
+              </TabsTrigger>
+              <TabsTrigger value="reports" className="flex items-center text-xs md:text-sm px-2 py-2">
+                <FileText className="h-3 w-3 md:h-4 md:w-4 mr-1 flex-shrink-0" />
+                <span className="truncate">Reports</span>
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="photos" className="mt-4">
+              {loading ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                </div>
+              ) : damagePhotos.length === 0 ? (
+                <div className="text-center py-8">
+                  <Camera className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-600 mb-2">No damage photos yet</h3>
+                  <p className="text-gray-500 mb-4">Start documenting property damage by uploading photos above</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-600">Damage photos for this property</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {damagePhotos.map((photo) => (
+                      <Card key={photo.id} className="overflow-hidden relative">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute top-2 right-2 z-10 bg-white/90 hover:bg-red-50 hover:text-red-600"
+                          onClick={() => handleDeleteFile(photo)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                        <div className="aspect-video bg-gray-200 flex items-center justify-center overflow-hidden">
+                          {photo.file_url ? (
+                            <img 
+                              src={photo.file_url} 
+                              alt={photo.file_name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <Camera className="h-8 w-8 text-gray-400" />
+                          )}
+                        </div>
+                        <CardContent className="p-3">
+                          <h4 className="font-medium text-sm mb-2 truncate">{photo.file_name}</h4>
+                          <div className="flex items-center text-xs text-gray-500">
+                            <Calendar className="h-3 w-3 mr-1" />
+                            {formatDate(photo.created_at)}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="videos" className="mt-4">
+              {loading ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                </div>
+              ) : damageVideos.length === 0 ? (
+                <div className="text-center py-8">
+                  <Video className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-600 mb-2">No damage videos yet</h3>
+                  <p className="text-gray-500 mb-4">Create video walkthroughs of property damage using the upload section above</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-600">Damage videos for this property</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {damageVideos.map((video) => (
+                      <Card key={video.id} className="overflow-hidden relative">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute top-2 right-2 z-10 bg-white/90 hover:bg-red-50 hover:text-red-600"
+                          onClick={() => handleDeleteFile(video)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                        <div className="aspect-video bg-gray-200 flex items-center justify-center">
+                          <Video className="h-8 w-8 text-gray-400" />
+                        </div>
+                        <CardContent className="p-3">
+                          <h4 className="font-medium text-sm mb-2 truncate">{video.file_name}</h4>
+                          <div className="flex items-center text-xs text-gray-500">
+                            <Calendar className="h-3 w-3 mr-1" />
+                            {formatDate(video.created_at)}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="manual" className="mt-4">
+              <ManualDamageEntry />
+            </TabsContent>
+
+            <TabsContent value="reports" className="mt-4">
+              <div className="text-center py-8">
+                <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-600 mb-2">Damage Reports</h3>
+                <p className="text-gray-500 mb-4">Generate comprehensive damage reports for insurance claims</p>
+                <Button 
+                  onClick={() => {
+                    const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
+                    if (isOnSampleDashboard) {
+                      alert('AssetSafe.net says\n\nDemo: This would generate comprehensive damage reports for insurance claims with photos, videos, and details.');
+                      return;
+                    }
+                    generateDamageReport();
+                  }}
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  Generate Damage Report
+                </Button>
+              </div>
+            </TabsContent>
+          </Tabs>
+        )}
+
+        {!selectedPropertyId && (
+          <div className="bg-amber-50 border border-amber-100 rounded-lg p-4 mt-4">
+            <p className="text-amber-700 text-sm">
+              <AlertTriangle className="h-4 w-4 inline mr-1" />
+              Select a property above to view existing damage documentation.
+            </p>
+          </div>
+        )}
       </CardContent>
       
       <DeleteConfirmationDialog
