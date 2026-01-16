@@ -219,12 +219,6 @@ const Inventory: React.FC = () => {
                 Source Websites
               </DropdownMenuItem>
               <DropdownMenuItem 
-                onClick={() => navigate('/account?tab=damage')}
-                className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
-              >
-                Post Damage
-              </DropdownMenuItem>
-              <DropdownMenuItem 
                 onClick={() => navigate('/account?tab=voice-notes')}
                 className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
               >
@@ -235,6 +229,13 @@ const Inventory: React.FC = () => {
                 className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
               >
                 Paint Codes
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => navigate('/account?tab=damage')}
+                className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+              >
+                <span className="text-yellow-400 font-bold mr-1">!</span>
+                Post Damage
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

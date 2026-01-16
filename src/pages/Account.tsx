@@ -375,12 +375,6 @@ const Account: React.FC = () => {
                     Source Websites
                   </DropdownMenuItem>
                   <DropdownMenuItem 
-                    onClick={() => setActiveTab('damage')}
-                    className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
-                  >
-                    Post Damage
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
                     onClick={() => setActiveTab('voice-notes')}
                     className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
                   >
@@ -391,6 +385,13 @@ const Account: React.FC = () => {
                     className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
                   >
                     Paint Codes
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => setActiveTab('damage')}
+                    className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+                  >
+                    <span className="text-yellow-400 font-bold mr-1">!</span>
+                    Post Damage
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
