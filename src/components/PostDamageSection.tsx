@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { PropertyService, PropertyFile } from '@/services/PropertyService';
 import { StorageService } from '@/services/StorageService';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   AlertTriangle, 
   Camera, 
@@ -131,6 +132,7 @@ const COST_ESTIMATES = [
 ];
 
 interface IncidentDetails {
+  id?: string;
   dateOfDamage: string;
   approximateTime: string;
   incidentTypes: string[];
@@ -185,8 +187,9 @@ const PostDamageSection: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [loadingReport, setLoadingReport] = useState(false);
   
-  // Step states
+  // Step states - all sections can be opened/closed independently
   const [openSteps, setOpenSteps] = useState<Record<number, boolean>>({
     1: true,
     2: false,
@@ -214,7 +217,14 @@ const PostDamageSection: React.FC = () => {
   const totalSteps = 6;
   const progressPercent = (completedSteps.length / totalSteps) * 100;
 
-  // Fetch files when property is selected
+  // Load existing damage report when property changes
+  useEffect(() => {
+    if (incidentDetails.propertyId && user) {
+      loadExistingReport(incidentDetails.propertyId);
+    }
+  }, [incidentDetails.propertyId, user]);
+
+  // Fetch files when property is selected for viewing
   useEffect(() => {
     if (selectedPropertyId && user) {
       fetchPropertyFiles();
@@ -223,6 +233,63 @@ const PostDamageSection: React.FC = () => {
       setDamageVideos([]);
     }
   }, [selectedPropertyId, user]);
+
+  const loadExistingReport = async (propertyId: string) => {
+    if (!user) return;
+    
+    setLoadingReport(true);
+    try {
+      const { data, error } = await supabase
+        .from('damage_reports')
+        .select('*')
+        .eq('property_id', propertyId)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        setIncidentDetails({
+          id: data.id,
+          dateOfDamage: data.date_of_damage || '',
+          approximateTime: data.approximate_time || '',
+          incidentTypes: data.incident_types || [],
+          otherIncidentType: data.other_incident_type || '',
+          propertyId: data.property_id,
+          areasAffected: data.areas_affected || [],
+          otherArea: data.other_area || '',
+          impactBuckets: data.impact_buckets || [],
+          belongingsItems: data.belongings_items || [],
+          otherBelongings: data.other_belongings || '',
+          visibleDamage: data.visible_damage || [],
+          damageOngoing: data.damage_ongoing || '',
+          safetyConcerns: data.safety_concerns || [],
+          actionsTaken: data.actions_taken || [],
+          estimatedCost: data.estimated_cost || '',
+          contactedSomeone: data.contacted_someone || '',
+          professionalsContacted: data.professionals_contacted || [],
+          claimNumber: data.claim_number || '',
+          companyNames: data.company_names || '',
+          additionalObservations: data.additional_observations || '',
+        });
+        
+        // Set completed steps based on data
+        const completed: number[] = [];
+        if (data.incident_types?.length > 0 || data.date_of_damage) completed.push(2);
+        if (data.areas_affected?.length > 0 || data.impact_buckets?.length > 0) completed.push(3);
+        if (data.visible_damage?.length > 0) completed.push(4);
+        if (data.safety_concerns?.length > 0 || data.actions_taken?.length > 0) completed.push(5);
+        if (data.contacted_someone) completed.push(6);
+        setCompletedSteps(completed);
+      }
+    } catch (error) {
+      console.error('Error loading damage report:', error);
+    } finally {
+      setLoadingReport(false);
+    }
+  };
 
   const fetchPropertyFiles = async () => {
     if (!selectedPropertyId) return;
@@ -322,6 +389,7 @@ const PostDamageSection: React.FC = () => {
     });
   };
 
+  // Toggle step open/close - allows reopening any step
   const toggleStep = (step: number) => {
     setOpenSteps(prev => ({ ...prev, [step]: !prev[step] }));
   };
@@ -330,9 +398,12 @@ const PostDamageSection: React.FC = () => {
     if (!completedSteps.includes(step)) {
       setCompletedSteps(prev => [...prev, step]);
     }
-    // Open next step
+    // Close current step and open next step
     if (step < 6) {
       setOpenSteps(prev => ({ ...prev, [step]: false, [step + 1]: true }));
+    } else {
+      // Last step - just close it
+      setOpenSteps(prev => ({ ...prev, [step]: false }));
     }
   };
 
@@ -394,16 +465,60 @@ const PostDamageSection: React.FC = () => {
         }
       }
 
+      // Save or update damage report
+      const reportData = {
+        user_id: user.id,
+        property_id: incidentDetails.propertyId,
+        date_of_damage: incidentDetails.dateOfDamage || null,
+        approximate_time: incidentDetails.approximateTime || null,
+        incident_types: incidentDetails.incidentTypes,
+        other_incident_type: incidentDetails.otherIncidentType || null,
+        areas_affected: incidentDetails.areasAffected,
+        other_area: incidentDetails.otherArea || null,
+        impact_buckets: incidentDetails.impactBuckets,
+        belongings_items: incidentDetails.belongingsItems,
+        other_belongings: incidentDetails.otherBelongings || null,
+        visible_damage: incidentDetails.visibleDamage,
+        damage_ongoing: incidentDetails.damageOngoing || null,
+        safety_concerns: incidentDetails.safetyConcerns,
+        actions_taken: incidentDetails.actionsTaken,
+        estimated_cost: incidentDetails.estimatedCost || null,
+        contacted_someone: incidentDetails.contactedSomeone || null,
+        professionals_contacted: incidentDetails.professionalsContacted,
+        claim_number: incidentDetails.claimNumber || null,
+        company_names: incidentDetails.companyNames || null,
+        additional_observations: incidentDetails.additionalObservations || null,
+      };
+
+      if (incidentDetails.id) {
+        // Update existing report
+        const { error } = await supabase
+          .from('damage_reports')
+          .update(reportData)
+          .eq('id', incidentDetails.id);
+        
+        if (error) throw error;
+      } else {
+        // Insert new report
+        const { data, error } = await supabase
+          .from('damage_reports')
+          .insert(reportData)
+          .select('id')
+          .single();
+        
+        if (error) throw error;
+        if (data) {
+          setIncidentDetails(prev => ({ ...prev, id: data.id }));
+        }
+      }
+
       toast({
         title: "You've captured what matters",
         description: "Your documentation has been saved. You can add to this anytime.",
       });
 
-      // Reset form
+      // Clear selected files only
       setSelectedFiles([]);
-      setIncidentDetails(defaultIncidentDetails);
-      setCompletedSteps([]);
-      setOpenSteps({ 1: true, 2: false, 3: false, 4: false, 5: false, 6: false });
       
       // Refresh files if viewing the same property
       if (incidentDetails.propertyId === selectedPropertyId) {
@@ -514,10 +629,10 @@ const PostDamageSection: React.FC = () => {
     }
   };
 
-  // Step header component
+  // Step header component - clicking always toggles (allows reopening)
   const StepHeader = ({ step, title, isOpen, isComplete }: { step: number; title: string; isOpen: boolean; isComplete: boolean }) => (
     <CollapsibleTrigger 
-      className="flex items-center justify-between w-full p-4 hover:bg-gray-50 rounded-lg transition-colors"
+      className="flex items-center justify-between w-full p-4 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
       onClick={() => toggleStep(step)}
     >
       <div className="flex items-center gap-3">
@@ -543,7 +658,7 @@ const PostDamageSection: React.FC = () => {
           Take your time. We'll guide you through it.
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pb-24 md:pb-6">
         {/* Reassurance Message */}
         <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 mb-6">
           <p className="text-amber-800 text-sm leading-relaxed">
@@ -589,6 +704,12 @@ const PostDamageSection: React.FC = () => {
                         onChange={(value) => updateIncidentDetails('propertyId', value)}
                         placeholder="Select property"
                       />
+                      {loadingReport && (
+                        <p className="text-xs text-gray-500 flex items-center gap-1">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          Loading existing report...
+                        </p>
+                      )}
                     </div>
                     
                     {/* File Upload */}
@@ -759,10 +880,10 @@ const PostDamageSection: React.FC = () => {
             </Card>
           </Collapsible>
 
-          {/* Step 3: Where & What Was Affected */}
+          {/* Step 3: Where It Happened & What Was Affected */}
           <Collapsible open={openSteps[3]} onOpenChange={() => toggleStep(3)}>
             <Card className={`transition-all ${openSteps[3] ? 'ring-2 ring-brand-green shadow-md' : ''}`}>
-              <StepHeader step={3} title="Where & What Was Affected" isOpen={openSteps[3]} isComplete={completedSteps.includes(3)} />
+              <StepHeader step={3} title="Where It Happened & What Was Affected" isOpen={openSteps[3]} isComplete={completedSteps.includes(3)} />
               <CollapsibleContent>
                 <CardContent className="pt-0 pb-4 px-4">
                   <div className="space-y-4">
@@ -884,12 +1005,12 @@ const PostDamageSection: React.FC = () => {
               <CollapsibleContent>
                 <CardContent className="pt-0 pb-4 px-4">
                   <div className="space-y-4">
-                    <p className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
-                      💡 Just describe what you can see. No technical assessment needed.
+                    <p className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3">
+                      Just describe what you can see. No technical assessment needed.
                     </p>
 
                     <div className="space-y-2">
-                      <Label>What's visible?</Label>
+                      <Label>Visible damage observed</Label>
                       <div className="space-y-2">
                         {VISIBLE_DAMAGE.map((damage) => {
                           const isSelected = incidentDetails.visibleDamage.includes(damage.id);
@@ -1137,12 +1258,24 @@ const PostDamageSection: React.FC = () => {
                       />
                     </div>
 
-                    <Button 
-                      onClick={() => markStepComplete(6)}
-                      className="w-full bg-brand-green hover:bg-brand-green/90"
-                    >
-                      Complete
-                    </Button>
+                    {/* Changed from button to completion message */}
+                    {completedSteps.length === totalSteps ? (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
+                        <p className="text-green-700 text-sm flex items-center justify-center gap-2">
+                          <Check className="h-4 w-4" />
+                          All sections complete! You can save your documentation below.
+                        </p>
+                      </div>
+                    ) : (
+                      <Button 
+                        variant="outline"
+                        onClick={() => markStepComplete(6)}
+                        className="w-full"
+                      >
+                        <Check className="h-4 w-4 mr-2" />
+                        Mark as complete
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </CollapsibleContent>
@@ -1150,8 +1283,8 @@ const PostDamageSection: React.FC = () => {
           </Collapsible>
         </div>
 
-        {/* Save Button */}
-        <div className="mt-6">
+        {/* Save Button - Regular placement for desktop */}
+        <div className="mt-6 hidden md:block">
           <Button 
             onClick={handleUploadAndSave}
             className="w-full bg-brand-green hover:bg-brand-green/90 h-14 text-lg rounded-xl"
@@ -1175,6 +1308,27 @@ const PostDamageSection: React.FC = () => {
               Select a property in Step 1 to save
             </p>
           )}
+        </div>
+
+        {/* Sticky Save Button for Mobile */}
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-lg md:hidden z-50">
+          <Button 
+            onClick={handleUploadAndSave}
+            className="w-full bg-brand-green hover:bg-brand-green/90 h-12 text-base rounded-xl"
+            disabled={uploading || saving || !incidentDetails.propertyId}
+          >
+            {(uploading || saving) ? (
+              <>
+                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="h-5 w-5 mr-2" />
+                Save Documentation
+              </>
+            )}
+          </Button>
         </div>
 
         {/* Footer Disclaimer */}
@@ -1255,28 +1409,22 @@ const PostDamageSection: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="absolute top-2 right-2 z-10 bg-white/90 hover:bg-red-50 hover:text-red-600"
+                          className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full h-8 w-8 z-10"
                           onClick={() => handleDeleteFile(photo)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
-                        <div className="aspect-video bg-gray-200 flex items-center justify-center overflow-hidden">
-                          {photo.file_url ? (
-                            <img 
-                              src={photo.file_url} 
-                              alt={photo.file_name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <Camera className="h-8 w-8 text-gray-400" />
-                          )}
-                        </div>
-                        <CardContent className="p-3">
-                          <h4 className="font-medium text-sm mb-2 truncate">{photo.file_name}</h4>
-                          <div className="flex items-center text-xs text-gray-500">
-                            <Calendar className="h-3 w-3 mr-1" />
+                        <img 
+                          src={photo.file_url} 
+                          alt={photo.file_name}
+                          className="w-full h-48 object-cover"
+                        />
+                        <CardContent className="p-4">
+                          <p className="text-sm font-medium truncate">{photo.file_name}</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            <Calendar className="h-3 w-3 inline mr-1" />
                             {formatDate(photo.created_at)}
-                          </div>
+                          </p>
                         </CardContent>
                       </Card>
                     ))}
@@ -1294,7 +1442,7 @@ const PostDamageSection: React.FC = () => {
                 <div className="text-center py-8">
                   <Video className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-600 mb-2">No damage videos yet</h3>
-                  <p className="text-gray-500 mb-4">Create video walkthroughs of property damage using the upload section above</p>
+                  <p className="text-gray-500 mb-4">Document the damage with video recordings</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -1305,20 +1453,22 @@ const PostDamageSection: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="absolute top-2 right-2 z-10 bg-white/90 hover:bg-red-50 hover:text-red-600"
+                          className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full h-8 w-8 z-10"
                           onClick={() => handleDeleteFile(video)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
-                        <div className="aspect-video bg-gray-200 flex items-center justify-center">
-                          <Video className="h-8 w-8 text-gray-400" />
-                        </div>
-                        <CardContent className="p-3">
-                          <h4 className="font-medium text-sm mb-2 truncate">{video.file_name}</h4>
-                          <div className="flex items-center text-xs text-gray-500">
-                            <Calendar className="h-3 w-3 mr-1" />
+                        <video 
+                          src={video.file_url} 
+                          className="w-full h-48 object-cover"
+                          controls
+                        />
+                        <CardContent className="p-4">
+                          <p className="text-sm font-medium truncate">{video.file_name}</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            <Calendar className="h-3 w-3 inline mr-1" />
                             {formatDate(video.created_at)}
-                          </div>
+                          </p>
                         </CardContent>
                       </Card>
                     ))}
@@ -1332,47 +1482,49 @@ const PostDamageSection: React.FC = () => {
             </TabsContent>
 
             <TabsContent value="reports" className="mt-4">
-              <div className="text-center py-8">
-                <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-600 mb-2">Damage Reports</h3>
-                <p className="text-gray-500 mb-4">Generate comprehensive damage reports for insurance claims</p>
-                <Button 
-                  onClick={() => {
-                    const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
-                    if (isOnSampleDashboard) {
-                      alert('AssetSafe.net says\n\nDemo: This would generate comprehensive damage reports for insurance claims with photos, videos, and details.');
-                      return;
-                    }
-                    generateDamageReport();
-                  }}
-                >
-                  <FileText className="h-4 w-4 mr-2" />
-                  Generate Damage Report
-                </Button>
-              </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Generate Damage Report</CardTitle>
+                  <CardDescription>
+                    Create a PDF report of all damage documentation for this property
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div>
+                        <p className="font-medium">Total Photos: {damagePhotos.length}</p>
+                        <p className="font-medium">Total Videos: {damageVideos.length}</p>
+                      </div>
+                      <Button 
+                        onClick={generateDamageReport}
+                        className="bg-brand-green hover:bg-brand-green/90"
+                        disabled={damagePhotos.length === 0 && damageVideos.length === 0}
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        Generate PDF Report
+                      </Button>
+                    </div>
+                    {damagePhotos.length === 0 && damageVideos.length === 0 && (
+                      <p className="text-sm text-gray-500 text-center">
+                        Upload some damage photos or videos first to generate a report
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         )}
-
-        {!selectedPropertyId && (
-          <div className="bg-amber-50 border border-amber-100 rounded-lg p-4 mt-4">
-            <p className="text-amber-700 text-sm">
-              <AlertTriangle className="h-4 w-4 inline mr-1" />
-              Select a property above to view existing damage documentation.
-            </p>
-          </div>
-        )}
       </CardContent>
-      
+
+      {/* Delete Confirmation Dialog */}
       <DeleteConfirmationDialog
         isOpen={showDeleteDialog}
-        onClose={() => {
-          setShowDeleteDialog(false);
-          setFileToDelete(null);
-        }}
+        onClose={() => setShowDeleteDialog(false)}
         onConfirm={confirmDeleteFile}
         title="Delete Damage Documentation"
-        description="Are you sure you want to permanently delete this file? This cannot be undone."
+        description={`Are you sure you want to permanently delete "${fileToDelete?.file_name}"? This action cannot be undone and will remove the file from both the database and storage.`}
       />
     </Card>
   );

@@ -252,6 +252,95 @@ export type Database = {
         }
         Relationships: []
       }
+      damage_reports: {
+        Row: {
+          actions_taken: string[] | null
+          additional_observations: string | null
+          approximate_time: string | null
+          areas_affected: string[] | null
+          belongings_items: string[] | null
+          claim_number: string | null
+          company_names: string | null
+          contacted_someone: string | null
+          created_at: string
+          damage_ongoing: string | null
+          date_of_damage: string | null
+          estimated_cost: string | null
+          id: string
+          impact_buckets: string[] | null
+          incident_types: string[] | null
+          other_area: string | null
+          other_belongings: string | null
+          other_incident_type: string | null
+          professionals_contacted: string[] | null
+          property_id: string
+          safety_concerns: string[] | null
+          updated_at: string
+          user_id: string
+          visible_damage: string[] | null
+        }
+        Insert: {
+          actions_taken?: string[] | null
+          additional_observations?: string | null
+          approximate_time?: string | null
+          areas_affected?: string[] | null
+          belongings_items?: string[] | null
+          claim_number?: string | null
+          company_names?: string | null
+          contacted_someone?: string | null
+          created_at?: string
+          damage_ongoing?: string | null
+          date_of_damage?: string | null
+          estimated_cost?: string | null
+          id?: string
+          impact_buckets?: string[] | null
+          incident_types?: string[] | null
+          other_area?: string | null
+          other_belongings?: string | null
+          other_incident_type?: string | null
+          professionals_contacted?: string[] | null
+          property_id: string
+          safety_concerns?: string[] | null
+          updated_at?: string
+          user_id: string
+          visible_damage?: string[] | null
+        }
+        Update: {
+          actions_taken?: string[] | null
+          additional_observations?: string | null
+          approximate_time?: string | null
+          areas_affected?: string[] | null
+          belongings_items?: string[] | null
+          claim_number?: string | null
+          company_names?: string | null
+          contacted_someone?: string | null
+          created_at?: string
+          damage_ongoing?: string | null
+          date_of_damage?: string | null
+          estimated_cost?: string | null
+          id?: string
+          impact_buckets?: string[] | null
+          incident_types?: string[] | null
+          other_area?: string | null
+          other_belongings?: string | null
+          other_incident_type?: string | null
+          professionals_contacted?: string[] | null
+          property_id?: string
+          safety_concerns?: string[] | null
+          updated_at?: string
+          user_id?: string
+          visible_damage?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "damage_reports_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deals: {
         Row: {
           close_date: string | null
