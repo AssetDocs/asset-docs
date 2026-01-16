@@ -338,9 +338,8 @@ const SecureVault: React.FC = () => {
 
   // Contributor restriction - show access denied for encrypted vault or blocked admin
   if ((isEncrypted && !canAccessEncryptedVault) || isAdminBlockedFromVault) {
-    const restrictionMessage = isAdminBlockedFromVault
-      ? "The account owner has restricted administrator access to the Secure Vault."
-      : `Contributors with ${contributorRole === 'viewer' ? 'viewer' : 'limited'} access cannot access encrypted vaults.`;
+    // Different messaging for admin blocked vs other contributor restrictions
+    const isManualAdminRestriction = isAdminBlockedFromVault;
     
     return (
       <Card className="w-full border-4 border-yellow-400 shadow-lg">
@@ -359,14 +358,27 @@ const SecureVault: React.FC = () => {
         </CardHeader>
         <CardContent className="py-12">
           <div className="text-center">
-            <AlertTriangle className="h-20 w-20 mx-auto mb-6 text-amber-500" />
+            <UserX className="h-20 w-20 mx-auto mb-6 text-amber-500" />
             <h3 className="text-xl font-semibold mb-3">Access Restricted</h3>
-            <p className="text-muted-foreground mb-4 max-w-md mx-auto">
-              {restrictionMessage}
-            </p>
-            <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              Please contact the account owner if you need access to this information.
-            </p>
+            {isManualAdminRestriction ? (
+              <>
+                <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+                  The account owner has manually restricted access to the Password Catalog and Legacy Locker for all administrators.
+                </p>
+                <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                  If you believe this to be an error, please contact the account owner directly to request access.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+                  Contributors with {contributorRole === 'viewer' ? 'viewer' : 'limited'} access cannot access encrypted vaults.
+                </p>
+                <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                  Please contact the account owner if you need access to this information.
+                </p>
+              </>
+            )}
           </div>
         </CardContent>
       </Card>
