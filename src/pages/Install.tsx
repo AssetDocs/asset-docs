@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Smartphone, Download, Check, Apple, Chrome, Monitor, Wifi, WifiOff, Shield, Compass } from "lucide-react";
+import { Smartphone, Download, Check, Apple, Chrome, Monitor, Wifi, WifiOff, Shield, Compass, ChevronLeft } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -55,6 +56,19 @@ const Install = () => {
       <Navbar />
       
       <main className="flex-1 container mx-auto px-4 py-12">
+        {/* Back to Dashboard Button */}
+        <div className="max-w-2xl mx-auto mb-6">
+          <Button 
+            asChild 
+            variant="outline" 
+            className="text-brand-orange border-brand-orange hover:bg-brand-orange/10"
+          >
+            <Link to="/account">
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Back to Dashboard
+            </Link>
+          </Button>
+        </div>
         <div className="max-w-2xl mx-auto space-y-8">
           <div className="text-center space-y-4">
             <Smartphone className="w-16 h-16 mx-auto text-brand-orange" />
