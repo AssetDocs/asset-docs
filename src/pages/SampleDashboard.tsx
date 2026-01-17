@@ -417,7 +417,7 @@ const SampleDashboard: React.FC = () => {
                         className="w-full"
                       >
                         <Users className="h-4 w-4 mr-2" />
-                        Manage Contributors
+                        Manage Authorized Users
                       </Button>
                     </div>
                   </CardContent>

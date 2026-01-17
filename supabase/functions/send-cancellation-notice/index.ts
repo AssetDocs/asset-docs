@@ -104,7 +104,7 @@ const handler = async (req: Request): Promise<Response> => {
                 <p style="margin-bottom: 0;"><strong>Access Available Until:</strong> ${formattedEndDate}</p>
               </div>
               
-              <p>You will continue to have access to the account until <strong>${formattedEndDate}</strong>. After this date, your contributor access will be deactivated and you will no longer be able to view or manage the account's data.</p>
+              <p>You will continue to have access to the account until <strong>${formattedEndDate}</strong>. After this date, your authorized user access will be deactivated and you will no longer be able to view or manage the account's data.</p>
               
               <h3 style="color: #1a365d;">What You Should Do</h3>
               <ul>

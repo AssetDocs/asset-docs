@@ -181,7 +181,7 @@ const AccountSettings: React.FC = () => {
                   </TabsTrigger>
                   <TabsTrigger value="contributors" className="flex items-center gap-2">
                     <Users className="h-4 w-4" />
-                    <span className="hidden sm:inline">Contributors</span>
+                    <span className="hidden sm:inline">Authorized Users</span>
                   </TabsTrigger>
                   <TabsTrigger value="security" className="flex items-center gap-2">
                     <Lock className="h-4 w-4" />

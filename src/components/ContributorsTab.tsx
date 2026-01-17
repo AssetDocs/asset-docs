@@ -320,7 +320,7 @@ const ContributorsTab: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <UserPlus className="h-5 w-5" />
-            Invite Contributor
+            Invite Authorized User
           </CardTitle>
           <CardDescription>
             Invite someone to access your account with specific permissions
@@ -332,7 +332,7 @@ const ContributorsTab: React.FC = () => {
             <Lock className="h-4 w-4 text-amber-600" />
             <AlertDescription className="text-sm text-amber-900">
               <strong>Legacy Locker Access:</strong> Only users with the Administrator role can access the Legacy Locker section. 
-              Viewers and Contributors will see the section but cannot view its contents.
+              Viewers and users with Contributor access will see the section but cannot view its contents.
             </AlertDescription>
           </Alert>
           

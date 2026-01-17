@@ -357,7 +357,7 @@ const FAQAccordion: React.FC = () => {
           <AccordionItem value="legacy-7">
             <AccordionTrigger className="text-lg font-medium">Can I revoke access at any time?</AccordionTrigger>
             <AccordionContent>
-              Yes. You can update or revoke contributor access instantly from your dashboard at any time.
+              Yes. You can update or revoke authorized user access instantly from your dashboard at any time.
             </AccordionContent>
           </AccordionItem>
         </Accordion>
@@ -531,9 +531,9 @@ const FAQAccordion: React.FC = () => {
             <AccordionContent>
               <p className="mb-3">Asset Safe offers tiered access levels so you stay in control at all times:</p>
               <ul className="list-disc list-inside space-y-2 ml-4">
-                <li><strong>View Only</strong> – Contributors can see selected items but cannot make changes.</li>
-                <li><strong>Edit Access</strong> – Contributors can add, update, or organize information you choose to share with them.</li>
-                <li><strong>Administrator Access</strong> – Full access to account features and settings, including the ability to manage contributors.</li>
+                <li><strong>Viewer</strong> – Can see selected items but cannot make changes.</li>
+                <li><strong>Contributor</strong> – Can add, update, or organize information you choose to share with them.</li>
+                <li><strong>Administrator</strong> – Full access to account features and settings, including the ability to manage authorized users.</li>
               </ul>
             </AccordionContent>
           </AccordionItem>

@@ -152,12 +152,12 @@ const AdminContributorPlanInfo: React.FC = () => {
           )}
         </div>
 
-        {/* Contributors List */}
+        {/* Authorized Users List */}
         {contributors.length > 0 && (
           <div className="bg-white border rounded-lg p-4">
             <h4 className="font-semibold mb-3 flex items-center gap-2">
               <Users className="h-4 w-4 text-primary" />
-              Contributors ({contributors.length})
+              Authorized Users ({contributors.length})
             </h4>
             <div className="space-y-2">
               {contributors.map((contributor) => (

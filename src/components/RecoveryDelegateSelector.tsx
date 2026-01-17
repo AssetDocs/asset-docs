@@ -53,7 +53,7 @@ export const RecoveryDelegateSelector: React.FC<RecoveryDelegateSelectorProps> =
         <Alert className="bg-muted border-border">
           <Info className="h-4 w-4" />
           <AlertDescription>
-            You must first add a contributor with <strong>Administrator</strong> access in Account Settings → Manage Contributors before you can select a Recovery Delegate. Only administrators will appear in this list (not viewers or contributors).
+            You must first add an authorized user with <strong>Administrator</strong> access in Account Settings → Authorized Users before you can select a Recovery Delegate. Only administrators will appear in this list.
           </AlertDescription>
         </Alert>
       )}

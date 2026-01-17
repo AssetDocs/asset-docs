@@ -75,10 +75,10 @@ export const SUBSCRIPTION_FEATURES: Record<string, FeatureConfig> = {
     fallbackMessage: 'Upgrade to manage more properties'
   },
   contributor_limits: {
-    name: 'Contributor Limits',
-    description: 'Number of contributors you can invite',
+    name: 'Authorized User Limits',
+    description: 'Number of authorized users you can invite',
     requiredTier: 'standard',
-    fallbackMessage: 'Upgrade to Standard to invite contributors'
+    fallbackMessage: 'Upgrade to Standard to invite authorized users'
   },
 
   // Export and Reporting
