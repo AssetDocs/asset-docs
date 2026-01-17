@@ -148,6 +148,7 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
         }
         
         // Fallback: Check contributor status directly if subscription check fails
+        // IMPORTANT: Must also verify owner's subscription is active
         if (retryCount >= 2) {
           const { data: contributorData } = await supabase
             .from('contributors')
@@ -157,10 +158,23 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
             .limit(1);
           
           if (contributorData && contributorData.length > 0) {
-            console.log('Found accepted contributor relationship, granting access');
-            setHasSubscription(true);
-            setCheckingSubscription(false);
-            return;
+            // Must verify the owner has an active subscription before granting access
+            const { data: ownerProfile } = await supabase
+              .from('profiles')
+              .select('plan_status')
+              .eq('user_id', contributorData[0].account_owner_id)
+              .single();
+            
+            const ownerIsActive = ownerProfile?.plan_status === 'active' || ownerProfile?.plan_status === 'trialing';
+            
+            if (ownerIsActive) {
+              console.log('Found accepted contributor relationship with active owner, granting access');
+              setHasSubscription(true);
+              setCheckingSubscription(false);
+              return;
+            } else {
+              console.log('Contributor owner subscription is inactive, denying access');
+            }
           }
         }
         
