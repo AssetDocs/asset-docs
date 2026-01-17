@@ -373,7 +373,7 @@ const AdminUsers = () => {
       <Tabs defaultValue="all-users">
         <TabsList>
           <TabsTrigger value="all-users">All Users</TabsTrigger>
-          <TabsTrigger value="contributors">Contributors</TabsTrigger>
+          <TabsTrigger value="contributors">Authorized Users</TabsTrigger>
           <TabsTrigger value="gifts">Gift Subscriptions</TabsTrigger>
           <TabsTrigger value="payments">Payment Events</TabsTrigger>
         </TabsList>

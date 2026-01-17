@@ -13,7 +13,7 @@ interface ViewerRestrictionProps {
 // Full page/section restriction - shows a card with lock message
 export const ViewerRestriction: React.FC<ViewerRestrictionProps> = ({ 
   children, 
-  fallbackMessage = "Contributors with a viewer role are not allowed to make changes to this user's dashboard.",
+  fallbackMessage = "Authorized users with a Viewer role are not allowed to make changes to this account.",
   showCard = true
 }) => {
   const { isViewer } = useContributor();

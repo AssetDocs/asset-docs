@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
     if (contributorError || !contributorData) {
       console.log('[SUBMIT-DELETION-REQUEST] User is not a contributor:', contributorError);
       return new Response(
-        JSON.stringify({ error: 'You do not have contributor access to this account' }),
+        JSON.stringify({ error: 'You do not have authorized user access to this account' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }

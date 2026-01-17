@@ -65,9 +65,9 @@ const handler = async (req: Request): Promise<Response> => {
     const getRoleDescription = (role: string) => {
       switch (role) {
         case 'administrator':
-          return 'Full access to all account features, including managing other contributors';
+          return 'Full access to all account features, including managing other authorized users';
         case 'contributor':
-          return 'Can view, upload, and manage files but cannot manage contributors or account settings';
+          return 'Can view, upload, and manage files but cannot manage authorized users or account settings';
         case 'viewer':
           return 'Read-only access for sharing account overviews. Cannot upload, download, or delete files';
         default:

@@ -124,7 +124,7 @@ export const ContributorProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const showViewerRestriction = () => {
     toast({
       title: "Access Restricted",
-      description: "Contributors with a viewer role are not allowed to make changes to this user's dashboard.",
+      description: "Authorized users with a Viewer role are not allowed to make changes to this account.",
       variant: "destructive",
     });
   };
@@ -132,7 +132,7 @@ export const ContributorProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const showContributorRestriction = () => {
     toast({
       title: "Access Restricted",
-      description: "Contributors with limited access cannot modify account settings. Please contact the account owner.",
+      description: "Authorized users with limited access cannot modify account settings. Please contact the account owner.",
       variant: "destructive",
     });
   };
