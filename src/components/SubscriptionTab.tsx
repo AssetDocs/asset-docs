@@ -920,10 +920,18 @@ const SubscriptionTab: React.FC = () => {
                     <AlertTriangle className="h-4 w-4 text-orange-600" />
                     <AlertTitle className="text-orange-700">Subscription Canceling</AlertTitle>
                     <AlertDescription className="text-orange-600">
-                      Your subscription is set to cancel at the end of your billing period
+                      Your subscription is set to cancel at the end of your billing period.
                       {subscriptionStatus.subscription_end && (
-                        <> on {new Date(subscriptionStatus.subscription_end).toLocaleDateString()}</>
-                      )}. You can reactivate anytime before then.
+                        <div className="mt-2 font-semibold text-orange-800">
+                          Final access date: {new Date(subscriptionStatus.subscription_end).toLocaleDateString('en-US', { 
+                            weekday: 'long', 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                          })}
+                        </div>
+                      )}
+                      <span className="block mt-1">You can reactivate anytime before then.</span>
                     </AlertDescription>
                   </Alert>
                   <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-orange-200">
