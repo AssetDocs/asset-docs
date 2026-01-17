@@ -1,100 +1,103 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import AssetValuesSection from '@/components/AssetValuesSection';
-import PostDamageSection from '@/components/PostDamageSection';
-import VoiceNotesSection from '@/components/VoiceNotesSection';
-import DemoLegacyLocker from "@/components/DemoLegacyLocker";
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { 
   Eye, 
   Home, 
   Camera, 
-  Video, 
-  FileImage, 
-  FileText, 
-  Shield, 
+  FileText,
+  FileImage,
   Settings, 
   Plus, 
-  Users, 
-  Copy,
-  HelpCircle,
-  Share2,
+  HardDrive,
   BarChart3,
   DollarSign,
   FolderOpen,
-  Clock,
-  Download,
   Lock,
   CheckCircle2,
   AlertCircle,
   Globe,
   ExternalLink,
-  Paintbrush
+  Paintbrush,
+  Mic,
+  AlertTriangle,
+  ChevronDown,
+  ChevronUp,
+  ChevronLeft,
+  Shield,
+  Key,
+  Users,
+  FileCheck
 } from 'lucide-react';
 
 const SampleDashboard: React.FC = () => {
-  // Demo Welcome Message Component
-  const DemoWelcomeMessage = () => (
-    <div className="bg-gradient-to-r from-brand-blue to-brand-lightBlue p-6 rounded-lg text-white mb-6">
-      <h1 className="text-2xl font-bold">
-        Welcome, Demo User!
-      </h1>
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('overview');
+  const [storageOpen, setStorageOpen] = useState(false);
+
+  // Demo alert function for all interactive elements
+  const showDemoAlert = (title: string, description: string) => {
+    alert(`Asset Safe Demo\n\n${title}\n\n${description}`);
+  };
+
+  // Demo Welcome Banner Component
+  const DemoWelcomeBanner = () => (
+    <div className="space-y-3">
+      <div className="bg-gradient-to-r from-brand-blue to-brand-lightBlue p-6 rounded-lg text-white">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <h1 className="text-2xl font-bold">
+            Welcome, Demo User!
+          </h1>
+          <span className="text-white/90 font-medium text-sm bg-white/20 px-3 py-1 rounded-md">
+            Account #: DEMO-12345
+          </span>
+        </div>
+        <div className="flex flex-wrap gap-2 mt-4">
+          <Button 
+            onClick={() => showDemoAlert(
+              'Account Settings',
+              'Access your profile settings, notification preferences, billing information, subscription management, and authorized user settings. This is where you manage all aspects of your Asset Safe account.'
+            )}
+            variant="outline" 
+            className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 border-yellow-400"
+          >
+            <Settings className="mr-2 h-4 w-4" />
+            Account Settings
+          </Button>
+          <Button 
+            onClick={() => showDemoAlert(
+              'Property Profiles',
+              'Create and manage profiles for each of your properties. Add details like address, square footage, year built, and estimated value. Each property can have its own photos, videos, documents, and inventory.'
+            )}
+            variant="outline" 
+            className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 border-yellow-400"
+          >
+            <Home className="mr-2 h-4 w-4" />
+            Property Profiles
+          </Button>
+        </div>
+      </div>
     </div>
   );
 
-  // Demo Account Header Component
+  // Demo Account Header with stats
   const DemoAccountHeader = () => (
-    <div className="mb-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-1">Account Dashboard</h2>
-          <p className="text-gray-600">Manage your properties, photos, videos, documents and more</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="secondary" className="flex items-center gap-1">
-            Account #DEMO123
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-4 w-4 p-0"
-              onClick={() => alert('AssetSafe.net says\n\nDemo: Account number copied to clipboard!')}
-            >
-              <Copy className="h-3 w-3" />
-            </Button>
-          </Badge>
-        </div>
-      </div>
-      <div className="flex gap-2 mt-4">
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => alert('AssetSafe.net says\n\nDemo: This would show video tutorials and help content.')}
-        >
-          <HelpCircle className="h-4 w-4 mr-2" />
-          Video Help
-        </Button>
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => alert('AssetSafe.net says\n\nDemo: This would allow sharing your account with others.')}
-        >
-          <Share2 className="h-4 w-4 mr-2" />
-          Share
-        </Button>
-      </div>
-    </div>
-  );
-
-  // Demo Account Stats Component
-  const DemoAccountStats = () => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-      <Card>
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => showDemoAlert('Total Items', 'This shows the total number of items you have documented across all properties, including photos, videos, documents, and inventory items.')}>
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div>
@@ -105,7 +108,7 @@ const SampleDashboard: React.FC = () => {
           </div>
         </CardContent>
       </Card>
-      <Card>
+      <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => showDemoAlert('Total Value', 'The estimated total value of all your documented assets. This helps you understand your coverage needs and provides documentation for insurance claims.')}>
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div>
@@ -116,7 +119,7 @@ const SampleDashboard: React.FC = () => {
           </div>
         </CardContent>
       </Card>
-      <Card>
+      <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => showDemoAlert('Properties', 'The number of property profiles you have created. Each property can be documented separately with its own photos, videos, and inventory.')}>
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div>
@@ -127,12 +130,12 @@ const SampleDashboard: React.FC = () => {
           </div>
         </CardContent>
       </Card>
-      <Card>
+      <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => showDemoAlert('Storage Used', 'Your current storage usage. Upgrade your plan for additional storage space to store more photos, videos, and documents.')}>
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Storage Used</p>
-              <p className="text-2xl font-bold text-orange-600">2.4GB</p>
+              <p className="text-2xl font-bold text-orange-600">2.4 GB</p>
             </div>
             <FolderOpen className="h-8 w-8 text-orange-600" />
           </div>
@@ -143,71 +146,90 @@ const SampleDashboard: React.FC = () => {
 
   // Demo Storage Dashboard Component
   const DemoStorageDashboard = () => (
-    <div className="grid gap-6 md:grid-cols-2 mb-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <FolderOpen className="h-5 w-5 mr-2 text-brand-blue" />
-            Storage Usage
-          </CardTitle>
-          <CardDescription>
-            Track your storage usage
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Used</span>
-              <span className="font-semibold">2.4 GB of 5 GB</span>
-            </div>
-            <Progress value={48} className="h-2" />
-            <p className="text-xs text-gray-500">48% of storage used</p>
-          </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <BarChart3 className="h-5 w-5 mr-2 text-brand-blue" />
-            Storage Breakdown
-          </CardTitle>
-          <CardDescription>
-            How your storage is allocated
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <Camera className="h-4 w-4 text-blue-500" />
-              <span className="text-sm">Photos</span>
-            </div>
-            <span className="text-sm font-semibold">1.2 GB</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <Video className="h-4 w-4 text-purple-500" />
-              <span className="text-sm">Videos</span>
-            </div>
-            <span className="text-sm font-semibold">0.8 GB</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-green-500" />
-              <span className="text-sm">Documents</span>
-            </div>
-            <span className="text-sm font-semibold">0.4 GB</span>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    <Collapsible open={storageOpen} onOpenChange={setStorageOpen} className="mb-6">
+      <div className="flex items-center justify-between p-4 bg-card border rounded-lg">
+        <div className="flex items-center gap-2">
+          <HardDrive className="h-5 w-5 text-brand-blue" />
+          <h3 className="font-semibold text-lg">Storage Usage</h3>
+        </div>
+        <CollapsibleTrigger asChild>
+          <Button variant="ghost" size="sm">
+            {storageOpen ? (
+              <>
+                <span className="mr-2 text-sm">Hide Details</span>
+                <ChevronUp className="h-4 w-4" />
+              </>
+            ) : (
+              <>
+                <span className="mr-2 text-sm">Show Details</span>
+                <ChevronDown className="h-4 w-4" />
+              </>
+            )}
+          </Button>
+        </CollapsibleTrigger>
+      </div>
+      <CollapsibleContent className="mt-4">
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card className="cursor-pointer" onClick={() => showDemoAlert('Storage Quota', 'Monitor your storage usage and available space. Upgrade your subscription to get more storage for photos, videos, and documents.')}>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <FolderOpen className="h-5 w-5 mr-2 text-brand-blue" />
+                Storage Quota
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Used</span>
+                  <span className="font-semibold">2.4 GB of 5 GB</span>
+                </div>
+                <Progress value={48} className="h-2" />
+                <p className="text-xs text-gray-500">48% of storage used</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="cursor-pointer" onClick={() => showDemoAlert('Storage Breakdown', 'See how your storage is distributed across photos, videos, and documents. This helps you manage your space effectively.')}>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <BarChart3 className="h-5 w-5 mr-2 text-brand-blue" />
+                Storage Breakdown
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <Camera className="h-4 w-4 text-blue-500" />
+                  <span className="text-sm">Photos</span>
+                </div>
+                <span className="text-sm font-semibold">1.2 GB</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <FileImage className="h-4 w-4 text-purple-500" />
+                  <span className="text-sm">Videos</span>
+                </div>
+                <span className="text-sm font-semibold">0.8 GB</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-green-500" />
+                  <span className="text-sm">Documents</span>
+                </div>
+                <span className="text-sm font-semibold">0.4 GB</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
   );
 
-  // Demo Documentation Checklist Component
+  // Demo Documentation Checklist
   const DemoDocumentationChecklist = () => (
-    <Card className="mb-6">
+    <Card className="cursor-pointer" onClick={() => showDemoAlert('Documentation Checklist', 'Track your documentation progress across different categories. The checklist helps ensure you have comprehensive coverage for insurance purposes and peace of mind.')}>
       <CardHeader>
         <CardTitle className="flex items-center">
-          <CheckCircle2 className="h-5 w-5 mr-2 text-brand-blue" />
+          <FileCheck className="h-5 w-5 mr-2 text-brand-blue" />
           Documentation Checklist
         </CardTitle>
         <CardDescription>
@@ -249,97 +271,206 @@ const SampleDashboard: React.FC = () => {
     </Card>
   );
 
-  // Demo Source Websites Component
-  const DemoSourceWebsites = () => {
-    const dummyWebsites = [
-      {
-        id: '1',
-        website_name: 'Amazon',
-        website_url: 'https://www.amazon.com',
-        description: 'Online retailer for electronics, furniture, and household items',
-        category: 'E-commerce'
-      },
-      {
-        id: '2',
-        website_name: 'Best Buy',
-        website_url: 'https://www.bestbuy.com',
-        description: 'Electronics and appliance retailer',
-        category: 'Electronics'
-      },
-      {
-        id: '3',
-        website_name: 'Wayfair',
-        website_url: 'https://www.wayfair.com',
-        description: 'Furniture and home decor online store',
-        category: 'Furniture'
-      },
-      {
-        id: '4',
-        website_name: 'Home Depot',
-        website_url: 'https://www.homedepot.com',
-        description: 'Home improvement and hardware supplies',
-        category: 'Home Improvement'
-      }
-    ];
-
-    return (
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
+  // Demo Secure Vault
+  const DemoSecureVault = () => (
+    <Card className="cursor-pointer border-2 border-brand-blue/20" onClick={() => showDemoAlert('Secure Vault (Legacy Locker)', 'The Secure Vault is a password-protected section for storing sensitive information like estate planning documents, wills, trust information, financial account details, and important contacts. Only you and your designated delegates can access this information.')}>
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <Lock className="h-6 w-6 mr-2 text-brand-blue" />
+          Secure Vault
+          <Badge className="ml-2 bg-brand-blue/10 text-brand-blue">Protected</Badge>
+        </CardTitle>
+        <CardDescription>
+          Encrypted storage for estate plans, wills, and sensitive documents
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+            <Shield className="h-5 w-5 text-brand-blue" />
             <div>
-              <CardTitle className="flex items-center">
-                <Globe className="h-6 w-6 mr-2 text-brand-blue" />
-                Source Websites
-              </CardTitle>
-              <CardDescription>
-                Track where you purchased your items for warranty and reference purposes
-              </CardDescription>
+              <p className="font-medium text-sm">Estate Planning</p>
+              <p className="text-xs text-gray-500">Wills, trusts, directives</p>
             </div>
-            <Button 
-              onClick={() => alert('AssetSafe.net says\n\nDemo: This would allow you to add a new source website to track where you purchased items.')}
-              className="bg-brand-blue hover:bg-brand-lightBlue"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Website
-            </Button>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {dummyWebsites.map((website) => (
-              <Card key={website.id} className="hover:shadow-lg transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg mb-1 flex items-center">
-                        <Globe className="h-4 w-4 mr-2 text-brand-blue" />
-                        {website.website_name}
-                      </h3>
-                      {website.category && (
-                        <Badge variant="secondary" className="mb-2">
-                          {website.category}
-                        </Badge>
-                      )}
-                      <p className="text-sm text-gray-600 mb-3">{website.description}</p>
-                      <Button
-                        onClick={() => alert('AssetSafe.net says\n\nDemo: This would open the website in a new tab.')}
-                        variant="outline"
-                        size="sm"
-                        className="w-full"
-                      >
-                        <ExternalLink className="h-3 w-3 mr-2" />
-                        Visit Website
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+            <Key className="h-5 w-5 text-brand-blue" />
+            <div>
+              <p className="font-medium text-sm">Password Catalog</p>
+              <p className="text-xs text-gray-500">Secure credential storage</p>
+            </div>
           </div>
-        </CardContent>
-      </Card>
-    );
-  };
+          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+            <Users className="h-5 w-5 text-brand-blue" />
+            <div>
+              <p className="font-medium text-sm">VIP Contacts</p>
+              <p className="text-xs text-gray-500">Important contacts list</p>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  // Demo Asset Values Section
+  const DemoAssetValues = () => (
+    <Card className="cursor-pointer" onClick={() => showDemoAlert('Asset Values', 'View and manage the estimated values of all your documented items. Track total asset value by property, category, or individual item. This information is invaluable for insurance claims and estate planning.')}>
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <DollarSign className="h-6 w-6 mr-2 text-green-600" />
+          Asset Values Summary
+        </CardTitle>
+        <CardDescription>
+          Track the value of your documented assets
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-4 bg-green-50 rounded-lg text-center">
+              <p className="text-sm text-gray-600">Primary Residence</p>
+              <p className="text-2xl font-bold text-green-600">$32,450</p>
+            </div>
+            <div className="p-4 bg-blue-50 rounded-lg text-center">
+              <p className="text-sm text-gray-600">Vacation Home</p>
+              <p className="text-2xl font-bold text-blue-600">$12,300</p>
+            </div>
+            <div className="p-4 bg-purple-50 rounded-lg text-center">
+              <p className="text-sm text-gray-600">Storage Unit</p>
+              <p className="text-2xl font-bold text-purple-600">$3,579</p>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  // Demo Source Websites Section
+  const DemoSourceWebsites = () => (
+    <Card className="cursor-pointer" onClick={() => showDemoAlert('Source Websites', 'Keep track of where you purchased items for warranty claims, returns, and price verification. Add retailer websites and categorize them for easy reference when filing insurance claims.')}>
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <Globe className="h-6 w-6 mr-2 text-brand-blue" />
+          Source Websites
+        </CardTitle>
+        <CardDescription>
+          Track where you purchased items for warranty and reference
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {['Amazon', 'Best Buy', 'Wayfair', 'Home Depot'].map((store) => (
+            <div key={store} className="p-4 border rounded-lg text-center hover:shadow-md transition-shadow">
+              <Globe className="h-8 w-8 mx-auto mb-2 text-brand-blue" />
+              <p className="font-medium">{store}</p>
+              <Badge variant="secondary" className="mt-1 text-xs">E-commerce</Badge>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  // Demo Voice Notes Section
+  const DemoVoiceNotes = () => (
+    <Card className="cursor-pointer" onClick={() => showDemoAlert('Voice Notes', 'Record audio notes to document items, describe conditions, or leave instructions for family members. Voice notes are stored securely and can be attached to specific items or properties.')}>
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <Mic className="h-6 w-6 mr-2 text-brand-blue" />
+          Voice Notes
+        </CardTitle>
+        <CardDescription>
+          Record audio notes for detailed documentation
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div className="flex items-center gap-3">
+              <Mic className="h-5 w-5 text-brand-blue" />
+              <div>
+                <p className="font-medium text-sm">Living Room Inventory</p>
+                <p className="text-xs text-gray-500">2:34 duration • Jan 15, 2024</p>
+              </div>
+            </div>
+            <Button variant="outline" size="sm">Play</Button>
+          </div>
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div className="flex items-center gap-3">
+              <Mic className="h-5 w-5 text-brand-blue" />
+              <div>
+                <p className="font-medium text-sm">Garage Equipment Notes</p>
+                <p className="text-xs text-gray-500">1:45 duration • Jan 10, 2024</p>
+              </div>
+            </div>
+            <Button variant="outline" size="sm">Play</Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  // Demo Paint Codes Section
+  const DemoPaintCodes = () => (
+    <Card className="cursor-pointer" onClick={() => showDemoAlert('Paint Codes', 'Store paint colors, codes, and brand information for every room in your property. Never forget a paint color again—perfect for touch-ups, repairs, or future renovations.')}>
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <Paintbrush className="h-6 w-6 mr-2 text-brand-blue" />
+          Paint Codes
+        </CardTitle>
+        <CardDescription>
+          Track paint colors for every room
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-3 border rounded-lg">
+            <div className="w-full h-8 rounded mb-2" style={{ backgroundColor: '#E8E4DF' }}></div>
+            <p className="font-medium text-sm">Agreeable Gray</p>
+            <p className="text-xs text-gray-500">Sherwin Williams • SW 7029</p>
+            <p className="text-xs text-gray-400 mt-1">Living Room</p>
+          </div>
+          <div className="p-3 border rounded-lg">
+            <div className="w-full h-8 rounded mb-2" style={{ backgroundColor: '#FFFFFF' }}></div>
+            <p className="font-medium text-sm">Pure White</p>
+            <p className="text-xs text-gray-500">Sherwin Williams • SW 7005</p>
+            <p className="text-xs text-gray-400 mt-1">Trim & Ceilings</p>
+          </div>
+          <div className="p-3 border rounded-lg">
+            <div className="w-full h-8 rounded mb-2" style={{ backgroundColor: '#4A6274' }}></div>
+            <p className="font-medium text-sm">Smoky Blue</p>
+            <p className="text-xs text-gray-500">Benjamin Moore • HC-147</p>
+            <p className="text-xs text-gray-400 mt-1">Master Bedroom</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  // Demo Post Damage Section
+  const DemoPostDamage = () => (
+    <Card className="cursor-pointer border-2 border-yellow-200" onClick={() => showDemoAlert('Post Damage Documentation', 'After an incident (fire, flood, theft, storm), use this section to document damage for insurance claims. Upload photos and videos of affected areas, describe the damage, and track your claim progress.')}>
+      <CardHeader className="bg-yellow-50">
+        <CardTitle className="flex items-center">
+          <AlertTriangle className="h-6 w-6 mr-2 text-yellow-600" />
+          Post Damage Documentation
+        </CardTitle>
+        <CardDescription>
+          Document damage after an incident for insurance claims
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="pt-4">
+        <div className="text-center py-6">
+          <AlertTriangle className="h-12 w-12 mx-auto mb-3 text-yellow-500" />
+          <p className="text-gray-600 mb-4">No damage reports on file</p>
+          <Button className="bg-yellow-500 hover:bg-yellow-600 text-white">
+            <Plus className="h-4 w-4 mr-2" />
+            Report Damage
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -350,311 +481,165 @@ const SampleDashboard: React.FC = () => {
           {/* Demo Banner */}
           <Alert className="mb-6 border-brand-blue bg-brand-blue/5">
             <Eye className="h-4 w-4" />
-            <AlertDescription className="flex items-center justify-between">
+            <AlertDescription className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <span>
-                <strong>Demo Dashboard</strong> - This is a sample view of the Asset Safe dashboard. 
-                Features are read-only for demonstration purposes.
+                <strong>Sample Dashboard</strong> — Click on any section to learn what it does. Features are disabled for demonstration.
               </span>
+              <Button 
+                onClick={() => navigate('/pricing')}
+                size="sm"
+                className="bg-brand-green hover:bg-brand-green/90"
+              >
+                Start Your Free Trial
+              </Button>
             </AlertDescription>
           </Alert>
 
-          {/* Demo Welcome Message */}
-          <DemoWelcomeMessage />
-          
-          {/* Demo Account Header */}
+          {/* Welcome Banner */}
+          <div className="mb-6">
+            <DemoWelcomeBanner />
+          </div>
+
+          {/* Account Stats */}
           <DemoAccountHeader />
 
-          {/* Demo Storage Dashboard */}
+          {/* Storage Dashboard */}
           <DemoStorageDashboard />
 
-          <Tabs defaultValue="overview" className="space-y-6">
-            <div className="space-y-2">
-              {/* First Row - 3 tabs */}
-              <TabsList className="grid w-full grid-cols-3 gap-1 h-auto">
-                <TabsTrigger value="overview" className="text-xs md:text-sm px-2">Overview</TabsTrigger>
-                <TabsTrigger value="asset-values" className="text-xs md:text-sm px-2">Asset Values</TabsTrigger>
-                <TabsTrigger value="source-websites" className="text-xs md:text-sm px-2">Source Websites</TabsTrigger>
-              </TabsList>
-              {/* Second Row - 3 tabs */}
-              <TabsList className="grid w-full grid-cols-3 gap-1 h-auto">
-                <TabsTrigger value="damage" className="text-xs md:text-sm px-2">Post Damage</TabsTrigger>
-                <TabsTrigger value="voice-notes" className="text-xs md:text-sm px-2">Voice Notes</TabsTrigger>
-                <TabsTrigger value="paint-codes" className="text-xs md:text-sm px-2">
-                  Paint Codes
-                </TabsTrigger>
-              </TabsList>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            {/* Insights & Tools Dropdown with Back Button */}
+            <div className="w-full flex items-center gap-2">
+              {/* Back to Dashboard Button - only show when not on overview */}
+              {activeTab !== 'overview' && (
+                <Button
+                  onClick={() => setActiveTab('overview')}
+                  className="bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white h-12 w-12 min-w-12 p-0 rounded-lg flex-shrink-0 shadow-md"
+                  aria-label="Back to Dashboard"
+                >
+                  <ChevronLeft className="h-7 w-7" />
+                </Button>
+              )}
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button className="w-full bg-brand-green hover:bg-brand-green/90 text-white justify-between">
+                    Insights & Tools
+                    <ChevronDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] bg-brand-green border-brand-green">
+                  <DropdownMenuItem 
+                    onClick={() => showDemoAlert('Contacts', 'Store important contacts like insurance agents, contractors, attorneys, and family members. Keep all your important contacts in one secure location.')}
+                    className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+                  >
+                    Contacts
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => showDemoAlert('Manual Entry', 'Manually add items to your inventory without photos. Perfect for documenting items with descriptions, values, and purchase information.')}
+                    className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+                  >
+                    Manual Entry
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => setActiveTab('asset-values')}
+                    className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+                  >
+                    Asset Values
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => setActiveTab('source-websites')}
+                    className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+                  >
+                    Source Websites
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => setActiveTab('voice-notes')}
+                    className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+                  >
+                    Voice Notes
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => setActiveTab('paint-codes')}
+                    className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+                  >
+                    Paint Codes
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => setActiveTab('damage')}
+                    className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+                  >
+                    <span className="text-yellow-400 font-bold mr-1">!</span>
+                    Post Damage
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
             <TabsContent value="overview" className="space-y-6">
-              <DemoAccountStats />
-              
-              {/* First Row - Management Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Account Settings Card */}
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Settings className="h-6 w-6 mr-2 text-brand-blue" />
-                      Account Settings
-                    </CardTitle>
-                    <CardDescription>
-                      Update your profile, security settings, and preferences
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <Button 
-                        onClick={() => alert('AssetSafe.net says\n\nDemo: This allows you to update your profile, security settings, and preferences.')}
-                        variant="orange" 
-                        className="w-full"
-                      >
-                        <Settings className="h-4 w-4 mr-2" />
-                        Manage Settings
-                      </Button>
-                      <Button 
-                        onClick={() => alert('AssetSafe.net says\n\nDemo: This allows you to add and manage users who can help document your assets.')}
-                        variant="outline" 
-                        className="w-full"
-                      >
-                        <Users className="h-4 w-4 mr-2" />
-                        Manage Authorized Users
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Property Profiles Card */}
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Home className="h-6 w-6 mr-2 text-brand-blue" />
-                      Property Profiles
-                    </CardTitle>
-                    <CardDescription>
-                      Create and manage property information, square footage, and details
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <Button 
-                        onClick={() => alert('AssetSafe.net says\n\nDemo: This allows you to create new property profiles with square footage, room details, and property information.')}
-                        className="w-full bg-brand-blue hover:bg-brand-lightBlue"
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Create New Property
-                      </Button>
-                      <Button 
-                        onClick={() => alert('AssetSafe.net says\n\nDemo: This allows you to view and manage all your documented properties.')}
-                        variant="outline" 
-                        className="w-full"
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        View All Properties
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Photo Management Card */}
-                <Card className="hover:shadow-lg transition-shadow">
+              {/* Primary Blocks - Photo/Video Management and Documents & Records */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Photo/Video Management Card */}
+                <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => showDemoAlert('Photo/Video Management', 'Upload and organize photos and videos of your property and belongings. Document room-by-room, create folders, and add descriptions. All media is stored securely in the cloud.')}>
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <Camera className="h-6 w-6 mr-2 text-brand-blue" />
-                      Photo Management
+                      Photo/Video Management
                     </CardTitle>
                     <CardDescription>
-                      Upload photos and document your items with estimated values
+                      Capture photos or videos to document your property and belongings
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      <Button
-                        onClick={() => alert('AssetSafe.net says\n\nDemo: This allows you to upload photos and document your items with estimated values.')}
-                        className="w-full bg-brand-blue hover:bg-brand-lightBlue"
-                      >
+                      <Button className="w-full bg-brand-blue hover:bg-brand-lightBlue">
                         <Plus className="h-4 w-4 mr-2" />
-                        Upload Photos
+                        Upload Photos/Videos
                       </Button>
-                      <Button 
-                        onClick={() => alert('AssetSafe.net says\n\nDemo: This allows you to view, organize, download, and categorize your uploaded photos.')}
-                        variant="outline" 
-                        className="w-full"
-                      >
+                      <Button variant="outline" className="w-full">
                         <Eye className="h-4 w-4 mr-2" />
-                        View Photo Gallery
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Second Row - Media and Documents */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Video Documentation Card */}
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Video className="h-6 w-6 mr-2 text-brand-blue" />
-                      Video Documentation
-                    </CardTitle>
-                    <CardDescription>
-                      Upload and manage video recordings of your property and belongings
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <Button
-                        onClick={() => alert('AssetSafe.net says\n\nDemo: This allows you to upload and manage video recordings of your property and belongings.')}
-                        className="w-full bg-brand-blue hover:bg-brand-lightBlue"
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Upload Videos
-                      </Button>
-                      <Button 
-                        onClick={() => alert('AssetSafe.net says\n\nDemo: This allows you to view, watch, download, and categorize your uploaded videos.')}
-                        variant="outline" 
-                        className="w-full"
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        View Videos
+                        View All Photos & Videos
                       </Button>
                     </div>
                   </CardContent>
                 </Card>
 
-                {/* Document Storage Card */}
-                <Card className="hover:shadow-lg transition-shadow">
+                {/* Documents & Records Card */}
+                <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => showDemoAlert('Documents & Records', 'Store important documents like insurance policies, warranties, receipts, titles, and contracts. Organize by category and attach documents to specific properties or items.')}>
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <FileText className="h-6 w-6 mr-2 text-brand-blue" />
-                      Document Storage
+                      Documents & Records
                     </CardTitle>
                     <CardDescription>
-                      Store PDFs, receipts, warranties, licenses, titles, and other important documents
+                      Store policies, receipts, warranties, titles, licenses, and other critical records
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      <Button 
-                        onClick={() => alert('AssetSafe.net says\n\nDemo: This allows you to store PDFs, receipts, warranties, licenses, titles, and other important documents.')}
-                        className="w-full bg-brand-blue hover:bg-brand-lightBlue"
-                      >
+                      <Button className="w-full bg-brand-blue hover:bg-brand-lightBlue">
                         <Plus className="h-4 w-4 mr-2" />
-                        Upload Documents
+                        Add Document
                       </Button>
-                      <Button 
-                        onClick={() => alert('AssetSafe.net says\n\nDemo: This allows you to view, organize, download, and manage your stored documents.')}
-                        variant="outline" 
-                        className="w-full"
-                      >
+                      <Button variant="outline" className="w-full">
                         <Eye className="h-4 w-4 mr-2" />
-                        View Documents
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Manual Entry Card */}
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <FileText className="h-6 w-6 mr-2 text-brand-blue" />
-                      Manual Entry
-                    </CardTitle>
-                    <CardDescription>
-                      Add items to your inventory without photos
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <Button
-                        onClick={() => alert('AssetSafe.net says\n\nDemo: This allows you to manually add items to your inventory without photos.')}
-                        className="w-full bg-brand-blue hover:bg-brand-lightBlue"
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Manual Entry
+                        View Documents & Insurance
                       </Button>
                     </div>
                   </CardContent>
                 </Card>
               </div>
 
-              {/* Third Row - Password Catalog, Insurance, Export */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Password and Accounts Catalog Card */}
-                <Card className="hover:shadow-lg transition-shadow col-span-1 md:col-span-2 lg:col-span-3">
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Lock className="h-6 w-6 mr-2 text-brand-blue" />
-                      Password and Accounts Catalog (Locked)
-                    </CardTitle>
-                    <CardDescription>
-                      Your password and accounts catalog is protected with end-to-end encryption
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <Alert className="border-blue-200 bg-blue-50">
-                        <Lock className="h-4 w-4" />
-                        <AlertDescription>
-                          <strong>Password and Accounts Catalog Locked</strong>
-                          <br />
-                          Enter your master password to access your encrypted passwords and Account Summary
-                        </AlertDescription>
-                      </Alert>
-                      <div className="flex gap-3">
-                        <Button 
-                          onClick={() => alert("AssetSafe.net says\n\nDemo: This would allow you to unlock and access your password and accounts catalog with your master password.")}
-                          className="flex-1 bg-brand-blue hover:bg-brand-lightBlue"
-                        >
-                          <Lock className="h-4 w-4 mr-2" />
-                          Unlock Password and Accounts Catalog
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+              {/* Documentation Checklist */}
+              <DemoDocumentationChecklist />
+
+              {/* Secure Vault */}
+              <div className="mt-6">
+                <DemoSecureVault />
               </div>
 
-              {/* Legacy Locker */}
-              <DemoLegacyLocker />
-
-              {/* Fourth Row - Insurance, Export, Download */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Insurance Information Card */}
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Shield className="h-6 w-6 mr-2 text-brand-blue" />
-                      Insurance Information
-                    </CardTitle>
-                    <CardDescription>
-                      Manage insurance policies, claims, and related documentation
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <Button 
-                        onClick={() => alert('AssetSafe.net says\n\nDemo: This allows you to add and manage insurance policies, claims, and related documentation.')}
-                        className="w-full bg-brand-blue hover:bg-brand-lightBlue"
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Insurance Policy
-                      </Button>
-                      <Button 
-                        onClick={() => alert('AssetSafe.net says\n\nDemo: This allows you to view and manage your insurance policies and claims.')}
-                        variant="outline" 
-                        className="w-full"
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        View Insurance
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Export Assets Card */}
-                <Card className="hover:shadow-lg transition-shadow">
+              {/* Export Assets & Download All Files */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => showDemoAlert('Export Assets', 'Generate a comprehensive PDF report of all your documented assets. Perfect for sharing with insurance agents, attorneys, or family members. Includes photos, descriptions, and values.')}>
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <FileText className="h-6 w-6 mr-2 text-brand-blue" />
@@ -665,22 +650,17 @@ const SampleDashboard: React.FC = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Button 
-                      onClick={() => alert('AssetSafe.net says\n\nDemo: This would export your complete asset summary as a PDF and ZIP file.')}
-                      variant="default"
-                      className="w-full bg-brand-green hover:bg-brand-green/90"
-                    >
+                    <Button variant="default" className="w-full bg-brand-green hover:bg-brand-green/90">
                       <FileText className="mr-2 h-4 w-4" />
                       Export Assets
                     </Button>
                   </CardContent>
                 </Card>
 
-                {/* Download All Files Card */}
-                <Card className="hover:shadow-lg transition-shadow">
+                <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => showDemoAlert('Download All Files', 'Download all your photos, videos, and documents in a single ZIP file. Great for creating local backups or transferring to another storage service.')}>
                   <CardHeader>
                     <CardTitle className="flex items-center">
-                      <Download className="h-6 w-6 mr-2 text-brand-blue" />
+                      <FileImage className="h-6 w-6 mr-2 text-brand-blue" />
                       Download All Files
                     </CardTitle>
                     <CardDescription>
@@ -688,152 +668,33 @@ const SampleDashboard: React.FC = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Button 
-                      onClick={() => alert('AssetSafe.net says\n\nDemo: This would download all your files in a ZIP archive.')}
-                      variant="outline"
-                      className="w-full"
-                    >
-                      <Download className="mr-2 h-4 w-4" />
+                    <Button variant="default" className="w-full bg-brand-green hover:bg-brand-green/90">
+                      <FileImage className="mr-2 h-4 w-4" />
                       Download All
                     </Button>
                   </CardContent>
                 </Card>
               </div>
-
-              {/* Documentation Checklist */}
-              <DemoDocumentationChecklist />
             </TabsContent>
 
             <TabsContent value="asset-values">
-              <Alert className="mb-4 border-blue-200 bg-blue-50">
-                <Eye className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>Demo Mode:</strong> This shows sample asset values. In the live dashboard, this would display your actual items and values.
-                </AlertDescription>
-              </Alert>
-              <AssetValuesSection />
+              <DemoAssetValues />
             </TabsContent>
 
             <TabsContent value="source-websites">
-              <Alert className="mb-4 border-blue-200 bg-blue-50">
-                <Eye className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>Demo Mode:</strong> This shows sample source websites. In the live dashboard, you could save websites where you purchased items for reference.
-                </AlertDescription>
-              </Alert>
               <DemoSourceWebsites />
             </TabsContent>
 
-            <TabsContent value="damage">
-              <Alert className="mb-4 border-blue-200 bg-blue-50">
-                <Eye className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>Demo Mode:</strong> This shows post-damage documentation features. In the live dashboard, you could document damage to your property and assets.
-                </AlertDescription>
-              </Alert>
-              <PostDamageSection />
-            </TabsContent>
-
             <TabsContent value="voice-notes">
-              <Alert className="mb-4 border-blue-200 bg-blue-50">
-                <Eye className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>Demo Mode:</strong> This shows voice notes features. In the live dashboard, you could record and manage voice notes about your assets.
-                </AlertDescription>
-              </Alert>
-              <VoiceNotesSection />
+              <DemoVoiceNotes />
             </TabsContent>
 
             <TabsContent value="paint-codes">
-              <Alert className="mb-4 border-blue-200 bg-blue-50">
-                <Paintbrush className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>Demo Mode:</strong> This shows the paint codes feature. In the live dashboard, you can store paint brand, name, code, and room location for touch-ups and repainting.
-                </AlertDescription>
-              </Alert>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Paintbrush className="h-6 w-6 mr-2 text-brand-blue" />
-                    Paint Codes
-                  </CardTitle>
-                  <CardDescription>
-                    Store paint brand, name, and code information for each room in your property
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Sample Paint Codes */}
-                  <div className="space-y-3">
-                    <h3 className="font-semibold text-gray-900">Saved Paint Codes (4)</h3>
-                    <div className="grid gap-3">
-                      {[
-                        { property: 'Main Home', brand: 'Benjamin Moore', name: 'Simply White', code: 'OC-117', interior: true, room: 'Living Room', swatch: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=100&h=100&fit=crop' },
-                        { property: 'Main Home', brand: 'Sherwin-Williams', name: 'Agreeable Gray', code: 'SW 7029', interior: true, room: 'Master Bedroom', swatch: 'https://images.unsplash.com/photo-1604147495798-57beb5d6af73?w=100&h=100&fit=crop' },
-                        { property: 'Beach Cottage', brand: 'Benjamin Moore', name: 'Hale Navy', code: 'HC-154', interior: true, room: 'Home Office', swatch: 'https://images.unsplash.com/photo-1557683316-973673baf926?w=100&h=100&fit=crop' },
-                        { property: 'Main Home', brand: 'Sherwin-Williams', name: 'Alabaster', code: 'SW 7008', interior: false, room: 'Exterior Trim', swatch: null },
-                      ].map((paint, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-start justify-between p-4 border rounded-lg bg-white hover:bg-gray-50 transition-colors"
-                        >
-                          <div className="flex gap-4 flex-1">
-                            {/* Color Swatch */}
-                            <div className="flex-shrink-0">
-                              {paint.swatch ? (
-                                <img 
-                                  src={paint.swatch} 
-                                  alt={`${paint.name} swatch`}
-                                  className="w-16 h-16 object-cover rounded-lg border"
-                                />
-                              ) : (
-                                <div className="w-16 h-16 rounded-lg border bg-gray-100 flex items-center justify-center">
-                                  <FileImage className="h-6 w-6 text-gray-400" />
-                                </div>
-                              )}
-                            </div>
-                            
-                            {/* Paint Details */}
-                            <div className="flex-1 grid grid-cols-1 md:grid-cols-6 gap-2 md:gap-4">
-                              <div>
-                                <p className="text-xs text-gray-500 uppercase">Property</p>
-                                <p className="font-medium text-sm">{paint.property}</p>
-                              </div>
-                              <div>
-                                <p className="text-xs text-gray-500 uppercase">Brand</p>
-                                <p className="font-medium">{paint.brand}</p>
-                              </div>
-                              <div>
-                                <p className="text-xs text-gray-500 uppercase">Name</p>
-                                <p className="font-medium">{paint.name}</p>
-                              </div>
-                              <div>
-                                <p className="text-xs text-gray-500 uppercase">Code</p>
-                                <p className="font-medium font-mono">{paint.code}</p>
-                              </div>
-                              <div>
-                                <p className="text-xs text-gray-500 uppercase">Type</p>
-                                <p className="font-medium">
-                                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                                    paint.interior 
-                                      ? 'bg-blue-100 text-blue-800' 
-                                      : 'bg-green-100 text-green-800'
-                                  }`}>
-                                    {paint.interior ? 'Interior' : 'Exterior'}
-                                  </span>
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-xs text-gray-500 uppercase">Room</p>
-                                <p className="font-medium">{paint.room}</p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <DemoPaintCodes />
+            </TabsContent>
+
+            <TabsContent value="damage">
+              <DemoPostDamage />
             </TabsContent>
           </Tabs>
         </div>
