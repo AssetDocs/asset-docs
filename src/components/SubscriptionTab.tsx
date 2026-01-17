@@ -15,6 +15,7 @@ import { CheckIcon, ExternalLink, CreditCard, Shield, Star, Zap, Trash2, Clock, 
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
+import AccountDeletedDialog from '@/components/AccountDeletedDialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -87,6 +88,7 @@ const SubscriptionTab: React.FC = () => {
   const [selectedPlan, setSelectedPlan] = useState<keyof typeof planConfigs>('standard');
   const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('month');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showAccountDeletedDialog, setShowAccountDeletedDialog] = useState(false);
   const [showDeletionRequestDialog, setShowDeletionRequestDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isCanceling, setIsCanceling] = useState(false);
@@ -378,13 +380,8 @@ const SubscriptionTab: React.FC = () => {
       }
 
       await signOut();
-      
-      toast({
-        title: "Account Deleted",
-        description: "Your account has been permanently deleted.",
-      });
-      
-      navigate('/');
+      setShowDeleteDialog(false);
+      setShowAccountDeletedDialog(true);
     } catch (error) {
       console.error('Error deleting account:', error);
       toast({
@@ -392,10 +389,15 @@ const SubscriptionTab: React.FC = () => {
         description: "Failed to delete account. Please contact support for assistance.",
         variant: "destructive",
       });
+      setShowDeleteDialog(false);
     } finally {
       setIsDeleting(false);
-      setShowDeleteDialog(false);
     }
+  };
+
+  const handleAccountDeletedClose = () => {
+    setShowAccountDeletedDialog(false);
+    navigate('/');
   };
 
   const handleAddStorage = async (functionName: string) => {
@@ -1208,6 +1210,12 @@ const SubscriptionTab: React.FC = () => {
           confirmText={isSubmittingRequest ? 'Submitting...' : 'Submit Request'}
         />
       )}
+
+      {/* Account Deleted Farewell Dialog */}
+      <AccountDeletedDialog
+        isOpen={showAccountDeletedDialog}
+        onClose={handleAccountDeletedClose}
+      />
     </div>
   );
 };
