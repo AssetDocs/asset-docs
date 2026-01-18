@@ -203,51 +203,6 @@ const Welcome: React.FC = () => {
             </div>
           </div>
 
-          {/* Resources Info (read-only) */}
-          <div className="grid md:grid-cols-2 gap-6 opacity-60">
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-start gap-4">
-                  <div className="bg-accent/20 p-3 rounded-lg">
-                    <Video className="w-6 h-6 text-accent-foreground" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-foreground mb-2">
-                      Video Help Center
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Watch step-by-step tutorials to make the most of Asset Safe features.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-start gap-4">
-                  <div className="bg-secondary/20 p-3 rounded-lg">
-                    <BookOpen className="w-6 h-6 text-secondary-foreground" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-foreground mb-2">
-                      Resources & Guides
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Explore our comprehensive library of guides and reference materials.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Next Steps */}
-          <div className="mt-8 text-center">
-            <p className="text-sm text-muted-foreground">
-              📧 <strong>Next Step:</strong> Check your email inbox and click the verification link to continue.
-            </p>
-          </div>
         </div>
       </div>
     </div>
