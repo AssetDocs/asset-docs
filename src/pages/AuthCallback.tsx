@@ -128,8 +128,8 @@ const AuthCallback = () => {
   }, [searchParams, navigate, toast]);
 
   const handleContinue = () => {
-    // Redirect to login page after email verification
-    navigate('/auth', { replace: true });
+    // Redirect to pricing page after email verification to complete subscription
+    navigate('/pricing', { replace: true });
   };
 
   if (loading) {
@@ -169,11 +169,11 @@ const AuthCallback = () => {
             onClick={handleContinue}
             className="text-lg px-8 py-6"
           >
-            Continue to Login
+            Choose Your Plan
           </Button>
 
           <p className="text-sm text-muted-foreground">
-            Log in to access your dashboard
+            Select a subscription to access your dashboard
           </p>
         </div>
       </div>
