@@ -261,7 +261,10 @@ Deno.serve(async (req) => {
       'audit_logs',
       'user_roles',
       'events',
-      'payment_events'
+      'payment_events',
+      'notification_preferences',
+      'insurance_policies',
+      'damage_reports'
     ];
 
     // Delete from recovery_requests (uses owner_user_id and delegate_user_id)

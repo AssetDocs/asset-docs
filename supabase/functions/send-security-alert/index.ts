@@ -54,6 +54,21 @@ const handler = async (req: Request): Promise<Response> => {
     // Check user's security alert preferences
     const supabase = createClient(supabaseUrl, serviceKey);
     
+    // First, verify the user still exists in auth (account may have been deleted)
+    const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(userId);
+    
+    if (authError || !authUser?.user) {
+      console.log(`User ${userId} no longer exists in auth, skipping security alert email`);
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          skipped: true,
+          reason: "User account no longer exists"
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
     const { data: preferences, error: prefError } = await supabase
       .from("notification_preferences")
       .select("email_notifications, security_alerts")
