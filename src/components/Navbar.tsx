@@ -182,7 +182,7 @@ const Navbar: React.FC = () => {
             </div>
           </div>
           
-          {/* Mobile menu button */}
+          {/* Mobile menu button and auth buttons */}
           <div className="md:hidden flex items-center gap-2">
             <SearchBar
               isExpanded={isSearchExpanded}
@@ -190,6 +190,19 @@ const Navbar: React.FC = () => {
               onClose={handleSearchClose}
               className="mr-2"
             />
+            {/* Mobile auth buttons - outside hamburger menu */}
+            {!isAuthenticated && (
+              <div className="flex items-center gap-2">
+                <Button asChild variant="outline" size="sm" className="text-xs px-2 py-1 h-8">
+                  <Link to="/login">
+                    {translate('nav.login')}
+                  </Link>
+                </Button>
+                <Button asChild size="sm" className="bg-brand-orange hover:bg-brand-orange/90 text-xs px-2 py-1 h-8">
+                  <Link to="/signup">{translate('nav.getStarted')}</Link>
+                </Button>
+              </div>
+            )}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="p-2 focus:outline-none"
@@ -339,22 +352,6 @@ const Navbar: React.FC = () => {
                     <Video className="h-4 w-4 mr-1" />
                     {translate('nav.videoHelp')}
                   </NavLink>
-                   <Button asChild variant="outline" className="w-fit">
-                     <Link 
-                       to="/login" 
-                       className="px-3 py-2 border border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white transition-colors rounded-md inline-block"
-                       onClick={() => setIsMenuOpen(false)}
-                     >
-                       {translate('nav.login')}
-                     </Link>
-                   </Button>
-                     <Button 
-                       asChild 
-                       className="bg-brand-orange hover:bg-brand-orange/90 w-fit"
-                       onClick={() => setIsMenuOpen(false)}
-                     >
-                       <Link to="/signup">{translate('nav.getStarted')}</Link>
-                     </Button>
                 </>
               )}
             </div>
