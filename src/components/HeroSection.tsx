@@ -17,7 +17,7 @@ const HeroSection: React.FC = () => {
               Document, protect, and organize your property, assets, and critical information—so you're prepared for the unexpected.
             </p>
             <p className="text-lg mb-4 animate-slide-up opacity-80">
-              Secure digital inventory, insurance claim support, legacy planning, and estate management—built for homeowners, renters, and businesses.
+              Secure digital inventory, insurance claim support, legacy planning, and estate management—built for homeowners, renters, and businesses of all types.
             </p>
             
             <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 animate-slide-up">
