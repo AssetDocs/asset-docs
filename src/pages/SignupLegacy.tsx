@@ -187,7 +187,7 @@ const Signup: React.FC = () => {
                 className="h-14 w-auto"
               />
             </div>
-            <CardTitle className="text-2xl font-bold text-brand-blue">Create Your Account</CardTitle>
+            <CardTitle className="text-2xl font-bold text-brand-blue">Secure Your Account</CardTitle>
             <CardDescription>
               Get organized. Stay prepared.
             </CardDescription>
