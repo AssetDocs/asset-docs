@@ -52,9 +52,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email to your business address
     const emailResponse = await resend.emails.send({
-      from: "Asset Safe Contact <onboarding@resend.dev>",
+      from: "Asset Safe Contact <contact@assetsafe.net>",
       to: ["support@assetsafe.net"],
-      subject: `New Contact Form Submission from ${name}`,
+      subject: `New Contact Form Submission from ${safeName}`,
       html: `
         <div style="text-align: center; margin-bottom: 20px;">
           <img src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
@@ -73,27 +73,13 @@ const handler = async (req: Request): Promise<Response> => {
       `,
     });
 
-    // Send confirmation email to the user
-    await resend.emails.send({
-      from: "Asset Safe <onboarding@resend.dev>",
-      to: [email],
-      subject: "Thank you for contacting Asset Safe",
-      html: `
-        <div style="text-align: center; margin-bottom: 20px;">
-          <img src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
-        </div>
-        <h2>Thank you for contacting us, ${safeName}!</h2>
-        <p>We have received your message and will get back to you as soon as possible.</p>
-        <p>Here's a copy of what you sent:</p>
-        <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 10px 0;">
-          <p><strong>Message:</strong></p>
-          ${safeMessage.replace(/\n/g, '<br>')}
-        </div>
-        <p>Best regards,<br>The Asset Safe Team</p>
-      `,
-    });
+    // Log the response for debugging
+    if (emailResponse.error) {
+      console.error("Resend API error:", emailResponse.error);
+      throw new Error(emailResponse.error.message);
+    }
 
-    console.log("Contact emails sent successfully:", emailResponse);
+    console.log("Contact email sent successfully:", emailResponse);
 
     return new Response(JSON.stringify({ success: true, message: "Emails sent successfully" }), {
       status: 200,

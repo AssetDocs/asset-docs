@@ -49,8 +49,8 @@ const Contact: React.FC = () => {
       }
 
       toast({
-        title: "Message Sent Successfully!",
-        description: `Thank you ${data.name}, we'll get back to you soon! You should also receive a confirmation email.`,
+        title: "Thank You for Contacting Us!",
+        description: "An Asset Safe team member will reach out to you shortly.",
       });
       form.reset();
     } catch (error) {
