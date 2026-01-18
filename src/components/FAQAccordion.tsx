@@ -348,9 +348,9 @@ const FAQAccordion: React.FC = () => {
           </AccordionItem>
           
           <AccordionItem value="legacy-6">
-            <AccordionTrigger className="text-lg font-medium">Can contributors see my Legacy Locker?</AccordionTrigger>
+            <AccordionTrigger className="text-lg font-medium">Can authorized users see my Legacy Locker?</AccordionTrigger>
             <AccordionContent>
-              Only if you allow it. The Legacy Locker is private by default, and you control whether contributors have full access, limited access, or no access at all.
+              Only if you allow it. The Legacy Locker is private by default, and you control whether authorized users have full access, limited access, or no access at all.
             </AccordionContent>
           </AccordionItem>
           
@@ -382,7 +382,7 @@ const FAQAccordion: React.FC = () => {
           </AccordionItem>
           
           <AccordionItem value="password-3">
-            <AccordionTrigger className="text-lg font-medium">Can contributors access my password list?</AccordionTrigger>
+            <AccordionTrigger className="text-lg font-medium">Can authorized users access my password list?</AccordionTrigger>
             <AccordionContent>
               Only if you explicitly allow it. Access to the Password & Accounts Catalog is disabled by default, and you control who can view, edit, or be restricted from this section entirely.
             </AccordionContent>
@@ -520,9 +520,9 @@ const FAQAccordion: React.FC = () => {
         <h3 className="text-xl font-semibold text-brand-green mb-4 border-b border-brand-green/30 pb-2">Plans & Access</h3>
         <Accordion type="single" collapsible>
           <AccordionItem value="plans-1">
-            <AccordionTrigger className="text-lg font-medium">Who should I add as a contributor?</AccordionTrigger>
+            <AccordionTrigger className="text-lg font-medium">Who should I add as an authorized user?</AccordionTrigger>
             <AccordionContent>
-              You can invite trusted individuals such as family members, close friends, or professional advisors to collaborate on your Asset Safe account. Each contributor's access is fully customizable, allowing you to decide exactly what they can view or manage.
+              You can invite trusted individuals such as family members, close friends, or professional advisors to collaborate on your Asset Safe account. Each authorized user's access is fully customizable, allowing you to decide exactly what they can view or manage.
             </AccordionContent>
           </AccordionItem>
           
