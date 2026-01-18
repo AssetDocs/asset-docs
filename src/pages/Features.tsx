@@ -140,8 +140,8 @@ const Features: React.FC = () => {
 
                 <div className="bg-white p-6 rounded-lg shadow">
                   <UserPlus className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Add Contributors</h3>
-                  <p className="text-gray-600">Invite others to collaborate on your property documentation. Assign specific permission levels—administrator, contributor, or view-only access.</p>
+                  <h3 className="text-xl font-semibold mb-2">Authorized Users</h3>
+                  <p className="text-gray-600">Invite others to collaborate on your property documentation. Assign specific permission levels—Administrator, Contributor, or Viewer access.</p>
                 </div>
               </div>
 
@@ -254,8 +254,8 @@ const Features: React.FC = () => {
 
                 <div className="bg-white p-6 rounded-lg shadow">
                   <UserPlus className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Add Contributors</h3>
-                  <p className="text-gray-600">Invite others to collaborate on your property documentation. Assign specific permission levels—administrator, contributor, or view-only access.</p>
+                  <h3 className="text-xl font-semibold mb-2">Authorized Users</h3>
+                  <p className="text-gray-600">Invite others to collaborate on your property documentation. Assign specific permission levels—Administrator, Contributor, or Viewer access.</p>
                 </div>
               </div>
             </TabsContent>
@@ -344,8 +344,8 @@ const Features: React.FC = () => {
 
                 <div className="bg-white p-6 rounded-lg shadow">
                   <UserPlus className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Add Contributors</h3>
-                  <p className="text-gray-600">Invite others to collaborate on your property documentation. Assign specific permission levels—administrator, contributor, or view-only access.</p>
+                  <h3 className="text-xl font-semibold mb-2">Authorized Users</h3>
+                  <p className="text-gray-600">Invite others to collaborate on your property documentation. Assign specific permission levels—Administrator, Contributor, or Viewer access.</p>
                 </div>
               </div>
             </TabsContent>
@@ -434,8 +434,8 @@ const Features: React.FC = () => {
 
                 <div className="bg-white p-6 rounded-lg shadow">
                   <UserPlus className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Add Contributors</h3>
-                  <p className="text-gray-600">Invite others to collaborate on your property documentation. Assign specific permission levels—administrator, contributor, or view-only access.</p>
+                  <h3 className="text-xl font-semibold mb-2">Authorized Users</h3>
+                  <p className="text-gray-600">Invite others to collaborate on your property documentation. Assign specific permission levels—Administrator, Contributor, or Viewer access.</p>
                 </div>
               </div>
             </TabsContent>

@@ -192,8 +192,8 @@ export const PROPERTY_LIMITS: Record<SubscriptionTier, number> = {
 
 // Contributor limits by tier
 export const CONTRIBUTOR_LIMITS: Record<SubscriptionTier, number> = {
-  standard: 3,
-  premium: 3
+  standard: 5,
+  premium: 5
 };
 
 export const getPropertyLimit = (tier: SubscriptionTier | null | undefined): number => {
@@ -243,8 +243,8 @@ export const checkContributorLimit = (
   userTier: SubscriptionTier | null | undefined,
   _isInTrial?: boolean // Deprecated - trial no longer supported
 ): { canAdd: boolean; limit: number; message?: string } => {
-  // Default limit is 3 for all paid subscribers
-  const DEFAULT_CONTRIBUTOR_LIMIT = 3;
+  // Default limit is 5 for all paid subscribers
+  const DEFAULT_CONTRIBUTOR_LIMIT = 5;
   const limit = userTier ? getContributorLimit(userTier) : DEFAULT_CONTRIBUTOR_LIMIT;
   const canAdd = currentCount < limit;
   
