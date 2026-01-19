@@ -38,6 +38,76 @@ const Auth: React.FC = () => {
     },
   });
 
+  // Handle hash-based auth tokens from Supabase email verification
+  useEffect(() => {
+    const handleHashAuth = async () => {
+      // Check for hash fragments from Supabase email verification
+      const hash = window.location.hash;
+      if (hash && hash.includes('access_token')) {
+        console.log('Detected hash-based auth tokens, processing...');
+        
+        try {
+          // Parse the hash to extract tokens
+          const hashParams = new URLSearchParams(hash.substring(1));
+          const accessToken = hashParams.get('access_token');
+          const refreshToken = hashParams.get('refresh_token');
+          const type = hashParams.get('type');
+          
+          if (accessToken && refreshToken) {
+            // Set the session with the tokens from the hash
+            const { data, error } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken
+            });
+            
+            if (error) {
+              console.error('Error setting session from hash:', error);
+              toast({
+                title: "Authentication Error",
+                description: error.message || "Email link is invalid or expired",
+                variant: "destructive",
+              });
+              // Clear the hash
+              window.history.replaceState(null, '', window.location.pathname);
+              return;
+            }
+            
+            if (data.session) {
+              console.log('Session set successfully from hash tokens');
+              toast({
+                title: "Email Verified!",
+                description: "Your email has been verified successfully.",
+              });
+              
+              // Clear the hash from URL
+              window.history.replaceState(null, '', window.location.pathname);
+              
+              // Check if user has a subscription, if not redirect to pricing
+              if (type === 'signup' || type === 'email') {
+                // For new signups, redirect to pricing page
+                navigate('/pricing', { replace: true });
+              } else {
+                // For other types (recovery, etc.), redirect to account
+                navigate('/account', { replace: true });
+              }
+            }
+          }
+        } catch (error: any) {
+          console.error('Error processing hash auth:', error);
+          toast({
+            title: "Authentication Error", 
+            description: error.message || "Failed to verify email",
+            variant: "destructive",
+          });
+          // Clear the hash
+          window.history.replaceState(null, '', window.location.pathname);
+        }
+      }
+    };
+    
+    handleHashAuth();
+  }, [navigate, toast]);
+
   // Check for contributor mode
   useEffect(() => {
     const mode = searchParams.get('mode');
