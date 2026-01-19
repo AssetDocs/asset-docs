@@ -73,7 +73,7 @@ const GiftCheckout: React.FC = () => {
         'Post damage documentation',
         'Export detailed reports',
         'Email support',
-        'Share with 3 trusted contacts',
+        'Share with 5 trusted contacts',
         '12-month gift subscription'
       ],
       icon: <Zap className="h-8 w-8" />,
@@ -92,7 +92,7 @@ const GiftCheckout: React.FC = () => {
         'Post damage documentation',
         'Export detailed reports',
         'Email support',
-        'Share with 3 trusted contacts',
+        'Share with 5 trusted contacts',
         '12-month gift subscription'
       ],
       icon: <Star className="h-8 w-8" />,
