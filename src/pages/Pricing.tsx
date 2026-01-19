@@ -126,7 +126,7 @@ const Pricing: React.FC = () => {
     "Post damage documentation",
     "Export detailed reports",
     "24/7 chat support",
-    "Share with 3 trusted contacts"
+    "Share with 5 trusted contacts"
   ];
 
   const plans = [
@@ -221,7 +221,7 @@ const Pricing: React.FC = () => {
               <TabsContent value="for-you" className="mt-0">
                 <div className="mb-8">
                   <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-4">
-                    Select the perfect plan for your property management needs
+                    Choose the plan that works for you
                   </p>
                   <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 max-w-md mx-auto">
                     <p className="text-sm text-muted-foreground">No long-term contract. Cancel anytime</p>

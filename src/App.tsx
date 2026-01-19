@@ -111,17 +111,11 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
   const { isAuthenticated, loading, user } = useAuth();
   const [checkingSubscription, setCheckingSubscription] = useState(!skipSubscriptionCheck);
   const [hasSubscription, setHasSubscription] = useState(false);
-  
-  // Testing whitelist - bypass all restrictions for this email
-  const isTestingEmail = user?.email === 'michaeljlewis2@gmail.com';
 
   useEffect(() => {
     const checkSubscription = async (retryCount = 0) => {
-      if (!user || skipSubscriptionCheck || isTestingEmail) {
+      if (!user || skipSubscriptionCheck) {
         setCheckingSubscription(false);
-        if (isTestingEmail) {
-          setHasSubscription(true);
-        }
         return;
       }
 
@@ -199,7 +193,7 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
     if (user) {
       checkSubscription();
     }
-  }, [user, skipSubscriptionCheck, isTestingEmail]);
+  }, [user, skipSubscriptionCheck]);
   
   if (loading || checkingSubscription) {
     return (
@@ -213,10 +207,6 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
     return <Auth />;
   }
 
-  // Testing email bypasses all checks
-  if (isTestingEmail) {
-    return <>{children}</>;
-  }
 
   // Check if email is verified (unless on the welcome or subscription pages)
   if (!skipSubscriptionCheck && user && !user.email_confirmed_at) {

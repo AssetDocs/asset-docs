@@ -85,7 +85,7 @@ const CompletePricing: React.FC = () => {
     "Post damage documentation",
     "Export detailed reports",
     "24/7 chat support",
-    "Share with 3 trusted contacts"
+    "Share with 5 trusted contacts"
   ];
 
   const plans = [
