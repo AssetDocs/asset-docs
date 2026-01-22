@@ -142,19 +142,6 @@ const Admin = () => {
 
               <Card>
                 <CardHeader>
-                  <Handshake className="w-8 h-8 mb-2 text-primary" />
-                  <CardTitle>Compass Partnership</CardTitle>
-                  <CardDescription>View strategic partnership proposal</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button className="w-full" onClick={() => navigate('/admin/compass-partnership')}>
-                    View Presentation
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
                   <Settings className="w-8 h-8 mb-2 text-primary" />
                   <CardTitle>System Settings</CardTitle>
                   <CardDescription>Configure platform-wide settings</CardDescription>
@@ -166,6 +153,43 @@ const Admin = () => {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Business Opportunities Section */}
+            <Card className="mt-6">
+              <CardHeader>
+                <Handshake className="w-8 h-8 mb-2 text-primary" />
+                <CardTitle>Business Opportunities & Partnerships</CardTitle>
+                <CardDescription>Strategic partnership proposals and business development materials</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <Button 
+                    variant="outline" 
+                    className="h-auto py-4 flex flex-col items-start text-left"
+                    onClick={() => navigate('/admin/compass-partnership')}
+                  >
+                    <span className="font-semibold">Compass Realty Partnership</span>
+                    <span className="text-sm text-muted-foreground">Real estate partnership proposal</span>
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="h-auto py-4 flex flex-col items-start text-left"
+                    onClick={() => navigate('/admin/home-improvement-partnership')}
+                  >
+                    <span className="font-semibold">Home Improvement Partnership</span>
+                    <span className="text-sm text-muted-foreground">Lowe's retail strategy</span>
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="h-auto py-4 flex flex-col items-start text-left"
+                    onClick={() => navigate('/partnership')}
+                  >
+                    <span className="font-semibold">RE/MAX Partnership</span>
+                    <span className="text-sm text-muted-foreground">Real estate partnership proposal</span>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="users">
@@ -201,9 +225,15 @@ const Admin = () => {
                   <CardTitle>Partnership Materials</CardTitle>
                   <CardDescription>Access partnership presentations</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-2">
                   <Button className="w-full" onClick={() => navigate('/admin/compass-partnership')}>
-                    View Compass Proposal
+                    Compass Realty Proposal
+                  </Button>
+                  <Button className="w-full" variant="outline" onClick={() => navigate('/admin/home-improvement-partnership')}>
+                    Home Improvement Partnership
+                  </Button>
+                  <Button className="w-full" variant="outline" onClick={() => navigate('/partnership')}>
+                    RE/MAX Partnership
                   </Button>
                 </CardContent>
               </Card>
