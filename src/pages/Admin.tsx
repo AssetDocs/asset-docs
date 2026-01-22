@@ -187,6 +187,22 @@ const Admin = () => {
                     <span className="font-semibold">RE/MAX Partnership</span>
                     <span className="text-sm text-muted-foreground">Real estate partnership proposal</span>
                   </Button>
+                  <Button 
+                    variant="outline" 
+                    className="h-auto py-4 flex flex-col items-start text-left"
+                    onClick={() => navigate('/admin/aha-partnership')}
+                  >
+                    <span className="font-semibold">American Homeowners Association</span>
+                    <span className="text-sm text-muted-foreground">AHA Member Protection Vault</span>
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="h-auto py-4 flex flex-col items-start text-left"
+                    onClick={() => navigate('/admin/ara-partnership')}
+                  >
+                    <span className="font-semibold">American Real Estate Association</span>
+                    <span className="text-sm text-muted-foreground">ARA Member Protection Benefit</span>
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -234,6 +250,12 @@ const Admin = () => {
                   </Button>
                   <Button className="w-full" variant="outline" onClick={() => navigate('/partnership')}>
                     RE/MAX Partnership
+                  </Button>
+                  <Button className="w-full" variant="outline" onClick={() => navigate('/admin/aha-partnership')}>
+                    American Homeowners Association
+                  </Button>
+                  <Button className="w-full" variant="outline" onClick={() => navigate('/admin/ara-partnership')}>
+                    American Real Estate Association
                   </Button>
                 </CardContent>
               </Card>
