@@ -87,6 +87,8 @@ import AssetDocumentation from "./pages/AssetDocumentation";
 import Admin from "./pages/Admin";
 import CompassPartnership from "./pages/CompassPartnership";
 import HomeImprovementPartnership from "./pages/HomeImprovementPartnership";
+import AHAPartnership from "./pages/AHAPartnership";
+import ARAPartnership from "./pages/ARAPartnership";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import CRM from "./pages/CRM";
@@ -319,6 +321,8 @@ const AppContent = () => {
         <Route path="/admin/crm" element={<CRM />} />
         <Route path="/admin/compass-partnership" element={<CompassPartnership />} />
         <Route path="/admin/home-improvement-partnership" element={<HomeImprovementPartnership />} />
+        <Route path="/admin/aha-partnership" element={<AHAPartnership />} />
+        <Route path="/admin/ara-partnership" element={<ARAPartnership />} />
         <Route path="/acknowledge-access" element={<AcknowledgeAccess />} />
         
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
