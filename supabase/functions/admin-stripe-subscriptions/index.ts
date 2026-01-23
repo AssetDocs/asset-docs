@@ -66,8 +66,40 @@ serve(async (req) => {
       apiVersion: "2023-10-16",
     });
 
+    // Fetch all users ONCE upfront (not inside the loop)
+    logStep("Fetching all users from auth");
+    const { data: authData, error: usersError } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+    
+    if (usersError) {
+      logStep("Error fetching users", { error: usersError.message });
+    }
+    
+    // Create a map of email -> user for O(1) lookup
+    const usersByEmail = new Map<string, any>();
+    if (authData?.users) {
+      for (const u of authData.users) {
+        if (u.email) {
+          usersByEmail.set(u.email.toLowerCase(), u);
+        }
+      }
+    }
+    logStep(`Loaded ${usersByEmail.size} users for lookup`);
+
+    // Fetch all profiles upfront for O(1) lookup
+    const { data: allProfiles } = await supabase
+      .from("profiles")
+      .select("*");
+    
+    const profilesByUserId = new Map<string, any>();
+    if (allProfiles) {
+      for (const p of allProfiles) {
+        profilesByUserId.set(p.user_id, p);
+      }
+    }
+    logStep(`Loaded ${profilesByUserId.size} profiles for lookup`);
+
     // Fetch all active subscriptions from Stripe
-    logStep("Fetching active subscriptions from Stripe");
+    logStep("Fetching subscriptions from Stripe");
     
     const subscriptions = await stripe.subscriptions.list({
       status: "all",
@@ -77,87 +109,79 @@ serve(async (req) => {
 
     logStep(`Found ${subscriptions.data.length} subscriptions`);
 
-    // Process each subscription and get customer details
-    const subscriptionDetails = await Promise.all(
-      subscriptions.data.map(async (sub) => {
-        const customer = sub.customer as Stripe.Customer;
-        const priceItem = sub.items.data[0];
-        const product = priceItem?.price?.product as Stripe.Product;
+    // Process each subscription using pre-fetched data (no more N+1 queries)
+    const subscriptionDetails = subscriptions.data.map((sub) => {
+      const customer = sub.customer as Stripe.Customer;
+      const priceItem = sub.items.data[0];
+      const product = priceItem?.price?.product as Stripe.Product;
 
-        // Check if this customer email exists in our profiles
-        let linkedUserId = null;
-        let linkedProfile = null;
+      // Check if this customer email exists in our users (O(1) lookup)
+      let linkedUserId = null;
+      let linkedProfile = null;
 
-        if (customer?.email) {
-          // Look up user by email in auth.users via profiles/subscribers
-          const { data: authData } = await supabase.auth.admin.listUsers();
-          const matchingUser = authData?.users?.find(u => u.email === customer.email);
-          
-          if (matchingUser) {
-            linkedUserId = matchingUser.id;
-            
-            // Get profile data
-            const { data: profile } = await supabase
-              .from("profiles")
-              .select("*")
-              .eq("user_id", matchingUser.id)
-              .single();
-            
-            linkedProfile = profile;
-          }
+      if (customer?.email) {
+        const matchingUser = usersByEmail.get(customer.email.toLowerCase());
+        
+        if (matchingUser) {
+          linkedUserId = matchingUser.id;
+          linkedProfile = profilesByUserId.get(matchingUser.id) || null;
         }
+      }
 
-        return {
-          subscriptionId: sub.id,
-          status: sub.status,
-          currentPeriodEnd: new Date(sub.current_period_end * 1000).toISOString(),
-          currentPeriodStart: new Date(sub.current_period_start * 1000).toISOString(),
-          cancelAtPeriodEnd: sub.cancel_at_period_end,
-          created: new Date(sub.created * 1000).toISOString(),
-          customer: {
-            id: customer?.id || null,
-            email: customer?.email || null,
-            name: customer?.name || null,
-          },
-          plan: {
-            priceId: priceItem?.price?.id || null,
-            productId: product?.id || null,
-            productName: product?.name || null,
-            amount: priceItem?.price?.unit_amount || null,
-            currency: priceItem?.price?.currency || null,
-            interval: priceItem?.price?.recurring?.interval || null,
-          },
-          linkedUserId,
-          linkedProfile: linkedProfile ? {
-            firstName: linkedProfile.first_name,
-            lastName: linkedProfile.last_name,
-            planStatus: linkedProfile.plan_status,
-            stripeCustomerId: linkedProfile.stripe_customer_id,
-          } : null,
-          syncStatus: linkedProfile?.stripe_customer_id === customer?.id 
-            ? "synced" 
-            : linkedUserId 
-              ? "mismatch" 
-              : "orphaned",
-        };
-      })
-    );
+      return {
+        subscriptionId: sub.id,
+        status: sub.status,
+        currentPeriodEnd: new Date(sub.current_period_end * 1000).toISOString(),
+        currentPeriodStart: new Date(sub.current_period_start * 1000).toISOString(),
+        cancelAtPeriodEnd: sub.cancel_at_period_end,
+        created: new Date(sub.created * 1000).toISOString(),
+        customer: {
+          id: customer?.id || null,
+          email: customer?.email || null,
+          name: customer?.name || null,
+        },
+        plan: {
+          priceId: priceItem?.price?.id || null,
+          productId: product?.id || null,
+          productName: product?.name || null,
+          amount: priceItem?.price?.unit_amount || null,
+          currency: priceItem?.price?.currency || null,
+          interval: priceItem?.price?.recurring?.interval || null,
+        },
+        linkedUserId,
+        linkedProfile: linkedProfile ? {
+          firstName: linkedProfile.first_name,
+          lastName: linkedProfile.last_name,
+          planStatus: linkedProfile.plan_status,
+          stripeCustomerId: linkedProfile.stripe_customer_id,
+        } : null,
+        syncStatus: linkedProfile?.stripe_customer_id === customer?.id 
+          ? "synced" 
+          : linkedUserId 
+            ? "mismatch" 
+            : "orphaned",
+      };
+    });
 
     // Also get all profiles with stripe_customer_id set
-    const { data: profilesWithStripe } = await supabase
-      .from("profiles")
-      .select("user_id, first_name, last_name, stripe_customer_id, plan_status, plan_id")
-      .not("stripe_customer_id", "is", null);
+    const profilesWithStripe = allProfiles?.filter(p => p.stripe_customer_id) || [];
 
     logStep("Returning subscription data", { 
       subscriptionCount: subscriptionDetails.length,
-      profilesWithStripe: profilesWithStripe?.length || 0
+      profilesWithStripe: profilesWithStripe.length
     });
 
     return new Response(
       JSON.stringify({
         subscriptions: subscriptionDetails,
-        profilesWithStripeId: profilesWithStripe || [],
+        profilesWithStripeId: profilesWithStripe.map(p => ({
+          user_id: p.user_id,
+          first_name: p.first_name,
+          last_name: p.last_name,
+          stripe_customer_id: p.stripe_customer_id,
+          plan_status: p.plan_status,
+          plan_id: p.plan_id,
+        })),
         summary: {
           total: subscriptionDetails.length,
           active: subscriptionDetails.filter(s => s.status === "active").length,
@@ -171,7 +195,7 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    logStep("Error", { error: error.message });
+    logStep("Error", { error: error.message, stack: error.stack });
     return new Response(
       JSON.stringify({ error: error.message }),
       {
