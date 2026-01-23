@@ -203,6 +203,14 @@ const Admin = () => {
                     <span className="font-semibold">American Real Estate Association</span>
                     <span className="text-sm text-muted-foreground">ARA Member Protection Benefit</span>
                   </Button>
+                  <Button 
+                    variant="outline" 
+                    className="h-auto py-4 flex flex-col items-start text-left"
+                    onClick={() => navigate('/admin/b2b-opportunities')}
+                  >
+                    <span className="font-semibold">B2B Opportunities</span>
+                    <span className="text-sm text-muted-foreground">Strategic partnership categories</span>
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -256,6 +264,9 @@ const Admin = () => {
                   </Button>
                   <Button className="w-full" variant="outline" onClick={() => navigate('/admin/ara-partnership')}>
                     American Real Estate Association
+                  </Button>
+                  <Button className="w-full" variant="outline" onClick={() => navigate('/admin/b2b-opportunities')}>
+                    B2B Opportunities
                   </Button>
                 </CardContent>
               </Card>
