@@ -122,9 +122,6 @@ verify_jwt = true
 [functions.property-tax-lookup]
 verify_jwt = true
 
-[functions.send-verification-email]
-verify_jwt = false
-
 [functions.send-auth-email]
 verify_jwt = false
 
@@ -186,4 +183,10 @@ verify_jwt = false
 verify_jwt = true
 
 [functions.add-storage-25gb]
+verify_jwt = true
+
+[functions.admin-stripe-subscriptions]
+verify_jwt = true
+
+[functions.admin-link-stripe-customer]
 verify_jwt = true
