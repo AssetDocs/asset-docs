@@ -395,6 +395,30 @@ export type Database = {
           },
         ]
       }
+      deleted_accounts: {
+        Row: {
+          deleted_at: string
+          deleted_by: string | null
+          email: string
+          id: string
+          original_user_id: string | null
+        }
+        Insert: {
+          deleted_at?: string
+          deleted_by?: string | null
+          email: string
+          id?: string
+          original_user_id?: string | null
+        }
+        Update: {
+          deleted_at?: string
+          deleted_by?: string | null
+          email?: string
+          id?: string
+          original_user_id?: string | null
+        }
+        Relationships: []
+      }
       document_folders: {
         Row: {
           created_at: string
