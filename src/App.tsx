@@ -90,6 +90,7 @@ import HomeImprovementPartnership from "./pages/HomeImprovementPartnership";
 import AHAPartnership from "./pages/AHAPartnership";
 import ARAPartnership from "./pages/ARAPartnership";
 import B2BOpportunities from "./pages/B2BOpportunities";
+import DevPartnerStrategy from "./pages/DevPartnerStrategy";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import CRM from "./pages/CRM";
@@ -325,6 +326,7 @@ const AppContent = () => {
         <Route path="/admin/aha-partnership" element={<AHAPartnership />} />
         <Route path="/admin/ara-partnership" element={<ARAPartnership />} />
         <Route path="/admin/b2b-opportunities" element={<B2BOpportunities />} />
+        <Route path="/admin/dev-partner-strategy" element={<DevPartnerStrategy />} />
         <Route path="/acknowledge-access" element={<AcknowledgeAccess />} />
         
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
