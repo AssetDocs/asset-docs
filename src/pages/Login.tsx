@@ -57,6 +57,23 @@ const Login: React.FC = () => {
     setLoginError(false);
 
     try {
+      // First, check if this email belongs to a deleted account
+      const { data: deletedAccount } = await supabase
+        .from('deleted_accounts')
+        .select('email')
+        .eq('email', email.toLowerCase())
+        .maybeSingle();
+      
+      if (deletedAccount) {
+        toast({
+          title: "Account Not Found",
+          description: "There is no account attached to this email. Please try again with a valid email, or sign up for a new account.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
       const { error } = await signIn(email, password);
       
       if (error) {
