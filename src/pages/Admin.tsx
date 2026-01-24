@@ -216,6 +216,14 @@ const Admin = () => {
                     <span className="font-semibold">B2B Opportunities</span>
                     <span className="text-sm text-muted-foreground">Strategic partnership categories</span>
                   </Button>
+                  <Button 
+                    variant="outline" 
+                    className="h-auto py-4 flex flex-col items-start text-left"
+                    onClick={() => navigate('/admin/dev-partner-strategy')}
+                  >
+                    <span className="font-semibold">Dev Partner Strategy</span>
+                    <span className="text-sm text-muted-foreground">Backend stability & ownership brief</span>
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -276,6 +284,9 @@ const Admin = () => {
                   </Button>
                   <Button className="w-full" variant="outline" onClick={() => navigate('/admin/b2b-opportunities')}>
                     B2B Opportunities
+                  </Button>
+                  <Button className="w-full" variant="outline" onClick={() => navigate('/admin/dev-partner-strategy')}>
+                    Dev Partner Strategy
                   </Button>
                 </CardContent>
               </Card>
