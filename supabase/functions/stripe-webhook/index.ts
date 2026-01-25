@@ -12,7 +12,6 @@ const logStep = (step: string, details?: any) => {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -29,7 +28,6 @@ serve(async (req) => {
       throw new Error('Missing required environment variables');
     }
     
-    // SECURITY: Webhook secret is required for signature verification
     if (!webhookSecret) {
       logStep('ERROR: STRIPE_WEBHOOK_SECRET is not configured');
       return new Response('Webhook secret not configured', { 
@@ -38,65 +36,81 @@ serve(async (req) => {
       });
     }
 
-    const stripe = new Stripe(stripeSecretKey, {
-      apiVersion: '2023-10-16',
-    });
-
+    const stripe = new Stripe(stripeSecretKey, { apiVersion: '2023-10-16' });
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const signature = req.headers.get('stripe-signature');
     const body = await req.text();
 
-    // SECURITY: Require signature header
     if (!signature) {
       logStep('ERROR: Missing stripe-signature header');
-      return new Response('Missing signature', { 
-        status: 400,
-        headers: corsHeaders 
-      });
+      return new Response('Missing signature', { status: 400, headers: corsHeaders });
     }
 
     let event: Stripe.Event;
 
-    // SECURITY: Always verify webhook signature (use async version for Deno)
     try {
       event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
       logStep('Webhook signature verified');
     } catch (err) {
       const error = err as Error;
       logStep('Webhook signature verification failed', { error: error.message });
-      return new Response('Invalid signature', { 
-        status: 400,
-        headers: corsHeaders 
+      return new Response('Invalid signature', { status: 400, headers: corsHeaders });
+    }
+
+    // IDEMPOTENCY CHECK: Skip if event already processed
+    const { data: existingEvent } = await supabase
+      .from('stripe_events')
+      .select('id, processed_at')
+      .eq('stripe_event_id', event.id)
+      .maybeSingle();
+
+    if (existingEvent?.processed_at) {
+      logStep('Event already processed, skipping', { eventId: event.id });
+      return new Response(JSON.stringify({ received: true, skipped: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
+    }
+
+    // Record event for idempotency (mark as received but not processed yet)
+    const { error: insertEventError } = await supabase
+      .from('stripe_events')
+      .upsert({
+        stripe_event_id: event.id,
+        event_type: event.type,
+        payload: event.data,
+        outcome: 'received'
+      }, { onConflict: 'stripe_event_id' });
+
+    if (insertEventError) {
+      logStep('Error recording stripe event', insertEventError);
     }
 
     logStep('Processing event', { type: event.type, id: event.id });
 
-    // Extract common fields from event for easier querying
+    // Extract common fields for payment_events table
     const eventObject = event.data.object as any;
     const customerId = eventObject.customer || eventObject.customer_id || null;
     const subscriptionId = eventObject.subscription || eventObject.id || null;
     let amount: number | null = null;
     let currency: string = 'usd';
     
-    // Extract amount based on event type
     if (eventObject.amount_total) {
-      amount = eventObject.amount_total; // checkout.session
+      amount = eventObject.amount_total;
     } else if (eventObject.amount_paid) {
-      amount = eventObject.amount_paid; // invoice
+      amount = eventObject.amount_paid;
     } else if (eventObject.amount) {
-      amount = eventObject.amount; // payment_intent
+      amount = eventObject.amount;
     } else if (eventObject.plan?.amount) {
-      amount = eventObject.plan.amount; // subscription
+      amount = eventObject.plan.amount;
     }
     
     if (eventObject.currency) {
       currency = eventObject.currency;
     }
 
-    // Log the event to payment_events table with extracted fields
-    const { error: logError } = await supabase
+    // Log to payment_events for audit trail
+    await supabase
       .from('payment_events')
       .insert({
         stripe_event_id: event.id,
@@ -109,64 +123,76 @@ serve(async (req) => {
         currency: currency
       });
 
-    if (logError) {
-      logStep('Error logging event', logError);
+    // Process event based on type
+    let outcome = 'processed';
+    try {
+      switch (event.type) {
+        case 'customer.subscription.created':
+        case 'customer.subscription.updated': {
+          const subscription = event.data.object as Stripe.Subscription;
+          await handleSubscriptionChange(supabase, stripe, subscription, event.type, event.id);
+          break;
+        }
+        
+        case 'customer.subscription.deleted': {
+          const subscription = event.data.object as Stripe.Subscription;
+          await handleSubscriptionDeleted(supabase, stripe, subscription, event.id);
+          break;
+        }
+        
+        case 'invoice.payment_succeeded':
+        case 'invoice.paid': {
+          const invoice = event.data.object as Stripe.Invoice;
+          await handlePaymentSucceeded(supabase, stripe, invoice, event.id);
+          break;
+        }
+        
+        case 'invoice.payment_failed': {
+          const invoice = event.data.object as Stripe.Invoice;
+          await handlePaymentFailed(supabase, stripe, invoice, event.id);
+          break;
+        }
+        
+        case 'checkout.session.completed': {
+          const session = event.data.object as Stripe.Checkout.Session;
+          await handleCheckoutCompleted(supabase, stripe, session, event.id);
+          await sendPaymentReceipt(supabase, session);
+          break;
+        }
+        
+        case 'payment_intent.succeeded': {
+          const paymentIntent = event.data.object as Stripe.PaymentIntent;
+          await sendPaymentReceiptFromIntent(supabase, stripe, paymentIntent);
+          break;
+        }
+        
+        default:
+          logStep('Unhandled event type', { type: event.type });
+          outcome = 'unhandled';
+      }
+    } catch (processingError) {
+      outcome = 'error';
+      logStep('Error processing event', { error: (processingError as Error).message });
     }
 
-    // Handle different event types
-    switch (event.type) {
-      case 'customer.subscription.created':
-      case 'customer.subscription.updated': {
-        const subscription = event.data.object as Stripe.Subscription;
-        await handleSubscriptionChange(supabase, subscription, event.type);
-        break;
-      }
-      
-      case 'customer.subscription.deleted': {
-        const subscription = event.data.object as Stripe.Subscription;
-        await handleSubscriptionDeleted(supabase, subscription);
-        break;
-      }
-      
-      case 'invoice.payment_succeeded': {
-        const invoice = event.data.object as Stripe.Invoice;
-        await handlePaymentSucceeded(supabase, invoice);
-        break;
-      }
-      
-      case 'invoice.payment_failed': {
-        const invoice = event.data.object as Stripe.Invoice;
-        await handlePaymentFailed(supabase, invoice);
-        break;
-      }
-      
-      case 'checkout.session.completed': {
-        const session = event.data.object as Stripe.Checkout.Session;
-        await handleCheckoutCompleted(supabase, session);
-        // Send payment receipt email
-        await sendPaymentReceipt(supabase, session);
-        break;
-      }
-      
-      case 'payment_intent.succeeded': {
-        const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        await sendPaymentReceiptFromIntent(supabase, paymentIntent);
-        break;
-      }
-      
-      default:
-        logStep('Unhandled event type', { type: event.type });
-    }
+    // Mark event as processed with outcome
+    await supabase
+      .from('stripe_events')
+      .update({ 
+        processed_at: new Date().toISOString(),
+        outcome: outcome
+      })
+      .eq('stripe_event_id', event.id);
 
-    // Update event status to processed
+    // Update payment_events status
     await supabase
       .from('payment_events')
       .update({ status: 'processed', processed_at: new Date().toISOString() })
       .eq('stripe_event_id', event.id);
 
-    logStep('Webhook processed successfully');
+    logStep('Webhook processed successfully', { outcome });
 
-    return new Response(JSON.stringify({ received: true }), {
+    return new Response(JSON.stringify({ received: true, outcome }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
@@ -175,22 +201,26 @@ serve(async (req) => {
     const errorId = crypto.randomUUID();
     logStep('ERROR in stripe-webhook', { errorId, message: err.message, stack: err.stack });
     return new Response(
-      JSON.stringify({ 
-        error: 'Webhook processing failed',
-        errorId 
-      }),
-      { 
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+      JSON.stringify({ error: 'Webhook processing failed', errorId }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
 
-async function handleSubscriptionChange(supabase: any, subscription: Stripe.Subscription, eventType: string) {
+// ============================================================================
+// HANDLER FUNCTIONS
+// ============================================================================
+
+async function handleSubscriptionChange(
+  supabase: any, 
+  stripe: Stripe, 
+  subscription: Stripe.Subscription, 
+  eventType: string,
+  sourceEventId: string
+) {
   logStep('Handling subscription change', { subscriptionId: subscription.id, eventType });
 
-  const customer = await getCustomerEmail(subscription.customer as string);
+  const customer = await getCustomerEmail(stripe, subscription.customer as string);
   if (!customer?.email) {
     logStep('No customer email found');
     return;
@@ -198,145 +228,146 @@ async function handleSubscriptionChange(supabase: any, subscription: Stripe.Subs
 
   const priceId = subscription.items.data[0]?.price?.id || '';
   const stripeStatus = subscription.status;
-  const currentPeriodEnd = subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : null;
+  const currentPeriodEnd = subscription.current_period_end 
+    ? new Date(subscription.current_period_end * 1000) 
+    : null;
   
-  // Check if this is a storage add-on subscription
-  const isStorageAddon = subscription.metadata?.type === 'storage_addon';
-  
-  if (isStorageAddon) {
-    // Handle storage add-on separately
-    const storageAmountGb = parseInt(subscription.metadata?.storage_amount_gb || '50');
-    
-    // List users filtered by email (since getUserByEmail doesn't work in Deno)
-    const { data: usersData } = await supabase.auth.admin.listUsers();
-    const user = usersData?.users?.find((u: any) => u.email === customer.email);
-    
-    if (user) {
-      // Get current storage quota
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('storage_quota_gb')
-        .eq('user_id', user.id)
-        .single();
-      
-      const currentQuota = profile?.storage_quota_gb || 5;
-      const newQuota = currentQuota + storageAmountGb;
-      
-      // Update profile with additional storage
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          storage_quota_gb: newQuota,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id);
-      
-      if (profileError) {
-        logStep('Error updating storage quota', profileError);
-      } else {
-        logStep('Storage quota updated successfully', { 
-          previousQuota: currentQuota, 
-          newQuota: newQuota 
-        });
-      }
-    }
+  // Check if storage add-on
+  if (subscription.metadata?.type === 'storage_addon') {
+    await handleStorageAddon(supabase, customer.email, subscription);
     return;
   }
   
-  // Determine plan limits based on price
-  const { propertyLimit, storageQuotaGb, tier } = getPlanLimits(priceId);
+  const { propertyLimit, storageQuotaGb, tier, plan } = getPlanLimits(priceId);
 
-  // Find user by email (list users and filter since getUserByEmail doesn't work in Deno)
+  // Find user by email
   const { data: usersData } = await supabase.auth.admin.listUsers();
   const user = usersData?.users?.find((u: any) => u.email === customer.email);
   
-  if (user) {
-    // Check current profile status to prevent downgrading from 'active' to 'incomplete'
-    const { data: existingProfile } = await supabase
-      .from('profiles')
-      .select('stripe_customer_id, plan_status')
-      .eq('user_id', user.id)
-      .single();
+  if (!user) {
+    logStep('No user found for email', { email: customer.email });
+    return;
+  }
 
-    // Determine the final plan status - don't downgrade from 'active' to 'incomplete'
-    let finalPlanStatus = stripeStatus;
-    if (existingProfile?.plan_status === 'active' && stripeStatus === 'incomplete') {
-      logStep('Keeping active status instead of downgrading to incomplete');
-      finalPlanStatus = 'active';
-    }
-    
-    // Map Stripe statuses to ensure 'active' is properly set
-    if (stripeStatus === 'trialing' || stripeStatus === 'active') {
-      finalPlanStatus = 'active';
-    }
+  // Map Stripe status to entitlement status
+  const entitlementStatus = mapStripeStatusToEntitlement(stripeStatus);
+  
+  // Check existing entitlement to prevent downgrade from active to incomplete
+  const { data: existingEntitlement } = await supabase
+    .from('entitlements')
+    .select('status')
+    .eq('user_id', user.id)
+    .maybeSingle();
 
-    const isNewSubscription = !existingProfile?.stripe_customer_id && (finalPlanStatus === 'active');
+  let finalStatus = entitlementStatus;
+  if (existingEntitlement?.status === 'active' && entitlementStatus === 'incomplete') {
+    logStep('Keeping active status instead of downgrading to incomplete');
+    finalStatus = 'active';
+  }
 
-    // Update profile with subscription data
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .update({
-        stripe_customer_id: subscription.customer,
-        plan_id: priceId,
-        plan_status: finalPlanStatus,
-        current_period_end: currentPeriodEnd?.toISOString(),
-        property_limit: propertyLimit,
-        storage_quota_gb: storageQuotaGb,
-        updated_at: new Date().toISOString()
-      })
-      .eq('user_id', user.id);
+  const isNewSubscription = !existingEntitlement && finalStatus === 'active';
 
-    if (profileError) {
-      logStep('Error updating profile', profileError);
-    } else {
-      logStep('Profile updated successfully', { planStatus: finalPlanStatus, stripeStatus });
-    }
+  // UPSERT entitlements (single source of truth)
+  const { error: entitlementError } = await supabase
+    .from('entitlements')
+    .upsert({
+      user_id: user.id,
+      plan: plan,
+      status: finalStatus,
+      current_period_end: currentPeriodEnd?.toISOString(),
+      source_event_id: sourceEventId,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' });
 
-    // Also maintain backwards compatibility with subscribers table
-    const { error: subscriberError } = await supabase
-      .from('subscribers')
-      .upsert({
-        user_id: user.id,
-        email: customer.email,
-        stripe_customer_id: subscription.customer,
-        subscribed: finalPlanStatus === 'active',
-        subscription_tier: tier,
-        subscription_end: currentPeriodEnd?.toISOString(),
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'user_id'
+  if (entitlementError) {
+    logStep('Error upserting entitlement', entitlementError);
+  } else {
+    logStep('Entitlement upserted successfully', { plan, status: finalStatus });
+  }
+
+  // BACKWARDS COMPAT: Also update profiles table
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .update({
+      stripe_customer_id: subscription.customer,
+      plan_id: priceId,
+      plan_status: finalStatus,
+      current_period_end: currentPeriodEnd?.toISOString(),
+      property_limit: propertyLimit,
+      storage_quota_gb: storageQuotaGb,
+      updated_at: new Date().toISOString()
+    })
+    .eq('user_id', user.id);
+
+  if (profileError) {
+    logStep('Error updating profile', profileError);
+  }
+
+  // BACKWARDS COMPAT: Update subscribers table
+  await supabase
+    .from('subscribers')
+    .upsert({
+      user_id: user.id,
+      email: customer.email,
+      stripe_customer_id: subscription.customer,
+      subscribed: finalStatus === 'active',
+      subscription_tier: tier,
+      subscription_end: currentPeriodEnd?.toISOString(),
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' });
+
+  // Send welcome email for new subscriptions
+  if (isNewSubscription) {
+    logStep('Triggering welcome email', { email: customer.email });
+    try {
+      await supabase.functions.invoke('send-subscription-welcome-email', {
+        body: {
+          email: customer.email,
+          subscription_tier: tier,
+          trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
+          current_period_end: currentPeriodEnd?.toISOString()
+        }
       });
-
-    if (subscriberError) {
-      logStep('Error updating subscriber (backwards compat)', subscriberError);
-    }
-
-    // Send welcome email for new subscriptions
-    if (isNewSubscription) {
-      logStep('Triggering welcome email for new subscription', { email: customer.email });
-      
-      try {
-        await supabase.functions.invoke('send-subscription-welcome-email', {
-          body: {
-            email: customer.email,
-            subscription_tier: tier,
-            trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
-            current_period_end: currentPeriodEnd?.toISOString()
-          }
-        });
-        logStep('Welcome email sent successfully');
-      } catch (error) {
-        logStep('Failed to send welcome email', error);
-      }
+    } catch (error) {
+      logStep('Failed to send welcome email', error);
     }
   }
 }
 
-async function handleSubscriptionDeleted(supabase: any, subscription: Stripe.Subscription) {
+async function handleSubscriptionDeleted(
+  supabase: any, 
+  stripe: Stripe, 
+  subscription: Stripe.Subscription,
+  sourceEventId: string
+) {
   logStep('Handling subscription deletion', { subscriptionId: subscription.id });
 
-  // Update profile
-  const { error: profileError } = await supabase
+  const customer = await getCustomerEmail(stripe, subscription.customer as string);
+  
+  // Find user by customer ID or email
+  let userId: string | null = null;
+  
+  if (customer?.email) {
+    const { data: usersData } = await supabase.auth.admin.listUsers();
+    const user = usersData?.users?.find((u: any) => u.email === customer.email);
+    userId = user?.id;
+  }
+
+  if (userId) {
+    // Update entitlements to canceled
+    await supabase
+      .from('entitlements')
+      .update({
+        status: 'canceled',
+        current_period_end: new Date().toISOString(),
+        source_event_id: sourceEventId,
+        updated_at: new Date().toISOString()
+      })
+      .eq('user_id', userId);
+  }
+
+  // BACKWARDS COMPAT: Update profile
+  await supabase
     .from('profiles')
     .update({
       plan_status: 'canceled',
@@ -347,12 +378,8 @@ async function handleSubscriptionDeleted(supabase: any, subscription: Stripe.Sub
     })
     .eq('stripe_customer_id', subscription.customer);
 
-  if (profileError) {
-    logStep('Error updating profile for deleted subscription', profileError);
-  }
-
-  // Update subscribers table for backwards compatibility
-  const { error: subscriberError } = await supabase
+  // BACKWARDS COMPAT: Update subscribers
+  await supabase
     .from('subscribers')
     .update({
       subscribed: false,
@@ -360,17 +387,47 @@ async function handleSubscriptionDeleted(supabase: any, subscription: Stripe.Sub
       updated_at: new Date().toISOString()
     })
     .eq('stripe_customer_id', subscription.customer);
-
-  if (subscriberError) {
-    logStep('Error updating subscriber for deleted subscription', subscriberError);
-  }
 }
 
-async function handlePaymentSucceeded(supabase: any, invoice: Stripe.Invoice) {
+async function handlePaymentSucceeded(
+  supabase: any, 
+  stripe: Stripe, 
+  invoice: Stripe.Invoice,
+  sourceEventId: string
+) {
   logStep('Handling payment success', { invoiceId: invoice.id });
   
-  // Update payment failure flags
-  const { error } = await supabase
+  // Get customer and find user
+  if (invoice.customer) {
+    const customer = await getCustomerEmail(stripe, invoice.customer as string);
+    if (customer?.email) {
+      const { data: usersData } = await supabase.auth.admin.listUsers();
+      const user = usersData?.users?.find((u: any) => u.email === customer.email);
+      
+      if (user) {
+        // Ensure entitlement is active on successful payment
+        const { data: entitlement } = await supabase
+          .from('entitlements')
+          .select('status')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (entitlement && entitlement.status !== 'active') {
+          await supabase
+            .from('entitlements')
+            .update({
+              status: 'active',
+              source_event_id: sourceEventId,
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_id', user.id);
+        }
+      }
+    }
+  }
+
+  // BACKWARDS COMPAT: Clear payment failure flags
+  await supabase
     .from('subscribers')
     .update({
       payment_failure_reminder_sent: false,
@@ -378,17 +435,39 @@ async function handlePaymentSucceeded(supabase: any, invoice: Stripe.Invoice) {
       updated_at: new Date().toISOString()
     })
     .eq('stripe_customer_id', invoice.customer);
-
-  if (error) {
-    logStep('Error clearing payment failure flags', error);
-  }
 }
 
-async function handlePaymentFailed(supabase: any, invoice: Stripe.Invoice) {
+async function handlePaymentFailed(
+  supabase: any, 
+  stripe: Stripe, 
+  invoice: Stripe.Invoice,
+  sourceEventId: string
+) {
   logStep('Handling payment failure', { invoiceId: invoice.id });
   
-  // Update profile with past_due status
-  const { error: profileError } = await supabase
+  // Get customer and find user
+  if (invoice.customer) {
+    const customer = await getCustomerEmail(stripe, invoice.customer as string);
+    if (customer?.email) {
+      const { data: usersData } = await supabase.auth.admin.listUsers();
+      const user = usersData?.users?.find((u: any) => u.email === customer.email);
+      
+      if (user) {
+        // Update entitlement to past_due
+        await supabase
+          .from('entitlements')
+          .update({
+            status: 'past_due',
+            source_event_id: sourceEventId,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', user.id);
+      }
+    }
+  }
+
+  // BACKWARDS COMPAT: Update profile
+  await supabase
     .from('profiles')
     .update({
       plan_status: 'past_due',
@@ -396,51 +475,38 @@ async function handlePaymentFailed(supabase: any, invoice: Stripe.Invoice) {
     })
     .eq('stripe_customer_id', invoice.customer);
 
-  if (profileError) {
-    logStep('Error updating profile for payment failure', profileError);
-  }
-
-  // Update subscribers table for backwards compatibility
-  const { error: subscriberError } = await supabase
+  // BACKWARDS COMPAT: Update subscribers
+  await supabase
     .from('subscribers')
     .update({
       last_payment_failure_check: new Date().toISOString(),
       updated_at: new Date().toISOString()
     })
     .eq('stripe_customer_id', invoice.customer);
-
-  if (subscriberError) {
-    logStep('Error updating subscriber for payment failure', subscriberError);
-  }
 }
 
-async function handleCheckoutCompleted(supabase: any, session: Stripe.Checkout.Session) {
+async function handleCheckoutCompleted(
+  supabase: any, 
+  stripe: Stripe, 
+  session: Stripe.Checkout.Session,
+  sourceEventId: string
+) {
   logStep('Handling checkout completion', { sessionId: session.id, mode: session.mode, metadata: session.metadata });
 
   // Handle gift subscriptions
   if (session.metadata?.gift_code) {
-    const { error } = await supabase
+    await supabase
       .from('gift_subscriptions')
       .update({ status: 'paid' })
       .eq('gift_code', session.metadata.gift_code);
-
-    if (error) {
-      logStep('Error updating gift subscription', error);
-    }
   }
 
-  // Handle storage add-on checkout
+  // Handle storage add-on
   if (session.metadata?.type === 'storage_addon') {
-    logStep('Processing storage add-on from checkout', { 
-      userId: session.metadata.user_id, 
-      storageAmount: session.metadata.storage_amount_gb 
-    });
-    
     const userId = session.metadata.user_id;
     const storageAmountGb = parseInt(session.metadata.storage_amount_gb || '50');
     
     if (userId) {
-      // Get current storage quota
       const { data: profile } = await supabase
         .from('profiles')
         .select('storage_quota_gb')
@@ -450,8 +516,7 @@ async function handleCheckoutCompleted(supabase: any, session: Stripe.Checkout.S
       const currentQuota = profile?.storage_quota_gb || 25;
       const newQuota = currentQuota + storageAmountGb;
       
-      // Update profile with additional storage
-      const { error: profileError } = await supabase
+      await supabase
         .from('profiles')
         .update({
           storage_quota_gb: newQuota,
@@ -459,33 +524,37 @@ async function handleCheckoutCompleted(supabase: any, session: Stripe.Checkout.S
         })
         .eq('user_id', userId);
       
-      if (profileError) {
-        logStep('Error updating storage quota from checkout', profileError);
-      } else {
-        logStep('Storage quota updated from checkout', { 
-          previousQuota: currentQuota, 
-          newQuota: newQuota 
-        });
-      }
+      logStep('Storage quota updated from checkout', { previousQuota: currentQuota, newQuota });
     }
-    return; // Don't process as regular subscription
+    return;
   }
 
-  // Handle regular subscription checkout - activate profile immediately
+  // Handle regular subscription checkout
   if (session.mode === 'subscription' && session.customer_email) {
     logStep('Activating subscription from checkout', { email: session.customer_email });
     
-    // Find user by email
     const { data: usersData } = await supabase.auth.admin.listUsers();
     const user = usersData?.users?.find((u: any) => u.email === session.customer_email);
     
     if (user) {
-      // Get plan type from metadata or default to standard
       const planType = session.metadata?.plan_type || 'standard';
       const limits = getPlanLimitsFromType(planType);
       
-      // Update profile to active status
-      const { error: profileError } = await supabase
+      // UPSERT entitlement (source of truth)
+      await supabase
+        .from('entitlements')
+        .upsert({
+          user_id: user.id,
+          plan: limits.plan,
+          status: 'active',
+          source_event_id: sourceEventId,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' });
+
+      logStep('Entitlement activated from checkout', { userId: user.id, plan: limits.plan });
+
+      // BACKWARDS COMPAT: Update profile
+      await supabase
         .from('profiles')
         .update({
           stripe_customer_id: session.customer,
@@ -497,14 +566,8 @@ async function handleCheckoutCompleted(supabase: any, session: Stripe.Checkout.S
         })
         .eq('user_id', user.id);
 
-      if (profileError) {
-        logStep('Error updating profile from checkout', profileError);
-      } else {
-        logStep('Profile activated from checkout', { userId: user.id, planType });
-      }
-
-      // Update subscribers table for backwards compatibility
-      const { error: subscriberError } = await supabase
+      // BACKWARDS COMPAT: Update subscribers
+      await supabase
         .from('subscribers')
         .upsert({
           user_id: user.id,
@@ -513,13 +576,7 @@ async function handleCheckoutCompleted(supabase: any, session: Stripe.Checkout.S
           subscribed: true,
           subscription_tier: limits.tier,
           updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id'
-        });
-
-      if (subscriberError) {
-        logStep('Error updating subscriber from checkout', subscriberError);
-      }
+        }, { onConflict: 'user_id' });
 
       // Send welcome email
       try {
@@ -529,7 +586,6 @@ async function handleCheckoutCompleted(supabase: any, session: Stripe.Checkout.S
             subscription_tier: limits.tier
           }
         });
-        logStep('Welcome email sent');
       } catch (error) {
         logStep('Failed to send welcome email', error);
       }
@@ -537,62 +593,79 @@ async function handleCheckoutCompleted(supabase: any, session: Stripe.Checkout.S
   }
 }
 
-function getPlanLimits(priceId: string): { propertyLimit: number; storageQuotaGb: number; tier: string } {
-  // Map Stripe price IDs to plan limits
-  // Standard plans: 3 properties, 25GB
-  // Premium plans: unlimited properties (-1), 100GB
+async function handleStorageAddon(supabase: any, email: string, subscription: Stripe.Subscription) {
+  const storageAmountGb = parseInt(subscription.metadata?.storage_amount_gb || '50');
   
+  const { data: usersData } = await supabase.auth.admin.listUsers();
+  const user = usersData?.users?.find((u: any) => u.email === email);
+  
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('storage_quota_gb')
+      .eq('user_id', user.id)
+      .single();
+    
+    const currentQuota = profile?.storage_quota_gb || 5;
+    const newQuota = currentQuota + storageAmountGb;
+    
+    await supabase
+      .from('profiles')
+      .update({
+        storage_quota_gb: newQuota,
+        updated_at: new Date().toISOString()
+      })
+      .eq('user_id', user.id);
+    
+    logStep('Storage quota updated', { previousQuota: currentQuota, newQuota });
+  }
+}
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+function mapStripeStatusToEntitlement(stripeStatus: string): string {
+  switch (stripeStatus) {
+    case 'active':
+    case 'trialing':
+      return 'active';
+    case 'past_due':
+      return 'past_due';
+    case 'canceled':
+    case 'unpaid':
+      return 'canceled';
+    case 'incomplete':
+    case 'incomplete_expired':
+      return 'inactive';
+    default:
+      return 'inactive';
+  }
+}
+
+function getPlanLimits(priceId: string): { propertyLimit: number; storageQuotaGb: number; tier: string; plan: string } {
   const priceLower = priceId.toLowerCase();
   
   if (priceLower.includes('premium') || priceLower.includes('professional')) {
-    return {
-      propertyLimit: -1, // -1 means unlimited
-      storageQuotaGb: 100,
-      tier: 'premium'
-    };
+    return { propertyLimit: -1, storageQuotaGb: 100, tier: 'premium', plan: 'premium' };
   } else if (priceLower.includes('standard') || priceLower.includes('homeowner')) {
-    return {
-      propertyLimit: 3,
-      storageQuotaGb: 25,
-      tier: 'standard'
-    };
+    return { propertyLimit: 3, storageQuotaGb: 25, tier: 'standard', plan: 'standard' };
   }
   
-  // Fallback to standard tier for any other subscription
-  return {
-    propertyLimit: 3,
-    storageQuotaGb: 25,
-    tier: 'standard'
-  };
+  return { propertyLimit: 3, storageQuotaGb: 25, tier: 'standard', plan: 'standard' };
 }
 
-function getPlanLimitsFromType(planType: string): { propertyLimit: number; storageQuotaGb: number; tier: string } {
+function getPlanLimitsFromType(planType: string): { propertyLimit: number; storageQuotaGb: number; tier: string; plan: string } {
   const typeLower = planType.toLowerCase();
   
   if (typeLower === 'premium' || typeLower === 'professional') {
-    return {
-      propertyLimit: -1,
-      storageQuotaGb: 100,
-      tier: 'premium'
-    };
+    return { propertyLimit: -1, storageQuotaGb: 100, tier: 'premium', plan: 'premium' };
   }
   
-  // Default to standard
-  return {
-    propertyLimit: 3,
-    storageQuotaGb: 25,
-    tier: 'standard'
-  };
+  return { propertyLimit: 3, storageQuotaGb: 25, tier: 'standard', plan: 'standard' };
 }
 
-async function getCustomerEmail(customerId: string) {
-  const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY');
-  if (!stripeSecretKey) return null;
-
-  const stripe = new Stripe(stripeSecretKey, {
-    apiVersion: '2023-10-16',
-  });
-
+async function getCustomerEmail(stripe: Stripe, customerId: string): Promise<Stripe.Customer | null> {
   try {
     return await stripe.customers.retrieve(customerId) as Stripe.Customer;
   } catch (error) {
@@ -603,15 +676,10 @@ async function getCustomerEmail(customerId: string) {
 
 async function sendPaymentReceipt(supabase: any, session: Stripe.Checkout.Session) {
   try {
-    logStep('Triggering payment receipt email', { sessionId: session.id });
-    
     const customerEmail = session.customer_details?.email || session.customer_email;
     const customerName = session.customer_details?.name || 'Customer';
     
-    if (!customerEmail) {
-      logStep('No customer email for receipt');
-      return;
-    }
+    if (!customerEmail) return;
 
     await supabase.functions.invoke('send-payment-receipt-internal', {
       body: {
@@ -624,22 +692,14 @@ async function sendPaymentReceipt(supabase: any, session: Stripe.Checkout.Sessio
       }
     });
     
-    logStep('Payment receipt triggered successfully');
+    logStep('Payment receipt triggered');
   } catch (error) {
     logStep('Failed to trigger payment receipt', error);
   }
 }
 
-async function sendPaymentReceiptFromIntent(supabase: any, paymentIntent: Stripe.PaymentIntent) {
+async function sendPaymentReceiptFromIntent(supabase: any, stripe: Stripe, paymentIntent: Stripe.PaymentIntent) {
   try {
-    logStep('Triggering payment receipt from intent', { paymentIntentId: paymentIntent.id });
-    
-    const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY');
-    if (!stripeSecretKey) return;
-    
-    const stripe = new Stripe(stripeSecretKey, { apiVersion: '2023-10-16' });
-    
-    // Get customer email if customer exists
     let customerEmail = paymentIntent.receipt_email;
     let customerName = 'Customer';
     
@@ -649,10 +709,7 @@ async function sendPaymentReceiptFromIntent(supabase: any, paymentIntent: Stripe
       customerName = customer.name || 'Customer';
     }
     
-    if (!customerEmail) {
-      logStep('No customer email for receipt from intent');
-      return;
-    }
+    if (!customerEmail) return;
 
     await supabase.functions.invoke('send-payment-receipt-internal', {
       body: {
@@ -665,7 +722,7 @@ async function sendPaymentReceiptFromIntent(supabase: any, paymentIntent: Stripe
       }
     });
     
-    logStep('Payment receipt from intent triggered successfully');
+    logStep('Payment receipt from intent triggered');
   } catch (error) {
     logStep('Failed to trigger payment receipt from intent', error);
   }
