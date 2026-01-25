@@ -56,6 +56,54 @@ export type Database = {
         }
         Relationships: []
       }
+      account_verification: {
+        Row: {
+          account_age_met: boolean
+          created_at: string
+          email_verified: boolean
+          has_property: boolean
+          id: string
+          is_verified: boolean
+          last_checked_at: string
+          profile_complete: boolean
+          updated_at: string
+          upload_count: number
+          upload_count_met: boolean
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          account_age_met?: boolean
+          created_at?: string
+          email_verified?: boolean
+          has_property?: boolean
+          id?: string
+          is_verified?: boolean
+          last_checked_at?: string
+          profile_complete?: boolean
+          updated_at?: string
+          upload_count?: number
+          upload_count_met?: boolean
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          account_age_met?: boolean
+          created_at?: string
+          email_verified?: boolean
+          has_property?: boolean
+          id?: string
+          is_verified?: boolean
+          last_checked_at?: string
+          profile_complete?: boolean
+          updated_at?: string
+          upload_count?: number
+          upload_count_met?: boolean
+          user_id?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
       activities: {
         Row: {
           contact_id: string | null
@@ -2212,6 +2260,10 @@ export type Database = {
         Returns: Json
       }
       claim_gift_subscription: { Args: { p_gift_code: string }; Returns: Json }
+      compute_user_verification: {
+        Args: { target_user_id: string }
+        Returns: Json
+      }
       get_activation_funnel: {
         Args: never
         Returns: {
