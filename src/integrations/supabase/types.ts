@@ -449,6 +449,39 @@ export type Database = {
         }
         Relationships: []
       }
+      entitlements: {
+        Row: {
+          created_at: string
+          current_period_end: string | null
+          id: string
+          plan: string
+          source_event_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          plan?: string
+          source_event_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          plan?: string
+          source_event_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           anon_id: string | null
@@ -1666,6 +1699,39 @@ export type Database = {
         }
         Relationships: []
       }
+      stripe_events: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          event_type: string
+          id: string
+          outcome: string | null
+          payload: Json | null
+          processed_at: string
+          stripe_event_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          event_type: string
+          id?: string
+          outcome?: string | null
+          payload?: Json | null
+          processed_at?: string
+          stripe_event_id: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          outcome?: string | null
+          payload?: Json | null
+          processed_at?: string
+          stripe_event_id?: string
+        }
+        Relationships: []
+      }
       subscribers: {
         Row: {
           created_at: string
@@ -2282,6 +2348,11 @@ export type Database = {
           total_property_value: number
           user_id: string
         }[]
+      }
+      get_user_plan: { Args: { target_user_id: string }; Returns: string }
+      has_active_entitlement: {
+        Args: { target_user_id: string }
+        Returns: boolean
       }
       has_any_app_role: {
         Args: {

@@ -36,99 +36,96 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Get profile with subscription data
-    const { data: profile, error: profileError } = await supabaseClient
-      .from("profiles")
+    // PRIMARY: Check entitlements table (single source of truth)
+    const { data: entitlement, error: entitlementError } = await supabaseClient
+      .from("entitlements")
       .select("*")
       .eq("user_id", user.id)
-      .single();
+      .maybeSingle();
+
+    if (entitlementError) {
+      logStep("Error fetching entitlement", entitlementError);
+    }
+
+    // Get profile for property/storage limits (still needed for quotas)
+    const { data: profile, error: profileError } = await supabaseClient
+      .from("profiles")
+      .select("property_limit, storage_quota_gb")
+      .eq("user_id", user.id)
+      .maybeSingle();
 
     if (profileError) {
       logStep("Error fetching profile", profileError);
-      throw new Error("Failed to fetch user profile");
     }
 
-    logStep("Profile fetched", { 
-      planStatus: profile?.plan_status,
-      planId: profile?.plan_id,
-      propertyLimit: profile?.property_limit,
-      storageQuotaGb: profile?.storage_quota_gb
+    logStep("Entitlement fetched", { 
+      plan: entitlement?.plan,
+      status: entitlement?.status,
+      currentPeriodEnd: entitlement?.current_period_end
     });
 
-    // Check if user has an active subscription (no more trial logic)
-    // Also treat 'incomplete' as subscribed if plan_id is set (webhook sync issue workaround)
-    let isSubscribed = profile?.plan_status === 'active' || profile?.plan_status === 'trialing';
-    
-    // If plan_status is 'incomplete' but plan_id is set, treat as active (Stripe webhook sync issue)
-    if (!isSubscribed && profile?.plan_status === 'incomplete' && profile?.plan_id) {
-      isSubscribed = true;
-      logStep("Treating incomplete status as subscribed due to plan_id being set");
-    }
-    
-    let subscriptionTier = 'basic';
+    let isSubscribed = false;
+    let subscriptionTier = 'free';
+    let planStatus = 'inactive';
+    let currentPeriodEnd = null;
     let propertyLimit = profile?.property_limit || 1;
     let storageQuotaGb = profile?.storage_quota_gb || 5;
-    let currentPeriodEnd = profile?.current_period_end;
-    let planStatus = profile?.plan_status || 'inactive';
-    
+
+    if (entitlement) {
+      // Use entitlements as source of truth
+      isSubscribed = entitlement.status === 'active' || entitlement.status === 'trialing';
+      subscriptionTier = entitlement.plan;
+      planStatus = entitlement.status;
+      currentPeriodEnd = entitlement.current_period_end;
+      
+      logStep("User entitlement found", { isSubscribed, tier: subscriptionTier, status: planStatus });
+    }
+
+    // If user doesn't have their own subscription, check contributor access
     if (!isSubscribed) {
-      // Check if user is a contributor with accepted access
       logStep("Checking contributor access");
       const { data: contributorAccess, error: contributorError } = await supabaseClient
         .from("contributors")
         .select(`
           account_owner_id,
           status,
-          role,
-          profiles!contributors_account_owner_id_fkey (
-            plan_status,
-            plan_id,
-            property_limit,
-            storage_quota_gb,
-            current_period_end
-          )
+          role
         `)
         .eq("contributor_user_id", user.id)
         .eq("status", "accepted")
-        .single();
+        .maybeSingle();
 
-      if (!contributorError && contributorAccess?.profiles) {
-        const ownerProfile = contributorAccess.profiles as any;
-        
-        // Check if owner has active subscription
-        const ownerIsSubscribed = ownerProfile.plan_status === 'active' || ownerProfile.plan_status === 'trialing';
-        
-        if (ownerIsSubscribed) {
+      if (!contributorError && contributorAccess) {
+        // Get owner's entitlement
+        const { data: ownerEntitlement } = await supabaseClient
+          .from("entitlements")
+          .select("*")
+          .eq("user_id", contributorAccess.account_owner_id)
+          .maybeSingle();
+
+        if (ownerEntitlement && (ownerEntitlement.status === 'active' || ownerEntitlement.status === 'trialing')) {
           logStep("User has contributor access to subscribed account", {
             role: contributorAccess.role,
-            ownerPlanStatus: ownerProfile.plan_status
+            ownerPlan: ownerEntitlement.plan,
+            ownerStatus: ownerEntitlement.status
           });
           
           isSubscribed = true;
-          planStatus = ownerProfile.plan_status || 'inactive';
-          propertyLimit = ownerProfile.property_limit || 1;
-          storageQuotaGb = ownerProfile.storage_quota_gb || 5;
-          currentPeriodEnd = ownerProfile.current_period_end;
-          
-          // Determine tier from owner's plan
-          if (ownerProfile.plan_id) {
-            const planLower = ownerProfile.plan_id.toLowerCase();
-            if (planLower.includes('premium') || planLower.includes('professional')) {
-              subscriptionTier = 'premium';
-            } else if (planLower.includes('standard') || planLower.includes('homeowner')) {
-              subscriptionTier = 'standard';
-            }
+          subscriptionTier = ownerEntitlement.plan;
+          planStatus = ownerEntitlement.status;
+          currentPeriodEnd = ownerEntitlement.current_period_end;
+
+          // Get owner's profile for limits
+          const { data: ownerProfile } = await supabaseClient
+            .from("profiles")
+            .select("property_limit, storage_quota_gb")
+            .eq("user_id", contributorAccess.account_owner_id)
+            .maybeSingle();
+
+          if (ownerProfile) {
+            propertyLimit = ownerProfile.property_limit || 1;
+            storageQuotaGb = ownerProfile.storage_quota_gb || 5;
           }
-        }
-      }
-    } else {
-      // User has their own subscription - determine tier
-      if (profile?.plan_id) {
-        const planLower = profile.plan_id.toLowerCase();
-        if (planLower.includes('premium') || planLower.includes('professional')) {
-          subscriptionTier = 'premium';
-        } else if (planLower.includes('standard') || planLower.includes('homeowner')) {
-          subscriptionTier = 'standard';
         }
       }
     }
@@ -140,8 +137,8 @@ serve(async (req) => {
       plan_status: planStatus,
       property_limit: propertyLimit,
       storage_quota_gb: storageQuotaGb,
-      is_trial: false, // Trial is no longer supported
-      trial_end: null
+      is_trial: planStatus === 'trialing',
+      trial_end: planStatus === 'trialing' ? currentPeriodEnd : null
     };
 
     logStep("Returning subscription status", response);
@@ -156,7 +153,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({ 
       error: errorMessage,
       subscribed: false,
-      subscription_tier: 'basic',
+      subscription_tier: 'free',
       plan_status: 'inactive',
       property_limit: 1,
       storage_quota_gb: 5

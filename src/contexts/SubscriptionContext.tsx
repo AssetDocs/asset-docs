@@ -46,8 +46,10 @@ const mapTierToEnum = (tier?: string): SubscriptionTier | null => {
     case 'premium':
     case 'enterprise':
       return 'premium';
+    case 'free':
+      return null; // Free tier means no subscription
     default:
-      return 'standard'; // Default to standard instead of null
+      return 'standard'; // Default to standard for backward compatibility
   }
 };
 
