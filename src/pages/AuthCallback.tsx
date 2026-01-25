@@ -128,21 +128,9 @@ const AuthCallback = () => {
   }, [searchParams, navigate, toast]);
 
   const handleContinue = () => {
-    // Redirect to pricing page after email verification to complete subscription
-    navigate('/pricing', { replace: true });
+    // Redirect to dashboard after email verification
+    navigate('/account', { replace: true });
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <h2 className="text-xl font-semibold text-foreground">Processing Authentication...</h2>
-          <p className="text-muted-foreground">Please wait while we verify your request.</p>
-        </div>
-      </div>
-    );
-  }
 
   if (showWelcome) {
     return (
@@ -169,11 +157,11 @@ const AuthCallback = () => {
             onClick={handleContinue}
             className="text-lg px-8 py-6"
           >
-            Choose Your Plan
+            Go to My Dashboard
           </Button>
 
           <p className="text-sm text-muted-foreground">
-            Select a subscription to access your dashboard
+            Start documenting your assets today
           </p>
         </div>
       </div>
