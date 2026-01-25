@@ -5,6 +5,8 @@ import { Settings, Home } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from '@/hooks/use-mobile';
+import VerifiedBadge from '@/components/VerifiedBadge';
+import { useVerification } from '@/hooks/useVerification';
 
 const WelcomeBanner: React.FC = () => {
   const { profile, user } = useAuth();
@@ -15,6 +17,7 @@ const WelcomeBanner: React.FC = () => {
     ownerName: string;
   } | null>(null);
   const [accountNumber, setAccountNumber] = useState<string>('');
+  const { status: verificationStatus, refreshVerification } = useVerification();
 
   useEffect(() => {
     const fetchContributorInfo = async () => {
@@ -62,6 +65,13 @@ const WelcomeBanner: React.FC = () => {
 
     fetchContributorInfo();
   }, [user]);
+
+  // Refresh verification on mount
+  useEffect(() => {
+    if (user) {
+      refreshVerification();
+    }
+  }, [user, refreshVerification]);
   
   const getDisplayName = () => {
     // If contributor, show their name from contributor record
@@ -111,8 +121,9 @@ const WelcomeBanner: React.FC = () => {
     <div className="space-y-3 mb-6">
       <div className="bg-gradient-to-r from-brand-blue to-brand-lightBlue p-6 rounded-lg text-white">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-2xl font-bold flex items-center gap-2">
             Welcome, {getDisplayName()}!
+            <VerifiedBadge isVerified={verificationStatus?.is_verified ?? false} size="md" />
           </h1>
           {accountNumber && (
             <span className="text-white/90 font-medium text-sm bg-white/20 px-3 py-1 rounded-md">
