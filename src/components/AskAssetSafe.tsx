@@ -85,6 +85,17 @@ const AskAssetSafe: React.FC = () => {
   ];
   const location = useLocation();
 
+  // Listen for custom event to open the chatbot from other components (e.g., Contact page)
+  useEffect(() => {
+    const handleOpenAskAssetSafe = () => {
+      setIsOpen(true);
+      setIsMinimized(false);
+    };
+
+    window.addEventListener('openAskAssetSafe', handleOpenAskAssetSafe);
+    return () => window.removeEventListener('openAskAssetSafe', handleOpenAskAssetSafe);
+  }, []);
+
   // Auto-scroll to bottom when messages update
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -403,6 +414,14 @@ const AskAssetSafe: React.FC = () => {
               <Send className="h-4 w-4" />
             </Button>
           </div>
+        </div>
+        
+        {/* Sticky Disclaimer */}
+        <div className="px-3 py-2 bg-gray-100 border-t border-gray-200">
+          <p className="text-[10px] text-gray-500 leading-tight">
+            Asset Safe AI is designed to help you document property, stay organized, and prepare records. 
+            AI responses may not always be complete or accurate and should not be treated as legal, insurance, appraisal, or emergency advice.
+          </p>
         </div>
       </Card>
     </div>
