@@ -546,6 +546,99 @@ const FAQAccordion: React.FC = () => {
           </AccordionItem>
         </Accordion>
       </div>
+
+      {/* Account Verification Section */}
+      <div>
+        <h3 className="text-xl font-semibold text-brand-green mb-4 border-b border-brand-green/30 pb-2">Account Verification</h3>
+        <Accordion type="single" collapsible>
+          <AccordionItem value="verification-1">
+            <AccordionTrigger className="text-lg font-medium">What is the Verified Account badge?</AccordionTrigger>
+            <AccordionContent>
+              <p className="mb-3">The Verified Account badge confirms that your Asset Safe profile is active, complete, and ready for secure documentation.</p>
+              <p className="mb-2">It helps ensure your account is fully set up for:</p>
+              <ul className="list-disc list-inside space-y-1 ml-4">
+                <li>Organizing your home inventory</li>
+                <li>Preparing for insurance claims</li>
+                <li>Protecting important property records</li>
+                <li>Building a trusted digital vault over time</li>
+              </ul>
+            </AccordionContent>
+          </AccordionItem>
+          
+          <AccordionItem value="verification-2">
+            <AccordionTrigger className="text-lg font-medium">How do I earn Verified status?</AccordionTrigger>
+            <AccordionContent>
+              <p className="mb-4">Your account becomes Verified once it meets a few simple setup milestones:</p>
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <span className="text-lg">✅</span>
+                  <div>
+                    <p className="font-medium">Verified Email</p>
+                    <p className="text-muted-foreground text-sm">You&apos;ve confirmed your email address.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-lg">⏳</span>
+                  <div>
+                    <p className="font-medium">Account Age (2+ Weeks)</p>
+                    <p className="text-muted-foreground text-sm">Your account has been active for at least 14 days.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-lg">📤</span>
+                  <div>
+                    <p className="font-medium">Upload Activity (10+ Uploads)</p>
+                    <p className="text-muted-foreground text-sm">You&apos;ve added at least 10 uploads, such as photos, videos, voice notes, manuals, or documents.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-lg">👤</span>
+                  <div>
+                    <p className="font-medium">Complete Profile</p>
+                    <p className="text-muted-foreground text-sm">Your profile includes key details like your name and contact information.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-lg">🏠</span>
+                  <div>
+                    <p className="font-medium">At Least One Property Saved</p>
+                    <p className="text-muted-foreground text-sm">You&apos;ve created at least one property inside Asset Safe.</p>
+                  </div>
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+          
+          <AccordionItem value="verification-3">
+            <AccordionTrigger className="text-lg font-medium">Why does Asset Safe require this?</AccordionTrigger>
+            <AccordionContent>
+              <p className="mb-3">Verification ensures your account is more than just a signup — it&apos;s a fully usable, claim-ready inventory system.</p>
+              <p className="mb-2">It also helps Asset Safe maintain:</p>
+              <ul className="list-disc list-inside space-y-1 ml-4">
+                <li>Higher trust</li>
+                <li>Better organization</li>
+                <li>Stronger documentation consistency</li>
+              </ul>
+            </AccordionContent>
+          </AccordionItem>
+          
+          <AccordionItem value="verification-4">
+            <AccordionTrigger className="text-lg font-medium">Do I need Verified status to use Asset Safe?</AccordionTrigger>
+            <AccordionContent>
+              <p>Not at all. You can use Asset Safe immediately.</p>
+              <p className="mt-2">Verification is simply a helpful milestone that shows your account is fully established.</p>
+            </AccordionContent>
+          </AccordionItem>
+          
+          <AccordionItem value="verification-5">
+            <AccordionTrigger className="text-lg font-medium">How long does verification take?</AccordionTrigger>
+            <AccordionContent>
+              <p>Most users earn Verified status within the first couple of weeks by uploading and completing their setup.</p>
+              <p className="mt-2">Once all requirements are met, your badge updates automatically.</p>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </div>
     </div>
   );
 };
