@@ -608,6 +608,56 @@ const FAQAccordion: React.FC = () => {
               </div>
             </AccordionContent>
           </AccordionItem>
+
+          <AccordionItem value="verification-plus-1">
+            <AccordionTrigger className="text-lg font-medium">What is Verified+ status?</AccordionTrigger>
+            <AccordionContent>
+              <p className="mb-3">Verified+ is an enhanced trust level for users who have enabled Two-Factor Authentication (2FA) on their account.</p>
+              <p className="mb-2">Users with Verified+ status display a gold shield badge, indicating:</p>
+              <ul className="list-disc list-inside space-y-1 ml-4">
+                <li>All standard Verified requirements are met</li>
+                <li>Account is protected with 2FA</li>
+                <li>Premium security status achieved</li>
+                <li>Commitment to protecting asset documentation</li>
+              </ul>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="verification-plus-2">
+            <AccordionTrigger className="text-lg font-medium">How do I earn Verified+ status?</AccordionTrigger>
+            <AccordionContent>
+              <p className="mb-4">Verified+ requires completing two steps:</p>
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <span className="text-lg">1️⃣</span>
+                  <div>
+                    <p className="font-medium">Complete all Verified requirements</p>
+                    <p className="text-muted-foreground text-sm">Meet the 5 standard verification milestones first.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-lg">2️⃣</span>
+                  <div>
+                    <p className="font-medium">Enable Two-Factor Authentication</p>
+                    <p className="text-muted-foreground text-sm">Set up 2FA in your Account Settings using an authenticator app like Google Authenticator, Authy, or 1Password.</p>
+                  </div>
+                </div>
+              </div>
+              <p className="mt-4 text-sm text-muted-foreground">Once both requirements are met, your badge automatically upgrades to the gold Verified+ shield.</p>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="verification-plus-3">
+            <AccordionTrigger className="text-lg font-medium">What are the benefits of Verified+ status?</AccordionTrigger>
+            <AccordionContent>
+              <ul className="list-disc list-inside space-y-2 ml-4">
+                <li><strong>Enhanced Security</strong> – Your account is protected with 2FA, making unauthorized access nearly impossible.</li>
+                <li><strong>Visual Recognition</strong> – The gold Verified+ badge shows your commitment to premium security.</li>
+                <li><strong>Trust Signal</strong> – Demonstrates to authorized users and family members that your account is securely protected.</li>
+                <li><strong>Peace of Mind</strong> – Know that your sensitive asset documentation is guarded by industry-standard security.</li>
+              </ul>
+            </AccordionContent>
+          </AccordionItem>
           
           <AccordionItem value="verification-3">
             <AccordionTrigger className="text-lg font-medium">Why does Asset Safe require this?</AccordionTrigger>
@@ -623,10 +673,10 @@ const FAQAccordion: React.FC = () => {
           </AccordionItem>
           
           <AccordionItem value="verification-4">
-            <AccordionTrigger className="text-lg font-medium">Do I need Verified status to use Asset Safe?</AccordionTrigger>
+            <AccordionTrigger className="text-lg font-medium">Do I need Verified or Verified+ status to use Asset Safe?</AccordionTrigger>
             <AccordionContent>
               <p>Not at all. You can use Asset Safe immediately.</p>
-              <p className="mt-2">Verification is simply a helpful milestone that shows your account is fully established.</p>
+              <p className="mt-2">Verification is simply a helpful milestone that shows your account is fully established. Verified+ adds an extra layer of security recognition.</p>
             </AccordionContent>
           </AccordionItem>
           
@@ -634,7 +684,7 @@ const FAQAccordion: React.FC = () => {
             <AccordionTrigger className="text-lg font-medium">How long does verification take?</AccordionTrigger>
             <AccordionContent>
               <p>Most users earn Verified status within the first couple of weeks by uploading and completing their setup.</p>
-              <p className="mt-2">Once all requirements are met, your badge updates automatically.</p>
+              <p className="mt-2">Once all requirements are met, your badge updates automatically. Verified+ can be achieved immediately after earning Verified status by enabling 2FA.</p>
             </AccordionContent>
           </AccordionItem>
         </Accordion>

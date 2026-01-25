@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Shield, Key, Trash2, CheckCircle, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useTOTP } from '@/hooks/useTOTP';
 import { useToast } from '@/hooks/use-toast';
+import { useVerification } from '@/hooks/useVerification';
 import TOTPSetup from './TOTPSetup';
 import {
   AlertDialog,
@@ -21,6 +22,7 @@ import {
 const TOTPSettings: React.FC = () => {
   const { toast } = useToast();
   const { factors, isEnrolled, isLoading, unenroll, refetch } = useTOTP();
+  const { refreshVerification, status: verificationStatus } = useVerification();
   const [showSetup, setShowSetup] = useState(false);
   const [showDisableConfirm, setShowDisableConfirm] = useState(false);
   const [disabling, setDisabling] = useState(false);
@@ -33,9 +35,11 @@ const TOTPSettings: React.FC = () => {
     setDisabling(true);
     try {
       await unenroll(verifiedFactor.id);
+      // Refresh verification status to update Verified+ badge
+      await refreshVerification();
       toast({
         title: "Two-Factor Disabled",
-        description: "Authenticator has been removed from your account.",
+        description: "Authenticator has been removed from your account. Verified+ status removed.",
       });
       setShowDisableConfirm(false);
     } catch (error: any) {
@@ -49,9 +53,17 @@ const TOTPSettings: React.FC = () => {
     }
   };
 
-  const handleSetupComplete = () => {
+  const handleSetupComplete = async () => {
     setShowSetup(false);
     refetch();
+    // Refresh verification status to update Verified+ badge
+    const newStatus = await refreshVerification();
+    if (newStatus?.is_verified_plus) {
+      toast({
+        title: "Verified+ Earned!",
+        description: "Congratulations! You've earned Verified+ status with 2FA protection.",
+      });
+    }
   };
 
   if (isLoading) {

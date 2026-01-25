@@ -9,12 +9,15 @@ export interface VerificationCriteria {
   upload_count: number;
   profile_complete: boolean;
   has_property: boolean;
+  has_2fa: boolean;
 }
 
 export interface VerificationStatus {
   is_verified: boolean;
+  is_verified_plus: boolean;
   criteria: VerificationCriteria;
   verified_at: string | null;
+  verified_plus_at: string | null;
   last_checked_at: string | null;
 }
 
@@ -49,15 +52,18 @@ export const useVerification = () => {
       if (data) {
         setStatus({
           is_verified: data.is_verified,
+          is_verified_plus: data.is_verified_plus,
           criteria: {
             email_verified: data.email_verified,
             account_age_met: data.account_age_met,
             upload_count_met: data.upload_count_met,
             upload_count: data.upload_count,
             profile_complete: data.profile_complete,
-            has_property: data.has_property
+            has_property: data.has_property,
+            has_2fa: data.has_2fa
           },
           verified_at: data.verified_at,
+          verified_plus_at: data.verified_plus_at,
           last_checked_at: data.last_checked_at
         });
       }
@@ -88,8 +94,10 @@ export const useVerification = () => {
 
       const newStatus: VerificationStatus = {
         is_verified: data.is_verified,
+        is_verified_plus: data.is_verified_plus,
         criteria: data.criteria,
         verified_at: data.verified_at,
+        verified_plus_at: data.verified_plus_at,
         last_checked_at: data.last_checked_at
       };
 
@@ -109,8 +117,8 @@ export const useVerification = () => {
     fetchCachedStatus();
   }, [fetchCachedStatus]);
 
-  // Calculate progress percentage (5 criteria total)
-  const progress = status ? 
+  // Calculate progress percentage (5 base criteria + 2FA bonus)
+  const baseProgress = status ? 
     ([
       status.criteria.email_verified,
       status.criteria.account_age_met,
@@ -118,6 +126,9 @@ export const useVerification = () => {
       status.criteria.profile_complete,
       status.criteria.has_property
     ].filter(Boolean).length / 5) * 100 : 0;
+
+  // Full progress includes 2FA as a 6th criterion for Verified+ (optional display)
+  const progress = baseProgress;
 
   return {
     status,

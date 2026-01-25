@@ -1,5 +1,5 @@
 import React from 'react';
-import { BadgeCheck, ShieldCheck } from 'lucide-react';
+import { BadgeCheck, ShieldPlus } from 'lucide-react';
 import { 
   Tooltip, 
   TooltipContent, 
@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 
 interface VerifiedBadgeProps {
   isVerified: boolean;
+  isVerifiedPlus?: boolean;
   size?: 'sm' | 'md' | 'lg';
   showLabel?: boolean;
   className?: string;
@@ -17,6 +18,7 @@ interface VerifiedBadgeProps {
 
 const VerifiedBadge: React.FC<VerifiedBadgeProps> = ({ 
   isVerified, 
+  isVerifiedPlus = false,
   size = 'md',
   showLabel = false,
   className 
@@ -33,10 +35,43 @@ const VerifiedBadge: React.FC<VerifiedBadgeProps> = ({
     lg: 'text-base'
   };
 
+  // Show nothing if not verified at all
   if (!isVerified) {
     return null;
   }
 
+  // Verified+ badge (gold/amber)
+  if (isVerifiedPlus) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className={cn('inline-flex items-center gap-1', className)}>
+              <ShieldPlus 
+                className={cn(
+                  sizeClasses[size], 
+                  'text-amber-500 fill-amber-100'
+                )} 
+              />
+              {showLabel && (
+                <span className={cn(labelSizeClasses[size], 'text-amber-600 font-medium')}>
+                  Verified+
+                </span>
+              )}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <div className="flex items-center gap-2">
+              <ShieldPlus className="h-4 w-4 text-amber-500" />
+              <span>Verified+ Account (2FA Protected)</span>
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+
+  // Standard Verified badge (blue)
   return (
     <TooltipProvider>
       <Tooltip>
@@ -57,7 +92,7 @@ const VerifiedBadge: React.FC<VerifiedBadgeProps> = ({
         </TooltipTrigger>
         <TooltipContent>
           <div className="flex items-center gap-2">
-            <ShieldCheck className="h-4 w-4 text-green-500" />
+            <BadgeCheck className="h-4 w-4 text-blue-500" />
             <span>Verified Asset Safe Account</span>
           </div>
         </TooltipContent>
