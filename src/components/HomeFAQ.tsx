@@ -39,6 +39,18 @@ const HomeFAQ: React.FC = () => {
     {
       question: "What makes Asset Safe different from other home inventory apps?",
       answer: "Asset Safe combines comprehensive property documentation with estate planning tools (Legacy Locker), post-damage reporting, voice notes for sentimental items, and secure password storage—all in one platform. We're designed specifically for unexpected life events: insurance claims, estate transitions, divorce, natural disasters, and more."
+    },
+    {
+      question: "What is Verified Account status?",
+      answer: "Verified status indicates that your Asset Safe account is complete, active, and claim-ready. To earn the blue Verified badge, you need to: verify your email, have an account for at least 2 weeks, upload at least 10 files, complete your profile (first and last name), and save at least one property. Verified accounts demonstrate you're serious about protecting your assets."
+    },
+    {
+      question: "What is Verified+ status?",
+      answer: "Verified+ is the highest trust tier for Asset Safe accounts. It's awarded to users who have achieved Verified status AND enabled Two-Factor Authentication (2FA). The gold Verified+ badge shows you've taken extra steps to secure your account and documentation with maximum protection."
+    },
+    {
+      question: "How do I upgrade from Verified to Verified+?",
+      answer: "Once you've earned Verified status, simply enable Two-Factor Authentication (2FA) in your Account Settings. Your status will automatically upgrade to Verified+ with the gold shield badge, indicating your account has premium security protection enabled."
     }
   ];
 
