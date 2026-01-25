@@ -24,6 +24,7 @@ import { useToast } from '@/hooks/use-toast';
 import SecureVault from '@/components/SecureVault';
 import FeedbackSection from '@/components/FeedbackSection';
 import AdminContributorPlanInfo from '@/components/AdminContributorPlanInfo';
+import AccountStatusCard from '@/components/AccountStatusCard';
 import { supabase } from '@/integrations/supabase/client';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -364,6 +365,11 @@ const Account: React.FC = () => {
           {/* Welcome Message */}
           <div className="mb-6">
             <WelcomeMessage />
+          </div>
+          
+          {/* Account Verification Status */}
+          <div className="mb-6">
+            <AccountStatusCard />
           </div>
           
           {/* Admin Contributor Plan Info - shows subscription details for admin contributors */}
