@@ -236,6 +236,8 @@ Deno.serve(async (req) => {
 
     // Delete user's data from all tables with user_id column
     // Order matters - delete from tables with foreign keys first
+    // Order matters: tables with FK to auth.users must be deleted BEFORE profiles
+    // contacts has FK to auth.users so must be early in the list
     const tablesWithUserId = [
       'voice_note_attachments',
       'receipts',
@@ -245,26 +247,30 @@ Deno.serve(async (req) => {
       'legacy_locker',
       'property_files',
       'items',
-      'properties', 
-      'subscribers',
-      'contacts',
-      'profiles',
-      'storage_usage',
-      'password_catalog',
-      'trust_information',
-      'photo_folders',
-      'video_folders',
-      'document_folders',
-      'source_websites',
-      'financial_accounts',
-      'paint_codes',
-      'audit_logs',
-      'user_roles',
-      'events',
-      'payment_events',
-      'notification_preferences',
+      'properties',
+      'damage_reports',
       'insurance_policies',
-      'damage_reports'
+      'notification_preferences',
+      'payment_events',
+      'events',
+      'user_roles',
+      'audit_logs',
+      'paint_codes',
+      'financial_accounts',
+      'source_websites',
+      'document_folders',
+      'video_folders',
+      'photo_folders',
+      'trust_information',
+      'password_catalog',
+      'storage_usage',
+      'subscribers',
+      'contacts',  // FK to auth.users - must be before user deletion
+      'profiles',  // FK to auth.users - must be last before user deletion
+      'entitlements',
+      'account_verification',
+      'vip_contacts',
+      'vip_contact_attachments'
     ];
 
     // Delete from recovery_requests (uses owner_user_id and delegate_user_id)
