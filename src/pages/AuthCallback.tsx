@@ -71,18 +71,15 @@ const AuthCallback = () => {
 
         // Show success message based on the type
         if (type === 'signup' || type === 'email_change_confirm_new') {
-          // If user is a contributor, show success and redirect to dashboard
-          if (isContributor) {
-            toast({
-              title: "Email Verified Successfully!",
-              description: "Your contributor account is ready. Redirecting to dashboard...",
-            });
-            navigate('/account', { replace: true });
-            return;
-          }
-          // Show welcome screen for signup (non-contributors)
-          setShowWelcome(true);
-          setLoading(false);
+          toast({
+            title: "Email Verified Successfully!",
+            description: isContributor 
+              ? "Your contributor account is ready. Redirecting to dashboard..."
+              : "Welcome to Asset Safe! Redirecting to your dashboard...",
+          });
+          // Redirect directly to dashboard for all verified users
+          navigate('/account', { replace: true });
+          return;
         } else {
           // For other types, show toast and redirect
           switch (type) {
