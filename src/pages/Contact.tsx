@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -10,7 +10,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import ChatbotInterface from '@/components/ChatbotInterface';
 import { MessageCircle, HelpCircle, ChevronLeft } from 'lucide-react';
 
 interface ContactFormData {
@@ -23,8 +22,7 @@ interface ContactFormData {
 
 const Contact: React.FC = () => {
   const { toast } = useToast();
-  const [showChat, setShowChat] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const form = useForm<ContactFormData>({
     defaultValues: {
       name: '',
@@ -104,20 +102,17 @@ const Contact: React.FC = () => {
               </Link>
               
               <Button 
-                onClick={() => setShowChat(!showChat)}
+                onClick={() => {
+                  // Dispatch custom event to open the Ask Asset Safe floating chatbot
+                  window.dispatchEvent(new CustomEvent('openAskAssetSafe'));
+                }}
                 variant="outline"
                 className="border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white flex items-center gap-2"
               >
                 <MessageCircle className="w-5 h-5" />
-                {showChat ? 'Close' : 'Open'} AI Chat Assistant
+                Open AI Chat Assistant
               </Button>
             </div>
-            
-            {showChat && (
-              <div className="mt-6">
-                <ChatbotInterface />
-              </div>
-            )}
           </div>
           
           <div className="bg-white p-8 rounded-lg shadow-md">
