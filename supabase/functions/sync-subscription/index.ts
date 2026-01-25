@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.51.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -18,7 +18,7 @@ serve(async (req) => {
   }
 
   try {
-    logStep("Function started");
+    logStep("Function started - Phase 3 race-condition fix");
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -49,9 +49,21 @@ serve(async (req) => {
     // Find Stripe customer
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     if (customers.data.length === 0) {
-      logStep("No Stripe customer found");
+      logStep("No Stripe customer found - creating inactive entitlement");
+      
+      // Ensure user has a base entitlement record
+      await supabaseClient
+        .from('entitlements')
+        .upsert({
+          user_id: user.id,
+          plan: 'free',
+          status: 'inactive',
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' });
+      
       return new Response(JSON.stringify({ 
-        synced: false, 
+        synced: true, 
+        status: 'inactive',
         message: "No Stripe customer found for this email" 
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -62,17 +74,46 @@ serve(async (req) => {
     const customerId = customers.data[0].id;
     logStep("Found Stripe customer", { customerId });
 
-    // Get active subscriptions
+    // Get subscriptions - prioritize active ones
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
       status: 'all',
-      limit: 1,
+      limit: 10,
     });
 
-    if (subscriptions.data.length === 0) {
-      logStep("No subscriptions found");
+    // Find the most relevant subscription
+    const priorityOrder = ['active', 'trialing', 'past_due', 'incomplete'];
+    let subscription: Stripe.Subscription | null = null;
+
+    for (const status of priorityOrder) {
+      const found = subscriptions.data.find(s => s.status === status);
+      if (found) {
+        subscription = found;
+        break;
+      }
+    }
+
+    // If no subscription in priority list, take the most recent
+    if (!subscription && subscriptions.data.length > 0) {
+      subscription = subscriptions.data[0];
+    }
+
+    if (!subscription) {
+      logStep("No subscriptions found - setting inactive");
+      
+      // Ensure user has a base entitlement record
+      await supabaseClient
+        .from('entitlements')
+        .upsert({
+          user_id: user.id,
+          plan: 'free',
+          status: 'inactive',
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' });
+      
       return new Response(JSON.stringify({ 
-        synced: false, 
+        synced: true, 
+        status: 'inactive',
         message: "No subscriptions found for this customer" 
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -80,7 +121,6 @@ serve(async (req) => {
       });
     }
 
-    const subscription = subscriptions.data[0];
     logStep("Found subscription", { 
       subscriptionId: subscription.id, 
       status: subscription.status,
@@ -89,9 +129,10 @@ serve(async (req) => {
 
     // Determine plan details from subscription
     const productId = subscription.items.data[0]?.price?.product as string;
+    const priceId = subscription.items.data[0]?.price?.id || '';
     let planId = 'standard';
     let propertyLimit = 3;
-    let storageQuotaGb = 20;
+    let storageQuotaGb = 25;
 
     // Try to get product name to determine plan
     try {
@@ -101,32 +142,58 @@ serve(async (req) => {
       
       if (productName.includes('premium') || productName.includes('professional')) {
         planId = 'premium';
-        propertyLimit = 10;
-        storageQuotaGb = 50;
+        propertyLimit = -1; // Unlimited
+        storageQuotaGb = 100;
       }
     } catch (e) {
-      logStep("Could not retrieve product, defaulting to standard");
+      // Fallback: check price ID
+      const priceLower = priceId.toLowerCase();
+      if (priceLower.includes('premium') || priceLower.includes('professional')) {
+        planId = 'premium';
+        propertyLimit = -1;
+        storageQuotaGb = 100;
+      }
+      logStep("Could not retrieve product, checked price ID", { planId });
     }
 
-    // Map Stripe status to our status
-    let planStatus = 'inactive';
+    // Map Stripe status to entitlement status
+    let entitlementStatus = 'inactive';
     if (subscription.status === 'active' || subscription.status === 'trialing') {
-      planStatus = 'active';
+      entitlementStatus = 'active';
     } else if (subscription.status === 'past_due') {
-      planStatus = 'past_due';
-    } else if (subscription.status === 'canceled') {
-      planStatus = 'canceled';
+      entitlementStatus = 'past_due';
+    } else if (subscription.status === 'canceled' || subscription.status === 'unpaid') {
+      entitlementStatus = 'canceled';
     }
 
     const currentPeriodEnd = new Date(subscription.current_period_end * 1000).toISOString();
 
-    // Update profile
+    // PRIMARY: Update entitlements table (source of truth)
+    const { error: entitlementError } = await supabaseClient
+      .from('entitlements')
+      .upsert({
+        user_id: user.id,
+        plan: planId,
+        status: entitlementStatus,
+        current_period_end: currentPeriodEnd,
+        source_event_id: `sync_${Date.now()}`,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
+
+    if (entitlementError) {
+      logStep("Error updating entitlements", entitlementError);
+      throw new Error("Failed to update entitlements");
+    }
+
+    logStep("Entitlements updated", { plan: planId, status: entitlementStatus });
+
+    // BACKWARDS COMPAT: Update profile
     const { error: updateError } = await supabaseClient
       .from('profiles')
       .update({
         stripe_customer_id: customerId,
         plan_id: planId,
-        plan_status: planStatus,
+        plan_status: entitlementStatus,
         property_limit: propertyLimit,
         storage_quota_gb: storageQuotaGb,
         current_period_end: currentPeriodEnd,
@@ -136,17 +203,17 @@ serve(async (req) => {
 
     if (updateError) {
       logStep("Error updating profile", updateError);
-      throw new Error("Failed to update profile");
+      // Don't throw - entitlements is the source of truth
     }
 
-    // Also update/create subscribers record
+    // BACKWARDS COMPAT: Update subscribers record
     const { error: subscribersError } = await supabaseClient
       .from('subscribers')
       .upsert({
         user_id: user.id,
         email: user.email,
         stripe_customer_id: customerId,
-        subscribed: planStatus === 'active',
+        subscribed: entitlementStatus === 'active',
         subscription_tier: planId,
         subscription_end: currentPeriodEnd,
         updated_at: new Date().toISOString()
@@ -156,17 +223,26 @@ serve(async (req) => {
 
     if (subscribersError) {
       logStep("Error updating subscribers", subscribersError);
+      // Don't throw - entitlements is the source of truth
     }
 
-    logStep("Subscription synced successfully", { planId, planStatus, propertyLimit, storageQuotaGb });
+    logStep("Subscription synced successfully", { 
+      plan: planId, 
+      status: entitlementStatus, 
+      propertyLimit, 
+      storageQuotaGb,
+      subscriptionId: subscription.id
+    });
 
     return new Response(JSON.stringify({ 
       synced: true,
-      plan_id: planId,
-      plan_status: planStatus,
+      plan: planId,
+      status: entitlementStatus,
       property_limit: propertyLimit,
       storage_quota_gb: storageQuotaGb,
-      current_period_end: currentPeriodEnd
+      current_period_end: currentPeriodEnd,
+      subscription_id: subscription.id,
+      customer_id: customerId
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
