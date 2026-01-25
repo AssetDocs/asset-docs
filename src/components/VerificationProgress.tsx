@@ -72,11 +72,32 @@ const VerificationProgress: React.FC<VerificationProgressProps> = ({
     );
   }
 
-  // If already verified, show success state
+  // If already verified+, show premium success state
+  if (status?.is_verified_plus) {
+    return (
+      <Card className="border-amber-200 bg-amber-50/50">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-amber-100 rounded-full">
+              <Check className="h-6 w-6 text-amber-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-amber-800">Verified+ Account</h3>
+              <p className="text-sm text-amber-600">
+                Your account is verified with 2FA protection
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // If already verified (but not verified+), show success state with 2FA upgrade option
   if (status?.is_verified) {
     return (
       <Card className="border-green-200 bg-green-50/50">
-        <CardContent className="pt-6">
+        <CardContent className="pt-6 space-y-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-green-100 rounded-full">
               <Check className="h-6 w-6 text-green-600" />
@@ -88,6 +109,13 @@ const VerificationProgress: React.FC<VerificationProgressProps> = ({
               </p>
             </div>
           </div>
+          {!status.criteria.has_2fa && (
+            <div className="border-t border-green-200 pt-4">
+              <p className="text-sm text-green-700">
+                <strong>Upgrade to Verified+:</strong> Enable Two-Factor Authentication in your Account Settings to earn the gold Verified+ badge.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
     );

@@ -61,9 +61,30 @@ Deno.serve(async (req) => {
 
     console.log('Verification computed:', verificationData);
 
+    // Check if user has 2FA enabled using auth admin API
+    let has2fa = false;
+    try {
+      const { data: mfaData, error: mfaError } = await serviceClient.auth.admin.mfa.listFactors({
+        userId: userId
+      });
+      
+      if (mfaError) {
+        console.error('Error checking MFA factors:', mfaError);
+      } else {
+        // Check if user has a verified TOTP factor
+        has2fa = mfaData?.factors?.some(
+          (f: any) => f.factor_type === 'totp' && f.status === 'verified'
+        ) ?? false;
+        console.log(`User ${userId} has 2FA: ${has2fa}`);
+      }
+    } catch (mfaErr) {
+      console.error('MFA check failed:', mfaErr);
+    }
+
     // Upsert the verification record
     const now = new Date().toISOString();
     const isVerified = verificationData.is_verified;
+    const isVerifiedPlus = isVerified && has2fa;
 
     const { data: upsertData, error: upsertError } = await serviceClient
       .from('account_verification')
@@ -77,6 +98,9 @@ Deno.serve(async (req) => {
         upload_count: verificationData.upload_count,
         profile_complete: verificationData.profile_complete,
         has_property: verificationData.has_property,
+        has_2fa: has2fa,
+        is_verified_plus: isVerifiedPlus,
+        verified_plus_at: isVerifiedPlus ? now : null,
         last_checked_at: now,
         updated_at: now
       }, {
@@ -93,20 +117,23 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log(`Verification status saved for user ${userId}: is_verified=${isVerified}`);
+    console.log(`Verification status saved for user ${userId}: is_verified=${isVerified}, is_verified_plus=${isVerifiedPlus}`);
 
     return new Response(
       JSON.stringify({
         is_verified: isVerified,
+        is_verified_plus: isVerifiedPlus,
         criteria: {
           email_verified: verificationData.email_verified,
           account_age_met: verificationData.account_age_met,
           upload_count_met: verificationData.upload_count_met,
           upload_count: verificationData.upload_count,
           profile_complete: verificationData.profile_complete,
-          has_property: verificationData.has_property
+          has_property: verificationData.has_property,
+          has_2fa: has2fa
         },
         verified_at: upsertData?.verified_at || null,
+        verified_plus_at: upsertData?.verified_plus_at || null,
         last_checked_at: now
       }),
       { 

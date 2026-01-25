@@ -61,9 +61,11 @@ export type Database = {
           account_age_met: boolean
           created_at: string
           email_verified: boolean
+          has_2fa: boolean
           has_property: boolean
           id: string
           is_verified: boolean
+          is_verified_plus: boolean
           last_checked_at: string
           profile_complete: boolean
           updated_at: string
@@ -71,14 +73,17 @@ export type Database = {
           upload_count_met: boolean
           user_id: string
           verified_at: string | null
+          verified_plus_at: string | null
         }
         Insert: {
           account_age_met?: boolean
           created_at?: string
           email_verified?: boolean
+          has_2fa?: boolean
           has_property?: boolean
           id?: string
           is_verified?: boolean
+          is_verified_plus?: boolean
           last_checked_at?: string
           profile_complete?: boolean
           updated_at?: string
@@ -86,14 +91,17 @@ export type Database = {
           upload_count_met?: boolean
           user_id: string
           verified_at?: string | null
+          verified_plus_at?: string | null
         }
         Update: {
           account_age_met?: boolean
           created_at?: string
           email_verified?: boolean
+          has_2fa?: boolean
           has_property?: boolean
           id?: string
           is_verified?: boolean
+          is_verified_plus?: boolean
           last_checked_at?: string
           profile_complete?: boolean
           updated_at?: string
@@ -101,6 +109,7 @@ export type Database = {
           upload_count_met?: boolean
           user_id?: string
           verified_at?: string | null
+          verified_plus_at?: string | null
         }
         Relationships: []
       }

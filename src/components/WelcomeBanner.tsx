@@ -123,7 +123,11 @@ const WelcomeBanner: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <h1 className="text-2xl font-bold flex items-center gap-2">
             Welcome, {getDisplayName()}!
-            <VerifiedBadge isVerified={verificationStatus?.is_verified ?? false} size="md" />
+            <VerifiedBadge 
+              isVerified={verificationStatus?.is_verified ?? false} 
+              isVerifiedPlus={verificationStatus?.is_verified_plus ?? false}
+              size="md" 
+            />
           </h1>
           {accountNumber && (
             <span className="text-white/90 font-medium text-sm bg-white/20 px-3 py-1 rounded-md">
