@@ -190,3 +190,6 @@ verify_jwt = true
 
 [functions.admin-link-stripe-customer]
 verify_jwt = true
+
+[functions.sync-subscription]
+verify_jwt = false
