@@ -1533,13 +1533,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "property_files_folder_id_fkey"
-            columns: ["folder_id"]
-            isOneToOne: false
-            referencedRelation: "photo_folders"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "property_files_property_id_fkey"
             columns: ["property_id"]
             isOneToOne: false
