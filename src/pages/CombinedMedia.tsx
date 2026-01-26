@@ -179,6 +179,8 @@ const CombinedMedia: React.FC = () => {
     id: photo.id,
     name: photo.file_name,
     url: photo.file_url,
+    filePath: photo.file_path,
+    bucket: photo.bucket_name,
     uploadDate: photo.created_at,
     size: formatFileSize(photo.file_size),
     propertyName: getPropertyName(photo.property_id)
@@ -188,6 +190,8 @@ const CombinedMedia: React.FC = () => {
     id: video.id,
     name: video.file_name,
     url: video.file_url,
+    filePath: video.file_path,
+    bucket: video.bucket_name,
     uploadDate: video.created_at,
     size: formatFileSize(video.file_size),
     propertyName: getPropertyName(video.property_id)

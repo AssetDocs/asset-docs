@@ -136,6 +136,8 @@ const PhotoGallery: React.FC = () => {
     id: photo.id,
     name: photo.file_name,
     url: photo.file_url,
+    filePath: photo.file_path,
+    bucket: photo.bucket_name,
     uploadDate: photo.created_at,
     size: formatFileSize(photo.file_size),
     propertyName: getPropertyName(photo.property_id)
