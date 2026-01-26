@@ -10,7 +10,8 @@ import AdminDatabase from '@/components/admin/AdminDatabase';
 import EnhancedCRM from '@/components/admin/EnhancedCRM';
 import AdminQuickStats from '@/components/admin/AdminQuickStats';
 import StripeReconciliation from '@/components/admin/StripeReconciliation';
-import { LogOut, Shield, Users, Database, Settings, Handshake, BarChart, CreditCard } from 'lucide-react';
+import SystemInfrastructure from '@/components/admin/SystemInfrastructure';
+import { LogOut, Shield, Users, Database, Settings, Handshake, BarChart, CreditCard, Server } from 'lucide-react';
 
 const Admin = () => {
   const [hasAccess, setHasAccess] = useState(false);
@@ -60,7 +61,7 @@ const Admin = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid grid-cols-2 md:grid-cols-6 gap-2 h-auto p-1">
+          <TabsList className="grid grid-cols-3 md:grid-cols-7 gap-2 h-auto p-1">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <BarChart className="w-4 h-4" />
               Overview
@@ -76,6 +77,10 @@ const Admin = () => {
             <TabsTrigger value="database" className="flex items-center gap-2">
               <Database className="w-4 h-4" />
               Database
+            </TabsTrigger>
+            <TabsTrigger value="infrastructure" className="flex items-center gap-2">
+              <Server className="w-4 h-4" />
+              Infra
             </TabsTrigger>
             <TabsTrigger value="crm" className="flex items-center gap-2">
               <Users className="w-4 h-4" />
@@ -239,6 +244,10 @@ const Admin = () => {
 
           <TabsContent value="database">
             <AdminDatabase />
+          </TabsContent>
+
+          <TabsContent value="infrastructure">
+            <SystemInfrastructure />
           </TabsContent>
 
           <TabsContent value="crm">
