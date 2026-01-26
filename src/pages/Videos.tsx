@@ -131,6 +131,8 @@ const Videos: React.FC = () => {
     name: video.file_name,
     filename: video.file_name,
     url: video.file_url,
+    filePath: video.file_path,
+    bucket: video.bucket_name,
     uploadDate: video.created_at,
     size: formatFileSize(video.file_size),
     propertyId: parseInt(video.property_id) || 0,
