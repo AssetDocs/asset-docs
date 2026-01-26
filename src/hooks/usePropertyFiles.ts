@@ -112,6 +112,13 @@ export const usePropertyFiles = (propertyId: string | null, fileType?: 'photo' |
       // Upload files to storage
       for (const file of filesToUpload) {
         try {
+          console.log('[usePropertyFiles] Starting upload for:', file.name, {
+            bucket,
+            propertyId,
+            userId: user.id,
+            fileSize: file.size,
+          });
+
           const result = await StorageService.uploadFileWithValidation(
             file,
             bucket,
@@ -120,26 +127,43 @@ export const usePropertyFiles = (propertyId: string | null, fileType?: 'photo' |
             `${propertyId}/${Date.now()}-${file.name}`
           );
 
-          // Add to property_files table
-          const propertyFile = await PropertyService.addPropertyFile({
-            property_id: propertyId,
-            file_type: fileType || 'document',
-            file_name: file.name,
-            file_path: result.path,
-            file_url: result.url,
-            file_size: file.size,
-            bucket_name: bucket,
-            folder_id: folderId || null,
+          console.log('[usePropertyFiles] Storage upload complete:', {
+            path: result.path,
+            url: result.url?.substring(0, 50) + '...',
           });
 
-          if (propertyFile) {
-            uploadedFiles.push(propertyFile);
+          // Add to property_files table
+          try {
+            const propertyFile = await PropertyService.addPropertyFile({
+              property_id: propertyId,
+              file_type: fileType || 'document',
+              file_name: file.name,
+              file_path: result.path,
+              file_url: result.url,
+              file_size: file.size,
+              bucket_name: bucket,
+              folder_id: folderId || null,
+            });
+
+            if (propertyFile) {
+              console.log('[usePropertyFiles] Database record created:', propertyFile.id);
+              uploadedFiles.push(propertyFile);
+            } else {
+              console.error('[usePropertyFiles] Database record creation returned null');
+            }
+          } catch (dbError) {
+            console.error('[usePropertyFiles] Database insert failed:', dbError);
+            toast({
+              title: 'Database Error',
+              description: `File uploaded to storage but failed to save record: ${dbError instanceof Error ? dbError.message : 'Unknown error'}`,
+              variant: 'destructive',
+            });
           }
         } catch (error) {
-          console.error(`Error uploading ${file.name}:`, error);
+          console.error(`[usePropertyFiles] Error uploading ${file.name}:`, error);
           toast({
             title: 'Upload Failed',
-            description: `Failed to upload ${file.name}`,
+            description: `Failed to upload ${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`,
             variant: 'destructive',
           });
         }

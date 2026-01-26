@@ -107,7 +107,18 @@ export class PropertyService {
   static async addPropertyFile(fileData: Omit<PropertyFile, 'id' | 'created_at' | 'user_id'>): Promise<PropertyFile | null> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
+      if (!user) {
+        console.error('[PropertyService] addPropertyFile: User not authenticated');
+        throw new Error('User not authenticated');
+      }
+
+      console.log('[PropertyService] addPropertyFile: Inserting file record', {
+        property_id: fileData.property_id,
+        file_name: fileData.file_name,
+        file_type: fileData.file_type,
+        bucket_name: fileData.bucket_name,
+        user_id: user.id,
+      });
 
       const { data, error } = await supabase
         .from('property_files')
@@ -118,11 +129,22 @@ export class PropertyService {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('[PropertyService] addPropertyFile: Database insert failed', {
+          error: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+        });
+        throw error;
+      }
+      
+      console.log('[PropertyService] addPropertyFile: Success', { id: data?.id });
       return data as PropertyFile | null;
     } catch (error) {
-      console.error('Error adding property file:', error);
-      return null;
+      console.error('[PropertyService] addPropertyFile: Exception caught', error);
+      // Re-throw so caller can handle it
+      throw error;
     }
   }
 
