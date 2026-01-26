@@ -200,7 +200,7 @@ const WelcomeMessage: React.FC = () => {
             </Link>
           </Button>
           <Button asChild variant="outline" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 border-yellow-400">
-            <Link to="/properties">
+            <Link to="/account/properties">
               <Home className="mr-2 h-4 w-4" />
               Property Profiles
             </Link>
