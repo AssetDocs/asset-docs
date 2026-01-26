@@ -64,10 +64,8 @@ const edgeFunctions = [
   { name: 'send-payment-reminder', category: 'Payments', purpose: 'Failed payment reminder', status: 'active', verifyJwt: false },
   { name: 'check-payment-failures', category: 'Payments', purpose: 'Cron: Check for failed payments', status: 'active', verifyJwt: false },
 
-  // Trial Management
-  { name: 'send-trial-reminder', category: 'Trials', purpose: 'Trial expiration reminders', status: 'active', verifyJwt: false },
-  { name: 'check-trial-reminders', category: 'Trials', purpose: 'Cron: Process trial reminders', status: 'active', verifyJwt: false },
-  { name: 'check-grace-period-expiry', category: 'Trials', purpose: 'Grace period expiration check', status: 'active', verifyJwt: false },
+  // Legacy Locker Recovery
+  { name: 'check-grace-period-expiry', category: 'Recovery', purpose: 'Legacy Locker grace period check', status: 'active', verifyJwt: false },
 
   // Contributors & Delegates
   { name: 'send-contributor-invitation', category: 'Contributors', purpose: 'Invite contributors to account', status: 'active', verifyJwt: true },
@@ -160,7 +158,7 @@ const emailTypes = [
   { type: 'Welcome Email', function: 'send-welcome-email', status: 'active', template: 'Resend' },
   { type: 'Subscription Welcome', function: 'send-subscription-welcome-email', status: 'active', template: 'Resend' },
   { type: 'Payment Receipt', function: 'send-payment-receipt', status: 'active', template: 'React Email' },
-  { type: 'Trial Reminder', function: 'send-trial-reminder', status: 'active', template: 'Resend' },
+  
   { type: 'Gift Notification', function: 'send-gift-email', status: 'active', template: 'Resend' },
   { type: 'Contributor Invite', function: 'send-contributor-invitation', status: 'active', template: 'Resend' },
   { type: 'Delegate Access', function: 'send-delegate-access-email', status: 'active', template: 'Resend' },
