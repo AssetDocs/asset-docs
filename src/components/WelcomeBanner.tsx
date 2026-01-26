@@ -5,7 +5,7 @@ import { Settings, Home } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from '@/hooks/use-mobile';
-import VerifiedBadge from '@/components/VerifiedBadge';
+import UserStatusBadge from '@/components/UserStatusBadge';
 import { useVerification } from '@/hooks/useVerification';
 
 const WelcomeBanner: React.FC = () => {
@@ -123,10 +123,11 @@ const WelcomeBanner: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <h1 className="text-2xl font-bold flex items-center gap-2">
             Welcome, {getDisplayName()}!
-            <VerifiedBadge 
-              isVerified={verificationStatus?.is_verified ?? false} 
-              isVerifiedPlus={verificationStatus?.is_verified_plus ?? false}
-              size="md" 
+            <UserStatusBadge 
+              status={verificationStatus?.is_verified_plus ? 'Verified+' : verificationStatus?.is_verified ? 'Verified' : 'User'} 
+              size="sm"
+              showLabel={false}
+              className="bg-white/20 border-white/30"
             />
           </h1>
           {accountNumber && (
