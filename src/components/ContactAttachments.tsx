@@ -116,10 +116,14 @@ const ContactAttachments: React.FC<ContactAttachmentsProps> = ({
 
         if (uploadError) throw uploadError;
 
-        // Get public URL
-        const { data: urlData } = supabase.storage
+        // Get signed URL for private bucket
+        const { data: signedData, error: signedError } = await supabase.storage
           .from('contact-attachments')
-          .getPublicUrl(filePath);
+          .createSignedUrl(filePath, 86400); // 24 hour expiry
+
+        if (signedError) {
+          console.error('Error creating signed URL:', signedError);
+        }
 
         // Save to database
         const { error: dbError } = await supabase
@@ -129,7 +133,7 @@ const ContactAttachments: React.FC<ContactAttachmentsProps> = ({
             user_id: userId,
             file_name: file.name,
             file_path: filePath,
-            file_url: urlData.publicUrl,
+            file_url: signedData?.signedUrl || filePath, // Use signed URL or fallback to path
             file_type: file.type,
             file_size: file.size,
             attachment_type: attachmentType,
@@ -233,10 +237,14 @@ const ContactAttachments: React.FC<ContactAttachmentsProps> = ({
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
+      // Get signed URL for private bucket
+      const { data: signedData, error: signedError } = await supabase.storage
         .from('contact-attachments')
-        .getPublicUrl(filePath);
+        .createSignedUrl(filePath, 86400); // 24 hour expiry
+
+      if (signedError) {
+        console.error('Error creating signed URL:', signedError);
+      }
 
       // Save to database
       const { error: dbError } = await supabase
@@ -246,7 +254,7 @@ const ContactAttachments: React.FC<ContactAttachmentsProps> = ({
           user_id: userId,
           file_name: fileName,
           file_path: filePath,
-          file_url: urlData.publicUrl,
+          file_url: signedData?.signedUrl || filePath, // Use signed URL or fallback to path
           file_type: 'audio/webm',
           file_size: audioBlob.size,
           attachment_type: 'voice_note',
