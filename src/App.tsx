@@ -116,6 +116,7 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
   const { isAuthenticated, loading, user } = useAuth();
   const [checkingSubscription, setCheckingSubscription] = useState(!skipSubscriptionCheck);
   const [hasSubscription, setHasSubscription] = useState(false);
+  const [allowFreeAccess, setAllowFreeAccess] = useState(false);
 
   useEffect(() => {
     const checkSubscription = async (retryCount = 0) => {
@@ -139,9 +140,17 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
 
         const { data } = await supabase.functions.invoke('check-subscription');
         
-        // Check if user has active subscription (not trial - trial is no longer supported)
-        if (data?.subscribed) {
+        // Check if user has active subscription OR free tier access
+        if (data?.subscribed || data?.subscription_tier === 'free') {
           setHasSubscription(true);
+          setCheckingSubscription(false);
+          return;
+        }
+        
+        // Allow free tier access for users without paid subscription
+        // This includes ASL2025 lifetime code users and new signups
+        if (data && !data.subscribed) {
+          setAllowFreeAccess(true);
           setCheckingSubscription(false);
           return;
         }
@@ -219,7 +228,7 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
   }
 
   // Check if user has subscription (unless skipping the check)
-  if (!skipSubscriptionCheck && !hasSubscription) {
+  if (!skipSubscriptionCheck && !hasSubscription && !allowFreeAccess) {
     return <Navigate to="/pricing" replace />;
   }
   
