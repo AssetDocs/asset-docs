@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Camera, Shield, Share2, Database } from 'lucide-react';
+import { Camera, Shield, Share2, Database, Check, Lock, Image } from 'lucide-react';
 
 const DocumentProtectSection: React.FC = () => {
   const steps = [
@@ -10,20 +10,20 @@ const DocumentProtectSection: React.FC = () => {
     { number: 3, title: 'Protect', description: 'Access your records anytime for claims, planning, or property sales.', icon: <Shield className="w-8 h-8" /> },
   ];
 
-  const tools = [
+  const features = [
     {
-      icon: <Camera className="w-8 h-8" />,
-      title: 'Smart Asset Documentation',
+      icon: <Image className="w-5 h-5" />,
+      title: 'Photo, video, and document storage',
       description: 'Capture detailed images, videos, and inventory of your property with easy-to-use tools.',
     },
     {
-      icon: <Shield className="w-8 h-8" />,
-      title: 'Secure Digital Vault',
+      icon: <Lock className="w-5 h-5" />,
+      title: 'Legacy Locker & Secure Vault',
       description: 'Enterprise-grade encryption keeps your documentation safe and accessible only to you.',
     },
     {
-      icon: <Share2 className="w-8 h-8" />,
-      title: 'Preparedness & Sharing Controls',
+      icon: <Share2 className="w-5 h-5" />,
+      title: 'Trusted Sharing Controls',
       description: 'Share access with trusted contacts and be ready for insurance claims or estate planning.',
     },
   ];
@@ -55,22 +55,27 @@ const DocumentProtectSection: React.FC = () => {
             ))}
           </div>
           
-          {/* Right: 3 Core Tools */}
-          <div className="space-y-6">
-            {tools.map((tool, index) => (
-              <div
-                key={index}
-                className="flex items-start gap-4 p-6 bg-card rounded-lg border border-border shadow-sm hover:shadow-md transition-shadow"
-              >
-                <div className="flex-shrink-0 w-14 h-14 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-                  {tool.icon}
+          {/* Right: Quick Proof Strip */}
+          <div className="bg-card rounded-lg border border-border shadow-sm p-6">
+            <h3 className="text-lg font-semibold text-foreground mb-6">What You Get</h3>
+            <div className="space-y-4">
+              {features.map((feature, index) => (
+                <div key={index} className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center mt-0.5">
+                    <Check className="w-4 h-4" />
+                  </div>
+                  <div className="flex items-start gap-3 flex-1">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                      {feature.icon}
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-foreground">{feature.title}</h4>
+                      <p className="text-sm text-muted-foreground">{feature.description}</p>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-foreground mb-1">{tool.title}</h3>
-                  <p className="text-muted-foreground">{tool.description}</p>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
         
