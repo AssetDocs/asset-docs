@@ -38,13 +38,13 @@ const DocumentProtectSection: React.FC = () => {
   return (
     <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
-        <h2 className="section-title mb-10">Everything You Need to Document and Protect</h2>
+        <h2 className="section-title mb-10">Most people don't realize how unprepared they are—until it's too late.</h2>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
           {/* Left: 3-Step Process in Single Box */}
-          <div className="bg-card rounded-lg border border-border shadow-sm p-6 flex flex-col">
+          <div className="bg-card rounded-lg border border-border shadow-sm p-6">
             <h3 className="text-lg font-semibold text-foreground mb-6">How It Works</h3>
-            <div className="space-y-4 flex-1">
+            <div className="space-y-4">
               {steps.map((step, index) => (
                 <div key={index} className="flex items-start gap-4">
                   <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold text-sm">
@@ -57,44 +57,39 @@ const DocumentProtectSection: React.FC = () => {
                 </div>
               ))}
             </div>
-            <div className="mt-6 pt-4 border-t border-border">
-              <p className="text-xs text-muted-foreground text-center">
-                Built for: Homeowners • Renters • Families • Property owners • Small businesses
-              </p>
-            </div>
           </div>
           
           {/* Right: Features in Single Box */}
-          <div className="bg-card rounded-lg border border-border shadow-sm p-6 flex flex-col">
+          <div className="bg-card rounded-lg border border-border shadow-sm p-6">
             <h3 className="text-lg font-semibold text-foreground mb-6">What You Get</h3>
-            <div className="space-y-4 flex-1">
+            <div className="space-y-4">
               {features.map((feature, index) => (
-                <div key={index} className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center mt-0.5">
-                    <Check className="w-4 h-4" />
+                <div key={index} className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                    {feature.icon}
                   </div>
-                  <div className="flex items-start gap-3 flex-1">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-                      {feature.icon}
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-foreground">{feature.title}</h4>
-                      <p className="text-sm text-muted-foreground">{feature.description}</p>
-                    </div>
+                  <div>
+                    <h4 className="font-medium text-foreground">{feature.title}</h4>
+                    <p className="text-sm text-muted-foreground">{feature.description}</p>
                   </div>
                 </div>
               ))}
             </div>
-            <div className="mt-6 pt-4 border-t border-border">
-              <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
-                {securityBadges.map((badge, index) => (
-                  <div key={index} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <span className="text-primary">{badge.icon}</span>
-                    <span>{badge.label}</span>
-                  </div>
-                ))}
+          </div>
+        </div>
+
+        {/* Metadata below boxes */}
+        <div className="max-w-5xl mx-auto mt-8 text-center space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Built for: Homeowners • Renters • Families • Property owners • Small businesses
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+            {securityBadges.map((badge, index) => (
+              <div key={index} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <span className="text-primary">{badge.icon}</span>
+                <span>{badge.label}</span>
               </div>
-            </div>
+            ))}
           </div>
         </div>
 
