@@ -5,8 +5,44 @@ import SEOHead from '@/components/SEOHead';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Camera, Shield, Lock, FileImage, BarChart, Clock, Home, Building, Briefcase, Scale, Truck, Users, TrendingUp, Heart, Handshake, MapPin, Smartphone, Cloud, Share2, FileText, DollarSign, UserCheck, Globe, Calculator, ClipboardList, ShieldCheck, Timer, Archive, Download, GraduationCap, Car, Plane, Anchor, Factory, Stethoscope, HardHat, Church, Palette, Hammer, Trash2, Scan, Upload, CheckCircle, AlertTriangle, KeyRound, UserPlus } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Camera, Shield, Lock, FileImage, BarChart, Clock, Home, Building, Briefcase, Scale, Truck, Users, TrendingUp, Heart, Handshake, MapPin, Smartphone, Cloud, Share2, FileText, DollarSign, UserCheck, Globe, Calculator, ClipboardList, ShieldCheck, Timer, Archive, Download, GraduationCap, Car, Plane, Anchor, Factory, Stethoscope, HardHat, Church, Palette, Hammer, Trash2, Scan, Upload, CheckCircle, AlertTriangle, KeyRound, UserPlus, ChevronDown } from 'lucide-react';
 import { breadcrumbSchema } from '@/utils/structuredData';
+
+// Feature card component for reuse
+const FeatureCard = ({ icon: Icon, title, description, customIcon }: { 
+  icon?: React.ElementType; 
+  title: string; 
+  description: string;
+  customIcon?: React.ReactNode;
+}) => (
+  <div className="bg-white p-6 rounded-lg shadow">
+    {customIcon ? customIcon : Icon && <Icon className="h-8 w-8 text-brand-blue mb-3" />}
+    <h3 className="text-xl font-semibold mb-2">{title}</h3>
+    <p className="text-gray-600">{description}</p>
+  </div>
+);
+
+// Collapsible category component
+const FeatureCategory = ({ title, children, defaultOpen = false }: { 
+  title: string; 
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+}) => {
+  const [isOpen, setIsOpen] = React.useState(defaultOpen);
+  
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="mb-4">
+      <CollapsibleTrigger className="w-full flex items-center justify-between p-4 bg-white rounded-lg shadow hover:bg-gray-50 transition-colors">
+        <h3 className="text-xl font-semibold text-brand-blue">{title}</h3>
+        <ChevronDown className={`h-5 w-5 text-brand-blue transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+      </CollapsibleTrigger>
+      <CollapsibleContent className="pt-4">
+        {children}
+      </CollapsibleContent>
+    </Collapsible>
+  );
+};
 
 const Features: React.FC = () => {
   const breadcrumbs = breadcrumbSchema([
@@ -62,112 +98,81 @@ const Features: React.FC = () => {
                 </p>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Camera className="h-8 w-8 text-brand-blue" />
-                    <Trash2 className="h-8 w-8 text-brand-blue" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">Property Documentation</h3>
-                  <p className="text-gray-600">Complete visual inventory of your home, improvements, and possessions for insurance and resale value.</p>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <TrendingUp className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Asset Valuation</h3>
-                  <p className="text-gray-600">Document home improvements and upgrades to maximize property value when selling.</p>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <Heart className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Estate Planning</h3>
-                  <p className="text-gray-600">Detailed asset records for inheritance planning and family legacy protection.</p>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <Handshake className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Divorce Protection</h3>
-                  <p className="text-gray-600">Comprehensive asset documentation for fair property division during separation.</p>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <Truck className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Moving Protection</h3>
-                  <p className="text-gray-600">Pre-move documentation to protect against damage claims during relocation.</p>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <Shield className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Insurance Claims</h3>
-                  <p className="text-gray-600">Streamlined claims process with pre-documented proof of ownership and condition.</p>
-                </div>
-
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <span className="h-8 w-8 bg-brand-blue text-white rounded-lg flex items-center justify-center text-sm font-bold mb-3">♪</span>
-                  <h3 className="text-xl font-semibold mb-2">Voice Notes</h3>
-                  <p className="text-gray-600">Add voice recordings to capture sentimental value, historical significance, and important details that photos can't convey.</p>
-                </div>
-
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <AlertTriangle className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Post Damage Documentation</h3>
-                  <p className="text-gray-600">Comprehensive damage recording with photos, videos, and detailed reports for insurance claims.</p>
-                </div>
-
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <Archive className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Assets</h3>
-                  <p className="text-gray-600">Comprehensive asset tracking with photos, receipts, and valuations for complete property and personal inventory management.</p>
-                </div>
-
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <FileText className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Export Assets</h3>
-                  <p className="text-gray-600">Export your complete asset inventory to CSV, PDF, or other formats for insurance, legal, or personal use.</p>
-                </div>
-
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <Download className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Download All Files</h3>
-                  <p className="text-gray-600">Bulk download all your photos, videos, documents, and files for backup or external storage purposes.</p>
-                </div>
-
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <KeyRound className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Password and Accounts Catalog</h3>
-                  <p className="text-gray-600">Securely store website passwords and financial account information in one encrypted location. Never forget credentials again with end-to-end encryption protecting your sensitive data.</p>
-                </div>
-
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <UserPlus className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Authorized Users</h3>
-                  <p className="text-gray-600">Invite others to collaborate on your property documentation. Assign specific permission levels—Administrator, Contributor, or Viewer access.</p>
-                </div>
-              </div>
-
-              {/* Legacy Locker - Full Width Section */}
-              <div className="mt-8 bg-white p-8 rounded-lg shadow-lg border-2 border-brand-blue">
-                <div className="flex items-start gap-4">
-                  <Shield className="h-10 w-10 text-brand-blue flex-shrink-0" />
-                  <div className="flex-1">
-                    <h3 className="text-2xl font-semibold mb-4">Legacy Locker</h3>
-                    <div className="grid md:grid-cols-3 gap-6">
-                      <div>
-                        <h4 className="font-semibold text-gray-800 mb-2">What It Is</h4>
-                        <p className="text-gray-600">A secure, encrypted vault inside Asset Safe where you can store the most important details your loved ones will need—photos, videos, account access, personal notes, and instructions that clarify your wishes. It's a modern way to organize the information that often gets lost, forgotten, or overlooked.</p>
+              {/* Property & Assets */}
+              <FeatureCategory title="Property & Assets" defaultOpen={true}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <FeatureCard 
+                    icon={Camera} 
+                    title="Property Documentation" 
+                    description="Complete visual inventory of your home, improvements, and possessions for insurance and resale value."
+                    customIcon={
+                      <div className="flex items-center gap-2 mb-3">
+                        <Camera className="h-8 w-8 text-brand-blue" />
+                        <Trash2 className="h-8 w-8 text-brand-blue" />
                       </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-800 mb-2">What It's Not</h4>
-                        <p className="text-gray-600">Legacy Locker is not a legally recognized will or electronic will. It does not replace formal estate-planning documents, notarized paperwork, or attorney guidance. Instead, it serves as a companion resource that supports and enhances them.</p>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-800 mb-2">Why It Matters for Homeowners</h4>
-                        <p className="text-gray-600">Legacy Locker gives peace of mind by ensuring your family or trusted contacts can easily access essential information about your home, your assets, and your digital life. It reduces confusion, speeds up decisions during emergencies or transitions, and preserves the story behind your belongings. It's a simple, powerful way to protect your legacy—and the people who depend on it.</p>
+                    }
+                  />
+                  <FeatureCard icon={TrendingUp} title="Asset Valuation" description="Document home improvements and upgrades to maximize property value when selling." />
+                  <FeatureCard icon={Archive} title="Assets" description="Comprehensive asset tracking with photos, receipts, and valuations for complete property and personal inventory management." />
+                  <FeatureCard icon={FileText} title="Export Assets" description="Export your complete asset inventory to CSV, PDF, or other formats for insurance, legal, or personal use." />
+                  <FeatureCard icon={Download} title="Download All Files" description="Bulk download all your photos, videos, documents, and files for backup or external storage purposes." />
+                </div>
+              </FeatureCategory>
+
+              {/* Protection & Insurance */}
+              <FeatureCategory title="Protection & Insurance">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <FeatureCard icon={Shield} title="Insurance Claims" description="Streamlined claims process with pre-documented proof of ownership and condition." />
+                  <FeatureCard icon={AlertTriangle} title="Post Damage Documentation" description="Comprehensive damage recording with photos, videos, and detailed reports for insurance claims." />
+                  <FeatureCard icon={Truck} title="Moving Protection" description="Pre-move documentation to protect against damage claims during relocation." />
+                </div>
+              </FeatureCategory>
+
+              {/* Life Events */}
+              <FeatureCategory title="Life Events">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <FeatureCard icon={Heart} title="Estate Planning" description="Detailed asset records for inheritance planning and family legacy protection." />
+                  <FeatureCard icon={Handshake} title="Divorce Protection" description="Comprehensive asset documentation for fair property division during separation." />
+                </div>
+              </FeatureCategory>
+
+              {/* Security & Access */}
+              <FeatureCategory title="Security & Access">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <FeatureCard icon={KeyRound} title="Password and Accounts Catalog" description="Securely store website passwords and financial account information in one encrypted location. Never forget credentials again with end-to-end encryption protecting your sensitive data." />
+                  <FeatureCard icon={UserPlus} title="Authorized Users" description="Invite others to collaborate on your property documentation. Assign specific permission levels—Administrator, Contributor, or Viewer access." />
+                  <FeatureCard 
+                    title="Voice Notes" 
+                    description="Add voice recordings to capture sentimental value, historical significance, and important details that photos can't convey."
+                    customIcon={<span className="h-8 w-8 bg-brand-blue text-white rounded-lg flex items-center justify-center text-sm font-bold mb-3">♪</span>}
+                  />
+                </div>
+              </FeatureCategory>
+
+              {/* Legacy Locker */}
+              <FeatureCategory title="Legacy Locker">
+                <div className="bg-white p-8 rounded-lg shadow-lg border-2 border-brand-blue">
+                  <div className="flex items-start gap-4">
+                    <Shield className="h-10 w-10 text-brand-blue flex-shrink-0" />
+                    <div className="flex-1">
+                      <div className="grid md:grid-cols-3 gap-6">
+                        <div>
+                          <h4 className="font-semibold text-gray-800 mb-2">What It Is</h4>
+                          <p className="text-gray-600">A secure, encrypted vault inside Asset Safe where you can store the most important details your loved ones will need—photos, videos, account access, personal notes, and instructions that clarify your wishes. It's a modern way to organize the information that often gets lost, forgotten, or overlooked.</p>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-800 mb-2">What It's Not</h4>
+                          <p className="text-gray-600">Legacy Locker is not a legally recognized will or electronic will. It does not replace formal estate-planning documents, notarized paperwork, or attorney guidance. Instead, it serves as a companion resource that supports and enhances them.</p>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-800 mb-2">Why It Matters for Homeowners</h4>
+                          <p className="text-gray-600">Legacy Locker gives peace of mind by ensuring your family or trusted contacts can easily access essential information about your home, your assets, and your digital life. It reduces confusion, speeds up decisions during emergencies or transitions, and preserves the story behind your belongings.</p>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              </FeatureCategory>
             </TabsContent>
             
             {/* Renters Tab */}
@@ -179,85 +184,46 @@ const Features: React.FC = () => {
                 </p>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <FileText className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Move-In Documentation</h3>
-                  <p className="text-gray-600">Document property condition at move-in to protect your security deposit.</p>
+              {/* Rental Documentation */}
+              <FeatureCategory title="Rental Documentation" defaultOpen={true}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <FeatureCard icon={FileText} title="Move-In Documentation" description="Document property condition at move-in to protect your security deposit." />
+                  <FeatureCard icon={DollarSign} title="Deposit Recovery" description="Photo evidence to dispute unfair deposit deductions and property damage claims." />
+                  <FeatureCard icon={UserCheck} title="Tenant Rights Protection" description="Document maintenance issues and landlord responsibilities for legal protection." />
+                  <FeatureCard icon={Truck} title="Moving Documentation" description="Pre-move inventory to claim damages from moving companies or landlords." />
                 </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <Archive className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Personal Property Inventory</h3>
-                  <p className="text-gray-600">Complete inventory of belongings for renter's insurance claims and moving protection.</p>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <DollarSign className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Deposit Recovery</h3>
-                  <p className="text-gray-600">Photo evidence to dispute unfair deposit deductions and property damage claims.</p>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <UserCheck className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Tenant Rights Protection</h3>
-                  <p className="text-gray-600">Document maintenance issues and landlord responsibilities for legal protection.</p>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <Truck className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Moving Documentation</h3>
-                  <p className="text-gray-600">Pre-move inventory to claim damages from moving companies or landlords.</p>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <Shield className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Insurance Support</h3>
-                  <p className="text-gray-600">Detailed records for renter's insurance claims and coverage verification.</p>
-                </div>
+              </FeatureCategory>
 
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <span className="h-8 w-8 bg-brand-blue text-white rounded-lg flex items-center justify-center text-sm font-bold mb-3">♪</span>
-                  <h3 className="text-xl font-semibold mb-2">Voice Notes</h3>
-                  <p className="text-gray-600">Record important details about personal belongings, their history, and emotional significance for comprehensive documentation.</p>
+              {/* Personal Property */}
+              <FeatureCategory title="Personal Property">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <FeatureCard icon={Archive} title="Personal Property Inventory" description="Complete inventory of belongings for renter's insurance claims and moving protection." />
+                  <FeatureCard icon={Archive} title="Assets" description="Document your personal belongings and valuable items with comprehensive asset tracking for rental insurance and protection." />
+                  <FeatureCard icon={FileText} title="Export Assets" description="Export your personal property inventory for insurance claims, legal documentation, or moving purposes." />
+                  <FeatureCard icon={Download} title="Download All Files" description="Download all your documentation and files for personal backup or sharing with landlords, insurance, or legal representatives." />
                 </div>
+              </FeatureCategory>
 
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <AlertTriangle className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Post Damage Documentation</h3>
-                  <p className="text-gray-600">Document rental property damage with detailed reports to protect your security deposit and personal property.</p>
+              {/* Protection & Insurance */}
+              <FeatureCategory title="Protection & Insurance">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <FeatureCard icon={Shield} title="Insurance Support" description="Detailed records for renter's insurance claims and coverage verification." />
+                  <FeatureCard icon={AlertTriangle} title="Post Damage Documentation" description="Document rental property damage with detailed reports to protect your security deposit and personal property." />
                 </div>
+              </FeatureCategory>
 
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <Archive className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Assets</h3>
-                  <p className="text-gray-600">Document your personal belongings and valuable items with comprehensive asset tracking for rental insurance and protection.</p>
+              {/* Security & Access */}
+              <FeatureCategory title="Security & Access">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <FeatureCard icon={KeyRound} title="Password and Accounts Catalog" description="Securely store website passwords and financial account information in one encrypted location. Never forget credentials again with end-to-end encryption protecting your sensitive data." />
+                  <FeatureCard icon={UserPlus} title="Authorized Users" description="Invite others to collaborate on your property documentation. Assign specific permission levels—Administrator, Contributor, or Viewer access." />
+                  <FeatureCard 
+                    title="Voice Notes" 
+                    description="Record important details about personal belongings, their history, and emotional significance for comprehensive documentation."
+                    customIcon={<span className="h-8 w-8 bg-brand-blue text-white rounded-lg flex items-center justify-center text-sm font-bold mb-3">♪</span>}
+                  />
                 </div>
-
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <FileText className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Export Assets</h3>
-                  <p className="text-gray-600">Export your personal property inventory for insurance claims, legal documentation, or moving purposes.</p>
-                </div>
-
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <Download className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Download All Files</h3>
-                  <p className="text-gray-600">Download all your documentation and files for personal backup or sharing with landlords, insurance, or legal representatives.</p>
-                </div>
-
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <KeyRound className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Password and Accounts Catalog</h3>
-                  <p className="text-gray-600">Securely store website passwords and financial account information in one encrypted location. Never forget credentials again with end-to-end encryption protecting your sensitive data.</p>
-                </div>
-
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <UserPlus className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Authorized Users</h3>
-                  <p className="text-gray-600">Invite others to collaborate on your property documentation. Assign specific permission levels—Administrator, Contributor, or Viewer access.</p>
-                </div>
-              </div>
+              </FeatureCategory>
             </TabsContent>
             
             {/* Business Tab */}
@@ -269,85 +235,46 @@ const Features: React.FC = () => {
                 </p>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <Building className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Commercial Property Documentation</h3>
-                  <p className="text-gray-600">Complete documentation of commercial spaces, equipment, and infrastructure.</p>
+              {/* Business Assets */}
+              <FeatureCategory title="Business Assets" defaultOpen={true}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <FeatureCard icon={Building} title="Commercial Property Documentation" description="Complete documentation of commercial spaces, equipment, and infrastructure." />
+                  <FeatureCard icon={Calculator} title="Value Authentication" description="Document business improvements and upgrades to maximize property value when selling or raising capital." />
+                  <FeatureCard icon={ClipboardList} title="Inventory Documentation" description="Comprehensive inventory documentation for equipment, supplies, and assets." />
+                  <FeatureCard icon={Archive} title="Assets" description="Complete business asset management including equipment, inventory, and infrastructure tracking for financing, compliance, and insurance purposes." />
                 </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <Calculator className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Value Authentication</h3>
-                  <p className="text-gray-600">Document business improvements and upgrades to maximize property value when selling or raising capital.</p>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <ClipboardList className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Inventory Documentation</h3>
-                  <p className="text-gray-600">Comprehensive inventory documentation for equipment, supplies, and assets.</p>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <ShieldCheck className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Compliance Documentation</h3>
-                  <p className="text-gray-600">Maintain records for regulatory compliance and audit requirements.</p>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <DollarSign className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Business Financing</h3>
-                  <p className="text-gray-600">Asset documentation for loan applications and investment opportunities.</p>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <Timer className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Disaster Recovery</h3>
-                  <p className="text-gray-600">Essential documentation for business continuity and insurance claims.</p>
-                </div>
+              </FeatureCategory>
 
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <span className="h-8 w-8 bg-brand-blue text-white rounded-lg flex items-center justify-center text-sm font-bold mb-3">♪</span>
-                  <h3 className="text-xl font-semibold mb-2">Voice Notes</h3>
-                  <p className="text-gray-600">Capture business asset history, operational details, and critical information that supplements visual documentation.</p>
+              {/* Compliance & Financing */}
+              <FeatureCategory title="Compliance & Financing">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <FeatureCard icon={ShieldCheck} title="Compliance Documentation" description="Maintain records for regulatory compliance and audit requirements." />
+                  <FeatureCard icon={DollarSign} title="Business Financing" description="Asset documentation for loan applications and investment opportunities." />
+                  <FeatureCard icon={FileText} title="Export Assets" description="Export business asset inventories for accounting, insurance, loan applications, and regulatory compliance reporting." />
+                  <FeatureCard icon={Download} title="Download All Files" description="Bulk download all business documentation for backup, compliance audits, or sharing with stakeholders and partners." />
                 </div>
+              </FeatureCategory>
 
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <AlertTriangle className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Post Damage Documentation</h3>
-                  <p className="text-gray-600">Professional damage documentation with comprehensive reports for business insurance and continuity planning.</p>
+              {/* Protection & Recovery */}
+              <FeatureCategory title="Protection & Recovery">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <FeatureCard icon={Timer} title="Disaster Recovery" description="Essential documentation for business continuity and insurance claims." />
+                  <FeatureCard icon={AlertTriangle} title="Post Damage Documentation" description="Professional damage documentation with comprehensive reports for business insurance and continuity planning." />
                 </div>
+              </FeatureCategory>
 
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <Archive className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Assets</h3>
-                  <p className="text-gray-600">Complete business asset management including equipment, inventory, and infrastructure tracking for financing, compliance, and insurance purposes.</p>
+              {/* Security & Access */}
+              <FeatureCategory title="Security & Access">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <FeatureCard icon={KeyRound} title="Password and Accounts Catalog" description="Securely store website passwords and financial account information in one encrypted location. Never forget credentials again with end-to-end encryption protecting your sensitive data." />
+                  <FeatureCard icon={UserPlus} title="Authorized Users" description="Invite others to collaborate on your property documentation. Assign specific permission levels—Administrator, Contributor, or Viewer access." />
+                  <FeatureCard 
+                    title="Voice Notes" 
+                    description="Capture business asset history, operational details, and critical information that supplements visual documentation."
+                    customIcon={<span className="h-8 w-8 bg-brand-blue text-white rounded-lg flex items-center justify-center text-sm font-bold mb-3">♪</span>}
+                  />
                 </div>
-
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <FileText className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Export Assets</h3>
-                  <p className="text-gray-600">Export business asset inventories for accounting, insurance, loan applications, and regulatory compliance reporting.</p>
-                </div>
-
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <Download className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Download All Files</h3>
-                  <p className="text-gray-600">Bulk download all business documentation for backup, compliance audits, or sharing with stakeholders and partners.</p>
-                </div>
-
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <KeyRound className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Password and Accounts Catalog</h3>
-                  <p className="text-gray-600">Securely store website passwords and financial account information in one encrypted location. Never forget credentials again with end-to-end encryption protecting your sensitive data.</p>
-                </div>
-
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <UserPlus className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Authorized Users</h3>
-                  <p className="text-gray-600">Invite others to collaborate on your property documentation. Assign specific permission levels—Administrator, Contributor, or Viewer access.</p>
-                </div>
-              </div>
+              </FeatureCategory>
             </TabsContent>
             
             {/* Landlords Tab */}
@@ -359,398 +286,318 @@ const Features: React.FC = () => {
                 </p>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <Home className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Multi-Property Management</h3>
-                  <p className="text-gray-600">Document unlimited rental properties with centralized management portal.</p>
+              {/* Property Management */}
+              <FeatureCategory title="Property Management" defaultOpen={true}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <FeatureCard icon={Home} title="Multi-Property Management" description="Document unlimited rental properties with centralized management portal." />
+                  <FeatureCard icon={FileText} title="Tenant Move-In/Out" description="Professional documentation to protect deposits and resolve disputes." />
+                  <FeatureCard icon={TrendingUp} title="Property Value Tracking" description="Document improvements and maintenance to maximize rental income and property value." />
+                  <FeatureCard icon={Users} title="Tenant Communication" description="Share property documentation and maintenance records with tenants securely." />
                 </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <FileText className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Tenant Move-In/Out</h3>
-                  <p className="text-gray-600">Professional documentation to protect deposits and resolve disputes.</p>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <Scale className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Legal Protection</h3>
-                  <p className="text-gray-600">Court-ready documentation for evictions and tenant disputes.</p>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <TrendingUp className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Property Value Tracking</h3>
-                  <p className="text-gray-600">Document improvements and maintenance to maximize rental income and property value.</p>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <Shield className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Insurance Claims</h3>
-                  <p className="text-gray-600">Streamlined claims process for property damage and liability issues.</p>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <Users className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Tenant Communication</h3>
-                  <p className="text-gray-600">Share property documentation and maintenance records with tenants securely.</p>
-                </div>
+              </FeatureCategory>
 
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <span className="h-8 w-8 bg-brand-blue text-white rounded-lg flex items-center justify-center text-sm font-bold mb-3">♪</span>
-                  <h3 className="text-xl font-semibold mb-2">Voice Notes</h3>
-                  <p className="text-gray-600">Record property maintenance history, tenant interactions, and important property details for comprehensive records.</p>
+              {/* Legal & Protection */}
+              <FeatureCategory title="Legal & Protection">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <FeatureCard icon={Scale} title="Legal Protection" description="Court-ready documentation for evictions and tenant disputes." />
+                  <FeatureCard icon={Shield} title="Insurance Claims" description="Streamlined claims process for property damage and liability issues." />
+                  <FeatureCard icon={AlertTriangle} title="Post Damage Documentation" description="Detailed damage tracking and reporting for property management, insurance claims, and tenant relations." />
                 </div>
+              </FeatureCategory>
 
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <AlertTriangle className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Post Damage Documentation</h3>
-                  <p className="text-gray-600">Detailed damage tracking and reporting for property management, insurance claims, and tenant relations.</p>
+              {/* Assets & Records */}
+              <FeatureCategory title="Assets & Records">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <FeatureCard icon={Archive} title="Assets" description="Multi-property asset management with comprehensive tracking of appliances, fixtures, and tenant belongings for effective property management." />
+                  <FeatureCard icon={FileText} title="Export Assets" description="Export property asset inventories for insurance, tax documentation, property sales, and tenant move-in/out reports." />
+                  <FeatureCard icon={Download} title="Download All Files" description="Download complete property documentation for backup, legal proceedings, or sharing with tenants and property management teams." />
                 </div>
+              </FeatureCategory>
 
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <Archive className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Assets</h3>
-                  <p className="text-gray-600">Multi-property asset management with comprehensive tracking of appliances, fixtures, and tenant belongings for effective property management.</p>
+              {/* Security & Access */}
+              <FeatureCategory title="Security & Access">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <FeatureCard icon={KeyRound} title="Password and Accounts Catalog" description="Securely store website passwords and financial account information in one encrypted location. Never forget credentials again with end-to-end encryption protecting your sensitive data." />
+                  <FeatureCard icon={UserPlus} title="Authorized Users" description="Invite others to collaborate on your property documentation. Assign specific permission levels—Administrator, Contributor, or Viewer access." />
+                  <FeatureCard 
+                    title="Voice Notes" 
+                    description="Record property maintenance history, tenant interactions, and important property details for comprehensive records."
+                    customIcon={<span className="h-8 w-8 bg-brand-blue text-white rounded-lg flex items-center justify-center text-sm font-bold mb-3">♪</span>}
+                  />
                 </div>
-
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <FileText className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Export Assets</h3>
-                  <p className="text-gray-600">Export property asset inventories for insurance, tax documentation, property sales, and tenant move-in/out reports.</p>
-                </div>
-
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <Download className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Download All Files</h3>
-                  <p className="text-gray-600">Download complete property documentation for backup, legal proceedings, or sharing with tenants and property management teams.</p>
-                </div>
-
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <KeyRound className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Password and Accounts Catalog</h3>
-                  <p className="text-gray-600">Securely store website passwords and financial account information in one encrypted location. Never forget credentials again with end-to-end encryption protecting your sensitive data.</p>
-                </div>
-
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <UserPlus className="h-8 w-8 text-brand-blue mb-3" />
-                  <h3 className="text-xl font-semibold mb-2">Authorized Users</h3>
-                  <p className="text-gray-600">Invite others to collaborate on your property documentation. Assign specific permission levels—Administrator, Contributor, or Viewer access.</p>
-                </div>
-              </div>
+              </FeatureCategory>
             </TabsContent>
           </Tabs>
         </div>
       </section>
       
       {/* Core Features Section */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center text-brand-blue mb-12">Core Platform Features</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white p-6 rounded-lg shadow border">
-              <Camera className="h-8 w-8 text-brand-blue mb-3" />
-              <h3 className="text-lg font-semibold mb-2">High-Resolution Photography</h3>
-              <p className="text-gray-600 text-sm">Upload high quality images straight from your mobile device with automatic organization.</p>
-            </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow border">
-              <Smartphone className="h-8 w-8 text-brand-blue mb-3" />
-              <h3 className="text-lg font-semibold mb-2">Mobile-Optimized Platform</h3>
-              <p className="text-gray-600 text-sm">Responsive web platform optimized for mobile devices and on-the-go documentation.</p>
-            </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow border">
-              <Cloud className="h-8 w-8 text-brand-blue mb-3" />
-              <h3 className="text-lg font-semibold mb-2">Secure Cloud Storage</h3>
-              <p className="text-gray-600 text-sm">Enterprise-grade security with automatic backups and redundancy.</p>
-            </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow border">
-              <Share2 className="h-8 w-8 text-brand-blue mb-3" />
-              <h3 className="text-lg font-semibold mb-2">Controlled Sharing</h3>
-              <p className="text-gray-600 text-sm">Share specific documents with insurance, legal, or family members.</p>
-            </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow border">
-              <BarChart className="h-8 w-8 text-brand-blue mb-3" />
-              <h3 className="text-lg font-semibold mb-2">Detailed Reports</h3>
-              <p className="text-gray-600 text-sm">Comprehensive reports for insurance, legal, and financial purposes.</p>
-            </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow border">
-              <MapPin className="h-8 w-8 text-brand-blue mb-3" />
-              <h3 className="text-lg font-semibold mb-2">Property Options</h3>
-              <p className="text-gray-600 text-sm">We offer 3 property profiles on our homeowner plan and unlimited property profiles on our professional plan.</p>
-            </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow border">
-              <Globe className="h-8 w-8 text-brand-blue mb-3" />
-              <h3 className="text-lg font-semibold mb-2">Online Client Portal</h3>
-              <p className="text-gray-600 text-sm">24/7 access to all documentation through secure web portal.</p>
-            </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow border">
-              <Download className="h-8 w-8 text-brand-blue mb-3" />
-              <h3 className="text-lg font-semibold mb-2">Export & Download</h3>
-              <p className="text-gray-600 text-sm">Download reports and documentation in multiple formats.</p>
+      <FeatureCategory title="Core Platform Features">
+        <section className="py-8">
+          <div className="container mx-auto px-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-white p-6 rounded-lg shadow border">
+                <Camera className="h-8 w-8 text-brand-blue mb-3" />
+                <h3 className="text-lg font-semibold mb-2">High-Resolution Photography</h3>
+                <p className="text-gray-600 text-sm">Upload high quality images straight from your mobile device with automatic organization.</p>
+              </div>
+              
+              <div className="bg-white p-6 rounded-lg shadow border">
+                <Smartphone className="h-8 w-8 text-brand-blue mb-3" />
+                <h3 className="text-lg font-semibold mb-2">Mobile-Optimized Platform</h3>
+                <p className="text-gray-600 text-sm">Responsive web platform optimized for mobile devices and on-the-go documentation.</p>
+              </div>
+              
+              <div className="bg-white p-6 rounded-lg shadow border">
+                <Cloud className="h-8 w-8 text-brand-blue mb-3" />
+                <h3 className="text-lg font-semibold mb-2">Secure Cloud Storage</h3>
+                <p className="text-gray-600 text-sm">Enterprise-grade security with automatic backups and redundancy.</p>
+              </div>
+              
+              <div className="bg-white p-6 rounded-lg shadow border">
+                <Share2 className="h-8 w-8 text-brand-blue mb-3" />
+                <h3 className="text-lg font-semibold mb-2">Controlled Sharing</h3>
+                <p className="text-gray-600 text-sm">Share specific documents with insurance, legal, or family members.</p>
+              </div>
+              
+              <div className="bg-white p-6 rounded-lg shadow border">
+                <BarChart className="h-8 w-8 text-brand-blue mb-3" />
+                <h3 className="text-lg font-semibold mb-2">Detailed Reports</h3>
+                <p className="text-gray-600 text-sm">Comprehensive reports for insurance, legal, and financial purposes.</p>
+              </div>
+              
+              <div className="bg-white p-6 rounded-lg shadow border">
+                <MapPin className="h-8 w-8 text-brand-blue mb-3" />
+                <h3 className="text-lg font-semibold mb-2">Property Options</h3>
+                <p className="text-gray-600 text-sm">We offer 3 property profiles on our homeowner plan and unlimited property profiles on our professional plan.</p>
+              </div>
+              
+              <div className="bg-white p-6 rounded-lg shadow border">
+                <Globe className="h-8 w-8 text-brand-blue mb-3" />
+                <h3 className="text-lg font-semibold mb-2">Online Client Portal</h3>
+                <p className="text-gray-600 text-sm">24/7 access to all documentation through secure web portal.</p>
+              </div>
+              
+              <div className="bg-white p-6 rounded-lg shadow border">
+                <Download className="h-8 w-8 text-brand-blue mb-3" />
+                <h3 className="text-lg font-semibold mb-2">Export & Download</h3>
+                <p className="text-gray-600 text-sm">Download reports and documentation in multiple formats.</p>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </FeatureCategory>
       
       {/* Industry Applications */}
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center text-brand-blue mb-12">Industry Applications</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="bg-white p-6 rounded-lg shadow">
-              <Scale className="h-8 w-8 text-brand-blue mb-3" />
-              <h3 className="text-xl font-semibold mb-2">Legal & Estate Planning</h3>
-              <p className="text-gray-600">Asset documentation for probate, inheritance, divorce proceedings, and legal disputes.</p>
-            </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow">
-              <Shield className="h-8 w-8 text-brand-blue mb-3" />
-              <h3 className="text-xl font-semibold mb-2">Insurance Industry</h3>
-              <p className="text-gray-600">Pre-loss documentation for faster claims processing and accurate settlements.</p>
-            </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow">
-              <Home className="h-8 w-8 text-brand-blue mb-3" />
-              <h3 className="text-xl font-semibold mb-2">Real Estate</h3>
-              <p className="text-gray-600">Property condition reports, improvement documentation, and value authentication.</p>
-            </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow">
-              <Truck className="h-8 w-8 text-brand-blue mb-3" />
-              <h3 className="text-xl font-semibold mb-2">Moving & Storage</h3>
-              <p className="text-gray-600">Pre-move documentation to protect against damage and loss during relocation.</p>
-            </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow">
-              <Building className="h-8 w-8 text-brand-blue mb-3" />
-              <h3 className="text-xl font-semibold mb-2">Property Management</h3>
-              <p className="text-gray-600">Comprehensive documentation for rental properties and tenant management.</p>
-            </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow">
-              <DollarSign className="h-8 w-8 text-brand-blue mb-3" />
-              <h3 className="text-xl font-semibold mb-2">Financial Services</h3>
-              <p className="text-gray-600">Asset verification for loans, mortgages, and investment opportunities.</p>
+      <FeatureCategory title="Industry Applications">
+        <section className="py-8 bg-gray-50">
+          <div className="container mx-auto px-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="bg-white p-6 rounded-lg shadow">
+                <Scale className="h-8 w-8 text-brand-blue mb-3" />
+                <h3 className="text-xl font-semibold mb-2">Legal & Estate Planning</h3>
+                <p className="text-gray-600">Asset documentation for probate, inheritance, divorce proceedings, and legal disputes.</p>
+              </div>
+              
+              <div className="bg-white p-6 rounded-lg shadow">
+                <Shield className="h-8 w-8 text-brand-blue mb-3" />
+                <h3 className="text-xl font-semibold mb-2">Insurance Industry</h3>
+                <p className="text-gray-600">Pre-loss documentation for faster claims processing and accurate settlements.</p>
+              </div>
+              
+              <div className="bg-white p-6 rounded-lg shadow">
+                <Home className="h-8 w-8 text-brand-blue mb-3" />
+                <h3 className="text-xl font-semibold mb-2">Real Estate</h3>
+                <p className="text-gray-600">Property condition reports, improvement documentation, and value authentication.</p>
+              </div>
+              
+              <div className="bg-white p-6 rounded-lg shadow">
+                <Truck className="h-8 w-8 text-brand-blue mb-3" />
+                <h3 className="text-xl font-semibold mb-2">Moving & Storage</h3>
+                <p className="text-gray-600">Pre-move documentation to protect against damage and loss during relocation.</p>
+              </div>
+              
+              <div className="bg-white p-6 rounded-lg shadow">
+                <Building className="h-8 w-8 text-brand-blue mb-3" />
+                <h3 className="text-xl font-semibold mb-2">Property Management</h3>
+                <p className="text-gray-600">Comprehensive documentation for rental properties and tenant management.</p>
+              </div>
+              
+              <div className="bg-white p-6 rounded-lg shadow">
+                <DollarSign className="h-8 w-8 text-brand-blue mb-3" />
+                <h3 className="text-xl font-semibold mb-2">Financial Services</h3>
+                <p className="text-gray-600">Asset verification for loans, mortgages, and investment opportunities.</p>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </FeatureCategory>
       
-      {/* Industries We Serve - New Section */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center text-brand-blue mb-4">Industries We Serve</h2>
-          <p className="text-center text-lg text-gray-600 max-w-4xl mx-auto mb-12">
-            Asset Safe provides specialized documentation solutions across diverse industries, helping protect valuable assets and streamline operations for professionals and organizations worldwide.
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Educational Institutions */}
-            <div className="bg-white p-6 rounded-lg shadow border">
-              <GraduationCap className="h-8 w-8 text-brand-blue mb-4" />
-              <h3 className="text-xl font-semibold mb-3 text-brand-blue">Educational Institutions</h3>
-              <p className="text-gray-700 mb-4">
-                Schools, universities, and training centers protect valuable educational assets, laboratory equipment, and technology infrastructure.
-              </p>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Computer labs and technology inventory</li>
-                <li>• Scientific equipment and instruments</li>
-                <li>• Library assets and rare collections</li>
-                <li>• Campus facility documentation</li>
-              </ul>
-            </div>
-
-            {/* Automotive Industry */}
-            <div className="bg-white p-6 rounded-lg shadow border">
-              <Car className="h-8 w-8 text-brand-blue mb-4" />
-              <h3 className="text-xl font-semibold mb-3 text-brand-blue">Automotive Industry</h3>
-              <p className="text-gray-700 mb-4">
-                Dealerships, repair shops, and fleet managers document vehicles, parts inventory, and specialized equipment for insurance and operational efficiency.
-              </p>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Vehicle inventory and condition reports</li>
-                <li>• Specialized automotive tools and equipment</li>
-                <li>• Parts inventory management</li>
-                <li>• Fleet asset tracking and documentation</li>
-              </ul>
-            </div>
-
-            {/* Aviation & Transportation */}
-            <div className="bg-white p-6 rounded-lg shadow border">
-              <Plane className="h-8 w-8 text-brand-blue mb-4" />
-              <h3 className="text-xl font-semibold mb-3 text-brand-blue">Aviation & Transportation</h3>
-              <p className="text-gray-700 mb-4">
-                Airlines, airports, and transportation companies maintain detailed records of aircraft, ground equipment, and safety-critical assets.
-              </p>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Aircraft and component documentation</li>
-                <li>• Ground support equipment tracking</li>
-                <li>• Maintenance facility assets</li>
-                <li>• Regulatory compliance documentation</li>
-              </ul>
-            </div>
-
-            {/* Marine & Maritime */}
-            <div className="bg-white p-6 rounded-lg shadow border">
-              <Anchor className="h-8 w-8 text-brand-blue mb-4" />
-              <h3 className="text-xl font-semibold mb-3 text-brand-blue">Marine & Maritime</h3>
-              <p className="text-gray-700 mb-4">
-                Marinas, boat dealers, and shipping companies document vessels, marine equipment, and port facilities for insurance and regulatory purposes.
-              </p>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Vessel condition and equipment documentation</li>
-                <li>• Marina and dock facility records</li>
-                <li>• Marine equipment and safety gear</li>
-                <li>• Charter and rental fleet management</li>
-              </ul>
-            </div>
-
-            {/* Manufacturing */}
-            <div className="bg-white p-6 rounded-lg shadow border">
-              <Factory className="h-8 w-8 text-brand-blue mb-4" />
-              <h3 className="text-xl font-semibold mb-3 text-brand-blue">Manufacturing</h3>
-              <p className="text-gray-700 mb-4">
-                Manufacturing facilities document production equipment, raw materials, and finished goods for operational efficiency and insurance coverage.
-              </p>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Production machinery and equipment</li>
-                <li>• Raw materials and inventory tracking</li>
-                <li>• Quality control equipment</li>
-                <li>• Facility infrastructure documentation</li>
-              </ul>
-            </div>
-
-            {/* Healthcare */}
-            <div className="bg-white p-6 rounded-lg shadow border">
-              <Stethoscope className="h-8 w-8 text-brand-blue mb-4" />
-              <h3 className="text-xl font-semibold mb-3 text-brand-blue">Healthcare</h3>
-              <p className="text-gray-700 mb-4">
-                Hospitals, clinics, and medical practices protect expensive medical equipment and maintain compliance with healthcare regulations.
-              </p>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Medical equipment and devices</li>
-                <li>• Pharmaceutical inventory</li>
-                <li>• Facility and infrastructure assets</li>
-                <li>• Compliance and audit documentation</li>
-              </ul>
-            </div>
-
-            {/* Construction */}
-            <div className="bg-white p-6 rounded-lg shadow border">
-              <HardHat className="h-8 w-8 text-brand-blue mb-4" />
-              <h3 className="text-xl font-semibold mb-3 text-brand-blue">Construction</h3>
-              <p className="text-gray-700 mb-4">
-                Construction companies document heavy equipment, tools, and materials across multiple job sites for theft protection and project management.
-              </p>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Heavy machinery and equipment</li>
-                <li>• Tools and material inventory</li>
-                <li>• Job site progress documentation</li>
-                <li>• Equipment maintenance records</li>
-              </ul>
-            </div>
-
-            {/* Religious Organizations */}
-            <div className="bg-white p-6 rounded-lg shadow border">
-              <Church className="h-8 w-8 text-brand-blue mb-4" />
-              <h3 className="text-xl font-semibold mb-3 text-brand-blue">Religious Organizations</h3>
-              <p className="text-gray-700 mb-4">
-                Churches, temples, and religious institutions protect sacred artifacts, musical instruments, and facility assets for preservation and insurance.
-              </p>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Sacred artifacts and religious items</li>
-                <li>• Musical instruments and sound equipment</li>
-                <li>• Facility and building documentation</li>
-                <li>• Historical preservation records</li>
-              </ul>
-            </div>
-
-            {/* Arts & Entertainment */}
-            <div className="bg-white p-6 rounded-lg shadow border">
-              <Palette className="h-8 w-8 text-brand-blue mb-4" />
-              <h3 className="text-xl font-semibold mb-3 text-brand-blue">Arts & Entertainment</h3>
-              <p className="text-gray-700 mb-4">
-                Museums, galleries, theaters, and entertainment venues document valuable collections, equipment, and performance assets.
-              </p>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Art collections and exhibitions</li>
-                <li>• Performance equipment and instruments</li>
-                <li>• Audio/visual technology</li>
-                <li>• Venue and facility documentation</li>
-              </ul>
-            </div>
-
-            {/* Skilled Trades */}
-            <div className="bg-white p-6 rounded-lg shadow border">
-              <Hammer className="h-8 w-8 text-brand-blue mb-4" />
-              <h3 className="text-xl font-semibold mb-3 text-brand-blue">Skilled Trades</h3>
-              <p className="text-gray-700 mb-4">
-                Electricians, plumbers, HVAC technicians, and other tradespeople protect expensive tools and equipment from theft and damage.
-              </p>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Specialized tools and equipment</li>
-                <li>• Vehicle and trailer inventory</li>
-                <li>• Material and supply documentation</li>
-                <li>• Job site equipment tracking</li>
-              </ul>
-            </div>
-
-            {/* Government & Public Sector */}
-            <div className="bg-white p-6 rounded-lg shadow border">
-              <Building className="h-8 w-8 text-brand-blue mb-4" />
-              <h3 className="text-xl font-semibold mb-3 text-brand-blue">Government & Public Sector</h3>
-              <p className="text-gray-700 mb-4">
-                Government agencies, municipalities, and public organizations maintain accountability and transparency through comprehensive asset documentation.
-              </p>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Public facility and infrastructure</li>
-                <li>• Vehicle fleet management</li>
-                <li>• Equipment and technology assets</li>
-                <li>• Compliance and audit requirements</li>
-              </ul>
-            </div>
-
-            {/* Non-Profit Organizations */}
-            <div className="bg-white p-6 rounded-lg shadow border">
-              <Heart className="h-8 w-8 text-brand-blue mb-4" />
-              <h3 className="text-xl font-semibold mb-3 text-brand-blue">Non-Profit Organizations</h3>
-              <p className="text-gray-700 mb-4">
-                Charities, foundations, and community organizations document donated assets and operational equipment for donor transparency and grant compliance.
-              </p>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Donated equipment and supplies</li>
-                <li>• Facility and program assets</li>
-                <li>• Grant compliance documentation</li>
-                <li>• Volunteer and community resources</li>
-              </ul>
+      {/* Industries We Serve */}
+      <FeatureCategory title="Industries We Serve">
+        <section className="py-8">
+          <div className="container mx-auto px-4">
+            <p className="text-center text-lg text-gray-600 max-w-4xl mx-auto mb-8">
+              Asset Safe provides specialized documentation solutions across diverse industries, helping protect valuable assets and streamline operations for professionals and organizations worldwide.
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {/* Educational Institutions */}
+              <div className="bg-white p-6 rounded-lg shadow border">
+                <GraduationCap className="h-8 w-8 text-brand-blue mb-4" />
+                <h3 className="text-xl font-semibold mb-3 text-brand-blue">Educational Institutions</h3>
+                <p className="text-gray-700 mb-4">
+                  Schools, universities, and training centers protect valuable educational assets, laboratory equipment, and technology infrastructure.
+                </p>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li>• Computer labs and technology inventory</li>
+                  <li>• Scientific equipment and instruments</li>
+                  <li>• Library collections and archives</li>
+                  <li>• Sports equipment and facilities</li>
+                </ul>
+              </div>
+              
+              {/* Automotive */}
+              <div className="bg-white p-6 rounded-lg shadow border">
+                <Car className="h-8 w-8 text-brand-blue mb-4" />
+                <h3 className="text-xl font-semibold mb-3 text-brand-blue">Automotive Industry</h3>
+                <p className="text-gray-700 mb-4">
+                  Dealerships, collectors, and enthusiasts document vehicles, parts inventory, and restoration projects.
+                </p>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li>• Classic car collections and valuations</li>
+                  <li>• Dealership inventory management</li>
+                  <li>• Parts and accessories documentation</li>
+                  <li>• Restoration progress tracking</li>
+                </ul>
+              </div>
+              
+              {/* Aviation & Marine */}
+              <div className="bg-white p-6 rounded-lg shadow border">
+                <Plane className="h-8 w-8 text-brand-blue mb-4" />
+                <h3 className="text-xl font-semibold mb-3 text-brand-blue">Aviation & Marine</h3>
+                <p className="text-gray-700 mb-4">
+                  Aircraft and boat owners maintain comprehensive records for maintenance, insurance, and regulatory compliance.
+                </p>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li>• Aircraft and vessel documentation</li>
+                  <li>• Maintenance and service records</li>
+                  <li>• Equipment and avionics inventory</li>
+                  <li>• Regulatory compliance documentation</li>
+                </ul>
+              </div>
+              
+              {/* Manufacturing */}
+              <div className="bg-white p-6 rounded-lg shadow border">
+                <Factory className="h-8 w-8 text-brand-blue mb-4" />
+                <h3 className="text-xl font-semibold mb-3 text-brand-blue">Manufacturing</h3>
+                <p className="text-gray-700 mb-4">
+                  Factories and production facilities document machinery, equipment, and production line assets.
+                </p>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li>• Production equipment inventory</li>
+                  <li>• Machinery maintenance records</li>
+                  <li>• Safety equipment documentation</li>
+                  <li>• Warehouse and storage tracking</li>
+                </ul>
+              </div>
+              
+              {/* Healthcare */}
+              <div className="bg-white p-6 rounded-lg shadow border">
+                <Stethoscope className="h-8 w-8 text-brand-blue mb-4" />
+                <h3 className="text-xl font-semibold mb-3 text-brand-blue">Healthcare</h3>
+                <p className="text-gray-700 mb-4">
+                  Medical practices and facilities protect expensive diagnostic equipment and patient care assets.
+                </p>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li>• Medical equipment documentation</li>
+                  <li>• Diagnostic machinery inventory</li>
+                  <li>• Office furnishings and fixtures</li>
+                  <li>• Compliance and certification records</li>
+                </ul>
+              </div>
+              
+              {/* Construction */}
+              <div className="bg-white p-6 rounded-lg shadow border">
+                <HardHat className="h-8 w-8 text-brand-blue mb-4" />
+                <h3 className="text-xl font-semibold mb-3 text-brand-blue">Construction</h3>
+                <p className="text-gray-700 mb-4">
+                  Contractors and builders document tools, vehicles, and equipment across multiple job sites.
+                </p>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li>• Heavy equipment and machinery</li>
+                  <li>• Tool inventory and tracking</li>
+                  <li>• Vehicle fleet documentation</li>
+                  <li>• Job site condition reports</li>
+                </ul>
+              </div>
+              
+              {/* Religious Organizations */}
+              <div className="bg-white p-6 rounded-lg shadow border">
+                <Church className="h-8 w-8 text-brand-blue mb-4" />
+                <h3 className="text-xl font-semibold mb-3 text-brand-blue">Religious Organizations</h3>
+                <p className="text-gray-700 mb-4">
+                  Churches, temples, and religious institutions protect sacred items, historical artifacts, and community assets.
+                </p>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li>• Religious artifacts and artwork</li>
+                  <li>• Musical instruments and equipment</li>
+                  <li>• Historical documents and archives</li>
+                  <li>• Community hall furnishings</li>
+                </ul>
+              </div>
+              
+              {/* Art & Collectibles */}
+              <div className="bg-white p-6 rounded-lg shadow border">
+                <Palette className="h-8 w-8 text-brand-blue mb-4" />
+                <h3 className="text-xl font-semibold mb-3 text-brand-blue">Art & Collectibles</h3>
+                <p className="text-gray-700 mb-4">
+                  Galleries, collectors, and artists document valuable artwork, collections, and creative assets.
+                </p>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li>• Fine art and sculpture inventory</li>
+                  <li>• Antique and collectible documentation</li>
+                  <li>• Provenance and authentication records</li>
+                  <li>• Exhibition and display tracking</li>
+                </ul>
+              </div>
+              
+              {/* Home Services */}
+              <div className="bg-white p-6 rounded-lg shadow border">
+                <Hammer className="h-8 w-8 text-brand-blue mb-4" />
+                <h3 className="text-xl font-semibold mb-3 text-brand-blue">Home Services</h3>
+                <p className="text-gray-700 mb-4">
+                  Contractors, plumbers, electricians, and service professionals document work and protect equipment.
+                </p>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li>• Service vehicle equipment</li>
+                  <li>• Specialized tool inventory</li>
+                  <li>• Before/after project documentation</li>
+                  <li>• Client property protection</li>
+                </ul>
+              </div>
             </div>
           </div>
-
-        </div>
-      </section>
-
+        </section>
+      </FeatureCategory>
+      
       {/* CTA Section */}
-      <section className="py-16 bg-brand-green text-white">
+      <section className="py-16 bg-brand-blue text-white">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-6">Protect What Matters Most</h2>
-          <p className="text-xl mb-8 max-w-3xl mx-auto">
-            Join thousands of property owners, renters, and business professionals who trust Asset Safe for comprehensive asset protection.
+          <h2 className="text-3xl font-bold mb-6">Ready to Protect Your Assets?</h2>
+          <p className="text-xl mb-8 max-w-2xl mx-auto">
+            Join thousands of homeowners, renters, and businesses who trust Asset Safe for their property documentation needs.
           </p>
-          <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <a href="/signup" className="bg-white text-orange-500 hover:bg-gray-100 px-6 py-3 rounded-md font-medium">
-              Get Started
-            </a>
-            <Link to="/pricing" className="bg-transparent border-2 border-white text-white hover:bg-white/10 px-6 py-3 rounded-md font-medium">
-              View Pricing
+          <div className="flex flex-wrap gap-4 justify-center">
+            <Link to="/pricing">
+              <Button size="lg" className="bg-white text-brand-blue hover:bg-gray-100">
+                Get Started Today
+              </Button>
+            </Link>
+            <Link to="/contact">
+              <Button variant="outline" size="lg" className="border-white text-white hover:bg-white/10">
+                Contact Sales
+              </Button>
             </Link>
           </div>
         </div>
