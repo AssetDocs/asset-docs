@@ -51,10 +51,9 @@ const Index: React.FC = () => {
       <Navbar />
       <HeroSection />
       <DocumentProtectSection />
-      
-      <GiftSection />
       <ScrollProgressCue />
       <LegacyLockerSection />
+      <GiftSection />
       <ComparisonSection />
       <CTASection />
       <Footer />

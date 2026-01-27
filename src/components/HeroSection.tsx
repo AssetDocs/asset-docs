@@ -28,7 +28,7 @@ const HeroSection: React.FC = () => {
                 <Link to="/sample-dashboard">View Sample Dashboard</Link>
               </Button>
             </div>
-            <p className="text-xs mt-3 opacity-70 animate-slide-up">Cancel anytime • No long-term commitment</p>
+            
           </div>
           
           {/* YouTube Video */}

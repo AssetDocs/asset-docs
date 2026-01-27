@@ -93,11 +93,6 @@ const DocumentProtectSection: React.FC = () => {
           </div>
         </div>
 
-        {/* Callout text below */}
-        <p className="text-center text-lg md:text-xl font-medium text-muted-foreground mt-10 max-w-3xl mx-auto">
-          Most people don't realize how unprepared they are—until it's too late.
-        </p>
-        
         {/* CTAs */}
         <div className="mt-8 text-center">
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
