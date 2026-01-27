@@ -77,7 +77,8 @@ const Videos: React.FC = () => {
     
     try {
       const { data, error } = await supabase
-        .from('video_folders')
+        // Photo folders are shared for both photo + video organization
+        .from('photo_folders')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
@@ -148,7 +149,8 @@ const Videos: React.FC = () => {
 
   const filteredVideos = transformedVideos.filter(video => {
     const matchesSearch = video.name.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesSearch;
+    const matchesFolder = selectedFolder ? video.folderId === selectedFolder : true;
+    return matchesSearch && matchesFolder;
   });
 
   const sortedVideos = [...filteredVideos].sort((a, b) => {
@@ -192,7 +194,7 @@ const Videos: React.FC = () => {
     
     try {
       const { data, error } = await supabase
-        .from('video_folders')
+        .from('photo_folders')
         .insert({
           user_id: user.id,
           folder_name: name,
@@ -239,7 +241,7 @@ const Videos: React.FC = () => {
 
       // Then delete the folder
       const { error: deleteError } = await supabase
-        .from('video_folders')
+        .from('photo_folders')
         .delete()
         .eq('id', folderToDelete);
 

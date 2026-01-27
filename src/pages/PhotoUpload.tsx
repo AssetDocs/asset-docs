@@ -113,21 +113,15 @@ const PhotoUpload: React.FC = () => {
       return;
     }
 
-    const uploadedFiles = await uploadFiles(selectedFiles);
-    
-    // Update folder_id for uploaded files if folder is selected
-    if (selectedFolderId && uploadedFiles.length > 0) {
-      try {
-        const updates = uploadedFiles.map(file => 
-          supabase
-            .from('property_files')
-            .update({ folder_id: selectedFolderId })
-            .eq('id', file.id)
-        );
-        await Promise.all(updates);
-      } catch (error) {
-        console.error('Error assigning folder:', error);
-      }
+    const uploadedFiles = await uploadFiles(selectedFiles, selectedFolderId || undefined);
+
+    if (uploadedFiles.length === 0) {
+      toast({
+        title: 'Upload Failed',
+        description: 'Your files uploaded to storage may have failed to save. Please try again.',
+        variant: 'destructive',
+      });
+      return;
     }
     
     // Clear selections

@@ -43,10 +43,13 @@ const VideoUpload: React.FC = () => {
   }, [user]);
 
   const fetchFolders = async () => {
+    if (!user) return;
     try {
       const { data, error } = await supabase
-        .from('video_folders')
+        // Photo folders are shared for both photo + video organization
+        .from('photo_folders')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -74,21 +77,7 @@ const VideoUpload: React.FC = () => {
       return;
     }
 
-    const uploadedFiles = await uploadFiles(files);
-
-    // If a folder is selected, update the folder_id for uploaded files
-    if (selectedFolderId && uploadedFiles.length > 0) {
-      try {
-        const { error } = await supabase
-          .from('property_files')
-          .update({ folder_id: selectedFolderId })
-          .in('id', uploadedFiles.map(f => f.id));
-
-        if (error) throw error;
-      } catch (error) {
-        console.error('Error updating folder:', error);
-      }
-    }
+    const uploadedFiles = await uploadFiles(files, selectedFolderId || undefined);
 
     if (uploadedFiles.length > 0) {
       toast({
@@ -140,7 +129,7 @@ const VideoUpload: React.FC = () => {
                   <Label>Select Folder (Optional)</Label>
                   <Select value={selectedFolderId} onValueChange={setSelectedFolderId}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a folder" />
+                      <SelectValue placeholder="No folder" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="">No folder</SelectItem>
