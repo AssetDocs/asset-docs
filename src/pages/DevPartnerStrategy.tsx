@@ -20,7 +20,11 @@ import {
   Lock,
   UserCheck,
   Briefcase,
-  AlertCircle
+  AlertCircle,
+  TrendingUp,
+  DollarSign,
+  MessageSquare,
+  Clock
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
@@ -367,6 +371,162 @@ const DevPartnerStrategy = () => {
                 </CardContent>
               </Card>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Equity Framework */}
+        <Card className="mb-6 border-primary/50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-primary" />
+              Equity Framework
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-primary/5 p-4 rounded-lg">
+              <p className="text-lg font-semibold text-primary mb-2">Target equity range: 12–18%</p>
+              <p className="text-muted-foreground">(earned over time through vesting)</p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-2">Standard Startup Vesting:</h4>
+              <ul className="space-y-1 text-muted-foreground">
+                <li>• <strong>4-year vesting</strong> schedule</li>
+                <li>• <strong>1-year cliff</strong></li>
+                <li>• <strong>Monthly vesting</strong> thereafter</li>
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Equity Vesting Diagram */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="w-5 h-5 text-primary" />
+              Equity Vesting Diagram — Example (16%)
+            </CardTitle>
+            <CardDescription>
+              At month 12, 25% vests immediately (4%). Remaining equity vests monthly through month 48.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-2 px-3 font-semibold">Time Period</th>
+                    <th className="text-left py-2 px-3 font-semibold">Status</th>
+                    <th className="text-right py-2 px-3 font-semibold">Vested Equity</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b bg-muted/30">
+                    <td className="py-3 px-3 font-medium">0–12 months</td>
+                    <td className="py-3 px-3 text-muted-foreground">Cliff period</td>
+                    <td className="py-3 px-3 text-right font-mono">0%</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="py-3 px-3 font-medium">Month 12</td>
+                    <td className="py-3 px-3 text-muted-foreground">Cliff vests (25% of total)</td>
+                    <td className="py-3 px-3 text-right font-mono text-primary font-semibold">4%</td>
+                  </tr>
+                  <tr className="border-b bg-muted/30">
+                    <td className="py-3 px-3 font-medium">Month 24</td>
+                    <td className="py-3 px-3 text-muted-foreground">Monthly vesting continues</td>
+                    <td className="py-3 px-3 text-right font-mono">8%</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="py-3 px-3 font-medium">Month 36</td>
+                    <td className="py-3 px-3 text-muted-foreground">Monthly vesting continues</td>
+                    <td className="py-3 px-3 text-right font-mono">12%</td>
+                  </tr>
+                  <tr className="bg-primary/10">
+                    <td className="py-3 px-3 font-medium">Month 48</td>
+                    <td className="py-3 px-3 text-primary font-semibold">Fully vested</td>
+                    <td className="py-3 px-3 text-right font-mono text-primary font-semibold">16%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Revenue Upside */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="w-5 h-5 text-primary" />
+              Revenue Upside (5-Year View)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div>
+              <h4 className="font-semibold mb-3">Base Consumer Growth:</h4>
+              <div className="grid grid-cols-5 gap-2">
+                {[
+                  { year: 'Year 1', amount: '~$43K' },
+                  { year: 'Year 2', amount: '~$216K' },
+                  { year: 'Year 3', amount: '~$720K' },
+                  { year: 'Year 4', amount: '~$1.7M' },
+                  { year: 'Year 5', amount: '~$3.6M' },
+                ].map((item) => (
+                  <div key={item.year} className="text-center p-3 bg-muted rounded-lg">
+                    <p className="text-xs text-muted-foreground">{item.year}</p>
+                    <p className="font-semibold text-primary">{item.amount}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="border-t pt-4">
+              <h4 className="font-semibold mb-3 flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-green-600" />
+                With B2B Acceleration (Brokerages, Insurers, AHA):
+              </h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
+                  <p className="text-sm text-green-700 dark:text-green-400">Year 3+</p>
+                  <p className="text-2xl font-bold text-green-600">$1M+</p>
+                </div>
+                <div className="p-4 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
+                  <p className="text-sm text-green-700 dark:text-green-400">Year 5 Potential</p>
+                  <p className="text-2xl font-bold text-green-600">$7M+</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Key Meeting Discussion Points */}
+        <Card className="mb-6 border-blue-200 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-900">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-blue-700 dark:text-blue-400">
+              <MessageSquare className="w-5 h-5" />
+              Key Meeting Discussion Points
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-3">
+              <li className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-700 dark:text-blue-300 text-xs font-semibold shrink-0">1</div>
+                <span><strong>Compatibility and communication style</strong> — How do we work together effectively?</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-700 dark:text-blue-300 text-xs font-semibold shrink-0">2</div>
+                <span><strong>Commitment level and availability</strong> — Especially during critical incidents</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-700 dark:text-blue-300 text-xs font-semibold shrink-0">3</div>
+                <span><strong>Security-first mindset alignment</strong> — This platform handles sensitive user data</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-700 dark:text-blue-300 text-xs font-semibold shrink-0">4</div>
+                <span><strong>Ownership model</strong> — Contractor vs CTO vs true co-founder expectations</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-700 dark:text-blue-300 text-xs font-semibold shrink-0">5</div>
+                <span><strong>Next step</strong> — Complete Stability Sprint, then formalize partnership</span>
+              </li>
+            </ul>
           </CardContent>
         </Card>
 
