@@ -9,8 +9,7 @@ import HeroSection from '@/components/HeroSection';
 import KeyBenefitsSection from '@/components/KeyBenefitsSection';
 
 import GiftSection from '@/components/GiftSection';
-import FeaturesSection from '@/components/FeaturesSection';
-import HowItWorksSection from '@/components/HowItWorksSection';
+import DocumentProtectSection from '@/components/DocumentProtectSection';
 import LegacyLockerSection from '@/components/LegacyLockerSection';
 import ScrollProgressCue from '@/components/ScrollProgressCue';
 import ComparisonSection from '@/components/ComparisonSection';
@@ -57,8 +56,7 @@ const Index: React.FC = () => {
       <GiftSection />
       <ScrollProgressCue />
       <LegacyLockerSection />
-      <FeaturesSection />
-      <HowItWorksSection />
+      <DocumentProtectSection />
       <ComparisonSection />
       <CTASection />
       <Footer />
