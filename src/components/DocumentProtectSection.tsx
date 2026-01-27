@@ -35,86 +35,90 @@ const DocumentProtectSection: React.FC = () => {
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           {/* Left: 3-Step Process with Circular Visual */}
-          <div className="flex flex-col items-center">
-            <div className="relative w-full max-w-sm mx-auto">
-              {/* Circular container */}
-              <div className="relative">
-                {/* Connecting arrows/circle */}
-                <svg className="absolute inset-0 w-full h-full" viewBox="0 0 300 300">
-                  <circle
-                    cx="150"
-                    cy="150"
-                    r="120"
-                    fill="none"
-                    stroke="hsl(var(--primary))"
-                    strokeWidth="2"
-                    strokeDasharray="8 4"
-                    opacity="0.3"
-                  />
-                  {/* Arrow indicators */}
-                  <path
-                    d="M 150 30 A 120 120 0 0 1 260 180"
-                    fill="none"
-                    stroke="hsl(var(--primary))"
-                    strokeWidth="2"
-                    markerEnd="url(#arrowhead)"
-                  />
-                  <path
-                    d="M 260 180 A 120 120 0 0 1 80 240"
-                    fill="none"
-                    stroke="hsl(var(--secondary))"
-                    strokeWidth="2"
-                    markerEnd="url(#arrowhead2)"
-                  />
-                  <path
-                    d="M 80 240 A 120 120 0 0 1 150 30"
-                    fill="none"
-                    stroke="hsl(var(--accent))"
-                    strokeWidth="2"
-                    markerEnd="url(#arrowhead3)"
-                  />
-                  <defs>
-                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-                      <polygon points="0 0, 10 3.5, 0 7" fill="hsl(var(--primary))" />
-                    </marker>
-                    <marker id="arrowhead2" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-                      <polygon points="0 0, 10 3.5, 0 7" fill="hsl(var(--secondary))" />
-                    </marker>
-                    <marker id="arrowhead3" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-                      <polygon points="0 0, 10 3.5, 0 7" fill="hsl(var(--accent))" />
-                    </marker>
-                  </defs>
-                </svg>
+          <div className="flex flex-col items-center justify-center">
+            <div className="relative w-full max-w-md mx-auto">
+              {/* Connecting arrows/circle */}
+              <svg className="w-full" viewBox="0 0 400 420" fill="none">
+                {/* Dashed circle */}
+                <circle
+                  cx="200"
+                  cy="180"
+                  r="100"
+                  fill="none"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth="2"
+                  strokeDasharray="8 4"
+                  opacity="0.3"
+                />
+                {/* Arrow from Step 1 to Step 2 */}
+                <path
+                  d="M 200 80 A 100 100 0 0 1 285 230"
+                  fill="none"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth="2"
+                  markerEnd="url(#arrow1)"
+                />
+                {/* Arrow from Step 2 to Step 3 */}
+                <path
+                  d="M 285 230 A 100 100 0 0 1 115 230"
+                  fill="none"
+                  stroke="hsl(var(--secondary))"
+                  strokeWidth="2"
+                  markerEnd="url(#arrow2)"
+                />
+                {/* Arrow from Step 3 to Step 1 */}
+                <path
+                  d="M 115 230 A 100 100 0 0 1 200 80"
+                  fill="none"
+                  stroke="hsl(var(--accent))"
+                  strokeWidth="2"
+                  markerEnd="url(#arrow3)"
+                />
+                <defs>
+                  <marker id="arrow1" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" fill="hsl(var(--primary))" />
+                  </marker>
+                  <marker id="arrow2" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" fill="hsl(var(--secondary))" />
+                  </marker>
+                  <marker id="arrow3" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" fill="hsl(var(--accent))" />
+                  </marker>
+                </defs>
                 
-                {/* Step nodes */}
-                <div className="relative h-80">
-                  {/* Step 1 - Top */}
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 text-center">
-                    <div className="w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center mx-auto mb-2 shadow-lg">
-                      <span className="text-xl font-bold">1</span>
-                    </div>
-                    <h4 className="font-semibold text-foreground">{steps[0].title}</h4>
-                    <p className="text-sm text-muted-foreground max-w-[140px] mx-auto mt-1">{steps[0].description}</p>
-                  </div>
-                  
-                  {/* Step 2 - Bottom Right */}
-                  <div className="absolute bottom-8 right-0 text-center">
-                    <div className="w-16 h-16 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center mx-auto mb-2 shadow-lg">
-                      <span className="text-xl font-bold">2</span>
-                    </div>
-                    <h4 className="font-semibold text-foreground">{steps[1].title}</h4>
-                    <p className="text-sm text-muted-foreground max-w-[140px] mx-auto mt-1">{steps[1].description}</p>
-                  </div>
-                  
-                  {/* Step 3 - Bottom Left */}
-                  <div className="absolute bottom-8 left-0 text-center">
-                    <div className="w-16 h-16 rounded-full bg-accent text-accent-foreground flex items-center justify-center mx-auto mb-2 shadow-lg">
-                      <span className="text-xl font-bold">3</span>
-                    </div>
-                    <h4 className="font-semibold text-foreground">{steps[2].title}</h4>
-                    <p className="text-sm text-muted-foreground max-w-[140px] mx-auto mt-1">{steps[2].description}</p>
-                  </div>
-                </div>
+                {/* Step 1 - Top Center */}
+                <g>
+                  <circle cx="200" cy="50" r="28" fill="hsl(var(--primary))" />
+                  <text x="200" y="56" textAnchor="middle" fill="white" fontSize="18" fontWeight="bold">1</text>
+                </g>
+                
+                {/* Step 2 - Bottom Right */}
+                <g>
+                  <circle cx="310" cy="260" r="28" fill="hsl(var(--secondary))" />
+                  <text x="310" y="266" textAnchor="middle" fill="white" fontSize="18" fontWeight="bold">2</text>
+                </g>
+                
+                {/* Step 3 - Bottom Left */}
+                <g>
+                  <circle cx="90" cy="260" r="28" fill="hsl(var(--accent))" />
+                  <text x="90" y="266" textAnchor="middle" fill="hsl(var(--accent-foreground))" fontSize="18" fontWeight="bold">3</text>
+                </g>
+              </svg>
+              
+              {/* Step Labels - positioned outside SVG for better text handling */}
+              <div className="absolute top-[85px] left-1/2 -translate-x-1/2 text-center w-40">
+                <h4 className="font-semibold text-foreground">{steps[0].title}</h4>
+                <p className="text-xs text-muted-foreground mt-1">{steps[0].description}</p>
+              </div>
+              
+              <div className="absolute bottom-[20px] right-0 text-center w-36">
+                <h4 className="font-semibold text-foreground">{steps[1].title}</h4>
+                <p className="text-xs text-muted-foreground mt-1">{steps[1].description}</p>
+              </div>
+              
+              <div className="absolute bottom-[20px] left-0 text-center w-36">
+                <h4 className="font-semibold text-foreground">{steps[2].title}</h4>
+                <p className="text-xs text-muted-foreground mt-1">{steps[2].description}</p>
               </div>
             </div>
           </div>
