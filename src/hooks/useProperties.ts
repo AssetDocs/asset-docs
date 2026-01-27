@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Property, PropertyService } from '@/services/PropertyService';
 import { PropertyNotificationService } from '@/services/PropertyNotificationService';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useProperties = () => {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -13,6 +14,14 @@ export const useProperties = () => {
     try {
       const data = await PropertyService.getUserProperties();
       setProperties(data);
+
+      // If the user has at least one property, refresh verification status (non-blocking)
+      // so the “Property Added” milestone updates promptly.
+      if (data.length > 0) {
+        supabase.functions.invoke('check-verification').catch((err) => {
+          console.warn('[useProperties] check-verification failed (non-blocking):', err);
+        });
+      }
     } catch (error) {
       console.error('Error fetching properties:', error);
       toast({
@@ -39,6 +48,12 @@ export const useProperties = () => {
       });
       // Send notification (non-blocking)
       PropertyNotificationService.notifyPropertyCreated(newProperty.name, newProperty.address);
+
+      // Refresh verification status (non-blocking) so “Property Added” updates immediately.
+      supabase.functions.invoke('check-verification').catch((err) => {
+        console.warn('[useProperties] check-verification failed (non-blocking):', err);
+      });
+
       return newProperty;
     } else {
       toast({
