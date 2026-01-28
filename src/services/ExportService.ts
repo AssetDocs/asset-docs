@@ -96,6 +96,22 @@ export interface AssetSummary {
       description?: string;
     }>;
   }>;
+  damageReports: Array<{
+    id: string;
+    propertyName?: string;
+    dateOfDamage?: string;
+    incidentTypes: string[];
+    areasAffected: string[];
+    impactBuckets: string[];
+    visibleDamage: string[];
+    safetyConcerns: string[];
+    actionsTaken: string[];
+    estimatedCost?: string;
+    contactedSomeone?: string;
+    claimNumber?: string;
+    additionalObservations?: string;
+    createdAt: string;
+  }>;
 }
 
 export class ExportService {
@@ -163,6 +179,8 @@ export class ExportService {
     pdf.text(`Source Websites: ${assets.sourceWebsites.length}`, 30, yPosition);
     yPosition += lineHeight;
     pdf.text(`VIP Contacts: ${assets.vipContacts.length}`, 30, yPosition);
+    yPosition += lineHeight;
+    pdf.text(`Damage Reports: ${assets.damageReports.length}`, 30, yPosition);
     yPosition += 20;
 
     // Properties section
@@ -432,6 +450,71 @@ export class ExportService {
       });
     }
 
+    // Damage Reports section
+    if (assets.damageReports.length > 0) {
+      checkPageSpace(30);
+      pdf.setFontSize(16);
+      pdf.setFont(undefined, 'bold');
+      pdf.text('Damage Reports', 20, yPosition);
+      yPosition += 10;
+
+      assets.damageReports.forEach((report, index) => {
+        checkPageSpace(60);
+        pdf.setFontSize(10);
+        pdf.setFont(undefined, 'bold');
+        const title = report.propertyName 
+          ? `${index + 1}. ${report.propertyName} - ${report.dateOfDamage || 'Date not specified'}`
+          : `${index + 1}. Damage Report - ${report.dateOfDamage || 'Date not specified'}`;
+        pdf.text(title, 30, yPosition);
+        yPosition += lineHeight;
+        pdf.setFont(undefined, 'normal');
+        
+        if (report.incidentTypes.length > 0) {
+          pdf.text(`   Incident Types: ${report.incidentTypes.join(', ')}`, 30, yPosition);
+          yPosition += lineHeight;
+        }
+        if (report.areasAffected.length > 0) {
+          pdf.text(`   Areas Affected: ${report.areasAffected.join(', ')}`, 30, yPosition);
+          yPosition += lineHeight;
+        }
+        if (report.impactBuckets.length > 0) {
+          pdf.text(`   Impact: ${report.impactBuckets.join(', ')}`, 30, yPosition);
+          yPosition += lineHeight;
+        }
+        if (report.visibleDamage.length > 0) {
+          pdf.text(`   Visible Damage: ${report.visibleDamage.join(', ')}`, 30, yPosition);
+          yPosition += lineHeight;
+        }
+        if (report.safetyConcerns.length > 0) {
+          pdf.text(`   Safety Concerns: ${report.safetyConcerns.join(', ')}`, 30, yPosition);
+          yPosition += lineHeight;
+        }
+        if (report.actionsTaken.length > 0) {
+          pdf.text(`   Actions Taken: ${report.actionsTaken.join(', ')}`, 30, yPosition);
+          yPosition += lineHeight;
+        }
+        if (report.estimatedCost) {
+          pdf.text(`   Estimated Cost: ${report.estimatedCost}`, 30, yPosition);
+          yPosition += lineHeight;
+        }
+        if (report.claimNumber) {
+          pdf.text(`   Claim Number: ${report.claimNumber}`, 30, yPosition);
+          yPosition += lineHeight;
+        }
+        if (report.additionalObservations) {
+          const maxWidth = 150;
+          const lines = pdf.splitTextToSize(`   Notes: ${report.additionalObservations}`, maxWidth);
+          lines.forEach((line: string) => {
+            checkPageSpace(lineHeight);
+            pdf.text(line, 30, yPosition);
+            yPosition += lineHeight;
+          });
+        }
+        pdf.text(`   Created: ${new Date(report.createdAt).toLocaleDateString()}`, 30, yPosition);
+        yPosition += lineHeight + 5;
+      });
+    }
+
     // Save the PDF
     const fileName = `asset-safe-summary-${new Date().toISOString().split('T')[0]}.pdf`;
     pdf.save(fileName);
@@ -551,7 +634,8 @@ export class ExportService {
       paintCodes: [],
       sourceWebsites: [],
       items: [],
-      vipContacts: []
+      vipContacts: [],
+      damageReports: []
     };
 
     try {
@@ -773,6 +857,31 @@ export class ExportService {
               attachmentType: att.attachment_type,
               description: att.description || undefined
             }))
+        }));
+      }
+
+      // Fetch damage reports
+      const { data: damageReports, error: damageReportsError } = await supabase
+        .from('damage_reports')
+        .select('*, properties(name)')
+        .eq('user_id', userId);
+
+      if (!damageReportsError && damageReports) {
+        assets.damageReports = damageReports.map(report => ({
+          id: report.id,
+          propertyName: (report.properties as any)?.name || undefined,
+          dateOfDamage: report.date_of_damage || undefined,
+          incidentTypes: report.incident_types || [],
+          areasAffected: report.areas_affected || [],
+          impactBuckets: report.impact_buckets || [],
+          visibleDamage: report.visible_damage || [],
+          safetyConcerns: report.safety_concerns || [],
+          actionsTaken: report.actions_taken || [],
+          estimatedCost: report.estimated_cost || undefined,
+          contactedSomeone: report.contacted_someone || undefined,
+          claimNumber: report.claim_number || undefined,
+          additionalObservations: report.additional_observations || undefined,
+          createdAt: report.created_at || new Date().toISOString()
         }));
       }
 

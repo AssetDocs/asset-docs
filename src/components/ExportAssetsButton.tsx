@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, FileDown, Loader2 } from 'lucide-react';
+import { FileDown, Loader2 } from 'lucide-react';
 import { ExportService } from '@/services/ExportService';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSubscription } from '@/contexts/SubscriptionContext';
 import { toast } from '@/hooks/use-toast';
 
 interface ExportAssetsButtonProps {
@@ -18,26 +17,22 @@ export const ExportAssetsButton: React.FC<ExportAssetsButtonProps> = ({
   className = ''
 }) => {
   const { user } = useAuth();
-  const { hasFeature } = useSubscription();
   const [isExporting, setIsExporting] = useState(false);
 
   const handleExport = async () => {
+    // Handle demo mode
+    const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
+    if (isOnSampleDashboard) {
+      alert('AssetSafe.net says\n\nDemo: This would export your complete asset summary as a PDF and ZIP file.');
+      return;
+    }
+
     if (!user) {
       toast({
         title: "Authentication Required",
         description: "Please sign in to export your assets.",
         variant: "destructive"
       });
-      return;
-    }
-
-    if (!hasFeature('export_assets')) {
-      toast({
-        title: "Premium Feature",
-        description: "Upgrade to Standard or Premium to export your assets.",
-        variant: "destructive"
-      });
-      window.location.href = '/pricing';
       return;
     }
 
@@ -56,24 +51,20 @@ export const ExportAssetsButton: React.FC<ExportAssetsButtonProps> = ({
     }
   };
 
-  const hasExportAccess = hasFeature('export_assets');
-
   return (
     <Button
       onClick={handleExport}
-      disabled={isExporting || !hasExportAccess}
+      disabled={isExporting}
       variant={variant}
       size={size}
       className={className}
-      title={!hasExportAccess ? 'Upgrade to Standard or Premium to export assets' : undefined}
     >
-      {!hasExportAccess && <Download className="mr-2 h-4 w-4" />}
       {isExporting ? (
         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
       ) : (
         <FileDown className="mr-2 h-4 w-4" />
       )}
-      {isExporting ? 'Exporting...' : hasExportAccess ? 'Export Assets' : 'Export Assets (Premium)'}
+      {isExporting ? 'Exporting...' : 'Export Assets'}
     </Button>
   );
 };

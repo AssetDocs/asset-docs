@@ -25,6 +25,7 @@ import SecureVault from '@/components/SecureVault';
 import FeedbackSection from '@/components/FeedbackSection';
 import AdminContributorPlanInfo from '@/components/AdminContributorPlanInfo';
 import AccountStatusCard from '@/components/AccountStatusCard';
+import { ExportAssetsButton } from '@/components/ExportAssetsButton';
 import { supabase } from '@/integrations/supabase/client';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -438,13 +439,6 @@ const Account: React.FC = () => {
                   >
                     Paint Codes
                   </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={() => setActiveTab('damage')}
-                    className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
-                  >
-                    <span className="text-yellow-400 font-bold mr-1">!</span>
-                    Post Damage
-                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -553,20 +547,10 @@ const Account: React.FC = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Button 
-                      onClick={() => {
-                        const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
-                        if (isOnSampleDashboard) {
-                          alert('AssetSafe.net says\n\nDemo: This would export your complete asset summary as a PDF and ZIP file.');
-                          return;
-                        }
-                      }}
+                    <ExportAssetsButton 
                       variant="default"
                       className="w-full bg-brand-green hover:bg-brand-green/90"
-                    >
-                      <FileText className="mr-2 h-4 w-4" />
-                      Export Assets
-                    </Button>
+                    />
                   </CardContent>
                 </Card>
 
@@ -611,9 +595,7 @@ const Account: React.FC = () => {
             </TabsContent>
 
             <TabsContent value="damage">
-              <FeatureGuard featureKey="post_damage_reports">
-                <PostDamageSection />
-              </FeatureGuard>
+              <PostDamageSection />
             </TabsContent>
 
             <TabsContent value="voice-notes">
@@ -630,6 +612,21 @@ const Account: React.FC = () => {
 
           {/* Feedback Section */}
           <FeedbackSection />
+
+          {/* Post Damage Bar - Full Width at Bottom */}
+          <div 
+            onClick={() => setActiveTab('damage')}
+            className="mt-8 w-full border-2 border-brand-orange rounded-lg p-4 cursor-pointer hover:bg-brand-orange/5 transition-colors"
+          >
+            <div className="flex items-center justify-center gap-3">
+              <span className="text-brand-orange text-2xl font-bold">!</span>
+              <div className="text-center">
+                <h3 className="text-lg font-semibold text-brand-orange">Post Damage Report</h3>
+                <p className="text-sm text-muted-foreground">Document damage after an incident for insurance claims</p>
+              </div>
+              <span className="text-brand-orange text-2xl font-bold">!</span>
+            </div>
+          </div>
         </div>
       </div>
       
