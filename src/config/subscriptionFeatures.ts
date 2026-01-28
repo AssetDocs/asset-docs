@@ -166,8 +166,12 @@ export const STORAGE_LIMITS: Record<SubscriptionTier, number> = {
   premium: 100 * 1024 * 1024 * 1024 // 100GB
 };
 
+// Free/no-tier fallback (used when subscription state hasn't loaded yet or user is on free plan)
+// Keep this small but functional so uploads don't silently fail.
+export const FREE_STORAGE_LIMIT_BYTES = 5 * 1024 * 1024 * 1024; // 5GB
+
 export const getStorageLimit = (tier: SubscriptionTier | null | undefined): number | null => {
-  if (!tier) return null;
+  if (!tier) return FREE_STORAGE_LIMIT_BYTES;
   return STORAGE_LIMITS[tier];
 };
 
