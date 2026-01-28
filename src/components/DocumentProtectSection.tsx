@@ -103,6 +103,10 @@ const DocumentProtectSection: React.FC = () => {
               <Link to="/scenarios">Solutions</Link>
             </Button>
           </div>
+          <p className="mt-6 text-muted-foreground text-sm md:text-base max-w-md mx-auto">
+            Asset Safe isn't just storage.<br />
+            It's a step-by-step system that tells you what to do next.
+          </p>
         </div>
       </div>
     </section>
