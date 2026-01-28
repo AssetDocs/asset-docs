@@ -12,6 +12,7 @@ import { Progress } from '@/components/ui/progress';
 import PropertySelector from '@/components/PropertySelector';
 import ManualDamageEntry from '@/components/ManualDamageEntry';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
+import SavedDamageReports from '@/components/SavedDamageReports';
 import jsPDF from 'jspdf';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -289,6 +290,85 @@ const PostDamageSection: React.FC = () => {
     } finally {
       setLoadingReport(false);
     }
+  };
+
+  // Load specific report by ID for editing
+  const loadReportById = async (reportId: string) => {
+    if (!user) return;
+    
+    setLoadingReport(true);
+    try {
+      const { data, error } = await supabase
+        .from('damage_reports')
+        .select('*')
+        .eq('id', reportId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setIncidentDetails({
+          id: data.id,
+          dateOfDamage: data.date_of_damage || '',
+          approximateTime: data.approximate_time || '',
+          incidentTypes: data.incident_types || [],
+          otherIncidentType: data.other_incident_type || '',
+          propertyId: data.property_id,
+          areasAffected: data.areas_affected || [],
+          otherArea: data.other_area || '',
+          impactBuckets: data.impact_buckets || [],
+          belongingsItems: data.belongings_items || [],
+          otherBelongings: data.other_belongings || '',
+          visibleDamage: data.visible_damage || [],
+          damageOngoing: data.damage_ongoing || '',
+          safetyConcerns: data.safety_concerns || [],
+          actionsTaken: data.actions_taken || [],
+          estimatedCost: data.estimated_cost || '',
+          contactedSomeone: data.contacted_someone || '',
+          professionalsContacted: data.professionals_contacted || [],
+          claimNumber: data.claim_number || '',
+          companyNames: data.company_names || '',
+          additionalObservations: data.additional_observations || '',
+        });
+        
+        // Set completed steps based on data
+        const completed: number[] = [];
+        if (data.incident_types?.length > 0 || data.date_of_damage) completed.push(2);
+        if (data.areas_affected?.length > 0 || data.impact_buckets?.length > 0) completed.push(3);
+        if (data.visible_damage?.length > 0) completed.push(4);
+        if (data.safety_concerns?.length > 0 || data.actions_taken?.length > 0) completed.push(5);
+        if (data.contacted_someone) completed.push(6);
+        setCompletedSteps(completed);
+        
+        // Also set the selected property for the files view
+        setSelectedPropertyId(data.property_id);
+        
+        // Open step 1 for editing
+        setOpenSteps({ 1: true, 2: false, 3: false, 4: false, 5: false, 6: false });
+        
+        toast({
+          title: "Report Loaded",
+          description: "You can now edit this damage report.",
+        });
+      }
+    } catch (error) {
+      console.error('Error loading damage report:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load the report. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingReport(false);
+    }
+  };
+
+  // Handler for editing a report from the SavedDamageReports component
+  const handleEditReport = (reportId: string, propertyId: string) => {
+    loadReportById(reportId);
+    // Scroll to the top of the form
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const fetchPropertyFiles = async () => {
@@ -1516,6 +1596,9 @@ const PostDamageSection: React.FC = () => {
             </TabsContent>
           </Tabs>
         )}
+
+        {/* Saved Damage Reports Section */}
+        <SavedDamageReports onEditReport={handleEditReport} />
       </CardContent>
 
       {/* Delete Confirmation Dialog */}

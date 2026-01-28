@@ -326,6 +326,7 @@ export type Database = {
           id: string
           impact_buckets: string[] | null
           incident_types: string[] | null
+          is_archived: boolean
           other_area: string | null
           other_belongings: string | null
           other_incident_type: string | null
@@ -352,6 +353,7 @@ export type Database = {
           id?: string
           impact_buckets?: string[] | null
           incident_types?: string[] | null
+          is_archived?: boolean
           other_area?: string | null
           other_belongings?: string | null
           other_incident_type?: string | null
@@ -378,6 +380,7 @@ export type Database = {
           id?: string
           impact_buckets?: string[] | null
           incident_types?: string[] | null
+          is_archived?: boolean
           other_area?: string | null
           other_belongings?: string | null
           other_incident_type?: string | null
