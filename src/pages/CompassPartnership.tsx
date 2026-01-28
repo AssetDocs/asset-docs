@@ -245,7 +245,7 @@ const CompassPartnership = () => {
                 <CheckCircle2 className="w-5 h-5 text-primary mb-2" />
                 <h4 className="font-semibold mb-2">Secure Sharing</h4>
                 <p className="text-sm text-muted-foreground">
-                  Share documentation with up to 5 trusted contacts (family, contractors, etc.)
+                  Share documentation with trusted contacts (family, contractors, etc.)
                 </p>
               </div>
             </div>

@@ -94,7 +94,7 @@ const SubscriptionCheckout: React.FC = () => {
     "Post damage documentation",
     "Export detailed reports",
     "Email support",
-    "Share with 5 trusted contacts"
+    "Share with trusted contacts"
   ];
 
   const selectedPlan = planType ? planConfigs[planType as keyof typeof planConfigs] : null;

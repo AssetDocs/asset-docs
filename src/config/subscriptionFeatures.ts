@@ -190,10 +190,10 @@ export const PROPERTY_LIMITS: Record<SubscriptionTier, number> = {
   premium: 999999 // Unlimited
 };
 
-// Contributor limits by tier
+// Contributor limits by tier - now unlimited for all tiers
 export const CONTRIBUTOR_LIMITS: Record<SubscriptionTier, number> = {
-  standard: 5,
-  premium: 5
+  standard: Infinity,
+  premium: Infinity
 };
 
 export const getPropertyLimit = (tier: SubscriptionTier | null | undefined): number => {
@@ -243,18 +243,14 @@ export const checkContributorLimit = (
   userTier: SubscriptionTier | null | undefined,
   _isInTrial?: boolean // Deprecated - trial no longer supported
 ): { canAdd: boolean; limit: number; message?: string } => {
-  // Default limit is 5 for all paid subscribers
-  const DEFAULT_CONTRIBUTOR_LIMIT = 5;
-  const limit = userTier ? getContributorLimit(userTier) : DEFAULT_CONTRIBUTOR_LIMIT;
-  const canAdd = currentCount < limit;
-  
-  if (!canAdd) {
+  // No limit on contributors - always allow adding
+  if (!userTier) {
     return {
       canAdd: false,
-      limit,
-      message: `You have reached the maximum of ${limit} contributors for your plan.`
+      limit: 0,
+      message: 'Please subscribe to invite authorized users.'
     };
   }
   
-  return { canAdd: true, limit };
+  return { canAdd: true, limit: Infinity };
 };
