@@ -75,15 +75,15 @@ const ComparisonSection: React.FC = () => {
                 </p>
 
                 <div className="bg-secondary/5 rounded-lg overflow-hidden border border-border">
-                  <div className="grid grid-cols-[1fr_60px_60px] md:grid-cols-[1fr_120px_120px] gap-x-2 md:gap-x-8 p-4 md:p-6 bg-primary/5 border-b border-border">
+                  <div className="grid grid-cols-[1fr_50px_50px] sm:grid-cols-[1fr_80px_80px] md:grid-cols-[1fr_120px_120px] gap-x-1 sm:gap-x-2 md:gap-x-8 p-4 md:p-6 bg-primary/5 border-b border-border">
                     <div></div>
                     <div className="text-center">
-                      <div className="inline-block bg-primary text-primary-foreground px-2 md:px-4 py-1 md:py-2 rounded-lg font-semibold text-xs md:text-base whitespace-nowrap">
+                      <div className="inline-block bg-primary text-primary-foreground px-1 sm:px-2 md:px-4 py-1 md:py-2 rounded-lg font-semibold text-[10px] sm:text-xs md:text-base">
                         Asset Safe
                       </div>
                     </div>
                     <div className="text-center">
-                      <div className="inline-block bg-muted text-muted-foreground px-2 md:px-4 py-1 md:py-2 rounded-lg font-semibold text-xs md:text-base whitespace-nowrap">
+                      <div className="inline-block bg-muted text-muted-foreground px-1 sm:px-2 md:px-4 py-1 md:py-2 rounded-lg font-semibold text-[10px] sm:text-xs md:text-base">
                         Traditional
                       </div>
                     </div>
@@ -92,7 +92,7 @@ const ComparisonSection: React.FC = () => {
                   {comparisons.map((item, index) => (
                     <div 
                       key={index} 
-                      className={`grid grid-cols-[1fr_60px_60px] md:grid-cols-[1fr_120px_120px] gap-x-2 md:gap-x-8 p-4 md:p-6 ${index !== comparisons.length - 1 ? 'border-b border-border' : ''}`}
+                      className={`grid grid-cols-[1fr_50px_50px] sm:grid-cols-[1fr_80px_80px] md:grid-cols-[1fr_120px_120px] gap-x-1 sm:gap-x-2 md:gap-x-8 p-4 md:p-6 ${index !== comparisons.length - 1 ? 'border-b border-border' : ''}`}
                     >
                       <div className="flex items-center">
                         <span className="text-foreground font-medium text-sm md:text-base">{item.feature}</span>

@@ -25,7 +25,13 @@ const PricingPlans: React.FC = () => {
     "Export detailed reports",
     "Email support",
     "Share with 5 authorized users",
-    "Legacy Locker"
+    "Legacy Locker",
+    "Password Catalog",
+    "Contact Catalog",
+    "Multi-Factor Authentication",
+    "Source Websites",
+    "Manual Entries",
+    "Paint Code Reference"
   ];
 
   const businessFeatures = {
