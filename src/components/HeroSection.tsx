@@ -10,19 +10,19 @@ const HeroSection: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
           <div className="lg:w-2/3 mb-10 lg:mb-0">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 animate-fade-in">
-              Your Digital Safety Net for What Matters Most
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 animate-fade-in text-white">
+              Everything you own. Protected in one place.
             </h1>
-            <p className="text-xl mb-4 animate-slide-up opacity-90">
-              Document, protect, and organize your property, assets, and critical information—so you're prepared for the unexpected.
+            <p className="text-xl mb-4 animate-slide-up text-white/85">
+              Document your home, belongings, and important records—so you're prepared for the unexpected.
             </p>
-            <p className="text-lg mb-4 animate-slide-up opacity-80">
-              Secure digital inventory, insurance claim support, legacy planning, and estate management—built for homeowners, renters, and businesses of all types.
+            <p className="text-lg mb-4 animate-slide-up text-white/70">
+              Secure inventory, insurance-ready documentation, and legacy planning tools.
             </p>
             
             <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 animate-slide-up">
               <Button asChild size="lg" className="bg-white text-orange-500 hover:bg-gray-100">
-                <Link to="/signup">Start Protecting What Matters</Link>
+                <Link to="/signup">Start Documenting</Link>
               </Button>
               <Button asChild size="lg" className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 hover:from-yellow-500 hover:to-yellow-600 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold border-2 border-white/30">
                 <Link to="/sample-dashboard">View Sample Dashboard</Link>
