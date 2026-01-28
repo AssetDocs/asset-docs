@@ -24,6 +24,7 @@ const OnboardingProgress: React.FC = () => {
   const [hasVaultEncryption, setHasVaultEncryption] = useState(false);
   const [hasPasswordEntries, setHasPasswordEntries] = useState(false);
   const [hasDocuments, setHasDocuments] = useState(false);
+  const [hasRecoveryDelegate, setHasRecoveryDelegate] = useState(false);
 
   // Check localStorage on mount
   useEffect(() => {
@@ -51,16 +52,17 @@ const OnboardingProgress: React.FC = () => {
         .limit(1);
       setHasContributors((contributors?.length ?? 0) > 0);
 
-      // Check for legacy locker data and encryption
+      // Check for legacy locker data, encryption, and recovery delegate
       const { data: legacyLocker } = await supabase
         .from('legacy_locker')
-        .select('id, is_encrypted, full_legal_name, executor_name')
+        .select('id, is_encrypted, full_legal_name, executor_name, delegate_user_id')
         .eq('user_id', user.id)
         .maybeSingle();
       
       const hasLegacyData = legacyLocker && (legacyLocker.full_legal_name || legacyLocker.executor_name);
       setHasVaultData(!!hasLegacyData);
       setHasVaultEncryption(legacyLocker?.is_encrypted ?? false);
+      setHasRecoveryDelegate(!!legacyLocker?.delegate_user_id);
 
       // Check for password catalog entries
       const { data: passwords } = await supabase
@@ -113,11 +115,10 @@ const OnboardingProgress: React.FC = () => {
   const nextStepsComplete = nextSteps.every(s => s.completed);
 
   // Phase 3: Advanced Protection
-  const hasSecureVaultActivated = hasVaultData || hasPasswordEntries;
   const advancedSteps: Step[] = [
-    { label: 'Activate Your Secure Vault', completed: hasSecureVaultActivated },
+    { label: 'Enable Secure Vault Protection', completed: hasVaultEncryption },
     { label: 'Add Password Catalog & Legacy Locker Details', completed: hasVaultData && hasPasswordEntries },
-    { label: 'Turn On Vault Encryption (Recommended)', completed: hasVaultEncryption },
+    { label: 'Assign a Recovery Delegate', completed: hasRecoveryDelegate },
   ];
   const advancedComplete = advancedSteps.every(s => s.completed);
 
