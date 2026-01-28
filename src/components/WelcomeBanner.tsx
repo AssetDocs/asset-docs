@@ -179,17 +179,18 @@ const WelcomeBanner: React.FC = () => {
       {/* Mobile Install Prompt - only shows on mobile devices, not already installed, and not dismissed */}
       {isMobile && !isAppInstalled && !hideInstallPrompt && (
         <div className="bg-gradient-to-r from-brand-orange to-orange-500 p-4 rounded-lg text-white relative">
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between">
             <button 
               onClick={handleToggleInstallPromptCollapse}
-              className="flex items-center gap-1 text-white/90 hover:text-white text-sm font-semibold"
+              className="flex items-center gap-2 text-white hover:text-white/90 font-semibold transition-colors"
             >
               {isInstallPromptCollapsed ? (
                 <ChevronDown className="h-4 w-4" />
               ) : (
                 <ChevronUp className="h-4 w-4" />
               )}
-              One-Tap Mobile Access
+              <span className="text-2xl">📲</span>
+              <span className="text-sm">One-Tap Mobile Access</span>
             </button>
             <button 
               onClick={handleDismissInstallPrompt}
@@ -201,8 +202,7 @@ const WelcomeBanner: React.FC = () => {
             </button>
           </div>
           {!isInstallPromptCollapsed && (
-            <div className="flex items-start gap-3">
-              <span className="text-2xl">📲</span>
+            <div className="flex items-start gap-3 mt-3 ml-6">
               <div className="flex-1">
                 <p className="font-semibold text-sm">Add Asset Safe to Your Home Screen</p>
                 <p className="text-white/90 text-xs mt-1">
