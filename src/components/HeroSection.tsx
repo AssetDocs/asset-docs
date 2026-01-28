@@ -10,7 +10,7 @@ const HeroSection: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
           <div className="lg:w-2/3 mb-10 lg:mb-0">
-            <h1 className="text-3xl md:text-4xl lg:text-[2.5rem] font-bold mb-4 animate-fade-in text-white lg:whitespace-nowrap">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 animate-fade-in text-white">
               Everything you own. Protected in one place.
             </h1>
             <p className="text-xl mb-4 animate-slide-up text-white/85">
