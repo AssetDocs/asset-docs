@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Settings, Home } from 'lucide-react';
+import { Settings, Home, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -99,6 +99,7 @@ const WelcomeBanner: React.FC = () => {
   const isMobile = useIsMobile();
   const [hideInstallPrompt, setHideInstallPrompt] = useState(false);
   const [isAppInstalled, setIsAppInstalled] = useState(false);
+  const [isInstallPromptCollapsed, setIsInstallPromptCollapsed] = useState(false);
 
   useEffect(() => {
     // Check if app is already installed (standalone mode)
@@ -110,11 +111,22 @@ const WelcomeBanner: React.FC = () => {
     if (dismissed) {
       setHideInstallPrompt(true);
     }
+    // Check if collapsed
+    const collapsed = localStorage.getItem('installPromptCollapsed');
+    if (collapsed === 'true') {
+      setIsInstallPromptCollapsed(true);
+    }
   }, []);
 
   const handleDismissInstallPrompt = () => {
     setHideInstallPrompt(true);
     localStorage.setItem('installPromptDismissed', 'true');
+  };
+
+  const handleToggleInstallPromptCollapse = () => {
+    const newState = !isInstallPromptCollapsed;
+    setIsInstallPromptCollapsed(newState);
+    localStorage.setItem('installPromptCollapsed', String(newState));
   };
 
   return (
@@ -167,31 +179,47 @@ const WelcomeBanner: React.FC = () => {
       {/* Mobile Install Prompt - only shows on mobile devices, not already installed, and not dismissed */}
       {isMobile && !isAppInstalled && !hideInstallPrompt && (
         <div className="bg-gradient-to-r from-brand-orange to-orange-500 p-4 rounded-lg text-white relative">
-          <button 
-            onClick={handleDismissInstallPrompt}
-            className="absolute top-2 right-2 text-white/70 hover:text-white text-lg font-bold leading-none"
-            aria-label="Dismiss"
-          >
-            ×
-          </button>
-          <div className="flex items-start gap-3 pr-6">
-            <span className="text-2xl">📲</span>
-            <div className="flex-1">
-              <p className="font-semibold text-sm">Add Asset Safe to Your Home Screen</p>
-              <p className="text-white/90 text-xs mt-1">
-                One-tap access to your dashboard — even during emergencies with limited internet.
-              </p>
-              <Button 
-                asChild 
-                size="sm"
-                className="mt-2 bg-white text-brand-orange hover:bg-white/90 font-medium"
-              >
-                <Link to="/install">
-                  Learn How
-                </Link>
-              </Button>
-            </div>
+          <div className="flex items-center justify-between mb-2">
+            <button 
+              onClick={handleToggleInstallPromptCollapse}
+              className="flex items-center gap-1 text-white/90 hover:text-white text-sm font-semibold"
+            >
+              {isInstallPromptCollapsed ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronUp className="h-4 w-4" />
+              )}
+              One-Tap Mobile Access
+            </button>
+            <button 
+              onClick={handleDismissInstallPrompt}
+              className="text-white/70 hover:text-white text-xs flex items-center gap-1"
+              aria-label="Dismiss"
+            >
+              <X className="h-3.5 w-3.5" />
+              <span>Don't show again</span>
+            </button>
           </div>
+          {!isInstallPromptCollapsed && (
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">📲</span>
+              <div className="flex-1">
+                <p className="font-semibold text-sm">Add Asset Safe to Your Home Screen</p>
+                <p className="text-white/90 text-xs mt-1">
+                  One-tap access to your dashboard — even during emergencies with limited internet.
+                </p>
+                <Button 
+                  asChild 
+                  size="sm"
+                  className="mt-2 bg-white text-brand-orange hover:bg-white/90 font-medium"
+                >
+                  <Link to="/install">
+                    Learn How
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
