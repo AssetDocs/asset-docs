@@ -112,10 +112,18 @@ export const useVerification = () => {
     }
   }, [user]);
 
-  // Initial fetch on mount
+  // Initial fetch on mount - refresh verification to ensure latest data
   useEffect(() => {
-    fetchCachedStatus();
-  }, [fetchCachedStatus]);
+    if (user) {
+      // First fetch cached status quickly for UI
+      fetchCachedStatus();
+      // Then refresh in background to ensure accuracy
+      refreshVerification();
+    } else {
+      setStatus(null);
+      setLoading(false);
+    }
+  }, [user]);
 
   // Calculate progress percentage (5 base criteria + 2FA bonus)
   const baseProgress = status ? 

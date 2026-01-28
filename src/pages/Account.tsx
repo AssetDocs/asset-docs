@@ -25,6 +25,7 @@ import SecureVault from '@/components/SecureVault';
 import FeedbackSection from '@/components/FeedbackSection';
 import AdminContributorPlanInfo from '@/components/AdminContributorPlanInfo';
 import AccountStatusCard from '@/components/AccountStatusCard';
+import OnboardingProgress from '@/components/OnboardingProgress';
 import { ExportAssetsButton } from '@/components/ExportAssetsButton';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -364,9 +365,12 @@ const Account: React.FC = () => {
           <ViewerRestrictionBanner />
           
           {/* Welcome Message */}
-          <div className="mb-6">
+          <div className="mb-4">
             <WelcomeMessage />
           </div>
+          
+          {/* Onboarding Progress Bar */}
+          <OnboardingProgress />
           
           {/* Account Verification Status */}
           <div className="mb-6">
