@@ -185,7 +185,7 @@ const Features: React.FC = () => {
               </div>
               
               {/* Rental Documentation */}
-              <FeatureCategory title="Rental Documentation" defaultOpen={true}>
+              <FeatureCategory title="Rental Documentation">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <FeatureCard icon={FileText} title="Move-In Documentation" description="Document property condition at move-in to protect your security deposit." />
                   <FeatureCard icon={DollarSign} title="Deposit Recovery" description="Photo evidence to dispute unfair deposit deductions and property damage claims." />
@@ -236,7 +236,7 @@ const Features: React.FC = () => {
               </div>
               
               {/* Business Assets */}
-              <FeatureCategory title="Business Assets" defaultOpen={true}>
+              <FeatureCategory title="Business Assets">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <FeatureCard icon={Building} title="Commercial Property Documentation" description="Complete documentation of commercial spaces, equipment, and infrastructure." />
                   <FeatureCard icon={Calculator} title="Value Authentication" description="Document business improvements and upgrades to maximize property value when selling or raising capital." />
@@ -287,7 +287,7 @@ const Features: React.FC = () => {
               </div>
               
               {/* Property Management */}
-              <FeatureCategory title="Property Management" defaultOpen={true}>
+              <FeatureCategory title="Property Management">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <FeatureCard icon={Home} title="Multi-Property Management" description="Document unlimited rental properties with centralized management portal." />
                   <FeatureCard icon={FileText} title="Tenant Move-In/Out" description="Professional documentation to protect deposits and resolve disputes." />
