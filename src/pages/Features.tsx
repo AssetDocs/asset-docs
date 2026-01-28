@@ -594,11 +594,6 @@ const Features: React.FC = () => {
                 Get Started Today
               </Button>
             </Link>
-            <Link to="/contact">
-              <Button variant="outline" size="lg" className="border-white text-white hover:bg-white/10">
-                Contact Sales
-              </Button>
-            </Link>
           </div>
         </div>
       </section>
