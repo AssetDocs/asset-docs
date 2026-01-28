@@ -610,23 +610,16 @@ const Account: React.FC = () => {
 
           </Tabs>
 
-          {/* Feedback Section */}
-          <FeedbackSection />
-
-          {/* Post Damage Bar - Full Width at Bottom */}
+          {/* Post Damage Bar - Thin bar above feedback */}
           <div 
             onClick={() => setActiveTab('damage')}
-            className="mt-8 w-full border-2 border-brand-orange rounded-lg p-4 cursor-pointer hover:bg-brand-orange/5 transition-colors"
+            className="mt-6 w-full border border-brand-orange rounded-md py-2 px-4 cursor-pointer hover:bg-brand-orange/5 transition-colors"
           >
-            <div className="flex items-center justify-center gap-3">
-              <span className="text-brand-orange text-2xl font-bold">!</span>
-              <div className="text-center">
-                <h3 className="text-lg font-semibold text-brand-orange">Post Damage Report</h3>
-                <p className="text-sm text-muted-foreground">Document damage after an incident for insurance claims</p>
-              </div>
-              <span className="text-brand-orange text-2xl font-bold">!</span>
-            </div>
+            <p className="text-center text-sm font-medium text-brand-orange">Post Damage Report</p>
           </div>
+
+          {/* Feedback Section */}
+          <FeedbackSection />
         </div>
       </div>
       
