@@ -11,7 +11,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useSubscription } from '@/contexts/SubscriptionContext';
-import { checkContributorLimit } from '@/config/subscriptionFeatures';
 
 interface Contributor {
   id: string;
@@ -71,17 +70,11 @@ const ContributorsTab: React.FC = () => {
       return;
     }
 
-    // Check contributor limits
-    const limitCheck = checkContributorLimit(
-      contributors.length,
-      subscriptionTier,
-      isInTrial
-    );
-    
-    if (!limitCheck.canAdd) {
+    // Check if user has a subscription
+    if (!subscriptionTier) {
       toast({
-        title: "Contributor Limit Reached",
-        description: limitCheck.message,
+        title: "Subscription Required",
+        description: "Please subscribe to invite authorized users.",
         variant: "destructive",
       });
       return;
@@ -336,12 +329,12 @@ const ContributorsTab: React.FC = () => {
             </AlertDescription>
           </Alert>
           
-          {/* Show current usage and limits */}
+          {/* Show current usage */}
           <div className="bg-muted/30 rounded-lg p-3 mb-4">
             <p className="text-sm text-muted-foreground">
-              Contributors: {contributors.length} of {checkContributorLimit(0, subscriptionTier, isInTrial).limit}
+              Authorized Users: {contributors.length}
               {!subscriptionTier && (
-                <span className="ml-2 text-destructive">• Upgrade to invite contributors</span>
+                <span className="ml-2 text-destructive">• Subscribe to invite authorized users</span>
               )}
             </p>
           </div>
