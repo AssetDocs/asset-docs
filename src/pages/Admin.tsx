@@ -229,6 +229,14 @@ const Admin = () => {
                     <span className="font-semibold">Dev Partner Strategy</span>
                     <span className="text-sm text-muted-foreground">Backend stability & ownership brief</span>
                   </Button>
+                  <Button 
+                    variant="outline" 
+                    className="h-auto py-4 flex flex-col items-start text-left"
+                    onClick={() => navigate('/admin/habitat-partnership')}
+                  >
+                    <span className="font-semibold">Habitat for Humanity</span>
+                    <span className="text-sm text-muted-foreground">Homeownership Protection & Resilience</span>
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -296,6 +304,9 @@ const Admin = () => {
                   </Button>
                   <Button className="w-full" variant="outline" onClick={() => navigate('/admin/dev-partner-strategy')}>
                     Dev Partner Strategy
+                  </Button>
+                  <Button className="w-full" variant="outline" onClick={() => navigate('/admin/habitat-partnership')}>
+                    Habitat for Humanity
                   </Button>
                 </CardContent>
               </Card>
