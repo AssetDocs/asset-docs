@@ -1189,6 +1189,89 @@ export type Database = {
         }
         Relationships: []
       }
+      manual_damage_entries: {
+        Row: {
+          claim_number: string | null
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          created_at: string
+          damage_type: string
+          date_occurred: string | null
+          description: string | null
+          emergency_services: boolean | null
+          estimated_cost: string | null
+          id: string
+          insurance_company: string | null
+          is_archived: boolean | null
+          location: string | null
+          name: string
+          policy_number: string | null
+          priority_level: string | null
+          property_id: string
+          repairs_needed: string | null
+          severity: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          claim_number?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          damage_type: string
+          date_occurred?: string | null
+          description?: string | null
+          emergency_services?: boolean | null
+          estimated_cost?: string | null
+          id?: string
+          insurance_company?: string | null
+          is_archived?: boolean | null
+          location?: string | null
+          name: string
+          policy_number?: string | null
+          priority_level?: string | null
+          property_id: string
+          repairs_needed?: string | null
+          severity?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          claim_number?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          damage_type?: string
+          date_occurred?: string | null
+          description?: string | null
+          emergency_services?: boolean | null
+          estimated_cost?: string | null
+          id?: string
+          insurance_company?: string | null
+          is_archived?: boolean | null
+          location?: string | null
+          name?: string
+          policy_number?: string | null
+          priority_level?: string | null
+          property_id?: string
+          repairs_needed?: string | null
+          severity?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manual_damage_entries_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_preferences: {
         Row: {
           billing_notifications: boolean

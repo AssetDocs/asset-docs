@@ -169,7 +169,7 @@ const Account: React.FC = () => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button className="w-full bg-brand-green hover:bg-brand-green/90 text-white justify-between">
-                    Insights & Tools
+                    {activeTab === 'damage' ? 'Damage Report' : 'Insights & Tools'}
                     <ChevronDown className="ml-2 h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
