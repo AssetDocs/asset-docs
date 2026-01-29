@@ -34,6 +34,7 @@ const TOTPChallenge: React.FC<TOTPChallengeProps> = ({
   const [loading, setLoading] = useState(false);
   const [challengeData, setChallengeData] = useState<{ factorId: string; challengeId: string } | null>(null);
   const [showSetup, setShowSetup] = useState(false);
+  const [isRefetching, setIsRefetching] = useState(false);
 
   // Create challenge when dialog opens
   useEffect(() => {
@@ -161,14 +162,43 @@ const TOTPChallenge: React.FC<TOTPChallengeProps> = ({
               <Button 
                 variant="outline" 
                 onClick={async () => {
-                  // Refetch factors in case user already set up TOTP elsewhere
-                  await refetch();
+                  setIsRefetching(true);
+                  try {
+                    await refetch();
+                    // Small delay to ensure state updates
+                    setTimeout(() => {
+                      setIsRefetching(false);
+                      // Check if still not enrolled and show feedback
+                      if (!isEnrolled) {
+                        toast({
+                          title: "No 2FA Found",
+                          description: "You haven't set up two-factor authentication for Asset Safe yet. Please tap 'Set Up Authenticator' to connect your app.",
+                          variant: "destructive",
+                        });
+                      }
+                    }, 500);
+                  } catch (error) {
+                    setIsRefetching(false);
+                    toast({
+                      title: "Error",
+                      description: "Could not check your 2FA status. Please try again.",
+                      variant: "destructive",
+                    });
+                  }
                 }}
+                disabled={isRefetching}
                 className="w-full"
               >
-                <Shield className="h-4 w-4 mr-2" />
-                I Have an Authenticator App
+                {isRefetching ? (
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Shield className="h-4 w-4 mr-2" />
+                )}
+                {isRefetching ? "Checking..." : "I've Already Set Up 2FA"}
               </Button>
+              <p className="text-xs text-center text-muted-foreground">
+                Only use this if you've previously connected an authenticator app to Asset Safe
+              </p>
 
               <Button variant="ghost" onClick={handleClose} className="w-full">
                 Cancel
