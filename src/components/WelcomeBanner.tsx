@@ -7,6 +7,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from '@/hooks/use-mobile';
 import UserStatusBadge from '@/components/UserStatusBadge';
 import { useVerification } from '@/hooks/useVerification';
+import AccountStatusCard from '@/components/AccountStatusCard';
+import OnboardingProgress from '@/components/OnboardingProgress';
 
 const WelcomeBanner: React.FC = () => {
   const { profile, user } = useAuth();
@@ -129,99 +131,118 @@ const WelcomeBanner: React.FC = () => {
     localStorage.setItem('installPromptCollapsed', String(newState));
   };
 
+  // Check if mobile install prompt should show
+  const showMobileInstallPrompt = isMobile && !isAppInstalled && !hideInstallPrompt;
+
   return (
     <div className="space-y-3 mb-6">
       <div className="bg-gradient-to-r from-brand-blue to-brand-lightBlue p-6 rounded-lg text-white">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            Welcome, {getDisplayName()}!
-            <UserStatusBadge 
-              status={verificationStatus?.is_verified_plus ? 'Verified+' : verificationStatus?.is_verified ? 'Verified' : 'User'} 
-              size="sm"
-              showLabel={false}
-              className="bg-white/20 border-white/30"
-            />
-          </h1>
-          {accountNumber && (
-            <span className="text-white/90 font-medium text-sm bg-white/20 px-3 py-1 rounded-md">
-              Account #: {accountNumber}
-            </span>
-          )}
-        </div>
-        {contributorInfo && (
-          <div className="mt-1 space-y-1">
-            <p className="text-white/90 font-medium">
-              Contributor - {getRoleDisplay(contributorInfo.role)}
-            </p>
-            {contributorInfo.ownerName && (
-              <p className="text-white/70 text-sm">
-                Account Owner: {contributorInfo.ownerName}
-              </p>
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div className="flex-1">
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              Welcome, {getDisplayName()}!
+              <UserStatusBadge 
+                status={verificationStatus?.is_verified_plus ? 'Verified+' : verificationStatus?.is_verified ? 'Verified' : 'User'} 
+                size="sm"
+                showLabel={false}
+                className="bg-white/20 border-white/30"
+              />
+            </h1>
+            {contributorInfo && (
+              <div className="mt-1 space-y-1">
+                <p className="text-white/90 font-medium">
+                  Contributor - {getRoleDisplay(contributorInfo.role)}
+                </p>
+                {contributorInfo.ownerName && (
+                  <p className="text-white/70 text-sm">
+                    Account Owner: {contributorInfo.ownerName}
+                  </p>
+                )}
+              </div>
             )}
+            <div className="flex flex-wrap gap-2 mt-4">
+              <Button asChild variant="outline" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 border-yellow-400">
+                <Link to="/account/settings">
+                  <Settings className="mr-2 h-4 w-4" />
+                  Account Settings
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 border-yellow-400">
+                <Link to="/account/properties">
+                  <Home className="mr-2 h-4 w-4" />
+                  Property Profiles
+                </Link>
+              </Button>
+            </div>
           </div>
-        )}
-        <div className="flex flex-wrap gap-2 mt-4">
-          <Button asChild variant="outline" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 border-yellow-400">
-            <Link to="/account/settings">
-              <Settings className="mr-2 h-4 w-4" />
-              Account Settings
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 border-yellow-400">
-            <Link to="/account/properties">
-              <Home className="mr-2 h-4 w-4" />
-              Property Profiles
-            </Link>
-          </Button>
+          
+          {/* Right side: Account # and Account Status */}
+          <div className="flex flex-col gap-2 sm:items-end">
+            {accountNumber && (
+              <span className="text-white/90 font-medium text-sm bg-white/20 px-3 py-1 rounded-md">
+                Account #: {accountNumber}
+              </span>
+            )}
+            {/* Account Status Card - compact version inside header */}
+            <div className="w-full sm:w-auto sm:min-w-[200px]">
+              <AccountStatusCard compact />
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Mobile Install Prompt - only shows on mobile devices, not already installed, and not dismissed */}
-      {isMobile && !isAppInstalled && !hideInstallPrompt && (
-        <div className="bg-gradient-to-r from-brand-orange to-orange-500 p-4 rounded-lg text-white relative">
-          <div className="flex items-center justify-between">
-            <button 
-              onClick={handleToggleInstallPromptCollapse}
-              className="flex items-center gap-2 text-white hover:text-white/90 font-semibold transition-colors"
-            >
-              {isInstallPromptCollapsed ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronUp className="h-4 w-4" />
-              )}
-              <span className="text-2xl">📲</span>
-              <span className="text-sm">One-Tap Mobile Access</span>
-            </button>
-            <button 
-              onClick={handleDismissInstallPrompt}
-              className="text-white/70 hover:text-white text-xs flex items-center gap-1"
-              aria-label="Dismiss"
-            >
-              <X className="h-3.5 w-3.5" />
-              <span>Don't show again</span>
-            </button>
-          </div>
-          {!isInstallPromptCollapsed && (
-            <div className="flex items-start gap-3 mt-3 ml-6">
-              <div className="flex-1">
-                <p className="font-semibold text-sm">Add Asset Safe to Your Home Screen</p>
-                <p className="text-white/90 text-xs mt-1">
-                  One-tap access to your dashboard — even during emergencies with limited internet.
-                </p>
-                <Button 
-                  asChild 
-                  size="sm"
-                  className="mt-2 bg-white text-brand-orange hover:bg-white/90 font-medium"
-                >
-                  <Link to="/install">
-                    Learn How
-                  </Link>
-                </Button>
-              </div>
+      {/* Side-by-side: Mobile Install Prompt + Onboarding Progress */}
+      <div className={`grid gap-3 ${showMobileInstallPrompt ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'}`}>
+        {/* Mobile Install Prompt - only shows on mobile devices, not already installed, and not dismissed */}
+        {showMobileInstallPrompt && (
+          <div className="bg-gradient-to-r from-brand-orange to-orange-500 p-4 rounded-lg text-white relative h-full">
+            <div className="flex items-center justify-between">
+              <button 
+                onClick={handleToggleInstallPromptCollapse}
+                className="flex items-center gap-2 text-white hover:text-white/90 font-semibold transition-colors"
+              >
+                {isInstallPromptCollapsed ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronUp className="h-4 w-4" />
+                )}
+                <span className="text-2xl">📲</span>
+                <span className="text-sm">One-Tap Mobile Access</span>
+              </button>
+              <button 
+                onClick={handleDismissInstallPrompt}
+                className="text-white/70 hover:text-white text-xs flex items-center gap-1"
+                aria-label="Dismiss"
+              >
+                <X className="h-3.5 w-3.5" />
+                <span>Don't show again</span>
+              </button>
             </div>
-          )}
-        </div>
-      )}
+            {!isInstallPromptCollapsed && (
+              <div className="flex items-start gap-3 mt-3 ml-6">
+                <div className="flex-1">
+                  <p className="font-semibold text-sm">Add Asset Safe to Your Home Screen</p>
+                  <p className="text-white/90 text-xs mt-1">
+                    One-tap access to your dashboard — even during emergencies with limited internet.
+                  </p>
+                  <Button 
+                    asChild 
+                    size="sm"
+                    className="mt-2 bg-white text-brand-orange hover:bg-white/90 font-medium"
+                  >
+                    <Link to="/install">
+                      Learn How
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Onboarding Progress - now inline */}
+        <OnboardingProgress inline />
+      </div>
     </div>
   );
 };

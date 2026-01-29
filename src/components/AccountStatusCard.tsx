@@ -5,7 +5,11 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { cn } from '@/lib/utils';
 import UserStatusBadge from '@/components/UserStatusBadge';
 
-const AccountStatusCard: React.FC = () => {
+interface AccountStatusCardProps {
+  compact?: boolean;
+}
+
+const AccountStatusCard: React.FC<AccountStatusCardProps> = ({ compact = false }) => {
   const { status, loading, progress } = useVerification();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -56,6 +60,92 @@ const AccountStatusCard: React.FC = () => {
   // Don't show expanded content if already verified+
   const showProgress = !status?.is_verified_plus;
 
+  // Compact version for embedding in header
+  if (compact) {
+    return (
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <div className="rounded-lg bg-white/20 backdrop-blur-sm">
+          <CollapsibleTrigger asChild>
+            <button className="w-full flex items-center justify-between px-3 py-2 hover:bg-white/10 transition-colors rounded-lg">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-white/90">Status:</span>
+                <UserStatusBadge status={statusLabel} size="sm" className="bg-white/30 border-white/40" />
+              </div>
+              <ChevronDown 
+                className={cn(
+                  "h-3 w-3 text-white/70 transition-transform duration-200",
+                  isOpen && "rotate-180"
+                )} 
+              />
+            </button>
+          </CollapsibleTrigger>
+
+          <CollapsibleContent>
+            {showProgress && (
+              <div className="px-3 pb-3 pt-1">
+                {/* Progress bar */}
+                <div className="flex items-center justify-between text-xs text-white/70 mb-2">
+                  <span>Progress</span>
+                  <span>{Math.round(progress)}%</span>
+                </div>
+                <div className="h-1 bg-white/30 rounded-full overflow-hidden mb-3">
+                  <div 
+                    className="h-full bg-white rounded-full transition-all duration-300"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+
+                {/* Criteria checklist */}
+                <div className="space-y-1.5">
+                  {criteriaItems.map((item) => (
+                    <div key={item.key} className="flex items-center gap-2">
+                      <div className={cn(
+                        "flex items-center justify-center w-3.5 h-3.5 rounded border",
+                        item.met 
+                          ? "bg-green-400 border-green-400 text-white" 
+                          : "border-white/50 text-white/50"
+                      )}>
+                        {item.met ? (
+                          <Check className="h-2.5 w-2.5" />
+                        ) : (
+                          <X className="h-2 w-2" />
+                        )}
+                      </div>
+                      <span className={cn(
+                        "text-xs",
+                        item.met ? "text-white" : "text-white/70"
+                      )}>
+                        {item.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Verified+ info when already verified */}
+            {status?.is_verified && !status?.is_verified_plus && (
+              <div className="px-3 pb-3 pt-1">
+                <p className="text-xs text-white/80">
+                  Enable 2FA to upgrade to <span className="text-amber-300 font-medium">Verified+</span>
+                </p>
+              </div>
+            )}
+
+            {status?.is_verified_plus && (
+              <div className="px-3 pb-3 pt-1">
+                <p className="text-xs text-green-300">
+                  Maximum protection enabled ✓
+                </p>
+              </div>
+            )}
+          </CollapsibleContent>
+        </div>
+      </Collapsible>
+    );
+  }
+
+  // Full version (original)
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <div className="border border-border rounded-lg bg-card">
