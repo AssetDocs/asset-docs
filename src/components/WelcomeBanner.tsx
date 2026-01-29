@@ -131,8 +131,8 @@ const WelcomeBanner: React.FC = () => {
     localStorage.setItem('installPromptCollapsed', String(newState));
   };
 
-  // Show install prompt unless already installed or dismissed
-  const showMobileInstallPrompt = !isAppInstalled && !hideInstallPrompt;
+  // Show install prompt only on mobile, unless already installed or dismissed
+  const showMobileInstallPrompt = isMobile && !isAppInstalled && !hideInstallPrompt;
 
   return (
     <div className="space-y-3 mb-6">
@@ -185,60 +185,55 @@ const WelcomeBanner: React.FC = () => {
         </div>
       </div>
 
-      {/* Side-by-side: Mobile Install Prompt + Onboarding Progress */}
-      <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
-        {/* Mobile Install Prompt - shows on mobile devices, not already installed, and not dismissed */}
-        {showMobileInstallPrompt ? (
-          <div className="bg-gradient-to-r from-brand-orange to-orange-500 p-4 rounded-lg text-white relative h-full">
-            <div className="flex items-center justify-between">
-              <button 
-                onClick={handleToggleInstallPromptCollapse}
-                className="flex items-center gap-2 text-white hover:text-white/90 font-semibold transition-colors"
-              >
-                {isInstallPromptCollapsed ? (
-                  <ChevronDown className="h-4 w-4" />
-                ) : (
-                  <ChevronUp className="h-4 w-4" />
-                )}
-                <span className="text-2xl">📲</span>
-                <span className="text-sm">One-Tap Mobile Access</span>
-              </button>
-              <button 
-                onClick={handleDismissInstallPrompt}
-                className="text-white/70 hover:text-white text-xs flex items-center gap-1"
-                aria-label="Dismiss"
-              >
-                <X className="h-3.5 w-3.5" />
-                <span>Don't show again</span>
-              </button>
-            </div>
-            {!isInstallPromptCollapsed && (
-              <div className="flex items-start gap-3 mt-3 ml-6">
-                <div className="flex-1">
-                  <p className="font-semibold text-sm">Add Asset Safe to Your Home Screen</p>
-                  <p className="text-white/90 text-xs mt-1">
-                    One-tap access to your dashboard — even during emergencies with limited internet.
-                  </p>
-                  <Button 
-                    asChild 
-                    size="sm"
-                    className="mt-2 bg-white text-brand-orange hover:bg-white/90 font-medium"
-                  >
-                    <Link to="/install">
-                      Learn How
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-            )}
+      {/* Mobile Install Prompt - shows on mobile only */}
+      {showMobileInstallPrompt && (
+        <div className="bg-gradient-to-r from-brand-orange to-orange-500 p-4 rounded-lg text-white relative">
+          <div className="flex items-center justify-between">
+            <button 
+              onClick={handleToggleInstallPromptCollapse}
+              className="flex items-center gap-2 text-white hover:text-white/90 font-semibold transition-colors"
+            >
+              {isInstallPromptCollapsed ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronUp className="h-4 w-4" />
+              )}
+              <span className="text-2xl">📲</span>
+              <span className="text-sm">One-Tap Mobile Access</span>
+            </button>
+            <button 
+              onClick={handleDismissInstallPrompt}
+              className="text-white/70 hover:text-white text-xs flex items-center gap-1"
+              aria-label="Dismiss"
+            >
+              <X className="h-3.5 w-3.5" />
+              <span>Don't show again</span>
+            </button>
           </div>
-        ) : (
-          <div className="hidden md:block" /> 
-        )}
+          {!isInstallPromptCollapsed && (
+            <div className="flex items-start gap-3 mt-3 ml-6">
+              <div className="flex-1">
+                <p className="font-semibold text-sm">Add Asset Safe to Your Home Screen</p>
+                <p className="text-white/90 text-xs mt-1">
+                  One-tap access to your dashboard — even during emergencies with limited internet.
+                </p>
+                <Button 
+                  asChild 
+                  size="sm"
+                  className="mt-2 bg-white text-brand-orange hover:bg-white/90 font-medium"
+                >
+                  <Link to="/install">
+                    Learn How
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
-        {/* Onboarding Progress - now inline */}
-        <OnboardingProgress inline />
-      </div>
+      {/* Onboarding Progress - full width */}
+      <OnboardingProgress inline />
     </div>
   );
 };
