@@ -12,7 +12,11 @@ interface Step {
 
 type Phase = 'getting-started' | 'next-steps' | 'advanced-protection' | 'complete';
 
-const OnboardingProgress: React.FC = () => {
+interface OnboardingProgressProps {
+  inline?: boolean;
+}
+
+const OnboardingProgress: React.FC<OnboardingProgressProps> = ({ inline = false }) => {
   const { status, loading, refreshVerification } = useVerification();
   const { profile, user } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -157,7 +161,10 @@ const OnboardingProgress: React.FC = () => {
   };
 
   return (
-    <div className="w-full bg-muted/50 border border-border rounded-lg px-4 py-3 mb-6">
+    <div className={cn(
+      "w-full bg-muted/50 border border-border rounded-lg px-4 py-3 h-full",
+      !inline && "mb-6"
+    )}>
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <button
