@@ -139,14 +139,8 @@ const WelcomeBanner: React.FC = () => {
       <div className="bg-gradient-to-r from-brand-blue to-brand-lightBlue p-6 rounded-lg text-white">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div className="flex-1">
-            <h1 className="text-2xl font-bold flex items-center gap-2">
+            <h1 className="text-2xl font-bold">
               Welcome, {getDisplayName()}!
-              <UserStatusBadge 
-                status={verificationStatus?.is_verified_plus ? 'Verified+' : verificationStatus?.is_verified ? 'Verified' : 'User'} 
-                size="sm"
-                showLabel={false}
-                className="bg-white/20 border-white/30"
-              />
             </h1>
             {contributorInfo && (
               <div className="mt-1 space-y-1">
@@ -192,9 +186,9 @@ const WelcomeBanner: React.FC = () => {
       </div>
 
       {/* Side-by-side: Mobile Install Prompt + Onboarding Progress */}
-      <div className={`grid gap-3 ${showMobileInstallPrompt ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'}`}>
-        {/* Mobile Install Prompt - only shows on mobile devices, not already installed, and not dismissed */}
-        {showMobileInstallPrompt && (
+      <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
+        {/* Mobile Install Prompt - shows on mobile devices, not already installed, and not dismissed */}
+        {showMobileInstallPrompt ? (
           <div className="bg-gradient-to-r from-brand-orange to-orange-500 p-4 rounded-lg text-white relative h-full">
             <div className="flex items-center justify-between">
               <button 
@@ -238,6 +232,8 @@ const WelcomeBanner: React.FC = () => {
               </div>
             )}
           </div>
+        ) : (
+          <div className="hidden md:block" /> 
         )}
 
         {/* Onboarding Progress - now inline */}
