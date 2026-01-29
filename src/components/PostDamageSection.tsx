@@ -213,6 +213,11 @@ const PostDamageSection: React.FC = () => {
   // Real data from database
   const [damagePhotos, setDamagePhotos] = useState<PropertyFile[]>([]);
   const [damageVideos, setDamageVideos] = useState<PropertyFile[]>([]);
+  
+  // Video upload refs
+  const videoFileInputRef = useRef<HTMLInputElement>(null);
+  const videoCameraInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
 
   // Calculate progress
   const totalSteps = 6;
@@ -467,6 +472,43 @@ const PostDamageSection: React.FC = () => {
         return { ...prev, [field]: [...currentArray, value] };
       }
     });
+  };
+
+  // Video upload handler
+  const handleVideoFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0 || !selectedPropertyId || !user) return;
+    
+    setUploadingVideo(true);
+    try {
+      for (const file of files) {
+        const result = await StorageService.uploadFileWithValidation(file, 'videos', user.id, 'standard');
+        await PropertyService.addPropertyFile({
+          property_id: selectedPropertyId,
+          file_name: file.name,
+          file_path: result.path,
+          file_url: result.url,
+          file_type: 'video',
+          bucket_name: 'property-videos',
+          file_size: file.size,
+        });
+      }
+      await fetchPropertyFiles();
+      toast({
+        title: "Videos Uploaded",
+        description: `${files.length} video(s) uploaded successfully.`,
+      });
+    } catch (error) {
+      console.error('Video upload error:', error);
+      toast({
+        title: "Upload Failed",
+        description: "Failed to upload video. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingVideo(false);
+      if (e.target) e.target.value = '';
+    }
   };
 
   // Toggle step open/close - allows reopening any step
@@ -1514,6 +1556,52 @@ const PostDamageSection: React.FC = () => {
             </TabsContent>
 
             <TabsContent value="videos" className="mt-4">
+              {/* Video Upload Buttons */}
+              <div className="mb-4">
+                <input
+                  ref={videoFileInputRef}
+                  type="file"
+                  accept="video/*"
+                  multiple
+                  onChange={handleVideoFileSelect}
+                  className="hidden"
+                />
+                <input
+                  ref={videoCameraInputRef}
+                  type="file"
+                  accept="video/*"
+                  capture="environment"
+                  onChange={handleVideoFileSelect}
+                  className="hidden"
+                />
+                <div className="grid grid-cols-2 gap-3">
+                  <Button 
+                    variant="outline"
+                    onClick={() => videoCameraInputRef.current?.click()}
+                    className="h-16 flex flex-col items-center justify-center gap-1 border-2 border-dashed hover:border-brand-green hover:bg-green-50"
+                    disabled={uploadingVideo}
+                  >
+                    <Camera className="h-5 w-5 text-brand-green" />
+                    <span className="text-xs">Record Video</span>
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => videoFileInputRef.current?.click()}
+                    className="h-16 flex flex-col items-center justify-center gap-1 border-2 border-dashed hover:border-brand-green hover:bg-green-50"
+                    disabled={uploadingVideo}
+                  >
+                    <Upload className="h-5 w-5 text-brand-green" />
+                    <span className="text-xs">Upload Video</span>
+                  </Button>
+                </div>
+                {uploadingVideo && (
+                  <div className="flex items-center justify-center gap-2 mt-3 text-sm text-gray-600">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Uploading video...
+                  </div>
+                )}
+              </div>
+
               {loading ? (
                 <div className="flex justify-center py-8">
                   <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
@@ -1522,7 +1610,7 @@ const PostDamageSection: React.FC = () => {
                 <div className="text-center py-8">
                   <Video className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-600 mb-2">No damage videos yet</h3>
-                  <p className="text-gray-500 mb-4">Document the damage with video recordings</p>
+                  <p className="text-gray-500 mb-4">Use the buttons above to record or upload videos</p>
                 </div>
               ) : (
                 <div className="space-y-4">
