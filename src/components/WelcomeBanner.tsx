@@ -131,8 +131,8 @@ const WelcomeBanner: React.FC = () => {
     localStorage.setItem('installPromptCollapsed', String(newState));
   };
 
-  // Check if mobile install prompt should show
-  const showMobileInstallPrompt = isMobile && !isAppInstalled && !hideInstallPrompt;
+  // Show install prompt unless already installed or dismissed
+  const showMobileInstallPrompt = !isAppInstalled && !hideInstallPrompt;
 
   return (
     <div className="space-y-3 mb-6">
