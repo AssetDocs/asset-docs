@@ -55,7 +55,13 @@ const commonFeatures = [
   "Post damage documentation",
   "Export detailed reports",
   "24/7 chat support",
-  "Share with trusted contacts"
+  "Share with trusted contacts",
+  "Password Catalog",
+  "Contact Catalog",
+  "Multi-Factor Authentication",
+  "Source Websites",
+  "Manual Entries",
+  "Paint Code Reference"
 ];
 
 const storageAddOns = [
