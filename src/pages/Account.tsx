@@ -32,6 +32,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import PaintCodesSection from '@/components/PaintCodesSection';
+import ServiceProsSection from '@/components/ServiceProsSection';
 import { 
   Home, 
   Camera, 
@@ -209,6 +210,12 @@ const Account: React.FC = () => {
                   >
                     Paint Codes
                   </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => setActiveTab('service-pros')}
+                    className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+                  >
+                    Service Pros
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -376,6 +383,10 @@ const Account: React.FC = () => {
 
             <TabsContent value="paint-codes">
               <PaintCodesSection />
+            </TabsContent>
+
+            <TabsContent value="service-pros">
+              <ServiceProsSection />
             </TabsContent>
 
           </Tabs>

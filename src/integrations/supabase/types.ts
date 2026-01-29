@@ -1686,6 +1686,132 @@ export type Database = {
           },
         ]
       }
+      service_provider_contacts: {
+        Row: {
+          contact_email: string | null
+          contact_name: string
+          contact_phone: string | null
+          created_at: string
+          id: string
+          role: string | null
+          service_provider_id: string
+        }
+        Insert: {
+          contact_email?: string | null
+          contact_name: string
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          role?: string | null
+          service_provider_id: string
+        }
+        Update: {
+          contact_email?: string | null
+          contact_name?: string
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          role?: string | null
+          service_provider_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_provider_contacts_service_provider_id_fkey"
+            columns: ["service_provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_provider_projects: {
+        Row: {
+          created_at: string
+          date_of_work: string | null
+          id: string
+          notes: string | null
+          project_cost: number | null
+          satisfaction_rating: number | null
+          service_provider_id: string
+          work_completed: string
+        }
+        Insert: {
+          created_at?: string
+          date_of_work?: string | null
+          id?: string
+          notes?: string | null
+          project_cost?: number | null
+          satisfaction_rating?: number | null
+          service_provider_id: string
+          work_completed: string
+        }
+        Update: {
+          created_at?: string
+          date_of_work?: string | null
+          id?: string
+          notes?: string | null
+          project_cost?: number | null
+          satisfaction_rating?: number | null
+          service_provider_id?: string
+          work_completed?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_provider_projects_service_provider_id_fkey"
+            columns: ["service_provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_providers: {
+        Row: {
+          address: string | null
+          company_name: string
+          company_website: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          property_id: string | null
+          service_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          company_name: string
+          company_website?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          property_id?: string | null
+          service_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          company_name?: string
+          company_website?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          property_id?: string | null
+          service_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_providers_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       source_websites: {
         Row: {
           category: string | null
