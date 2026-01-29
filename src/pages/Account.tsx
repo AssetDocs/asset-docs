@@ -175,6 +175,12 @@ const Account: React.FC = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] bg-brand-green border-brand-green">
                   <DropdownMenuItem 
+                    onClick={() => setActiveTab('asset-values')}
+                    className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+                  >
+                    Asset Values
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
                     onClick={() => navigate('/account/contacts')}
                     className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
                   >
@@ -185,12 +191,6 @@ const Account: React.FC = () => {
                     className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
                   >
                     Manual Entry
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={() => setActiveTab('asset-values')}
-                    className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
-                  >
-                    Asset Values
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={() => setActiveTab('source-websites')}
@@ -205,16 +205,16 @@ const Account: React.FC = () => {
                     Voice Notes
                   </DropdownMenuItem>
                   <DropdownMenuItem 
-                    onClick={() => setActiveTab('paint-codes')}
-                    className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
-                  >
-                    Paint Codes
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
                     onClick={() => setActiveTab('service-pros')}
                     className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
                   >
                     Service Pros
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => setActiveTab('paint-codes')}
+                    className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+                  >
+                    Paint Codes
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
