@@ -3,36 +3,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Progress } from '@/components/ui/progress';
 import PropertySelector from '@/components/PropertySelector';
-import ManualDamageEntry from '@/components/ManualDamageEntry';
-import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import SavedDamageReports from '@/components/SavedDamageReports';
-import jsPDF from 'jspdf';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { PropertyService, PropertyFile } from '@/services/PropertyService';
 import { StorageService } from '@/services/StorageService';
+import { PropertyService } from '@/services/PropertyService';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   AlertTriangle, 
   Camera, 
-  Video, 
   Upload, 
-  Eye, 
-  Calendar,
-  FileText,
-  Edit,
-  Trash2,
   Loader2,
   X,
   Save,
-  Shield,
   ChevronDown,
   ChevronUp,
   Check,
@@ -49,7 +37,6 @@ import {
   Car,
   Sofa,
   Tv,
-  Smartphone,
   ShoppingBag,
   Wrench,
   Phone
@@ -180,12 +167,8 @@ const defaultIncidentDetails: IncidentDetails = {
 };
 
 const PostDamageSection: React.FC = () => {
-  const [selectedPropertyId, setSelectedPropertyId] = useState('');
   const { toast } = useToast();
   const { user } = useAuth();
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [fileToDelete, setFileToDelete] = useState<PropertyFile | null>(null);
-  const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loadingReport, setLoadingReport] = useState(false);
@@ -209,15 +192,6 @@ const PostDamageSection: React.FC = () => {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
-  
-  // Real data from database
-  const [damagePhotos, setDamagePhotos] = useState<PropertyFile[]>([]);
-  const [damageVideos, setDamageVideos] = useState<PropertyFile[]>([]);
-  
-  // Video upload refs
-  const videoFileInputRef = useRef<HTMLInputElement>(null);
-  const videoCameraInputRef = useRef<HTMLInputElement>(null);
-  const [uploadingVideo, setUploadingVideo] = useState(false);
 
   // Calculate progress
   const totalSteps = 6;
@@ -229,16 +203,6 @@ const PostDamageSection: React.FC = () => {
       loadExistingReport(incidentDetails.propertyId);
     }
   }, [incidentDetails.propertyId, user]);
-
-  // Fetch files when property is selected for viewing
-  useEffect(() => {
-    if (selectedPropertyId && user) {
-      fetchPropertyFiles();
-    } else {
-      setDamagePhotos([]);
-      setDamageVideos([]);
-    }
-  }, [selectedPropertyId, user]);
 
   const loadExistingReport = async (propertyId: string) => {
     if (!user) return;
@@ -346,9 +310,6 @@ const PostDamageSection: React.FC = () => {
         if (data.contacted_someone) completed.push(6);
         setCompletedSteps(completed);
         
-        // Also set the selected property for the files view
-        setSelectedPropertyId(data.property_id);
-        
         // Open step 1 for editing
         setOpenSteps({ 1: true, 2: false, 3: false, 4: false, 5: false, 6: false });
         
@@ -374,75 +335,6 @@ const PostDamageSection: React.FC = () => {
     loadReportById(reportId);
     // Scroll to the top of the form
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const fetchPropertyFiles = async () => {
-    if (!selectedPropertyId) return;
-    
-    setLoading(true);
-    try {
-      const photos = await PropertyService.getPropertyFiles(selectedPropertyId, 'photo');
-      const videos = await PropertyService.getPropertyFiles(selectedPropertyId, 'video');
-      setDamagePhotos(photos);
-      setDamageVideos(videos);
-    } catch (error) {
-      console.error('Error fetching files:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load damage documentation.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
-  const handleDeleteFile = (file: PropertyFile) => {
-    setFileToDelete(file);
-    setShowDeleteDialog(true);
-  };
-
-  const confirmDeleteFile = async () => {
-    if (!fileToDelete) return;
-    
-    try {
-      const success = await PropertyService.deletePropertyFile(
-        fileToDelete.id, 
-        fileToDelete.file_path, 
-        fileToDelete.bucket_name
-      );
-      
-      if (success) {
-        if (fileToDelete.file_type === 'photo') {
-          setDamagePhotos(photos => photos.filter(p => p.id !== fileToDelete.id));
-        } else {
-          setDamageVideos(videos => videos.filter(v => v.id !== fileToDelete.id));
-        }
-        toast({
-          title: "File Deleted",
-          description: "Damage documentation has been permanently removed.",
-        });
-      } else {
-        throw new Error('Delete failed');
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete file. Please try again.",
-        variant: "destructive",
-      });
-    }
-    
-    setShowDeleteDialog(false);
-    setFileToDelete(null);
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -472,43 +364,6 @@ const PostDamageSection: React.FC = () => {
         return { ...prev, [field]: [...currentArray, value] };
       }
     });
-  };
-
-  // Video upload handler
-  const handleVideoFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length === 0 || !selectedPropertyId || !user) return;
-    
-    setUploadingVideo(true);
-    try {
-      for (const file of files) {
-        const result = await StorageService.uploadFileWithValidation(file, 'videos', user.id, 'standard');
-        await PropertyService.addPropertyFile({
-          property_id: selectedPropertyId,
-          file_name: file.name,
-          file_path: result.path,
-          file_url: result.url,
-          file_type: 'video',
-          bucket_name: 'property-videos',
-          file_size: file.size,
-        });
-      }
-      await fetchPropertyFiles();
-      toast({
-        title: "Videos Uploaded",
-        description: `${files.length} video(s) uploaded successfully.`,
-      });
-    } catch (error) {
-      console.error('Video upload error:', error);
-      toast({
-        title: "Upload Failed",
-        description: "Failed to upload video. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setUploadingVideo(false);
-      if (e.target) e.target.value = '';
-    }
   };
 
   // Toggle step open/close - allows reopening any step
@@ -635,22 +490,15 @@ const PostDamageSection: React.FC = () => {
       }
 
       toast({
-        title: "You've captured what matters",
-        description: "Your documentation has been saved. You can add to this anytime.",
+        title: "Report Saved",
+        description: "Your damage report has been saved. You can view it below.",
       });
 
-      // Clear selected files only
+      // Clear the form for a new report
       setSelectedFiles([]);
-      
-      // Refresh files if viewing the same property
-      if (incidentDetails.propertyId === selectedPropertyId) {
-        fetchPropertyFiles();
-      }
-      
-      // Update the main property selector
-      if (!selectedPropertyId) {
-        setSelectedPropertyId(incidentDetails.propertyId);
-      }
+      setIncidentDetails(defaultIncidentDetails);
+      setCompletedSteps([]);
+      setOpenSteps({ 1: true, 2: false, 3: false, 4: false, 5: false, 6: false });
     } catch (error) {
       console.error('Save error:', error);
       toast({
@@ -661,93 +509,6 @@ const PostDamageSection: React.FC = () => {
     } finally {
       setUploading(false);
       setSaving(false);
-    }
-  };
-
-  const generateDamageReport = () => {
-    if (!selectedPropertyId) {
-      toast({
-        title: "Property Required",
-        description: "Please select a property before generating a damage report.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const pdf = new jsPDF();
-      
-      // Header
-      pdf.setFontSize(20);
-      pdf.text('Property Damage Report', 20, 20);
-      
-      pdf.setFontSize(12);
-      pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 30);
-      pdf.text(`Property ID: ${selectedPropertyId}`, 20, 40);
-      
-      let yPosition = 60;
-      
-      // Damage Photos Section
-      if (damagePhotos.length > 0) {
-        pdf.setFontSize(16);
-        pdf.text('Damage Photos', 20, yPosition);
-        yPosition += 10;
-        
-        damagePhotos.forEach((photo, index) => {
-          pdf.setFontSize(10);
-          pdf.text(`${index + 1}. ${photo.file_name}`, 30, yPosition);
-          yPosition += 5;
-          pdf.text(`   Date: ${formatDate(photo.created_at)}`, 30, yPosition);
-          yPosition += 10;
-          
-          if (yPosition > 270) {
-            pdf.addPage();
-            yPosition = 20;
-          }
-        });
-      }
-      
-      // Damage Videos Section
-      if (damageVideos.length > 0) {
-        pdf.setFontSize(16);
-        pdf.text('Damage Videos', 20, yPosition);
-        yPosition += 10;
-        
-        damageVideos.forEach((video, index) => {
-          pdf.setFontSize(10);
-          pdf.text(`${index + 1}. ${video.file_name}`, 30, yPosition);
-          yPosition += 5;
-          pdf.text(`   Date: ${formatDate(video.created_at)}`, 30, yPosition);
-          yPosition += 10;
-          
-          if (yPosition > 270) {
-            pdf.addPage();
-            yPosition = 20;
-          }
-        });
-      }
-      
-      // Summary
-      pdf.addPage();
-      pdf.setFontSize(16);
-      pdf.text('Summary', 20, 20);
-      pdf.setFontSize(10);
-      pdf.text(`Total Damage Photos: ${damagePhotos.length}`, 30, 35);
-      pdf.text(`Total Damage Videos: ${damageVideos.length}`, 30, 45);
-      pdf.text(`Report Generated: ${new Date().toLocaleString()}`, 30, 55);
-      
-      pdf.save(`Damage_Report_${selectedPropertyId}_${new Date().toISOString().split('T')[0]}.pdf`);
-      
-      toast({
-        title: "Report Generated",
-        description: "Damage report has been downloaded successfully.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to generate damage report. Please try again.",
-        variant: "destructive",
-      });
     }
   };
 
@@ -1453,250 +1214,9 @@ const PostDamageSection: React.FC = () => {
           </Button>
         </div>
 
-        {/* Footer Disclaimer */}
-        <div className="bg-gray-50 rounded-xl p-4 mt-6">
-          <p className="text-xs text-gray-500 flex items-start gap-2">
-            <Shield className="h-4 w-4 flex-shrink-0 mt-0.5 text-gray-400" />
-            Asset Safe records user-provided documentation and observations. Damage assessments, valuations, coverage determinations, and claim decisions are made by independent third parties.
-          </p>
-        </div>
-
-        {/* Divider */}
-        <div className="border-t border-gray-200 my-8" />
-
-        {/* View Existing Documentation */}
-        <Card className="bg-blue-50/50 border-blue-100">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center">
-              <Eye className="h-5 w-5 mr-2 text-blue-600" />
-              View Existing Documentation
-            </CardTitle>
-            <CardDescription>
-              Select a property to view and manage existing damage documentation
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <PropertySelector
-              value={selectedPropertyId}
-              onChange={setSelectedPropertyId}
-              placeholder="Select property to view damage documentation"
-            />
-            {selectedPropertyId && (
-              <p className="text-sm text-green-600 mt-2">
-                ✓ Property selected - viewing damage documentation
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Damage Documentation Tabs */}
-        {selectedPropertyId && (
-          <Tabs defaultValue="photos" className="w-full mt-4">
-            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 h-auto gap-1">
-              <TabsTrigger value="photos" className="flex items-center text-xs md:text-sm px-2 py-2">
-                <Camera className="h-3 w-3 md:h-4 md:w-4 mr-1 flex-shrink-0" />
-                <span className="truncate">Photos ({damagePhotos.length})</span>
-              </TabsTrigger>
-              <TabsTrigger value="videos" className="flex items-center text-xs md:text-sm px-2 py-2">
-                <Video className="h-3 w-3 md:h-4 md:w-4 mr-1 flex-shrink-0" />
-                <span className="truncate">Videos ({damageVideos.length})</span>
-              </TabsTrigger>
-              <TabsTrigger value="manual" className="flex items-center text-xs md:text-sm px-2 py-2">
-                <Edit className="h-3 w-3 md:h-4 md:w-4 mr-1 flex-shrink-0" />
-                <span className="truncate">Manual</span>
-              </TabsTrigger>
-              <TabsTrigger value="reports" className="flex items-center text-xs md:text-sm px-2 py-2">
-                <FileText className="h-3 w-3 md:h-4 md:w-4 mr-1 flex-shrink-0" />
-                <span className="truncate">Reports</span>
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="photos" className="mt-4">
-              {loading ? (
-                <div className="flex justify-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-                </div>
-              ) : damagePhotos.length === 0 ? (
-                <div className="text-center py-8">
-                  <Camera className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-600 mb-2">No damage photos yet</h3>
-                  <p className="text-gray-500 mb-4">Start documenting property damage by uploading photos above</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <p className="text-sm text-gray-600">Damage photos for this property</p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {damagePhotos.map((photo) => (
-                      <Card key={photo.id} className="overflow-hidden relative">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full h-8 w-8 z-10"
-                          onClick={() => handleDeleteFile(photo)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                        <img 
-                          src={photo.file_url} 
-                          alt={photo.file_name}
-                          className="w-full h-48 object-cover"
-                        />
-                        <CardContent className="p-4">
-                          <p className="text-sm font-medium truncate">{photo.file_name}</p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            <Calendar className="h-3 w-3 inline mr-1" />
-                            {formatDate(photo.created_at)}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </TabsContent>
-
-            <TabsContent value="videos" className="mt-4">
-              {/* Video Upload Buttons */}
-              <div className="mb-4">
-                <input
-                  ref={videoFileInputRef}
-                  type="file"
-                  accept="video/*"
-                  multiple
-                  onChange={handleVideoFileSelect}
-                  className="hidden"
-                />
-                <input
-                  ref={videoCameraInputRef}
-                  type="file"
-                  accept="video/*"
-                  capture="environment"
-                  onChange={handleVideoFileSelect}
-                  className="hidden"
-                />
-                <div className="grid grid-cols-2 gap-3">
-                  <Button 
-                    variant="outline"
-                    onClick={() => videoCameraInputRef.current?.click()}
-                    className="h-16 flex flex-col items-center justify-center gap-1 border-2 border-dashed hover:border-brand-green hover:bg-green-50"
-                    disabled={uploadingVideo}
-                  >
-                    <Camera className="h-5 w-5 text-brand-green" />
-                    <span className="text-xs">Record Video</span>
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    onClick={() => videoFileInputRef.current?.click()}
-                    className="h-16 flex flex-col items-center justify-center gap-1 border-2 border-dashed hover:border-brand-green hover:bg-green-50"
-                    disabled={uploadingVideo}
-                  >
-                    <Upload className="h-5 w-5 text-brand-green" />
-                    <span className="text-xs">Upload Video</span>
-                  </Button>
-                </div>
-                {uploadingVideo && (
-                  <div className="flex items-center justify-center gap-2 mt-3 text-sm text-gray-600">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Uploading video...
-                  </div>
-                )}
-              </div>
-
-              {loading ? (
-                <div className="flex justify-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-                </div>
-              ) : damageVideos.length === 0 ? (
-                <div className="text-center py-8">
-                  <Video className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-600 mb-2">No damage videos yet</h3>
-                  <p className="text-gray-500 mb-4">Use the buttons above to record or upload videos</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <p className="text-sm text-gray-600">Damage videos for this property</p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {damageVideos.map((video) => (
-                      <Card key={video.id} className="overflow-hidden relative">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full h-8 w-8 z-10"
-                          onClick={() => handleDeleteFile(video)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                        <video 
-                          src={video.file_url} 
-                          className="w-full h-48 object-cover"
-                          controls
-                        />
-                        <CardContent className="p-4">
-                          <p className="text-sm font-medium truncate">{video.file_name}</p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            <Calendar className="h-3 w-3 inline mr-1" />
-                            {formatDate(video.created_at)}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </TabsContent>
-
-            <TabsContent value="manual" className="mt-4">
-              <ManualDamageEntry />
-            </TabsContent>
-
-            <TabsContent value="reports" className="mt-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Generate Damage Report</CardTitle>
-                  <CardDescription>
-                    Create a PDF report of all damage documentation for this property
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div>
-                        <p className="font-medium">Total Photos: {damagePhotos.length}</p>
-                        <p className="font-medium">Total Videos: {damageVideos.length}</p>
-                      </div>
-                      <Button 
-                        onClick={generateDamageReport}
-                        className="bg-brand-green hover:bg-brand-green/90"
-                        disabled={damagePhotos.length === 0 && damageVideos.length === 0}
-                      >
-                        <FileText className="h-4 w-4 mr-2" />
-                        Generate PDF Report
-                      </Button>
-                    </div>
-                    {damagePhotos.length === 0 && damageVideos.length === 0 && (
-                      <p className="text-sm text-gray-500 text-center">
-                        Upload some damage photos or videos first to generate a report
-                      </p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        )}
-
         {/* Saved Damage Reports Section */}
         <SavedDamageReports onEditReport={handleEditReport} />
       </CardContent>
-
-      {/* Delete Confirmation Dialog */}
-      <DeleteConfirmationDialog
-        isOpen={showDeleteDialog}
-        onClose={() => setShowDeleteDialog(false)}
-        onConfirm={confirmDeleteFile}
-        title="Delete Damage Documentation"
-        description={`Are you sure you want to permanently delete "${fileToDelete?.file_name}"? This action cannot be undone and will remove the file from both the database and storage.`}
-      />
     </Card>
   );
 };
