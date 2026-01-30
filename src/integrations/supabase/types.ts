@@ -2192,6 +2192,103 @@ export type Database = {
         }
         Relationships: []
       }
+      upgrade_repair_vendors: {
+        Row: {
+          company_name: string
+          contact_name: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          phone: string | null
+          upgrade_repair_id: string
+        }
+        Insert: {
+          company_name: string
+          contact_name?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          phone?: string | null
+          upgrade_repair_id: string
+        }
+        Update: {
+          company_name?: string
+          contact_name?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          phone?: string | null
+          upgrade_repair_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upgrade_repair_vendors_upgrade_repair_id_fkey"
+            columns: ["upgrade_repair_id"]
+            isOneToOne: false
+            referencedRelation: "upgrade_repairs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upgrade_repairs: {
+        Row: {
+          created_at: string | null
+          date_completed: string | null
+          description: string | null
+          id: string
+          item_cost: number | null
+          labor_cost: number | null
+          location: string | null
+          notes: string | null
+          property_id: string | null
+          repair_type: string | null
+          title: string
+          total_cost: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date_completed?: string | null
+          description?: string | null
+          id?: string
+          item_cost?: number | null
+          labor_cost?: number | null
+          location?: string | null
+          notes?: string | null
+          property_id?: string | null
+          repair_type?: string | null
+          title: string
+          total_cost?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date_completed?: string | null
+          description?: string | null
+          id?: string
+          item_cost?: number | null
+          labor_cost?: number | null
+          location?: string | null
+          notes?: string | null
+          property_id?: string | null
+          repair_type?: string | null
+          title?: string
+          total_cost?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upgrade_repairs_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_documents: {
         Row: {
           category: string

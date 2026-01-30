@@ -27,6 +27,7 @@ import AdminContributorPlanInfo from '@/components/AdminContributorPlanInfo';
 import WelcomeBanner from '@/components/WelcomeBanner';
 import { ExportAssetsButton } from '@/components/ExportAssetsButton';
 import { supabase } from '@/integrations/supabase/client';
+import UpgradesRepairsSection from '@/components/UpgradesRepairsSection';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -211,6 +212,12 @@ const Account: React.FC = () => {
                     Service Pros
                   </DropdownMenuItem>
                   <DropdownMenuItem 
+                    onClick={() => setActiveTab('upgrades-repairs')}
+                    className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
+                  >
+                    Upgrades & Repairs
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
                     onClick={() => setActiveTab('paint-codes')}
                     className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
                   >
@@ -387,6 +394,10 @@ const Account: React.FC = () => {
 
             <TabsContent value="service-pros">
               <ServiceProsSection />
+            </TabsContent>
+
+            <TabsContent value="upgrades-repairs">
+              <UpgradesRepairsSection />
             </TabsContent>
 
           </Tabs>

@@ -7,7 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus, Home, MapPin, Edit3, Trash2, Loader2 } from "lucide-react";
+import { Plus, Home, MapPin, Edit3, Trash2, Loader2, Eye } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
 import GoogleMapsAutocomplete from './GoogleMapsAutocomplete';
 import RealEstateDataService from '@/services/RealEstateDataService';
 import { useToast } from '@/hooks/use-toast';
@@ -36,6 +37,7 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
   const { properties, isLoading, addProperty, updateProperty, deleteProperty } = useProperties();
   const { subscriptionStatus, isInTrial, propertyLimit } = useSubscription();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [formData, setFormData] = useState<PropertyFormData>({
@@ -478,6 +480,18 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
                 <Badge variant="secondary">{formatCurrency(property.estimated_value)}</Badge>
               )}
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full mt-3"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/account/properties/${property.id}/assets`);
+              }}
+            >
+              <Eye className="h-4 w-4 mr-2" />
+              View All Assets
+            </Button>
           </CardContent>
         </Card>
         ))
