@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import jsPDF from 'jspdf';
 import { 
   Edit2, 
@@ -20,7 +21,8 @@ import {
   FileText,
   MapPin,
   DollarSign,
-  Clock
+  Clock,
+  Trash2
 } from 'lucide-react';
 
 // Map incident types to icons and labels
@@ -107,19 +109,23 @@ interface DamageReport {
 
 interface SavedDamageReportsProps {
   onEditReport: (reportId: string, propertyId: string) => void;
+  refreshTrigger?: number;
 }
 
-const SavedDamageReports: React.FC<SavedDamageReportsProps> = ({ onEditReport }) => {
+const SavedDamageReports: React.FC<SavedDamageReportsProps> = ({ onEditReport, refreshTrigger }) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [reports, setReports] = useState<DamageReport[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [reportToDelete, setReportToDelete] = useState<DamageReport | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (user) {
       fetchReports();
     }
-  }, [user]);
+  }, [user, refreshTrigger]);
 
   const fetchReports = async () => {
     if (!user) return;
@@ -138,6 +144,43 @@ const SavedDamageReports: React.FC<SavedDamageReportsProps> = ({ onEditReport })
       console.error('Error fetching damage reports:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteClick = (report: DamageReport) => {
+    setReportToDelete(report);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!reportToDelete || !user) return;
+    
+    setDeleting(true);
+    try {
+      const { error } = await supabase
+        .from('damage_reports')
+        .delete()
+        .eq('id', reportToDelete.id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setReports(prev => prev.filter(r => r.id !== reportToDelete.id));
+      toast({
+        title: "Report Deleted",
+        description: "The damage report has been permanently deleted.",
+      });
+    } catch (error) {
+      console.error('Error deleting report:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete the report. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(false);
+      setDeleteDialogOpen(false);
+      setReportToDelete(null);
     }
   };
 
@@ -347,8 +390,6 @@ const SavedDamageReports: React.FC<SavedDamageReportsProps> = ({ onEditReport })
 
   const ReportCard = ({ report }: { report: DamageReport }) => {
     const incidentTypes = report.incident_types || [];
-    const primaryType = incidentTypes[0];
-    const typeInfo = primaryType ? INCIDENT_TYPE_MAP[primaryType] : null;
 
     // Create a display title based on incident types
     const reportTitle = incidentTypes.length > 0
@@ -428,7 +469,7 @@ const SavedDamageReports: React.FC<SavedDamageReportsProps> = ({ onEditReport })
                 className="flex-1 text-xs"
               >
                 <Edit2 className="h-3 w-3 mr-1" />
-                Edit Report
+                Edit
               </Button>
               <Button
                 variant="outline"
@@ -437,7 +478,15 @@ const SavedDamageReports: React.FC<SavedDamageReportsProps> = ({ onEditReport })
                 className="flex-1 text-xs bg-brand-green/10 hover:bg-brand-green/20 text-brand-green border-brand-green/30"
               >
                 <FileText className="h-3 w-3 mr-1" />
-                Download PDF
+                PDF
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleDeleteClick(report)}
+                className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+              >
+                <Trash2 className="h-3 w-3" />
               </Button>
             </div>
           </div>
@@ -446,23 +495,40 @@ const SavedDamageReports: React.FC<SavedDamageReportsProps> = ({ onEditReport })
     );
   };
 
-  return (
-    <div className="mt-8 space-y-4">
-      <div className="border-t border-gray-200 pt-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-1">
-          Your Saved Damage Reports
-        </h3>
-        <p className="text-sm text-gray-500 mb-4">
-          All your damage reports are saved here. Click to edit or download as PDF.
-        </p>
+  const deleteReportTitle = reportToDelete?.incident_types?.length 
+    ? reportToDelete.incident_types.map(t => INCIDENT_TYPE_MAP[t]?.label || t).join(', ')
+    : 'this damage report';
 
-        <div className="space-y-3">
-          {reports.map(report => (
-            <ReportCard key={report.id} report={report} />
-          ))}
+  return (
+    <>
+      <div className="mt-8 space-y-4">
+        <div className="border-t border-gray-200 pt-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-1">
+            Your Saved Damage Reports
+          </h3>
+          <p className="text-sm text-gray-500 mb-4">
+            All your damage reports are saved here. Click to edit or download as PDF.
+          </p>
+
+          <div className="space-y-3">
+            {reports.map(report => (
+              <ReportCard key={report.id} report={report} />
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+
+      <DeleteConfirmationDialog
+        isOpen={deleteDialogOpen}
+        onClose={() => {
+          setDeleteDialogOpen(false);
+          setReportToDelete(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        title="Delete Damage Report?"
+        description={`Are you sure you want to permanently delete "${deleteReportTitle}"? This action cannot be undone.`}
+      />
+    </>
   );
 };
 
