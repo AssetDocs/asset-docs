@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Table, 
   TableBody, 
@@ -28,8 +29,10 @@ import {
   Users,
   FileText,
   Lock,
-  Cloud
+  Cloud,
+  GitBranch
 } from 'lucide-react';
+import SystemArchitectureFlowcharts from './SystemArchitectureFlowcharts';
 
 // Edge Functions categorized by purpose
 const edgeFunctions = [
@@ -290,6 +293,32 @@ const SystemInfrastructure = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Tabs for Architecture vs Technical Details */}
+      <Tabs defaultValue="architecture" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="architecture" className="flex items-center gap-2">
+            <GitBranch className="h-4 w-4" />
+            System Architecture
+          </TabsTrigger>
+          <TabsTrigger value="technical" className="flex items-center gap-2">
+            <Server className="h-4 w-4" />
+            Technical Details
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="architecture" className="mt-6">
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold">System Architecture Flowcharts</h3>
+            <p className="text-sm text-muted-foreground">
+              Visual documentation of how AssetSafe.net's front-end and back-end systems work together.
+              Click each section to expand the detailed flow diagram.
+            </p>
+          </div>
+          <SystemArchitectureFlowcharts />
+        </TabsContent>
+        
+        <TabsContent value="technical" className="mt-6 space-y-6">
 
       {/* Edge Functions */}
       <Collapsible open={openSections.functions} onOpenChange={() => toggleSection('functions')}>
@@ -633,6 +662,8 @@ const SystemInfrastructure = () => {
           </div>
         </CardContent>
       </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
