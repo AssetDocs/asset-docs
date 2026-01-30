@@ -173,6 +173,12 @@ const PostDamageSection: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [loadingReport, setLoadingReport] = useState(false);
   
+  // Track if we're in editing mode (to show form fields)
+  const [isEditing, setIsEditing] = useState(false);
+  
+  // Refresh trigger for saved reports list
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  
   // Step states - all sections can be opened/closed independently
   const [openSteps, setOpenSteps] = useState<Record<number, boolean>>({
     1: true,
@@ -196,70 +202,6 @@ const PostDamageSection: React.FC = () => {
   // Calculate progress
   const totalSteps = 6;
   const progressPercent = (completedSteps.length / totalSteps) * 100;
-
-  // Load existing damage report when property changes
-  useEffect(() => {
-    if (incidentDetails.propertyId && user) {
-      loadExistingReport(incidentDetails.propertyId);
-    }
-  }, [incidentDetails.propertyId, user]);
-
-  const loadExistingReport = async (propertyId: string) => {
-    if (!user) return;
-    
-    setLoadingReport(true);
-    try {
-      const { data, error } = await supabase
-        .from('damage_reports')
-        .select('*')
-        .eq('property_id', propertyId)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      if (data) {
-        setIncidentDetails({
-          id: data.id,
-          dateOfDamage: data.date_of_damage || '',
-          approximateTime: data.approximate_time || '',
-          incidentTypes: data.incident_types || [],
-          otherIncidentType: data.other_incident_type || '',
-          propertyId: data.property_id,
-          areasAffected: data.areas_affected || [],
-          otherArea: data.other_area || '',
-          impactBuckets: data.impact_buckets || [],
-          belongingsItems: data.belongings_items || [],
-          otherBelongings: data.other_belongings || '',
-          visibleDamage: data.visible_damage || [],
-          damageOngoing: data.damage_ongoing || '',
-          safetyConcerns: data.safety_concerns || [],
-          actionsTaken: data.actions_taken || [],
-          estimatedCost: data.estimated_cost || '',
-          contactedSomeone: data.contacted_someone || '',
-          professionalsContacted: data.professionals_contacted || [],
-          claimNumber: data.claim_number || '',
-          companyNames: data.company_names || '',
-          additionalObservations: data.additional_observations || '',
-        });
-        
-        // Set completed steps based on data
-        const completed: number[] = [];
-        if (data.incident_types?.length > 0 || data.date_of_damage) completed.push(2);
-        if (data.areas_affected?.length > 0 || data.impact_buckets?.length > 0) completed.push(3);
-        if (data.visible_damage?.length > 0) completed.push(4);
-        if (data.safety_concerns?.length > 0 || data.actions_taken?.length > 0) completed.push(5);
-        if (data.contacted_someone) completed.push(6);
-        setCompletedSteps(completed);
-      }
-    } catch (error) {
-      console.error('Error loading damage report:', error);
-    } finally {
-      setLoadingReport(false);
-    }
-  };
 
   // Load specific report by ID for editing
   const loadReportById = async (reportId: string) => {
@@ -310,8 +252,9 @@ const PostDamageSection: React.FC = () => {
         if (data.contacted_someone) completed.push(6);
         setCompletedSteps(completed);
         
-        // Open step 1 for editing
+        // Open step 1 for editing and set editing mode
         setOpenSteps({ 1: true, 2: false, 3: false, 4: false, 5: false, 6: false });
+        setIsEditing(true);
         
         toast({
           title: "Report Loaded",
@@ -332,9 +275,19 @@ const PostDamageSection: React.FC = () => {
 
   // Handler for editing a report from the SavedDamageReports component
   const handleEditReport = (reportId: string, propertyId: string) => {
+    setIsEditing(true);
     loadReportById(reportId);
     // Scroll to the top of the form
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Cancel editing and reset form
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setIncidentDetails(defaultIncidentDetails);
+    setCompletedSteps([]);
+    setSelectedFiles([]);
+    setOpenSteps({ 1: true, 2: false, 3: false, 4: false, 5: false, 6: false });
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -494,11 +447,15 @@ const PostDamageSection: React.FC = () => {
         description: "Your damage report has been saved. You can view it below.",
       });
 
-      // Clear the form for a new report
+      // Clear the form for a new report and exit editing mode
       setSelectedFiles([]);
       setIncidentDetails(defaultIncidentDetails);
       setCompletedSteps([]);
       setOpenSteps({ 1: true, 2: false, 3: false, 4: false, 5: false, 6: false });
+      setIsEditing(false);
+      
+      // Trigger refresh of saved reports list
+      setRefreshTrigger(prev => prev + 1);
     } catch (error) {
       console.error('Save error:', error);
       toast({
@@ -542,23 +499,52 @@ const PostDamageSection: React.FC = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="pb-24 md:pb-6">
-        {/* Reassurance Message */}
-        <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 mb-6">
-          <p className="text-amber-800 text-sm leading-relaxed">
-            <span className="font-medium">You don't need to complete everything today.</span>
-            <br />
-            Even partial documentation is valuable. You can always come back and add more.
-          </p>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between text-sm text-gray-500 mb-2">
-            <span>Your progress</span>
-            <span>{completedSteps.length} of {totalSteps} sections</span>
+        {/* Start New Report Button - shown when not editing and no form is active */}
+        {!isEditing && !incidentDetails.propertyId && (
+          <div className="mb-6">
+            <Button 
+              onClick={() => setIsEditing(true)}
+              className="w-full bg-amber-500 hover:bg-amber-600 h-14 text-base rounded-xl"
+            >
+              <AlertTriangle className="h-5 w-5 mr-2" />
+              Start New Damage Report
+            </Button>
           </div>
-          <Progress value={progressPercent} className="h-2" />
-        </div>
+        )}
+
+        {/* Form Section - only shown when editing */}
+        {(isEditing || incidentDetails.propertyId) && (
+          <>
+            {/* Reassurance Message */}
+            <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 mb-6">
+              <div className="flex items-center justify-between">
+                <p className="text-amber-800 text-sm leading-relaxed">
+                  <span className="font-medium">You don't need to complete everything today.</span>
+                  <br />
+                  Even partial documentation is valuable. You can always come back and add more.
+                </p>
+                {isEditing && incidentDetails.id && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleCancelEdit}
+                    className="text-gray-500 hover:text-gray-700 ml-4"
+                  >
+                    <X className="h-4 w-4 mr-1" />
+                    Cancel
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between text-sm text-gray-500 mb-2">
+                <span>Your progress</span>
+                <span>{completedSteps.length} of {totalSteps} sections</span>
+              </div>
+              <Progress value={progressPercent} className="h-2" />
+            </div>
 
         {/* Steps Container */}
         <div className="space-y-3">
@@ -1186,36 +1172,38 @@ const PostDamageSection: React.FC = () => {
             )}
           </Button>
           
-          {!incidentDetails.propertyId && (
-            <p className="text-center text-sm text-gray-500 mt-2">
-              Select a property in Step 1 to save
-            </p>
-          )}
-        </div>
-
-        {/* Sticky Save Button for Mobile */}
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-lg md:hidden z-50">
-          <Button 
-            onClick={handleUploadAndSave}
-            className="w-full bg-brand-green hover:bg-brand-green/90 h-12 text-base rounded-xl"
-            disabled={uploading || saving || !incidentDetails.propertyId}
-          >
-            {(uploading || saving) ? (
-              <>
-                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="h-5 w-5 mr-2" />
-                Save Documentation
-              </>
+            {!incidentDetails.propertyId && (
+              <p className="text-center text-sm text-gray-500 mt-2">
+                Select a property in Step 1 to save
+              </p>
             )}
-          </Button>
-        </div>
+          </div>
+
+          {/* Sticky Save Button for Mobile */}
+          <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-lg md:hidden z-50">
+            <Button 
+              onClick={handleUploadAndSave}
+              className="w-full bg-brand-green hover:bg-brand-green/90 h-12 text-base rounded-xl"
+              disabled={uploading || saving || !incidentDetails.propertyId}
+            >
+              {(uploading || saving) ? (
+                <>
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-5 w-5 mr-2" />
+                  Save Documentation
+                </>
+              )}
+            </Button>
+          </div>
+        </>
+        )}
 
         {/* Saved Damage Reports Section */}
-        <SavedDamageReports onEditReport={handleEditReport} />
+        <SavedDamageReports onEditReport={handleEditReport} refreshTrigger={refreshTrigger} />
       </CardContent>
     </Card>
   );
