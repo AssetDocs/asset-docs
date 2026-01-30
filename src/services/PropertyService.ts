@@ -25,6 +25,8 @@ export interface PropertyFile {
   file_size: number | null;
   bucket_name: string;
   folder_id?: string | null;
+  source?: string;
+  damage_report_id?: string | null;
   created_at: string;
 }
 
@@ -194,7 +196,7 @@ export class PropertyService {
     }
   }
 
-  static async getAllUserFiles(fileType?: 'photo' | 'video' | 'document' | 'floor-plan'): Promise<PropertyFile[]> {
+  static async getAllUserFiles(fileType?: 'photo' | 'video' | 'document' | 'floor-plan', includeAllSources?: boolean): Promise<PropertyFile[]> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
@@ -209,11 +211,42 @@ export class PropertyService {
         query = query.eq('file_type', fileType);
       }
 
+      // By default, exclude damage_report files from general galleries
+      if (!includeAllSources) {
+        query = query.or('source.is.null,source.neq.damage_report');
+      }
+
       const { data, error } = await query;
       if (error) throw error;
       return (data || []) as PropertyFile[];
     } catch (error) {
       console.error('Error fetching user files:', error);
+      return [];
+    }
+  }
+
+  // Get files specifically for damage reports
+  static async getDamageReportFiles(propertyId?: string): Promise<PropertyFile[]> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
+      let query = supabase
+        .from('property_files')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('source', 'damage_report')
+        .order('created_at', { ascending: false });
+
+      if (propertyId) {
+        query = query.eq('property_id', propertyId);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data || []) as PropertyFile[];
+    } catch (error) {
+      console.error('Error fetching damage report files:', error);
       return [];
     }
   }
