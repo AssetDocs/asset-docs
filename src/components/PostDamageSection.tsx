@@ -382,7 +382,7 @@ const PostDamageSection: React.FC = () => {
           ).join(', ');
           const fileName = incidentTypeLabels ? `${incidentTypeLabels} - ${file.name}` : file.name;
 
-          // Save to database
+          // Save to database with damage_report source
           await PropertyService.addPropertyFile({
             property_id: incidentDetails.propertyId,
             file_name: fileName,
@@ -391,6 +391,7 @@ const PostDamageSection: React.FC = () => {
             file_type: fileType,
             file_size: file.size,
             bucket_name: bucketName,
+            source: 'damage_report',
           });
         }
       }

@@ -1581,6 +1581,7 @@ export type Database = {
         Row: {
           bucket_name: string
           created_at: string | null
+          damage_report_id: string | null
           file_name: string
           file_path: string
           file_size: number | null
@@ -1589,11 +1590,13 @@ export type Database = {
           folder_id: string | null
           id: string
           property_id: string
+          source: string | null
           user_id: string
         }
         Insert: {
           bucket_name: string
           created_at?: string | null
+          damage_report_id?: string | null
           file_name: string
           file_path: string
           file_size?: number | null
@@ -1602,11 +1605,13 @@ export type Database = {
           folder_id?: string | null
           id?: string
           property_id: string
+          source?: string | null
           user_id: string
         }
         Update: {
           bucket_name?: string
           created_at?: string | null
+          damage_report_id?: string | null
           file_name?: string
           file_path?: string
           file_size?: number | null
@@ -1615,9 +1620,17 @@ export type Database = {
           folder_id?: string | null
           id?: string
           property_id?: string
+          source?: string | null
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "property_files_damage_report_id_fkey"
+            columns: ["damage_report_id"]
+            isOneToOne: false
+            referencedRelation: "damage_reports"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "property_files_property_id_fkey"
             columns: ["property_id"]
