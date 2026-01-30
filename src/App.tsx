@@ -41,6 +41,7 @@ import Account from "./pages/Account";
 import SampleDashboard from "./pages/SampleDashboard";
 import Properties from "./pages/Properties";
 import PropertyForm from "./pages/PropertyForm";
+import PropertyAllAssets from "./pages/PropertyAllAssets";
 import PhotoUpload from "./pages/PhotoUpload";
 import VideoUpload from "./pages/VideoUpload";
 import DocumentUpload from "./pages/DocumentUpload";
@@ -289,6 +290,7 @@ const AppContent = () => {
         <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
         <Route path="/account/properties" element={<ProtectedRoute><Properties /></ProtectedRoute>} />
         <Route path="/account/properties/new" element={<ProtectedRoute><PropertyForm /></ProtectedRoute>} />
+        <Route path="/account/properties/:propertyId/assets" element={<ProtectedRoute><PropertyAllAssets /></ProtectedRoute>} />
         <Route path="/account/photos" element={<ProtectedRoute><PhotoGallery /></ProtectedRoute>} />
         <Route path="/account/videos" element={<ProtectedRoute><Videos /></ProtectedRoute>} />
         <Route path="/account/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
