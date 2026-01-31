@@ -37,10 +37,10 @@ const TOTPSettings: React.FC = () => {
       await unenroll(verifiedFactor.id);
       // Refresh verification status to update Verified+ badge
       await refreshVerification();
-      toast({
-        title: "Two-Factor Disabled",
-        description: "Authenticator has been removed from your account. Verified+ status removed.",
-      });
+        toast({
+          title: "MFA Disabled",
+          description: "Authenticator has been removed from your account. Verified+ status removed.",
+        });
       setShowDisableConfirm(false);
     } catch (error: any) {
       toast({
@@ -61,7 +61,7 @@ const TOTPSettings: React.FC = () => {
     if (newStatus?.is_verified_plus) {
       toast({
         title: "Verified+ Earned!",
-        description: "Congratulations! You've earned Verified+ status with 2FA protection.",
+        description: "Congratulations! You've earned Verified+ status with MFA protection.",
       });
     }
   };
@@ -84,12 +84,12 @@ const TOTPSettings: React.FC = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2">
                 <Shield className="h-5 w-5" />
-                Two-Factor Authentication
+                Multi-Factor Authentication (MFA)
               </CardTitle>
               <CardDescription>
-                Add an extra layer of security to your account using an authenticator app
+                Secure your account with an authenticator app or backup codes
               </CardDescription>
             </div>
             {isEnrolled && (
@@ -106,8 +106,8 @@ const TOTPSettings: React.FC = () => {
               <Alert className="bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800">
                 <CheckCircle className="h-4 w-4 text-green-600" />
                 <AlertDescription className="text-green-700 dark:text-green-300">
-                  Your account is protected with two-factor authentication. 
-                  You'll be asked for a code when accessing sensitive features like the Secure Vault.
+                  Your account is protected with multi-factor authentication. 
+                  You have 2 options: authenticator app or one-time backup codes.
                 </AlertDescription>
               </Alert>
 
@@ -140,12 +140,12 @@ const TOTPSettings: React.FC = () => {
               <Alert className="bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800">
                 <AlertTriangle className="h-4 w-4 text-amber-600" />
                 <AlertDescription className="text-amber-700 dark:text-amber-300">
-                  Two-factor authentication is not enabled. We strongly recommend enabling it to protect your sensitive data.
+                  Multi-factor authentication is not enabled. We strongly recommend enabling it to protect your sensitive data.
                 </AlertDescription>
               </Alert>
 
               <div className="space-y-3 text-sm text-muted-foreground">
-                <p className="font-medium text-foreground">Why enable two-factor authentication?</p>
+                <p className="font-medium text-foreground">Why enable multi-factor authentication?</p>
                 <ul className="list-disc list-inside space-y-1">
                   <li>Protects access to your Secure Vault (passwords & Legacy Locker)</li>
                   <li>Required for billing changes and sensitive profile updates</li>
@@ -174,11 +174,11 @@ const TOTPSettings: React.FC = () => {
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2 text-destructive">
               <AlertTriangle className="h-5 w-5" />
-              Disable Two-Factor Authentication?
+              Disable Multi-Factor Authentication?
             </AlertDialogTitle>
             <AlertDialogDescription>
               This will remove the authenticator from your account. You'll need to set it up again 
-              to access sensitive features like the Secure Vault, billing, and profile changes.
+              or use backup codes to access sensitive features like the Secure Vault.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

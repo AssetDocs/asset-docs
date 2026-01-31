@@ -23,28 +23,28 @@ const FAQAccordion: React.FC = () => {
           </AccordionItem>
           
           <AccordionItem value="security-3">
-            <AccordionTrigger className="text-lg font-medium">Why does Asset Safe require two-step authentication?</AccordionTrigger>
+            <AccordionTrigger className="text-lg font-medium">Why does Asset Safe require multi-factor authentication?</AccordionTrigger>
             <AccordionContent>
               <Accordion type="single" collapsible className="space-y-2">
-                <AccordionItem value="2fa-1" className="border-b-0">
+                <AccordionItem value="mfa-1" className="border-b-0">
                   <AccordionTrigger className="text-base font-medium">
-                    What type of two-factor authentication does Asset Safe use?
+                    What type of multi-factor authentication does Asset Safe use?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground">
-                    Asset Safe uses TOTP (Time-based One-Time Password) authentication via authenticator apps like Google Authenticator, Authy, or 1Password. This is more secure than SMS and works even without cell service.
+                    Asset Safe uses TOTP (Time-based One-Time Password) authentication via authenticator apps like Google Authenticator, Authy, or 1Password. You also have the option to use one-time backup recovery codes. This is more secure than SMS and works even without cell service.
                   </AccordionContent>
                 </AccordionItem>
 
-                <AccordionItem value="2fa-2" className="border-b-0">
+                <AccordionItem value="mfa-2" className="border-b-0">
                   <AccordionTrigger className="text-base font-medium">
                     Will I have to enter a verification code every time I log in?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground">
-                    No. After verifying your email during signup, you can browse your dashboard and most features without extra authentication. TOTP verification is only required for sensitive actions like accessing the Secure Vault.
+                    No. After verifying your email during signup, you can browse your dashboard and most features without extra authentication. MFA verification is only required for sensitive actions like accessing the Secure Vault.
                   </AccordionContent>
                 </AccordionItem>
 
-                <AccordionItem value="2fa-3" className="border-b-0">
+                <AccordionItem value="mfa-3" className="border-b-0">
                   <AccordionTrigger className="text-base font-medium">
                     When will Asset Safe ask for an extra verification code?
                   </AccordionTrigger>
@@ -96,16 +96,16 @@ const FAQAccordion: React.FC = () => {
                   </AccordionContent>
                 </AccordionItem>
 
-                <AccordionItem value="2fa-4" className="border-b-0">
+                <AccordionItem value="mfa-4" className="border-b-0">
                   <AccordionTrigger className="text-base font-medium">
                     What if I lose access to my authenticator app?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground">
-                    Your verified email and trusted contacts provide secure backup methods to help you regain access. You can also remove and re-setup your authenticator from the Security tab in Account Settings.
+                    You have 2 options: use one of your backup recovery codes, or contact support via your verified email and trusted contacts. You can also remove and re-setup your authenticator from the Security tab in Account Settings.
                   </AccordionContent>
                 </AccordionItem>
 
-                <AccordionItem value="2fa-5" className="border-b-0">
+                <AccordionItem value="mfa-5" className="border-b-0">
                   <AccordionTrigger className="text-base font-medium">
                     Why not require codes for everything?
                   </AccordionTrigger>

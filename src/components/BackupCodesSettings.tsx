@@ -87,7 +87,7 @@ const BackupCodesSettings: React.FC = () => {
           <Alert className="bg-muted">
             <Shield className="h-4 w-4" />
             <AlertDescription>
-              Enable Two-Factor Authentication first to generate backup codes.
+              Enable Multi-Factor Authentication (MFA) first to generate backup codes.
             </AlertDescription>
           </Alert>
         </CardContent>

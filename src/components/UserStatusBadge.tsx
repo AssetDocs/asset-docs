@@ -48,7 +48,7 @@ const UserStatusBadge: React.FC<UserStatusBadgeProps> = ({
           bgColor: 'bg-amber-50',
           textColor: 'text-amber-700',
           borderColor: 'border-amber-200',
-          tooltip: 'Verified+ Account (2FA Protected)'
+          tooltip: 'Verified+ Account (MFA Protected)'
         };
       case 'Verified':
         return {

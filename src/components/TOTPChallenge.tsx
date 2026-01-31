@@ -199,8 +199,8 @@ const TOTPChallenge: React.FC<TOTPChallengeProps> = ({
                       // Check if still not enrolled and show feedback
                       if (!isEnrolled) {
                         toast({
-                          title: "No 2FA Found",
-                          description: "You haven't set up two-factor authentication for Asset Safe yet. Please tap 'Set Up Authenticator' to connect your app.",
+                          title: "No MFA Found",
+                          description: "You haven't set up multi-factor authentication for Asset Safe yet. Please tap 'Set Up Authenticator' to connect your app.",
                           variant: "destructive",
                         });
                       }
@@ -209,7 +209,7 @@ const TOTPChallenge: React.FC<TOTPChallengeProps> = ({
                     setIsRefetching(false);
                     toast({
                       title: "Error",
-                      description: "Could not check your 2FA status. Please try again.",
+                      description: "Could not check your MFA status. Please try again.",
                       variant: "destructive",
                     });
                   }
@@ -222,7 +222,7 @@ const TOTPChallenge: React.FC<TOTPChallengeProps> = ({
                 ) : (
                   <Shield className="h-4 w-4 mr-2" />
                 )}
-                {isRefetching ? "Checking..." : "I've Already Set Up 2FA"}
+                {isRefetching ? "Checking..." : "I've Already Set Up MFA"}
               </Button>
               <p className="text-xs text-center text-muted-foreground">
                 Only use this if you've previously connected an authenticator app to Asset Safe

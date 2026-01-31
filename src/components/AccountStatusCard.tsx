@@ -127,7 +127,7 @@ const AccountStatusCard: React.FC<AccountStatusCardProps> = ({ compact = false }
             {status?.is_verified && !status?.is_verified_plus && (
               <div className="px-3 pb-3 pt-1">
                 <p className="text-xs text-white/80">
-                  Enable 2FA to upgrade to <span className="text-amber-300 font-medium">Verified+</span>
+                  Enable MFA to upgrade to <span className="text-amber-300 font-medium">Verified+</span>
                 </p>
               </div>
             )}
@@ -211,7 +211,7 @@ const AccountStatusCard: React.FC<AccountStatusCardProps> = ({ compact = false }
           {status?.is_verified && !status?.is_verified_plus && (
             <div className="px-4 pb-4 pt-1 border-t border-border">
               <p className="text-xs text-muted-foreground">
-                Enable Two-Factor Authentication to upgrade to <span className="text-amber-600 font-medium">Verified+</span>
+                Enable Multi-Factor Authentication to upgrade to <span className="text-amber-600 font-medium">Verified+</span>
               </p>
             </div>
           )}
@@ -219,7 +219,7 @@ const AccountStatusCard: React.FC<AccountStatusCardProps> = ({ compact = false }
           {status?.is_verified_plus && (
             <div className="px-4 pb-4 pt-1 border-t border-border">
               <p className="text-xs text-green-600">
-                Maximum protection enabled with 2FA
+                Maximum protection enabled with MFA
               </p>
             </div>
           )}
