@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -6,14 +6,271 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { FileText, Users, Briefcase, PieChart } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { FileText, Users, Briefcase, PieChart, Save, Loader2, CheckCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+
+interface SignatureData {
+  signer_name?: string;
+  signer_email?: string;
+  signer_location?: string;
+  signature_text?: string;
+  signature_date?: string;
+  acknowledgments?: Record<string, boolean>;
+}
+
+interface AgreementSignatures {
+  [signerRole: string]: SignatureData;
+}
 
 const AdminLegalAgreements = () => {
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  
+  // Confidentiality agreement signatures
+  const [confidentialityData, setConfidentialityData] = useState<AgreementSignatures>({
+    company: { signature_date: '' },
+    developer: { signature_date: '' }
+  });
+
+  // Offshore addendum signatures
+  const [offshoreData, setOffshoreData] = useState<AgreementSignatures>({
+    acknowledgment: { acknowledgments: { understand: false } },
+    subcontractor_1: { signer_name: '', signer_location: '', signer_email: '', signature_date: '', signature_text: '' },
+    subcontractor_2: { signer_name: '', signer_location: '', signer_email: '', signature_date: '', signature_text: '' },
+    subcontractor_3: { signer_name: '', signer_location: '', signer_email: '', signature_date: '', signature_text: '' },
+    subcontractor_4: { signer_name: '', signer_location: '', signer_email: '', signature_date: '', signature_text: '' }
+  });
+
+  // Contractor pack signatures
+  const [contractorData, setContractorData] = useState<AgreementSignatures>({
+    acknowledgment: { acknowledgments: { understand: false } },
+    company: { signature_text: '', signature_date: '' },
+    developer: { signature_text: '', signature_date: '' },
+    compensation: { signer_name: '', signer_email: '' } // Using for rate/fee fields
+  });
+
+  // Equity vesting signatures
+  const [equityData, setEquityData] = useState<AgreementSignatures>({
+    acknowledgment: { acknowledgments: { understand: false, conversion: false, no_acceleration: false, double_trigger: false } },
+    company: { signature_text: '', signature_date: '' },
+    developer: { signature_text: '', signature_date: '' },
+    acceleration: { signer_name: '' } // Using for acceleration percentage
+  });
+
+  // Load existing signatures from database
+  useEffect(() => {
+    const loadSignatures = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('legal_agreement_signatures')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          const confidentiality: AgreementSignatures = { company: {}, developer: {} };
+          const offshore: AgreementSignatures = { 
+            acknowledgment: { acknowledgments: {} },
+            subcontractor_1: {}, subcontractor_2: {}, subcontractor_3: {}, subcontractor_4: {}
+          };
+          const contractor: AgreementSignatures = {
+            acknowledgment: { acknowledgments: {} },
+            company: {}, developer: {}, compensation: {}
+          };
+          const equity: AgreementSignatures = {
+            acknowledgment: { acknowledgments: {} },
+            company: {}, developer: {}, acceleration: {}
+          };
+
+          data.forEach((sig) => {
+            const sigData: SignatureData = {
+              signer_name: sig.signer_name || '',
+              signer_email: sig.signer_email || '',
+              signer_location: sig.signer_location || '',
+              signature_text: sig.signature_text || '',
+              signature_date: sig.signature_date || '',
+              acknowledgments: (sig.acknowledgments as Record<string, boolean>) || {}
+            };
+
+            switch (sig.agreement_type) {
+              case 'confidentiality':
+                confidentiality[sig.signer_role] = sigData;
+                break;
+              case 'offshore':
+                offshore[sig.signer_role] = sigData;
+                break;
+              case 'contractor':
+                contractor[sig.signer_role] = sigData;
+                break;
+              case 'equity':
+                equity[sig.signer_role] = sigData;
+                break;
+            }
+          });
+
+          setConfidentialityData(prev => ({ ...prev, ...confidentiality }));
+          setOffshoreData(prev => ({ ...prev, ...offshore }));
+          setContractorData(prev => ({ ...prev, ...contractor }));
+          setEquityData(prev => ({ ...prev, ...equity }));
+        }
+      } catch (error) {
+        console.error('Error loading signatures:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSignatures();
+  }, []);
+
+  // Save signature to database
+  const saveSignature = useCallback(async (
+    agreementType: string,
+    signerRole: string,
+    data: SignatureData
+  ) => {
+    try {
+      // Check if record exists
+      const { data: existing } = await supabase
+        .from('legal_agreement_signatures')
+        .select('id')
+        .eq('agreement_type', agreementType)
+        .eq('signer_role', signerRole)
+        .single();
+
+      const payload = {
+        agreement_type: agreementType,
+        signer_role: signerRole,
+        signer_name: data.signer_name || null,
+        signer_email: data.signer_email || null,
+        signer_location: data.signer_location || null,
+        signature_text: data.signature_text || null,
+        signature_date: data.signature_date || null,
+        acknowledgments: data.acknowledgments || {},
+        ip_address: null, // Could capture this client-side
+        user_agent: navigator.userAgent,
+        signed_at: data.signature_text ? new Date().toISOString() : null,
+        updated_at: new Date().toISOString()
+      };
+
+      if (existing) {
+        await supabase
+          .from('legal_agreement_signatures')
+          .update(payload)
+          .eq('id', existing.id);
+      } else {
+        await supabase
+          .from('legal_agreement_signatures')
+          .insert(payload);
+      }
+    } catch (error) {
+      console.error('Error saving signature:', error);
+      throw error;
+    }
+  }, []);
+
+  // Save all signatures
+  const handleSaveAll = async () => {
+    setSaving(true);
+    try {
+      // Save confidentiality signatures
+      for (const [role, data] of Object.entries(confidentialityData)) {
+        await saveSignature('confidentiality', role, data);
+      }
+
+      // Save offshore signatures
+      for (const [role, data] of Object.entries(offshoreData)) {
+        await saveSignature('offshore', role, data);
+      }
+
+      // Save contractor signatures
+      for (const [role, data] of Object.entries(contractorData)) {
+        await saveSignature('contractor', role, data);
+      }
+
+      // Save equity signatures
+      for (const [role, data] of Object.entries(equityData)) {
+        await saveSignature('equity', role, data);
+      }
+
+      setLastSaved(new Date());
+      toast.success('All signatures and agreements saved successfully');
+    } catch (error) {
+      console.error('Error saving:', error);
+      toast.error('Failed to save signatures');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Helper to update nested state
+  const updateConfidentiality = (role: string, field: keyof SignatureData, value: string) => {
+    setConfidentialityData(prev => ({
+      ...prev,
+      [role]: { ...prev[role], [field]: value }
+    }));
+  };
+
+  const updateOffshore = (role: string, field: keyof SignatureData, value: string | boolean | Record<string, boolean>) => {
+    setOffshoreData(prev => ({
+      ...prev,
+      [role]: { ...prev[role], [field]: value }
+    }));
+  };
+
+  const updateContractor = (role: string, field: keyof SignatureData, value: string | boolean | Record<string, boolean>) => {
+    setContractorData(prev => ({
+      ...prev,
+      [role]: { ...prev[role], [field]: value }
+    }));
+  };
+
+  const updateEquity = (role: string, field: keyof SignatureData, value: string | boolean | Record<string, boolean>) => {
+    setEquityData(prev => ({
+      ...prev,
+      [role]: { ...prev[role], [field]: value }
+    }));
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <span className="ml-2">Loading agreements...</span>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold">Legal Agreements & Contracts</h2>
-        <p className="text-muted-foreground">Confidentiality, IP Assignment, and Equity Agreements</p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h2 className="text-2xl font-bold">Legal Agreements & Contracts</h2>
+          <p className="text-muted-foreground">Confidentiality, IP Assignment, and Equity Agreements</p>
+          {lastSaved && (
+            <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+              <CheckCircle className="w-4 h-4 text-green-500" />
+              Last saved: {lastSaved.toLocaleString()}
+            </p>
+          )}
+        </div>
+        <Button onClick={handleSaveAll} disabled={saving}>
+          {saving ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            <>
+              <Save className="w-4 h-4 mr-2" />
+              Save All Signatures
+            </>
+          )}
+        </Button>
       </div>
 
       <Tabs defaultValue="confidentiality" className="space-y-6">
@@ -220,7 +477,11 @@ const AdminLegalAgreements = () => {
                       <p>Michael Lewis<br />Founder, Asset Safe</p>
                       <div className="space-y-2">
                         <Label>Date:</Label>
-                        <Input type="date" />
+                        <Input 
+                          type="date" 
+                          value={confidentialityData.company?.signature_date || ''}
+                          onChange={(e) => updateConfidentiality('company', 'signature_date', e.target.value)}
+                        />
                       </div>
                     </div>
                     
@@ -229,7 +490,11 @@ const AdminLegalAgreements = () => {
                       <p>Vinh Nguyen<br />Development Lead / Contractor</p>
                       <div className="space-y-2">
                         <Label>Date:</Label>
-                        <Input type="date" />
+                        <Input 
+                          type="date" 
+                          value={confidentialityData.developer?.signature_date || ''}
+                          onChange={(e) => updateConfidentiality('developer', 'signature_date', e.target.value)}
+                        />
                       </div>
                     </div>
                   </div>
@@ -299,39 +564,70 @@ const AdminLegalAgreements = () => {
                   <h3 className="font-semibold text-base">✅ SUBCONTRACTOR SIGNATURES</h3>
                   
                   <div className="flex items-center space-x-2 mb-4">
-                    <Checkbox id="offshore-understand" />
+                    <Checkbox 
+                      id="offshore-understand" 
+                      checked={offshoreData.acknowledgment?.acknowledgments?.understand || false}
+                      onCheckedChange={(checked) => updateOffshore('acknowledgment', 'acknowledgments', { 
+                        ...offshoreData.acknowledgment?.acknowledgments, 
+                        understand: checked as boolean 
+                      })}
+                    />
                     <Label htmlFor="offshore-understand" className="text-sm">
                       I understand this is a legally binding confidentiality and intellectual property assignment agreement.
                     </Label>
                   </div>
 
-                  {[1, 2, 3, 4].map((num) => (
-                    <div key={num} className="p-4 border rounded-lg space-y-3">
-                      <p className="font-medium">Subcontractor #{num}</p>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>Full Name:</Label>
-                          <Input placeholder="Enter full name" />
+                  {[1, 2, 3, 4].map((num) => {
+                    const role = `subcontractor_${num}`;
+                    return (
+                      <div key={num} className="p-4 border rounded-lg space-y-3">
+                        <p className="font-medium">Subcontractor #{num}</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Full Name:</Label>
+                            <Input 
+                              placeholder="Enter full name" 
+                              value={offshoreData[role]?.signer_name || ''}
+                              onChange={(e) => updateOffshore(role, 'signer_name', e.target.value)}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Country/Location:</Label>
+                            <Input 
+                              placeholder="Enter country/location" 
+                              value={offshoreData[role]?.signer_location || ''}
+                              onChange={(e) => updateOffshore(role, 'signer_location', e.target.value)}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Email:</Label>
+                            <Input 
+                              type="email" 
+                              placeholder="Enter email" 
+                              value={offshoreData[role]?.signer_email || ''}
+                              onChange={(e) => updateOffshore(role, 'signer_email', e.target.value)}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Date:</Label>
+                            <Input 
+                              type="date" 
+                              value={offshoreData[role]?.signature_date || ''}
+                              onChange={(e) => updateOffshore(role, 'signature_date', e.target.value)}
+                            />
+                          </div>
                         </div>
                         <div className="space-y-2">
-                          <Label>Country/Location:</Label>
-                          <Input placeholder="Enter country/location" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Email:</Label>
-                          <Input type="email" placeholder="Enter email" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Date:</Label>
-                          <Input type="date" />
+                          <Label>Electronic Signature:</Label>
+                          <Input 
+                            placeholder="Type full name as signature" 
+                            value={offshoreData[role]?.signature_text || ''}
+                            onChange={(e) => updateOffshore(role, 'signature_text', e.target.value)}
+                          />
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label>Electronic Signature:</Label>
-                        <Input placeholder="Type full name as signature" />
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 <Separator />
@@ -474,11 +770,19 @@ const AdminLegalAgreements = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
                       <div className="space-y-2">
                         <Label>Rate (per hour):</Label>
-                        <Input placeholder="$___" />
+                        <Input 
+                          placeholder="$___" 
+                          value={contractorData.compensation?.signer_name || ''}
+                          onChange={(e) => updateContractor('compensation', 'signer_name', e.target.value)}
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label>OR Fixed Project Fee:</Label>
-                        <Input placeholder="$___" />
+                        <Input 
+                          placeholder="$___" 
+                          value={contractorData.compensation?.signer_email || ''}
+                          onChange={(e) => updateContractor('compensation', 'signer_email', e.target.value)}
+                        />
                       </div>
                     </div>
                     <p className="mt-2">Payment Schedule: Weekly / Biweekly / Milestone-Based</p>
@@ -539,7 +843,14 @@ const AdminLegalAgreements = () => {
                   <h3 className="font-semibold text-base">✅ SIGNATURES</h3>
                   
                   <div className="flex items-center space-x-2 mb-4">
-                    <Checkbox id="contractor-understand" />
+                    <Checkbox 
+                      id="contractor-understand" 
+                      checked={contractorData.acknowledgment?.acknowledgments?.understand || false}
+                      onCheckedChange={(checked) => updateContractor('acknowledgment', 'acknowledgments', {
+                        ...contractorData.acknowledgment?.acknowledgments,
+                        understand: checked as boolean
+                      })}
+                    />
                     <Label htmlFor="contractor-understand" className="text-sm">
                       I understand and agree to be legally bound by this Services Agreement.
                     </Label>
@@ -551,11 +862,19 @@ const AdminLegalAgreements = () => {
                       <p>Michael Lewis</p>
                       <div className="space-y-2">
                         <Label>Signature:</Label>
-                        <Input placeholder="Type full name as signature" />
+                        <Input 
+                          placeholder="Type full name as signature" 
+                          value={contractorData.company?.signature_text || ''}
+                          onChange={(e) => updateContractor('company', 'signature_text', e.target.value)}
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label>Date:</Label>
-                        <Input type="date" />
+                        <Input 
+                          type="date" 
+                          value={contractorData.company?.signature_date || ''}
+                          onChange={(e) => updateContractor('company', 'signature_date', e.target.value)}
+                        />
                       </div>
                     </div>
                     
@@ -564,11 +883,19 @@ const AdminLegalAgreements = () => {
                       <p>Vinh Nguyen</p>
                       <div className="space-y-2">
                         <Label>Signature:</Label>
-                        <Input placeholder="Type full name as signature" />
+                        <Input 
+                          placeholder="Type full name as signature" 
+                          value={contractorData.developer?.signature_text || ''}
+                          onChange={(e) => updateContractor('developer', 'signature_text', e.target.value)}
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label>Date:</Label>
-                        <Input type="date" />
+                        <Input 
+                          type="date" 
+                          value={contractorData.developer?.signature_date || ''}
+                          onChange={(e) => updateContractor('developer', 'signature_date', e.target.value)}
+                        />
                       </div>
                     </div>
                   </div>
@@ -746,18 +1073,37 @@ const AdminLegalAgreements = () => {
                   <p>Acceleration is not automatic unless selected:</p>
                   <div className="space-y-2 mt-2">
                     <div className="flex items-center space-x-2">
-                      <Checkbox id="no-acceleration" />
+                      <Checkbox 
+                        id="no-acceleration" 
+                        checked={equityData.acknowledgment?.acknowledgments?.no_acceleration || false}
+                        onCheckedChange={(checked) => updateEquity('acknowledgment', 'acknowledgments', {
+                          ...equityData.acknowledgment?.acknowledgments,
+                          no_acceleration: checked as boolean
+                        })}
+                      />
                       <Label htmlFor="no-acceleration">No acceleration (standard)</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Checkbox id="double-trigger" />
+                      <Checkbox 
+                        id="double-trigger" 
+                        checked={equityData.acknowledgment?.acknowledgments?.double_trigger || false}
+                        onCheckedChange={(checked) => updateEquity('acknowledgment', 'acknowledgments', {
+                          ...equityData.acknowledgment?.acknowledgments,
+                          double_trigger: checked as boolean
+                        })}
+                      />
                       <Label htmlFor="double-trigger">Double-trigger acceleration (recommended)</Label>
                     </div>
                   </div>
                   <p className="mt-2 text-muted-foreground">Acceleration occurs only if BOTH: Company is acquired, AND Recipient is terminated without cause within 12 months</p>
                   <div className="space-y-2 mt-2">
                     <Label>Acceleration amount:</Label>
-                    <Input placeholder="___%" className="w-32" />
+                    <Input 
+                      placeholder="___%" 
+                      className="w-32" 
+                      value={equityData.acceleration?.signer_name || ''}
+                      onChange={(e) => updateEquity('acceleration', 'signer_name', e.target.value)}
+                    />
                   </div>
                 </div>
 
@@ -812,13 +1158,29 @@ const AdminLegalAgreements = () => {
                   
                   <div className="space-y-3 mb-4">
                     <div className="flex items-start space-x-2">
-                      <Checkbox id="equity-understand" className="mt-0.5" />
+                      <Checkbox 
+                        id="equity-understand" 
+                        className="mt-0.5" 
+                        checked={equityData.acknowledgment?.acknowledgments?.understand || false}
+                        onCheckedChange={(checked) => updateEquity('acknowledgment', 'acknowledgments', {
+                          ...equityData.acknowledgment?.acknowledgments,
+                          understand: checked as boolean
+                        })}
+                      />
                       <Label htmlFor="equity-understand" className="text-sm">
                         I understand equity is earned only through time and milestone completion, and unvested equity is forfeited upon departure.
                       </Label>
                     </div>
                     <div className="flex items-start space-x-2">
-                      <Checkbox id="equity-conversion" className="mt-0.5" />
+                      <Checkbox 
+                        id="equity-conversion" 
+                        className="mt-0.5" 
+                        checked={equityData.acknowledgment?.acknowledgments?.conversion || false}
+                        onCheckedChange={(checked) => updateEquity('acknowledgment', 'acknowledgments', {
+                          ...equityData.acknowledgment?.acknowledgments,
+                          conversion: checked as boolean
+                        })}
+                      />
                       <Label htmlFor="equity-conversion" className="text-sm font-medium text-amber-700 dark:text-amber-300">
                         I understand that this equity grant is not active unless and until a written contractor-to-founder conversion is executed by Asset Safe.
                       </Label>
@@ -831,11 +1193,19 @@ const AdminLegalAgreements = () => {
                       <p>Michael Lewis<br />Founder, Asset Safe</p>
                       <div className="space-y-2">
                         <Label>Signature:</Label>
-                        <Input placeholder="Type full name as signature" />
+                        <Input 
+                          placeholder="Type full name as signature" 
+                          value={equityData.company?.signature_text || ''}
+                          onChange={(e) => updateEquity('company', 'signature_text', e.target.value)}
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label>Date:</Label>
-                        <Input type="date" />
+                        <Input 
+                          type="date" 
+                          value={equityData.company?.signature_date || ''}
+                          onChange={(e) => updateEquity('company', 'signature_date', e.target.value)}
+                        />
                       </div>
                     </div>
                     
@@ -844,11 +1214,19 @@ const AdminLegalAgreements = () => {
                       <p>Vinh Nguyen<br />Technical Founder (Subject to Vesting)</p>
                       <div className="space-y-2">
                         <Label>Signature:</Label>
-                        <Input placeholder="Type full name as signature" />
+                        <Input 
+                          placeholder="Type full name as signature" 
+                          value={equityData.developer?.signature_text || ''}
+                          onChange={(e) => updateEquity('developer', 'signature_text', e.target.value)}
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label>Date:</Label>
-                        <Input type="date" />
+                        <Input 
+                          type="date" 
+                          value={equityData.developer?.signature_date || ''}
+                          onChange={(e) => updateEquity('developer', 'signature_date', e.target.value)}
+                        />
                       </div>
                     </div>
                   </div>
