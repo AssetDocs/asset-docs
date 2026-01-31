@@ -3,7 +3,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import { 
   ArrowLeft,
   Camera,
@@ -16,7 +16,8 @@ import {
   Type,
   Grid3X3,
   List,
-  FolderOpen
+  Images,
+  Filter
 } from 'lucide-react';
 import { 
   DropdownMenu,
@@ -31,7 +32,6 @@ import CreateFolderModal from '@/components/CreateFolderModal';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import MovePhotoModal from '@/components/MovePhotoModal';
 import PhotoGalleryFolders from '@/components/PhotoGalleryFolders';
-import VideoGalleryFolders from '@/components/VideoGalleryFolders';
 import MediaGalleryGrid from '@/components/MediaGalleryGrid';
 import { PropertyService, PropertyFile } from '@/services/PropertyService';
 import { useToast } from '@/hooks/use-toast';
@@ -41,6 +41,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc';
 type ViewMode = 'grid' | 'list';
+type MediaFilter = 'all' | 'photo' | 'video';
 
 interface PhotoFolder {
   id: string;
@@ -48,15 +49,7 @@ interface PhotoFolder {
   description: string | null;
   gradient_color: string;
   created_at: string;
-}
-
-interface VideoFolder {
-  id: string;
-  name: string;
-  description: string;
-  photoCount: number;
-  createdDate: string;
-  color: string;
+  display_order?: number;
 }
 
 const CombinedMedia: React.FC = () => {
@@ -65,21 +58,16 @@ const CombinedMedia: React.FC = () => {
   const { user } = useAuth();
   const { properties } = useProperties();
   
-  const [activeTab, setActiveTab] = useState<'photos' | 'videos'>('photos');
+  const [mediaFilter, setMediaFilter] = useState<MediaFilter>('all');
   const [photos, setPhotos] = useState<PropertyFile[]>([]);
   const [videos, setVideos] = useState<PropertyFile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Photo state
-  const [photoFolders, setPhotoFolders] = useState<PhotoFolder[]>([]);
-  const [selectedPhotoFolder, setSelectedPhotoFolder] = useState<string | null>(null);
-  const [selectedPhotos, setSelectedPhotos] = useState<string[]>([]);
-  const [showPhotoMoveModal, setShowPhotoMoveModal] = useState(false);
-  
-  // Video state
-  const [videoFolders, setVideoFolders] = useState<VideoFolder[]>([]);
-  const [selectedVideoFolder, setSelectedVideoFolder] = useState<string | null>(null);
-  const [selectedVideos, setSelectedVideos] = useState<string[]>([]);
+  // Folder state (unified for photos and videos)
+  const [folders, setFolders] = useState<PhotoFolder[]>([]);
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
+  const [showMoveModal, setShowMoveModal] = useState(false);
   
   // Shared state
   const [sortBy, setSortBy] = useState<SortOption>('date-desc');
@@ -95,8 +83,7 @@ const CombinedMedia: React.FC = () => {
   useEffect(() => {
     fetchPhotos();
     fetchVideos();
-    fetchPhotoFolders();
-    fetchVideoFolders();
+    fetchFolders();
   }, []);
 
   const fetchPhotos = async () => {
@@ -119,44 +106,19 @@ const CombinedMedia: React.FC = () => {
     }
   };
 
-  const fetchPhotoFolders = async () => {
+  const fetchFolders = async () => {
     if (!user) return;
     try {
       const { data, error } = await supabase
         .from('photo_folders')
         .select('*')
         .eq('user_id', user.id)
+        .order('display_order', { ascending: true, nullsFirst: false })
         .order('created_at', { ascending: false });
       if (error) throw error;
-      setPhotoFolders(data || []);
+      setFolders(data || []);
     } catch (error) {
-      console.error('Error fetching photo folders:', error);
-    }
-  };
-
-  const fetchVideoFolders = async () => {
-    if (!user) return;
-    try {
-      const { data, error } = await supabase
-        .from('video_folders')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      const mappedFolders: VideoFolder[] = data?.map(folder => ({
-        id: folder.id,
-        name: folder.folder_name,
-        description: folder.description || '',
-        photoCount: 0,
-        createdDate: folder.created_at,
-        color: folder.gradient_color.includes('blue') ? 'blue' : 
-               folder.gradient_color.includes('green') ? 'green' : 
-               folder.gradient_color.includes('purple') ? 'purple' : 
-               folder.gradient_color.includes('orange') ? 'orange' : 'blue'
-      })) || [];
-      setVideoFolders(mappedFolders);
-    } catch (error) {
-      console.error('Error fetching video folders:', error);
+      console.error('Error fetching folders:', error);
     }
   };
 
@@ -175,32 +137,31 @@ const CombinedMedia: React.FC = () => {
     return mb >= 1 ? `${mb.toFixed(1)} MB` : `${(bytes / 1024).toFixed(1)} KB`;
   };
 
-  const transformedPhotos = photos.map(photo => ({
-    id: photo.id,
-    name: photo.file_name,
-    url: photo.file_url,
-    filePath: photo.file_path,
-    bucket: photo.bucket_name,
-    uploadDate: photo.created_at,
-    size: formatFileSize(photo.file_size),
-    propertyName: getPropertyName(photo.property_id)
-  }));
+  // Combine photos and videos based on filter
+  const allFiles = [...photos, ...videos];
+  
+  const transformedFiles = allFiles
+    .filter(file => {
+      if (mediaFilter === 'photo') return file.file_type === 'photo';
+      if (mediaFilter === 'video') return file.file_type === 'video';
+      return true;
+    })
+    .map(file => ({
+      id: file.id,
+      name: file.file_name,
+      url: file.file_url,
+      filePath: file.file_path,
+      bucket: file.bucket_name,
+      uploadDate: file.created_at,
+      size: formatFileSize(file.file_size),
+      propertyName: getPropertyName(file.property_id),
+      fileType: file.file_type
+    }));
 
-  const transformedVideos = videos.map(video => ({
-    id: video.id,
-    name: video.file_name,
-    url: video.file_url,
-    filePath: video.file_path,
-    bucket: video.bucket_name,
-    uploadDate: video.created_at,
-    size: formatFileSize(video.file_size),
-    propertyName: getPropertyName(video.property_id)
-  }));
-
-  const getFilteredItems = (items: typeof transformedPhotos, selectedFolder: string | null, originalFiles: PropertyFile[]) => {
-    let filtered = items.filter(item => {
+  const getFilteredItems = () => {
+    let filtered = transformedFiles.filter(item => {
       const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const fileData = originalFiles.find(f => f.id === item.id);
+      const fileData = allFiles.find(f => f.id === item.id);
       const matchesFolder = selectedFolder ? fileData?.folder_id === selectedFolder : true;
       return matchesSearch && matchesFolder;
     });
@@ -223,16 +184,14 @@ const CombinedMedia: React.FC = () => {
     return filtered;
   };
 
-  const filteredPhotos = getFilteredItems(transformedPhotos, selectedPhotoFolder, photos);
-  const filteredVideos = getFilteredItems(transformedVideos, selectedVideoFolder, videos);
+  const filteredFiles = getFilteredItems();
 
   const handleCreateFolder = async (name: string, description: string, gradientColor: string) => {
     if (!user) return;
     
     try {
-      const tableName = activeTab === 'photos' ? 'photo_folders' : 'video_folders';
       const { error } = await supabase
-        .from(tableName)
+        .from('photo_folders')
         .insert({
           user_id: user.id,
           folder_name: name,
@@ -242,16 +201,12 @@ const CombinedMedia: React.FC = () => {
 
       if (error) throw error;
       
-      if (activeTab === 'photos') {
-        await fetchPhotoFolders();
-      } else {
-        await fetchVideoFolders();
-      }
+      await fetchFolders();
       setShowCreateFolder(false);
-      toast({ title: "Success", description: "Folder created successfully" });
+      toast({ title: "Success", description: "Room created successfully" });
     } catch (error) {
       console.error('Error creating folder:', error);
-      toast({ title: "Error", description: "Failed to create folder", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to create room", variant: "destructive" });
     }
   };
 
@@ -271,79 +226,67 @@ const CombinedMedia: React.FC = () => {
 
       if (updateError) throw updateError;
 
-      const tableName = activeTab === 'photos' ? 'photo_folders' : 'video_folders';
       const { error: deleteError } = await supabase
-        .from(tableName)
+        .from('photo_folders')
         .delete()
         .eq('id', folderToDelete);
 
       if (deleteError) throw deleteError;
       
-      if (activeTab === 'photos') {
-        setPhotoFolders(photoFolders.filter(f => f.id !== folderToDelete));
-        if (selectedPhotoFolder === folderToDelete) setSelectedPhotoFolder(null);
-        await fetchPhotos();
-      } else {
-        setVideoFolders(videoFolders.filter(f => f.id !== folderToDelete));
-        if (selectedVideoFolder === folderToDelete) setSelectedVideoFolder(null);
-        await fetchVideos();
-      }
+      setFolders(folders.filter(f => f.id !== folderToDelete));
+      if (selectedFolder === folderToDelete) setSelectedFolder(null);
+      await fetchPhotos();
+      await fetchVideos();
       
       setShowDeleteFolderDialog(false);
       setFolderToDelete(null);
-      toast({ title: "Success", description: "Folder deleted successfully." });
+      toast({ title: "Success", description: "Room deleted successfully." });
     } catch (error) {
       console.error('Error deleting folder:', error);
-      toast({ title: "Error", description: "Failed to delete folder", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to delete room", variant: "destructive" });
     }
   };
 
-  const handleMovePhotos = async (propertyId: string | null, folderId: string | null) => {
-    if (selectedPhotos.length === 0) return;
+  const handleReorderFolders = (reorderedFolders: PhotoFolder[]) => {
+    // Update local state for visual reordering
+    setFolders(reorderedFolders);
+  };
+
+  const handleMoveFiles = async (propertyId: string | null, folderId: string | null) => {
+    if (selectedFiles.length === 0) return;
     
     try {
-      const updates = selectedPhotos.map(photoId => {
-        const photo = photos.find(p => p.id === photoId);
-        if (!photo) return Promise.resolve();
+      const updates = selectedFiles.map(fileId => {
+        const file = allFiles.find(f => f.id === fileId);
+        if (!file) return Promise.resolve();
         return supabase
           .from('property_files')
-          .update({ folder_id: folderId, property_id: propertyId || photo.property_id })
-          .eq('id', photoId);
+          .update({ folder_id: folderId, property_id: propertyId || file.property_id })
+          .eq('id', fileId);
       });
 
       await Promise.all(updates);
-      toast({ title: "Success", description: `${selectedPhotos.length} photo(s) moved successfully` });
+      toast({ title: "Success", description: `${selectedFiles.length} file(s) moved successfully` });
       await fetchPhotos();
-      setSelectedPhotos([]);
-      setShowPhotoMoveModal(false);
+      await fetchVideos();
+      setSelectedFiles([]);
+      setShowMoveModal(false);
     } catch (error) {
-      console.error('Error moving photos:', error);
-      toast({ title: "Error", description: "Failed to move photos", variant: "destructive" });
+      console.error('Error moving files:', error);
+      toast({ title: "Error", description: "Failed to move files", variant: "destructive" });
     }
   };
 
   const toggleSelection = (id: string) => {
-    if (activeTab === 'photos') {
-      setSelectedPhotos(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
-    } else {
-      setSelectedVideos(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
-    }
+    setSelectedFiles(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   };
 
   const selectAll = () => {
-    if (activeTab === 'photos') {
-      setSelectedPhotos(filteredPhotos.map(p => p.id));
-    } else {
-      setSelectedVideos(filteredVideos.map(v => v.id));
-    }
+    setSelectedFiles(filteredFiles.map(f => f.id));
   };
 
   const unselectAll = () => {
-    if (activeTab === 'photos') {
-      setSelectedPhotos([]);
-    } else {
-      setSelectedVideos([]);
-    }
+    setSelectedFiles([]);
   };
 
   const handleDeleteItem = (id: string) => {
@@ -353,46 +296,39 @@ const CombinedMedia: React.FC = () => {
   };
 
   const handleEditFile = (id: string) => {
-    const mediaType = activeTab === 'photos' ? 'photo' : 'video';
+    const file = allFiles.find(f => f.id === id);
+    const mediaType = file?.file_type === 'video' ? 'video' : 'photo';
     navigate(`/account/media/${id}/edit?type=${mediaType}`);
   };
 
   const handleBulkDelete = () => {
-    const selected = activeTab === 'photos' ? selectedPhotos : selectedVideos;
-    if (selected.length > 0) {
+    if (selectedFiles.length > 0) {
       setBulkDeleteMode(true);
       setShowDeleteDialog(true);
     }
   };
 
   const confirmDelete = async () => {
-    const files = activeTab === 'photos' ? photos : videos;
-    const selected = activeTab === 'photos' ? selectedPhotos : selectedVideos;
-    
     try {
       if (bulkDeleteMode) {
-        const deletePromises = selected.map(id => {
-          const file = files.find(f => f.id === id);
+        const deletePromises = selectedFiles.map(id => {
+          const file = allFiles.find(f => f.id === id);
           if (file) return PropertyService.deletePropertyFile(file.id, file.file_path, file.bucket_name);
           return Promise.resolve(false);
         });
         await Promise.all(deletePromises);
-        toast({ title: "Success", description: `${selected.length} file(s) deleted successfully` });
+        toast({ title: "Success", description: `${selectedFiles.length} file(s) deleted successfully` });
       } else if (itemToDelete) {
-        const file = files.find(f => f.id === itemToDelete);
+        const file = allFiles.find(f => f.id === itemToDelete);
         if (file) {
           await PropertyService.deletePropertyFile(file.id, file.file_path, file.bucket_name);
           toast({ title: "Success", description: "File deleted successfully" });
         }
       }
       
-      if (activeTab === 'photos') {
-        await fetchPhotos();
-        setSelectedPhotos([]);
-      } else {
-        await fetchVideos();
-        setSelectedVideos([]);
-      }
+      await fetchPhotos();
+      await fetchVideos();
+      setSelectedFiles([]);
     } catch (error) {
       console.error('Error deleting file(s):', error);
       toast({ title: "Error", description: "Failed to delete file(s)", variant: "destructive" });
@@ -403,11 +339,23 @@ const CombinedMedia: React.FC = () => {
     }
   };
 
-  const currentFiles = activeTab === 'photos' ? filteredPhotos : filteredVideos;
-  const currentSelected = activeTab === 'photos' ? selectedPhotos : selectedVideos;
-  const currentFolderName = activeTab === 'photos' 
-    ? (selectedPhotoFolder ? photoFolders.find(f => f.id === selectedPhotoFolder)?.folder_name : 'All Photos & Videos')
-    : (selectedVideoFolder ? videoFolders.find(f => f.id === selectedVideoFolder)?.name : 'All Photos & Videos');
+  const getFilterLabel = () => {
+    switch (mediaFilter) {
+      case 'photo': return 'Photos Only';
+      case 'video': return 'Videos Only';
+      default: return 'All Files';
+    }
+  };
+
+  const currentFolderName = selectedFolder 
+    ? folders.find(f => f.id === selectedFolder)?.folder_name 
+    : 'All Photos and Videos';
+
+  const totalCount = mediaFilter === 'photo' 
+    ? photos.length 
+    : mediaFilter === 'video' 
+      ? videos.length 
+      : photos.length + videos.length;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -432,14 +380,9 @@ const CombinedMedia: React.FC = () => {
                   </p>
                 </div>
               </div>
-              
-              <Button onClick={() => navigate('/account/media/upload')} className="bg-brand-blue hover:bg-brand-lightBlue">
-                <Plus className="h-4 w-4 mr-2" />
-                Upload Photos/Videos
-              </Button>
             </div>
 
-            {/* Controls */}
+            {/* Search and Upload */}
             <div className="flex flex-wrap items-center gap-3">
               <div className="relative flex-1 min-w-48">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -451,146 +394,132 @@ const CombinedMedia: React.FC = () => {
                 />
               </div>
               
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    {sortBy.includes('date') ? <Calendar className="h-4 w-4 mr-1" /> : <Type className="h-4 w-4 mr-1" />}
-                    {sortBy.includes('desc') ? <SortDesc className="h-4 w-4" /> : <SortAsc className="h-4 w-4" />}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-background">
-                  <DropdownMenuItem onClick={() => setSortBy('date-desc')}>Date (Newest)</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortBy('date-asc')}>Date (Oldest)</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortBy('name-asc')}>Name (A-Z)</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortBy('name-desc')}>Name (Z-A)</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <div className="flex border rounded-lg">
-                <Button variant={viewMode === 'grid' ? 'default' : 'ghost'} size="sm" onClick={() => setViewMode('grid')}>
-                  <Grid3X3 className="h-4 w-4" />
-                </Button>
-                <Button variant={viewMode === 'list' ? 'default' : 'ghost'} size="sm" onClick={() => setViewMode('list')}>
-                  <List className="h-4 w-4" />
-                </Button>
-              </div>
-
-              {currentSelected.length > 0 && (
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={unselectAll}>
-                    Deselect All ({currentSelected.length})
-                  </Button>
-                  <Button variant="destructive" size="sm" onClick={handleBulkDelete}>
-                    Delete Selected
-                  </Button>
-                </div>
-              )}
-              
-              {currentSelected.length === 0 && (
-                <Button variant="outline" size="sm" onClick={selectAll}>
-                  Select All
-                </Button>
-              )}
+              <Button onClick={() => navigate('/account/media/upload')} className="bg-brand-blue hover:bg-brand-lightBlue">
+                <Plus className="h-4 w-4 mr-2" />
+                Upload Photo/Video
+              </Button>
             </div>
           </div>
 
-          {/* Tabs for Photo/Video */}
-          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'photos' | 'videos')} className="space-y-6">
-            <TabsList className="grid w-full max-w-md grid-cols-2">
-              <TabsTrigger value="photos" className="flex items-center gap-2">
-                <Camera className="h-4 w-4" />
-                Photos ({photos.length})
-              </TabsTrigger>
-              <TabsTrigger value="videos" className="flex items-center gap-2">
-                <Video className="h-4 w-4" />
-                Videos ({videos.length})
-              </TabsTrigger>
-            </TabsList>
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Sidebar with Folders */}
+            <div className="lg:col-span-1">
+              <PhotoGalleryFolders 
+                folders={folders}
+                selectedFolder={selectedFolder}
+                onFolderSelect={setSelectedFolder}
+                photoCount={totalCount}
+                onDeleteFolder={handleDeleteFolder}
+                onCreateFolder={() => setShowCreateFolder(true)}
+                onReorderFolders={handleReorderFolders}
+                isRoomBased={true}
+              />
+            </div>
+            
+            {/* Main Content */}
+            <div className="lg:col-span-3">
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <CardTitle className="flex items-center gap-2">
+                      <Images className="h-5 w-5" />
+                      {currentFolderName}
+                      <Badge variant="secondary" className="ml-2">{filteredFiles.length}</Badge>
+                    </CardTitle>
+                    
+                    {/* Controls moved inside the card */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      {/* Media Type Filter */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            <Filter className="h-4 w-4 mr-1" />
+                            {getFilterLabel()}
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-background">
+                          <DropdownMenuItem onClick={() => setMediaFilter('all')}>
+                            <Images className="h-4 w-4 mr-2" />
+                            All Files
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setMediaFilter('photo')}>
+                            <Camera className="h-4 w-4 mr-2" />
+                            Photos Only
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setMediaFilter('video')}>
+                            <Video className="h-4 w-4 mr-2" />
+                            Videos Only
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      
+                      {/* Sort */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            {sortBy.includes('date') ? <Calendar className="h-4 w-4 mr-1" /> : <Type className="h-4 w-4 mr-1" />}
+                            {sortBy.includes('desc') ? <SortDesc className="h-4 w-4" /> : <SortAsc className="h-4 w-4" />}
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-background">
+                          <DropdownMenuItem onClick={() => setSortBy('date-desc')}>Date (Newest)</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setSortBy('date-asc')}>Date (Oldest)</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setSortBy('name-asc')}>Name (A-Z)</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setSortBy('name-desc')}>Name (Z-A)</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
 
-            <TabsContent value="photos">
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                <div className="lg:col-span-1">
-                  <PhotoGalleryFolders 
-                    folders={photoFolders}
-                    selectedFolder={selectedPhotoFolder}
-                    onFolderSelect={setSelectedPhotoFolder}
-                    photoCount={selectedPhotoFolder ? photos.filter(p => p.folder_id === selectedPhotoFolder).length : photos.length}
-                    onDeleteFolder={handleDeleteFolder}
-                    onCreateFolder={() => setShowCreateFolder(true)}
-                  />
-                </div>
-                <div className="lg:col-span-3">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Camera className="h-5 w-5" />
-                        {selectedPhotoFolder ? photoFolders.find(f => f.id === selectedPhotoFolder)?.folder_name : 'All Photos and Videos'}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {isLoading ? (
-                        <div className="p-12 text-center">
-                          <p className="text-muted-foreground">Loading...</p>
-                        </div>
-                      ) : (
-                        <MediaGalleryGrid 
-                          files={filteredPhotos}
-                          viewMode={viewMode}
-                          selectedFiles={selectedPhotos}
-                          onFileSelect={toggleSelection}
-                          onDeleteFile={handleDeleteItem}
-                          onEditFile={handleEditFile}
-                          mediaType="photo"
-                        />
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            </TabsContent>
+                      {/* View Mode */}
+                      <div className="flex border rounded-lg">
+                        <Button variant={viewMode === 'grid' ? 'default' : 'ghost'} size="sm" onClick={() => setViewMode('grid')} className="rounded-r-none">
+                          <Grid3X3 className="h-4 w-4" />
+                        </Button>
+                        <Button variant={viewMode === 'list' ? 'default' : 'ghost'} size="sm" onClick={() => setViewMode('list')} className="rounded-l-none">
+                          <List className="h-4 w-4" />
+                        </Button>
+                      </div>
 
-            <TabsContent value="videos">
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                <div className="lg:col-span-1">
-                  <VideoGalleryFolders
-                    folders={videoFolders}
-                    selectedFolder={selectedVideoFolder}
-                    onFolderSelect={setSelectedVideoFolder}
-                    videos={transformedVideos.map(v => ({ ...v, id: parseInt(v.id) || 0, folderId: null, tags: [], propertyId: 0, duration: '--:--', filename: v.name }))}
-                    onDeleteFolder={handleDeleteFolder}
-                    onCreateFolder={() => setShowCreateFolder(true)}
-                  />
-                </div>
-                <div className="lg:col-span-3">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Video className="h-5 w-5" />
-                        {selectedVideoFolder ? videoFolders.find(f => f.id === selectedVideoFolder)?.name : 'All Videos'}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {isLoading ? (
-                        <div className="p-12 text-center">
-                          <p className="text-muted-foreground">Loading...</p>
-                        </div>
+                      {/* Selection controls */}
+                      {selectedFiles.length > 0 ? (
+                        <>
+                          <Button variant="outline" size="sm" onClick={unselectAll}>
+                            Deselect ({selectedFiles.length})
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => setShowMoveModal(true)}>
+                            Move
+                          </Button>
+                          <Button variant="destructive" size="sm" onClick={handleBulkDelete}>
+                            Delete
+                          </Button>
+                        </>
                       ) : (
-                        <MediaGalleryGrid
-                          files={filteredVideos}
-                          viewMode={viewMode}
-                          selectedFiles={selectedVideos}
-                          onFileSelect={toggleSelection}
-                          onDeleteFile={handleDeleteItem}
-                          onEditFile={handleEditFile}
-                          mediaType="video"
-                        />
+                        <Button variant="outline" size="sm" onClick={selectAll}>
+                          Select All
+                        </Button>
                       )}
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {isLoading ? (
+                    <div className="p-12 text-center">
+                      <p className="text-muted-foreground">Loading...</p>
+                    </div>
+                  ) : (
+                    <MediaGalleryGrid 
+                      files={filteredFiles}
+                      viewMode={viewMode}
+                      selectedFiles={selectedFiles}
+                      onFileSelect={toggleSelection}
+                      onDeleteFile={handleDeleteItem}
+                      onEditFile={handleEditFile}
+                      mediaType="photo"
+                    />
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -598,30 +527,32 @@ const CombinedMedia: React.FC = () => {
         isOpen={showCreateFolder}
         onClose={() => setShowCreateFolder(false)}
         onCreateFolder={handleCreateFolder}
+        titleOverride="Add Room"
+        descriptionOverride="Create a room to organize your photos and videos by location"
       />
 
       <MovePhotoModal
-        isOpen={showPhotoMoveModal}
-        onClose={() => setShowPhotoMoveModal(false)}
-        onMove={handleMovePhotos}
-        folders={photoFolders}
-        photoCount={selectedPhotos.length}
+        isOpen={showMoveModal}
+        onClose={() => setShowMoveModal(false)}
+        onMove={handleMoveFiles}
+        folders={folders}
+        photoCount={selectedFiles.length}
       />
 
       <DeleteConfirmationDialog
         isOpen={showDeleteDialog}
         onClose={() => { setShowDeleteDialog(false); setItemToDelete(null); setBulkDeleteMode(false); }}
         onConfirm={confirmDelete}
-        title={bulkDeleteMode ? `Delete ${activeTab === 'photos' ? 'Photos' : 'Videos'}` : `Delete ${activeTab === 'photos' ? 'Photo' : 'Video'}`}
-        itemCount={bulkDeleteMode ? currentSelected.length : 1}
+        title={bulkDeleteMode ? "Delete Files" : "Delete File"}
+        itemCount={bulkDeleteMode ? selectedFiles.length : 1}
       />
 
       <DeleteConfirmationDialog
         isOpen={showDeleteFolderDialog}
         onClose={() => { setShowDeleteFolderDialog(false); setFolderToDelete(null); }}
         onConfirm={confirmDeleteFolder}
-        title="Delete Folder"
-        description="Are you sure you want to delete this folder? Files will remain in general storage."
+        title="Delete Room"
+        description="Are you sure you want to delete this room? Files will remain in general storage."
       />
       
       <Footer />
