@@ -46,11 +46,11 @@ const HomeFAQ: React.FC = () => {
     },
     {
       question: "What is Verified+ status?",
-      answer: "Verified+ is the highest trust tier for Asset Safe accounts. It's awarded to users who have achieved Verified status AND enabled Two-Factor Authentication (2FA). The gold Verified+ badge shows you've taken extra steps to secure your account and documentation with maximum protection."
+      answer: "Verified+ is the highest trust tier for Asset Safe accounts. It's awarded to users who have achieved Verified status AND enabled Multi-Factor Authentication (MFA). The gold Verified+ badge shows you've taken extra steps to secure your account and documentation with maximum protection."
     },
     {
       question: "How do I upgrade from Verified to Verified+?",
-      answer: "Once you've earned Verified status, simply enable Two-Factor Authentication (2FA) in your Account Settings. Your status will automatically upgrade to Verified+ with the gold shield badge, indicating your account has premium security protection enabled."
+      answer: "Once you've earned Verified status, simply enable Multi-Factor Authentication (MFA) in your Account Settings. You have 2 options: authenticator app or one-time backup codes. Your status will automatically upgrade to Verified+ with the gold shield badge."
     }
   ];
 
