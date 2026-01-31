@@ -43,8 +43,16 @@ export class StorageService {
     },
     'documents': {
       maxFileSize: 25 * 1024 * 1024, // 25MB
-      allowedMimeTypes: ['application/pdf', 'text/plain', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
-      allowedExtensions: ['pdf', 'txt', 'doc', 'docx'],
+      allowedMimeTypes: [
+        'application/pdf', 
+        'text/plain', 
+        'application/msword', 
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'image/jpeg',
+        'image/png',
+        'image/webp'
+      ],
+      allowedExtensions: ['pdf', 'txt', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'webp'],
       checkMagicBytes: true
     },
     'floor-plans': {
