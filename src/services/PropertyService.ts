@@ -190,7 +190,7 @@ export class PropertyService {
     }
   }
 
-  static async getPropertyFiles(propertyId: string, fileType?: 'photo' | 'video' | 'document' | 'floor-plan'): Promise<PropertyFile[]> {
+  static async getPropertyFiles(propertyId: string, fileType?: 'photo' | 'video' | 'document' | 'floor-plan', includeAllSources?: boolean): Promise<PropertyFile[]> {
     try {
       let query = supabase
         .from('property_files')
@@ -200,6 +200,11 @@ export class PropertyService {
 
       if (fileType) {
         query = query.eq('file_type', fileType);
+      }
+
+      // By default, exclude damage_report and upgrade_repair files from general property views
+      if (!includeAllSources) {
+        query = query.or('source.is.null,source.eq.general');
       }
 
       const { data, error } = await query;
@@ -251,9 +256,10 @@ export class PropertyService {
         query = query.eq('file_type', fileType);
       }
 
-      // By default, exclude damage_report files from general galleries
+      // By default, exclude damage_report and upgrade_repair files from general galleries
+      // Only show files with source = null OR source = 'general'
       if (!includeAllSources) {
-        query = query.or('source.is.null,source.neq.damage_report');
+        query = query.or('source.is.null,source.eq.general');
       }
 
       const { data, error } = await query;
@@ -287,6 +293,32 @@ export class PropertyService {
       return (data || []) as PropertyFile[];
     } catch (error) {
       console.error('Error fetching damage report files:', error);
+      return [];
+    }
+  }
+
+  // Get files specifically for upgrades and repairs
+  static async getUpgradeRepairFiles(propertyId?: string): Promise<PropertyFile[]> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
+      let query = supabase
+        .from('property_files')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('source', 'upgrade_repair')
+        .order('created_at', { ascending: false });
+
+      if (propertyId) {
+        query = query.eq('property_id', propertyId);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data || []) as PropertyFile[];
+    } catch (error) {
+      console.error('Error fetching upgrade/repair files:', error);
       return [];
     }
   }
