@@ -236,7 +236,7 @@ const Account: React.FC = () => {
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <Camera className="h-6 w-6 mr-2 text-brand-blue" />
-                      Photo/Video Management
+                      Photos & Videos
                     </CardTitle>
                     <CardDescription>
                       Capture photos or videos to document your property and belongings
