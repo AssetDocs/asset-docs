@@ -38,7 +38,7 @@ const ExpandableBox: React.FC<ExpandableBoxProps> = ({ title, children, defaultO
 const LegacyLockerInfo = () => {
   const legacyFaqs = [
     { question: "What is encrypted storage?", answer: "All credentials are encrypted at rest and in transit, meaning your data is protected whether it's being stored or accessed. Asset Safe cannot view or use your stored passwords." },
-    { question: "What is Two-Factor Authentication (2FA)?", answer: "Access to Legacy Locker requires two forms of verification, adding a critical layer of protection beyond your password." },
+    { question: "What is Multi-Factor Authentication (MFA)?", answer: "Access to Legacy Locker requires multiple forms of verification—such as a TOTP authenticator app or backup recovery codes—adding critical layers of protection beyond your password." },
     { question: "What are Trusted Contact Controls?", answer: "You decide who can access your information and what they can see. Grant access to specific categories, update or revoke permissions at any time." },
     { question: "Is Legacy Locker a legal will?", answer: "Legacy Locker is a secure information vault, not a legal authorization tool. It does not replace a will, trust, or estate plan—but it complements them by handling the practical access details legal documents typically can't include." }
   ];
@@ -58,7 +58,7 @@ const LegacyLockerInfo = () => {
     <>
       <SEOHead
         title="Legacy Locker - Secure Digital Vault for Estate Planning"
-        description="Legacy Locker provides encrypted storage for passwords, accounts, and important documents your loved ones will need. Two-factor authentication, trusted contact controls, and purpose-driven access."
+        description="Legacy Locker provides encrypted storage for passwords, accounts, and important documents your loved ones will need. Multi-factor authentication, trusted contact controls, and purpose-driven access."
         keywords="legacy locker, digital estate vault, password storage, estate planning vault, secure digital vault, trusted contacts, encrypted storage, digital legacy"
         canonicalUrl="https://www.assetsafe.net/legacy-locker"
         structuredData={structuredData}
@@ -132,16 +132,16 @@ const LegacyLockerInfo = () => {
                 </AccordionContent>
               </AccordionItem>
 
-              <AccordionItem value="two-factor" className="bg-white rounded-lg shadow-md border-none px-6">
+              <AccordionItem value="mfa" className="bg-white rounded-lg shadow-md border-none px-6">
                 <AccordionTrigger className="text-lg font-semibold text-brand-blue hover:no-underline py-6">
                   <div className="flex items-center gap-3">
                     <Shield className="h-5 w-5 text-brand-teal" />
-                    <span>Two-Factor Authentication (2FA)</span>
+                    <span>Multi-Factor Authentication (MFA)</span>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="text-gray-700 pb-6">
                   <p className="mb-4">
-                    Access to Legacy Locker requires two forms of verification, adding a critical layer of protection beyond your password.
+                    Access to Legacy Locker requires multiple forms of verification—using a TOTP authenticator app or one-time backup recovery codes—adding critical layers of protection beyond your password.
                   </p>
                   <p>
                     This helps prevent unauthorized access—even if login credentials are compromised.
