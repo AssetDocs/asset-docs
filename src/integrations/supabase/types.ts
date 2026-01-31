@@ -2316,6 +2316,51 @@ export type Database = {
           },
         ]
       }
+      user_activity_logs: {
+        Row: {
+          action_category: string
+          action_type: string
+          actor_user_id: string | null
+          created_at: string
+          details: Json | null
+          id: string
+          ip_address: unknown
+          resource_id: string | null
+          resource_name: string | null
+          resource_type: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action_category: string
+          action_type: string
+          actor_user_id?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: unknown
+          resource_id?: string | null
+          resource_name?: string | null
+          resource_type?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action_category?: string
+          action_type?: string
+          actor_user_id?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: unknown
+          resource_id?: string | null
+          resource_name?: string | null
+          resource_type?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_documents: {
         Row: {
           category: string

@@ -98,6 +98,7 @@ import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import CRM from "./pages/CRM";
 import AcknowledgeAccess from "./pages/AcknowledgeAccess";
+import ActivityLog from "./pages/ActivityLog";
 import ForgotPassword from "./pages/ForgotPassword";
 import LegacyLockerInfo from "./pages/LegacyLockerInfo";
 import ContributorWelcome from "./pages/ContributorWelcome";
@@ -314,6 +315,7 @@ const AppContent = () => {
         <Route path="/account/contacts" element={<ProtectedRoute><VIPContacts /></ProtectedRoute>} />
         <Route path="/schedule-professional" element={<ProtectedRoute><ScheduleProfessional /></ProtectedRoute>} />
         <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
+        <Route path="/account/activity" element={<ProtectedRoute><ActivityLog /></ProtectedRoute>} />
         
         <Route path="/claims" element={<Claims />} />
         <Route path="/industry-requirements" element={<IndustryRequirements />} />
