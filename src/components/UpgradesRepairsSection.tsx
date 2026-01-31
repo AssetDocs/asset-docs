@@ -9,7 +9,8 @@ import PropertySelector from '@/components/PropertySelector';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { StorageService } from '@/services/StorageService';
+import { useSubscription } from '@/contexts/SubscriptionContext';
+import { StorageService, FileType } from '@/services/StorageService';
 import { PropertyService } from '@/services/PropertyService';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -90,6 +91,7 @@ const defaultVendor: Vendor = {
 const UpgradesRepairsSection: React.FC = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { subscriptionTier } = useSubscription();
   const [isAdding, setIsAdding] = useState(false);
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -256,25 +258,49 @@ const UpgradesRepairsSection: React.FC = () => {
       if (selectedFiles.length > 0 && recordId) {
         setUploading(true);
         for (const file of selectedFiles) {
-          const isVideo = file.type.startsWith('video/');
-          const isDocument = file.type.includes('pdf') || file.type.includes('document');
-          const bucketName = isVideo ? 'videos' : isDocument ? 'documents' : 'photos';
-          const fileType = isVideo ? 'video' : isDocument ? 'document' : 'photo';
+          try {
+            const isVideo = file.type.startsWith('video/');
+            const isDocument = file.type.includes('pdf') || file.type.includes('document');
+            const bucketName: FileType = isVideo ? 'videos' : isDocument ? 'documents' : 'photos';
+            const fileType: 'photo' | 'video' | 'document' = isVideo ? 'video' : isDocument ? 'document' : 'photo';
 
-          const uploadResult = await StorageService.uploadFile(file, bucketName, user.id);
-          const filePath = typeof uploadResult === 'string' ? uploadResult : uploadResult.path;
-          const fileUrl = uploadResult.url;
+            console.log('[UpgradesRepairs] Uploading file:', {
+              fileName: file.name,
+              fileType,
+              bucketName,
+              fileSize: file.size
+            });
 
-          await PropertyService.addPropertyFile({
-            property_id: formData.property_id,
-            file_name: `${formData.title} - ${file.name}`,
-            file_path: filePath,
-            file_url: fileUrl,
-            file_type: fileType,
-            file_size: file.size,
-            bucket_name: bucketName,
-            source: 'upgrade_repair'
-          });
+            const uploadResult = await StorageService.uploadFileWithValidation(
+              file,
+              bucketName,
+              user.id,
+              subscriptionTier,
+              `${formData.property_id}/${Date.now()}-${file.name}`
+            );
+
+            console.log('[UpgradesRepairs] Upload successful:', uploadResult.path);
+
+            await PropertyService.addPropertyFile({
+              property_id: formData.property_id,
+              file_name: `${formData.title} - ${file.name}`,
+              file_path: uploadResult.path,
+              file_url: uploadResult.url,
+              file_type: fileType,
+              file_size: file.size,
+              bucket_name: bucketName,
+              source: 'upgrade_repair'
+            });
+
+            console.log('[UpgradesRepairs] File record saved to database');
+          } catch (fileError) {
+            console.error('[UpgradesRepairs] File upload failed:', fileError);
+            toast({
+              title: "File Upload Error",
+              description: `Failed to upload ${file.name}: ${fileError instanceof Error ? fileError.message : 'Unknown error'}`,
+              variant: "destructive"
+            });
+          }
         }
       }
 
