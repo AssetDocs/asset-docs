@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -18,12 +17,20 @@ interface CreateFolderModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCreateFolder: (name: string, description: string, color: string) => void;
+  titleOverride?: string;
+  descriptionOverride?: string;
+  buttonTextOverride?: string;
+  placeholderOverride?: string;
 }
 
 const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
   isOpen,
   onClose,
-  onCreateFolder
+  onCreateFolder,
+  titleOverride,
+  descriptionOverride,
+  buttonTextOverride,
+  placeholderOverride
 }) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -65,18 +72,18 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Create New Folder</DialogTitle>
+          <DialogTitle>{titleOverride || 'Create New Folder'}</DialogTitle>
           <DialogDescription>
-            Create a new folder to organize your photos. You can move photos into this folder later.
+            {descriptionOverride || 'Create a new folder to organize your photos. You can move photos into this folder later.'}
           </DialogDescription>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="folder-name">Folder Name</Label>
+            <Label htmlFor="folder-name">{titleOverride ? 'Room Name' : 'Folder Name'}</Label>
             <Input
               id="folder-name"
-              placeholder="Enter folder name..."
+              placeholder={placeholderOverride || 'Enter folder name...'}
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
@@ -87,7 +94,7 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
             <Label htmlFor="folder-description">Description (Optional)</Label>
             <Textarea
               id="folder-description"
-              placeholder="Enter folder description..."
+              placeholder="Enter description..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
@@ -95,7 +102,7 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
           </div>
 
           <div className="space-y-3">
-            <Label>Folder Color</Label>
+            <Label>Color</Label>
             <RadioGroup value={color} onValueChange={setColor}>
               <div className="grid grid-cols-4 gap-2">
                 {colors.map((colorOption) => (
@@ -127,7 +134,7 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
               Cancel
             </Button>
             <Button type="submit" disabled={!name.trim()}>
-              Create Folder
+              {buttonTextOverride || 'Create Folder'}
             </Button>
           </DialogFooter>
         </form>

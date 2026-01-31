@@ -528,6 +528,10 @@ const Documents: React.FC = () => {
   const totalRecords = sortedDocuments.length + sortedPolicies.length;
   const totalSelected = selectedDocuments.length + selectedPolicies.length;
 
+  const handleReorderFolders = (reorderedFolders: Folder[]) => {
+    setFolders(reorderedFolders);
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
@@ -547,16 +551,11 @@ const Documents: React.FC = () => {
                 Store policies, receipts, warranties, titles, licenses, and other critical records
               </p>
             </div>
-            
-            <Button onClick={() => setShowTypeSelector(true)} size="sm">
-              <Plus className="h-4 w-4 mr-1" />
-              Add Document
-            </Button>
           </div>
 
-          {/* Search and Controls */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
+          {/* Search and Upload */}
+          <div className="flex flex-wrap items-center gap-3 mb-6">
+            <div className="relative flex-1 min-w-48">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <input
                 type="text"
@@ -567,66 +566,10 @@ const Documents: React.FC = () => {
               />
             </div>
             
-            <div className="flex gap-2">
-              {(selectedDocuments.length > 0 || selectedPolicies.length > 0) && (
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => {
-                    if (selectedDocuments.length > 0) handleBulkDelete();
-                    if (selectedPolicies.length > 0) handleInsuranceBulkDelete();
-                  }}
-                >
-                  <Trash2 className="h-4 w-4 mr-1" />
-                  Delete ({totalSelected})
-                </Button>
-              )}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <SortAsc className="h-4 w-4 mr-1" />
-                    Sort
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => setSortBy('date-desc')}>
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Newest First
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortBy('date-asc')}>
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Oldest First
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortBy('name-asc')}>
-                    <Type className="h-4 w-4 mr-2" />
-                    Name A-Z
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortBy('name-desc')}>
-                    <Type className="h-4 w-4 mr-2" />
-                    Name Z-A
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <div className="flex border border-gray-300 rounded-md overflow-hidden">
-                <Button
-                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('grid')}
-                  className="rounded-none"
-                >
-                  <Grid3X3 className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === 'list' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('list')}
-                  className="rounded-none"
-                >
-                  <List className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+            <Button onClick={() => setShowTypeSelector(true)} size="sm">
+              <Plus className="h-4 w-4 mr-1" />
+              Add Document
+            </Button>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -639,6 +582,7 @@ const Documents: React.FC = () => {
                 documentCount={documents.length}
                 onDeleteFolder={handleDeleteFolder}
                 onCreateFolder={() => setShowCreateFolder(true)}
+                onReorderFolders={(reorderedFolders) => setFolders(reorderedFolders)}
               />
             </div>
 
@@ -799,14 +743,89 @@ const Documents: React.FC = () => {
               {/* Documents Section */}
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    {selectedFolder 
-                      ? folders.find(f => f.id === selectedFolder)?.folder_name || 'Documents'
-                      : 'All Documents'
-                    }
-                    <Badge variant="secondary" className="ml-2">{sortedDocuments.length}</Badge>
-                  </CardTitle>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <CardTitle className="flex items-center gap-2">
+                      <FileText className="h-5 w-5" />
+                      {selectedFolder 
+                        ? folders.find(f => f.id === selectedFolder)?.folder_name || 'Documents'
+                        : 'All Documents'
+                      }
+                      <Badge variant="secondary" className="ml-2">{sortedDocuments.length}</Badge>
+                    </CardTitle>
+                    
+                    {/* Controls moved inside the card */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      {(selectedDocuments.length > 0 || selectedPolicies.length > 0) && (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => {
+                            if (selectedDocuments.length > 0) handleBulkDelete();
+                            if (selectedPolicies.length > 0) handleInsuranceBulkDelete();
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Delete ({totalSelected})
+                        </Button>
+                      )}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            <SortAsc className="h-4 w-4 mr-1" />
+                            Sort
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem onClick={() => setSortBy('date-desc')}>
+                            <Calendar className="h-4 w-4 mr-2" />
+                            Newest First
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setSortBy('date-asc')}>
+                            <Calendar className="h-4 w-4 mr-2" />
+                            Oldest First
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setSortBy('name-asc')}>
+                            <Type className="h-4 w-4 mr-2" />
+                            Name A-Z
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setSortBy('name-desc')}>
+                            <Type className="h-4 w-4 mr-2" />
+                            Name Z-A
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+
+                      <div className="flex border border-gray-300 rounded-md overflow-hidden">
+                        <Button
+                          variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                          size="sm"
+                          onClick={() => setViewMode('grid')}
+                          className="rounded-none"
+                        >
+                          <Grid3X3 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant={viewMode === 'list' ? 'default' : 'ghost'}
+                          size="sm"
+                          onClick={() => setViewMode('list')}
+                          className="rounded-none"
+                        >
+                          <List className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      
+                      {selectedDocuments.length > 0 && (
+                        <Button variant="outline" size="sm" onClick={unselectAllDocuments}>
+                          Deselect ({selectedDocuments.length})
+                        </Button>
+                      )}
+                      {selectedDocuments.length === 0 && sortedDocuments.length > 0 && (
+                        <Button variant="outline" size="sm" onClick={selectAllDocuments}>
+                          Select All
+                        </Button>
+                      )}
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {isLoading ? (

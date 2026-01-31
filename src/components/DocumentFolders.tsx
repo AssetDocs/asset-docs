@@ -1,24 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Folder, FileText, Trash2, Plus } from 'lucide-react';
+import { Folder, FileText, Trash2, Plus, GripVertical } from 'lucide-react';
 
-interface Folder {
+interface FolderItem {
   id: string;
   folder_name: string;
   description: string | null;
   gradient_color: string;
   created_at: string;
+  display_order?: number;
 }
 
 interface DocumentFoldersProps {
-  folders: Folder[];
+  folders: FolderItem[];
   selectedFolder: string | null;
   onFolderSelect: (folderId: string | null) => void;
   documentCount: number;
   onDeleteFolder: (folderId: string) => void;
   onCreateFolder: () => void;
+  onReorderFolders?: (folders: FolderItem[]) => void;
 }
 
 const DocumentFolders: React.FC<DocumentFoldersProps> = ({
@@ -27,8 +29,53 @@ const DocumentFolders: React.FC<DocumentFoldersProps> = ({
   onFolderSelect,
   documentCount,
   onDeleteFolder,
-  onCreateFolder
+  onCreateFolder,
+  onReorderFolders
 }) => {
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', index.toString());
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverIndex(index);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+
+    const newFolders = [...folders];
+    const [removed] = newFolders.splice(draggedIndex, 1);
+    newFolders.splice(dropIndex, 0, removed);
+
+    if (onReorderFolders) {
+      onReorderFolders(newFolders);
+    }
+
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -72,16 +119,33 @@ const DocumentFolders: React.FC<DocumentFoldersProps> = ({
           </div>
         ) : (
           <div className="space-y-2">
-            {folders.map((folder) => {
+            {folders.map((folder, index) => {
               const isSelected = selectedFolder === folder.id;
+              const isDragging = draggedIndex === index;
+              const isDragOver = dragOverIndex === index;
               
               return (
-                <div key={folder.id} className="relative">
+                <div 
+                  key={folder.id} 
+                  className={`relative transition-all duration-200 ${isDragging ? 'opacity-50' : ''} ${isDragOver ? 'transform translate-y-1' : ''}`}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, index)}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, index)}
+                  onDragEnd={handleDragEnd}
+                >
+                  {isDragOver && (
+                    <div className="absolute -top-1 left-0 right-0 h-0.5 bg-brand-blue rounded-full" />
+                  )}
                   <Button
                     variant={isSelected ? 'default' : 'ghost'}
                     className="w-full justify-start p-3 h-auto pr-12"
                     onClick={() => onFolderSelect(folder.id)}
                   >
+                    <div className="cursor-grab active:cursor-grabbing mr-2 text-muted-foreground hover:text-foreground">
+                      <GripVertical className="h-4 w-4" />
+                    </div>
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center mr-3 ${folder.gradient_color}`}>
                       <Folder className="h-4 w-4 text-white fill-white" />
                     </div>
