@@ -374,7 +374,7 @@ const CombinedMedia: React.FC = () => {
                   Back
                 </Button>
                 <div>
-                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Photo/Video Management</h1>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Photos & Videos</h1>
                   <p className="text-gray-600 mt-1">
                     Capture photos or videos to document your property and belongings
                   </p>
