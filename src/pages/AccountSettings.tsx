@@ -8,6 +8,7 @@ import NotificationsTab from '@/components/NotificationsTab';
 import ContributorsTab from '@/components/ContributorsTab';
 import CookieSettings from '@/components/CookieSettings';
 import TOTPSettings from '@/components/TOTPSettings';
+import BackupCodesSettings from '@/components/BackupCodesSettings';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import StorageDashboard from '@/components/StorageDashboard';
 import { ViewerRestriction, ViewerRestrictionBanner } from '@/components/ViewerRestriction';
@@ -222,7 +223,10 @@ const AccountSettings: React.FC = () => {
                 </TabsContent>
 
                 <TabsContent value="security">
-                  <TOTPSettings />
+                  <div className="space-y-6">
+                    <TOTPSettings />
+                    <BackupCodesSettings />
+                  </div>
                 </TabsContent>
 
                 <TabsContent value="privacy">
