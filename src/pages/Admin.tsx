@@ -11,7 +11,8 @@ import EnhancedCRM from '@/components/admin/EnhancedCRM';
 import AdminQuickStats from '@/components/admin/AdminQuickStats';
 import StripeReconciliation from '@/components/admin/StripeReconciliation';
 import SystemInfrastructure from '@/components/admin/SystemInfrastructure';
-import { LogOut, Shield, Users, Database, Settings, Handshake, BarChart, CreditCard, Server } from 'lucide-react';
+import { LogOut, Shield, Users, Database, Settings, Handshake, BarChart, CreditCard, Server, FileText } from 'lucide-react';
+import AdminLegalAgreements from './AdminLegalAgreements';
 
 const Admin = () => {
   const [hasAccess, setHasAccess] = useState(false);
@@ -61,7 +62,7 @@ const Admin = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid grid-cols-3 md:grid-cols-7 gap-2 h-auto p-1">
+          <TabsList className="grid grid-cols-4 md:grid-cols-8 gap-2 h-auto p-1">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <BarChart className="w-4 h-4" />
               Overview
@@ -85,6 +86,10 @@ const Admin = () => {
             <TabsTrigger value="crm" className="flex items-center gap-2">
               <Users className="w-4 h-4" />
               CRM
+            </TabsTrigger>
+            <TabsTrigger value="legal" className="flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              Legal
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="w-4 h-4" />
@@ -260,6 +265,10 @@ const Admin = () => {
 
           <TabsContent value="crm">
             <EnhancedCRM />
+          </TabsContent>
+
+          <TabsContent value="legal">
+            <AdminLegalAgreements />
           </TabsContent>
 
           <TabsContent value="settings">
