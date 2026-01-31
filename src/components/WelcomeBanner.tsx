@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Settings, Home, ChevronDown, ChevronUp, X } from 'lucide-react';
+import { Settings, Home, ChevronDown, ChevronUp, X, ClipboardList } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -9,6 +9,7 @@ import UserStatusBadge from '@/components/UserStatusBadge';
 import { useVerification } from '@/hooks/useVerification';
 import AccountStatusCard from '@/components/AccountStatusCard';
 import OnboardingProgress from '@/components/OnboardingProgress';
+import ProtectionScore from '@/components/ProtectionScore';
 
 const WelcomeBanner: React.FC = () => {
   const { profile, user } = useAuth();
@@ -167,6 +168,12 @@ const WelcomeBanner: React.FC = () => {
                   Property Profiles
                 </Link>
               </Button>
+              <Button asChild variant="outline" className="bg-white/90 hover:bg-white text-brand-blue border-white/90">
+                <Link to="/account/activity">
+                  <ClipboardList className="mr-2 h-4 w-4" />
+                  Activity Log
+                </Link>
+              </Button>
             </div>
           </div>
           
@@ -234,6 +241,9 @@ const WelcomeBanner: React.FC = () => {
 
       {/* Onboarding Progress - full width */}
       <OnboardingProgress inline />
+
+      {/* Protection Score - gamified progress */}
+      <ProtectionScore />
     </div>
   );
 };
