@@ -113,7 +113,10 @@ const CombinedMedia: React.FC = () => {
         .from('photo_folders')
         .select('*')
         .eq('user_id', user.id)
-        .order('display_order', { ascending: true, nullsFirst: false })
+
+        // NOTE: photo_folders currently does not have a display_order column.
+        // Ordering by a non-existent column causes the request to fail and results
+        // in rooms never displaying in the UI.
         .order('created_at', { ascending: false });
       if (error) throw error;
       setFolders(data || []);
