@@ -124,6 +124,27 @@ serve(async (req: Request) => {
       relationships: uniqueRelationships.map(r => ({ id: r.id, role: r.role, owner: r.account_owner_id }))
     });
 
+    // Log contributor access activity for each account they have access to
+    if (acceptedInvitations.length > 0) {
+      for (const invitation of acceptedInvitations) {
+        try {
+          await supabaseAdmin
+            .from('user_activity_logs')
+            .insert({
+              user_id: invitation.account_owner_id,
+              actor_user_id: user.id,
+              action_type: 'contributor_access',
+              action_category: 'contributor',
+              resource_type: 'account',
+              resource_name: `${invitation.first_name || ''} ${invitation.last_name || ''}`.trim() || 'Contributor',
+              details: { role: invitation.role, accepted: true }
+            });
+        } catch (logError) {
+          console.error('[ACCEPT-CONTRIBUTOR] Error logging activity:', logError);
+        }
+      }
+    }
+
     return new Response(
       JSON.stringify({
         success: true,

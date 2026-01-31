@@ -8,6 +8,7 @@ import { useBackupCodes } from '@/hooks/useBackupCodes';
 import { useTOTP } from '@/hooks/useTOTP';
 import { useToast } from '@/hooks/use-toast';
 import BackupCodesDisplay from './BackupCodesDisplay';
+import { logActivity } from '@/hooks/useActivityLog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,6 +45,15 @@ const BackupCodesSettings: React.FC = () => {
         toast({
           title: "Backup Codes Generated",
           description: "Your new backup recovery codes are ready.",
+        });
+        
+        // Log activity
+        logActivity({
+          action_type: 'backup_codes_generated',
+          action_category: 'security',
+          resource_type: 'backup_codes',
+          resource_name: 'MFA Backup Codes',
+          details: { codes_count: codes.length }
         });
       }
     } catch (error: any) {
