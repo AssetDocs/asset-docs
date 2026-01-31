@@ -26,60 +26,117 @@ const ProtectionScore: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchMetrics = async () => {
-      if (!user) return;
+  const fetchMetrics = async () => {
+    if (!user) return;
 
+    // Only show loading on initial fetch
+    if (metrics.totalUploads === 0 && metrics.categoriesCompleted === 0) {
       setIsLoading(true);
-      try {
-        // Fetch upload count (photos + videos + documents)
-        const [photosRes, videosRes, docsRes] = await Promise.all([
-          supabase.from('property_files').select('id', { count: 'exact' }).eq('user_id', user.id).eq('file_type', 'photo'),
-          supabase.from('property_files').select('id', { count: 'exact' }).eq('user_id', user.id).eq('file_type', 'video'),
-          supabase.from('property_files').select('id', { count: 'exact' }).eq('user_id', user.id).eq('file_type', 'document'),
-        ]);
-        const totalUploads = (photosRes.count || 0) + (videosRes.count || 0) + (docsRes.count || 0);
+    }
+    
+    try {
+      // Fetch upload count (photos + videos + documents)
+      const [photosRes, videosRes, docsRes] = await Promise.all([
+        supabase.from('property_files').select('id', { count: 'exact' }).eq('user_id', user.id).eq('file_type', 'photo'),
+        supabase.from('property_files').select('id', { count: 'exact' }).eq('user_id', user.id).eq('file_type', 'video'),
+        supabase.from('property_files').select('id', { count: 'exact' }).eq('user_id', user.id).eq('file_type', 'document'),
+      ]);
+      const totalUploads = (photosRes.count || 0) + (videosRes.count || 0) + (docsRes.count || 0);
 
-        // Fetch items by category to determine categories completed
-        const { data: items } = await supabase
-          .from('items')
-          .select('category')
-          .eq('user_id', user.id);
-        const uniqueCategories = new Set((items || []).map(i => i.category).filter(Boolean));
-        const categoriesCompleted = uniqueCategories.size;
+      // Fetch items by category to determine categories completed
+      const { data: items } = await supabase
+        .from('items')
+        .select('category')
+        .eq('user_id', user.id);
+      const uniqueCategories = new Set((items || []).map(i => i.category).filter(Boolean));
+      const categoriesCompleted = uniqueCategories.size;
 
-        // Check if vault is enabled (has TOTP)
-        const { data: factors } = await supabase.auth.mfa.listFactors();
-        const vaultEnabled = (factors?.totp || []).some(f => f.status === 'verified');
+      // Check if vault is enabled (has TOTP)
+      const { data: factors } = await supabase.auth.mfa.listFactors();
+      const vaultEnabled = (factors?.totp || []).some(f => f.status === 'verified');
 
-        // Count contributors (trusted users)
-        const { count: contributorCount } = await supabase
-          .from('contributors')
-          .select('id', { count: 'exact' })
-          .eq('account_owner_id', user.id)
-          .eq('status', 'accepted');
+      // Count contributors (trusted users)
+      const { count: contributorCount } = await supabase
+        .from('contributors')
+        .select('id', { count: 'exact' })
+        .eq('account_owner_id', user.id)
+        .eq('status', 'accepted');
 
-        // Count receipts
-        const { count: receiptCount } = await supabase
-          .from('receipts')
-          .select('id', { count: 'exact' })
-          .eq('user_id', user.id);
+      // Count receipts
+      const { count: receiptCount } = await supabase
+        .from('receipts')
+        .select('id', { count: 'exact' })
+        .eq('user_id', user.id);
 
-        setMetrics({
-          totalUploads,
-          categoriesCompleted,
-          vaultEnabled,
-          trustedUsersAdded: contributorCount || 0,
-          receiptsStored: receiptCount || 0,
-        });
-      } catch (error) {
-        console.error('Error fetching protection metrics:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      setMetrics({
+        totalUploads,
+        categoriesCompleted,
+        vaultEnabled,
+        trustedUsersAdded: contributorCount || 0,
+        receiptsStored: receiptCount || 0,
+      });
+    } catch (error) {
+      console.error('Error fetching protection metrics:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  // Initial fetch
+  useEffect(() => {
     fetchMetrics();
+  }, [user]);
+
+  // Subscribe to real-time changes for auto-refresh
+  useEffect(() => {
+    if (!user) return;
+
+    // Subscribe to property_files changes
+    const filesChannel = supabase
+      .channel('protection-score-files')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'property_files', filter: `user_id=eq.${user.id}` },
+        () => fetchMetrics()
+      )
+      .subscribe();
+
+    // Subscribe to items changes
+    const itemsChannel = supabase
+      .channel('protection-score-items')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'items', filter: `user_id=eq.${user.id}` },
+        () => fetchMetrics()
+      )
+      .subscribe();
+
+    // Subscribe to contributors changes
+    const contributorsChannel = supabase
+      .channel('protection-score-contributors')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'contributors', filter: `account_owner_id=eq.${user.id}` },
+        () => fetchMetrics()
+      )
+      .subscribe();
+
+    // Subscribe to receipts changes
+    const receiptsChannel = supabase
+      .channel('protection-score-receipts')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'receipts', filter: `user_id=eq.${user.id}` },
+        () => fetchMetrics()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(filesChannel);
+      supabase.removeChannel(itemsChannel);
+      supabase.removeChannel(contributorsChannel);
+      supabase.removeChannel(receiptsChannel);
+    };
   }, [user]);
 
   // Calculate protection score (0-100)
