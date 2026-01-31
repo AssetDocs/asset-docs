@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield, RefreshCw, Key, AlertTriangle } from 'lucide-react';
 import { useTOTP } from '@/hooks/useTOTP';
+import { useBackupCodes } from '@/hooks/useBackupCodes';
 import { useToast } from '@/hooks/use-toast';
 import TOTPSetup from './TOTPSetup';
 
@@ -30,11 +31,13 @@ const TOTPChallenge: React.FC<TOTPChallengeProps> = ({
 }) => {
   const { toast } = useToast();
   const { isEnrolled, isLoading: factorsLoading, createChallenge, verifyChallenge, refetch } = useTOTP();
+  const { status: backupStatus, verifyCode: verifyBackupCode, fetchStatus } = useBackupCodes();
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [challengeData, setChallengeData] = useState<{ factorId: string; challengeId: string } | null>(null);
   const [showSetup, setShowSetup] = useState(false);
   const [isRefetching, setIsRefetching] = useState(false);
+  const [useBackupCode, setUseBackupCode] = useState(false);
 
   // Create challenge when dialog opens
   useEffect(() => {
@@ -43,6 +46,8 @@ const TOTPChallenge: React.FC<TOTPChallengeProps> = ({
         try {
           const data = await createChallenge();
           setChallengeData(data);
+          // Also fetch backup codes status
+          fetchStatus();
         } catch (error) {
           console.error('Error creating challenge:', error);
         }
@@ -50,38 +55,55 @@ const TOTPChallenge: React.FC<TOTPChallengeProps> = ({
     };
     
     initChallenge();
-  }, [isOpen, isEnrolled, challengeData, createChallenge]);
+  }, [isOpen, isEnrolled, challengeData, createChallenge, fetchStatus]);
 
   const handleVerify = async () => {
-    if (code.length !== 6 || !challengeData) return;
+    if (!useBackupCode && (code.length !== 6 || !challengeData)) return;
+    if (useBackupCode && code.length < 8) return;
 
     setLoading(true);
     try {
-      await verifyChallenge(
-        challengeData.factorId,
-        challengeData.challengeId,
-        code
-      );
-      
-      toast({
-        title: "Verified",
-        description: "Your identity has been confirmed.",
-      });
+      if (useBackupCode) {
+        // Verify using backup code
+        const success = await verifyBackupCode(code);
+        if (!success) {
+          throw new Error('Invalid backup code');
+        }
+        toast({
+          title: "Verified",
+          description: "Backup code accepted. Your identity has been confirmed.",
+        });
+      } else {
+        // Verify using TOTP
+        await verifyChallenge(
+          challengeData!.factorId,
+          challengeData!.challengeId,
+          code
+        );
+        toast({
+          title: "Verified",
+          description: "Your identity has been confirmed.",
+        });
+      }
       
       onVerified();
     } catch (error: any) {
       toast({
         title: "Verification Failed",
-        description: "Invalid code. Please try again.",
+        description: useBackupCode 
+          ? "Invalid or already used backup code. Please try again."
+          : "Invalid code. Please try again.",
         variant: "destructive",
       });
       
-      // Create a new challenge after failed attempt
-      try {
-        const newChallenge = await createChallenge();
-        setChallengeData(newChallenge);
-      } catch (e) {
-        console.error('Error creating new challenge:', e);
+      // Create a new challenge after failed attempt (for TOTP)
+      if (!useBackupCode) {
+        try {
+          const newChallenge = await createChallenge();
+          setChallengeData(newChallenge);
+        } catch (e) {
+          console.error('Error creating new challenge:', e);
+        }
       }
     } finally {
       setLoading(false);
@@ -103,7 +125,13 @@ const TOTPChallenge: React.FC<TOTPChallengeProps> = ({
   const handleClose = () => {
     setCode('');
     setChallengeData(null);
+    setUseBackupCode(false);
     onClose();
+  };
+
+  const toggleBackupCode = () => {
+    setCode('');
+    setUseBackupCode(!useBackupCode);
   };
 
   // Show loading state
@@ -226,7 +254,10 @@ const TOTPChallenge: React.FC<TOTPChallengeProps> = ({
             Security Verification
           </DialogTitle>
           <DialogDescription>
-            Enter the 6-digit code from your authenticator app to {actionDescription}.
+            {useBackupCode 
+              ? `Enter a backup recovery code to ${actionDescription}.`
+              : `Enter the 6-digit code from your authenticator app to ${actionDescription}.`
+            }
           </DialogDescription>
         </DialogHeader>
 
@@ -234,19 +265,32 @@ const TOTPChallenge: React.FC<TOTPChallengeProps> = ({
           <Alert className="bg-primary/5 border-primary/20">
             <Key className="h-4 w-4" />
             <AlertDescription>
-              Open your authenticator app and enter the current code for Asset Safe.
+              {useBackupCode 
+                ? "Enter one of your backup recovery codes. Each code can only be used once."
+                : "Open your authenticator app and enter the current code for Asset Safe."
+              }
             </AlertDescription>
           </Alert>
 
           <div className="space-y-2">
-            <Label htmlFor="totp-verify">Verification Code</Label>
+            <Label htmlFor="totp-verify">
+              {useBackupCode ? "Backup Code" : "Verification Code"}
+            </Label>
             <Input
               id="totp-verify"
               type="text"
-              placeholder="000000"
-              maxLength={6}
+              placeholder={useBackupCode ? "XXXX-XXXX" : "000000"}
+              maxLength={useBackupCode ? 9 : 6}
               value={code}
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+              onChange={(e) => {
+                if (useBackupCode) {
+                  // Allow alphanumeric and dash for backup codes
+                  setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, ''));
+                } else {
+                  // Only digits for TOTP
+                  setCode(e.target.value.replace(/\D/g, ''));
+                }
+              }}
               className="text-center text-2xl tracking-widest font-mono"
               autoComplete="one-time-code"
               autoFocus
@@ -255,7 +299,7 @@ const TOTPChallenge: React.FC<TOTPChallengeProps> = ({
 
           <Button
             onClick={handleVerify}
-            disabled={loading || code.length !== 6 || !challengeData}
+            disabled={loading || (useBackupCode ? code.length < 8 : (code.length !== 6 || !challengeData))}
             className="w-full"
           >
             {loading ? (
@@ -265,6 +309,20 @@ const TOTPChallenge: React.FC<TOTPChallengeProps> = ({
             )}
             Verify & Continue
           </Button>
+
+          {/* Toggle backup code option */}
+          {backupStatus?.hasBackupCodes && (
+            <Button 
+              variant="ghost" 
+              onClick={toggleBackupCode}
+              className="w-full text-sm"
+            >
+              {useBackupCode 
+                ? "Use authenticator app instead" 
+                : "Lost access? Use a backup code"
+              }
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>
