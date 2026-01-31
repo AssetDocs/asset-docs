@@ -33,30 +33,6 @@ interface PropertyAddress {
 }
 
 class PropertyValuationService {
-  // Fallback mock data for demo purposes
-  private mockData: PropertyValuation[] = [
-    {
-      propertyId: '1',
-      estimatedValue: 485000,
-      appraisalValue: 492000,
-      propertyTaxes: 8200,
-      lastUpdated: '2024-05-15',
-      source: 'Zillow/MLS Composite',
-      confidence: 'high',
-      address: '123 Main St, San Francisco, CA 94102'
-    },
-    {
-      propertyId: '2',
-      estimatedValue: 325000,
-      appraisalValue: 318000,
-      propertyTaxes: 5400,
-      lastUpdated: '2024-05-10',
-      source: 'County Assessment',
-      confidence: 'medium',
-      address: '456 Oak Ave, Austin, TX 78701'
-    }
-  ];
-
   async getPropertyValuationByAddress(addressInfo: PropertyAddress): Promise<PropertyValuation | null> {
     try {
       const { data, error } = await supabase.functions.invoke('mls-property-lookup', {
@@ -65,11 +41,11 @@ class PropertyValuationService {
 
       if (error) {
         console.error('MLS lookup error:', error);
-        return this.getFallbackData(addressInfo);
+        return null;
       }
 
       if (!data) {
-        return this.getFallbackData(addressInfo);
+        return null;
       }
 
       // Fetch tax data separately
@@ -92,7 +68,7 @@ class PropertyValuationService {
       };
     } catch (error) {
       console.error('Error fetching property valuation:', error);
-      return this.getFallbackData(addressInfo);
+      return null;
     }
   }
 
@@ -120,31 +96,85 @@ class PropertyValuationService {
   }
 
   async getPropertyValuation(propertyId: string): Promise<PropertyValuation | null> {
-    // For backward compatibility, return mock data if propertyId matches
-    const mockValuation = this.mockData.find(v => v.propertyId === propertyId);
-    if (mockValuation) {
-      return mockValuation;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const { data: property, error } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('id', propertyId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (error || !property) {
+        console.error('Error fetching property:', error);
+        return null;
+      }
+
+      return {
+        propertyId: property.id,
+        estimatedValue: property.estimated_value || 0,
+        appraisalValue: undefined,
+        propertyTaxes: 0,
+        lastUpdated: property.last_updated || property.created_at || new Date().toISOString(),
+        source: 'User Input',
+        confidence: property.estimated_value ? 'medium' : 'low',
+        address: property.address,
+      };
+    } catch (error) {
+      console.error('Error fetching property valuation:', error);
+      return null;
     }
-    
-    // In a real implementation, you'd look up the property by ID from a database
-    // and then call the MLS API with the stored address
-    return null;
   }
 
   async getAllPropertyValuations(): Promise<PropertyValuation[]> {
-    // Return mock data for now - in production this would fetch from database
-    // where properties are stored with their addresses, then call MLS APIs
-    return this.mockData;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.log('[PropertyValuation] No authenticated user');
+        return [];
+      }
+
+      const { data: properties, error } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error fetching properties:', error);
+        return [];
+      }
+
+      if (!properties || properties.length === 0) {
+        return [];
+      }
+
+      // Convert properties to PropertyValuation format
+      return properties.map(property => ({
+        propertyId: property.id,
+        estimatedValue: property.estimated_value || 0,
+        appraisalValue: undefined,
+        propertyTaxes: 0,
+        lastUpdated: property.last_updated || property.created_at || new Date().toISOString(),
+        source: 'User Input',
+        confidence: property.estimated_value ? 'medium' as const : 'low' as const,
+        address: property.address,
+      }));
+    } catch (error) {
+      console.error('Error fetching all property valuations:', error);
+      return [];
+    }
   }
 
   async refreshPropertyData(propertyId: string): Promise<PropertyValuation | null> {
     console.log(`Refreshing property data for property ${propertyId}`);
     
-    // Find the mock property to get its address
-    const mockProperty = this.mockData.find(v => v.propertyId === propertyId);
-    if (mockProperty && mockProperty.address) {
+    const valuation = await this.getPropertyValuation(propertyId);
+    
+    if (valuation && valuation.address) {
       // Parse address for API call
-      const addressParts = mockProperty.address.split(', ');
+      const addressParts = valuation.address.split(', ');
       const addressInfo: PropertyAddress = {
         address: addressParts[0] || '',
         city: addressParts[1] || '',
@@ -155,18 +185,12 @@ class PropertyValuationService {
       const updated = await this.getPropertyValuationByAddress(addressInfo);
       
       if (updated) {
-        // Update mock data array
-        const index = this.mockData.findIndex(v => v.propertyId === propertyId);
-        if (index !== -1) {
-          this.mockData[index] = { ...updated, propertyId };
-        }
-        
         toast({
           title: "Property Data Updated",
           description: "Latest valuation and tax information retrieved from MLS.",
         });
         
-        return updated;
+        return { ...updated, propertyId };
       }
     }
     
@@ -176,19 +200,7 @@ class PropertyValuationService {
       variant: "destructive",
     });
     
-    return this.getPropertyValuation(propertyId);
-  }
-
-  private getFallbackData(addressInfo: PropertyAddress): PropertyValuation | null {
-    // Return mock data as fallback
-    const fallback = this.mockData[0];
-    return {
-      ...fallback,
-      address: `${addressInfo.address}, ${addressInfo.city}, ${addressInfo.state} ${addressInfo.zipCode}`,
-      source: 'Demo Data (API Unavailable)',
-      confidence: 'low',
-      lastUpdated: new Date().toISOString(),
-    };
+    return valuation;
   }
 
   calculateTotalPropertyValue(valuations: PropertyValuation[]): number {
