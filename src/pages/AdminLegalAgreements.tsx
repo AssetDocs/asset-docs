@@ -625,6 +625,35 @@ const AdminLegalAgreements = () => {
                 </div>
 
                 <div className="space-y-4">
+                  <h3 className="font-semibold text-base">2.1 CONTRACTOR-TO-FOUNDER CONVERSION CONDITION</h3>
+                  <p>Recipient acknowledges and agrees that:</p>
+                  <ul className="list-disc pl-6 space-y-2">
+                    <li><strong>Recipient is initially engaged as an independent contractor and development lead</strong>, and no founder equity is earned, issued, or vested solely by virtue of providing contractor services.</li>
+                    <li>The 20% equity grant described in this Agreement shall <strong>become effective only upon a formal written conversion</strong> of Recipient's role from contractor to founder or executive-level partner.</li>
+                    <li>Such conversion must be documented by the Company through one of the following:
+                      <ul className="list-disc pl-6 mt-2 space-y-1">
+                        <li>A signed Founder Amendment</li>
+                        <li>A written Equity Grant Approval</li>
+                        <li>A formal Operating Agreement or Stock Issuance Agreement</li>
+                        <li>Another written instrument executed by the Company</li>
+                      </ul>
+                    </li>
+                  </ul>
+                  
+                  <div className="p-4 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg mt-4">
+                    <p className="font-semibold text-amber-800 dark:text-amber-200">Until such written conversion occurs:</p>
+                    <ul className="list-disc pl-6 space-y-1 mt-2 text-amber-700 dark:text-amber-300">
+                      <li>Recipient has no ownership interest in Asset Safe</li>
+                      <li>Recipient has no voting rights or governance rights</li>
+                      <li>Recipient's compensation is governed solely by the Development Services Agreement</li>
+                      <li>This Agreement represents only a conditional future equity framework</li>
+                    </ul>
+                  </div>
+                  
+                  <p className="mt-4"><strong>Upon conversion</strong> and execution of the required equity issuance documents, the vesting schedule in Section 3 shall begin as of the agreed Equity Grant Start Date.</p>
+                </div>
+
+                <div className="space-y-4">
                   <h3 className="font-semibold text-base">3. HYBRID VESTING STRUCTURE (TIME + MILESTONES)</h3>
                   <p>Recipient's 20% equity interest shall vest in four equal tranches of 5% each, as follows:</p>
 
@@ -781,11 +810,19 @@ const AdminLegalAgreements = () => {
                 <div className="space-y-4">
                   <h3 className="font-semibold text-base">✅ SIGNATURES</h3>
                   
-                  <div className="flex items-center space-x-2 mb-4">
-                    <Checkbox id="equity-understand" />
-                    <Label htmlFor="equity-understand" className="text-sm">
-                      I understand equity is earned only through time and milestone completion, and unvested equity is forfeited upon departure.
-                    </Label>
+                  <div className="space-y-3 mb-4">
+                    <div className="flex items-start space-x-2">
+                      <Checkbox id="equity-understand" className="mt-0.5" />
+                      <Label htmlFor="equity-understand" className="text-sm">
+                        I understand equity is earned only through time and milestone completion, and unvested equity is forfeited upon departure.
+                      </Label>
+                    </div>
+                    <div className="flex items-start space-x-2">
+                      <Checkbox id="equity-conversion" className="mt-0.5" />
+                      <Label htmlFor="equity-conversion" className="text-sm font-medium text-amber-700 dark:text-amber-300">
+                        I understand that this equity grant is not active unless and until a written contractor-to-founder conversion is executed by Asset Safe.
+                      </Label>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
