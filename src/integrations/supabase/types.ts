@@ -1216,6 +1216,57 @@ export type Database = {
         }
         Relationships: []
       }
+      legal_agreement_signatures: {
+        Row: {
+          acknowledgments: Json | null
+          agreement_type: string
+          created_at: string
+          id: string
+          ip_address: string | null
+          signature_date: string | null
+          signature_text: string | null
+          signed_at: string | null
+          signer_email: string | null
+          signer_location: string | null
+          signer_name: string | null
+          signer_role: string
+          updated_at: string
+          user_agent: string | null
+        }
+        Insert: {
+          acknowledgments?: Json | null
+          agreement_type: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          signature_date?: string | null
+          signature_text?: string | null
+          signed_at?: string | null
+          signer_email?: string | null
+          signer_location?: string | null
+          signer_name?: string | null
+          signer_role: string
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Update: {
+          acknowledgments?: Json | null
+          agreement_type?: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          signature_date?: string | null
+          signature_text?: string | null
+          signed_at?: string | null
+          signer_email?: string | null
+          signer_location?: string | null
+          signer_name?: string | null
+          signer_role?: string
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       manual_damage_entries: {
         Row: {
           claim_number: string | null
