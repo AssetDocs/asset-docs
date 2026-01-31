@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { logActivity } from '@/hooks/useActivityLog';
 import { StorageService } from './StorageService';
 
 export interface Item {
@@ -53,6 +54,16 @@ export class ItemService {
       throw new Error(error.message);
     }
 
+    // Log activity
+    logActivity({
+      action_type: 'upload',
+      action_category: 'upload',
+      resource_type: 'item',
+      resource_id: data.id,
+      resource_name: data.name,
+      details: { category: data.category, item_type: data.item_type }
+    });
+
     return data;
   }
 
@@ -84,10 +95,27 @@ export class ItemService {
       throw new Error(error.message);
     }
 
+    // Log activity
+    logActivity({
+      action_type: 'edit',
+      action_category: 'upload',
+      resource_type: 'item',
+      resource_id: data.id,
+      resource_name: data.name,
+      details: { updated_fields: Object.keys(updates) }
+    });
+
     return data;
   }
 
   static async deleteItem(itemId: string): Promise<boolean> {
+    // Get item name before deletion for logging
+    const { data: item } = await supabase
+      .from('items')
+      .select('name')
+      .eq('id', itemId)
+      .single();
+
     const { error } = await supabase
       .from('items')
       .delete()
@@ -97,6 +125,15 @@ export class ItemService {
       console.error('Error deleting item:', error);
       return false;
     }
+
+    // Log activity
+    logActivity({
+      action_type: 'delete',
+      action_category: 'upload',
+      resource_type: 'item',
+      resource_id: itemId,
+      resource_name: item?.name || 'Unknown item'
+    });
 
     return true;
   }
@@ -135,6 +172,20 @@ export class ItemService {
         console.error('Error creating receipt:', error);
         throw new Error(error.message);
       }
+
+      // Log activity
+      logActivity({
+        action_type: 'upload',
+        action_category: 'upload',
+        resource_type: 'receipt',
+        resource_id: data.id,
+        resource_name: file.name,
+        details: { 
+          item_id: itemId,
+          merchant_name: receiptData.merchant_name,
+          purchase_amount: receiptData.purchase_amount
+        }
+      });
 
       return data;
     } catch (error) {

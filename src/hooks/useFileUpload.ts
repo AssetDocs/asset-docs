@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useToast } from '@/hooks/use-toast';
 import RateLimiter from '@/utils/rateLimiter';
+import { logActivity } from '@/hooks/useActivityLog';
 
 export interface UseFileUploadOptions {
   bucket: FileType;
@@ -84,6 +85,21 @@ export const useFileUpload = (options: UseFileUploadOptions) => {
           title: "Upload successful",
           description: `${results.length} file(s) uploaded successfully.`,
         });
+        
+        // Log activity for each upload
+        for (const result of results) {
+          logActivity({
+            action_type: 'upload',
+            action_category: 'upload',
+            resource_type: options.bucket,
+            resource_name: result.file.name,
+            details: { 
+              file_size: result.file.size,
+              file_type: result.file.type,
+              bucket: options.bucket
+            }
+          });
+        }
       }
 
       return results;

@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useSubscription } from '@/contexts/SubscriptionContext';
+import { logActivity } from '@/hooks/useActivityLog';
 
 interface Contributor {
   id: string;
@@ -150,6 +151,15 @@ const ContributorsTab: React.FC = () => {
           title: "Success",
           description: "Contributor invitation sent successfully. They will be prompted to create a password.",
         });
+        
+        // Log activity
+        logActivity({
+          action_type: 'contributor_invite',
+          action_category: 'contributor',
+          resource_type: 'contributor',
+          resource_name: `${firstName.trim()} ${lastName.trim()}`,
+          details: { email, role }
+        });
       }
     } catch (error) {
       console.error('Error sending invitation email:', error);
@@ -169,6 +179,9 @@ const ContributorsTab: React.FC = () => {
   };
 
   const removeContributor = async (contributorId: string) => {
+    // Get contributor info before deletion for logging
+    const contributorToRemove = contributors.find(c => c.id === contributorId);
+    
     const { error } = await supabase
       .from('contributors')
       .delete()
@@ -185,6 +198,18 @@ const ContributorsTab: React.FC = () => {
         title: "Success",
         description: "Contributor removed successfully",
       });
+      
+      // Log activity
+      if (contributorToRemove) {
+        logActivity({
+          action_type: 'contributor_remove',
+          action_category: 'contributor',
+          resource_type: 'contributor',
+          resource_name: `${contributorToRemove.first_name || ''} ${contributorToRemove.last_name || ''}`.trim() || contributorToRemove.contributor_email,
+          details: { email: contributorToRemove.contributor_email, role: contributorToRemove.role }
+        });
+      }
+      
       fetchContributors();
     }
   };

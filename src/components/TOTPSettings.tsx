@@ -8,6 +8,7 @@ import { useTOTP } from '@/hooks/useTOTP';
 import { useToast } from '@/hooks/use-toast';
 import { useVerification } from '@/hooks/useVerification';
 import TOTPSetup from './TOTPSetup';
+import { logActivity } from '@/hooks/useActivityLog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,6 +42,16 @@ const TOTPSettings: React.FC = () => {
           title: "MFA Disabled",
           description: "Authenticator has been removed from your account. Verified+ status removed.",
         });
+      
+      // Log activity
+      logActivity({
+        action_type: 'mfa_disabled',
+        action_category: 'security',
+        resource_type: 'mfa',
+        resource_name: 'Authenticator App',
+        details: { method: 'totp' }
+      });
+      
       setShowDisableConfirm(false);
     } catch (error: any) {
       toast({
@@ -58,6 +69,16 @@ const TOTPSettings: React.FC = () => {
     refetch();
     // Refresh verification status to update Verified+ badge
     const newStatus = await refreshVerification();
+    
+    // Log activity
+    logActivity({
+      action_type: 'mfa_enabled',
+      action_category: 'security',
+      resource_type: 'mfa',
+      resource_name: 'Authenticator App',
+      details: { method: 'totp' }
+    });
+    
     if (newStatus?.is_verified_plus) {
       toast({
         title: "Verified+ Earned!",

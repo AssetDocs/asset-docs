@@ -18,6 +18,7 @@ import { RecoveryDelegateSelector } from './RecoveryDelegateSelector';
 import { RecoveryRequestAlert } from './RecoveryRequestAlert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import TOTPChallenge from './TOTPChallenge';
+import { logActivity } from '@/hooks/useActivityLog';
 
 const SecureVault: React.FC = () => {
   const { user } = useAuth();
@@ -215,6 +216,15 @@ const SecureVault: React.FC = () => {
         setSessionMasterPassword(password);
         setIsUnlocked(true);
         setShowMasterPasswordModal(false);
+        
+        // Log vault access
+        logActivity({
+          action_type: 'access_vault',
+          action_category: 'vault',
+          resource_type: 'vault',
+          resource_name: 'Secure Vault',
+          details: { encrypted: true }
+        });
       } else {
         throw new Error('Incorrect master password');
       }

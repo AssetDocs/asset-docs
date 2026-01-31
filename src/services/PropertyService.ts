@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { logActivity } from '@/hooks/useActivityLog';
 
 export interface Property {
   id: string;
@@ -47,6 +48,17 @@ export class PropertyService {
         .single();
 
       if (error) throw error;
+
+      // Log activity
+      logActivity({
+        action_type: 'upload',
+        action_category: 'property',
+        resource_type: 'property',
+        resource_id: data.id,
+        resource_name: data.name,
+        details: { address: data.address, type: data.type }
+      });
+
       return data;
     } catch (error) {
       console.error('Error creating property:', error);
@@ -83,6 +95,17 @@ export class PropertyService {
         .single();
 
       if (error) throw error;
+
+      // Log activity
+      logActivity({
+        action_type: 'property_update',
+        action_category: 'property',
+        resource_type: 'property',
+        resource_id: data.id,
+        resource_name: data.name,
+        details: { updated_fields: Object.keys(updates) }
+      });
+
       return data;
     } catch (error) {
       console.error('Error updating property:', error);
@@ -92,12 +115,29 @@ export class PropertyService {
 
   static async deleteProperty(propertyId: string): Promise<boolean> {
     try {
+      // Get property name before deletion for logging
+      const { data: property } = await supabase
+        .from('properties')
+        .select('name')
+        .eq('id', propertyId)
+        .single();
+
       const { error } = await supabase
         .from('properties')
         .delete()
         .eq('id', propertyId);
 
       if (error) throw error;
+
+      // Log activity
+      logActivity({
+        action_type: 'delete',
+        action_category: 'property',
+        resource_type: 'property',
+        resource_id: propertyId,
+        resource_name: property?.name || 'Unknown property'
+      });
+
       return true;
     } catch (error) {
       console.error('Error deleting property:', error);
