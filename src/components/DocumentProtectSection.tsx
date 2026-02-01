@@ -1,7 +1,8 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Check, Lock, Image, Share2, Shield, Cloud, CheckCircle } from 'lucide-react';
+import { Check, Lock, Image, Share2 } from 'lucide-react';
+import SecurityBadges from './SecurityBadges';
 
 const DocumentProtectSection: React.FC = () => {
   const steps = [
@@ -26,13 +27,6 @@ const DocumentProtectSection: React.FC = () => {
       title: 'Permission-based access',
       description: 'Grant secure access to trusted parties when they need it most.',
     },
-  ];
-
-  const securityBadges = [
-    { icon: <Shield className="w-3.5 h-3.5" />, label: '256-bit AES Encryption' },
-    { icon: <Lock className="w-3.5 h-3.5" />, label: 'SOC 2 Compliant' },
-    { icon: <Cloud className="w-3.5 h-3.5" />, label: 'AWS Cloud Storage' },
-    { icon: <CheckCircle className="w-3.5 h-3.5" />, label: 'GDPR Ready' },
   ];
 
   return (
@@ -83,14 +77,7 @@ const DocumentProtectSection: React.FC = () => {
           <p className="text-sm text-muted-foreground">
             Built for: Homeowners • Renters • Families • Property owners • Small businesses
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-            {securityBadges.map((badge, index) => (
-              <div key={index} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <span className="text-primary">{badge.icon}</span>
-                <span>{badge.label}</span>
-              </div>
-            ))}
-          </div>
+          <SecurityBadges variant="compact" />
         </div>
 
         {/* CTAs */}
