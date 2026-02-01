@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Check, Lock, Image, Share2 } from 'lucide-react';
+import { Check, Lock, Image, Share2, ChevronDown, ChevronUp } from 'lucide-react';
 import SecurityBadges from './SecurityBadges';
+import { cn } from '@/lib/utils';
 
 const DocumentProtectSection: React.FC = () => {
+  const [securityOpen, setSecurityOpen] = useState(false);
+  
   const steps = [
     { number: 1, title: 'Document', description: 'Capture photos, videos, and details of your property and possessions.' },
     { number: 2, title: 'Store', description: 'Securely save everything in the cloud with encryption and privacy controls.' },
@@ -72,12 +75,33 @@ const DocumentProtectSection: React.FC = () => {
           </div>
         </div>
 
-        {/* Metadata below boxes */}
-        <div className="max-w-5xl mx-auto mt-8 text-center space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Built for: Homeowners • Renters • Families • Property owners • Small businesses
-          </p>
-          <SecurityBadges variant="compact" />
+        {/* Security Info Dropdown */}
+        <div className="max-w-5xl mx-auto mt-8">
+          <button
+            onClick={() => setSecurityOpen(!securityOpen)}
+            className="w-full bg-brand-green text-white py-3 px-4 rounded-lg flex items-center justify-center gap-2 font-medium hover:bg-brand-green/90 transition-colors"
+          >
+            <span>🔒 Security Info</span>
+            {securityOpen ? (
+              <ChevronUp className="w-5 h-5" />
+            ) : (
+              <ChevronDown className="w-5 h-5" />
+            )}
+          </button>
+          
+          <div
+            className={cn(
+              "overflow-hidden transition-all duration-300 ease-in-out",
+              securityOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+            )}
+          >
+            <div className="bg-card border border-t-0 border-border rounded-b-lg p-6 space-y-4">
+              <p className="text-sm text-muted-foreground text-center">
+                Built for: Homeowners • Renters • Families • Property owners • Small businesses
+              </p>
+              <SecurityBadges variant="compact" />
+            </div>
+          </div>
         </div>
 
         {/* CTAs */}
