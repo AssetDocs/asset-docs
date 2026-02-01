@@ -81,7 +81,7 @@ const DocumentProtectSection: React.FC = () => {
             onClick={() => setSecurityOpen(!securityOpen)}
             className="w-full bg-brand-green text-white py-3 px-4 rounded-lg flex items-center justify-center gap-2 font-medium hover:bg-brand-green/90 transition-colors"
           >
-            <span>🔒 Security Info</span>
+            <span>🔒 Security & Privacy</span>
             {securityOpen ? (
               <ChevronUp className="w-5 h-5" />
             ) : (
