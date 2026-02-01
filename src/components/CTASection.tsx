@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 
 const CTASection: React.FC = () => {
   return (
-    <section className="py-20 bg-brand-blue text-white">
+    <section className="hero-gradient py-20 text-white">
       <div className="container mx-auto px-4 text-center">
         <h2 className="text-3xl font-bold mb-6">After damage happens, you won't remember what you owned — but Asset Safe will.</h2>
         <p className="text-lg md:text-xl mb-8">
