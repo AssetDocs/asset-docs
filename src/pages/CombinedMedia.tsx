@@ -428,7 +428,7 @@ const CombinedMedia: React.FC = () => {
                 />
               </div>
               
-              <Button onClick={() => navigate('/account/media/upload')} className="bg-brand-blue hover:bg-brand-lightBlue">
+              <Button onClick={() => navigate('/account/media/upload')} className="w-full sm:w-auto bg-brand-blue hover:bg-brand-lightBlue">
                 <Plus className="h-4 w-4 mr-2" />
                 Upload Photo/Video
               </Button>
