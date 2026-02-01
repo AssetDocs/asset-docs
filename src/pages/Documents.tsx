@@ -32,6 +32,7 @@ import {
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import CreateFolderModal from '@/components/CreateFolderModal';
+import EditFolderModal from '@/components/EditFolderModal';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import MediaGalleryGrid from '@/components/MediaGalleryGrid';
 import DocumentFolders from '@/components/DocumentFolders';
@@ -74,7 +75,8 @@ const Documents: React.FC = () => {
   const [bulkDeleteMode, setBulkDeleteMode] = useState(false);
   const [showDeleteFolderDialog, setShowDeleteFolderDialog] = useState(false);
   const [folderToDelete, setFolderToDelete] = useState<string | null>(null);
-  
+  const [showEditFolder, setShowEditFolder] = useState(false);
+  const [folderToEdit, setFolderToEdit] = useState<Folder | null>(null);
   // Document type selector
   const [showTypeSelector, setShowTypeSelector] = useState(false);
   
@@ -423,6 +425,34 @@ const Documents: React.FC = () => {
     }
   };
 
+  const handleEditFolder = (folder: Folder) => {
+    setFolderToEdit(folder);
+    setShowEditFolder(true);
+  };
+
+  const handleSaveFolder = async (id: string, name: string, description: string, color: string) => {
+    try {
+      const { error } = await supabase
+        .from('document_folders')
+        .update({
+          folder_name: name,
+          description: description || null,
+          gradient_color: color
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      await fetchFolders();
+      setShowEditFolder(false);
+      setFolderToEdit(null);
+      toast({ title: "Success", description: "Folder updated successfully" });
+    } catch (error) {
+      console.error('Error updating folder:', error);
+      toast({ title: "Error", description: "Failed to update folder", variant: "destructive" });
+    }
+  };
+
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -583,6 +613,7 @@ const Documents: React.FC = () => {
                 onDeleteFolder={handleDeleteFolder}
                 onCreateFolder={() => setShowCreateFolder(true)}
                 onReorderFolders={(reorderedFolders) => setFolders(reorderedFolders)}
+                onEditFolder={handleEditFolder}
               />
             </div>
 
@@ -889,6 +920,14 @@ const Documents: React.FC = () => {
         onConfirm={confirmInsuranceDelete}
         title={insuranceBulkDeleteMode ? "Delete Policies" : "Delete Policy"}
         itemCount={insuranceBulkDeleteMode ? selectedPolicies.length : 1}
+      />
+
+      <EditFolderModal
+        isOpen={showEditFolder}
+        onClose={() => { setShowEditFolder(false); setFolderToEdit(null); }}
+        onSave={handleSaveFolder}
+        folder={folderToEdit}
+        isRoomBased={false}
       />
       
       <Footer />
