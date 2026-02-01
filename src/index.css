@@ -14,7 +14,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 192 77% 40%; /* Bright teal blue #1EAEDB */
+    --primary: 193 77% 49%; /* Bright teal blue #1EAEDB */
     --primary-foreground: 210 40% 98%;
 
     --secondary: 216 98% 32%; /* Deep royal blue #0040AF */
@@ -61,7 +61,7 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 192 77% 40%; /* Bright teal blue #1EAEDB */
+    --primary: 193 77% 49%; /* Bright teal blue #1EAEDB */
     --primary-foreground: 210 40% 98%;
 
     --secondary: 216 98% 32%; /* Deep royal blue #0040AF */
