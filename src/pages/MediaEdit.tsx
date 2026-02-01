@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Save, Loader2, Camera, Video } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Camera, Video, Plus, X, Paperclip, Trash2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,6 +20,20 @@ interface MediaFolder {
   folder_name: string;
 }
 
+interface ItemEntry {
+  id: string;
+  name: string;
+  value: string;
+}
+
+interface AttachmentEntry {
+  id: string;
+  file?: File;
+  label: string;
+  existingUrl?: string;
+  existingName?: string;
+}
+
 const NO_FOLDER_VALUE = '__no_folder__';
 
 const MediaEdit: React.FC = () => {
@@ -29,6 +43,7 @@ const MediaEdit: React.FC = () => {
   const mediaType = searchParams.get('type') as 'photo' | 'video' || 'photo';
   const { user } = useAuth();
   const { toast } = useToast();
+  const attachmentInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [folders, setFolders] = useState<MediaFolder[]>([]);
@@ -40,6 +55,12 @@ const MediaEdit: React.FC = () => {
     propertyId: '',
     folderId: ''
   });
+
+  // Item values state
+  const [items, setItems] = useState<ItemEntry[]>([{ id: crypto.randomUUID(), name: '', value: '' }]);
+  
+  // Attachments state
+  const [attachments, setAttachments] = useState<AttachmentEntry[]>([]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -134,6 +155,57 @@ const MediaEdit: React.FC = () => {
     }
   };
 
+  // Item entries handlers
+  const handleAddItem = () => {
+    setItems(prev => [...prev, { id: crypto.randomUUID(), name: '', value: '' }]);
+  };
+
+  const handleRemoveItem = (itemId: string) => {
+    if (items.length > 1) {
+      setItems(prev => prev.filter(item => item.id !== itemId));
+    }
+  };
+
+  const handleItemChange = (itemId: string, field: 'name' | 'value', value: string) => {
+    setItems(prev => prev.map(item => 
+      item.id === itemId ? { ...item, [field]: value } : item
+    ));
+  };
+
+  // Attachment handlers
+  const handleAttachmentSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      const newAttachments: AttachmentEntry[] = Array.from(files).map(file => ({
+        id: crypto.randomUUID(),
+        file,
+        label: file.name.replace(/\.[^/.]+$/, '')
+      }));
+      setAttachments(prev => [...prev, ...newAttachments]);
+    }
+    if (attachmentInputRef.current) {
+      attachmentInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveAttachment = (attId: string) => {
+    setAttachments(prev => prev.filter(att => att.id !== attId));
+  };
+
+  const handleAttachmentLabelChange = (attId: string, label: string) => {
+    setAttachments(prev => prev.map(att => 
+      att.id === attId ? { ...att, label } : att
+    ));
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
   const Icon = mediaType === 'video' ? Video : Camera;
   const typeLabel = mediaType === 'video' ? 'Video' : 'Photo';
 
@@ -176,7 +248,7 @@ const MediaEdit: React.FC = () => {
               <CardHeader>
                 <CardTitle>{typeLabel} Details</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="fileName">File Name</Label>
                   <Input
@@ -191,7 +263,7 @@ const MediaEdit: React.FC = () => {
                   <Label>Property</Label>
                   <PropertySelector
                     value={formData.propertyId}
-                    onChange={(id) => setFormData({ ...formData, propertyId: id || '' })}
+                    onChange={(propId) => setFormData({ ...formData, propertyId: propId || '' })}
                   />
                 </div>
 
@@ -216,6 +288,156 @@ const MediaEdit: React.FC = () => {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+
+                {/* Item Values Section */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <Label className="text-sm font-medium">Item Values</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleAddItem}
+                      className="h-8"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add Item
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Add items pictured and their estimated values
+                  </p>
+                  <div className="space-y-3">
+                    {items.map((item) => (
+                      <div key={item.id} className="flex items-start gap-2">
+                        <div className="flex-1">
+                          <Input
+                            placeholder="Item name/type"
+                            value={item.name}
+                            onChange={(e) => handleItemChange(item.id, 'name', e.target.value)}
+                          />
+                        </div>
+                        <div className="w-32">
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                            <Input
+                              type="number"
+                              placeholder="Value"
+                              value={item.value}
+                              onChange={(e) => handleItemChange(item.id, 'value', e.target.value)}
+                              className="pl-7"
+                            />
+                          </div>
+                        </div>
+                        {items.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleRemoveItem(item.id)}
+                            className="h-10 w-10 shrink-0"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Attachments Section */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <Label className="text-sm font-medium">Attachments</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => attachmentInputRef.current?.click()}
+                      className="h-8"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add Attachment
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Attach receipts, warranties, or other related documents
+                  </p>
+                  <input
+                    ref={attachmentInputRef}
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
+                    multiple
+                    onChange={handleAttachmentSelect}
+                    className="hidden"
+                  />
+                  {attachments.length > 0 ? (
+                    <div className="space-y-2">
+                      {attachments.map((att) => (
+                        <div key={att.id} className="border rounded-lg p-3 bg-muted/50 flex items-center gap-3">
+                          <Paperclip className="h-4 w-4 text-muted-foreground shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{att.file?.name || att.existingName}</p>
+                            {att.file && (
+                              <p className="text-xs text-muted-foreground">{formatFileSize(att.file.size)}</p>
+                            )}
+                          </div>
+                          <Input
+                            placeholder="Label (e.g., Receipt)"
+                            value={att.label}
+                            onChange={(e) => handleAttachmentLabelChange(att.id, e.target.value)}
+                            className="w-40"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleRemoveAttachment(att.id)}
+                            className="h-8 w-8 shrink-0"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div 
+                      onClick={() => attachmentInputRef.current?.click()}
+                      className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:bg-muted/50 transition-colors"
+                    >
+                      <Paperclip className="h-6 w-6 mx-auto text-muted-foreground mb-2" />
+                      <p className="text-sm text-muted-foreground">
+                        Click to attach receipts, warranties, etc.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Description */}
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="Add a description..."
+                    rows={3}
+                  />
+                </div>
+
+                {/* Tags */}
+                <div className="space-y-2">
+                  <Label htmlFor="tags">Tags</Label>
+                  <Input
+                    id="tags"
+                    value={formData.tags}
+                    onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+                    placeholder="Add tags (comma separated)"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Separate multiple tags with commas
+                  </p>
                 </div>
               </CardContent>
             </Card>
