@@ -115,8 +115,7 @@ const DocumentProtectSection: React.FC = () => {
             </Button>
           </div>
           <p className="mt-6 text-primary text-lg md:text-xl font-medium max-w-lg mx-auto">
-            Asset Safe isn't just storage.<br />
-            It's a step-by-step system that tells you what to do next.
+            Not just storage — a guided path to being fully prepared.
           </p>
         </div>
       </div>
