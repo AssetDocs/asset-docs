@@ -44,7 +44,7 @@ const DocumentProtectSection: React.FC = () => {
             <div className="space-y-4">
               {steps.map((step, index) => (
                 <div key={index} className="flex items-start gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-brand-green text-white flex items-center justify-center font-semibold text-sm">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-semibold text-sm">
                     {step.number}
                   </div>
                   <div className="flex-1">
@@ -62,7 +62,7 @@ const DocumentProtectSection: React.FC = () => {
             <div className="space-y-4">
               {features.map((feature, index) => (
                 <div key={index} className="flex items-start gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-brand-green/10 text-brand-green flex items-center justify-center">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center">
                     {feature.icon}
                   </div>
                   <div>
