@@ -12,6 +12,16 @@ const Blog = () => {
   // Sample blog posts - in production, this would come from a CMS or database
   const blogPosts = [
     {
+      id: 'best-closing-gift-real-estate-agents',
+      title: "The Best Closing Gift Real Estate Agents Can Give (It's Not Wine or a Cutting Board)",
+      excerpt: "Forward-thinking agents are choosing Asset Safe as the ultimate modern closing gift that delivers value for years — not days. Here's why.",
+      category: 'Real Estate',
+      date: '2026-02-01',
+      readTime: '9 min read',
+      image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&h=400&fit=crop',
+      featured: true
+    },
+    {
       id: 'what-documents-to-upload',
       title: 'What Documents Should I Upload to Asset Safe?',
       excerpt: "A comprehensive guide to the types of documents you should store in Asset Safe—and why each one matters for insurance claims, legal matters, and estate planning.",
@@ -19,7 +29,7 @@ const Blog = () => {
       date: '2025-01-22',
       readTime: '10 min read',
       image: 'https://images.unsplash.com/photo-1568234928966-359c35dd8327?w=800&h=400&fit=crop',
-      featured: true
+      featured: false
     },
     {
       id: 'welcome-to-asset-safe',
@@ -98,7 +108,7 @@ const Blog = () => {
     }
   ];
 
-  const categories = ['All', 'Company News', 'Guides', 'Estate Planning', 'Insurance', 'Organization', 'Protection', 'Preparedness'];
+  const categories = ['All', 'Real Estate', 'Company News', 'Guides', 'Estate Planning', 'Insurance', 'Organization', 'Protection', 'Preparedness'];
 
   const [selectedCategory, setSelectedCategory] = React.useState('All');
 

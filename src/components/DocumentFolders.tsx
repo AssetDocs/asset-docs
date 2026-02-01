@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Folder, FileText, Trash2, Plus, GripVertical } from 'lucide-react';
+import { Folder, FileText, Trash2, Plus, GripVertical, Pencil } from 'lucide-react';
 
 interface FolderItem {
   id: string;
@@ -21,6 +21,7 @@ interface DocumentFoldersProps {
   onDeleteFolder: (folderId: string) => void;
   onCreateFolder: () => void;
   onReorderFolders?: (folders: FolderItem[]) => void;
+  onEditFolder?: (folder: FolderItem) => void;
 }
 
 const DocumentFolders: React.FC<DocumentFoldersProps> = ({
@@ -30,7 +31,8 @@ const DocumentFolders: React.FC<DocumentFoldersProps> = ({
   documentCount,
   onDeleteFolder,
   onCreateFolder,
-  onReorderFolders
+  onReorderFolders,
+  onEditFolder
 }) => {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -140,7 +142,7 @@ const DocumentFolders: React.FC<DocumentFoldersProps> = ({
                   )}
                   <Button
                     variant={isSelected ? 'default' : 'ghost'}
-                    className="w-full justify-start p-3 h-auto pr-12"
+                    className="w-full justify-start p-3 h-auto pr-20"
                     onClick={() => onFolderSelect(folder.id)}
                   >
                     <div className="cursor-grab active:cursor-grabbing mr-2 text-muted-foreground hover:text-foreground">
@@ -156,17 +158,32 @@ const DocumentFolders: React.FC<DocumentFoldersProps> = ({
                       )}
                     </div>
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-destructive/10"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDeleteFolder(folder.id);
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
+                    {onEditFolder && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 hover:bg-muted"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEditFolder(folder);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0 hover:bg-destructive/10"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteFolder(folder.id);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
                 </div>
               );
             })}

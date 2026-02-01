@@ -29,6 +29,7 @@ import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import CreateFolderModal from '@/components/CreateFolderModal';
+import EditFolderModal from '@/components/EditFolderModal';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import MovePhotoModal from '@/components/MovePhotoModal';
 import PhotoGalleryFolders from '@/components/PhotoGalleryFolders';
@@ -79,6 +80,8 @@ const CombinedMedia: React.FC = () => {
   const [bulkDeleteMode, setBulkDeleteMode] = useState(false);
   const [showDeleteFolderDialog, setShowDeleteFolderDialog] = useState(false);
   const [folderToDelete, setFolderToDelete] = useState<string | null>(null);
+  const [showEditFolder, setShowEditFolder] = useState(false);
+  const [folderToEdit, setFolderToEdit] = useState<PhotoFolder | null>(null);
 
   useEffect(() => {
     fetchPhotos();
@@ -255,6 +258,34 @@ const CombinedMedia: React.FC = () => {
     setFolders(reorderedFolders);
   };
 
+  const handleEditFolder = (folder: PhotoFolder) => {
+    setFolderToEdit(folder);
+    setShowEditFolder(true);
+  };
+
+  const handleSaveFolder = async (id: string, name: string, description: string, color: string) => {
+    try {
+      const { error } = await supabase
+        .from('photo_folders')
+        .update({
+          folder_name: name,
+          description: description || null,
+          gradient_color: color
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      await fetchFolders();
+      setShowEditFolder(false);
+      setFolderToEdit(null);
+      toast({ title: "Success", description: "Room updated successfully" });
+    } catch (error) {
+      console.error('Error updating folder:', error);
+      toast({ title: "Error", description: "Failed to update room", variant: "destructive" });
+    }
+  };
+
   const handleMoveFiles = async (propertyId: string | null, folderId: string | null) => {
     if (selectedFiles.length === 0) return;
     
@@ -415,6 +446,7 @@ const CombinedMedia: React.FC = () => {
                 onDeleteFolder={handleDeleteFolder}
                 onCreateFolder={() => setShowCreateFolder(true)}
                 onReorderFolders={handleReorderFolders}
+                onEditFolder={handleEditFolder}
                 isRoomBased={true}
               />
             </div>
@@ -556,6 +588,14 @@ const CombinedMedia: React.FC = () => {
         onConfirm={confirmDeleteFolder}
         title="Delete Room"
         description="Are you sure you want to delete this room? Files will remain in general storage."
+      />
+
+      <EditFolderModal
+        isOpen={showEditFolder}
+        onClose={() => { setShowEditFolder(false); setFolderToEdit(null); }}
+        onSave={handleSaveFolder}
+        folder={folderToEdit}
+        isRoomBased={true}
       />
       
       <Footer />
