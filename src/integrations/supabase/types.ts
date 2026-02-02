@@ -506,6 +506,207 @@ export type Database = {
         }
         Relationships: []
       }
+      dev_blockers: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          status: Database["public"]["Enums"]["dev_blocker_status"]
+          title: string
+          type: Database["public"]["Enums"]["dev_blocker_type"]
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["dev_blocker_status"]
+          title: string
+          type?: Database["public"]["Enums"]["dev_blocker_type"]
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["dev_blocker_status"]
+          title?: string
+          type?: Database["public"]["Enums"]["dev_blocker_type"]
+        }
+        Relationships: []
+      }
+      dev_bugs: {
+        Row: {
+          assignee_id: string | null
+          created_at: string
+          description: string | null
+          expected_behavior: string | null
+          id: string
+          reporter_id: string | null
+          severity: Database["public"]["Enums"]["dev_bug_severity"]
+          status: Database["public"]["Enums"]["dev_bug_status"]
+          steps_to_reproduce: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assignee_id?: string | null
+          created_at?: string
+          description?: string | null
+          expected_behavior?: string | null
+          id?: string
+          reporter_id?: string | null
+          severity?: Database["public"]["Enums"]["dev_bug_severity"]
+          status?: Database["public"]["Enums"]["dev_bug_status"]
+          steps_to_reproduce?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assignee_id?: string | null
+          created_at?: string
+          description?: string | null
+          expected_behavior?: string | null
+          id?: string
+          reporter_id?: string | null
+          severity?: Database["public"]["Enums"]["dev_bug_severity"]
+          status?: Database["public"]["Enums"]["dev_bug_status"]
+          steps_to_reproduce?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      dev_decisions: {
+        Row: {
+          approved_by: string | null
+          created_at: string
+          created_by: string | null
+          decided_at: string | null
+          decision: string
+          id: string
+          rationale: string | null
+        }
+        Insert: {
+          approved_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          decided_at?: string | null
+          decision: string
+          id?: string
+          rationale?: string | null
+        }
+        Update: {
+          approved_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          decided_at?: string | null
+          decision?: string
+          id?: string
+          rationale?: string | null
+        }
+        Relationships: []
+      }
+      dev_milestones: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          status: Database["public"]["Enums"]["dev_milestone_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["dev_milestone_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["dev_milestone_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      dev_notes: {
+        Row: {
+          author_id: string | null
+          content: string
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      dev_tasks: {
+        Row: {
+          assignee_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          priority: Database["public"]["Enums"]["dev_task_priority"]
+          status: Database["public"]["Enums"]["dev_task_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assignee_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["dev_task_priority"]
+          status?: Database["public"]["Enums"]["dev_task_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assignee_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["dev_task_priority"]
+          status?: Database["public"]["Enums"]["dev_task_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       dev_team_invitations: {
         Row: {
           accepted_at: string | null
@@ -2936,6 +3137,17 @@ export type Database = {
         | "qa"
         | "owner"
       contributor_role: "administrator" | "contributor" | "viewer"
+      dev_blocker_status: "open" | "resolved" | "deferred"
+      dev_blocker_type:
+        | "owner_question"
+        | "dependency"
+        | "technical"
+        | "external"
+      dev_bug_severity: "minor" | "major" | "critical" | "blocker"
+      dev_bug_status: "open" | "investigating" | "fixed" | "closed" | "wont_fix"
+      dev_milestone_status: "planned" | "in_progress" | "completed" | "delayed"
+      dev_task_priority: "low" | "medium" | "high" | "critical"
+      dev_task_status: "todo" | "in_progress" | "done" | "archived"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3074,6 +3286,18 @@ export const Constants = {
         "owner",
       ],
       contributor_role: ["administrator", "contributor", "viewer"],
+      dev_blocker_status: ["open", "resolved", "deferred"],
+      dev_blocker_type: [
+        "owner_question",
+        "dependency",
+        "technical",
+        "external",
+      ],
+      dev_bug_severity: ["minor", "major", "critical", "blocker"],
+      dev_bug_status: ["open", "investigating", "fixed", "closed", "wont_fix"],
+      dev_milestone_status: ["planned", "in_progress", "completed", "delayed"],
+      dev_task_priority: ["low", "medium", "high", "critical"],
+      dev_task_status: ["todo", "in_progress", "done", "archived"],
     },
   },
 } as const
