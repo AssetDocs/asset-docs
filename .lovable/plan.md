@@ -1,103 +1,144 @@
 
-# Fix: "I Have an Authenticator App" Button Does Nothing
 
-## Problem Summary
-When clicking "I Have an Authenticator App" in the Secure Vault unlock flow, nothing visible happens. This creates a confusing user experience.
+# Interactive Development Workspace
 
-**Root Cause**: The button only silently refetches TOTP factors from the server. If no TOTP is enrolled for Asset Safe, the UI doesn't change or provide any feedback.
+## Overview
+Transform the Development workspace from static mock data to a fully interactive, collaborative environment where all invited dev team members can track progress, manage tasks, report bugs, and share notes in real-time.
 
-## Solution Overview
-Add proper feedback when the "I Have an Authenticator App" button is clicked, and clarify the purpose of this option.
-
----
-
-## Implementation Steps
-
-### Step 1: Add Loading State and Feedback to Button
-Update `src/components/TOTPChallenge.tsx` to:
-- Add a local loading state for the refetch button
-- Show a loading spinner while checking
-- Display a toast notification explaining the result
-- If not enrolled after refetch, show a clear message explaining they need to set up their app with Asset Safe
-
-### Step 2: Improve Button Label Clarity
-Change the button text and add context:
-- Rename "I Have an Authenticator App" to "I've Already Set Up 2FA" or add descriptive text below it
-- Add a helper message explaining this option is for users who already connected their authenticator to Asset Safe
+## What You'll Get
+- **Task Board**: Add, edit, and drag tasks between columns (To Do, In Progress, Done)
+- **Bug Tracker**: Report and track bugs with severity levels and assignments
+- **Team Notes**: Shared notes visible to all team members
+- **Blockers**: Flag items needing owner attention with resolution tracking
+- **Decisions Log**: Document technical decisions with rationale
+- **Milestones**: Track sprint deadlines and release schedules
 
 ---
 
-## Technical Details
+## Technical Implementation
 
-### File: `src/components/TOTPChallenge.tsx`
+### Phase 1: Database Schema (Migration)
 
-**Changes:**
+Create six new tables for the dev workspace:
 
-1. Add new state variable:
-```tsx
-const [isRefetching, setIsRefetching] = useState(false);
+```text
++------------------+     +------------------+     +------------------+
+|    dev_tasks     |     |    dev_bugs      |     |    dev_notes     |
++------------------+     +------------------+     +------------------+
+| id (uuid)        |     | id (uuid)        |     | id (uuid)        |
+| title            |     | title            |     | content          |
+| description      |     | description      |     | author_id        |
+| status (enum)    |     | severity (enum)  |     | created_at       |
+| priority (enum)  |     | status (enum)    |     | updated_at       |
+| assignee_id      |     | reporter_id      |     +------------------+
+| created_by       |     | assignee_id      |
+| created_at       |     | created_at       |
+| updated_at       |     | updated_at       |
++------------------+     +------------------+
+
++------------------+     +------------------+     +------------------+
+|  dev_blockers    |     | dev_decisions    |     | dev_milestones   |
++------------------+     +------------------+     +------------------+
+| id (uuid)        |     | id (uuid)        |     | id (uuid)        |
+| title            |     | decision         |     | title            |
+| description      |     | rationale        |     | description      |
+| type (enum)      |     | approved_by      |     | due_date         |
+| status           |     | decided_at       |     | status           |
+| created_by       |     | created_by       |     | created_by       |
+| resolved_by      |     | created_at       |     | created_at       |
+| created_at       |     +------------------+     +------------------+
+| resolved_at      |
++------------------+
 ```
 
-2. Update the button click handler:
-```tsx
-<Button 
-  variant="outline" 
-  onClick={async () => {
-    setIsRefetching(true);
-    try {
-      await refetch();
-      // Small delay to ensure state updates
-      setTimeout(() => {
-        setIsRefetching(false);
-        // Check if still not enrolled and show feedback
-        if (!isEnrolled) {
-          toast({
-            title: "No 2FA Found",
-            description: "You haven't set up two-factor authentication for Asset Safe yet. Please tap 'Set Up Authenticator' to connect your app.",
-            variant: "destructive",
-          });
-        }
-      }, 500);
-    } catch (error) {
-      setIsRefetching(false);
-      toast({
-        title: "Error",
-        description: "Could not check your 2FA status. Please try again.",
-        variant: "destructive",
-      });
-    }
-  }}
-  disabled={isRefetching}
-  className="w-full"
->
-  {isRefetching ? (
-    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-  ) : (
-    <Shield className="h-4 w-4 mr-2" />
-  )}
-  {isRefetching ? "Checking..." : "I've Already Set Up 2FA"}
-</Button>
+**Enums to create:**
+- `dev_task_status`: 'todo', 'in_progress', 'done', 'archived'
+- `dev_task_priority`: 'low', 'medium', 'high', 'critical'
+- `dev_bug_severity`: 'minor', 'major', 'critical', 'blocker'
+- `dev_bug_status`: 'open', 'investigating', 'fixed', 'closed', 'wont_fix'
+- `dev_blocker_type`: 'owner_question', 'dependency', 'technical', 'external'
+- `dev_blocker_status`: 'open', 'resolved', 'deferred'
+
+### Phase 2: Row-Level Security
+
+All tables will use the existing `has_dev_workspace_access()` function:
+
+```sql
+-- Example policy (applied to all dev_* tables)
+CREATE POLICY "Dev team can manage tasks"
+ON public.dev_tasks
+FOR ALL
+TO authenticated
+USING (public.has_dev_workspace_access(auth.uid()))
+WITH CHECK (public.has_dev_workspace_access(auth.uid()));
 ```
 
-3. Add helper text below the button:
-```tsx
-<p className="text-xs text-center text-muted-foreground">
-  Only use this if you've previously connected an authenticator app to Asset Safe
-</p>
-```
+This ensures:
+- Only invited dev team members can read/write
+- All team members see the same data (shared workspace)
+- Changes sync in real-time across sessions
+
+### Phase 3: React Hooks
+
+Create a unified hook for workspace data:
+
+**`src/hooks/useDevWorkspace.ts`**
+- Fetch all workspace data (tasks, bugs, notes, blockers, decisions, milestones)
+- CRUD operations for each entity type
+- Real-time subscriptions via Supabase channels
+- Optimistic UI updates with rollback on error
+
+### Phase 4: UI Components
+
+**New modal components:**
+- `AddTaskModal.tsx` - Form for creating tasks with title, description, priority, assignee
+- `AddBugModal.tsx` - Bug report form with severity, steps to reproduce, expected behavior
+- `AddNoteModal.tsx` - Simple textarea for team notes
+- `AddBlockerModal.tsx` - Blocker form with type selection (Owner Question, Dependency, etc.)
+- `AddDecisionModal.tsx` - Decision form with rationale field
+- `AddMilestoneModal.tsx` - Milestone form with due date picker
+
+**Interactive features:**
+- Task cards become clickable/draggable
+- Status updates via dropdown or drag-and-drop
+- Edit/delete buttons on hover
+- Assignment dropdown populated with team members
+- Timestamps and author attribution on all items
+
+### Phase 5: Update AdminDevWorkspace
+
+Refactor the component to:
+1. Use `useDevWorkspace` hook instead of mock data
+2. Wire up "Add" buttons to open modal dialogs
+3. Add edit/delete actions to existing items
+4. Show loading states during data fetch
+5. Display "Created by" and timestamps on items
 
 ---
 
-## Expected Behavior After Fix
+## File Changes Summary
 
-1. **User clicks "I've Already Set Up 2FA"**: 
-   - Button shows loading spinner with "Checking..." text
-   - System checks for existing TOTP enrollment
-   
-2. **If NOT enrolled**:
-   - Toast notification appears: "No 2FA Found - You haven't set up two-factor authentication for Asset Safe yet. Please tap 'Set Up Authenticator' to connect your app."
-   
-3. **If already enrolled**:
-   - Dialog transitions to the 6-digit code entry screen
+| Action | File |
+|--------|------|
+| Create | `supabase/migrations/[timestamp]_dev_workspace_tables.sql` |
+| Create | `src/hooks/useDevWorkspace.ts` |
+| Create | `src/components/admin/dev-workspace/AddTaskModal.tsx` |
+| Create | `src/components/admin/dev-workspace/AddBugModal.tsx` |
+| Create | `src/components/admin/dev-workspace/AddNoteModal.tsx` |
+| Create | `src/components/admin/dev-workspace/AddBlockerModal.tsx` |
+| Create | `src/components/admin/dev-workspace/AddDecisionModal.tsx` |
+| Create | `src/components/admin/dev-workspace/AddMilestoneModal.tsx` |
+| Create | `src/components/admin/dev-workspace/TaskCard.tsx` |
+| Create | `src/components/admin/dev-workspace/BugCard.tsx` |
+| Modify | `src/components/admin/AdminDevWorkspace.tsx` |
+| Modify | `src/integrations/supabase/types.ts` |
 
-This provides clear feedback and guides users to the correct action.
+---
+
+## Security Notes
+
+- All data is scoped to users with valid dev workspace roles
+- RLS enforced at database level (cannot be bypassed from client)
+- Author tracking for accountability
+- No sensitive business data stored in dev workspace tables
+
