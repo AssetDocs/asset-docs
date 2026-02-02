@@ -85,7 +85,9 @@ import DamagePhotoUpload from "./pages/DamagePhotoUpload";
 import DamageVideoUpload from "./pages/DamageVideoUpload";
 import AwarenessGuide from "./pages/AwarenessGuide";
 import AssetDocumentation from "./pages/AssetDocumentation";
-import Admin from "./pages/Admin";
+import AdminShell from "./components/admin/AdminShell";
+import AdminOwnerWorkspace from "./components/admin/AdminOwnerWorkspace";
+import AdminDevWorkspace from "./components/admin/AdminDevWorkspace";
 import CompassPartnership from "./pages/CompassPartnership";
 import HomeImprovementPartnership from "./pages/HomeImprovementPartnership";
 import AHAPartnership from "./pages/AHAPartnership";
@@ -106,6 +108,7 @@ import CookiePolicy from "./pages/CookiePolicy";
 import Install from "./pages/Install";
 import VIPContacts from "./pages/VIPContacts";
 import SubscriptionAgreement from "./pages/SubscriptionAgreement";
+import DevInviteAccept from "./pages/DevInviteAccept";
 
 const queryClient = new QueryClient();
 
@@ -334,7 +337,14 @@ const AppContent = () => {
         <Route path="/partnership" element={<Partnership />} />
         <Route path="/awareness-guide" element={<AwarenessGuide />} />
         <Route path="/asset-documentation" element={<AssetDocumentation />} />
-        <Route path="/admin" element={<Admin />} />
+        
+        {/* Admin Routes with Nested Workspaces */}
+        <Route path="/admin" element={<AdminShell />}>
+          <Route index element={null} /> {/* Will redirect based on role */}
+          <Route path="owner" element={<AdminOwnerWorkspace />} />
+          <Route path="dev" element={<AdminDevWorkspace />} />
+        </Route>
+        
         <Route path="/admin/crm" element={<CRM />} />
         <Route path="/admin/compass-partnership" element={<CompassPartnership />} />
         <Route path="/admin/home-improvement-partnership" element={<HomeImprovementPartnership />} />
@@ -344,6 +354,7 @@ const AppContent = () => {
         <Route path="/admin/dev-partner-strategy" element={<DevPartnerStrategy />} />
         <Route path="/admin/habitat-partnership" element={<HabitatPartnership />} />
         <Route path="/admin/habitat-pilot" element={<HabitatPilot />} />
+        <Route path="/admin/dev-invite" element={<DevInviteAccept />} />
         <Route path="/acknowledge-access" element={<AcknowledgeAccess />} />
         
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

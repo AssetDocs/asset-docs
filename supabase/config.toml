@@ -190,3 +190,6 @@ verify_jwt = false
 
 [functions.check-verification]
 verify_jwt = false
+
+[functions.invite-dev-team-member]
+verify_jwt = true

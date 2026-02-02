@@ -506,6 +506,42 @@ export type Database = {
         }
         Relationships: []
       }
+      dev_team_invitations: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          email: string
+          id: string
+          invitation_token: string
+          invited_by: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          token_expires_at: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          invitation_token: string
+          invited_by?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          token_expires_at?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          invitation_token?: string
+          invited_by?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          token_expires_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       document_folders: {
         Row: {
           created_at: string
@@ -2720,6 +2756,10 @@ export type Database = {
           wk: string
         }[]
       }
+      get_admin_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
       get_at_risk_customers: {
         Args: never
         Returns: {
@@ -2872,6 +2912,11 @@ export type Database = {
           _required_role: Database["public"]["Enums"]["contributor_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      has_dev_workspace_access: { Args: { _user_id: string }; Returns: boolean }
+      has_owner_workspace_access: {
+        Args: { _user_id: string }
         Returns: boolean
       }
       update_user_storage_usage: {
