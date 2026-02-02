@@ -2881,7 +2881,14 @@ export type Database = {
       validate_service_role_context: { Args: never; Returns: boolean }
     }
     Enums: {
-      app_role: "admin" | "sales" | "marketing" | "viewer"
+      app_role:
+        | "admin"
+        | "sales"
+        | "marketing"
+        | "viewer"
+        | "dev_lead"
+        | "developer"
+        | "qa"
       contributor_role: "administrator" | "contributor" | "viewer"
     }
     CompositeTypes: {
@@ -3010,7 +3017,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "sales", "marketing", "viewer"],
+      app_role: [
+        "admin",
+        "sales",
+        "marketing",
+        "viewer",
+        "dev_lead",
+        "developer",
+        "qa",
+      ],
       contributor_role: ["administrator", "contributor", "viewer"],
     },
   },
