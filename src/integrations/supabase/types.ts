@@ -2889,6 +2889,7 @@ export type Database = {
         | "dev_lead"
         | "developer"
         | "qa"
+        | "owner"
       contributor_role: "administrator" | "contributor" | "viewer"
     }
     CompositeTypes: {
@@ -3025,6 +3026,7 @@ export const Constants = {
         "dev_lead",
         "developer",
         "qa",
+        "owner",
       ],
       contributor_role: ["administrator", "contributor", "viewer"],
     },
