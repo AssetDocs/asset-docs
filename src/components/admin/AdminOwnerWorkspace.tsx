@@ -10,6 +10,7 @@ import StripeReconciliation from './StripeReconciliation';
 import SecurityChecklist from './SecurityChecklist';
 import AdminLegalAgreements from '@/pages/AdminLegalAgreements';
 import DevTeamManagement from './DevTeamManagement';
+import MarketSizing from './MarketSizing';
 import { 
   Users, 
   CreditCard, 
@@ -18,7 +19,8 @@ import {
   FileText, 
   BarChart,
   Handshake,
-  UserPlus
+  UserPlus,
+  TrendingUp
 } from 'lucide-react';
 
 const AdminOwnerWorkspace: React.FC = () => {
@@ -27,7 +29,7 @@ const AdminOwnerWorkspace: React.FC = () => {
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-      <TabsList className="grid grid-cols-4 md:grid-cols-8 gap-2 h-auto p-1">
+      <TabsList className="grid grid-cols-4 md:grid-cols-9 gap-2 h-auto p-1">
         <TabsTrigger value="overview" className="flex items-center gap-2">
           <BarChart className="w-4 h-4" />
           Overview
@@ -47,6 +49,10 @@ const AdminOwnerWorkspace: React.FC = () => {
         <TabsTrigger value="crm" className="flex items-center gap-2">
           <Users className="w-4 h-4" />
           CRM
+        </TabsTrigger>
+        <TabsTrigger value="market" className="flex items-center gap-2">
+          <TrendingUp className="w-4 h-4" />
+          TAM/SAM/SOM
         </TabsTrigger>
         <TabsTrigger value="security" className="flex items-center gap-2">
           <Shield className="w-4 h-4" />
@@ -193,6 +199,10 @@ const AdminOwnerWorkspace: React.FC = () => {
 
       <TabsContent value="crm">
         <EnhancedCRM />
+      </TabsContent>
+
+      <TabsContent value="market">
+        <MarketSizing />
       </TabsContent>
 
       <TabsContent value="security">
