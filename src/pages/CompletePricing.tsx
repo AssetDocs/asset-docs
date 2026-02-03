@@ -68,26 +68,26 @@ const CompletePricing: React.FC = () => {
 
   const planDifferences = {
     standard: [
-      "Up to 3 properties",
-      "25GB secure cloud storage"
+      "Unlimited properties",
+      "25GB secure cloud storage",
+      "Password Catalog (private use)",
+      "Secure Vault access (private only)"
     ],
     premium: [
       "Unlimited properties",
-      "100GB secure cloud storage"
+      "100GB secure cloud storage",
+      "Legacy Locker + Trusted Contacts",
+      "Emergency vault sharing"
     ]
   };
 
   const commonFeatures = [
-    "Legacy Locker access",
     "Photo, video, and document upload",
     "Full web platform access",
     "Voice notes for item details",
     "Post damage documentation",
     "Export detailed reports",
-    "24/7 chat support",
-    "Share with trusted contacts",
     "Password Catalog",
-    "Contact Catalog",
     "Multi-Factor Authentication",
     "Source Websites",
     "Manual Entries",
@@ -98,15 +98,15 @@ const CompletePricing: React.FC = () => {
     {
       title: "Standard (Homeowner Plan)",
       price: "$12.99",
-      description: "Our most popular plan for comprehensive home documentation",
+      description: "For individuals documenting and protecting their home",
       features: planDifferences.standard,
       planType: "standard",
       icon: <Zap className="h-6 w-6" />
     },
     {
-      title: "Premium (Professional Plan)",
+      title: "Premium (Family & Legacy Protection)",
       price: "$18.99",
-      description: "Best suited for estate managers, multiple-property owners, or businesses",
+      description: "For families who want continuity and shared protection",
       features: planDifferences.premium,
       planType: "premium",
       icon: <Star className="h-6 w-6" />

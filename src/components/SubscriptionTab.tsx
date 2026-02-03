@@ -26,38 +26,40 @@ const planConfigs = {
     monthlyPrice: "$12.99",
     yearlyPrice: "$129",
     yearlySavings: "Save when you pay yearly",
-    description: "Our most popular plan for comprehensive home documentation",
+    description: "For individuals documenting and protecting their home",
     features: [
-      "Up to 3 properties",
-      "25GB secure cloud storage"
+      "Unlimited properties",
+      "25GB secure cloud storage",
+      "Password Catalog (private use)",
+      "Secure Vault access (private only)"
     ],
     icon: <Zap className="h-6 w-6 text-orange-600" />
   },
   premium: {
-    title: "Premium (Professional Plan)",
+    title: "Premium (Family & Legacy Protection)",
     monthlyPrice: "$18.99",
     yearlyPrice: "$189",
     yearlySavings: "Save when you pay yearly",
-    description: "Best suited for estate managers, multiple-property owners, or businesses",
+    description: "For families who want continuity and shared protection",
     features: [
       "Unlimited properties",
-      "100GB secure cloud storage"
+      "100GB secure cloud storage",
+      "Trusted contacts access",
+      "Legacy Locker mode",
+      "Emergency vault sharing",
+      "Contributor roles"
     ],
     icon: <Star className="h-6 w-6 text-purple-600" />
   }
 };
 
 const commonFeatures = [
-  "Legacy Locker access",
   "Photo, video, and document upload",
   "Full web platform access",
   "Voice notes for item details",
   "Post damage documentation",
   "Export detailed reports",
-  "24/7 chat support",
-  "Share with trusted contacts",
   "Password Catalog",
-  "Contact Catalog",
   "Multi-Factor Authentication",
   "Source Websites",
   "Manual Entries",

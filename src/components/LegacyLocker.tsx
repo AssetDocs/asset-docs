@@ -27,6 +27,8 @@ import TrustInformation from './TrustInformation';
 import { RecoveryDelegateSelector } from './RecoveryDelegateSelector';
 import { RecoveryRequestDialog } from './RecoveryRequestDialog';
 import { RecoveryRequestAlert } from './RecoveryRequestAlert';
+import { PremiumFeatureGate } from './PremiumFeatureGate';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 
 interface LegacyLockerData {
   id?: string;
@@ -87,12 +89,14 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
   hideEncryptionControls = false
 }) => {
   const { toast } = useToast();
+  const { isPremium, loading: subscriptionLoading } = useSubscription();
   const [isEncrypted, setIsEncrypted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showMasterPasswordModal, setShowMasterPasswordModal] = useState(false);
   const [existingData, setExistingData] = useState<LegacyLockerData | null>(null);
   const [contributorRole, setContributorRole] = useState<'administrator' | 'contributor' | 'viewer' | null>(null);
   const [isContributor, setIsContributor] = useState(false);
+  const [contributorCheckDone, setContributorCheckDone] = useState(false);
   const [contributors, setContributors] = useState<any[]>([]);
   const [selectedDelegateId, setSelectedDelegateId] = useState<string | null>(null);
   const [gracePeriodDays, setGracePeriodDays] = useState(14);
@@ -107,6 +111,11 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
   const sessionMasterPassword = sessionMasterPasswordFromParent ?? localSessionMasterPassword;
   const isUnlocked = isUnlockedFromParent ?? localIsUnlocked;
   const isControlledByParent = isUnlockedFromParent !== undefined;
+
+  // Determine if user has access to Legacy Locker
+  const hasLegacyLockerAccess = isPremium || isContributor || subscriptionLoading || !contributorCheckDone;
+
+
   
   // Persist activeSection to localStorage
   const [activeSection, setActiveSection] = useState<string>(() => {
@@ -315,7 +324,10 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
   const checkContributorStatus = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setContributorCheckDone(true);
+        return;
+      }
 
       // Check if this user is a contributor to someone else's account
       const { data: contributorData } = await supabase
@@ -329,8 +341,10 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
         setIsContributor(true);
         setContributorRole(contributorData.role);
       }
+      setContributorCheckDone(true);
     } catch (error) {
       console.error('Error checking contributor status:', error);
+      setContributorCheckDone(true);
     }
   };
 
@@ -692,6 +706,19 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
           onCancel={() => setShowMasterPasswordModal(false)}
         />
       </>
+    );
+  }
+
+  // Premium gate - show upgrade prompt for non-premium users who aren't contributors
+  if (!hasLegacyLockerAccess) {
+    return (
+      <PremiumFeatureGate 
+        featureKey="legacy_locker"
+        title="Legacy Locker"
+        description="Secure your family's future with Legacy Locker. Store important documents, executor information, and estate planning details for trusted family access."
+      >
+        <div />
+      </PremiumFeatureGate>
     );
   }
 
