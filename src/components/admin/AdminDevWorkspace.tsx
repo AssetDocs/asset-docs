@@ -129,64 +129,73 @@ const AdminDevWorkspace: React.FC = () => {
   return (
     <>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="flex flex-wrap gap-1 h-auto p-1">
-          <TabsTrigger value="overview" className="flex items-center gap-2">
-            <LayoutDashboard className="w-4 h-4" />
-            <span className="hidden sm:inline">Overview</span>
-          </TabsTrigger>
-          <TabsTrigger value="roadmap" className="flex items-center gap-2">
-            <Map className="w-4 h-4" />
-            <span className="hidden sm:inline">Roadmap</span>
-          </TabsTrigger>
-          <TabsTrigger value="tasks" className="flex items-center gap-2">
-            <ListTodo className="w-4 h-4" />
-            <span className="hidden sm:inline">Tasks</span>
-          </TabsTrigger>
-          <TabsTrigger value="releases" className="flex items-center gap-2">
-            <Rocket className="w-4 h-4" />
-            <span className="hidden sm:inline">Releases</span>
-          </TabsTrigger>
-          <TabsTrigger value="testing" className="flex items-center gap-2">
-            <ClipboardCheck className="w-4 h-4" />
-            <span className="hidden sm:inline">Testing</span>
-          </TabsTrigger>
-          <TabsTrigger value="support" className="flex items-center gap-2">
-            <HeadphonesIcon className="w-4 h-4" />
-            <span className="hidden sm:inline">Support</span>
-          </TabsTrigger>
-          <TabsTrigger value="dod" className="flex items-center gap-2">
-            <Tag className="w-4 h-4" />
-            <span className="hidden sm:inline">DoD</span>
-          </TabsTrigger>
-          <TabsTrigger value="deadlines" className="flex items-center gap-2">
-            <Calendar className="w-4 h-4" />
-            <span className="hidden sm:inline">Deadlines</span>
-          </TabsTrigger>
-          <TabsTrigger value="blockers" className="flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4" />
-            <span className="hidden sm:inline">Blockers</span>
-          </TabsTrigger>
-          <TabsTrigger value="bugs" className="flex items-center gap-2">
-            <Bug className="w-4 h-4" />
-            <span className="hidden sm:inline">Bugs</span>
-          </TabsTrigger>
-          <TabsTrigger value="infrastructure" className="flex items-center gap-2">
-            <Server className="w-4 h-4" />
-            <span className="hidden sm:inline">Infra</span>
-          </TabsTrigger>
-          <TabsTrigger value="docs" className="flex items-center gap-2">
-            <FileText className="w-4 h-4" />
-            <span className="hidden sm:inline">Docs</span>
-          </TabsTrigger>
-          <TabsTrigger value="decisions" className="flex items-center gap-2">
-            <ClipboardList className="w-4 h-4" />
-            <span className="hidden sm:inline">Decisions</span>
-          </TabsTrigger>
-          <TabsTrigger value="notes" className="flex items-center gap-2">
-            <StickyNote className="w-4 h-4" />
-            <span className="hidden sm:inline">Notes</span>
-          </TabsTrigger>
-        </TabsList>
+        <div className="space-y-2">
+          {/* Row 1: Planning & Execution */}
+          <TabsList className="flex flex-wrap gap-1 h-auto p-1 w-full justify-start">
+            <span className="text-xs text-muted-foreground px-2 py-1 hidden md:inline">Planning:</span>
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <LayoutDashboard className="w-4 h-4" />
+              <span className="hidden sm:inline">Overview</span>
+            </TabsTrigger>
+            <TabsTrigger value="roadmap" className="flex items-center gap-2">
+              <Map className="w-4 h-4" />
+              <span className="hidden sm:inline">Roadmap</span>
+            </TabsTrigger>
+            <TabsTrigger value="tasks" className="flex items-center gap-2">
+              <ListTodo className="w-4 h-4" />
+              <span className="hidden sm:inline">Tasks</span>
+            </TabsTrigger>
+            <TabsTrigger value="deadlines" className="flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              <span className="hidden sm:inline">Deadlines</span>
+            </TabsTrigger>
+            <TabsTrigger value="releases" className="flex items-center gap-2">
+              <Rocket className="w-4 h-4" />
+              <span className="hidden sm:inline">Releases</span>
+            </TabsTrigger>
+            <TabsTrigger value="decisions" className="flex items-center gap-2">
+              <ClipboardList className="w-4 h-4" />
+              <span className="hidden sm:inline">Decisions</span>
+            </TabsTrigger>
+            <TabsTrigger value="notes" className="flex items-center gap-2">
+              <StickyNote className="w-4 h-4" />
+              <span className="hidden sm:inline">Notes</span>
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Row 2: Quality & Operations */}
+          <TabsList className="flex flex-wrap gap-1 h-auto p-1 w-full justify-start">
+            <span className="text-xs text-muted-foreground px-2 py-1 hidden md:inline">Quality:</span>
+            <TabsTrigger value="testing" className="flex items-center gap-2">
+              <ClipboardCheck className="w-4 h-4" />
+              <span className="hidden sm:inline">Testing</span>
+            </TabsTrigger>
+            <TabsTrigger value="bugs" className="flex items-center gap-2">
+              <Bug className="w-4 h-4" />
+              <span className="hidden sm:inline">Bugs</span>
+            </TabsTrigger>
+            <TabsTrigger value="blockers" className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4" />
+              <span className="hidden sm:inline">Blockers</span>
+            </TabsTrigger>
+            <TabsTrigger value="support" className="flex items-center gap-2">
+              <HeadphonesIcon className="w-4 h-4" />
+              <span className="hidden sm:inline">Support</span>
+            </TabsTrigger>
+            <TabsTrigger value="dod" className="flex items-center gap-2">
+              <Tag className="w-4 h-4" />
+              <span className="hidden sm:inline">DoD</span>
+            </TabsTrigger>
+            <TabsTrigger value="infrastructure" className="flex items-center gap-2">
+              <Server className="w-4 h-4" />
+              <span className="hidden sm:inline">Infra</span>
+            </TabsTrigger>
+            <TabsTrigger value="docs" className="flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              <span className="hidden sm:inline">Docs</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
