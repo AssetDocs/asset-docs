@@ -10,67 +10,7 @@ interface RoadmapItem {
   tags?: string[];
 }
 
-const roadmapItems: RoadmapItem[] = [
-  // NOW - Active development (0-30 days)
-  { 
-    title: 'Interactive Dev Workspace', 
-    description: 'Full CRUD for tasks, bugs, notes, blockers, decisions, milestones',
-    status: 'now',
-    tags: ['Admin', 'Infrastructure']
-  },
-  { 
-    title: 'Verified Account System', 
-    description: 'Badge system for verified users meeting criteria',
-    status: 'now',
-    tags: ['User', 'Trust']
-  },
-  { 
-    title: 'Storage Monitoring', 
-    description: 'Usage alerts and quota management',
-    status: 'now',
-    tags: ['Infrastructure']
-  },
-  
-  // NEXT - Coming soon (30-60 days)
-  { 
-    title: 'Mobile App (Capacitor)', 
-    description: 'iOS and Android native apps via Capacitor',
-    status: 'next',
-    tags: ['Mobile', 'Platform']
-  },
-  { 
-    title: 'AI Photo Analysis', 
-    description: 'Auto-categorize and tag uploaded photos',
-    status: 'next',
-    tags: ['AI', 'Feature']
-  },
-  { 
-    title: 'Partnership Integrations', 
-    description: 'Habitat for Humanity, AHA, ARA integrations',
-    status: 'next',
-    tags: ['B2B', 'Partnership']
-  },
-  
-  // LATER - Future planning (60-90+ days)
-  { 
-    title: 'Multi-language Support', 
-    description: 'Full i18n with Spanish and other languages',
-    status: 'later',
-    tags: ['i18n', 'Accessibility']
-  },
-  { 
-    title: 'Advanced Reporting', 
-    description: 'PDF exports, analytics dashboard for users',
-    status: 'later',
-    tags: ['Feature', 'Analytics']
-  },
-  { 
-    title: 'Insurance Provider Portal', 
-    description: 'Direct integration with insurance companies',
-    status: 'later',
-    tags: ['B2B', 'Enterprise']
-  },
-];
+const roadmapItems: RoadmapItem[] = [];
 
 const statusConfig = {
   now: { 
