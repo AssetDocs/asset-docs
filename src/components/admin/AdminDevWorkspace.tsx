@@ -4,17 +4,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import SystemInfrastructure from './SystemInfrastructure';
 import SystemArchitectureFlowcharts from './SystemArchitectureFlowcharts';
-import { useDevWorkspace } from '@/hooks/useDevWorkspace';
+import { useDevWorkspace, DevSupportStatus, DevReleaseStatus } from '@/hooks/useDevWorkspace';
 import { AddTaskModal } from './dev-workspace/AddTaskModal';
 import { AddBugModal } from './dev-workspace/AddBugModal';
 import { AddBlockerModal } from './dev-workspace/AddBlockerModal';
 import { AddDecisionModal } from './dev-workspace/AddDecisionModal';
 import { AddMilestoneModal } from './dev-workspace/AddMilestoneModal';
 import { AddNoteModal } from './dev-workspace/AddNoteModal';
+import { AddReleaseModal } from './dev-workspace/AddReleaseModal';
+import { AddSupportIssueModal } from './dev-workspace/AddSupportIssueModal';
 import { TaskCard } from './dev-workspace/TaskCard';
 import { BugCard } from './dev-workspace/BugCard';
+import { RoadmapTab } from './dev-workspace/RoadmapTab';
+import { TestingChecklistTab } from './dev-workspace/TestingChecklistTab';
+import { DefinitionOfDoneTab } from './dev-workspace/DefinitionOfDoneTab';
 import { format, differenceInDays } from 'date-fns';
 import { 
   LayoutDashboard, 
@@ -31,7 +37,12 @@ import {
   Circle,
   Clock,
   Trash2,
-  CheckCheck
+  CheckCheck,
+  Map,
+  Rocket,
+  ClipboardCheck,
+  HeadphonesIcon,
+  Tag
 } from 'lucide-react';
 
 const AdminDevWorkspace: React.FC = () => {
@@ -42,6 +53,8 @@ const AdminDevWorkspace: React.FC = () => {
   const [showDecisionModal, setShowDecisionModal] = useState(false);
   const [showMilestoneModal, setShowMilestoneModal] = useState(false);
   const [showNoteModal, setShowNoteModal] = useState(false);
+  const [showReleaseModal, setShowReleaseModal] = useState(false);
+  const [showSupportModal, setShowSupportModal] = useState(false);
 
   const {
     loading,
@@ -51,6 +64,8 @@ const AdminDevWorkspace: React.FC = () => {
     blockers,
     decisions,
     milestones,
+    releases,
+    supportIssues,
     createTask,
     updateTask,
     deleteTask,
@@ -67,10 +82,17 @@ const AdminDevWorkspace: React.FC = () => {
     createMilestone,
     updateMilestone,
     deleteMilestone,
+    createRelease,
+    updateRelease,
+    deleteRelease,
+    createSupportIssue,
+    updateSupportIssue,
+    deleteSupportIssue,
   } = useDevWorkspace();
 
   const openBlockers = blockers.filter(b => b.status === 'open');
   const activeTasks = tasks.filter(t => t.status === 'in_progress');
+  const openSupportIssues = supportIssues.filter(s => s.status === 'new' || s.status === 'investigating' || s.status === 'in_progress');
 
   if (loading) {
     return (
@@ -85,51 +107,90 @@ const AdminDevWorkspace: React.FC = () => {
     );
   }
 
+  const releaseStatusColor = (status: DevReleaseStatus) => {
+    switch (status) {
+      case 'released': return 'bg-green-100 text-green-700 dark:bg-green-950/20';
+      case 'in_progress': return 'bg-blue-100 text-blue-700 dark:bg-blue-950/20';
+      case 'planned': return 'bg-muted';
+      case 'rolled_back': return 'bg-red-100 text-red-700 dark:bg-red-950/20';
+    }
+  };
+
+  const supportStatusColor = (status: DevSupportStatus) => {
+    switch (status) {
+      case 'new': return 'destructive';
+      case 'investigating': return 'default';
+      case 'in_progress': return 'default';
+      case 'resolved': return 'secondary';
+      case 'wont_fix': return 'outline';
+    }
+  };
+
   return (
     <>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid grid-cols-4 md:grid-cols-9 gap-2 h-auto p-1">
+        <TabsList className="flex flex-wrap gap-1 h-auto p-1">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <LayoutDashboard className="w-4 h-4" />
-            Overview
+            <span className="hidden sm:inline">Overview</span>
+          </TabsTrigger>
+          <TabsTrigger value="roadmap" className="flex items-center gap-2">
+            <Map className="w-4 h-4" />
+            <span className="hidden sm:inline">Roadmap</span>
           </TabsTrigger>
           <TabsTrigger value="tasks" className="flex items-center gap-2">
             <ListTodo className="w-4 h-4" />
-            Tasks
+            <span className="hidden sm:inline">Tasks</span>
+          </TabsTrigger>
+          <TabsTrigger value="releases" className="flex items-center gap-2">
+            <Rocket className="w-4 h-4" />
+            <span className="hidden sm:inline">Releases</span>
+          </TabsTrigger>
+          <TabsTrigger value="testing" className="flex items-center gap-2">
+            <ClipboardCheck className="w-4 h-4" />
+            <span className="hidden sm:inline">Testing</span>
+          </TabsTrigger>
+          <TabsTrigger value="support" className="flex items-center gap-2">
+            <HeadphonesIcon className="w-4 h-4" />
+            <span className="hidden sm:inline">Support</span>
+          </TabsTrigger>
+          <TabsTrigger value="dod" className="flex items-center gap-2">
+            <Tag className="w-4 h-4" />
+            <span className="hidden sm:inline">DoD</span>
           </TabsTrigger>
           <TabsTrigger value="deadlines" className="flex items-center gap-2">
             <Calendar className="w-4 h-4" />
-            Deadlines
+            <span className="hidden sm:inline">Deadlines</span>
           </TabsTrigger>
           <TabsTrigger value="blockers" className="flex items-center gap-2">
             <AlertTriangle className="w-4 h-4" />
-            Blockers
+            <span className="hidden sm:inline">Blockers</span>
           </TabsTrigger>
           <TabsTrigger value="bugs" className="flex items-center gap-2">
             <Bug className="w-4 h-4" />
-            Bugs/QA
+            <span className="hidden sm:inline">Bugs</span>
           </TabsTrigger>
           <TabsTrigger value="infrastructure" className="flex items-center gap-2">
             <Server className="w-4 h-4" />
-            Infra
+            <span className="hidden sm:inline">Infra</span>
           </TabsTrigger>
           <TabsTrigger value="docs" className="flex items-center gap-2">
             <FileText className="w-4 h-4" />
-            Docs
+            <span className="hidden sm:inline">Docs</span>
           </TabsTrigger>
           <TabsTrigger value="decisions" className="flex items-center gap-2">
             <ClipboardList className="w-4 h-4" />
-            Decisions
+            <span className="hidden sm:inline">Decisions</span>
           </TabsTrigger>
           <TabsTrigger value="notes" className="flex items-center gap-2">
             <StickyNote className="w-4 h-4" />
-            Notes
+            <span className="hidden sm:inline">Notes</span>
           </TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg">Tasks Summary</CardTitle>
@@ -179,6 +240,19 @@ const AdminDevWorkspace: React.FC = () => {
                 </Button>
               </CardContent>
             </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Support Issues</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-purple-500">{openSupportIssues.length}</div>
+                <p className="text-sm text-muted-foreground">user-reported issues</p>
+                <Button variant="link" className="p-0 h-auto mt-2" onClick={() => setActiveTab('support')}>
+                  View all →
+                </Button>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Active Tasks */}
@@ -207,6 +281,39 @@ const AdminDevWorkspace: React.FC = () => {
               )}
             </CardContent>
           </Card>
+
+          {/* Recent Releases */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Releases</CardTitle>
+              <CardDescription>Latest deployments and changes</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {releases.length === 0 ? (
+                <p className="text-muted-foreground text-center py-4">No releases tracked yet</p>
+              ) : (
+                <div className="space-y-3">
+                  {releases.slice(0, 3).map(release => (
+                    <div key={release.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Rocket className="w-4 h-4" />
+                        <div>
+                          <span className="font-medium">{release.version}</span>
+                          <span className="text-muted-foreground ml-2">{release.title}</span>
+                        </div>
+                      </div>
+                      <Badge className={releaseStatusColor(release.status)}>{release.status}</Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Roadmap Tab */}
+        <TabsContent value="roadmap">
+          <RoadmapTab />
         </TabsContent>
 
         {/* Tasks Tab */}
@@ -271,6 +378,181 @@ const AdminDevWorkspace: React.FC = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Releases Tab */}
+        <TabsContent value="releases" className="space-y-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Releases / Changelog</CardTitle>
+                <CardDescription>Track what shipped, what's in progress, and what's coming</CardDescription>
+              </div>
+              <Button onClick={() => setShowReleaseModal(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Release
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {releases.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">No releases tracked yet. Add your first release!</p>
+              ) : (
+                <div className="space-y-4">
+                  {releases.map(release => (
+                    <div key={release.id} className="p-4 border rounded-lg">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <Badge variant="outline" className="font-mono">{release.version}</Badge>
+                            <h4 className="font-semibold">{release.title}</h4>
+                            <Badge className={releaseStatusColor(release.status)}>{release.status.replace('_', ' ')}</Badge>
+                          </div>
+                          {release.release_date && (
+                            <p className="text-sm text-muted-foreground mb-2">
+                              {format(new Date(release.release_date), 'MMMM d, yyyy')}
+                            </p>
+                          )}
+                          {release.description && (
+                            <p className="text-sm text-muted-foreground mb-3">{release.description}</p>
+                          )}
+                          {release.key_changes && release.key_changes.length > 0 && (
+                            <div className="mb-2">
+                              <p className="text-sm font-medium mb-1">Key Changes:</p>
+                              <ul className="text-sm text-muted-foreground list-disc list-inside">
+                                {release.key_changes.map((change, idx) => (
+                                  <li key={idx}>{change}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          {release.known_issues && release.known_issues.length > 0 && (
+                            <div>
+                              <p className="text-sm font-medium text-amber-600 mb-1">Known Issues:</p>
+                              <ul className="text-sm text-muted-foreground list-disc list-inside">
+                                {release.known_issues.map((issue, idx) => (
+                                  <li key={idx}>{issue}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Select 
+                            value={release.status} 
+                            onValueChange={(v) => updateRelease(release.id, { status: v as DevReleaseStatus })}
+                          >
+                            <SelectTrigger className="w-32">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="planned">Planned</SelectItem>
+                              <SelectItem value="in_progress">In Progress</SelectItem>
+                              <SelectItem value="released">Released</SelectItem>
+                              <SelectItem value="rolled_back">Rolled Back</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Button variant="ghost" size="icon" onClick={() => deleteRelease(release.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Testing Checklist Tab */}
+        <TabsContent value="testing">
+          <TestingChecklistTab />
+        </TabsContent>
+
+        {/* Support Issues Tab */}
+        <TabsContent value="support" className="space-y-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Support / Customer Issues</CardTitle>
+                <CardDescription>User-reported issues, feature requests, and UX feedback</CardDescription>
+              </div>
+              <Button onClick={() => setShowSupportModal(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Issue
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {supportIssues.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">No support issues logged. Add customer feedback here!</p>
+              ) : (
+                <div className="space-y-4">
+                  {supportIssues.map(issue => (
+                    <div 
+                      key={issue.id} 
+                      className={`p-4 border rounded-lg ${
+                        issue.status === 'resolved' ? 'bg-green-50/50 dark:bg-green-950/10' : ''
+                      }`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h4 className="font-semibold">{issue.title}</h4>
+                            <Badge variant={supportStatusColor(issue.status)}>{issue.status.replace('_', ' ')}</Badge>
+                            <Badge variant="outline">{issue.type.replace('_', ' ')}</Badge>
+                            <Badge variant={issue.priority === 'critical' || issue.priority === 'high' ? 'destructive' : 'secondary'}>
+                              {issue.priority}
+                            </Badge>
+                          </div>
+                          {issue.reported_by && (
+                            <p className="text-sm text-muted-foreground mb-1">
+                              Reported by: {issue.reported_by}
+                            </p>
+                          )}
+                          {issue.description && (
+                            <p className="text-sm text-muted-foreground">{issue.description}</p>
+                          )}
+                          {issue.resolution && (
+                            <p className="text-sm text-green-600 mt-2">
+                              Resolution: {issue.resolution}
+                            </p>
+                          )}
+                          <p className="text-xs text-muted-foreground mt-2">
+                            {format(new Date(issue.created_at), 'MMM d, yyyy')}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Select 
+                            value={issue.status} 
+                            onValueChange={(v) => updateSupportIssue(issue.id, { status: v as DevSupportStatus })}
+                          >
+                            <SelectTrigger className="w-32">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="new">New</SelectItem>
+                              <SelectItem value="investigating">Investigating</SelectItem>
+                              <SelectItem value="in_progress">In Progress</SelectItem>
+                              <SelectItem value="resolved">Resolved</SelectItem>
+                              <SelectItem value="wont_fix">Won't Fix</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Button variant="ghost" size="icon" onClick={() => deleteSupportIssue(issue.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Definition of Done Tab */}
+        <TabsContent value="dod">
+          <DefinitionOfDoneTab />
         </TabsContent>
 
         {/* Deadlines Tab */}
@@ -584,6 +866,8 @@ Add required keys`}
       <AddDecisionModal open={showDecisionModal} onOpenChange={setShowDecisionModal} onSubmit={createDecision} />
       <AddMilestoneModal open={showMilestoneModal} onOpenChange={setShowMilestoneModal} onSubmit={createMilestone} />
       <AddNoteModal open={showNoteModal} onOpenChange={setShowNoteModal} onSubmit={createNote} />
+      <AddReleaseModal open={showReleaseModal} onOpenChange={setShowReleaseModal} onSubmit={createRelease} />
+      <AddSupportIssueModal open={showSupportModal} onOpenChange={setShowSupportModal} onSubmit={createSupportIssue} />
     </>
   );
 };
