@@ -109,30 +109,48 @@ const Pricing: React.FC = () => {
 
   const planDifferences = {
     standard: [
-      "Up to 3 properties",
-      "25GB secure cloud storage"
+      "Unlimited properties",
+      "25GB secure cloud storage",
+      "Guided home inventory system",
+      "Room-by-room uploads (photos + video)",
+      "Document storage (receipts, manuals, policies)",
+      "Password Catalog (private use)",
+      "Secure Vault access (private only)",
+      "Claim-ready export (basic report)",
+      "Verified email + basic account security",
+      "Standard support"
     ],
     premium: [
       "Unlimited properties",
-      "100GB secure cloud storage"
+      "100GB secure cloud storage",
+      "Trusted contacts access",
+      "Emergency vault sharing",
+      "Legacy Locker mode",
+      "Executor assignment + continuity planning",
+      "Contributor roles (spouse, adult child, planner)",
+      "Verified+ badge",
+      "Priority support",
+      "Advanced claim + legal export bundles"
     ]
   };
 
   const commonFeatures = [
-    "Legacy Locker access",
     "Photo, video, and document upload",
     "Full web platform access",
     "Voice notes for item details",
     "Post damage documentation",
-    "Export detailed reports",
-    "24/7 chat support",
-    "Share with trusted contacts",
     "Password Catalog",
-    "Contact Catalog",
     "Multi-Factor Authentication",
     "Source Websites",
     "Manual Entries",
     "Paint Code Reference"
+  ];
+
+  const premiumOnlyIndicators = [
+    "🔒 Trusted Contacts (Premium Only)",
+    "🔒 Emergency Access Sharing (Premium Only)",
+    "🔒 Legacy Locker Mode (Premium Only)",
+    "🔒 Executor / Family Continuity Tools (Premium Only)"
   ];
 
   const plans = [
@@ -140,17 +158,17 @@ const Pricing: React.FC = () => {
       title: "Standard (Homeowner Plan)",
       monthlyPrice: "$12.99",
       yearlyPrice: "$129",
-      description: "Everything most homeowners need to fully document and protect their home.",
-      features: planDifferences.standard,
+      description: "For individuals documenting and protecting their home.",
+      features: planDifferences.standard.slice(0, 4), // Show first 4 for card
       planType: "standard",
       icon: <Zap className="h-6 w-6" />
     },
     {
-      title: "Premium (Professional Plan)",
+      title: "Premium (Family & Legacy Protection)",
       monthlyPrice: "$18.99",
       yearlyPrice: "$189",
-      description: "Built for managing multiple properties, estates, or complex asset portfolios.",
-      features: planDifferences.premium,
+      description: "For families, planners, and homeowners who want continuity and shared protection.",
+      features: planDifferences.premium.slice(0, 4), // Show first 4 for card
       planType: "premium",
       icon: <Star className="h-6 w-6" />
     }
@@ -160,10 +178,11 @@ const Pricing: React.FC = () => {
     {
       title: "Gift – Standard",
       price: "$129 / 1 year",
-      description: "Everything most homeowners need to fully document and protect their home.",
+      description: "For individuals documenting and protecting their home.",
       features: [
-        "Up to 3 properties",
+        "Unlimited properties",
         "25GB secure cloud storage",
+        "Password Catalog + Secure Vault",
         "Recipient opts in to renew monthly or yearly"
       ],
       planType: "standard"
@@ -171,10 +190,11 @@ const Pricing: React.FC = () => {
     {
       title: "Gift – Premium",
       price: "$189 / 1 year",
-      description: "Built for managing multiple properties, estates, or complex asset portfolios.",
+      description: "For families who want continuity and shared protection.",
       features: [
         "Unlimited properties",
         "100GB secure cloud storage",
+        "Legacy Locker + Trusted Contacts",
         "Recipient opts in to renew monthly or yearly"
       ],
       planType: "premium"

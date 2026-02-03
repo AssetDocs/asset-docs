@@ -8,30 +8,42 @@ import { Link } from 'react-router-dom';
 const PricingPlans: React.FC = () => {
   const planDifferences = {
     standard: [
-      "Up to 3 properties",
-      "25GB secure cloud storage"
+      "Unlimited properties",
+      "25GB secure cloud storage",
+      "Password Catalog (private use)",
+      "Secure Vault access (private only)",
+      "Standard support"
     ],
     premium: [
       "Unlimited properties",
-      "100GB secure cloud storage"
+      "100GB secure cloud storage",
+      "Trusted contacts access",
+      "Legacy Locker mode",
+      "Emergency vault sharing",
+      "Contributor roles",
+      "Verified+ badge",
+      "Priority support"
     ]
   };
 
   const commonFeatures = [
-    "Photo and video uploads",
+    "Photo, video, and document upload",
     "Full web platform access",
     "Voice notes for item details",
     "Post damage documentation",
     "Export detailed reports",
-    "Email support",
-    "Share with 5 authorized users",
-    "Legacy Locker",
     "Password Catalog",
-    "Contact Catalog",
     "Multi-Factor Authentication",
     "Source Websites",
     "Manual Entries",
     "Paint Code Reference"
+  ];
+
+  const premiumOnlyFeatures = [
+    "🔒 Trusted Contacts (Premium Only)",
+    "🔒 Emergency Access Sharing (Premium Only)",
+    "🔒 Legacy Locker Mode (Premium Only)",
+    "🔒 Executor / Family Continuity Tools (Premium Only)"
   ];
 
   const businessFeatures = {
@@ -83,16 +95,17 @@ const PricingPlans: React.FC = () => {
               <SubscriptionPlan
                 title="Standard (Homeowner Plan)"
                 price="$12.99"
-                description="Everything most homeowners need to fully document and protect their home."
+                description="For individuals documenting and protecting their home."
                 features={planDifferences.standard}
                 buttonText="Get Started"
               />
               <SubscriptionPlan
-                title="Premium (Professional Plan)"
+                title="Premium (Family & Legacy Protection)"
                 price="$18.99"
-                description="Built for managing multiple properties, estates, or complex asset portfolios."
+                description="For families, planners, and homeowners who want continuity and shared protection."
                 features={planDifferences.premium}
                 buttonText="Get Started"
+                recommended={true}
               />
             </div>
             
@@ -109,6 +122,22 @@ const PricingPlans: React.FC = () => {
                         </svg>
                       </div>
                       <span className="text-foreground">{feature}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Premium-Only Features Indicator */}
+            <div className="mt-8 max-w-4xl mx-auto">
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-6">
+                <h4 className="text-lg font-semibold text-center mb-4 text-amber-800 dark:text-amber-200">
+                  Premium-Only Features
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+                  {premiumOnlyFeatures.map((feature, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <span className="text-amber-700 dark:text-amber-300 text-sm">{feature}</span>
                     </div>
                   ))}
                 </div>

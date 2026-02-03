@@ -20,6 +20,7 @@ interface SubscriptionContextType {
   subscriptionTier: SubscriptionTier | null;
   loading: boolean;
   isInTrial: boolean;
+  isPremium: boolean;
   propertyLimit: number;
   storageQuotaGb: number;
   hasFeature: (featureKey: string) => boolean;
@@ -61,6 +62,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const subscriptionTier = mapTierToEnum(subscriptionStatus.subscription_tier);
   const isInTrial = false; // Trial no longer supported
+  const isPremium = subscriptionTier === 'premium';
   const propertyLimit = subscriptionStatus.property_limit || 1;
   const storageQuotaGb = subscriptionStatus.storage_quota_gb || 5;
 
@@ -119,6 +121,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     subscriptionTier,
     loading,
     isInTrial,
+    isPremium,
     propertyLimit,
     storageQuotaGb,
     hasFeature,
