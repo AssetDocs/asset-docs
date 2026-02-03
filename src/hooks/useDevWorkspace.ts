@@ -10,6 +10,10 @@ export type DevBugStatus = 'open' | 'investigating' | 'fixed' | 'closed' | 'wont
 export type DevBlockerType = 'owner_question' | 'dependency' | 'technical' | 'external';
 export type DevBlockerStatus = 'open' | 'resolved' | 'deferred';
 export type DevMilestoneStatus = 'planned' | 'in_progress' | 'completed' | 'delayed';
+export type DevReleaseStatus = 'planned' | 'in_progress' | 'released' | 'rolled_back';
+export type DevSupportPriority = 'low' | 'medium' | 'high' | 'critical';
+export type DevSupportStatus = 'new' | 'investigating' | 'in_progress' | 'resolved' | 'wont_fix';
+export type DevSupportType = 'bug_report' | 'feature_request' | 'ux_issue' | 'question';
 
 export interface DevTask {
   id: string;
@@ -78,6 +82,35 @@ export interface DevMilestone {
   updated_at: string;
 }
 
+export interface DevRelease {
+  id: string;
+  version: string;
+  title: string;
+  description: string | null;
+  release_date: string | null;
+  status: DevReleaseStatus;
+  key_changes: string[];
+  known_issues: string[];
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DevSupportIssue {
+  id: string;
+  title: string;
+  description: string | null;
+  reported_by: string | null;
+  type: DevSupportType;
+  priority: DevSupportPriority;
+  status: DevSupportStatus;
+  assignee_id: string | null;
+  resolution: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export function useDevWorkspace() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
@@ -87,18 +120,22 @@ export function useDevWorkspace() {
   const [blockers, setBlockers] = useState<DevBlocker[]>([]);
   const [decisions, setDecisions] = useState<DevDecision[]>([]);
   const [milestones, setMilestones] = useState<DevMilestone[]>([]);
+  const [releases, setReleases] = useState<DevRelease[]>([]);
+  const [supportIssues, setSupportIssues] = useState<DevSupportIssue[]>([]);
 
   // Fetch all workspace data
   const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
-      const [tasksRes, bugsRes, notesRes, blockersRes, decisionsRes, milestonesRes] = await Promise.all([
+      const [tasksRes, bugsRes, notesRes, blockersRes, decisionsRes, milestonesRes, releasesRes, supportRes] = await Promise.all([
         supabase.from('dev_tasks').select('*').order('created_at', { ascending: false }),
         supabase.from('dev_bugs').select('*').order('created_at', { ascending: false }),
         supabase.from('dev_notes').select('*').order('created_at', { ascending: false }),
         supabase.from('dev_blockers').select('*').order('created_at', { ascending: false }),
         supabase.from('dev_decisions').select('*').order('created_at', { ascending: false }),
         supabase.from('dev_milestones').select('*').order('due_date', { ascending: true }),
+        supabase.from('dev_releases').select('*').order('release_date', { ascending: false }),
+        supabase.from('dev_support_issues').select('*').order('created_at', { ascending: false }),
       ]);
 
       if (tasksRes.data) setTasks(tasksRes.data as DevTask[]);
@@ -107,6 +144,8 @@ export function useDevWorkspace() {
       if (blockersRes.data) setBlockers(blockersRes.data as DevBlocker[]);
       if (decisionsRes.data) setDecisions(decisionsRes.data as DevDecision[]);
       if (milestonesRes.data) setMilestones(milestonesRes.data as DevMilestone[]);
+      if (releasesRes.data) setReleases(releasesRes.data as DevRelease[]);
+      if (supportRes.data) setSupportIssues(supportRes.data as DevSupportIssue[]);
     } catch (error) {
       console.error('Error fetching dev workspace data:', error);
     } finally {
@@ -127,6 +166,8 @@ export function useDevWorkspace() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'dev_blockers' }, () => fetchAll())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'dev_decisions' }, () => fetchAll())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'dev_milestones' }, () => fetchAll())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'dev_releases' }, () => fetchAll())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'dev_support_issues' }, () => fetchAll())
       .subscribe();
 
     return () => {
@@ -372,6 +413,98 @@ export function useDevWorkspace() {
     return true;
   };
 
+  // Release operations
+  const createRelease = async (data: { 
+    version: string; 
+    title: string; 
+    description?: string; 
+    release_date?: string; 
+    status?: DevReleaseStatus;
+    key_changes?: string[];
+    known_issues?: string[];
+  }) => {
+    const { data: user } = await supabase.auth.getUser();
+    const { error } = await supabase.from('dev_releases').insert({
+      version: data.version,
+      title: data.title,
+      description: data.description || null,
+      release_date: data.release_date || null,
+      status: data.status || 'planned',
+      key_changes: data.key_changes || [],
+      known_issues: data.known_issues || [],
+      created_by: user?.user?.id || null,
+    });
+    if (error) {
+      toast({ title: 'Error', description: 'Failed to create release', variant: 'destructive' });
+      return false;
+    }
+    toast({ title: 'Success', description: 'Release created' });
+    return true;
+  };
+
+  const updateRelease = async (id: string, data: Partial<DevRelease>) => {
+    const { error } = await supabase.from('dev_releases').update(data).eq('id', id);
+    if (error) {
+      toast({ title: 'Error', description: 'Failed to update release', variant: 'destructive' });
+      return false;
+    }
+    return true;
+  };
+
+  const deleteRelease = async (id: string) => {
+    const { error } = await supabase.from('dev_releases').delete().eq('id', id);
+    if (error) {
+      toast({ title: 'Error', description: 'Failed to delete release', variant: 'destructive' });
+      return false;
+    }
+    toast({ title: 'Success', description: 'Release deleted' });
+    return true;
+  };
+
+  // Support issue operations
+  const createSupportIssue = async (data: { 
+    title: string; 
+    description?: string; 
+    reported_by?: string;
+    type?: DevSupportType;
+    priority?: DevSupportPriority;
+  }) => {
+    const { data: user } = await supabase.auth.getUser();
+    const { error } = await supabase.from('dev_support_issues').insert({
+      title: data.title,
+      description: data.description || null,
+      reported_by: data.reported_by || null,
+      type: data.type || 'bug_report',
+      priority: data.priority || 'medium',
+      created_by: user?.user?.id || null,
+    });
+    if (error) {
+      toast({ title: 'Error', description: 'Failed to create support issue', variant: 'destructive' });
+      return false;
+    }
+    toast({ title: 'Success', description: 'Support issue created' });
+    return true;
+  };
+
+  const updateSupportIssue = async (id: string, data: Partial<DevSupportIssue>) => {
+    const { error } = await supabase.from('dev_support_issues').update(data).eq('id', id);
+    if (error) {
+      toast({ title: 'Error', description: 'Failed to update support issue', variant: 'destructive' });
+      return false;
+    }
+    return true;
+  };
+
+  const deleteSupportIssue = async (id: string) => {
+    const { error } = await supabase.from('dev_support_issues').delete().eq('id', id);
+    if (error) {
+      toast({ title: 'Error', description: 'Failed to delete support issue', variant: 'destructive' });
+      return false;
+    }
+    toast({ title: 'Success', description: 'Support issue deleted' });
+    return true;
+  };
+
   return {
     loading,
     tasks,
@@ -380,6 +513,8 @@ export function useDevWorkspace() {
     blockers,
     decisions,
     milestones,
+    releases,
+    supportIssues,
     refetch: fetchAll,
     // Task operations
     createTask,
@@ -406,5 +541,13 @@ export function useDevWorkspace() {
     createMilestone,
     updateMilestone,
     deleteMilestone,
+    // Release operations
+    createRelease,
+    updateRelease,
+    deleteRelease,
+    // Support issue operations
+    createSupportIssue,
+    updateSupportIssue,
+    deleteSupportIssue,
   };
 }

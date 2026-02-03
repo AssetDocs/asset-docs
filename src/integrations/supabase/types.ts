@@ -671,6 +671,93 @@ export type Database = {
         }
         Relationships: []
       }
+      dev_releases: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          key_changes: string[] | null
+          known_issues: string[] | null
+          release_date: string | null
+          status: Database["public"]["Enums"]["dev_release_status"]
+          title: string
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          key_changes?: string[] | null
+          known_issues?: string[] | null
+          release_date?: string | null
+          status?: Database["public"]["Enums"]["dev_release_status"]
+          title: string
+          updated_at?: string
+          version: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          key_changes?: string[] | null
+          known_issues?: string[] | null
+          release_date?: string | null
+          status?: Database["public"]["Enums"]["dev_release_status"]
+          title?: string
+          updated_at?: string
+          version?: string
+        }
+        Relationships: []
+      }
+      dev_support_issues: {
+        Row: {
+          assignee_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          priority: Database["public"]["Enums"]["dev_support_priority"]
+          reported_by: string | null
+          resolution: string | null
+          status: Database["public"]["Enums"]["dev_support_status"]
+          title: string
+          type: Database["public"]["Enums"]["dev_support_type"]
+          updated_at: string
+        }
+        Insert: {
+          assignee_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["dev_support_priority"]
+          reported_by?: string | null
+          resolution?: string | null
+          status?: Database["public"]["Enums"]["dev_support_status"]
+          title: string
+          type?: Database["public"]["Enums"]["dev_support_type"]
+          updated_at?: string
+        }
+        Update: {
+          assignee_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["dev_support_priority"]
+          reported_by?: string | null
+          resolution?: string | null
+          status?: Database["public"]["Enums"]["dev_support_status"]
+          title?: string
+          type?: Database["public"]["Enums"]["dev_support_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       dev_tasks: {
         Row: {
           assignee_id: string | null
@@ -3146,6 +3233,19 @@ export type Database = {
       dev_bug_severity: "minor" | "major" | "critical" | "blocker"
       dev_bug_status: "open" | "investigating" | "fixed" | "closed" | "wont_fix"
       dev_milestone_status: "planned" | "in_progress" | "completed" | "delayed"
+      dev_release_status: "planned" | "in_progress" | "released" | "rolled_back"
+      dev_support_priority: "low" | "medium" | "high" | "critical"
+      dev_support_status:
+        | "new"
+        | "investigating"
+        | "in_progress"
+        | "resolved"
+        | "wont_fix"
+      dev_support_type:
+        | "bug_report"
+        | "feature_request"
+        | "ux_issue"
+        | "question"
       dev_task_priority: "low" | "medium" | "high" | "critical"
       dev_task_status: "todo" | "in_progress" | "done" | "archived"
     }
@@ -3296,6 +3396,21 @@ export const Constants = {
       dev_bug_severity: ["minor", "major", "critical", "blocker"],
       dev_bug_status: ["open", "investigating", "fixed", "closed", "wont_fix"],
       dev_milestone_status: ["planned", "in_progress", "completed", "delayed"],
+      dev_release_status: ["planned", "in_progress", "released", "rolled_back"],
+      dev_support_priority: ["low", "medium", "high", "critical"],
+      dev_support_status: [
+        "new",
+        "investigating",
+        "in_progress",
+        "resolved",
+        "wont_fix",
+      ],
+      dev_support_type: [
+        "bug_report",
+        "feature_request",
+        "ux_issue",
+        "question",
+      ],
       dev_task_priority: ["low", "medium", "high", "critical"],
       dev_task_status: ["todo", "in_progress", "done", "archived"],
     },
