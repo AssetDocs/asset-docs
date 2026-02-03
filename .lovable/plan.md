@@ -1,123 +1,267 @@
 
-
-# Interactive Development Workspace ✅ IMPLEMENTED
+# Subscription Plan Restructure - Feature Matrix Update
 
 ## Overview
-Transform the Development workspace from static mock data to a fully interactive, collaborative environment where all invited dev team members can track progress, manage tasks, report bugs, and share notes in real-time.
-
-## What You'll Get ✅
-- **Task Board**: Add, edit, and drag tasks between columns (To Do, In Progress, Done)
-- **Bug Tracker**: Report and track bugs with severity levels and assignments
-- **Team Notes**: Shared notes visible to all team members
-- **Blockers**: Flag items needing owner attention with resolution tracking
-- **Decisions Log**: Document technical decisions with rationale
-- **Milestones**: Track sprint deadlines and release schedules
-
-## Top 5 Additions ✅ (Feb 2026)
-- **Roadmap**: Now/Next/Later view of product priorities (30-90 days)
-- **Releases/Changelog**: Version tracking with key changes and known issues
-- **Testing Checklist**: Pre-launch flight safety checklist with critical items
-- **Support Issues**: User-reported bugs, feature requests, UX feedback
-- **Definition of Done**: Standards every task must meet before completion
+This plan restructures the Asset Safe subscription tiers to create clear differentiation between Standard (homeowner-focused) and Premium (family/legacy protection) plans. The key change is moving Legacy Locker, Trusted Contacts, and Emergency Access features to Premium-only.
 
 ---
 
-## Implementation Status: COMPLETE ✅
+## Current vs. New Feature Matrix
 
-### Phase 1: Database Schema ✅
-Created 8 tables with RLS policies:
-- `dev_tasks` - Task management with status/priority
-- `dev_bugs` - Bug tracking with severity
-- `dev_notes` - Team notes
-- `dev_blockers` - Blockers with types (owner_question, dependency, etc.)
-- `dev_decisions` - Decision log with rationale
-- `dev_milestones` - Sprint deadlines
-- `dev_releases` - Changelog and version tracking (NEW)
-- `dev_support_issues` - Customer feedback and issues (NEW)
-
-### Phase 2: Row-Level Security ✅
-All tables secured with `has_dev_workspace_access()` function.
-
-### Phase 3: React Hook ✅
-Created `src/hooks/useDevWorkspace.ts` with:
-- CRUD operations for all entities (8 table types)
-- Real-time subscriptions via Supabase channels
-- Toast notifications for user feedback
-
-### Phase 4: UI Components ✅
-**Modals:**
-- `AddTaskModal.tsx`
-- `AddBugModal.tsx`
-- `AddNoteModal.tsx`
-- `AddBlockerModal.tsx`
-- `AddDecisionModal.tsx`
-- `AddMilestoneModal.tsx`
-- `AddReleaseModal.tsx` (NEW)
-- `AddSupportIssueModal.tsx` (NEW)
-
-**Cards:**
-- `TaskCard.tsx`
-- `BugCard.tsx`
-
-**Static Tabs:**
-- `RoadmapTab.tsx` (NEW) - Now/Next/Later planning view
-- `TestingChecklistTab.tsx` (NEW) - Pre-launch checklist
-- `DefinitionOfDoneTab.tsx` (NEW) - Completion standards
-
-### Phase 5: AdminDevWorkspace ✅
-Refactored with 14 tabs:
-1. Overview
-2. Roadmap (NEW)
-3. Tasks
-4. Releases (NEW)
-5. Testing (NEW)
-6. Support (NEW)
-7. DoD (NEW)
-8. Deadlines
-9. Blockers
-10. Bugs
-11. Infrastructure
-12. Docs
-13. Decisions
-14. Notes
+```text
+┌─────────────────────────────────┬───────────────┬───────────────┐
+│ Feature                         │ CURRENT       │ NEW           │
+├─────────────────────────────────┼───────────────┼───────────────┤
+│ Properties                      │ 3 / Unlimited │ Unlimited/Both│
+│ Storage                         │ 25GB / 100GB  │ 25GB / 100GB  │
+│ Password Catalog (Private)      │ Both          │ Both          │
+│ Secure Vault (Private Only)     │ Both          │ Standard Only │
+│ Legacy Locker                   │ Both          │ Premium Only  │
+│ Trusted Contacts/Contributors   │ Both          │ Premium Only  │
+│ Emergency Access Sharing        │ Both          │ Premium Only  │
+│ Executor Assignment             │ Both          │ Premium Only  │
+│ Verified+ Badge                 │ Premium       │ Premium Only  │
+│ Priority Support                │ Both          │ Premium Only  │
+│ Advanced Export Bundles         │ Both          │ Premium Only  │
+└─────────────────────────────────┴───────────────┴───────────────┘
+```
 
 ---
 
-## Files Created/Modified
+## Implementation Tasks
 
-| Action | File |
-|--------|------|
-| Created | `src/hooks/useDevWorkspace.ts` |
-| Created | `src/components/admin/dev-workspace/AddTaskModal.tsx` |
-| Created | `src/components/admin/dev-workspace/AddBugModal.tsx` |
-| Created | `src/components/admin/dev-workspace/AddNoteModal.tsx` |
-| Created | `src/components/admin/dev-workspace/AddBlockerModal.tsx` |
-| Created | `src/components/admin/dev-workspace/AddDecisionModal.tsx` |
-| Created | `src/components/admin/dev-workspace/AddMilestoneModal.tsx` |
-| Created | `src/components/admin/dev-workspace/AddReleaseModal.tsx` |
-| Created | `src/components/admin/dev-workspace/AddSupportIssueModal.tsx` |
-| Created | `src/components/admin/dev-workspace/TaskCard.tsx` |
-| Created | `src/components/admin/dev-workspace/BugCard.tsx` |
-| Created | `src/components/admin/dev-workspace/RoadmapTab.tsx` |
-| Created | `src/components/admin/dev-workspace/TestingChecklistTab.tsx` |
-| Created | `src/components/admin/dev-workspace/DefinitionOfDoneTab.tsx` |
-| Modified | `src/components/admin/AdminDevWorkspace.tsx` |
+### Phase 1: Feature Configuration Updates
+
+**File: `src/config/subscriptionFeatures.ts`**
+
+Add new Premium-only feature keys:
+- `legacy_locker` - Legacy Locker access
+- `trusted_contacts` - Trusted contacts/contributors management
+- `emergency_access` - Emergency vault sharing
+- `executor_tools` - Executor assignment and continuity planning
+- `verified_plus_badge` - Verified+ badge eligibility
+- `priority_support` - Priority support access
+- `advanced_exports` - Advanced claim and legal export bundles
+
+Update property limits:
+- Standard: Change from 3 to Unlimited
+- Premium: Remain Unlimited
+
+Update storage limits:
+- Standard: 25GB (no change)
+- Premium: 100GB (no change)
+
+### Phase 2: Pricing Page Updates
+
+**Files to update:**
+- `src/pages/Pricing.tsx`
+- `src/pages/CompletePricing.tsx`
+- `src/components/PricingPlans.tsx`
+- `src/components/SubscriptionTab.tsx`
+
+**Standard Plan ($12.99/month) - New Feature List:**
+- Unlimited Properties
+- 25GB Secure Cloud Storage
+- Guided Home Inventory System
+- Room-by-Room Uploads (Photos + Video)
+- Document Storage (Receipts, Manuals, Policies)
+- Password Catalog (Private Use)
+- Secure Vault Access (Private Only)
+- Claim-Ready Export (Basic Report Download)
+- Verified Email + Basic Account Security
+- Standard Support
+
+**Premium Plan ($18.99/month) - New Feature List:**
+Everything in Standard, PLUS:
+- 100GB Secure Cloud Storage
+- Trusted Contacts Access
+- Emergency Vault Sharing
+- Legacy Locker Mode
+- Executor Assignment + Continuity Planning
+- Contributor Roles (Spouse, Adult Child, Planner)
+- Verified+ Badge
+- Priority Support
+- Advanced Claim + Legal Export Bundles
+
+**Locked Feature Indicators:**
+Add visual indicators showing Standard users what they're missing:
+- 🔒 Trusted Contacts (Premium Only)
+- 🔒 Emergency Access Sharing (Premium Only)
+- 🔒 Legacy Locker Mode (Premium Only)
+- 🔒 Executor / Family Continuity Tools (Premium Only)
+
+### Phase 3: UI Feature Gating
+
+**File: `src/components/LegacyLocker.tsx`**
+- Add Premium subscription check at component mount
+- Show upgrade CTA card for Standard users instead of Legacy Locker content
+- Message: "Legacy Locker is available in Premium for trusted family access."
+
+**File: `src/components/ContributorsTab.tsx`**
+- Add Premium subscription check
+- Show locked state with upgrade CTA for Standard users
+- Allow viewing existing contributors but block adding new ones
+- Message: "Contributor roles are available with Premium to share access with family members."
+
+**File: `src/components/SecureVault.tsx`**
+- Keep Password Catalog accessible to all subscribers
+- Gate Legacy Locker section to Premium only
+- Show upgrade prompt for Standard users attempting to access Legacy Locker
+
+**New Component: `src/components/PremiumFeatureGate.tsx`**
+Create a reusable component for Premium feature gating with consistent styling:
+```tsx
+interface PremiumFeatureGateProps {
+  featureName: string;
+  description: string;
+  children: React.ReactNode;
+}
+```
+
+### Phase 4: Backend Enforcement (Edge Functions)
+
+**Update: `supabase/functions/check-subscription/index.ts`**
+- Add `has_premium_features` boolean to response
+- Include list of available features based on tier
+
+**New helper in SubscriptionContext:**
+```tsx
+isPremium: boolean; // Quick check for premium status
+canAccessFeature: (feature: string) => boolean;
+```
+
+**RLS Policy Considerations:**
+The existing RLS policies on `contributors` and `legacy_locker` tables use `auth.uid()` for ownership. For Premium enforcement:
+- Option A: Add `plan` check to RLS policies (more secure, database-level)
+- Option B: Enforce in Edge Functions/UI only (simpler, current approach)
+
+Recommendation: Keep enforcement at UI/Edge Function level for now, matching current patterns. Database already has ownership-based RLS.
+
+### Phase 5: Storage Add-on Pricing Update
+
+Update storage add-on options to be clearer:
+- +25GB for $4.99/mo
+- +50GB for $9.99/mo (available display)
+
+Note: ~1,500 photos per 25GB benchmark messaging
 
 ---
 
-## Future Additions (Phase 2)
-When ready, add these 5:
-- Sprint/Weekly Focus - Short cycle task focus
-- Access & Credentials - Process docs (not actual secrets)
-- Architecture/System Map - Visual system diagram
-- PRDs - Product requirement documents
-- Incident Log (SEVs) - Outage history and learnings
+## Technical Details
+
+### Updated Feature Config Structure
+
+```typescript
+// src/config/subscriptionFeatures.ts
+
+export const SUBSCRIPTION_FEATURES: Record<string, FeatureConfig> = {
+  // STANDARD FEATURES (available to all subscribers)
+  photo_upload: { requiredTier: 'standard', ... },
+  video_upload: { requiredTier: 'standard', ... },
+  password_catalog: { requiredTier: 'standard', ... },
+  secure_vault_private: { requiredTier: 'standard', ... },
+  basic_export: { requiredTier: 'standard', ... },
+  standard_support: { requiredTier: 'standard', ... },
+  
+  // PREMIUM FEATURES (new restrictions)
+  legacy_locker: {
+    name: 'Legacy Locker',
+    requiredTier: 'premium',
+    fallbackMessage: 'Legacy Locker is available on Premium for trusted family access.'
+  },
+  trusted_contacts: {
+    name: 'Trusted Contacts',
+    requiredTier: 'premium',
+    fallbackMessage: 'Add trusted contacts with Premium to share access with family.'
+  },
+  emergency_access: {
+    name: 'Emergency Access Sharing',
+    requiredTier: 'premium',
+    fallbackMessage: 'Emergency vault sharing requires Premium subscription.'
+  },
+  contributor_roles: {
+    name: 'Contributor Roles',
+    requiredTier: 'premium',
+    fallbackMessage: 'Invite contributors with Premium for family collaboration.'
+  },
+  executor_tools: {
+    name: 'Executor Tools',
+    requiredTier: 'premium',
+    fallbackMessage: 'Executor assignment available on Premium for continuity planning.'
+  },
+  advanced_exports: {
+    name: 'Advanced Exports',
+    requiredTier: 'premium',
+    fallbackMessage: 'Advanced claim and legal export bundles require Premium.'
+  },
+  priority_support: {
+    name: 'Priority Support',
+    requiredTier: 'premium',
+    fallbackMessage: 'Priority support available with Premium subscription.'
+  },
+};
+
+// Update property limits - both tiers get unlimited
+export const PROPERTY_LIMITS: Record<SubscriptionTier, number> = {
+  standard: Infinity, // Changed from 3
+  premium: Infinity
+};
+```
+
+### Upgrade CTA Component Design
+
+```typescript
+// Consistent upgrade messaging across all gated features
+const PREMIUM_UPGRADE_MESSAGE = 
+  "This feature is part of Premium — designed for family access, " +
+  "legacy continuity, and emergency preparedness.";
+
+const UPGRADE_BUTTON_TEXT = "Upgrade to Premium";
+const UPGRADE_PATH = "/account/settings?tab=subscription";
+```
 
 ---
 
-## Security Notes
+## Files to Create/Modify
 
-- All data is scoped to users with valid dev workspace roles
-- RLS enforced at database level (cannot be bypassed from client)
-- Author tracking for accountability
-- No sensitive business data stored in dev workspace tables
+### New Files
+1. `src/components/PremiumFeatureGate.tsx` - Reusable Premium gate component
+
+### Modified Files
+1. `src/config/subscriptionFeatures.ts` - Add Premium feature definitions
+2. `src/pages/Pricing.tsx` - Update feature lists and locked indicators
+3. `src/pages/CompletePricing.tsx` - Update feature lists
+4. `src/components/PricingPlans.tsx` - Update feature matrix
+5. `src/components/SubscriptionTab.tsx` - Update plan display and features
+6. `src/components/LegacyLocker.tsx` - Add Premium gate
+7. `src/components/ContributorsTab.tsx` - Add Premium gate
+8. `src/components/SecureVault.tsx` - Gate Legacy Locker section
+9. `src/contexts/SubscriptionContext.tsx` - Add `isPremium` helper
+
+---
+
+## Migration Considerations
+
+### Existing Standard Users
+- Users who currently have Standard subscriptions with Legacy Locker data will see an upgrade prompt
+- Their data remains intact but inaccessible until upgrade
+- Consider grace period or grandfather clause (business decision)
+
+### Messaging Strategy
+- Clear upgrade prompts with value proposition
+- Show what Premium unlocks without being aggressive
+- Position as "family protection" vs "individual protection"
+
+---
+
+## Testing Checklist
+
+After implementation:
+1. Verify Standard user sees locked Legacy Locker with upgrade CTA
+2. Verify Standard user sees locked Contributors tab with upgrade CTA
+3. Verify Premium user has full access to all features
+4. Verify pricing pages show correct feature differentiation
+5. Verify upgrade flow from locked feature to checkout works
+6. Test both monthly and yearly billing cycle displays
+7. Verify storage limits display correctly per tier
+8. Test mobile responsive layout for pricing tables
