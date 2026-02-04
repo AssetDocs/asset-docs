@@ -119,10 +119,10 @@ const Pricing: React.FC = () => {
     premium: [
       "Unlimited properties",
       "100GB secure cloud storage",
-      "Trusted Contacts Access",
-      "Legacy Locker (family continuity planning)",
-      "Emergency Access Sharing",
-      "Executor-ready protection for life's unexpected moments"
+      "⭐ Trusted Contacts Access",
+      "⭐ Legacy Locker (family continuity planning)",
+      "⭐ Emergency Access Sharing",
+      "⭐ Protection that extends beyond you"
     ]
   };
 
@@ -279,10 +279,17 @@ const Pricing: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                   {plans.map((plan) => (
                     <div key={plan.title} className="relative">
+                      {!plan.popular && (
+                        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+                          <span className="bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
+                            Basic Protection
+                          </span>
+                        </div>
+                      )}
                       {plan.popular && (
                         <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
                           <span className="bg-amber-500 text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
-                            <Star className="h-3 w-3" /> Most Popular for Families
+                            <Star className="h-3 w-3" /> Most Popular for Families and Businesses
                           </span>
                         </div>
                       )}
@@ -299,10 +306,7 @@ const Pricing: React.FC = () => {
                             ? `${plan.description} – Save when you pay yearly`
                             : plan.description
                         }
-                        features={[
-                          ...plan.features,
-                          billingCycle === 'yearly' ? 'Billed annually' : 'Billed monthly'
-                        ]}
+                        features={plan.features}
                         billingInterval={billingCycle === 'yearly' ? 'year' : 'month'}
                         buttonText={
                           subscriptionStatus.subscribed && subscriptionStatus.subscription_tier === plan.title 
@@ -310,7 +314,6 @@ const Pricing: React.FC = () => {
                             : isLoading ? "Processing..." : "Get Started"
                         }
                         onClick={() => handleSubscribe(plan.planType, billingCycle === 'yearly')}
-                        recommended={plan.popular}
                       />
                     </div>
                   ))}
@@ -319,13 +322,16 @@ const Pricing: React.FC = () => {
                 {/* Storage Notation */}
                 <StorageNotation />
 
-                {/* Common Features */}
-                <div className="mt-12 max-w-4xl mx-auto">
-                  <div className="bg-muted/30 rounded-lg p-8">
-                    <h3 className="text-xl font-semibold text-center mb-4">Included in Both Plans</h3>
-                    <p className="text-sm text-muted-foreground text-center mb-6">
-                      All plans include full access to your data and complete exports anytime.
-                    </p>
+          {/* Common Features */}
+          <div className="mt-12 max-w-4xl mx-auto">
+            <div className="bg-muted/30 rounded-lg p-8">
+              <h3 className="text-xl font-semibold text-center mb-4">Included in Both Plans</h3>
+              <p className="text-sm text-muted-foreground text-center mb-4">
+                Billed monthly. No long-term contract. Cancel anytime.
+              </p>
+              <p className="text-sm text-muted-foreground text-center mb-6">
+                All plans include full access to your data and complete exports anytime.
+              </p>
                     <p className="text-sm font-medium text-center mb-6">
                       Everything you need to fully document and protect your home:
                     </p>

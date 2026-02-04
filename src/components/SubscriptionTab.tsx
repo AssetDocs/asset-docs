@@ -50,7 +50,7 @@ const planConfigs = {
       "⭐ Trusted Contacts Access",
       "⭐ Legacy Locker (family continuity planning)",
       "⭐ Emergency Access Sharing",
-      "⭐ Executor-ready protection for life's unexpected moments"
+      "⭐ Protection that extends beyond you"
     ],
     icon: <Star className="h-6 w-6 text-purple-600" />,
     popular: true
@@ -536,10 +536,17 @@ const SubscriptionTab: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
                 {Object.entries(planConfigs).map(([key, plan]) => (
                   <div key={key} className="relative">
+                    {!plan.popular && (
+                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+                        <span className="bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
+                          Basic Protection
+                        </span>
+                      </div>
+                    )}
                     {plan.popular && (
                       <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
                         <span className="bg-amber-500 text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1 whitespace-nowrap">
-                          <Star className="h-3 w-3" /> Most Popular for Families
+                          <Star className="h-3 w-3" /> Most Popular for Families and Businesses
                         </span>
                       </div>
                     )}
@@ -583,6 +590,9 @@ const SubscriptionTab: React.FC = () => {
             <div className="mt-6">
               <div className="bg-muted/30 rounded-lg p-6">
                 <h4 className="font-semibold text-center mb-3">Included in Both Plans</h4>
+                <p className="text-xs text-muted-foreground text-center mb-3">
+                  Billed monthly. No long-term contract. Cancel anytime.
+                </p>
                 <p className="text-xs text-muted-foreground text-center mb-4">
                   All plans include full access to your data and complete exports anytime.
                 </p>
