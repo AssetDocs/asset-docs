@@ -26,44 +26,51 @@ const planConfigs = {
     monthlyPrice: "$12.99",
     yearlyPrice: "$129",
     yearlySavings: "Save when you pay yearly",
-    description: "For individuals documenting and protecting their home",
+    description: "For individuals documenting and protecting their home.",
     features: [
       "Unlimited properties",
       "25GB secure cloud storage",
-      "Password Catalog (private use)",
-      "Secure Vault access (private only)"
+      "Guided home inventory system",
+      "Secure Vault (private use)",
+      "Password Catalog",
+      "Simple, ongoing protection for your home"
     ],
-    icon: <Zap className="h-6 w-6 text-orange-600" />
+    icon: <Zap className="h-6 w-6 text-orange-600" />,
+    popular: false
   },
   premium: {
     title: "Premium (Family & Legacy Protection)",
     monthlyPrice: "$18.99",
     yearlyPrice: "$189",
     yearlySavings: "Save when you pay yearly",
-    description: "For families who want continuity and shared protection",
+    description: "For families and homeowners who want continuity and shared protection.",
     features: [
       "Unlimited properties",
       "100GB secure cloud storage",
-      "Trusted contacts access",
-      "Legacy Locker mode",
-      "Emergency vault sharing",
-      "Contributor roles"
+      "Trusted Contacts Access",
+      "Legacy Locker (family continuity planning)",
+      "Emergency Access Sharing",
+      "Executor-ready protection for life's unexpected moments"
     ],
-    icon: <Star className="h-6 w-6 text-purple-600" />
+    icon: <Star className="h-6 w-6 text-purple-600" />,
+    popular: true
   }
 };
 
 const commonFeatures = [
-  "Photo, video, and document upload",
+  "Photo, video, and document uploads",
+  "Room-by-room inventory organization",
+  "Voice notes and item details",
+  "Secure Vault + Password Catalog",
+  "Claim-ready documentation exports (download anytime)",
+  "Multi-factor authentication",
   "Full web platform access",
-  "Voice notes for item details",
   "Post damage documentation",
-  "Export detailed reports",
-  "Password Catalog",
-  "Multi-Factor Authentication",
-  "Source Websites",
   "Manual Entries",
-  "Paint Code Reference"
+  "Upgrades & Repairs Record",
+  "Paint Code Reference",
+  "Source Websites",
+  "Service Pros Directory"
 ];
 
 const storageAddOns = [
@@ -528,37 +535,45 @@ const SubscriptionTab: React.FC = () => {
               <Label htmlFor="plan-select" className="text-base font-semibold">Select Your Plan</Label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
                 {Object.entries(planConfigs).map(([key, plan]) => (
-                  <div
-                    key={key}
-                    className={`relative p-4 border rounded-lg cursor-pointer transition-all ${
-                      selectedPlan === key
-                        ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                    onClick={() => setSelectedPlan(key as keyof typeof planConfigs)}
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      {plan.icon}
-                      <h3 className="font-semibold">{plan.title}</h3>
-                    </div>
-                    <div className="text-2xl font-bold mb-1">
-                      {billingInterval === 'year' ? plan.yearlyPrice : plan.monthlyPrice}
-                      <span className="text-sm font-normal text-muted-foreground">
-                        {billingInterval === 'year' ? '/year' : '/month'}
-                      </span>
-                    </div>
-                    {billingInterval === 'year' && (
-                      <p className="text-sm text-green-600 font-medium mb-2">{plan.yearlySavings}</p>
+                  <div key={key} className="relative">
+                    {plan.popular && (
+                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+                        <span className="bg-amber-500 text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1 whitespace-nowrap">
+                          <Star className="h-3 w-3" /> Most Popular for Families
+                        </span>
+                      </div>
                     )}
-                    <p className="text-sm text-muted-foreground mb-3">{plan.description}</p>
-                    <ul className="space-y-1">
-                      {plan.features.map((feature, index) => (
-                        <li key={index} className="flex items-center gap-2 text-sm">
-                          <CheckIcon className="h-4 w-4 text-green-500 flex-shrink-0" />
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
+                    <div
+                      className={`p-4 border rounded-lg cursor-pointer transition-all h-full ${
+                        selectedPlan === key
+                          ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
+                          : 'border-gray-200 hover:border-gray-300'
+                      } ${plan.popular ? 'mt-2' : ''}`}
+                      onClick={() => setSelectedPlan(key as keyof typeof planConfigs)}
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        {plan.icon}
+                        <h3 className="font-semibold">{plan.title}</h3>
+                      </div>
+                      <div className="text-2xl font-bold mb-1">
+                        {billingInterval === 'year' ? plan.yearlyPrice : plan.monthlyPrice}
+                        <span className="text-sm font-normal text-muted-foreground">
+                          {billingInterval === 'year' ? '/year' : '/month'}
+                        </span>
+                      </div>
+                      {billingInterval === 'year' && (
+                        <p className="text-sm text-green-600 font-medium mb-2">{plan.yearlySavings}</p>
+                      )}
+                      <p className="text-sm text-muted-foreground mb-3">{plan.description}</p>
+                      <ul className="space-y-1">
+                        {plan.features.map((feature, index) => (
+                          <li key={index} className="flex items-center gap-2 text-sm">
+                            <CheckIcon className="h-4 w-4 text-green-500 flex-shrink-0" />
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -567,7 +582,13 @@ const SubscriptionTab: React.FC = () => {
             {/* Common Features */}
             <div className="mt-6">
               <div className="bg-muted/30 rounded-lg p-6">
-                <h4 className="font-semibold text-center mb-4">Included in Both Plans</h4>
+                <h4 className="font-semibold text-center mb-3">Included in Both Plans</h4>
+                <p className="text-xs text-muted-foreground text-center mb-4">
+                  All plans include full access to your data and complete exports anytime.
+                </p>
+                <p className="text-xs font-medium text-center mb-4">
+                  Everything you need to fully document and protect your home:
+                </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
                   {commonFeatures.map((feature, index) => (
                     <div key={index} className="flex items-center gap-2 text-sm">
