@@ -21,7 +21,7 @@ const PricingPlans: React.FC = () => {
       "⭐ Trusted Contacts Access",
       "⭐ Legacy Locker (family continuity planning)",
       "⭐ Emergency Access Sharing",
-      "⭐ Executor-ready protection for life's unexpected moments"
+      "⭐ Protection that extends beyond you"
     ]
   };
 
@@ -94,17 +94,24 @@ const PricingPlans: React.FC = () => {
           {/* Individual Plans */}
           <TabsContent value="individual">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-              <SubscriptionPlan
-                title="Standard (Homeowner Plan)"
-                price="$12.99"
-                description="For individuals documenting and protecting their home."
-                features={planDifferences.standard}
-                buttonText="Get Started"
-              />
+              <div className="relative">
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+                  <span className="bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
+                    Basic Protection
+                  </span>
+                </div>
+                <SubscriptionPlan
+                  title="Standard (Homeowner Plan)"
+                  price="$12.99"
+                  description="For individuals documenting and protecting their home."
+                  features={planDifferences.standard}
+                  buttonText="Get Started"
+                />
+              </div>
               <div className="relative">
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
                   <span className="bg-amber-500 text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
-                    <Star className="h-3 w-3" /> Most Popular for Families
+                    <Star className="h-3 w-3" /> Most Popular for Families and Businesses
                   </span>
                 </div>
                 <SubscriptionPlan
@@ -113,7 +120,6 @@ const PricingPlans: React.FC = () => {
                   description="For families, business owners, and anyone who wants shared protection and continuity."
                   features={planDifferences.premium}
                   buttonText="Get Started"
-                  recommended={true}
                 />
               </div>
             </div>
@@ -122,6 +128,9 @@ const PricingPlans: React.FC = () => {
             <div className="mt-12 max-w-4xl mx-auto">
               <div className="bg-muted/30 rounded-lg p-8">
                 <h3 className="text-xl font-semibold text-center mb-4">Included in Both Plans</h3>
+                <p className="text-sm text-muted-foreground text-center mb-4">
+                  Billed monthly. No long-term contract. Cancel anytime.
+                </p>
                 <p className="text-sm text-muted-foreground text-center mb-6">
                   All plans include full access to your data and complete exports anytime.
                 </p>
