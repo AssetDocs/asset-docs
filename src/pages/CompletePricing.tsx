@@ -70,46 +70,55 @@ const CompletePricing: React.FC = () => {
     standard: [
       "Unlimited properties",
       "25GB secure cloud storage",
-      "Password Catalog (private use)",
-      "Secure Vault access (private only)"
+      "Guided home inventory system",
+      "Secure Vault (private use)",
+      "Password Catalog",
+      "Simple, ongoing protection for your home"
     ],
     premium: [
       "Unlimited properties",
       "100GB secure cloud storage",
-      "Legacy Locker + Trusted Contacts",
-      "Emergency vault sharing"
+      "Trusted Contacts Access",
+      "Legacy Locker (family continuity planning)",
+      "Emergency Access Sharing",
+      "Executor-ready protection for life's unexpected moments"
     ]
   };
 
   const commonFeatures = [
-    "Photo, video, and document upload",
+    "Photo, video, and document uploads",
+    "Room-by-room inventory organization",
+    "Voice notes and item details",
+    "Secure Vault + Password Catalog",
+    "Claim-ready documentation exports (download anytime)",
+    "Multi-factor authentication",
     "Full web platform access",
-    "Voice notes for item details",
     "Post damage documentation",
-    "Export detailed reports",
-    "Password Catalog",
-    "Multi-Factor Authentication",
-    "Source Websites",
     "Manual Entries",
-    "Paint Code Reference"
+    "Upgrades & Repairs Record",
+    "Paint Code Reference",
+    "Source Websites",
+    "Service Pros Directory"
   ];
 
   const plans = [
     {
       title: "Standard (Homeowner Plan)",
       price: "$12.99",
-      description: "For individuals documenting and protecting their home",
+      description: "For individuals documenting and protecting their home.",
       features: planDifferences.standard,
       planType: "standard",
-      icon: <Zap className="h-6 w-6" />
+      icon: <Zap className="h-6 w-6" />,
+      popular: false
     },
     {
       title: "Premium (Family & Legacy Protection)",
       price: "$18.99",
-      description: "For families who want continuity and shared protection",
+      description: "For families and homeowners who want continuity and shared protection.",
       features: planDifferences.premium,
       planType: "premium",
-      icon: <Star className="h-6 w-6" />
+      icon: <Star className="h-6 w-6" />,
+      popular: true
     }
   ];
 
@@ -152,6 +161,13 @@ const CompletePricing: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {plans.map((plan) => (
               <div key={plan.title} className="relative">
+                {plan.popular && (
+                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+                    <span className="bg-amber-500 text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
+                      <Star className="h-3 w-3" /> Most Popular for Families
+                    </span>
+                  </div>
+                )}
                 <SubscriptionPlan
                   title={plan.title}
                   price={plan.price}
@@ -159,6 +175,7 @@ const CompletePricing: React.FC = () => {
                   features={plan.features}
                   buttonText={isLoading ? "Processing..." : "Choose Plan"}
                   onClick={() => handleSubscribe(plan.planType)}
+                  recommended={plan.popular}
                 />
               </div>
             ))}
@@ -167,7 +184,13 @@ const CompletePricing: React.FC = () => {
           {/* Common Features */}
           <div className="mt-12 max-w-4xl mx-auto">
             <div className="bg-muted/30 rounded-lg p-8">
-              <h3 className="text-xl font-semibold text-center mb-6">Included in Both Plans</h3>
+              <h3 className="text-xl font-semibold text-center mb-4">Included in Both Plans</h3>
+              <p className="text-sm text-muted-foreground text-center mb-6">
+                All plans include full access to your data and complete exports anytime.
+              </p>
+              <p className="text-sm font-medium text-center mb-6">
+                Everything you need to fully document and protect your home:
+              </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
                 {commonFeatures.map((feature, index) => (
                   <div key={index} className="flex items-center gap-2">
