@@ -112,38 +112,34 @@ const Pricing: React.FC = () => {
       "Unlimited properties",
       "25GB secure cloud storage",
       "Guided home inventory system",
-      "Room-by-room uploads (photos + video)",
-      "Document storage (receipts, manuals, policies)",
-      "Password Catalog (private use)",
-      "Secure Vault access (private only)",
-      "Claim-ready export (basic report)",
-      "Verified email + basic account security",
-      "Standard support"
+      "Secure Vault (private use)",
+      "Password Catalog",
+      "Simple, ongoing protection for your home"
     ],
     premium: [
       "Unlimited properties",
       "100GB secure cloud storage",
-      "Trusted contacts access",
-      "Emergency vault sharing",
-      "Legacy Locker mode",
-      "Executor assignment + continuity planning",
-      "Contributor roles (spouse, adult child, planner)",
-      "Verified+ badge",
-      "Priority support",
-      "Advanced claim + legal export bundles"
+      "Trusted Contacts Access",
+      "Legacy Locker (family continuity planning)",
+      "Emergency Access Sharing",
+      "Executor-ready protection for life's unexpected moments"
     ]
   };
 
   const commonFeatures = [
-    "Photo, video, and document upload",
+    "Photo, video, and document uploads",
+    "Room-by-room inventory organization",
+    "Voice notes and item details",
+    "Secure Vault + Password Catalog",
+    "Claim-ready documentation exports (download anytime)",
+    "Multi-factor authentication",
     "Full web platform access",
-    "Voice notes for item details",
     "Post damage documentation",
-    "Password Catalog",
-    "Multi-Factor Authentication",
-    "Source Websites",
     "Manual Entries",
-    "Paint Code Reference"
+    "Upgrades & Repairs Record",
+    "Paint Code Reference",
+    "Source Websites",
+    "Service Pros Directory"
   ];
 
   const premiumOnlyIndicators = [
@@ -159,18 +155,19 @@ const Pricing: React.FC = () => {
       monthlyPrice: "$12.99",
       yearlyPrice: "$129",
       description: "For individuals documenting and protecting their home.",
-      features: planDifferences.standard.slice(0, 4), // Show first 4 for card
+      features: planDifferences.standard,
       planType: "standard",
       icon: <Zap className="h-6 w-6" />
     },
     {
-      title: "Premium (Family & Legacy Protection)",
+      title: "Premium (Legacy & Business Protection)",
       monthlyPrice: "$18.99",
       yearlyPrice: "$189",
-      description: "For families, planners, and homeowners who want continuity and shared protection.",
-      features: planDifferences.premium.slice(0, 4), // Show first 4 for card
+      description: "For families, business owners, and anyone who wants shared protection and continuity.",
+      features: planDifferences.premium,
       planType: "premium",
-      icon: <Star className="h-6 w-6" />
+      icon: <Star className="h-6 w-6" />,
+      popular: true
     }
   ];
 
@@ -282,6 +279,13 @@ const Pricing: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                   {plans.map((plan) => (
                     <div key={plan.title} className="relative">
+                      {plan.popular && (
+                        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+                          <span className="bg-amber-500 text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
+                            <Star className="h-3 w-3" /> Most Popular for Families
+                          </span>
+                        </div>
+                      )}
                       {subscriptionStatus.subscribed && subscriptionStatus.subscription_tier === plan.title && (
                         <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-4 py-1 rounded-full text-sm font-medium z-10">
                           Current Plan
@@ -306,6 +310,7 @@ const Pricing: React.FC = () => {
                             : isLoading ? "Processing..." : "Get Started"
                         }
                         onClick={() => handleSubscribe(plan.planType, billingCycle === 'yearly')}
+                        recommended={plan.popular}
                       />
                     </div>
                   ))}
@@ -317,7 +322,13 @@ const Pricing: React.FC = () => {
                 {/* Common Features */}
                 <div className="mt-12 max-w-4xl mx-auto">
                   <div className="bg-muted/30 rounded-lg p-8">
-                    <h3 className="text-xl font-semibold text-center mb-6">Included in Both Plans</h3>
+                    <h3 className="text-xl font-semibold text-center mb-4">Included in Both Plans</h3>
+                    <p className="text-sm text-muted-foreground text-center mb-6">
+                      All plans include full access to your data and complete exports anytime.
+                    </p>
+                    <p className="text-sm font-medium text-center mb-6">
+                      Everything you need to fully document and protect your home:
+                    </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
                       {commonFeatures.map((feature, index) => (
                         <div key={index} className="flex items-center gap-2">

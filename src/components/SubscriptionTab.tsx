@@ -39,18 +39,18 @@ const planConfigs = {
     popular: false
   },
   premium: {
-    title: "Premium (Family & Legacy Protection)",
+    title: "Premium (Legacy & Business Protection)",
     monthlyPrice: "$18.99",
     yearlyPrice: "$189",
     yearlySavings: "Save when you pay yearly",
-    description: "For families and homeowners who want continuity and shared protection.",
+    description: "For families, business owners, and anyone who wants shared protection and continuity.",
     features: [
       "Unlimited properties",
       "100GB secure cloud storage",
-      "Trusted Contacts Access",
-      "Legacy Locker (family continuity planning)",
-      "Emergency Access Sharing",
-      "Executor-ready protection for life's unexpected moments"
+      "⭐ Trusted Contacts Access",
+      "⭐ Legacy Locker (family continuity planning)",
+      "⭐ Emergency Access Sharing",
+      "⭐ Executor-ready protection for life's unexpected moments"
     ],
     icon: <Star className="h-6 w-6 text-purple-600" />,
     popular: true

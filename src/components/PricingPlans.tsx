@@ -18,10 +18,10 @@ const PricingPlans: React.FC = () => {
     premium: [
       "Unlimited properties",
       "100GB secure cloud storage",
-      "Trusted Contacts Access",
-      "Legacy Locker (family continuity planning)",
-      "Emergency Access Sharing",
-      "Executor-ready protection for life's unexpected moments"
+      "⭐ Trusted Contacts Access",
+      "⭐ Legacy Locker (family continuity planning)",
+      "⭐ Emergency Access Sharing",
+      "⭐ Executor-ready protection for life's unexpected moments"
     ]
   };
 
@@ -108,9 +108,9 @@ const PricingPlans: React.FC = () => {
                   </span>
                 </div>
                 <SubscriptionPlan
-                  title="Premium (Family & Legacy Protection)"
+                  title="Premium (Legacy & Business Protection)"
                   price="$18.99"
-                  description="For families and homeowners who want continuity and shared protection."
+                  description="For families, business owners, and anyone who wants shared protection and continuity."
                   features={planDifferences.premium}
                   buttonText="Get Started"
                   recommended={true}
