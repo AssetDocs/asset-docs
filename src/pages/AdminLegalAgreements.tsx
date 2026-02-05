@@ -7,9 +7,11 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { FileText, Users, Briefcase, PieChart, Save, Loader2, CheckCircle } from 'lucide-react';
+ import { FileText, Users, Briefcase, PieChart, Save, Loader2, CheckCircle, Download, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+ import NDAMutualAgreement from '@/components/admin/legal/NDAMutualAgreement';
+ import { useLegalPDFExport } from '@/hooks/useLegalPDFExport';
 
 interface SignatureData {
   signer_name?: string;
@@ -28,6 +30,9 @@ const AdminLegalAgreements = () => {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+   
+   // PDF Export hook
+   const { exportToPDF } = useLegalPDFExport();
   
   // Confidentiality agreement signatures
   const [confidentialityData, setConfidentialityData] = useState<AgreementSignatures>({
@@ -60,6 +65,13 @@ const AdminLegalAgreements = () => {
     acceleration: { signer_name: '' } // Using for acceleration percentage
   });
 
+   // NDA (Mutual) signatures
+   const [ndaData, setNdaData] = useState<AgreementSignatures>({
+     acknowledgment: { acknowledgments: { understand: false } },
+     discloser: { signature_text: '', signature_date: '' },
+     receiver: { signature_text: '', signature_date: '' }
+   });
+ 
   // Load existing signatures from database
   useEffect(() => {
     const loadSignatures = async () => {
@@ -85,6 +97,10 @@ const AdminLegalAgreements = () => {
             acknowledgment: { acknowledgments: {} },
             company: {}, developer: {}, acceleration: {}
           };
+           const nda: AgreementSignatures = {
+             acknowledgment: { acknowledgments: {} },
+             discloser: {}, receiver: {}
+           };
 
           data.forEach((sig) => {
             const sigData: SignatureData = {
@@ -109,6 +125,9 @@ const AdminLegalAgreements = () => {
               case 'equity':
                 equity[sig.signer_role] = sigData;
                 break;
+               case 'nda':
+                 nda[sig.signer_role] = sigData;
+                 break;
             }
           });
 
@@ -116,6 +135,7 @@ const AdminLegalAgreements = () => {
           setOffshoreData(prev => ({ ...prev, ...offshore }));
           setContractorData(prev => ({ ...prev, ...contractor }));
           setEquityData(prev => ({ ...prev, ...equity }));
+           setNdaData(prev => ({ ...prev, ...nda }));
         }
       } catch (error) {
         console.error('Error loading signatures:', error);
@@ -196,6 +216,11 @@ const AdminLegalAgreements = () => {
       for (const [role, data] of Object.entries(equityData)) {
         await saveSignature('equity', role, data);
       }
+ 
+       // Save NDA signatures
+       for (const [role, data] of Object.entries(ndaData)) {
+         await saveSignature('nda', role, data);
+       }
 
       setLastSaved(new Date());
       toast.success('All signatures and agreements saved successfully');
@@ -236,6 +261,13 @@ const AdminLegalAgreements = () => {
     }));
   };
 
+   const updateNDA = (role: string, field: keyof SignatureData, value: string | boolean | Record<string, boolean>) => {
+     setNdaData(prev => ({
+       ...prev,
+       [role]: { ...prev[role], [field]: value }
+     }));
+   };
+ 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -274,11 +306,16 @@ const AdminLegalAgreements = () => {
       </div>
 
       <Tabs defaultValue="confidentiality" className="space-y-6">
-        <TabsList className="grid grid-cols-2 md:grid-cols-4 gap-2 h-auto p-1">
+         <TabsList className="grid grid-cols-2 md:grid-cols-5 gap-2 h-auto p-1">
+           <TabsTrigger value="nda" className="flex items-center gap-2">
+             <Shield className="w-4 h-4" />
+             <span className="hidden sm:inline">Mutual NDA</span>
+             <span className="sm:hidden">NDA</span>
+           </TabsTrigger>
           <TabsTrigger value="confidentiality" className="flex items-center gap-2">
             <FileText className="w-4 h-4" />
-            <span className="hidden sm:inline">Confidentiality + IP</span>
-            <span className="sm:hidden">NDA</span>
+             <span className="hidden sm:inline">Confidentiality</span>
+             <span className="sm:hidden">Conf.</span>
           </TabsTrigger>
           <TabsTrigger value="offshore" className="flex items-center gap-2">
             <Users className="w-4 h-4" />
@@ -297,8 +334,25 @@ const AdminLegalAgreements = () => {
           </TabsTrigger>
         </TabsList>
 
+         {/* Tab: Mutual NDA */}
+         <TabsContent value="nda">
+           <div className="flex justify-end mb-4 gap-2">
+             <Button variant="outline" onClick={() => exportToPDF('nda', ndaData)}>
+               <Download className="w-4 h-4 mr-2" />
+               Export as PDF
+             </Button>
+           </div>
+           <NDAMutualAgreement ndaData={ndaData} updateNDA={updateNDA} />
+         </TabsContent>
+ 
         {/* Tab 1: Confidentiality + IP Assignment */}
         <TabsContent value="confidentiality">
+           <div className="flex justify-end mb-4 gap-2">
+             <Button variant="outline" onClick={() => exportToPDF('confidentiality', confidentialityData)}>
+               <Download className="w-4 h-4 mr-2" />
+               Export as PDF
+             </Button>
+           </div>
           <ScrollArea className="h-[70vh]">
             <Card>
               <CardHeader>
@@ -506,6 +560,12 @@ const AdminLegalAgreements = () => {
 
         {/* Tab 2: Offshore NDA Addendum */}
         <TabsContent value="offshore">
+           <div className="flex justify-end mb-4 gap-2">
+             <Button variant="outline" onClick={() => exportToPDF('offshore', offshoreData)}>
+               <Download className="w-4 h-4 mr-2" />
+               Export as PDF
+             </Button>
+           </div>
           <ScrollArea className="h-[70vh]">
             <Card>
               <CardHeader>
@@ -654,6 +714,12 @@ const AdminLegalAgreements = () => {
 
         {/* Tab 3: Founder Technical Contractor Pack */}
         <TabsContent value="contractor">
+           <div className="flex justify-end mb-4 gap-2">
+             <Button variant="outline" onClick={() => exportToPDF('contractor', contractorData)}>
+               <Download className="w-4 h-4 mr-2" />
+               Export as PDF
+             </Button>
+           </div>
           <ScrollArea className="h-[70vh]">
             <Card>
               <CardHeader>
@@ -914,6 +980,12 @@ const AdminLegalAgreements = () => {
 
         {/* Tab 4: Equity Vesting */}
         <TabsContent value="equity">
+           <div className="flex justify-end mb-4 gap-2">
+             <Button variant="outline" onClick={() => exportToPDF('equity', equityData)}>
+               <Download className="w-4 h-4 mr-2" />
+               Export as PDF
+             </Button>
+           </div>
           <ScrollArea className="h-[70vh]">
             <Card>
               <CardHeader>
