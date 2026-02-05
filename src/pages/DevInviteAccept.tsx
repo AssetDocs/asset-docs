@@ -16,7 +16,7 @@ const DevInviteAccept: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
-  const { user, signIn } = useAuth();
+  const { user } = useAuth();
   
   const [step, setStep] = useState<'loading' | 'login' | 'success' | 'error'>('loading');
   const [invitation, setInvitation] = useState<any>(null);
@@ -121,7 +121,11 @@ const DevInviteAccept: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // Use edge function to create/update account and accept invitation
+      // IMPORTANT: Sign out any existing session first
+      // This ensures the dev lead creates their own account, not use someone else's
+      await supabase.auth.signOut();
+
+      // Use edge function to create the dev lead's own account
       const { data, error } = await supabase.functions.invoke('accept-dev-invite', {
         body: { token, password }
       });
@@ -134,14 +138,17 @@ const DevInviteAccept: React.FC = () => {
         throw new Error(data.error);
       }
 
-      // Now sign in with the credentials
-      const { error: signInError } = await signIn(email, password);
+      // Sign in with the dev lead's new credentials
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+      });
       
       if (signInError) {
         throw signInError;
       }
 
-      // Success - the invitation has been accepted via edge function
+      // Success - the invitation has been accepted
       setStep('success');
       
       toast({
@@ -214,18 +221,18 @@ const DevInviteAccept: React.FC = () => {
                     </p>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
+                    <Label htmlFor="password">Create Your Password</Label>
                     <Input
                       id="password"
                       type="password"
-                      placeholder="Enter or create your password"
+                      placeholder="Create a secure password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
+                      minLength={6}
                     />
                     <p className="text-xs text-muted-foreground">
-                      If you already have an account, enter your existing password. 
-                      Otherwise, create a new password.
+                      This will be YOUR personal login password. Minimum 6 characters.
                     </p>
                   </div>
                   <Button type="submit" className="w-full" disabled={isSubmitting}>

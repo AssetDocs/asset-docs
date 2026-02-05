@@ -63,15 +63,16 @@ serve(async (req) => {
     const email = invitation.email;
     let userId: string;
 
-    // Check if user already exists
+    // Check if user already exists with this email
     const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
     const existingUser = existingUsers?.users?.find(u => u.email?.toLowerCase() === email.toLowerCase());
 
     if (existingUser) {
-      // User exists - try to sign them in
+      // User already exists with this email
+      // This could be from a previous signup attempt or the user already has an account
       userId = existingUser.id;
       
-      // Update their password to the new one (in case they forgot)
+      // Update their password so they can use the one they just entered
       const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
         password: password,
         email_confirm: true,
@@ -80,30 +81,34 @@ serve(async (req) => {
       if (updateError) {
         console.error('Error updating user:', updateError);
         return new Response(
-          JSON.stringify({ error: 'Failed to update user account' }),
+          JSON.stringify({ error: 'Failed to update user account. Please try a different password.' }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       
-      console.log(`Updated existing user: ${userId}`);
+      console.log(`Updated existing user for dev invite: ${userId} (${email})`);
     } else {
-      // Create new user with auto-confirmed email
+      // Create a brand new user account for this dev team member
       const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
         email: email,
         password: password,
         email_confirm: true, // Auto-confirm since they came from a valid invite
+        user_metadata: {
+          invited_as: invitation.role,
+          invited_at: new Date().toISOString(),
+        }
       });
 
       if (createError || !newUser.user) {
         console.error('Error creating user:', createError);
         return new Response(
-          JSON.stringify({ error: 'Failed to create user account' }),
+          JSON.stringify({ error: `Failed to create user account: ${createError?.message || 'Unknown error'}` }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
       userId = newUser.user.id;
-      console.log(`Created new user: ${userId}`);
+      console.log(`Created new dev team user: ${userId} (${email}) as ${invitation.role}`);
     }
 
     // Assign the role from the invitation
