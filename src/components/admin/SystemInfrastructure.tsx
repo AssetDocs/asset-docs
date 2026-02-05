@@ -30,9 +30,11 @@ import {
   FileText,
   Lock,
   Cloud,
-  GitBranch
+  GitBranch,
+  Download
 } from 'lucide-react';
 import SystemArchitectureFlowcharts from './SystemArchitectureFlowcharts';
+import { useInfrastructurePDFExport } from '@/hooks/useInfrastructurePDFExport';
 
 // Edge Functions categorized by purpose
 const edgeFunctions = [
@@ -220,6 +222,7 @@ const SystemInfrastructure = () => {
     emails: false,
     gaps: false,
   });
+  const { exportInfrastructureToPDF } = useInfrastructurePDFExport();
 
   const toggleSection = (section: string) => {
     setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
@@ -233,8 +236,31 @@ const SystemInfrastructure = () => {
 
   const projectId = 'leotcbfpqiekgkgumecn';
 
+  const handleExportPDF = () => {
+    exportInfrastructureToPDF({
+      edgeFunctions,
+      configuredSecrets,
+      storageBuckets,
+      emailTypes,
+      infrastructureGaps,
+      projectId,
+    });
+  };
+
   return (
     <div className="space-y-6">
+      {/* Header with Export Button */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">System Infrastructure</h2>
+          <p className="text-muted-foreground">Overview of deployed services and configurations</p>
+        </div>
+        <Button onClick={handleExportPDF} variant="outline">
+          <Download className="h-4 w-4 mr-2" />
+          Export PDF
+        </Button>
+      </div>
+
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card>
