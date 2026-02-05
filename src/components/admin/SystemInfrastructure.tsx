@@ -295,17 +295,194 @@ const SystemInfrastructure = () => {
       </div>
 
       {/* Tabs for Architecture vs Technical Details */}
-      <Tabs defaultValue="architecture" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+      <Tabs defaultValue="subscription" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="subscription" className="flex items-center gap-2">
+            <CreditCard className="h-4 w-4" />
+            Subscription
+          </TabsTrigger>
           <TabsTrigger value="architecture" className="flex items-center gap-2">
             <GitBranch className="h-4 w-4" />
-            System Architecture
+            Architecture
           </TabsTrigger>
           <TabsTrigger value="technical" className="flex items-center gap-2">
             <Server className="h-4 w-4" />
-            Technical Details
+            Technical
           </TabsTrigger>
         </TabsList>
+        
+        <TabsContent value="subscription" className="mt-6 space-y-6">
+          {/* Subscription Infrastructure Update */}
+          <Card className="border-primary/20">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <CreditCard className="h-6 w-6 text-primary" />
+                <div>
+                  <CardTitle className="text-lg">Subscription Infrastructure Update (Feb 2026)</CardTitle>
+                  <CardDescription>Recent changes to subscription plan structure and feature gating</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* What Changed */}
+              <div>
+                <h4 className="font-semibold text-md mb-3 flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  What Changed
+                </h4>
+                <div className="grid gap-4">
+                  <div className="p-4 border rounded-lg bg-muted/30">
+                    <h5 className="font-medium mb-2">1. Property Limits Removed</h5>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      <strong>Before:</strong> Standard: Up to 3 properties, Premium: Unlimited
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      <strong>Now:</strong> Both plans have <Badge variant="outline" className="bg-green-50 text-green-700">Unlimited properties</Badge>
+                    </p>
+                  </div>
+                  
+                  <div className="p-4 border rounded-lg bg-muted/30">
+                    <h5 className="font-medium mb-2">2. Vault Architecture (Unified)</h5>
+                    <p className="text-sm text-muted-foreground">
+                      The Secure Vault remains one shared backend system. Both plans include: Secure Vault (private), Password Catalog, and full export access. No vault splitting required.
+                    </p>
+                  </div>
+                  
+                  <div className="p-4 border rounded-lg bg-amber-50/50 border-amber-200">
+                    <h5 className="font-medium mb-2 text-amber-800">3. Legacy Locker — Premium Only</h5>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Standard users cannot create or access Legacy Locker items.
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      <strong>Implementation:</strong> Vault items tagged with <code className="bg-muted px-1 rounded">category = 'legacy'</code> — Insert/update restricted unless <code className="bg-muted px-1 rounded">plan = premium</code>
+                    </p>
+                  </div>
+                  
+                  <div className="p-4 border rounded-lg bg-amber-50/50 border-amber-200">
+                    <h5 className="font-medium mb-2 text-amber-800">4. Authorized Users (Trusted Contacts) — Premium Only</h5>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Standard users cannot add or manage Authorized Users. Premium users can create, invite, and assign roles (viewer/contributor/administrator).
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      <strong>Implementation:</strong> All trusted_contacts routes + table writes require premium flag.
+                    </p>
+                  </div>
+                  
+                  <div className="p-4 border rounded-lg bg-amber-50/50 border-amber-200">
+                    <h5 className="font-medium mb-2 text-amber-800">5. Vault Sharing / Emergency Access — Premium Only</h5>
+                    <p className="text-sm text-muted-foreground">
+                      Standard users cannot share vault contents. Premium unlocks: Emergency access sharing, Executor continuity workflows, and Contributor roles.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Premium Differentiation */}
+              <div>
+                <h4 className="font-semibold text-md mb-3 flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-primary" />
+                  Premium Differentiation
+                </h4>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="p-4 border rounded-lg">
+                    <h5 className="font-medium mb-2 flex items-center gap-2">
+                      <Badge className="bg-primary">Premium</Badge>
+                      Shared Access + Continuity
+                    </h5>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      <li>• Authorized Users Access</li>
+                      <li>• Legacy Locker Mode</li>
+                      <li>• Emergency Vault Sharing</li>
+                      <li>• Executor/Continuity Protection</li>
+                      <li>• 100GB storage</li>
+                    </ul>
+                  </div>
+                  <div className="p-4 border rounded-lg">
+                    <h5 className="font-medium mb-2 flex items-center gap-2">
+                      <Badge variant="outline">Standard</Badge>
+                      Private Vault Only
+                    </h5>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      <li>• Private vault use only</li>
+                      <li>• No sharing or legacy continuity tools</li>
+                      <li>• 25GB storage</li>
+                      <li>• Full export access</li>
+                      <li>• Unlimited properties</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Backend Enforcement Checklist */}
+              <div>
+                <h4 className="font-semibold text-md mb-3 flex items-center gap-2">
+                  <Lock className="h-4 w-4 text-red-600" />
+                  Backend Enforcement Checklist
+                </h4>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Enforcement</TableHead>
+                      <TableHead>Implementation</TableHead>
+                      <TableHead className="w-[100px]">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell className="font-medium">Plan field exists</TableCell>
+                      <TableCell className="text-sm"><code className="bg-muted px-1 rounded">entitlements.plan = 'standard' | 'premium'</code></TableCell>
+                      <TableCell><Badge className="bg-green-100 text-green-800">Done</Badge></TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">Restrict Legacy Locker</TableCell>
+                      <TableCell className="text-sm">Block vault_items.category='legacy' unless premium</TableCell>
+                      <TableCell><Badge className="bg-green-100 text-green-800">Done</Badge></TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">Restrict Authorized Users</TableCell>
+                      <TableCell className="text-sm">Block all contributors CRUD unless premium</TableCell>
+                      <TableCell><Badge className="bg-green-100 text-green-800">Done</Badge></TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">Restrict Vault Sharing</TableCell>
+                      <TableCell className="text-sm">Block vault_shares creation unless premium</TableCell>
+                      <TableCell><Badge className="bg-green-100 text-green-800">Done</Badge></TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">Storage Limits</TableCell>
+                      <TableCell className="text-sm">Standard: 25GB, Premium: 100GB — enforced at upload</TableCell>
+                      <TableCell><Badge className="bg-green-100 text-green-800">Done</Badge></TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+              
+              {/* UI Updates */}
+              <div>
+                <h4 className="font-semibold text-md mb-3 flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-blue-600" />
+                  UI Updates
+                </h4>
+                <div className="p-4 border rounded-lg bg-blue-50/50 border-blue-200">
+                  <ul className="text-sm space-y-2">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5" />
+                      <span>Standard users see Authorized Users + Legacy Locker as locked with upgrade prompt</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5" />
+                      <span>Premium users have full access enabled</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5" />
+                      <span>Upgrade message: "Upgrade to Premium to enable Authorized Users and Legacy Protection."</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
         
         <TabsContent value="architecture" className="mt-6">
           <div className="mb-4">
