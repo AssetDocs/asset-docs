@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { logActivity } from '@/hooks/useActivityLog';
+import { PremiumFeatureGate } from '@/components/PremiumFeatureGate';
 
 interface Contributor {
   id: string;
@@ -33,7 +34,10 @@ const ContributorsTab: React.FC = () => {
   const [role, setRole] = useState<'administrator' | 'contributor' | 'viewer'>('viewer');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const { subscriptionStatus, subscriptionTier, isInTrial } = useSubscription();
+  const { subscriptionTier, hasFeature } = useSubscription();
+
+  // Check if user has Premium access for Authorized Users feature
+  const hasPremiumAccess = hasFeature('trusted_contacts');
 
   useEffect(() => {
     fetchContributors();
@@ -72,10 +76,10 @@ const ContributorsTab: React.FC = () => {
     }
 
     // Check if user has a subscription
-    if (!subscriptionTier) {
+    if (!hasPremiumAccess) {
       toast({
-        title: "Subscription Required",
-        description: "Please subscribe to invite authorized users.",
+        title: "Premium Required",
+        description: "Upgrade to Premium to invite authorized users.",
         variant: "destructive",
       });
       return;
@@ -333,6 +337,12 @@ const ContributorsTab: React.FC = () => {
   };
 
   return (
+    <PremiumFeatureGate
+      featureKey="trusted_contacts"
+      title="Authorized Users"
+      description="Invite trusted contacts to access your account with specific permissions. Add family members, executors, or trusted individuals for shared protection and continuity."
+      variant="card"
+    >
     <div className="space-y-6">
       <Card>
         <CardHeader>
@@ -358,9 +368,6 @@ const ContributorsTab: React.FC = () => {
           <div className="bg-muted/30 rounded-lg p-3 mb-4">
             <p className="text-sm text-muted-foreground">
               Authorized Users: {contributors.length}
-              {!subscriptionTier && (
-                <span className="ml-2 text-destructive">• Subscribe to invite authorized users</span>
-              )}
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -579,6 +586,7 @@ const ContributorsTab: React.FC = () => {
         </CardContent>
       </Card>
     </div>
+    </PremiumFeatureGate>
   );
 };
 
