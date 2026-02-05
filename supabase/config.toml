@@ -193,3 +193,6 @@ verify_jwt = false
 
 [functions.invite-dev-team-member]
 verify_jwt = true
+
+[functions.accept-dev-invite]
+verify_jwt = false

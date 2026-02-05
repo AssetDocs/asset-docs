@@ -121,34 +121,44 @@ const DevInviteAccept: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // First check if user exists
+      // Use edge function to create/update account and accept invitation
+      const { data, error } = await supabase.functions.invoke('accept-dev-invite', {
+        body: { token, password }
+      });
+
+      if (error) {
+        throw new Error(error.message || 'Failed to activate account');
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      // Now sign in with the credentials
       const { error: signInError } = await signIn(email, password);
       
       if (signInError) {
-        // If user doesn't exist, create account
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/admin/dev`,
-          },
-        });
-
-        if (signUpError) {
-          throw signUpError;
-        }
-
-        if (signUpData.user) {
-          await acceptInvitation(invitation);
-        }
-      } else {
-        // User logged in successfully
-        await acceptInvitation(invitation);
+        throw signInError;
       }
+
+      // Success - the invitation has been accepted via edge function
+      setStep('success');
+      
+      toast({
+        title: "Account Activated",
+        description: `Welcome! You've been added as ${getRoleName(invitation.role)}.`,
+      });
+
+      // Redirect to dev workspace
+      setTimeout(() => {
+        navigate('/admin/dev');
+      }, 2000);
+
     } catch (error: any) {
+      console.error('Activation error:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to sign in",
+        description: error.message || "Failed to activate account",
         variant: "destructive",
       });
     } finally {
