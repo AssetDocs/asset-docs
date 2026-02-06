@@ -67,19 +67,7 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
     <div className="space-y-6">
       {/* Main Grid - 2 columns */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {/* Life Hub */}
-        <DashboardGridCard
-          icon={<Heart className="h-6 w-6" />}
-          title="Life Hub"
-          description="Everyday life, organized and protected."
-          tags={['VIP Contacts', 'Voice Notes', 'Trusted Pros', 'Notes & Traditions', 'Family Recipes']}
-          actionLabel="Open Life Hub"
-          actionIcon={<FolderOpen className="h-4 w-4" />}
-          onClick={() => onTabChange('life-hub')}
-          color="rose"
-        />
-
-        {/* Asset Documentation */}
+        {/* Row 1: Red */}
         <DashboardGridCard
           icon={<FolderOpen className="h-6 w-6" />}
           title="Asset Documentation"
@@ -88,10 +76,34 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           actionLabel="Add Documentation"
           actionIcon={<FolderOpen className="h-4 w-4" />}
           onClick={() => navigate('/account/media')}
-          color="amber"
+          color="red"
         />
 
-        {/* Password Catalog */}
+        <DashboardGridCard
+          icon={<Heart className="h-6 w-6" />}
+          title="Life Hub"
+          description="Everyday life, organized and protected."
+          tags={['VIP Contacts', 'Voice Notes', 'Trusted Pros', 'Notes & Traditions', 'Family Recipes']}
+          actionLabel="Open Life Hub"
+          actionIcon={<FolderOpen className="h-4 w-4" />}
+          onClick={() => onTabChange('life-hub')}
+          color="red"
+        />
+
+        {/* Row 2: Yellow */}
+        <DashboardGridCard
+          icon={<Shield className="h-6 w-6" />}
+          title="Legacy Locker"
+          description="Guidance and access when you can't be there."
+          tags={['Instructions', 'Access', 'Recovery']}
+          actionLabel="Manage Legacy"
+          actionIcon={<Shield className="h-4 w-4" />}
+          onClick={() => onTabChange('legacy-locker')}
+          color="yellow"
+          badge="Secured by Secure Vault"
+          badgeIcon={<ShieldCheck className="h-3 w-3" />}
+        />
+
         <DashboardGridCard
           icon={<Key className="h-6 w-6" />}
           title="Password Catalog"
@@ -105,33 +117,18 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           badgeIcon={<ShieldCheck className="h-3 w-3" />}
         />
 
-        {/* Legacy Locker */}
+        {/* Row 3: Green */}
         <DashboardGridCard
-          icon={<Shield className="h-6 w-6" />}
-          title="Legacy Locker"
-          description="Guidance and access when you can't be there."
-          tags={['Instructions', 'Access', 'Recovery']}
-          actionLabel="Manage Legacy"
-          actionIcon={<Shield className="h-4 w-4" />}
-          onClick={() => onTabChange('legacy-locker')}
-          color="purple"
-          badge="Secured by Secure Vault"
-          badgeIcon={<ShieldCheck className="h-3 w-3" />}
-        />
-
-        {/* Property Profiles */}
-        <DashboardGridCard
-          icon={<Home className="h-6 w-6" />}
-          title="Property Profiles"
-          description="Keep track of your properties and manage important details."
-          tags={['All Homes', 'Vacation Houses', 'Rentals']}
-          actionLabel="View Profiles"
-          actionIcon={<Home className="h-4 w-4" />}
-          onClick={() => navigate('/account/properties')}
+          icon={<Wrench className="h-6 w-6" />}
+          title="Insights & Tools"
+          description="Track values, manage repairs, and organize property details."
+          tags={['Asset Values', 'Manual Entry', 'Upgrades & Repairs', 'Source Websites', 'Paint Codes']}
+          actionLabel="Open Tools"
+          actionIcon={<Wrench className="h-4 w-4" />}
+          onClick={() => onTabChange('insights-tools')}
           color="green"
         />
 
-        {/* Protection Progress (merged Documentation Checklist + Protection Score) */}
         <DashboardGridCard
           icon={<CheckSquare className="h-6 w-6" />}
           title="Protection Progress"
@@ -143,7 +140,18 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           color="green"
         />
 
-        {/* Account & Access */}
+        {/* Row 4: Blue */}
+        <DashboardGridCard
+          icon={<Home className="h-6 w-6" />}
+          title="Property Profiles"
+          description="Keep track of your properties and manage important details."
+          tags={['All Homes', 'Vacation Houses', 'Rentals']}
+          actionLabel="View Profiles"
+          actionIcon={<Home className="h-4 w-4" />}
+          onClick={() => navigate('/account/properties')}
+          color="blue"
+        />
+
         <DashboardGridCard
           icon={<Settings className="h-6 w-6" />}
           title="Account & Access"
@@ -154,28 +162,16 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           onClick={() => navigate('/account/settings')}
           color="blue"
         />
-
-        {/* Insights & Tools */}
-        <DashboardGridCard
-          icon={<Wrench className="h-6 w-6" />}
-          title="Insights & Tools"
-          description="Track values, manage repairs, and organize property details."
-          tags={['Asset Values', 'Manual Entry', 'Upgrades & Repairs', 'Source Websites', 'Paint Codes']}
-          actionLabel="Open Tools"
-          actionIcon={<Wrench className="h-4 w-4" />}
-          onClick={() => onTabChange('insights-tools')}
-          color="teal"
-        />
       </div>
 
-      {/* Bottom Utility Row - 3 columns */}
+      {/* Bottom Utility Row - 3 columns (orange) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Export Assets */}
-        <Card className="border-l-4 border-l-blue-500 bg-white hover:shadow-lg transition-all">
+        <Card className="border-l-4 border-l-orange-500 bg-white hover:shadow-lg transition-all">
           <CardContent className="pt-5 pb-5">
             <div className="flex items-start gap-3 mb-4">
-              <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                <FileDown className="h-5 w-5 text-blue-600" />
+              <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                <FileDown className="h-5 w-5 text-orange-600" />
               </div>
               <div>
                 <h3 className="font-bold text-sm text-foreground">Export Assets</h3>
@@ -186,17 +182,17 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
             </div>
             <ExportAssetsButton
               variant="outline"
-              className="w-full border-blue-200 text-blue-700 hover:bg-blue-50 h-8 text-xs font-medium"
+              className="w-full border-orange-200 text-orange-700 hover:bg-orange-50 h-8 text-xs font-medium"
             />
           </CardContent>
         </Card>
 
         {/* Download All Files */}
-        <Card className="border-l-4 border-l-teal-500 bg-white hover:shadow-lg transition-all">
+        <Card className="border-l-4 border-l-orange-500 bg-white hover:shadow-lg transition-all">
           <CardContent className="pt-5 pb-5">
             <div className="flex items-start gap-3 mb-4">
-              <div className="w-10 h-10 bg-teal-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                <Download className="h-5 w-5 text-teal-600" />
+              <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                <Download className="h-5 w-5 text-orange-600" />
               </div>
               <div>
                 <h3 className="font-bold text-sm text-foreground">Download All Files</h3>
@@ -207,7 +203,7 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
             </div>
             <Button
               variant="outline"
-              className="w-full border-teal-200 text-teal-700 hover:bg-teal-50 h-8 text-xs font-medium"
+              className="w-full border-orange-200 text-orange-700 hover:bg-orange-50 h-8 text-xs font-medium"
               onClick={handleDownloadAll}
               disabled={isDownloading}
             >
