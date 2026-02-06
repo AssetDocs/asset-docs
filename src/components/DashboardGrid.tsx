@@ -13,10 +13,10 @@ import {
   FolderOpen,
   Key,
   Shield,
+  ShieldCheck,
   Wrench,
   Heart,
   CheckSquare,
-  ClipboardList,
   FileDown,
   Download,
   AlertTriangle,
@@ -97,10 +97,12 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           title="Password Catalog"
           description="Your most private information, fully encrypted."
           tags={['Websites', 'Passwords', 'Sensitive Data']}
-          actionLabel="Open Vault"
+          actionLabel="Open Catalog"
           actionIcon={<Key className="h-4 w-4" />}
-          onClick={() => onTabChange('secure-vault')}
+          onClick={() => onTabChange('password-catalog')}
           color="yellow"
+          badge="Secured by Secure Vault"
+          badgeIcon={<ShieldCheck className="h-3 w-3" />}
         />
 
         {/* Legacy Locker */}
@@ -111,8 +113,10 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           tags={['Instructions', 'Access', 'Recovery']}
           actionLabel="Manage Legacy"
           actionIcon={<Shield className="h-4 w-4" />}
-          onClick={() => onTabChange('secure-vault')}
+          onClick={() => onTabChange('legacy-locker')}
           color="purple"
+          badge="Secured by Secure Vault"
+          badgeIcon={<ShieldCheck className="h-3 w-3" />}
         />
 
         {/* Property Profiles */}
@@ -127,27 +131,15 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           color="green"
         />
 
-        {/* Documentation Checklist */}
-        <DashboardGridCard
-          icon={<ClipboardList className="h-6 w-6" />}
-          title="Documentation Checklist"
-          description="Ensure you have complete records for insurance and estate needs."
-          tags={['Homeowners', 'Business', 'Management', 'Industrial']}
-          actionLabel="View Checklist"
-          actionIcon={<ClipboardList className="h-4 w-4" />}
-          onClick={() => onTabChange('documentation-checklist')}
-          color="blue"
-        />
-
-        {/* Protection Score */}
+        {/* Protection Progress (merged Documentation Checklist + Protection Score) */}
         <DashboardGridCard
           icon={<CheckSquare className="h-6 w-6" />}
-          title="Protection Score"
-          description="See what's complete — and what's missing."
-          tags={['Checklist', 'Coverage Gaps']}
-          actionLabel="Improve Score"
+          title="Protection Progress"
+          description="Track your documentation checklist and protection score in one place."
+          tags={['Checklist', 'Score', 'Coverage Gaps', 'Insurance Readiness']}
+          actionLabel="View Progress"
           actionIcon={<CheckSquare className="h-4 w-4" />}
-          onClick={() => onTabChange('protection-score')}
+          onClick={() => onTabChange('protection-progress')}
           color="green"
         />
 

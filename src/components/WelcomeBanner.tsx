@@ -9,7 +9,7 @@ import UserStatusBadge from '@/components/UserStatusBadge';
 import { useVerification } from '@/hooks/useVerification';
 import AccountStatusCard from '@/components/AccountStatusCard';
 import OnboardingProgress from '@/components/OnboardingProgress';
-import ProtectionScore from '@/components/ProtectionScore';
+
 
 const WelcomeBanner: React.FC = () => {
   const { profile, user } = useAuth();
@@ -226,9 +226,6 @@ const WelcomeBanner: React.FC = () => {
 
       {/* Onboarding Progress - full width */}
       <OnboardingProgress inline />
-
-      {/* Protection Score - gamified progress */}
-      <ProtectionScore />
     </div>
   );
 };
