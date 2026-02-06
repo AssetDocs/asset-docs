@@ -15,6 +15,8 @@ interface DashboardGridCardProps {
   onClick: () => void;
   color: CardColor;
   variant?: 'default' | 'compact';
+  badge?: string;
+  badgeIcon?: React.ReactNode;
 }
 
 const colorMap: Record<CardColor, {
@@ -101,6 +103,8 @@ export const DashboardGridCard: React.FC<DashboardGridCardProps> = ({
   onClick,
   color,
   variant = 'default',
+  badge,
+  badgeIcon,
 }) => {
   const colors = colorMap[color];
 
@@ -124,14 +128,22 @@ export const DashboardGridCard: React.FC<DashboardGridCardProps> = ({
             <div className={colors.iconText}>{icon}</div>
           </div>
           <div className="flex-1 min-w-0">
-            <h3
-              className={cn(
-                'font-bold text-foreground',
-                variant === 'compact' ? 'text-sm' : 'text-lg'
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3
+                className={cn(
+                  'font-bold text-foreground',
+                  variant === 'compact' ? 'text-sm' : 'text-lg'
+                )}
+              >
+                {title}
+              </h3>
+              {badge && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-semibold uppercase tracking-wide border border-amber-200">
+                  {badgeIcon}
+                  {badge}
+                </span>
               )}
-            >
-              {title}
-            </h3>
+            </div>
             <p
               className={cn(
                 'text-muted-foreground mt-1',

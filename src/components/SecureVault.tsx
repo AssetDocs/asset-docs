@@ -20,7 +20,11 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import TOTPChallenge from './TOTPChallenge';
 import { logActivity } from '@/hooks/useActivityLog';
 
-const SecureVault: React.FC = () => {
+interface SecureVaultProps {
+  initialTab?: 'passwords' | 'legacy';
+}
+
+const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
   const { user } = useAuth();
   const { isContributor, canAccessEncryptedVault, isViewer, isContributorRole, contributorRole, isAdministrator } = useContributor();
   const { toast } = useToast();
@@ -43,8 +47,8 @@ const SecureVault: React.FC = () => {
   const [legacyLockerId, setLegacyLockerId] = useState<string | null>(null);
   const [isDelegate, setIsDelegate] = useState(false);
   const [existingEncrypted, setExistingEncrypted] = useState(false);
-  const [passwordCatalogOpen, setPasswordCatalogOpen] = useState(false);
-  const [legacyLockerOpen, setLegacyLockerOpen] = useState(false);
+  const [passwordCatalogOpen, setPasswordCatalogOpen] = useState(initialTab === 'passwords' || false);
+  const [legacyLockerOpen, setLegacyLockerOpen] = useState(initialTab === 'legacy' || false);
   
   // Track original values for change detection
   const [originalDelegateId, setOriginalDelegateId] = useState<string | null>(null);

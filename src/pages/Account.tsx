@@ -86,11 +86,11 @@ const Account: React.FC = () => {
   // Get the section title for the back button context
   const getSectionTitle = () => {
     const titles: Record<string, string> = {
-      'secure-vault': 'Secure Vault',
+      'password-catalog': 'Password Catalog',
+      'legacy-locker': 'Legacy Locker',
       'insights-tools': 'Insights & Tools',
       'life-hub': 'Life Hub',
-      'protection-score': 'Protection Score',
-      'documentation-checklist': 'Documentation Checklist',
+      'protection-progress': 'Protection Progress',
       'asset-values': 'Asset Values',
       'source-websites': 'Source Websites',
       'damage': 'Damage Report',
@@ -155,9 +155,22 @@ const Account: React.FC = () => {
               <DashboardGrid onTabChange={setActiveTab} />
             </TabsContent>
 
-            {/* Secure Vault (Password Catalog + Legacy Locker) */}
-            <TabsContent value="secure-vault">
-              <SecureVault />
+            {/* Password Catalog - opens SecureVault focused on passwords */}
+            <TabsContent value="password-catalog">
+              <SecureVault initialTab="passwords" />
+            </TabsContent>
+
+            {/* Legacy Locker - opens SecureVault focused on legacy */}
+            <TabsContent value="legacy-locker">
+              <SecureVault initialTab="legacy" />
+            </TabsContent>
+
+            {/* Protection Progress (merged Checklist + Score) */}
+            <TabsContent value="protection-progress">
+              <div className="space-y-6">
+                <ProtectionScore defaultOpen />
+                <DocumentationChecklist />
+              </div>
             </TabsContent>
 
             {/* Insights & Tools Sub-Grid */}
@@ -169,18 +182,6 @@ const Account: React.FC = () => {
             <TabsContent value="life-hub">
               <LifeHubGrid onTabChange={setActiveTab} />
             </TabsContent>
-
-            {/* Protection Score - Expanded */}
-            <TabsContent value="protection-score">
-              <ProtectionScore defaultOpen />
-            </TabsContent>
-
-            {/* Documentation Checklist */}
-            <TabsContent value="documentation-checklist">
-              <DocumentationChecklist />
-            </TabsContent>
-
-            {/* Individual Tool Views */}
             <TabsContent value="asset-values">
               <AssetValuesSection />
             </TabsContent>
