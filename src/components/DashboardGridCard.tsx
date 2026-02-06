@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-export type CardColor = 'blue' | 'green' | 'amber' | 'yellow' | 'purple' | 'rose' | 'teal' | 'orange';
+export type CardColor = 'blue' | 'green' | 'amber' | 'yellow' | 'purple' | 'rose' | 'teal' | 'orange' | 'red';
 
 interface DashboardGridCardProps {
   icon: React.ReactNode;
@@ -90,6 +90,14 @@ const colorMap: Record<CardColor, {
     btnBorder: 'border-orange-200',
     btnText: 'text-orange-700',
     btnHover: 'hover:bg-orange-50',
+  },
+  red: {
+    border: 'border-l-red-500',
+    iconBg: 'bg-red-50',
+    iconText: 'text-red-600',
+    btnBorder: 'border-red-200',
+    btnText: 'text-red-700',
+    btnHover: 'hover:bg-red-50',
   },
 };
 
