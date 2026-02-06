@@ -140,11 +140,8 @@ const WelcomeBanner: React.FC = () => {
       <div className="bg-gradient-to-r from-brand-blue to-brand-lightBlue p-6 rounded-lg text-white">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div className="flex-1">
-            <p className="text-white/80 text-sm font-medium">
+            <h1 className="text-2xl font-bold">
               Welcome, {getDisplayName()}!
-            </p>
-            <h1 className="text-2xl font-bold mt-0.5">
-              Your Asset Safe Dashboard
             </h1>
             {contributorInfo && (
               <div className="mt-1 space-y-1">
@@ -158,11 +155,28 @@ const WelcomeBanner: React.FC = () => {
                 )}
               </div>
             )}
-            <p className="text-white/70 text-sm mt-2">
-              Everything you use today — and what protects you for tomorrow.
-            </p>
+            <div className="flex flex-wrap gap-2 mt-4">
+              <Button asChild variant="outline" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 border-yellow-400">
+                <Link to="/account/settings">
+                  <Settings className="mr-2 h-4 w-4" />
+                  Account Settings
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 border-yellow-400">
+                <Link to="/account/properties">
+                  <Home className="mr-2 h-4 w-4" />
+                  Property Profiles
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="bg-white/90 hover:bg-white text-brand-blue border-white/90">
+                <Link to="/account/activity">
+                  <ClipboardList className="mr-2 h-4 w-4" />
+                  Activity Log
+                </Link>
+              </Button>
+            </div>
           </div>
-
+          
           {/* Right side: Account # and Account Status */}
           <div className="flex flex-col gap-2 sm:items-end">
             {accountNumber && (
@@ -170,6 +184,7 @@ const WelcomeBanner: React.FC = () => {
                 Account #: {accountNumber}
               </span>
             )}
+            {/* Account Status Card - compact version inside header */}
             <div className="w-full sm:w-auto sm:min-w-[200px]">
               <AccountStatusCard compact />
             </div>

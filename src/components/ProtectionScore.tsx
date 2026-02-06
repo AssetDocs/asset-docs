@@ -14,7 +14,11 @@ interface ProtectionMetrics {
   receiptsStored: number;
 }
 
-const ProtectionScore: React.FC = () => {
+interface ProtectionScoreProps {
+  defaultOpen?: boolean;
+}
+
+const ProtectionScore: React.FC<ProtectionScoreProps> = ({ defaultOpen = false }) => {
   const { user } = useAuth();
   const [metrics, setMetrics] = useState<ProtectionMetrics>({
     totalUploads: 0,
@@ -23,7 +27,7 @@ const ProtectionScore: React.FC = () => {
     trustedUsersAdded: 0,
     receiptsStored: 0,
   });
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(defaultOpen);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchMetrics = async () => {
