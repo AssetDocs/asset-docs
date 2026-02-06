@@ -7,11 +7,12 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
- import { FileText, Users, Briefcase, PieChart, Save, Loader2, CheckCircle, Download, Shield } from 'lucide-react';
+import { FileText, Users, Briefcase, PieChart, Save, Loader2, CheckCircle, Download, Shield, DollarSign } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
- import NDAMutualAgreement from '@/components/admin/legal/NDAMutualAgreement';
- import { useLegalPDFExport } from '@/hooks/useLegalPDFExport';
+import NDAMutualAgreement from '@/components/admin/legal/NDAMutualAgreement';
+import InvestmentRepaymentAgreement from '@/components/admin/legal/InvestmentRepaymentAgreement';
+import { useLegalPDFExport } from '@/hooks/useLegalPDFExport';
 
 interface SignatureData {
   signer_name?: string;
@@ -65,12 +66,19 @@ const AdminLegalAgreements = () => {
     acceleration: { signer_name: '' } // Using for acceleration percentage
   });
 
-   // NDA (Mutual) signatures
-   const [ndaData, setNdaData] = useState<AgreementSignatures>({
-     acknowledgment: { acknowledgments: { understand: false } },
-     discloser: { signature_text: '', signature_date: '' },
-     receiver: { signature_text: '', signature_date: '' }
-   });
+  // NDA (Mutual) signatures
+  const [ndaData, setNdaData] = useState<AgreementSignatures>({
+    acknowledgment: { acknowledgments: { understand: false } },
+    discloser: { signature_text: '', signature_date: '' },
+    receiver: { signature_text: '', signature_date: '' }
+  });
+
+  // Investment Repayment signatures
+  const [investmentData, setInvestmentData] = useState<AgreementSignatures>({
+    acknowledgment: { acknowledgments: { understand: false, documentation: false } },
+    company: { signature_text: '', signature_date: '' },
+    developer: { signature_text: '', signature_date: '' }
+  });
  
   // Load existing signatures from database
   useEffect(() => {
@@ -101,6 +109,10 @@ const AdminLegalAgreements = () => {
              acknowledgment: { acknowledgments: {} },
              discloser: {}, receiver: {}
            };
+           const investment: AgreementSignatures = {
+             acknowledgment: { acknowledgments: {} },
+             company: {}, developer: {}
+           };
 
           data.forEach((sig) => {
             const sigData: SignatureData = {
@@ -125,9 +137,12 @@ const AdminLegalAgreements = () => {
               case 'equity':
                 equity[sig.signer_role] = sigData;
                 break;
-               case 'nda':
-                 nda[sig.signer_role] = sigData;
-                 break;
+              case 'nda':
+                nda[sig.signer_role] = sigData;
+                break;
+              case 'investment':
+                investment[sig.signer_role] = sigData;
+                break;
             }
           });
 
@@ -135,7 +150,8 @@ const AdminLegalAgreements = () => {
           setOffshoreData(prev => ({ ...prev, ...offshore }));
           setContractorData(prev => ({ ...prev, ...contractor }));
           setEquityData(prev => ({ ...prev, ...equity }));
-           setNdaData(prev => ({ ...prev, ...nda }));
+          setNdaData(prev => ({ ...prev, ...nda }));
+          setInvestmentData(prev => ({ ...prev, ...investment }));
         }
       } catch (error) {
         console.error('Error loading signatures:', error);
@@ -222,6 +238,11 @@ const AdminLegalAgreements = () => {
          await saveSignature('nda', role, data);
        }
 
+      // Save Investment Repayment signatures
+      for (const [role, data] of Object.entries(investmentData)) {
+        await saveSignature('investment', role, data);
+      }
+
       setLastSaved(new Date());
       toast.success('All signatures and agreements saved successfully');
     } catch (error) {
@@ -267,6 +288,13 @@ const AdminLegalAgreements = () => {
        [role]: { ...prev[role], [field]: value }
      }));
    };
+
+  const updateInvestment = (role: string, field: keyof SignatureData, value: string | boolean | Record<string, boolean>) => {
+    setInvestmentData(prev => ({
+      ...prev,
+      [role]: { ...prev[role], [field]: value }
+    }));
+  };
  
   if (loading) {
     return (
@@ -306,7 +334,7 @@ const AdminLegalAgreements = () => {
       </div>
 
       <Tabs defaultValue="confidentiality" className="space-y-6">
-         <TabsList className="grid grid-cols-2 md:grid-cols-5 gap-2 h-auto p-1">
+         <TabsList className="grid grid-cols-2 md:grid-cols-6 gap-2 h-auto p-1">
            <TabsTrigger value="nda" className="flex items-center gap-2">
              <Shield className="w-4 h-4" />
              <span className="hidden sm:inline">Mutual NDA</span>
@@ -331,6 +359,11 @@ const AdminLegalAgreements = () => {
             <PieChart className="w-4 h-4" />
             <span className="hidden sm:inline">Equity Vesting</span>
             <span className="sm:hidden">Equity</span>
+          </TabsTrigger>
+          <TabsTrigger value="investment" className="flex items-center gap-2">
+            <DollarSign className="w-4 h-4" />
+            <span className="hidden sm:inline">Investment</span>
+            <span className="sm:hidden">Invest</span>
           </TabsTrigger>
         </TabsList>
 
@@ -1306,6 +1339,17 @@ const AdminLegalAgreements = () => {
               </CardContent>
             </Card>
           </ScrollArea>
+        </TabsContent>
+
+        {/* Tab: Investment Repayment */}
+        <TabsContent value="investment">
+          <div className="flex justify-end mb-4 gap-2">
+            <Button variant="outline" onClick={() => exportToPDF('investment', investmentData)}>
+              <Download className="w-4 h-4 mr-2" />
+              Export as PDF
+            </Button>
+          </div>
+          <InvestmentRepaymentAgreement investmentData={investmentData} updateInvestment={updateInvestment} />
         </TabsContent>
       </Tabs>
     </div>

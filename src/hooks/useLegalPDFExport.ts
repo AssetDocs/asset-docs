@@ -2,7 +2,7 @@
  import { jsPDF } from 'jspdf';
  import { toast } from 'sonner';
  
- type AgreementType = 'confidentiality' | 'offshore' | 'contractor' | 'equity' | 'nda';
+ type AgreementType = 'confidentiality' | 'offshore' | 'contractor' | 'equity' | 'nda' | 'investment';
  
  interface SignatureData {
    signer_name?: string;
@@ -409,6 +409,95 @@
            y += 5;
            doc.setFont('helvetica', 'normal');
            doc.text('Vinh Nguyen, Technical Founder (Subject to Vesting)', margin, y);
+           y += 5;
+           doc.text(`Signature: ${data.developer?.signature_text || '_________________________'}`, margin, y);
+           y += 5;
+           doc.text(`Date: ${formatDate(data.developer?.signature_date)}`, margin, y);
+           break;
+
+         case 'investment':
+           doc.setFontSize(14);
+           doc.setTextColor(0);
+           doc.text('AMENDMENT: INVESTMENT REPAYMENT & REVENUE PRIORITY', margin, y);
+           y += 8;
+           doc.setFontSize(10);
+           doc.setTextColor(100);
+           doc.text('(Developer Investment Recognition & Repayment)', margin, y);
+           y += 15;
+
+           doc.setFontSize(10);
+           doc.setTextColor(0);
+           y = addWrappedText(doc, 'This Amendment is entered into by and between Asset Safe (Company), represented by Michael Lewis, Founder, and Vinh Nguyen (Developer/Technical Co-Founder).', margin, y, contentWidth);
+           y += 10;
+
+           const investmentSections = [
+             { title: '1. Developer Investment Recognition', text: 'The Company acknowledges that the Technical Co-Founder ("Developer") may personally fund or advance capital in the form of development services and/or payments to third-party developers ("Developer Investment").' },
+             { title: '2. Definition of Developer Investment', text: 'The total Developer Investment shall be defined as the actual, documented cost of development work performed, inclusive of contractor fees and related expenses, as mutually agreed and recorded by both parties.' },
+             { title: '3. Revenue Allocation for Repayment', text: 'Upon the Company generating revenue, a percentage of initial gross revenue (to be determined prior to revenue commencement) shall be allocated toward repayment of the Developer Investment. These repayments shall be expedited and prioritized, with the express intent that the Developer Investment is recovered as early as reasonably possible.' },
+             { title: '4. Nature of Repayment', text: 'This repayment structure is intended solely as investment recovery and does not constitute salary, wages, guaranteed compensation, or employment benefits. The Developer remains an independent contractor or equity holder as defined in other agreements.' },
+             { title: '5. Documentation Requirements', text: 'The following shall be documented in writing once finalized: specific repayment percentages of gross revenue, reporting cadence and format, confirmation of total Developer Investment amount, and payment schedule/method.' },
+             { title: '6. Priority of Repayment', text: 'Developer Investment repayment shall be treated as a priority obligation, taking precedence over discretionary expenses, founder compensation beyond operating needs, and non-essential capital expenditures (subject to maintaining sufficient operating capital).' },
+             { title: '7. Relationship to Other Agreements', text: 'This Amendment supplements existing agreements (NDA, Confidentiality + IP Assignment, Development Services, Equity Vesting). In case of conflict, Parties agree to negotiate in good faith.' },
+             { title: '8. Good Faith Obligation', text: 'Both Parties agree to act in good faith regarding accurate documentation, timely revenue reporting, prompt payment, and dispute resolution.' },
+             { title: '9. Governing Law', text: 'Governed by Texas law. Exclusive venue: Collin County, Texas.' },
+             { title: '10. Electronic Signatures', text: 'This Amendment may be executed electronically and shall be legally binding.' },
+           ];
+
+           investmentSections.forEach((section) => {
+             if (y > 260) {
+               doc.addPage();
+               y = 20;
+             }
+             doc.setFontSize(11);
+             doc.setFont('helvetica', 'bold');
+             doc.text(section.title, margin, y);
+             y += 6;
+             doc.setFont('helvetica', 'normal');
+             doc.setFontSize(9);
+             y = addWrappedText(doc, section.text, margin, y, contentWidth, 4);
+             y += 6;
+           });
+
+           // Signatures
+           if (y > 200) {
+             doc.addPage();
+             y = 20;
+           }
+           y += 10;
+           doc.setFontSize(12);
+           doc.setFont('helvetica', 'bold');
+           doc.text('SIGNATURES', margin, y);
+           y += 10;
+
+           doc.setFontSize(10);
+           doc.setFont('helvetica', 'normal');
+           
+           // Acknowledgments
+           const invUnderstand = data.acknowledgment?.acknowledgments?.understand ? '☑' : '☐';
+           const invDocumentation = data.acknowledgment?.acknowledgments?.documentation ? '☑' : '☐';
+           doc.text(`${invUnderstand} I acknowledge that I have read, understand, and agree to all terms of this Amendment.`, margin, y);
+           y += 5;
+           doc.text(`${invDocumentation} I understand that specific repayment percentages will be documented separately.`, margin, y);
+           y += 15;
+
+           // Company signature
+           doc.setFont('helvetica', 'bold');
+           doc.text('Company Representative:', margin, y);
+           y += 5;
+           doc.setFont('helvetica', 'normal');
+           doc.text('Michael Lewis, Founder, Asset Safe', margin, y);
+           y += 5;
+           doc.text(`Signature: ${data.company?.signature_text || '_________________________'}`, margin, y);
+           y += 5;
+           doc.text(`Date: ${formatDate(data.company?.signature_date)}`, margin, y);
+           y += 15;
+
+           // Developer signature
+           doc.setFont('helvetica', 'bold');
+           doc.text('Developer:', margin, y);
+           y += 5;
+           doc.setFont('helvetica', 'normal');
+           doc.text('Vinh Nguyen, Technical Co-Founder', margin, y);
            y += 5;
            doc.text(`Signature: ${data.developer?.signature_text || '_________________________'}`, margin, y);
            y += 5;
