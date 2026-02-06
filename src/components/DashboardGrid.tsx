@@ -71,7 +71,7 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
         <DashboardGridCard
           icon={<FolderOpen className="h-6 w-6" />}
           title="Asset Documentation"
-          description="Claim-ready documentation for your property and belongings."
+          description="Claim-ready proof for your home and belongings."
           tags={['Photos', 'Videos', 'Documents', 'Records']}
           actionLabel="Add Documentation"
           actionIcon={<FolderOpen className="h-4 w-4" />}
