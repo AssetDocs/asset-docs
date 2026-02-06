@@ -142,7 +142,6 @@ const configuredSecrets = [
   { name: 'TWILIO_VERIFY_SERVICE_SID', category: 'SMS', purpose: 'Twilio Verify service', status: 'configured' },
   { name: 'OPENAI_API_KEY', category: 'AI', purpose: 'OpenAI API access', status: 'configured' },
   { name: 'LOVABLE_API_KEY', category: 'AI', purpose: 'Lovable AI Gateway', status: 'configured' },
-  { name: 'CUBICASA_API_KEY', category: 'Floor Plans', purpose: 'CubiCasa floor plan API', status: 'configured' },
   { name: 'ADMIN_PASSWORD', category: 'Security', purpose: 'Admin dashboard access', status: 'configured' },
 ];
 
@@ -151,7 +150,6 @@ const storageBuckets = [
   { name: 'documents', isPublic: false, purpose: 'User uploaded documents (insurance, legal, etc.)' },
   { name: 'photos', isPublic: false, purpose: 'Property and item photos' },
   { name: 'videos', isPublic: false, purpose: 'Property walkthrough videos' },
-  { name: 'floor-plans', isPublic: false, purpose: 'Floor plan files and scans' },
   { name: 'contact-attachments', isPublic: false, purpose: 'Contact form attachments' },
 ];
 
@@ -209,7 +207,6 @@ const getCategoryColor = (category: string) => {
     'CRM': 'bg-purple-500/10 text-purple-700 border-purple-200',
     'SMS': 'bg-green-500/10 text-green-700 border-green-200',
     'AI': 'bg-amber-500/10 text-amber-700 border-amber-200',
-    'Floor Plans': 'bg-teal-500/10 text-teal-700 border-teal-200',
   };
   return colors[category] || 'bg-muted text-muted-foreground';
 };

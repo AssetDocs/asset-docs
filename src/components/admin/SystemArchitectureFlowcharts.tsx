@@ -190,8 +190,8 @@ const SystemArchitectureFlowcharts: React.FC = () => {
             <Arrow />
 
             {/* Bottom Layer - Data Storage */}
-            <div className="grid grid-cols-5 gap-3">
-              {['photos', 'videos', 'documents', 'floor-plans', 'contact-attachments'].map((bucket) => (
+            <div className="grid grid-cols-4 gap-3">
+              {['photos', 'videos', 'documents', 'contact-attachments'].map((bucket) => (
                 <div key={bucket} className="bg-slate-100 p-2 rounded border border-slate-300 text-center">
                   <Database className="h-4 w-4 mx-auto text-slate-600" />
                   <span className="text-xs font-mono text-slate-700">{bucket}</span>
@@ -213,11 +213,9 @@ const SystemArchitectureFlowcharts: React.FC = () => {
           <div className="flex flex-col items-center min-w-[600px]">
             <FlowNode type="start" label="User Visits Site" />
             <Arrow />
-            <FlowNode type="process" label="Clicks 'Get Started'" sublabel="/pricing page" />
+            <FlowNode type="process" label="Clicks 'Get Started'" sublabel="assetsafe.net/signup" />
             <Arrow />
-            <FlowNode type="process" label="Selects Plan" sublabel="Standard ($129) or Premium ($189)" />
-            <Arrow />
-            <FlowNode type="process" label="Signup Form" sublabel="Email, Password, Name" />
+            <FlowNode type="process" label="Signup Form" sublabel="Email, Password, Name + Optional Gift Code" />
             <Arrow />
             
             <div className="flex items-center gap-4">
@@ -243,13 +241,15 @@ const SystemArchitectureFlowcharts: React.FC = () => {
             <Arrow />
             
             <div className="bg-amber-50 p-3 rounded-lg border border-amber-300 text-center my-2">
-              <span className="text-sm font-semibold text-amber-800">Decision: Has Payment?</span>
+              <span className="text-sm font-semibold text-amber-800">Decision: Gift Code Entered?</span>
             </div>
             
             <div className="flex items-center gap-8 mt-2">
               <div className="flex flex-col items-center">
-                <Badge variant="outline" className="mb-2">No</Badge>
-                <FlowNode type="process" label="Redirect to Pricing" />
+                <Badge variant="outline" className="mb-2">No Gift Code</Badge>
+                <FlowNode type="process" label="Redirect to Pricing" sublabel="/pricing" />
+                <Arrow />
+                <FlowNode type="process" label="Select Plan" sublabel="Standard ($12.99/mo) or Premium ($18.99/mo)" />
                 <Arrow />
                 <FlowNode type="api" label="create-checkout" />
                 <Arrow />
@@ -258,26 +258,27 @@ const SystemArchitectureFlowcharts: React.FC = () => {
                 <FlowNode type="api" label="stripe-webhook" sublabel="checkout.session.completed" />
                 <Arrow />
                 <FlowNode type="database" label="entitlements" sublabel="status: 'active'" />
+                <Arrow />
+                <FlowNode type="api" label="send-subscription-welcome-email" />
+                <Arrow />
+                <FlowNode type="end" label="Dashboard Access" sublabel="/account" />
               </div>
               <div className="flex flex-col items-center">
-                <Badge variant="outline" className="mb-2">Yes (Gift/Lifetime)</Badge>
-                <FlowNode type="api" label="validate-lifetime-code" sublabel="ASL2025" />
+                <Badge variant="outline" className="mb-2">Gift/Lifetime Code</Badge>
+                <FlowNode type="api" label="validate-lifetime-code" sublabel="ASL2025 or gift code" />
                 <Arrow />
                 <FlowNode type="database" label="entitlements" sublabel="plan: 'premium', status: 'active'" />
+                <Arrow />
+                <FlowNode type="end" label="Direct to Dashboard" sublabel="/account" />
               </div>
             </div>
-            
-            <Arrow />
-            <FlowNode type="api" label="send-subscription-welcome-email" />
-            <Arrow />
-            <FlowNode type="end" label="Dashboard Access" sublabel="/account" />
           </div>
         </div>
         
         <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
           <span className="font-semibold text-blue-800 text-sm">Key Functions Called:</span>
           <div className="flex flex-wrap gap-2 mt-2">
-            {['supabase.auth.signUp', 'handle_new_user (trigger)', 'send-welcome-email', 'create-checkout', 'stripe-webhook', 'sync-subscription', 'check-subscription'].map(fn => (
+            {['supabase.auth.signUp', 'handle_new_user (trigger)', 'send-welcome-email', 'create-checkout', 'stripe-webhook', 'sync-subscription', 'check-subscription', 'validate-lifetime-code'].map(fn => (
               <Badge key={fn} variant="outline" className="text-xs font-mono">{fn}</Badge>
             ))}
           </div>
