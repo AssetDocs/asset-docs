@@ -43,7 +43,11 @@ const blockCompletionMessages = [
 // Track message index for rotation
 let messageIndex = 0;
 
-const DocumentationChecklist: React.FC = () => {
+interface DocumentationChecklistProps {
+  embedded?: boolean;
+}
+
+const DocumentationChecklist: React.FC<DocumentationChecklistProps> = ({ embedded = false }) => {
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const [isOpen, setIsOpen] = useState(false);
   const [viewModes, setViewModes] = useState<Record<string, 'room' | 'category'>>({
@@ -610,7 +614,7 @@ const DocumentationChecklist: React.FC = () => {
                       key={item.id} 
                       className={`flex items-center space-x-3 p-2 rounded-lg transition-all duration-300 ${
                         checkedItems.has(item.id) 
-                          ? 'bg-green-50 dark:bg-green-950/30' 
+                          ? 'bg-primary/5'
                           : 'hover:bg-muted/50'
                       }`}
                     >
@@ -631,7 +635,7 @@ const DocumentationChecklist: React.FC = () => {
                         {item.text}
                       </label>
                       {checkedItems.has(item.id) && (
-                        <span className="text-green-500 text-lg animate-scale-in">✓</span>
+                        <span className="text-primary text-lg animate-scale-in">✓</span>
                       )}
                     </div>
                   ))}
@@ -645,90 +649,107 @@ const DocumentationChecklist: React.FC = () => {
   };
 
   return (
-    <Card className="w-full">
-      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CollapsibleTrigger asChild>
-          <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <ClipboardList className="h-6 w-6 text-primary" />
-                <div>
-                  <CardTitle className="text-xl">Complete Documentation Checklist</CardTitle>
+    <>
+      {embedded ? (
+        <div className="p-4">
+          <Tabs defaultValue="homeowners" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="homeowners" className="text-xs sm:text-sm">
+                <Home className="h-4 w-4 mr-1 hidden sm:inline" />
+                Homeowner
+              </TabsTrigger>
+              <TabsTrigger value="business" className="text-xs sm:text-sm">
+                <Building2 className="h-4 w-4 mr-1 hidden sm:inline" />
+                Business
+              </TabsTrigger>
+              <TabsTrigger value="management" className="text-xs sm:text-sm">
+                <Users className="h-4 w-4 mr-1 hidden sm:inline" />
+                Management
+              </TabsTrigger>
+              <TabsTrigger value="industrial" className="text-xs sm:text-sm">
+                <Factory className="h-4 w-4 mr-1 hidden sm:inline" />
+                Industrial
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="homeowners">
+              <ChecklistComponent tabKey="homeowners" title="Homeowner Documentation" icon={<Home className="h-6 w-6 text-primary" />} data={homeownerData} />
+            </TabsContent>
+            <TabsContent value="business">
+              <ChecklistComponent tabKey="business" title="Business Documentation" icon={<Building2 className="h-6 w-6 text-primary" />} data={businessData} />
+            </TabsContent>
+            <TabsContent value="management">
+              <ChecklistComponent tabKey="management" title="Management / Landlord Documentation" icon={<Users className="h-6 w-6 text-primary" />} data={managementData} />
+            </TabsContent>
+            <TabsContent value="industrial">
+              <ChecklistComponent tabKey="industrial" title="Industrial Documentation" icon={<Factory className="h-6 w-6 text-primary" />} data={industrialData} />
+            </TabsContent>
+          </Tabs>
+        </div>
+      ) : (
+        <Card className="w-full">
+          <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <ClipboardList className="h-6 w-6 text-primary" />
+                    <div>
+                      <CardTitle className="text-xl">Complete Documentation Checklist</CardTitle>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    {isOpen ? (
+                      <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                    ) : (
+                      <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-4">
-                {isOpen ? (
-                  <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                ) : (
-                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                )}
-              </div>
-            </div>
-          </CardHeader>
-        </CollapsibleTrigger>
+              </CardHeader>
+            </CollapsibleTrigger>
 
-        <CollapsibleContent>
-          <CardContent className="pt-0">
-            <Tabs defaultValue="homeowners" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="homeowners" className="text-xs sm:text-sm">
-                  <Home className="h-4 w-4 mr-1 hidden sm:inline" />
-                  Homeowner
-                </TabsTrigger>
-                <TabsTrigger value="business" className="text-xs sm:text-sm">
-                  <Building2 className="h-4 w-4 mr-1 hidden sm:inline" />
-                  Business
-                </TabsTrigger>
-                <TabsTrigger value="management" className="text-xs sm:text-sm">
-                  <Users className="h-4 w-4 mr-1 hidden sm:inline" />
-                  Management
-                </TabsTrigger>
-                <TabsTrigger value="industrial" className="text-xs sm:text-sm">
-                  <Factory className="h-4 w-4 mr-1 hidden sm:inline" />
-                  Industrial
-                </TabsTrigger>
-              </TabsList>
+            <CollapsibleContent>
+              <CardContent className="pt-0">
+                <Tabs defaultValue="homeowners" className="space-y-6">
+                  <TabsList className="grid w-full grid-cols-4">
+                    <TabsTrigger value="homeowners" className="text-xs sm:text-sm">
+                      <Home className="h-4 w-4 mr-1 hidden sm:inline" />
+                      Homeowner
+                    </TabsTrigger>
+                    <TabsTrigger value="business" className="text-xs sm:text-sm">
+                      <Building2 className="h-4 w-4 mr-1 hidden sm:inline" />
+                      Business
+                    </TabsTrigger>
+                    <TabsTrigger value="management" className="text-xs sm:text-sm">
+                      <Users className="h-4 w-4 mr-1 hidden sm:inline" />
+                      Management
+                    </TabsTrigger>
+                    <TabsTrigger value="industrial" className="text-xs sm:text-sm">
+                      <Factory className="h-4 w-4 mr-1 hidden sm:inline" />
+                      Industrial
+                    </TabsTrigger>
+                  </TabsList>
 
-              <TabsContent value="homeowners">
-                <ChecklistComponent
-                  tabKey="homeowners"
-                  title="Homeowner Documentation"
-                  icon={<Home className="h-6 w-6 text-primary" />}
-                  data={homeownerData}
-                />
-              </TabsContent>
-
-              <TabsContent value="business">
-                <ChecklistComponent
-                  tabKey="business"
-                  title="Business Documentation"
-                  icon={<Building2 className="h-6 w-6 text-primary" />}
-                  data={businessData}
-                />
-              </TabsContent>
-
-              <TabsContent value="management">
-                <ChecklistComponent
-                  tabKey="management"
-                  title="Management / Landlord Documentation"
-                  icon={<Users className="h-6 w-6 text-primary" />}
-                  data={managementData}
-                />
-              </TabsContent>
-
-              <TabsContent value="industrial">
-                <ChecklistComponent
-                  tabKey="industrial"
-                  title="Industrial Documentation"
-                  icon={<Factory className="h-6 w-6 text-primary" />}
-                  data={industrialData}
-                />
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </CollapsibleContent>
-      </Collapsible>
-    </Card>
+                  <TabsContent value="homeowners">
+                    <ChecklistComponent tabKey="homeowners" title="Homeowner Documentation" icon={<Home className="h-6 w-6 text-primary" />} data={homeownerData} />
+                  </TabsContent>
+                  <TabsContent value="business">
+                    <ChecklistComponent tabKey="business" title="Business Documentation" icon={<Building2 className="h-6 w-6 text-primary" />} data={businessData} />
+                  </TabsContent>
+                  <TabsContent value="management">
+                    <ChecklistComponent tabKey="management" title="Management / Landlord Documentation" icon={<Users className="h-6 w-6 text-primary" />} data={managementData} />
+                  </TabsContent>
+                  <TabsContent value="industrial">
+                    <ChecklistComponent tabKey="industrial" title="Industrial Documentation" icon={<Factory className="h-6 w-6 text-primary" />} data={industrialData} />
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </CollapsibleContent>
+          </Collapsible>
+        </Card>
+      )}
+    </>
   );
 };
 
