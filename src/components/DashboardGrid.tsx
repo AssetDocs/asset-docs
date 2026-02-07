@@ -21,6 +21,7 @@ import {
   AlertTriangle,
   Loader2,
 } from 'lucide-react';
+import PeopleActivityCard from './PeopleActivityCard';
 
 interface DashboardGridProps {
   onTabChange: (tab: string) => void;
@@ -144,12 +145,15 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           icon={<Settings className="h-6 w-6" />}
           title="Account & Access"
           description="Manage your account and permissions."
-          tags={['Plan', 'Billing', 'Users', 'Alerts']}
+          tags={['Plan', 'Billing', 'Alerts']}
           actionLabel="Account Settings"
           actionIcon={<Settings className="h-4 w-4" />}
           onClick={() => navigate('/account/settings')}
           color="blue"
         />
+
+        {/* People & Activity Card */}
+        <PeopleActivityCard onNavigate={(path) => navigate(path)} />
       </div>
 
       {/* Bottom Utility Row - 3 columns (orange) */}

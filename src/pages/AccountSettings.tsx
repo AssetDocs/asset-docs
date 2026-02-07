@@ -5,7 +5,7 @@ import ProfileTab from '@/components/ProfileTab';
 import BillingTab from '@/components/BillingTab';
 import SubscriptionTab from '@/components/SubscriptionTab';
 import NotificationsTab from '@/components/NotificationsTab';
-import ContributorsTab from '@/components/ContributorsTab';
+
 import CookieSettings from '@/components/CookieSettings';
 import TOTPSettings from '@/components/TOTPSettings';
 import BackupCodesSettings from '@/components/BackupCodesSettings';
@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, User, CreditCard, Package, Bell, Copy, Check, Shield, Users, Lock, Eye } from 'lucide-react';
+import { ArrowLeft, User, CreditCard, Package, Bell, Copy, Check, Shield, Lock, Eye } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -50,7 +50,7 @@ const AccountSettings: React.FC = () => {
   const { isViewer, isContributor, isContributorRole, contributorRole, ownerName, canAccessSettings } = useContributor();
   
   // Restricted tabs for viewers and contributors (only administrators can access these)
-  const restrictedTabs = ['billing', 'subscription', 'contributors', 'security', 'notifications', 'privacy'];
+  const restrictedTabs = ['billing', 'subscription', 'security', 'notifications', 'privacy'];
   
   // Check if user has restricted access (viewer or contributor role)
   const hasRestrictedAccess = isViewer || isContributorRole;
@@ -65,7 +65,7 @@ const AccountSettings: React.FC = () => {
       return 'profile';
     }
     
-    return ['profile', 'billing', 'subscription', 'contributors', 'notifications', 'security', 'privacy'].includes(tab || '') 
+    return ['profile', 'billing', 'subscription', 'notifications', 'security', 'privacy'].includes(tab || '') 
       ? tab || 'profile' 
       : 'profile';
   };
@@ -165,7 +165,7 @@ const AccountSettings: React.FC = () => {
           </div>
 
           <Tabs defaultValue={getDefaultTab()} className="space-y-6">
-            <TabsList className={`grid w-full ${hasRestrictedAccess ? 'grid-cols-1' : 'grid-cols-7'}`}>
+            <TabsList className={`grid w-full ${hasRestrictedAccess ? 'grid-cols-1' : 'grid-cols-6'}`}>
               <TabsTrigger value="profile" className="flex items-center gap-2">
                 <User className="h-4 w-4" />
                 <span className="hidden sm:inline">Profile</span>
@@ -179,10 +179,6 @@ const AccountSettings: React.FC = () => {
                   <TabsTrigger value="subscription" className="flex items-center gap-2">
                     <Package className="h-4 w-4" />
                     <span className="hidden sm:inline">Plan</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="contributors" className="flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    <span className="hidden sm:inline">Authorized Users</span>
                   </TabsTrigger>
                   <TabsTrigger value="security" className="flex items-center gap-2">
                     <Lock className="h-4 w-4" />
@@ -212,14 +208,6 @@ const AccountSettings: React.FC = () => {
 
                 <TabsContent value="subscription">
                   <SubscriptionTab />
-                </TabsContent>
-
-                <TabsContent value="contributors">
-                  <ContributorsTab />
-                </TabsContent>
-
-                <TabsContent value="notifications">
-                  <NotificationsTab />
                 </TabsContent>
 
                 <TabsContent value="security">
