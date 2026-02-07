@@ -6,8 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Search, Package, DollarSign, FileText, Eye, Plus, Trash2, CheckSquare, Square, ChevronLeft, ChevronDown } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Search, Package, DollarSign, FileText, Eye, Plus, Trash2, CheckSquare, Square, ChevronLeft } from 'lucide-react';
 import { ItemService, Item } from '@/services/ItemService';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
@@ -17,7 +16,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import AddInventoryItemForm from '@/components/AddInventoryItemForm';
-import WelcomeBanner from '@/components/WelcomeBanner';
+
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
@@ -174,71 +173,17 @@ const Inventory: React.FC = () => {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <DashboardBreadcrumb />
         
-        <WelcomeBanner />
-        
-        {/* Insights & Tools Dropdown with Back Button */}
-        <div className="w-full flex items-center gap-2 mb-6">
+        {/* Back to Dashboard */}
+        <div className="w-full mb-6">
           <Button
-            onClick={() => navigate('/account')}
-            className="bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white h-12 w-12 min-w-12 p-0 rounded-lg flex-shrink-0 shadow-md"
-            aria-label="Back to Dashboard"
+            onClick={() => navigate('/account?tab=insights-tools')}
+            variant="outline"
+            size="sm"
+            className="bg-white text-brand-orange border-brand-orange hover:bg-brand-orange/10"
           >
-            <ChevronLeft className="h-7 w-7" />
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Back to Dashboard
           </Button>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button className="w-full bg-brand-green hover:bg-brand-green/90 text-white justify-between">
-                Insights & Tools
-                <ChevronDown className="ml-2 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] bg-brand-green border-brand-green">
-              <DropdownMenuItem 
-                onClick={() => navigate('/account/contacts')}
-                className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
-              >
-                Contacts
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => navigate('/inventory')}
-                className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
-              >
-                Manual Entry
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => navigate('/account?tab=asset-values')}
-                className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
-              >
-                Asset Values
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => navigate('/account?tab=source-websites')}
-                className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
-              >
-                Source Websites
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => navigate('/account?tab=voice-notes')}
-                className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
-              >
-                Voice Notes
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => navigate('/account?tab=paint-codes')}
-                className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
-              >
-                Paint Codes
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => navigate('/account?tab=damage')}
-                className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
-              >
-                <span className="text-yellow-400 font-bold mr-1">!</span>
-                Post Damage
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
         
         <div className="mb-8">
@@ -290,7 +235,7 @@ const Inventory: React.FC = () => {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center">
-                  <DollarSign className="h-8 w-8 text-green-600" />
+                  <DollarSign className="h-8 w-8 text-brand-green" />
                   <div className="ml-4">
                     <p className="text-sm font-medium text-muted-foreground">Total Value</p>
                     <p className="text-2xl font-bold">${totalValue.toLocaleString()}</p>
@@ -302,7 +247,7 @@ const Inventory: React.FC = () => {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center">
-                  <FileText className="h-8 w-8 text-blue-600" />
+                  <FileText className="h-8 w-8 text-brand-blue" />
                   <div className="ml-4">
                     <p className="text-sm font-medium text-muted-foreground">Categories</p>
                     <p className="text-2xl font-bold">{categories.length}</p>
