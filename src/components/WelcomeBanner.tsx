@@ -1,14 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Settings, Home, ChevronDown, ChevronUp, X, ClipboardList } from 'lucide-react';
+import { ChevronDown, ChevronUp, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from '@/hooks/use-mobile';
-import UserStatusBadge from '@/components/UserStatusBadge';
-import { useVerification } from '@/hooks/useVerification';
-import AccountStatusCard from '@/components/AccountStatusCard';
-import OnboardingProgress from '@/components/OnboardingProgress';
 
 
 const WelcomeBanner: React.FC = () => {
@@ -20,7 +16,6 @@ const WelcomeBanner: React.FC = () => {
     ownerName: string;
   } | null>(null);
   const [accountNumber, setAccountNumber] = useState<string>('');
-  const { status: verificationStatus, refreshVerification } = useVerification();
 
   useEffect(() => {
     const fetchContributorInfo = async () => {
@@ -69,12 +64,6 @@ const WelcomeBanner: React.FC = () => {
     fetchContributorInfo();
   }, [user]);
 
-  // Refresh verification on mount
-  useEffect(() => {
-    if (user) {
-      refreshVerification();
-    }
-  }, [user, refreshVerification]);
   
   const getDisplayName = () => {
     // If contributor, show their name from contributor record
@@ -163,16 +152,13 @@ const WelcomeBanner: React.FC = () => {
             </p>
           </div>
 
-          {/* Right side: Account # and Account Status */}
+          {/* Right side: Account # */}
           <div className="flex flex-col gap-2 sm:items-end">
             {accountNumber && (
               <span className="text-white/90 font-medium text-sm bg-white/20 px-3 py-1 rounded-md">
                 Account #: {accountNumber}
               </span>
             )}
-            <div className="w-full sm:w-auto sm:min-w-[200px]">
-              <AccountStatusCard compact />
-            </div>
           </div>
         </div>
       </div>
@@ -223,9 +209,6 @@ const WelcomeBanner: React.FC = () => {
           )}
         </div>
       )}
-
-      {/* Onboarding Progress - full width */}
-      <OnboardingProgress inline />
     </div>
   );
 };
