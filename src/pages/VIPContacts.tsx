@@ -4,7 +4,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import ContactAttachments from '@/components/ContactAttachments';
-import WelcomeBanner from '@/components/WelcomeBanner';
+// WelcomeBanner removed - only shown on main dashboard
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -319,73 +319,6 @@ const VIPContacts: React.FC = () => {
       <div className="flex-grow py-8 px-4 bg-gray-50">
         <div className="max-w-6xl mx-auto">
           <DashboardBreadcrumb />
-          
-          <WelcomeBanner />
-          
-          {/* Insights & Tools Dropdown with Back Button */}
-          <div className="w-full flex items-center gap-2 mb-6">
-            <Button
-              onClick={() => navigate('/account')}
-              className="bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white h-12 w-12 min-w-12 p-0 rounded-lg flex-shrink-0 shadow-md"
-              aria-label="Back to Dashboard"
-            >
-              <ChevronLeft className="h-7 w-7" />
-            </Button>
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button className="w-full bg-brand-green hover:bg-brand-green/90 text-white justify-between">
-                  Insights & Tools
-                  <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] bg-brand-green border-brand-green">
-                <DropdownMenuItem 
-                  onClick={() => navigate('/account/contacts')}
-                  className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
-                >
-                  Contacts
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => navigate('/inventory')}
-                  className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
-                >
-                  Manual Entry
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => navigate('/account?tab=asset-values')}
-                  className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
-                >
-                  Asset Values
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => navigate('/account?tab=source-websites')}
-                  className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
-                >
-                  Source Websites
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => navigate('/account?tab=voice-notes')}
-                  className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
-                >
-                  Voice Notes
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => navigate('/account?tab=paint-codes')}
-                  className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
-                >
-                  Paint Codes
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => navigate('/account?tab=damage')}
-                  className="text-white hover:bg-brand-green/80 focus:bg-brand-green/80 focus:text-white cursor-pointer"
-                >
-                  <span className="text-yellow-400 font-bold mr-1">!</span>
-                  Post Damage
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>

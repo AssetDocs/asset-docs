@@ -401,19 +401,11 @@ const CombinedMedia: React.FC = () => {
           
           {/* Header */}
           <div className="mb-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-              <div className="flex items-center">
-                <Button variant="ghost" size="sm" onClick={handleBack} className="mr-4">
-                  <ArrowLeft className="h-4 w-4 mr-1" />
-                  Back
-                </Button>
-                <div>
-                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Photos & Videos</h1>
-                  <p className="text-gray-600 mt-1">
-                    Capture photos or videos to document your property and belongings
-                  </p>
-                </div>
-              </div>
+            <div className="mb-4">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Photos & Videos</h1>
+              <p className="text-gray-600 mt-1">
+                Capture and organize photos and videos of your property and belongings.
+              </p>
             </div>
 
             {/* Search and Upload */}
