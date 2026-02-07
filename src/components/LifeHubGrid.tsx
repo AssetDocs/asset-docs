@@ -1,14 +1,12 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardGridCard } from './DashboardGridCard';
-import { Card, CardContent } from '@/components/ui/card';
 import {
   Contact,
   Mic,
   Briefcase,
   BookOpen,
   ChefHat,
-  Construction,
 } from 'lucide-react';
 
 interface LifeHubGridProps {
@@ -62,52 +60,26 @@ const LifeHubGrid: React.FC<LifeHubGridProps> = ({ onTabChange }) => {
         />
 
         {/* Notes & Traditions */}
-        <Card className="border-l-4 border-l-rose-500 bg-white hover:shadow-lg transition-all cursor-pointer opacity-90">
-          <CardContent className="pt-4 pb-4">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                <BookOpen className="h-5 w-5 text-rose-600" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-sm text-foreground">Notes & Traditions</h3>
-                  <span className="text-[10px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded font-medium">Coming Soon</span>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Capture family traditions, stories, and important notes.
-                </p>
-              </div>
-            </div>
-            <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-              <Construction className="h-3.5 w-3.5" />
-              <span>This feature is being built</span>
-            </div>
-          </CardContent>
-        </Card>
+        <DashboardGridCard
+          icon={<BookOpen className="h-5 w-5" />}
+          title="Notes & Traditions"
+          description="Capture family traditions, stories, and important notes."
+          actionLabel="View Notes"
+          onClick={() => onTabChange('notes-traditions')}
+          color="rose"
+          variant="compact"
+        />
 
         {/* Family Recipes */}
-        <Card className="border-l-4 border-l-rose-500 bg-white hover:shadow-lg transition-all cursor-pointer opacity-90">
-          <CardContent className="pt-4 pb-4">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                <ChefHat className="h-5 w-5 text-rose-600" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-sm text-foreground">Family Recipes</h3>
-                  <span className="text-[10px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded font-medium">Coming Soon</span>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Preserve cherished family recipes for generations.
-                </p>
-              </div>
-            </div>
-            <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-              <Construction className="h-3.5 w-3.5" />
-              <span>This feature is being built</span>
-            </div>
-          </CardContent>
-        </Card>
+        <DashboardGridCard
+          icon={<ChefHat className="h-5 w-5" />}
+          title="Family Recipes"
+          description="Preserve cherished family recipes for generations."
+          actionLabel="View Recipes"
+          onClick={() => onTabChange('family-recipes')}
+          color="rose"
+          variant="compact"
+        />
       </div>
     </div>
   );
