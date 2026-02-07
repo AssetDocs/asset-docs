@@ -22,6 +22,8 @@ import WelcomeBanner from '@/components/WelcomeBanner';
 import DashboardGrid from '@/components/DashboardGrid';
 import InsightsToolsGrid from '@/components/InsightsToolsGrid';
 import LifeHubGrid from '@/components/LifeHubGrid';
+import NotesAndTraditions from '@/components/NotesAndTraditions';
+import FamilyRecipes from '@/components/FamilyRecipes';
 import AssetDocumentationGrid from '@/components/AssetDocumentationGrid';
 import ProtectionScore from '@/components/ProtectionScore';
 import { supabase } from '@/integrations/supabase/client';
@@ -105,6 +107,8 @@ const Account: React.FC = () => {
       'paint-codes': { title: 'Paint Codes', subtitle: 'Store paint colors, brands, and finish details.' },
       'service-pros': { title: 'Trusted Professionals', subtitle: 'Track your trusted service providers and contractors.' },
       'upgrades-repairs': { title: 'Upgrades & Repairs', subtitle: 'Document property improvements and repair history.' },
+      'notes-traditions': { title: 'Notes & Traditions', subtitle: 'Capture family traditions, stories, and important notes.' },
+      'family-recipes': { title: 'Family Recipes', subtitle: 'Preserve cherished family recipes for generations.' },
     };
     return configs[activeTab] || { title: '', subtitle: '' };
   };
@@ -138,7 +142,7 @@ const Account: React.FC = () => {
                 <Button
                   onClick={() => {
                     const insightsSubTabs = ['asset-values', 'source-websites', 'paint-codes', 'upgrades-repairs'];
-                    const lifeHubSubTabs = ['voice-notes', 'service-pros'];
+                    const lifeHubSubTabs = ['voice-notes', 'service-pros', 'notes-traditions', 'family-recipes'];
 
                     if (insightsSubTabs.includes(activeTab)) {
                       setActiveTab('insights-tools');
@@ -282,6 +286,14 @@ const Account: React.FC = () => {
                 </div>
                 <UpgradesRepairsSection />
               </div>
+            </TabsContent>
+
+            <TabsContent value="notes-traditions">
+              <NotesAndTraditions />
+            </TabsContent>
+
+            <TabsContent value="family-recipes">
+              <FamilyRecipes />
             </TabsContent>
           </Tabs>
 

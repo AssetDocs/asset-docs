@@ -935,6 +935,51 @@ export type Database = {
         }
         Relationships: []
       }
+      family_recipes: {
+        Row: {
+          bucket_name: string | null
+          created_at: string
+          created_by_person: string | null
+          details: string | null
+          file_name: string | null
+          file_path: string | null
+          file_size: number | null
+          file_url: string | null
+          id: string
+          recipe_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bucket_name?: string | null
+          created_at?: string
+          created_by_person?: string | null
+          details?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          file_url?: string | null
+          id?: string
+          recipe_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bucket_name?: string | null
+          created_at?: string
+          created_by_person?: string | null
+          details?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          file_url?: string | null
+          id?: string
+          recipe_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       financial_accounts: {
         Row: {
           account_name: string
@@ -1673,6 +1718,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notes_traditions: {
+        Row: {
+          bucket_name: string | null
+          content: string | null
+          created_at: string
+          file_name: string | null
+          file_path: string | null
+          file_size: number | null
+          file_url: string | null
+          holiday: string | null
+          id: string
+          subject: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bucket_name?: string | null
+          content?: string | null
+          created_at?: string
+          file_name?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          file_url?: string | null
+          holiday?: string | null
+          id?: string
+          subject?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bucket_name?: string | null
+          content?: string | null
+          created_at?: string
+          file_name?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          file_url?: string | null
+          holiday?: string | null
+          id?: string
+          subject?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       notification_preferences: {
         Row: {

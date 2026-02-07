@@ -524,7 +524,7 @@ const SubscriptionTab: React.FC = () => {
                   <TabsTrigger value="month">Monthly</TabsTrigger>
                   <TabsTrigger value="year">
                     Yearly
-                    <Badge variant="secondary" className="ml-2 text-xs bg-green-100 text-green-700">Save</Badge>
+                    <Badge variant="secondary" className="ml-2 text-xs bg-brand-green/10 text-brand-green font-semibold">Save</Badge>
                   </TabsTrigger>
                 </TabsList>
               </Tabs>

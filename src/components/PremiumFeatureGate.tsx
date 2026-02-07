@@ -111,13 +111,14 @@ export const PremiumFeatureGate: React.FC<PremiumFeatureGateProps> = ({
           <p className="text-sm text-muted-foreground">
             {PREMIUM_UPGRADE_MESSAGE}
           </p>
-          <Link to={UPGRADE_PATH}>
-            <Button className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white">
-              <Star className="h-4 w-4 mr-2" />
-              {UPGRADE_BUTTON_TEXT}
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
-          </Link>
+          <Button 
+            className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
+            onClick={() => window.location.href = UPGRADE_PATH}
+          >
+            <Star className="h-4 w-4 mr-2" />
+            {UPGRADE_BUTTON_TEXT}
+            <ArrowRight className="h-4 w-4 ml-2" />
+          </Button>
         </div>
       </CardContent>
     </Card>
