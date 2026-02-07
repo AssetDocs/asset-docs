@@ -44,10 +44,10 @@ const UserStatusBadge: React.FC<UserStatusBadgeProps> = ({
       case 'Verified+':
         return {
           Icon: ShieldPlus,
-          iconColor: 'text-amber-500',
-          bgColor: 'bg-amber-50',
-          textColor: 'text-amber-700',
-          borderColor: 'border-amber-200',
+          iconColor: 'text-yellow-500',
+          bgColor: 'bg-yellow-50',
+          textColor: 'text-yellow-700',
+          borderColor: 'border-yellow-200',
           tooltip: 'Verified+ Account (MFA Protected)'
         };
       case 'Verified':
@@ -62,10 +62,10 @@ const UserStatusBadge: React.FC<UserStatusBadgeProps> = ({
       default:
         return {
           Icon: Shield,
-          iconColor: 'text-slate-400',
-          bgColor: 'bg-slate-50',
-          textColor: 'text-slate-600',
-          borderColor: 'border-slate-200',
+          iconColor: 'text-blue-600',
+          bgColor: 'bg-blue-50',
+          textColor: 'text-blue-700',
+          borderColor: 'border-blue-200',
           tooltip: 'Standard User Account'
         };
     }

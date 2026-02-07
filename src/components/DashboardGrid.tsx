@@ -73,9 +73,9 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           title="Asset Documentation"
           description="Claim-ready proof for your home and belongings."
           tags={['Photos', 'Videos', 'Documents', 'Records']}
-          actionLabel="Add Documentation"
+          actionLabel="Open Documentation"
           actionIcon={<FolderOpen className="h-4 w-4" />}
-          onClick={() => navigate('/account/media')}
+          onClick={() => onTabChange('asset-documentation')}
           color="red"
         />
 

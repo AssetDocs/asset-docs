@@ -141,11 +141,12 @@ const PhotoUpload: React.FC = () => {
         <div className="max-w-4xl mx-auto">
           <div className="mb-6">
             <Button 
-              variant="ghost" 
+              variant="outline" 
+              size="sm"
               onClick={() => navigate('/account')}
-              className="mb-4"
+              className="mb-4 bg-white text-brand-orange border-brand-orange hover:bg-brand-orange/10"
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeft className="h-4 w-4 mr-1" />
               Back to Dashboard
             </Button>
             <h1 className="text-3xl font-bold text-brand-blue mb-2">Upload Photos</h1>

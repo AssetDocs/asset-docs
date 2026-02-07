@@ -22,6 +22,7 @@ import WelcomeBanner from '@/components/WelcomeBanner';
 import DashboardGrid from '@/components/DashboardGrid';
 import InsightsToolsGrid from '@/components/InsightsToolsGrid';
 import LifeHubGrid from '@/components/LifeHubGrid';
+import AssetDocumentationGrid from '@/components/AssetDocumentationGrid';
 import ProtectionScore from '@/components/ProtectionScore';
 import { supabase } from '@/integrations/supabase/client';
 import UpgradesRepairsSection from '@/components/UpgradesRepairsSection';
@@ -40,6 +41,11 @@ const Account: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const { subscriptionTier } = useSubscription();
   const { isViewer, showViewerRestriction, canEdit } = useContributor();
+
+  // Scroll to top when tab changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [activeTab]);
 
   // Sync subscription and show success message if redirected from successful payment
   useEffect(() => {
@@ -83,24 +89,27 @@ const Account: React.FC = () => {
     localStorage.setItem('hasSeenDashboardTour', 'true');
   };
 
-  // Get the section title for the back button context
-  const getSectionTitle = () => {
-    const titles: Record<string, string> = {
-      'password-catalog': 'Password Catalog',
-      'legacy-locker': 'Legacy Locker',
-      'insights-tools': 'Insights & Tools',
-      'life-hub': 'Life Hub',
-      'protection-progress': 'Protection Progress',
-      'asset-values': 'Asset Values',
-      'source-websites': 'Source Websites',
-      'damage': 'Damage Report',
-      'voice-notes': 'Voice Notes',
-      'paint-codes': 'Paint Codes',
-      'service-pros': 'Service Pros',
-      'upgrades-repairs': 'Upgrades & Repairs',
+  // Get the section title and subtitle for back button context
+  const getSectionConfig = () => {
+    const configs: Record<string, { title: string; subtitle: string }> = {
+      'asset-documentation': { title: 'Asset Documentation', subtitle: 'Claim-ready proof for your home and belongings.' },
+      'password-catalog': { title: 'Password Catalog', subtitle: 'Your most private information, fully encrypted.' },
+      'legacy-locker': { title: 'Legacy Locker', subtitle: 'Guidance and access when you can\'t be there.' },
+      'insights-tools': { title: 'Insights & Tools', subtitle: 'Track values, manage repairs, and organize property details.' },
+      'life-hub': { title: 'Life Hub', subtitle: 'Everyday life, organized and protected.' },
+      'protection-progress': { title: 'Protection Progress', subtitle: 'Track your documentation checklist and protection score in one place.' },
+      'asset-values': { title: 'Asset Values', subtitle: 'Track the estimated value of your documented assets.' },
+      'source-websites': { title: 'Source Websites', subtitle: 'Save product sources and reference links.' },
+      'damage': { title: 'Post Damage Report', subtitle: 'Document damage and submit post-incident details.' },
+      'voice-notes': { title: 'Voice Notes', subtitle: 'Record and store voice memos for your records.' },
+      'paint-codes': { title: 'Paint Codes', subtitle: 'Store paint colors, brands, and finish details.' },
+      'service-pros': { title: 'Trusted Professionals', subtitle: 'Track your trusted service providers and contractors.' },
+      'upgrades-repairs': { title: 'Upgrades & Repairs', subtitle: 'Document property improvements and repair history.' },
     };
-    return titles[activeTab] || '';
+    return configs[activeTab] || { title: '', subtitle: '' };
   };
+
+  const isOverview = activeTab === 'overview';
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -112,21 +121,22 @@ const Account: React.FC = () => {
           {/* Viewer Restriction Banner */}
           <ViewerRestrictionBanner />
 
-          {/* Welcome Banner with Protection Score and Onboarding */}
-          <div className="mb-4">
-            <WelcomeBanner />
-          </div>
-
-          {/* Admin Contributor Plan Info */}
-          <AdminContributorPlanInfo />
+          {/* Welcome Banner with Protection Score and Onboarding - ONLY on overview */}
+          {isOverview && (
+            <>
+              <div className="mb-4">
+                <WelcomeBanner />
+              </div>
+              <AdminContributorPlanInfo />
+            </>
+          )}
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             {/* Back to Dashboard Button */}
-            {activeTab !== 'overview' && (
-              <div className="w-full flex items-center gap-3">
+            {!isOverview && (
+              <div className="w-full">
                 <Button
                   onClick={() => {
-                    // If in a sub-section of insights-tools or life-hub, go back to that grid first
                     const insightsSubTabs = ['asset-values', 'source-websites', 'paint-codes', 'upgrades-repairs'];
                     const lifeHubSubTabs = ['voice-notes', 'service-pros'];
 
@@ -139,14 +149,12 @@ const Account: React.FC = () => {
                     }
                   }}
                   variant="outline"
-                  className="bg-white hover:bg-gray-50 border-gray-200"
+                  size="sm"
+                  className="bg-white text-brand-orange border-brand-orange hover:bg-brand-orange/10"
                 >
                   <ChevronLeft className="h-4 w-4 mr-1" />
-                  Back
+                  Back to Dashboard
                 </Button>
-                <span className="text-sm font-medium text-muted-foreground">
-                  {getSectionTitle()}
-                </span>
               </div>
             )}
 
@@ -155,19 +163,40 @@ const Account: React.FC = () => {
               <DashboardGrid onTabChange={setActiveTab} />
             </TabsContent>
 
+            {/* Asset Documentation Grid */}
+            <TabsContent value="asset-documentation">
+              <AssetDocumentationGrid />
+            </TabsContent>
+
             {/* Password Catalog - opens SecureVault focused on passwords */}
             <TabsContent value="password-catalog">
-              <SecureVault initialTab="passwords" />
+              <div className="space-y-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground">{getSectionConfig().title}</h2>
+                  <p className="text-muted-foreground text-sm mt-1">{getSectionConfig().subtitle}</p>
+                </div>
+                <SecureVault initialTab="passwords" />
+              </div>
             </TabsContent>
 
             {/* Legacy Locker - opens SecureVault focused on legacy */}
             <TabsContent value="legacy-locker">
-              <SecureVault initialTab="legacy" />
+              <div className="space-y-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground">{getSectionConfig().title}</h2>
+                  <p className="text-muted-foreground text-sm mt-1">{getSectionConfig().subtitle}</p>
+                </div>
+                <SecureVault initialTab="legacy" />
+              </div>
             </TabsContent>
 
             {/* Protection Progress (merged Checklist + Score) */}
             <TabsContent value="protection-progress">
-              <div className="space-y-6">
+              <div className="space-y-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground">{getSectionConfig().title}</h2>
+                  <p className="text-muted-foreground text-sm mt-1">{getSectionConfig().subtitle}</p>
+                </div>
                 <ProtectionScore defaultOpen />
                 <DocumentationChecklist />
               </div>
@@ -182,34 +211,77 @@ const Account: React.FC = () => {
             <TabsContent value="life-hub">
               <LifeHubGrid onTabChange={setActiveTab} />
             </TabsContent>
+
             <TabsContent value="asset-values">
-              <AssetValuesSection />
+              <div className="space-y-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground">{getSectionConfig().title}</h2>
+                  <p className="text-muted-foreground text-sm mt-1">{getSectionConfig().subtitle}</p>
+                </div>
+                <AssetValuesSection />
+              </div>
             </TabsContent>
 
             <TabsContent value="source-websites">
-              <SourceWebsitesSection />
+              <div className="space-y-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground">{getSectionConfig().title}</h2>
+                  <p className="text-muted-foreground text-sm mt-1">{getSectionConfig().subtitle}</p>
+                </div>
+                <SourceWebsitesSection />
+              </div>
             </TabsContent>
 
             <TabsContent value="damage">
-              <PostDamageSection />
+              <div className="space-y-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground">{getSectionConfig().title}</h2>
+                  <p className="text-muted-foreground text-sm mt-1">{getSectionConfig().subtitle}</p>
+                </div>
+                <PostDamageSection />
+              </div>
             </TabsContent>
 
             <TabsContent value="voice-notes">
-              <FeatureGuard featureKey="voice_notes">
-                <VoiceNotesSection />
-              </FeatureGuard>
+              <div className="space-y-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground">{getSectionConfig().title}</h2>
+                  <p className="text-muted-foreground text-sm mt-1">{getSectionConfig().subtitle}</p>
+                </div>
+                <FeatureGuard featureKey="voice_notes">
+                  <VoiceNotesSection />
+                </FeatureGuard>
+              </div>
             </TabsContent>
 
             <TabsContent value="paint-codes">
-              <PaintCodesSection />
+              <div className="space-y-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground">{getSectionConfig().title}</h2>
+                  <p className="text-muted-foreground text-sm mt-1">{getSectionConfig().subtitle}</p>
+                </div>
+                <PaintCodesSection />
+              </div>
             </TabsContent>
 
             <TabsContent value="service-pros">
-              <ServiceProsSection />
+              <div className="space-y-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground">{getSectionConfig().title}</h2>
+                  <p className="text-muted-foreground text-sm mt-1">{getSectionConfig().subtitle}</p>
+                </div>
+                <ServiceProsSection />
+              </div>
             </TabsContent>
 
             <TabsContent value="upgrades-repairs">
-              <UpgradesRepairsSection />
+              <div className="space-y-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground">{getSectionConfig().title}</h2>
+                  <p className="text-muted-foreground text-sm mt-1">{getSectionConfig().subtitle}</p>
+                </div>
+                <UpgradesRepairsSection />
+              </div>
             </TabsContent>
           </Tabs>
 

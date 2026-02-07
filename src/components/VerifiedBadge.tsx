@@ -40,7 +40,7 @@ const VerifiedBadge: React.FC<VerifiedBadgeProps> = ({
     return null;
   }
 
-  // Verified+ badge (gold/amber)
+  // Verified+ badge (yellow)
   if (isVerifiedPlus) {
     return (
       <TooltipProvider>
@@ -50,11 +50,11 @@ const VerifiedBadge: React.FC<VerifiedBadgeProps> = ({
               <ShieldPlus 
                 className={cn(
                   sizeClasses[size], 
-                  'text-amber-500 fill-amber-100'
+                  'text-yellow-500 fill-yellow-100'
                 )} 
               />
               {showLabel && (
-                <span className={cn(labelSizeClasses[size], 'text-amber-600 font-medium')}>
+                <span className={cn(labelSizeClasses[size], 'text-yellow-600 font-medium')}>
                   Verified+
                 </span>
               )}
@@ -62,7 +62,7 @@ const VerifiedBadge: React.FC<VerifiedBadgeProps> = ({
           </TooltipTrigger>
           <TooltipContent>
             <div className="flex items-center gap-2">
-              <ShieldPlus className="h-4 w-4 text-amber-500" />
+              <ShieldPlus className="h-4 w-4 text-yellow-500" />
               <span>Verified+ Account (2FA Protected)</span>
             </div>
           </TooltipContent>
@@ -71,7 +71,7 @@ const VerifiedBadge: React.FC<VerifiedBadgeProps> = ({
     );
   }
 
-  // Standard Verified badge (blue)
+  // Standard Verified badge (green)
   return (
     <TooltipProvider>
       <Tooltip>
@@ -80,11 +80,11 @@ const VerifiedBadge: React.FC<VerifiedBadgeProps> = ({
             <BadgeCheck 
               className={cn(
                 sizeClasses[size], 
-                'text-blue-500 fill-blue-100'
+                'text-green-500 fill-green-100'
               )} 
             />
             {showLabel && (
-              <span className={cn(labelSizeClasses[size], 'text-blue-600 font-medium')}>
+              <span className={cn(labelSizeClasses[size], 'text-green-600 font-medium')}>
                 Verified
               </span>
             )}
@@ -92,7 +92,7 @@ const VerifiedBadge: React.FC<VerifiedBadgeProps> = ({
         </TooltipTrigger>
         <TooltipContent>
           <div className="flex items-center gap-2">
-            <BadgeCheck className="h-4 w-4 text-blue-500" />
+            <BadgeCheck className="h-4 w-4 text-green-500" />
             <span>Verified Asset Safe Account</span>
           </div>
         </TooltipContent>
