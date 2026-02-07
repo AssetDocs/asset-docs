@@ -71,12 +71,12 @@ const SecurityProgress: React.FC = () => {
     { label: 'Complete Your Profile', completed: isProfileComplete, phase: 1 },
     { label: 'Create Your First Property', completed: hasProperty, phase: 1 },
     { label: 'Upload Your First Photos or Documents', completed: hasUploads, phase: 1 },
-    { label: 'Add a Trusted Contact', completed: hasContributors, phase: 2 },
+    { label: 'Add an Authorized User', completed: hasContributors, phase: 2 },
     { label: 'Enable Multi-Factor Authentication', completed: has2FA, phase: 2 },
     { label: 'Upload Important Documents & Records', completed: hasDocuments, phase: 2 },
     { label: 'Enable Secure Vault Protection', completed: hasVaultEncryption, phase: 3 },
     { label: 'Add Legacy Locker & Password Catalog Details', completed: hasVaultData && hasPasswordEntries, phase: 3 },
-    { label: 'Assign a Recovery Delegate', completed: hasRecoveryDelegate, phase: 3 },
+    { label: 'Assign a Recovery Delegate (inside the Secure Vault)', completed: hasRecoveryDelegate, phase: 3 },
   ];
 
   const completedCount = allTasks.filter(t => t.completed).length;
