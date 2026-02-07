@@ -124,8 +124,13 @@ const SecurityProgress: React.FC = () => {
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-sm font-semibold text-foreground">Security Progress</span>
-              <UserStatusBadge status={statusLabel} size="sm" />
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-foreground">Security Progress</span>
+                  <UserStatusBadge status={statusLabel} size="sm" />
+                </div>
+                <p className="text-[11px] text-muted-foreground">Overall account protection status</p>
+              </div>
             </div>
 
             <div className="flex items-center gap-2">
@@ -202,7 +207,10 @@ const SecurityProgress: React.FC = () => {
           <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 flex-shrink-0">
             <ClipboardList className="h-4 w-4 text-primary" />
           </div>
-          <span className="text-sm font-semibold text-foreground">Documentation Checklist</span>
+          <div>
+            <span className="text-sm font-semibold text-foreground">Documentation Checklist</span>
+            <p className="text-[11px] text-muted-foreground">Specific steps to complete your setup</p>
+          </div>
         </div>
 
         {isChecklistOpen ? (
