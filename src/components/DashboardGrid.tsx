@@ -16,7 +16,6 @@ import {
   ShieldCheck,
   Wrench,
   Heart,
-  CheckSquare,
   FileDown,
   Download,
   AlertTriangle,
@@ -126,17 +125,6 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           actionLabel="Open Tools"
           actionIcon={<Wrench className="h-4 w-4" />}
           onClick={() => onTabChange('insights-tools')}
-          color="green"
-        />
-
-        <DashboardGridCard
-          icon={<CheckSquare className="h-6 w-6" />}
-          title="Protection Progress"
-          description="Track your documentation checklist and protection score in one place."
-          tags={['Checklist', 'Score', 'Coverage Gaps', 'Insurance Readiness']}
-          actionLabel="View Progress"
-          actionIcon={<CheckSquare className="h-4 w-4" />}
-          onClick={() => onTabChange('protection-progress')}
           color="green"
         />
 

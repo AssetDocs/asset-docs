@@ -19,6 +19,7 @@ import SecureVault from '@/components/SecureVault';
 import FeedbackSection from '@/components/FeedbackSection';
 import AdminContributorPlanInfo from '@/components/AdminContributorPlanInfo';
 import WelcomeBanner from '@/components/WelcomeBanner';
+import SecurityProgress from '@/components/SecurityProgress';
 import DashboardGrid from '@/components/DashboardGrid';
 import InsightsToolsGrid from '@/components/InsightsToolsGrid';
 import LifeHubGrid from '@/components/LifeHubGrid';
@@ -125,11 +126,14 @@ const Account: React.FC = () => {
           {/* Viewer Restriction Banner */}
           <ViewerRestrictionBanner />
 
-          {/* Welcome Banner with Protection Score and Onboarding - ONLY on overview */}
+          {/* Welcome Banner + Security Progress - ONLY on overview */}
           {isOverview && (
             <>
               <div className="mb-4">
                 <WelcomeBanner />
+              </div>
+              <div className="mb-6">
+                <SecurityProgress />
               </div>
               <AdminContributorPlanInfo />
             </>
