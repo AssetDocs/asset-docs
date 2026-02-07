@@ -95,6 +95,7 @@ import ARAPartnership from "./pages/ARAPartnership";
 import B2BOpportunities from "./pages/B2BOpportunities";
 import DevPartnerStrategy from "./pages/DevPartnerStrategy";
 import HabitatPartnership from "./pages/HabitatPartnership";
+import EnterpriseWhiteLabel from "./pages/EnterpriseWhiteLabel";
 import HabitatPilot from "./pages/HabitatPilot";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
@@ -354,6 +355,7 @@ const AppContent = () => {
         <Route path="/admin/dev-partner-strategy" element={<DevPartnerStrategy />} />
         <Route path="/admin/habitat-partnership" element={<HabitatPartnership />} />
         <Route path="/admin/habitat-pilot" element={<HabitatPilot />} />
+        <Route path="/admin/enterprise" element={<EnterpriseWhiteLabel />} />
         <Route path="/admin/dev-invite" element={<DevInviteAccept />} />
         <Route path="/acknowledge-access" element={<AcknowledgeAccess />} />
         

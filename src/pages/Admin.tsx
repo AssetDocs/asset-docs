@@ -247,6 +247,14 @@ const Admin = () => {
                     <span className="font-semibold">Habitat for Humanity</span>
                     <span className="text-sm text-muted-foreground">Homeownership Protection & Resilience</span>
                   </Button>
+                  <Button 
+                    variant="outline" 
+                    className="h-auto py-4 flex flex-col items-start text-left"
+                    onClick={() => navigate('/admin/enterprise')}
+                  >
+                    <span className="font-semibold">Enterprise White-Label</span>
+                    <span className="text-sm text-muted-foreground">Organizations & group deployments</span>
+                  </Button>
                 </div>
               </CardContent>
             </Card>
