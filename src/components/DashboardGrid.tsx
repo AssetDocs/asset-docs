@@ -81,10 +81,10 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
 
         <DashboardGridCard
           icon={<Heart className="h-6 w-6" />}
-          title="Life Hub"
+          title="Family Archive"
           description="Everyday life, organized and protected."
           tags={['VIP Contacts', 'Voice Notes', 'Trusted Pros', 'Notes & Traditions', 'Family Recipes']}
-          actionLabel="Open Life Hub"
+          actionLabel="Open Family Archive"
           actionIcon={<FolderOpen className="h-4 w-4" />}
           onClick={() => onTabChange('life-hub')}
           color="red"
