@@ -28,6 +28,9 @@ export interface PropertyFile {
   folder_id?: string | null;
   source?: string;
   damage_report_id?: string | null;
+  description?: string | null;
+  tags?: string[];
+  item_values?: Array<{ name: string; value: number | string }>;
   created_at: string;
 }
 

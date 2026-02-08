@@ -87,11 +87,25 @@ const MediaEdit: React.FC = () => {
 
         setFormData({
           fileName: file.file_name || '',
-          description: '',
-          tags: '',
+          description: file.description || '',
+          tags: Array.isArray(file.tags) ? file.tags.join(', ') : '',
           propertyId: file.property_id || '',
           folderId: file.folder_id || ''
         });
+
+        // Load item values from the file record
+        if (file.item_values && Array.isArray(file.item_values)) {
+          const loadedItems = (file.item_values as Array<{ name: string; value: number | string }>).map(
+            (iv: { name: string; value: number | string }) => ({
+              id: crypto.randomUUID(),
+              name: iv.name || '',
+              value: String(iv.value || ''),
+            })
+          );
+          if (loadedItems.length > 0) {
+            setItems(loadedItems);
+          }
+        }
 
         // Load folders from unified photo_folders table (used for all media)
         const { data: foldersData } = await supabase
@@ -124,12 +138,21 @@ const MediaEdit: React.FC = () => {
     setIsSaving(true);
     
     try {
+      // Build tags array and item_values
+      const parsedTags = formData.tags.split(',').map(t => t.trim()).filter(Boolean);
+      const filteredItems = items
+        .filter(item => item.name.trim() !== '')
+        .map(item => ({ name: item.name, value: item.value ? Number(item.value) : 0 }));
+
       const { error } = await supabase
         .from('property_files')
         .update({
           file_name: formData.fileName,
           property_id: formData.propertyId || null,
-          folder_id: formData.folderId || null
+          folder_id: formData.folderId || null,
+          description: formData.description || null,
+          tags: parsedTags,
+          item_values: filteredItems,
         })
         .eq('id', id)
         .eq('user_id', user.id);

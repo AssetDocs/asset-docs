@@ -86,7 +86,11 @@ export const usePropertyFiles = (propertyId: string | null, fileType?: 'photo' |
     fetchFiles();
   }, [propertyId, fileType]);
 
-  const uploadFiles = async (filesToUpload: File[], folderId?: string) => {
+  const uploadFiles = async (
+    filesToUpload: File[],
+    folderId?: string,
+    metadata?: { description?: string; tags?: string[]; item_values?: Array<{ name: string; value: number | string }> }
+  ) => {
     if (!propertyId || !user) {
       toast({
         title: 'Error',
@@ -143,6 +147,9 @@ export const usePropertyFiles = (propertyId: string | null, fileType?: 'photo' |
               file_size: file.size,
               bucket_name: bucket,
               folder_id: folderId || null,
+              description: metadata?.description || null,
+              tags: metadata?.tags || [],
+              item_values: metadata?.item_values || [],
             });
 
             if (propertyFile) {

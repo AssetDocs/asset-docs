@@ -2077,6 +2077,7 @@ export type Database = {
           bucket_name: string
           created_at: string | null
           damage_report_id: string | null
+          description: string | null
           file_name: string
           file_path: string
           file_size: number | null
@@ -2084,14 +2085,17 @@ export type Database = {
           file_url: string
           folder_id: string | null
           id: string
+          item_values: Json | null
           property_id: string
           source: string | null
+          tags: string[] | null
           user_id: string
         }
         Insert: {
           bucket_name: string
           created_at?: string | null
           damage_report_id?: string | null
+          description?: string | null
           file_name: string
           file_path: string
           file_size?: number | null
@@ -2099,14 +2103,17 @@ export type Database = {
           file_url: string
           folder_id?: string | null
           id?: string
+          item_values?: Json | null
           property_id: string
           source?: string | null
+          tags?: string[] | null
           user_id: string
         }
         Update: {
           bucket_name?: string
           created_at?: string | null
           damage_report_id?: string | null
+          description?: string | null
           file_name?: string
           file_path?: string
           file_size?: number | null
@@ -2114,8 +2121,10 @@ export type Database = {
           file_url?: string
           folder_id?: string | null
           id?: string
+          item_values?: Json | null
           property_id?: string
           source?: string | null
+          tags?: string[] | null
           user_id?: string
         }
         Relationships: [
