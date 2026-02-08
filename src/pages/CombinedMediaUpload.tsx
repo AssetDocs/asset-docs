@@ -152,8 +152,18 @@ const CombinedMediaUpload: React.FC = () => {
     }
 
     try {
-      // Upload files with folder_id if selected
-      await uploadFiles(selectedFiles, selectedFolderId || undefined);
+      // Build metadata from form fields
+      const parsedTags = tags.split(',').map(t => t.trim()).filter(Boolean);
+      const filteredItems = items
+        .filter(item => item.name.trim() !== '')
+        .map(item => ({ name: item.name, value: item.value ? Number(item.value) : 0 }));
+
+      // Upload files with folder_id and metadata
+      await uploadFiles(selectedFiles, selectedFolderId || undefined, {
+        description: description || undefined,
+        tags: parsedTags.length > 0 ? parsedTags : undefined,
+        item_values: filteredItems.length > 0 ? filteredItems : undefined,
+      });
       toast({
         title: "Success",
         description: `${selectedFiles.length} file(s) uploaded successfully`
