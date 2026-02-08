@@ -142,49 +142,51 @@ const PhotoGalleryFolders: React.FC<PhotoGalleryFoldersProps> = ({
                   {isDragOver && (
                     <div className="absolute -top-1 left-0 right-0 h-0.5 bg-brand-blue rounded-full" />
                   )}
-                  <Button
-                    variant={isSelected ? 'default' : 'ghost'}
-                    className="w-full justify-start p-3 h-auto pr-20"
-                    onClick={() => onFolderSelect(folder.id)}
-                  >
-                    <div className="cursor-grab active:cursor-grabbing mr-2 text-muted-foreground hover:text-foreground">
-                      <GripVertical className="h-4 w-4" />
-                    </div>
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center mr-3 ${folder.gradient_color}`}>
-                      <Folder className="h-4 w-4 text-white fill-white" />
-                    </div>
-                    <div className="flex-1 text-left min-w-0">
-                      <div className="font-medium text-sm">{folder.folder_name}</div>
-                      {folder.description && (
-                        <div className="text-xs text-muted-foreground truncate">{folder.description}</div>
+                  <div className="flex items-center w-full gap-1">
+                    <Button
+                      variant={isSelected ? 'default' : 'ghost'}
+                      className="flex-1 justify-start p-3 h-auto min-w-0"
+                      onClick={() => onFolderSelect(folder.id)}
+                    >
+                      <div className="cursor-grab active:cursor-grabbing mr-2 text-muted-foreground hover:text-foreground shrink-0">
+                        <GripVertical className="h-4 w-4" />
+                      </div>
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center mr-3 shrink-0 ${folder.gradient_color}`}>
+                        <Folder className="h-4 w-4 text-white fill-white" />
+                      </div>
+                      <div className="flex-1 text-left min-w-0 overflow-hidden">
+                        <div className="font-medium text-sm truncate">{folder.folder_name}</div>
+                        {folder.description && (
+                          <div className="text-xs text-muted-foreground truncate">{folder.description}</div>
+                        )}
+                      </div>
+                    </Button>
+                    <div className="flex shrink-0">
+                      {onEditFolder && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 hover:bg-muted"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEditFolder(folder);
+                          }}
+                        >
+                          <Pencil className="h-4 w-4 text-muted-foreground" />
+                        </Button>
                       )}
-                    </div>
-                  </Button>
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
-                    {onEditFolder && (
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-8 w-8 p-0 hover:bg-muted"
+                        className="h-8 w-8 p-0 hover:bg-destructive/10"
                         onClick={(e) => {
                           e.stopPropagation();
-                          onEditFolder(folder);
+                          onDeleteFolder(folder.id);
                         }}
                       >
-                        <Pencil className="h-4 w-4 text-muted-foreground" />
+                        <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0 hover:bg-destructive/10"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDeleteFolder(folder.id);
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                    </div>
                   </div>
                 </div>
               );
