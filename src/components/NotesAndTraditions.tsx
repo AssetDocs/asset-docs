@@ -159,62 +159,70 @@ const NotesAndTraditions: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">Notes & Traditions</h2>
-          <p className="text-muted-foreground text-sm mt-1">Capture family traditions, stories, and important notes.</p>
-        </div>
-        <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
-          <DialogTrigger asChild>
-            <Button size="sm"><Plus className="h-4 w-4 mr-1" />Add Note</Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>{editingNote ? 'Edit Note' : 'Add Note or Tradition'}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="note-title">Title *</Label>
-                <Input id="note-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Grandma's Holiday Tradition" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="note-subject">Subject</Label>
-                  <Input id="note-subject" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="e.g. Family Story" />
-                </div>
-                <div>
-                  <Label htmlFor="note-holiday">Holiday / Occasion</Label>
-                  <Input id="note-holiday" value={holiday} onChange={(e) => setHoliday(e.target.value)} placeholder="e.g. Christmas" />
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="note-content">Details</Label>
-                <Textarea id="note-content" value={content} onChange={(e) => setContent(e.target.value)} placeholder="Write your note, tradition, or story here..." rows={5} />
-              </div>
-              <div>
-                <Label>Or Upload a File</Label>
-                <div className="mt-1">
-                  {selectedFile ? (
-                    <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-3">
-                      <FileText className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm truncate flex-1">{selectedFile.name}</span>
-                      <Button variant="ghost" size="sm" onClick={() => setSelectedFile(null)}><X className="h-4 w-4" /></Button>
-                    </div>
-                  ) : (
-                    <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                      <Upload className="h-4 w-4 mr-1" />Choose File
-                    </Button>
-                  )}
-                  <input ref={fileInputRef} type="file" className="hidden" accept="image/*,.pdf,.doc,.docx,.txt" onChange={(e) => setSelectedFile(e.target.files?.[0] || null)} />
-                </div>
-              </div>
-              <Button onClick={handleSave} disabled={isSaving} className="w-full">
-                {isSaving ? 'Saving...' : editingNote ? 'Update Note' : 'Save Note'}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BookOpen className="h-5 w-5 text-brand-blue" />
+            Notes & Traditions
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">Capture family traditions, stories, and important notes.</p>
+        </CardHeader>
+        <CardContent>
+          <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
+            <DialogTrigger asChild>
+              <Button className="w-full bg-brand-blue hover:bg-brand-blue/90">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Note or Tradition
               </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>{editingNote ? 'Edit Note' : 'Add Note or Tradition'}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="note-title">Title *</Label>
+                  <Input id="note-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Grandma's Holiday Tradition" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="note-subject">Subject</Label>
+                    <Input id="note-subject" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="e.g. Family Story" />
+                  </div>
+                  <div>
+                    <Label htmlFor="note-holiday">Holiday / Occasion</Label>
+                    <Input id="note-holiday" value={holiday} onChange={(e) => setHoliday(e.target.value)} placeholder="e.g. Christmas" />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="note-content">Details</Label>
+                  <Textarea id="note-content" value={content} onChange={(e) => setContent(e.target.value)} placeholder="Write your note, tradition, or story here..." rows={5} />
+                </div>
+                <div>
+                  <Label>Or Upload a File</Label>
+                  <div className="mt-1">
+                    {selectedFile ? (
+                      <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-3">
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm truncate flex-1">{selectedFile.name}</span>
+                        <Button variant="ghost" size="sm" onClick={() => setSelectedFile(null)}><X className="h-4 w-4" /></Button>
+                      </div>
+                    ) : (
+                      <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                        <Upload className="h-4 w-4 mr-1" />Choose File
+                      </Button>
+                    )}
+                    <input ref={fileInputRef} type="file" className="hidden" accept="image/*,.pdf,.doc,.docx,.txt" onChange={(e) => setSelectedFile(e.target.files?.[0] || null)} />
+                  </div>
+                </div>
+                <Button onClick={handleSave} disabled={isSaving} className="w-full">
+                  {isSaving ? 'Saving...' : editingNote ? 'Update Note' : 'Save Note'}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </CardContent>
+      </Card>
 
       {isLoading ? (
         <div className="text-center py-8 text-muted-foreground">Loading...</div>
