@@ -325,7 +325,11 @@ export const VoiceNotesSection = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Record New Voice Note</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Mic className="h-5 w-5 text-brand-blue" />
+            Voice Notes
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">Record and store voice memos for your records.</p>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>

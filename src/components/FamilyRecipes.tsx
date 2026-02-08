@@ -153,56 +153,64 @@ const FamilyRecipes: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">Family Recipes</h2>
-          <p className="text-muted-foreground text-sm mt-1">Preserve cherished family recipes for generations.</p>
-        </div>
-        <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
-          <DialogTrigger asChild>
-            <Button size="sm"><Plus className="h-4 w-4 mr-1" />Add Recipe</Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>{editingRecipe ? 'Edit Recipe' : 'Add Family Recipe'}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="recipe-name">Recipe Name *</Label>
-                <Input id="recipe-name" value={recipeName} onChange={(e) => setRecipeName(e.target.value)} placeholder="e.g. Grandma's Apple Pie" />
-              </div>
-              <div>
-                <Label htmlFor="recipe-creator">Who's Recipe / Created By</Label>
-                <Input id="recipe-creator" value={createdByPerson} onChange={(e) => setCreatedByPerson(e.target.value)} placeholder="e.g. Grandma Rose" />
-              </div>
-              <div>
-                <Label htmlFor="recipe-details">Recipe Details</Label>
-                <Textarea id="recipe-details" value={details} onChange={(e) => setDetails(e.target.value)} placeholder="Ingredients, instructions, family notes..." rows={6} />
-              </div>
-              <div>
-                <Label>Or Upload a File</Label>
-                <div className="mt-1">
-                  {selectedFile ? (
-                    <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-3">
-                      <FileText className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm truncate flex-1">{selectedFile.name}</span>
-                      <Button variant="ghost" size="sm" onClick={() => setSelectedFile(null)}><X className="h-4 w-4" /></Button>
-                    </div>
-                  ) : (
-                    <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                      <Upload className="h-4 w-4 mr-1" />Choose File
-                    </Button>
-                  )}
-                  <input ref={fileInputRef} type="file" className="hidden" accept="image/*,.pdf,.doc,.docx,.txt" onChange={(e) => setSelectedFile(e.target.files?.[0] || null)} />
-                </div>
-              </div>
-              <Button onClick={handleSave} disabled={isSaving} className="w-full">
-                {isSaving ? 'Saving...' : editingRecipe ? 'Update Recipe' : 'Save Recipe'}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ChefHat className="h-5 w-5 text-brand-blue" />
+            Family Recipes
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">Preserve cherished family recipes for generations.</p>
+        </CardHeader>
+        <CardContent>
+          <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
+            <DialogTrigger asChild>
+              <Button className="w-full bg-brand-blue hover:bg-brand-blue/90">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Family Recipe
               </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>{editingRecipe ? 'Edit Recipe' : 'Add Family Recipe'}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="recipe-name">Recipe Name *</Label>
+                  <Input id="recipe-name" value={recipeName} onChange={(e) => setRecipeName(e.target.value)} placeholder="e.g. Grandma's Apple Pie" />
+                </div>
+                <div>
+                  <Label htmlFor="recipe-creator">Who's Recipe / Created By</Label>
+                  <Input id="recipe-creator" value={createdByPerson} onChange={(e) => setCreatedByPerson(e.target.value)} placeholder="e.g. Grandma Rose" />
+                </div>
+                <div>
+                  <Label htmlFor="recipe-details">Recipe Details</Label>
+                  <Textarea id="recipe-details" value={details} onChange={(e) => setDetails(e.target.value)} placeholder="Ingredients, instructions, family notes..." rows={6} />
+                </div>
+                <div>
+                  <Label>Or Upload a File</Label>
+                  <div className="mt-1">
+                    {selectedFile ? (
+                      <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-3">
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm truncate flex-1">{selectedFile.name}</span>
+                        <Button variant="ghost" size="sm" onClick={() => setSelectedFile(null)}><X className="h-4 w-4" /></Button>
+                      </div>
+                    ) : (
+                      <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                        <Upload className="h-4 w-4 mr-1" />Choose File
+                      </Button>
+                    )}
+                    <input ref={fileInputRef} type="file" className="hidden" accept="image/*,.pdf,.doc,.docx,.txt" onChange={(e) => setSelectedFile(e.target.files?.[0] || null)} />
+                  </div>
+                </div>
+                <Button onClick={handleSave} disabled={isSaving} className="w-full">
+                  {isSaving ? 'Saving...' : editingRecipe ? 'Update Recipe' : 'Save Recipe'}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </CardContent>
+      </Card>
 
       {isLoading ? (
         <div className="text-center py-8 text-muted-foreground">Loading...</div>
