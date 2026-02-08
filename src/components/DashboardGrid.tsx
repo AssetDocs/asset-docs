@@ -13,7 +13,7 @@ import {
   FolderOpen,
   Key,
   Shield,
-  ShieldCheck,
+  
   Wrench,
   Heart,
   FileDown,
@@ -100,8 +100,8 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           actionIcon={<Shield className="h-4 w-4" />}
           onClick={() => onTabChange('legacy-locker')}
           color="yellow"
-          badge="Secured by Secure Vault"
-          badgeIcon={<ShieldCheck className="h-3 w-3" />}
+          badge="Authorized Users Only"
+          badgeIcon={<span className="text-[10px]">🔒</span>}
         />
 
         <DashboardGridCard
@@ -113,8 +113,8 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           actionIcon={<Key className="h-4 w-4" />}
           onClick={() => onTabChange('password-catalog')}
           color="yellow"
-          badge="Secured by Secure Vault"
-          badgeIcon={<ShieldCheck className="h-3 w-3" />}
+          badge="Authorized Users Only"
+          badgeIcon={<span className="text-[10px]">🔒</span>}
         />
 
         {/* Row 3: Green */}
