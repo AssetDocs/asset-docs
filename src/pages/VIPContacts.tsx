@@ -349,7 +349,7 @@ const VIPContacts: React.FC = () => {
                 if (!open) resetForm();
               }}>
                 <DialogTrigger asChild>
-                  <Button className="bg-brand-green hover:bg-brand-green/90">
+                  <Button className="bg-primary hover:bg-primary/90">
                     <Plus className="h-4 w-4 mr-2" />
                     Add Contact
                   </Button>
@@ -488,7 +488,7 @@ const VIPContacts: React.FC = () => {
                       >
                         Cancel
                       </Button>
-                      <Button type="submit" disabled={saving} className="bg-brand-green hover:bg-brand-green/90">
+                      <Button type="submit" disabled={saving} className="bg-primary hover:bg-primary/90">
                         {saving ? 'Saving...' : editingContact ? 'Update Contact' : 'Add Contact'}
                       </Button>
                     </DialogFooter>
@@ -500,7 +500,7 @@ const VIPContacts: React.FC = () => {
 
           {loading ? (
             <div className="flex justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-green"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : contacts.length === 0 ? (
             <Card>
@@ -513,7 +513,7 @@ const VIPContacts: React.FC = () => {
                 {!isViewer && (
                   <Button 
                     onClick={() => setIsDialogOpen(true)}
-                    className="bg-brand-green hover:bg-brand-green/90"
+                    className="bg-primary hover:bg-primary/90"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Your First Contact
