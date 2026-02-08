@@ -209,7 +209,7 @@ const SecurityProgress: React.FC = () => {
           </div>
           <div>
             <span className="text-sm font-semibold text-foreground">Documentation Checklist</span>
-            <p className="text-[11px] text-muted-foreground">Specific steps to complete your setup</p>
+            <p className="text-[11px] text-muted-foreground">A guided checklist for documenting your home, business, and more</p>
           </div>
         </div>
 

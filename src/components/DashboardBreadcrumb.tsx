@@ -5,10 +5,14 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface DashboardBreadcrumbProps {
   showBackButton?: boolean;
+  parentRoute?: string;
+  parentLabel?: string;
 }
 
 const DashboardBreadcrumb: React.FC<DashboardBreadcrumbProps> = ({ 
-  showBackButton = true 
+  showBackButton = true,
+  parentRoute,
+  parentLabel,
 }) => {
   const location = useLocation();
 
@@ -57,19 +61,35 @@ const DashboardBreadcrumb: React.FC<DashboardBreadcrumbProps> = ({
 
   return (
     <div className="flex items-center gap-4 mb-6">
-      {showBackButton && (
-        <Button
-          variant="outline"
-          size="sm"
-          asChild
-          className="flex items-center gap-2 bg-white text-brand-orange border-brand-orange hover:bg-brand-orange/10"
-        >
-          <Link to="/account">
-            <ChevronLeft className="h-4 w-4" />
-            Back to Dashboard
-          </Link>
-        </Button>
-      )}
+      <div className="flex flex-wrap items-center gap-2">
+        {showBackButton && (
+          <Button
+            variant="outline"
+            size="sm"
+            asChild
+            className="flex items-center gap-2 bg-white text-brand-orange border-brand-orange hover:bg-brand-orange/10"
+          >
+            <Link to="/account">
+              <ChevronLeft className="h-4 w-4" />
+              Back to Dashboard
+            </Link>
+          </Button>
+        )}
+
+        {parentRoute && parentLabel && (
+          <Button
+            variant="outline"
+            size="sm"
+            asChild
+            className="flex items-center gap-2 bg-white text-brand-orange border-brand-orange hover:bg-brand-orange/10"
+          >
+            <Link to={parentRoute}>
+              <ChevronLeft className="h-4 w-4" />
+              {parentLabel}
+            </Link>
+          </Button>
+        )}
+      </div>
       
       <div className="flex items-center gap-2 text-gray-600">
         <ChevronRight className="h-4 w-4" />

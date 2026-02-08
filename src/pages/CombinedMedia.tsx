@@ -397,7 +397,7 @@ const CombinedMedia: React.FC = () => {
       
       <div className="flex-grow py-8 px-4 bg-gray-50">
         <div className="max-w-7xl mx-auto">
-          <DashboardBreadcrumb />
+          <DashboardBreadcrumb parentRoute="/account?tab=asset-documentation" parentLabel="Back to Asset Documentation" />
           
           {/* Header */}
           <div className="mb-6">

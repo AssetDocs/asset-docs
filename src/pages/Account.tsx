@@ -43,9 +43,10 @@ const Account: React.FC = () => {
   const { toast } = useToast();
   const [showTour, setShowTour] = useState(false);
   const [activeTab, setActiveTab] = useState(() => {
-    // Check if navigated with a tab state (e.g., from VIP Contacts "Back to Family Archive")
+    // Check query param first (e.g., from breadcrumb links), then navigation state
+    const queryTab = searchParams.get('tab');
     const stateTab = (location.state as any)?.tab;
-    return stateTab || 'overview';
+    return queryTab || stateTab || 'overview';
   });
   const { subscriptionTier } = useSubscription();
   const { isViewer, showViewerRestriction, canEdit } = useContributor();
