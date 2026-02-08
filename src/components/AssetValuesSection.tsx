@@ -1,86 +1,41 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { DollarSign, TrendingUp, Package, Home, ToggleLeft, ToggleRight } from 'lucide-react';
-import { PropertyValuation, propertyValuationService } from '@/services/PropertyValuationService';
-import PropertyValuesSection from '@/components/PropertyValuesSection';
-import { ItemService } from '@/services/ItemService';
-import { supabase } from '@/integrations/supabase/client';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { DollarSign, TrendingUp, Package, Home, ToggleLeft, ToggleRight, RefreshCw, FileText, ShoppingBag, Building } from 'lucide-react';
+import { useAssetValues, AssetEntry } from '@/hooks/useAssetValues';
+import { Skeleton } from '@/components/ui/skeleton';
 
-// Asset categories with colors
-const assetCategories = [
-  { category: 'Electronics', color: '#0EA5E9' },
-  { category: 'Furniture', color: '#10B981' },
-  { category: 'Jewelry & Watches', color: '#F59E0B' },
-  { category: 'Appliances', color: '#EF4444' },
-  { category: 'Art & Collectibles', color: '#8B5CF6' },
-  { category: 'Tools & Equipment', color: '#F97316' }
-];
+const sourceIcon = (source: AssetEntry['source']) => {
+  switch (source) {
+    case 'property': return <Building className="h-4 w-4 text-emerald-600" />;
+    case 'item': return <ShoppingBag className="h-4 w-4 text-sky-600" />;
+    case 'file_value': return <FileText className="h-4 w-4 text-violet-600" />;
+  }
+};
+
+const sourceLabel = (source: AssetEntry['source']) => {
+  switch (source) {
+    case 'property': return 'Real Estate';
+    case 'item': return 'Inventory Item';
+    case 'file_value': return 'Documented Value';
+  }
+};
 
 const AssetValuesSection: React.FC = () => {
-  const [propertyValuations, setPropertyValuations] = useState<PropertyValuation[]>([]);
-  const [personalAssetData, setPersonalAssetData] = useState<Array<{category: string, value: number, color: string}>>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [showIndividualProperties, setShowIndividualProperties] = useState(false);
+  const { entries, totalValue, summaryByCategory, isLoading, refresh } = useAssetValues();
+  const [viewMode, setViewMode] = useState<'summary' | 'itemized'>('summary');
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  useEffect(() => {
-    loadAllData();
-  }, []);
-
-  const loadAllData = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setIsLoading(false);
-        return;
-      }
-
-      // Load property valuations
-      const valuations = await propertyValuationService.getAllPropertyValuations();
-      setPropertyValuations(valuations);
-
-      // Load items and calculate values by category
-      const items = await ItemService.getUserItems(user.id);
-      
-      // Group items by category and sum values
-      const categoryValues = new Map<string, number>();
-      items.forEach(item => {
-        const category = item.category || 'Other';
-        const value = Number(item.estimated_value) || 0;
-        categoryValues.set(category, (categoryValues.get(category) || 0) + value);
-      });
-
-      // Create asset data array from actual data
-      const assetData = assetCategories.map(cat => ({
-        category: cat.category,
-        value: categoryValues.get(cat.category) || 0,
-        color: cat.color
-      })).filter(item => item.value > 0); // Only show categories with values
-
-      setPersonalAssetData(assetData);
-    } catch (error) {
-      console.error('Error loading asset data:', error);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await refresh();
+    setIsRefreshing(false);
   };
 
-  // Calculate total property value
-  const totalPropertyValue = propertyValuationService.calculateTotalPropertyValue(propertyValuations);
-  
-  // Combine personal assets with real estate
-  const combinedAssetData = [
-    ...personalAssetData,
-    { 
-      category: 'Real Estate', 
-      value: totalPropertyValue, 
-      color: '#059669' 
-    }
-  ].filter(item => item.value > 0); // Only show items with values
-
-  const totalPersonalAssets = personalAssetData.reduce((sum, item) => sum + item.value, 0);
-  const totalAllAssets = totalPersonalAssets + totalPropertyValue;
+  const realEstateTotal = summaryByCategory.find(s => s.category === 'Real Estate')?.totalValue || 0;
+  const personalAssetsTotal = totalValue - realEstateTotal;
 
   if (isLoading) {
     return (
@@ -89,10 +44,8 @@ const AssetValuesSection: React.FC = () => {
           {[1, 2, 3, 4].map((i) => (
             <Card key={i}>
               <CardContent className="p-6">
-                <div className="animate-pulse">
-                  <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-                  <div className="h-8 bg-gray-200 rounded w-3/4"></div>
-                </div>
+                <Skeleton className="h-4 w-1/2 mb-2" />
+                <Skeleton className="h-8 w-3/4" />
               </CardContent>
             </Card>
           ))}
@@ -103,204 +56,198 @@ const AssetValuesSection: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      {/* Property View Toggle */}
-      <div className="flex justify-end">
+      {/* Controls */}
+      <div className="flex flex-wrap justify-between items-center gap-2">
         <Button
           variant="outline"
+          size="sm"
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+          {isRefreshing ? 'Refreshing...' : 'Refresh'}
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
           onClick={() => {
             const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
             if (isOnSampleDashboard) {
-              alert('AssetSafe.net says\n\nDemo: This toggles between combined asset view and individual property details view.');
+              alert('AssetSafe.net says\n\nDemo: This toggles between category summary and itemized list view.');
               return;
             }
-            setShowIndividualProperties(!showIndividualProperties);
+            setViewMode(viewMode === 'summary' ? 'itemized' : 'summary');
           }}
           className="flex items-center gap-2"
         >
-          {showIndividualProperties ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
-          {showIndividualProperties ? 'Show Combined View' : 'Show Individual Properties'}
+          {viewMode === 'itemized' ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
+          {viewMode === 'itemized' ? 'Show Category Summary' : 'Show Itemized List'}
         </Button>
       </div>
 
-      {/* Enhanced Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
               <DollarSign className="h-8 w-8 text-brand-blue" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Asset Value</p>
-                <p className="text-2xl font-bold">${totalAllAssets.toLocaleString()}</p>
+                <p className="text-sm font-medium text-muted-foreground">Total Asset Value</p>
+                <p className="text-2xl font-bold">${totalValue.toLocaleString()}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
               <Home className="h-8 w-8 text-brand-blue" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Real Estate Value</p>
-                <p className="text-2xl font-bold">${totalPropertyValue.toLocaleString()}</p>
+                <p className="text-sm font-medium text-muted-foreground">Real Estate Value</p>
+                <p className="text-2xl font-bold">${realEstateTotal.toLocaleString()}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
               <Package className="h-8 w-8 text-brand-blue" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Personal Assets</p>
-                <p className="text-2xl font-bold">${totalPersonalAssets.toLocaleString()}</p>
+                <p className="text-sm font-medium text-muted-foreground">Personal Assets</p>
+                <p className="text-2xl font-bold">${personalAssetsTotal.toLocaleString()}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
               <TrendingUp className="h-8 w-8 text-brand-blue" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Real Estate %</p>
-                <p className="text-2xl font-bold">{Math.round((totalPropertyValue / totalAllAssets) * 100)}%</p>
+                <p className="text-sm font-medium text-muted-foreground">Total Entries</p>
+                <p className="text-2xl font-bold">{entries.length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Complete Asset Breakdown Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Complete Asset Breakdown</CardTitle>
-          <CardDescription>
-            Detailed breakdown of all asset values by category
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {combinedAssetData.map((category) => (
-              <div key={category.category} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div 
-                    className="w-4 h-4 rounded-full" 
-                    style={{ backgroundColor: category.color }}
-                  />
-                  <span className="font-medium">{category.category}</span>
-                  {category.category === 'Real Estate' && (
-                    <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                      {propertyValuations.length} properties
-                    </span>
-                  )}
-                </div>
-                <div className="text-right">
-                  <p className="font-bold">${category.value.toLocaleString()}</p>
-                  <p className="text-sm text-gray-500">
-                    {((category.value / totalAllAssets) * 100).toFixed(1)}% of total
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Property Values Detailed Section */}
-      <div>
-        <h3 className="text-xl font-semibold mb-4 text-brand-blue">
-          {showIndividualProperties ? 'Individual Property Details' : 'Combined Property Summary'}
-        </h3>
-        {showIndividualProperties ? (
-          // Individual Properties View - Show each property separately
-          <div className="space-y-4">
-            {propertyValuations.length === 0 ? (
-              <Card>
-                <CardContent className="p-6 text-center text-muted-foreground">
-                  No properties found. Add properties to see individual valuations.
-                </CardContent>
-              </Card>
+      {/* Category Summary View */}
+      {viewMode === 'summary' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Asset Breakdown by Category</CardTitle>
+            <CardDescription>
+              Accumulated values across all properties, inventory items, and documented file values
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {summaryByCategory.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">
+                No asset values found. Add estimated values to your properties, items, or file uploads.
+              </p>
             ) : (
-              propertyValuations.map((property) => (
-                <Card key={property.propertyId}>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Home className="h-5 w-5 text-brand-blue" />
-                      {property.propertyId}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Estimated Value</p>
-                        <p className="text-xl font-bold text-brand-blue">
-                          ${(property.estimatedValue || 0).toLocaleString()}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Appraisal Value</p>
-                        <p className="text-xl font-bold">
-                          ${(property.appraisalValue || 0).toLocaleString()}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Annual Taxes</p>
-                        <p className="text-xl font-bold">
-                          ${(property.propertyTaxes || 0).toLocaleString()}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Source</p>
-                        <p className="text-sm font-medium">{property.source || 'N/A'}</p>
-                      </div>
+              <div className="space-y-3">
+                {summaryByCategory.map((cat) => (
+                  <div key={cat.category} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div
+                        className="w-4 h-4 rounded-full shrink-0"
+                        style={{ backgroundColor: cat.color }}
+                      />
+                      <span className="font-medium">{cat.category}</span>
+                      <Badge variant="secondary" className="text-xs">
+                        {cat.count} {cat.count === 1 ? 'entry' : 'entries'}
+                      </Badge>
                     </div>
-                    {property.lastUpdated && (
-                      <p className="text-xs text-muted-foreground mt-3">
-                        Last updated: {new Date(property.lastUpdated).toLocaleDateString()}
+                    <div className="text-right">
+                      <p className="font-bold">${cat.totalValue.toLocaleString()}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {totalValue > 0 ? ((cat.totalValue / totalValue) * 100).toFixed(1) : 0}% of total
                       </p>
-                    )}
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </div>
-        ) : (
-          // Combined View - Show portfolio summary
-          <Card>
-            <CardHeader>
-              <CardTitle>Total Real Estate Portfolio</CardTitle>
-              <CardDescription>
-                Combined value of all properties in your portfolio
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-brand-blue">
-                    ${totalPropertyValue.toLocaleString()}
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-600">Total Portfolio Value</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-brand-blue">
-                    {propertyValuations.length}
-                  </div>
-                  <div className="text-sm text-gray-600">Properties</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-brand-blue">
-                    ${Math.round(totalPropertyValue / Math.max(propertyValuations.length, 1)).toLocaleString()}
-                  </div>
-                  <div className="text-sm text-gray-600">Avg Property Value</div>
-                </div>
+                ))}
               </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Itemized List View */}
+      {viewMode === 'itemized' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Itemized Asset List</CardTitle>
+            <CardDescription>
+              Every individual asset entry with its value and source
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {entries.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">
+                No asset values found. Add estimated values to your properties, items, or file uploads.
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Asset Name</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Source</TableHead>
+                      <TableHead className="text-right">Value</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {entries
+                      .sort((a, b) => b.value - a.value)
+                      .map((entry) => (
+                        <TableRow key={entry.id}>
+                          <TableCell>
+                            <div>
+                              <span className="font-medium">{entry.name}</span>
+                              {entry.parentName && (
+                                <p className="text-xs text-muted-foreground mt-0.5">
+                                  From: {entry.parentName}
+                                </p>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{entry.category}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1.5">
+                              {sourceIcon(entry.source)}
+                              <span className="text-sm text-muted-foreground">{sourceLabel(entry.source)}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right font-semibold">
+                            ${entry.value.toLocaleString()}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    {/* Totals Row */}
+                    <TableRow className="border-t-2 bg-muted/50">
+                      <TableCell colSpan={3} className="font-bold">
+                        Total ({entries.length} entries)
+                      </TableCell>
+                      <TableCell className="text-right font-bold text-lg">
+                        ${totalValue.toLocaleString()}
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
