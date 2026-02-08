@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import AssetValuesSection from '@/components/AssetValuesSection';
@@ -39,9 +39,14 @@ import { ChevronLeft } from 'lucide-react';
 const Account: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const [showTour, setShowTour] = useState(false);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState(() => {
+    // Check if navigated with a tab state (e.g., from VIP Contacts "Back to Family Archive")
+    const stateTab = (location.state as any)?.tab;
+    return stateTab || 'overview';
+  });
   const { subscriptionTier } = useSubscription();
   const { isViewer, showViewerRestriction, canEdit } = useContributor();
 
@@ -99,7 +104,7 @@ const Account: React.FC = () => {
       'password-catalog': { title: 'Password Catalog', subtitle: 'Your most private information, fully encrypted.' },
       'legacy-locker': { title: 'Legacy Locker', subtitle: 'Guidance and access when you can\'t be there.' },
       'insights-tools': { title: 'Insights & Tools', subtitle: 'Track values, manage repairs, and organize property details.' },
-      'life-hub': { title: 'Life Hub', subtitle: 'Everyday life, organized and protected.' },
+      'life-hub': { title: 'Family Archive', subtitle: 'Everyday life, organized and protected.' },
       'protection-progress': { title: 'Protection Progress', subtitle: 'Track your documentation checklist and protection score in one place.' },
       'asset-values': { title: 'Asset Values', subtitle: 'Track the estimated value of your documented assets.' },
       'source-websites': { title: 'Source Websites', subtitle: 'Save product sources and reference links.' },
@@ -140,22 +145,11 @@ const Account: React.FC = () => {
           )}
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            {/* Back to Dashboard Button */}
+            {/* Back Navigation Buttons */}
             {!isOverview && (
-              <div className="w-full">
+              <div className="w-full flex flex-wrap gap-2">
                 <Button
-                  onClick={() => {
-                    const insightsSubTabs = ['asset-values', 'source-websites', 'paint-codes', 'upgrades-repairs'];
-                    const lifeHubSubTabs = ['voice-notes', 'service-pros', 'notes-traditions', 'family-recipes'];
-
-                    if (insightsSubTabs.includes(activeTab)) {
-                      setActiveTab('insights-tools');
-                    } else if (lifeHubSubTabs.includes(activeTab)) {
-                      setActiveTab('life-hub');
-                    } else {
-                      setActiveTab('overview');
-                    }
-                  }}
+                  onClick={() => setActiveTab('overview')}
                   variant="outline"
                   size="sm"
                   className="bg-white text-brand-orange border-brand-orange hover:bg-brand-orange/10"
@@ -163,6 +157,30 @@ const Account: React.FC = () => {
                   <ChevronLeft className="h-4 w-4 mr-1" />
                   Back to Dashboard
                 </Button>
+
+                {['voice-notes', 'service-pros', 'notes-traditions', 'family-recipes'].includes(activeTab) && (
+                  <Button
+                    onClick={() => setActiveTab('life-hub')}
+                    variant="outline"
+                    size="sm"
+                    className="bg-white text-brand-orange border-brand-orange hover:bg-brand-orange/10"
+                  >
+                    <ChevronLeft className="h-4 w-4 mr-1" />
+                    Back to Family Archive
+                  </Button>
+                )}
+
+                {['asset-values', 'source-websites', 'paint-codes', 'upgrades-repairs'].includes(activeTab) && (
+                  <Button
+                    onClick={() => setActiveTab('insights-tools')}
+                    variant="outline"
+                    size="sm"
+                    className="bg-white text-brand-orange border-brand-orange hover:bg-brand-orange/10"
+                  >
+                    <ChevronLeft className="h-4 w-4 mr-1" />
+                    Back to Insights & Tools
+                  </Button>
+                )}
               </div>
             )}
 
