@@ -7,12 +7,14 @@ interface DashboardBreadcrumbProps {
   showBackButton?: boolean;
   parentRoute?: string;
   parentLabel?: string;
+  hidePageName?: boolean;
 }
 
 const DashboardBreadcrumb: React.FC<DashboardBreadcrumbProps> = ({ 
   showBackButton = true,
   parentRoute,
   parentLabel,
+  hidePageName = false,
 }) => {
   const location = useLocation();
 
@@ -91,10 +93,12 @@ const DashboardBreadcrumb: React.FC<DashboardBreadcrumbProps> = ({
         )}
       </div>
       
-      <div className="flex items-center gap-2 text-gray-600">
-        <ChevronRight className="h-4 w-4" />
-        <span className="font-medium text-gray-900">{currentPageName}</span>
-      </div>
+      {!hidePageName && (
+        <div className="flex items-center gap-2 text-gray-600">
+          <ChevronRight className="h-4 w-4" />
+          <span className="font-medium text-gray-900">{currentPageName}</span>
+        </div>
+      )}
     </div>
   );
 };

@@ -5,11 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
-  ArrowLeft,
   Camera,
   Video,
   Plus,
-  Search,
   SortAsc,
   SortDesc,
   Calendar,
@@ -25,7 +23,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
+
 import { useNavigate } from 'react-router-dom';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import CreateFolderModal from '@/components/CreateFolderModal';
@@ -397,7 +395,7 @@ const CombinedMedia: React.FC = () => {
       
       <div className="flex-grow py-8 px-4 bg-gray-50">
         <div className="max-w-7xl mx-auto">
-          <DashboardBreadcrumb parentRoute="/account?tab=asset-documentation" parentLabel="Back to Asset Documentation" />
+          <DashboardBreadcrumb parentRoute="/account?tab=asset-documentation" parentLabel="Back to Asset Documentation" hidePageName />
           
           {/* Header */}
           <div className="mb-6">
@@ -408,18 +406,7 @@ const CombinedMedia: React.FC = () => {
               </p>
             </div>
 
-            {/* Search and Upload */}
             <div className="flex flex-wrap items-center gap-3">
-              <div className="relative flex-1 min-w-48">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Search files..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              
               <Button onClick={() => navigate('/account/media/upload')} className="w-full sm:w-auto bg-brand-blue hover:bg-brand-lightBlue">
                 <Plus className="h-4 w-4 mr-2" />
                 Upload Photo/Video
