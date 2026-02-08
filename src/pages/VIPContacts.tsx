@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import ContactAttachments from '@/components/ContactAttachments';
-// WelcomeBanner removed - only shown on main dashboard
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -318,7 +316,26 @@ const VIPContacts: React.FC = () => {
       
       <div className="flex-grow py-8 px-4 bg-gray-50">
         <div className="max-w-6xl mx-auto">
-          <DashboardBreadcrumb />
+          <div className="flex flex-wrap gap-2 mb-6">
+            <Button
+              onClick={() => navigate('/account')}
+              variant="outline"
+              size="sm"
+              className="bg-white text-brand-orange border-brand-orange hover:bg-brand-orange/10"
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Back to Dashboard
+            </Button>
+            <Button
+              onClick={() => navigate('/account', { state: { tab: 'life-hub' } })}
+              variant="outline"
+              size="sm"
+              className="bg-white text-brand-orange border-brand-orange hover:bg-brand-orange/10"
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Back to Family Archive
+            </Button>
+          </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
