@@ -93,10 +93,9 @@ const MediaEdit: React.FC = () => {
           folderId: file.folder_id || ''
         });
 
-        // Load folders based on media type
-        const folderTable = mediaType === 'video' ? 'video_folders' : 'photo_folders';
+        // Load folders from unified photo_folders table (used for all media)
         const { data: foldersData } = await supabase
-          .from(folderTable)
+          .from('photo_folders')
           .select('id, folder_name')
           .eq('user_id', user.id)
           .order('folder_name');
