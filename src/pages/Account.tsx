@@ -31,7 +31,7 @@ import { supabase } from '@/integrations/supabase/client';
 import UpgradesRepairsSection from '@/components/UpgradesRepairsSection';
 import PaintCodesSection from '@/components/PaintCodesSection';
 import ServiceProsSection from '@/components/ServiceProsSection';
-
+import AccessActivitySection from '@/components/AccessActivitySection';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
@@ -115,6 +115,7 @@ const Account: React.FC = () => {
       'upgrades-repairs': { title: 'Upgrades & Repairs', subtitle: 'Document property improvements and repair history.' },
       'notes-traditions': { title: 'Notes & Traditions', subtitle: 'Capture family traditions, stories, and important notes.' },
       'family-recipes': { title: 'Family Recipes', subtitle: 'Preserve cherished family recipes for generations.' },
+      'access-activity': { title: 'Access & Activity', subtitle: 'Manage authorized users and monitor recent account activity.' },
     };
     return configs[activeTab] || { title: '', subtitle: '' };
   };
@@ -316,6 +317,11 @@ const Account: React.FC = () => {
 
             <TabsContent value="family-recipes">
               <FamilyRecipes />
+            </TabsContent>
+
+            {/* Access & Activity */}
+            <TabsContent value="access-activity">
+              <AccessActivitySection />
             </TabsContent>
           </Tabs>
 

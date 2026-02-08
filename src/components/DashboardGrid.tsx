@@ -13,7 +13,7 @@ import {
   FolderOpen,
   Key,
   Shield,
-  
+  Users,
   Wrench,
   Heart,
   FileDown,
@@ -21,7 +21,6 @@ import {
   AlertTriangle,
   Loader2,
 } from 'lucide-react';
-import PeopleActivityCard from './PeopleActivityCard';
 
 interface DashboardGridProps {
   onTabChange: (tab: string) => void;
@@ -143,8 +142,8 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
 
         <DashboardGridCard
           icon={<Settings className="h-6 w-6" />}
-          title="Account & Access"
-          description="Manage your account and permissions."
+          title="Account Settings"
+          description="Manage your account details, security, and preferences."
           tags={['Plan', 'Billing', 'Alerts']}
           actionLabel="Account Settings"
           actionIcon={<Settings className="h-4 w-4" />}
@@ -152,8 +151,16 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           color="blue"
         />
 
-        {/* People & Activity Card */}
-        <PeopleActivityCard onNavigate={(path) => navigate(path)} />
+        <DashboardGridCard
+          icon={<Users className="h-6 w-6" />}
+          title="Access & Activity"
+          description="Authorized users and recent actions."
+          tags={['Invite Users', 'Roles', 'Activity Log']}
+          actionLabel="Manage Access & Activity"
+          actionIcon={<Users className="h-4 w-4" />}
+          onClick={() => onTabChange('access-activity')}
+          color="blue"
+        />
       </div>
 
       {/* Bottom Utility Row - 3 columns (orange) */}
