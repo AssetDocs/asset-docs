@@ -529,7 +529,7 @@ const ServiceProsSection: React.FC = () => {
               </div>
 
               <div className="flex gap-3">
-                <Button onClick={handleAddProvider} disabled={saving} className="bg-brand-green hover:bg-brand-green/90">
+                <Button onClick={handleAddProvider} disabled={saving} className="bg-brand-blue hover:bg-brand-blue/90">
                   {saving ? 'Saving...' : 'Save Provider'}
                 </Button>
                 <Button variant="outline" onClick={() => setShowAddForm(false)}>
