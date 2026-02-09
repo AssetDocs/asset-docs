@@ -49,16 +49,6 @@ const Properties: React.FC = () => {
               <h1 className="text-3xl font-bold text-foreground mb-2">My Properties</h1>
               <p className="text-gray-600">View and manage all your property documentation</p>
             </div>
-            <div className="flex gap-2">
-              <Button 
-                variant="outline"
-                onClick={handleViewPhotoGallery}
-                className="flex items-center gap-2"
-              >
-                <Images className="h-4 w-4" />
-                View Photo Gallery
-              </Button>
-            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
