@@ -41,13 +41,11 @@ const Properties: React.FC = () => {
       
       <div className="flex-grow py-8 px-4 bg-gray-50">
         <div className="max-w-7xl mx-auto">
-          <DashboardBreadcrumb />
-          
           <EmailVerificationNotice />
           
           <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-brand-blue mb-2">My Properties</h1>
+              <h1 className="text-3xl font-bold text-foreground mb-2">My Properties</h1>
               <p className="text-gray-600">View and manage all your property documentation</p>
             </div>
             <div className="flex gap-2">
