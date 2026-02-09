@@ -15,7 +15,8 @@ import {
   Grid3X3,
   List,
   Images,
-  Filter
+  Filter,
+  Star
 } from 'lucide-react';
 import { 
   DropdownMenu,
@@ -414,10 +415,55 @@ const CombinedMedia: React.FC = () => {
             </div>
           </div>
 
+          {/* High-Value Items Section */}
+          {(() => {
+            const highValueFiles = allFiles
+              .filter(file => file.is_high_value)
+              .filter(file => {
+                if (mediaFilter === 'photo') return file.file_type === 'photo';
+                if (mediaFilter === 'video') return file.file_type === 'video';
+                return true;
+              })
+              .map(file => ({
+                id: file.id,
+                name: file.file_name,
+                url: file.file_url,
+                filePath: file.file_path,
+                bucket: file.bucket_name,
+                uploadDate: file.created_at,
+                size: formatFileSize(file.file_size),
+                propertyName: getPropertyName(file.property_id),
+                fileType: file.file_type
+              }));
+            
+            return highValueFiles.length > 0 ? (
+              <Card className="mb-6 border-amber-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Star className="h-5 w-5 text-amber-500" />
+                    High-Value Items
+                    <Badge variant="secondary" className="ml-2">{highValueFiles.length}</Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <MediaGalleryGrid 
+                    files={highValueFiles}
+                    viewMode={viewMode}
+                    selectedFiles={selectedFiles}
+                    onFileSelect={toggleSelection}
+                    onDeleteFile={handleDeleteItem}
+                    onEditFile={handleEditFile}
+                    mediaType="photo"
+                  />
+                </CardContent>
+              </Card>
+            ) : null;
+          })()}
+
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Sidebar with Folders */}
             <div className="lg:col-span-1">
-              <PhotoGalleryFolders 
+              <PhotoGalleryFolders
                 folders={folders}
                 selectedFolder={selectedFolder}
                 onFolderSelect={setSelectedFolder}

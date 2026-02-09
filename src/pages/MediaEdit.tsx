@@ -8,7 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Save, Loader2, Camera, Video, Plus, X, Paperclip, Trash2 } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Camera, Video, Plus, X, Paperclip, Trash2, Star } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -53,7 +54,8 @@ const MediaEdit: React.FC = () => {
     description: '',
     tags: '',
     propertyId: '',
-    folderId: ''
+    folderId: '',
+    isHighValue: false
   });
 
   // Item values state
@@ -90,7 +92,8 @@ const MediaEdit: React.FC = () => {
           description: file.description || '',
           tags: Array.isArray(file.tags) ? file.tags.join(', ') : '',
           propertyId: file.property_id || '',
-          folderId: file.folder_id || ''
+          folderId: file.folder_id || '',
+          isHighValue: file.is_high_value || false
         });
 
         // Load item values from the file record
@@ -153,6 +156,7 @@ const MediaEdit: React.FC = () => {
           description: formData.description || null,
           tags: parsedTags,
           item_values: filteredItems,
+          is_high_value: formData.isHighValue,
         })
         .eq('id', id)
         .eq('user_id', user.id);
@@ -310,6 +314,24 @@ const MediaEdit: React.FC = () => {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+
+                {/* High-Value Item Checkbox */}
+                <div className="flex items-center space-x-3 p-3 border rounded-lg bg-amber-50/50 border-amber-200">
+                  <Checkbox
+                    id="high-value"
+                    checked={formData.isHighValue}
+                    onCheckedChange={(checked) => setFormData({ ...formData, isHighValue: checked === true })}
+                  />
+                  <div className="flex-1">
+                    <Label htmlFor="high-value" className="text-sm font-medium flex items-center gap-1.5 cursor-pointer">
+                      <Star className="h-4 w-4 text-amber-500" />
+                      Mark as high-value item
+                    </Label>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Flag this file for your High-Value Items collection
+                    </p>
+                  </div>
                 </div>
 
                 {/* Item Values Section */}
