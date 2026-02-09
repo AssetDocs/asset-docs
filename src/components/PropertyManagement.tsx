@@ -121,35 +121,11 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
   };
 
   const handleAddProperty = () => {
-    // Use propertyLimit from subscription context directly
-    const canAdd = properties.length < propertyLimit;
-    
-    if (!canAdd) {
-      const upgradeMessage = subscriptionStatus?.subscription_tier === 'standard'
-        ? 'Upgrade to Premium for unlimited properties.'
-        : 'You have reached the maximum number of properties for your plan.';
-      
-      toast({
-        title: "Property Limit Reached",
-        description: upgradeMessage,
-        variant: "destructive",
-      });
-      return;
-    }
-    
     setIsAddDialogOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Double-check property limits for new properties (not edits)
-    if (!editingProperty) {
-      const canAdd = properties.length < propertyLimit;
-      if (!canAdd) {
-        return;
-      }
-    }
     
     const propertyData = {
       name: formData.name,

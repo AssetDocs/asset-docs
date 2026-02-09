@@ -68,7 +68,7 @@ serve(async (req) => {
     let subscriptionTier = 'free';
     let planStatus = 'inactive';
     let currentPeriodEnd = null;
-    let propertyLimit = profile?.property_limit || 1;
+    let propertyLimit = 999999; // Unlimited for all plans
     let storageQuotaGb = profile?.storage_quota_gb || 5;
 
     if (entitlement) {
@@ -123,7 +123,6 @@ serve(async (req) => {
             .maybeSingle();
 
           if (ownerProfile) {
-            propertyLimit = ownerProfile.property_limit || 1;
             storageQuotaGb = ownerProfile.storage_quota_gb || 5;
           }
         }
@@ -155,7 +154,7 @@ serve(async (req) => {
       subscribed: false,
       subscription_tier: 'free',
       plan_status: 'inactive',
-      property_limit: 1,
+      property_limit: 999999,
       storage_quota_gb: 5
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
