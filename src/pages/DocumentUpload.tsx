@@ -9,7 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Upload, FileText, Trash2, Shield, FileWarning, FileCheck, Receipt, ClipboardCheck, Home, Files, Loader2, Camera } from 'lucide-react';
+import { ArrowLeft, Upload, FileText, Trash2, Shield, FileWarning, FileCheck, Receipt, ClipboardCheck, Home, Files, Loader2, Camera, ScanLine } from 'lucide-react';
+import ScanToPDF from '@/components/ScanToPDF';
 import PropertySelector from '@/components/PropertySelector';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -56,6 +57,7 @@ const DocumentUpload: React.FC = () => {
   const [selectedFolderId, setSelectedFolderId] = useState('');
   const [folders, setFolders] = useState<DocumentFolder[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -288,7 +290,7 @@ const DocumentUpload: React.FC = () => {
                 />
 
                 {/* Upload Options */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-2">
                   <Button
                     onClick={() => cameraInputRef.current?.click()}
                     variant="outline"
@@ -312,6 +314,19 @@ const DocumentUpload: React.FC = () => {
                     <div className="text-center">
                       <div className="font-medium text-sm">Choose File</div>
                       <div className="text-xs text-gray-500">From device</div>
+                    </div>
+                  </Button>
+
+                  <Button
+                    onClick={() => setScannerOpen(true)}
+                    variant="outline"
+                    className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-dashed border-brand-blue/30 hover:border-brand-blue/50 hover:bg-brand-blue/5"
+                    disabled={isLoading}
+                  >
+                    <ScanLine className="h-6 w-6 text-brand-blue" />
+                    <div className="text-center">
+                      <div className="font-medium text-sm">Scan to PDF</div>
+                      <div className="text-xs text-gray-500">Multi-page</div>
                     </div>
                   </Button>
                 </div>
@@ -390,6 +405,15 @@ const DocumentUpload: React.FC = () => {
           </Card>
         </div>
       </div>
+
+      <ScanToPDF
+        open={scannerOpen}
+        onOpenChange={setScannerOpen}
+        onPDFReady={(pdfFile) => {
+          setSelectedFile(pdfFile);
+          setDocumentName(pdfFile.name.replace(/\.pdf$/, ''));
+        }}
+      />
 
       <Footer />
     </div>

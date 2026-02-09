@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { 
   Camera,
   Video,
+  ScanLine,
   Shield, 
   FileWarning, 
   FileCheck, 
@@ -23,6 +24,7 @@ import {
 export type AssetUploadType = 
   | 'photo'
   | 'video'
+  | 'scan_to_pdf'
   | 'insurance_policy' 
   | 'insurance_claim' 
   | 'warranty' 
@@ -51,6 +53,12 @@ const assetTypes: AssetTypeOption[] = [
     label: 'Video',
     description: 'Upload videos of\nyour property & items',
     icon: Video,
+  },
+  {
+    type: 'scan_to_pdf',
+    label: 'Scan to PDF',
+    description: 'Scan pages with your\ncamera into a PDF',
+    icon: ScanLine,
   },
   {
     type: 'insurance_policy',
