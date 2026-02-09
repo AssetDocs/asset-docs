@@ -42,6 +42,7 @@ const Properties: React.FC = () => {
       <div className="flex-grow py-8 px-4 bg-gray-50">
         <div className="max-w-7xl mx-auto">
           <EmailVerificationNotice />
+          <DashboardBreadcrumb />
           
           <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
