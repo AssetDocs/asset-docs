@@ -31,6 +31,7 @@ export interface PropertyFile {
   description?: string | null;
   tags?: string[];
   item_values?: Array<{ name: string; value: number | string }>;
+  is_high_value?: boolean;
   created_at: string;
 }
 
@@ -185,7 +186,7 @@ export class PropertyService {
       }
       
       console.log('[PropertyService] addPropertyFile: Success', { id: data?.id });
-      return data as PropertyFile | null;
+      return data as unknown as PropertyFile | null;
     } catch (error) {
       console.error('[PropertyService] addPropertyFile: Exception caught', error);
       // Re-throw so caller can handle it
@@ -212,7 +213,7 @@ export class PropertyService {
 
       const { data, error } = await query;
       if (error) throw error;
-      return (data || []) as PropertyFile[];
+      return (data || []) as unknown as PropertyFile[];
     } catch (error) {
       console.error('Error fetching property files:', error);
       return [];
@@ -267,7 +268,7 @@ export class PropertyService {
 
       const { data, error } = await query;
       if (error) throw error;
-      return (data || []) as PropertyFile[];
+      return (data || []) as unknown as PropertyFile[];
     } catch (error) {
       console.error('Error fetching user files:', error);
       return [];
@@ -293,7 +294,7 @@ export class PropertyService {
 
       const { data, error } = await query;
       if (error) throw error;
-      return (data || []) as PropertyFile[];
+      return (data || []) as unknown as PropertyFile[];
     } catch (error) {
       console.error('Error fetching damage report files:', error);
       return [];
@@ -319,7 +320,7 @@ export class PropertyService {
 
       const { data, error } = await query;
       if (error) throw error;
-      return (data || []) as PropertyFile[];
+      return (data || []) as unknown as PropertyFile[];
     } catch (error) {
       console.error('Error fetching upgrade/repair files:', error);
       return [];

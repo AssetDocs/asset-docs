@@ -2085,6 +2085,7 @@ export type Database = {
           file_url: string
           folder_id: string | null
           id: string
+          is_high_value: boolean
           item_values: Json | null
           property_id: string
           source: string | null
@@ -2103,6 +2104,7 @@ export type Database = {
           file_url: string
           folder_id?: string | null
           id?: string
+          is_high_value?: boolean
           item_values?: Json | null
           property_id: string
           source?: string | null
@@ -2121,6 +2123,7 @@ export type Database = {
           file_url?: string
           folder_id?: string | null
           id?: string
+          is_high_value?: boolean
           item_values?: Json | null
           property_id?: string
           source?: string | null

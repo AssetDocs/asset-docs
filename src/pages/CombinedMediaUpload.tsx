@@ -4,7 +4,8 @@ import Footer from '@/components/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Camera, Video, Upload, Image, Film, Trash2, Loader2, Plus, Paperclip, X } from 'lucide-react';
+import { ArrowLeft, Camera, Video, Upload, Image, Film, Trash2, Loader2, Plus, Paperclip, X, Star } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useNavigate } from 'react-router-dom';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import PropertySelector from '@/components/PropertySelector';
@@ -53,6 +54,7 @@ const CombinedMediaUpload: React.FC = () => {
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [isHighValue, setIsHighValue] = useState(false);
   
   // Item values state
   const [items, setItems] = useState<ItemEntry[]>([{ id: crypto.randomUUID(), name: '', value: '' }]);
@@ -159,11 +161,21 @@ const CombinedMediaUpload: React.FC = () => {
         .map(item => ({ name: item.name, value: item.value ? Number(item.value) : 0 }));
 
       // Upload files with folder_id and metadata
-      await uploadFiles(selectedFiles, selectedFolderId || undefined, {
+      const uploadedFiles = await uploadFiles(selectedFiles, selectedFolderId || undefined, {
         description: description || undefined,
         tags: parsedTags.length > 0 ? parsedTags : undefined,
         item_values: filteredItems.length > 0 ? filteredItems : undefined,
       });
+
+      // If marked as high-value, update the uploaded files
+      if (isHighValue && uploadedFiles && uploadedFiles.length > 0) {
+        for (const file of uploadedFiles) {
+          await supabase
+            .from('property_files')
+            .update({ is_high_value: true })
+            .eq('id', file.id);
+        }
+      }
       toast({
         title: "Success",
         description: `${selectedFiles.length} file(s) uploaded successfully`
@@ -188,6 +200,7 @@ const CombinedMediaUpload: React.FC = () => {
     setSelectedFiles([]);
     setSelectedFolderId('');
     setMediaName('');
+    setIsHighValue(false);
     setItems([{ id: crypto.randomUUID(), name: '', value: '' }]);
     setAttachments([]);
   };
@@ -458,6 +471,24 @@ const CombinedMediaUpload: React.FC = () => {
                     )}
                   </div>
                 )}
+              </div>
+
+              {/* High-Value Item Checkbox */}
+              <div className="flex items-center space-x-3 p-3 border rounded-lg bg-amber-50/50 border-amber-200">
+                <Checkbox
+                  id="high-value"
+                  checked={isHighValue}
+                  onCheckedChange={(checked) => setIsHighValue(checked === true)}
+                />
+                <div className="flex-1">
+                  <Label htmlFor="high-value" className="text-sm font-medium flex items-center gap-1.5 cursor-pointer">
+                    <Star className="h-4 w-4 text-amber-500" />
+                    Mark as high-value item
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Flag this upload for your High-Value Items collection
+                  </p>
+                </div>
               </div>
 
               {/* Item Values Section */}
