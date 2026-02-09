@@ -4,13 +4,32 @@ import { DashboardGridCard } from './DashboardGridCard';
 import { Camera, FileText, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AssetTypeSelector, { type AssetUploadType } from './AssetTypeSelector';
+import ScanToPDF from './ScanToPDF';
+import { useAuth } from '@/contexts/AuthContext';
+import { useFileUpload } from '@/hooks/useFileUpload';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const AssetDocumentationGrid: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [selectorOpen, setSelectorOpen] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
+
+  const { uploadSingleFile } = useFileUpload({
+    bucket: 'documents',
+    onError: (error) => {
+      toast({ title: "Upload failed", description: error.message, variant: "destructive" });
+    }
+  });
 
   const handleTypeSelect = (type: AssetUploadType) => {
     setSelectorOpen(false);
+    if (type === 'scan_to_pdf') {
+      setScannerOpen(true);
+      return;
+    }
     switch (type) {
       case 'photo':
         navigate('/account/media/upload?tab=photos');
@@ -24,6 +43,33 @@ const AssetDocumentationGrid: React.FC = () => {
       default:
         navigate(`/account/documents/upload?type=${type}`);
         break;
+    }
+  };
+
+  const handlePDFReady = async (pdfFile: File) => {
+    if (!user) return;
+
+    try {
+      const uploadResult = await uploadSingleFile(pdfFile);
+      if (!uploadResult) throw new Error('Upload failed');
+
+      await supabase.from('user_documents').insert({
+        user_id: user.id,
+        file_name: pdfFile.name,
+        file_path: uploadResult.path,
+        file_url: uploadResult.url,
+        file_size: pdfFile.size,
+        file_type: 'application/pdf',
+        document_type: 'other',
+        category: 'general',
+        document_name: pdfFile.name.replace(/\.pdf$/, ''),
+      });
+
+      toast({ title: "Scanned PDF saved", description: "Your document has been saved to Documents & Records." });
+      navigate('/account/documents');
+    } catch (error) {
+      console.error('Scan PDF save error:', error);
+      toast({ title: "Save failed", description: "Could not save the scanned PDF.", variant: "destructive" });
     }
   };
 
@@ -70,6 +116,12 @@ const AssetDocumentationGrid: React.FC = () => {
         open={selectorOpen}
         onOpenChange={setSelectorOpen}
         onSelect={handleTypeSelect}
+      />
+
+      <ScanToPDF
+        open={scannerOpen}
+        onOpenChange={setScannerOpen}
+        onPDFReady={handlePDFReady}
       />
     </div>
   );
