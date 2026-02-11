@@ -37,10 +37,10 @@
              This Non-Disclosure Agreement ("Agreement") is entered into as of [Date], by and between:
            </p>
            
-           <div className="space-y-2">
+            <div className="space-y-2">
              <p><strong>Disclosing Party:</strong><br />
-             Michael Lewis, Founder of Asset Safe<br />
-             ("Disclosing Party")</p>
+              Michael Lewis, Founder of Ellidair LLC, doing business as Asset Safe<br />
+              ("Disclosing Party")</p>
              
              <p className="mt-4"><strong>and</strong></p>
              
@@ -181,7 +181,7 @@
              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                <div className="space-y-3 p-4 border rounded-lg">
                  <p className="font-medium">Disclosing Party:</p>
-                 <p>Michael Lewis<br />Founder, Asset Safe</p>
+                 <p>Michael Lewis<br />Founder, Ellidair LLC d/b/a Asset Safe</p>
                  <div className="space-y-2">
                    <Label>Signature:</Label>
                    <Input 

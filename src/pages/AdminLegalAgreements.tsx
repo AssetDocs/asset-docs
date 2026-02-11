@@ -396,9 +396,9 @@ const AdminLegalAgreements = () => {
                 <p>
                   This Confidentiality and Intellectual Property Assignment Agreement ("Agreement") is entered into as of [Date] ("Effective Date") by and between:
                 </p>
-                <p><strong>Michael Lewis</strong>, an individual acting on behalf of the Asset Safe business ("Company"),<br />
-                and<br />
-                <strong>Vinh Nguyen</strong> ("Developer" or "Recipient").</p>
+                <p><strong>Michael Lewis</strong>, an individual acting on behalf of Ellidair LLC, doing business as Asset Safe ("Company"),<br />
+                 and<br />
+                 <strong>Vinh Nguyen</strong> ("Developer" or "Recipient").</p>
                 <p>The Parties agree as follows:</p>
 
                 <Separator />
@@ -561,7 +561,7 @@ const AdminLegalAgreements = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                     <div className="space-y-3 p-4 border rounded-lg">
                       <p className="font-medium">Company Representative:</p>
-                      <p>Michael Lewis<br />Founder, Asset Safe</p>
+                       <p>Michael Lewis<br />Founder, Ellidair LLC d/b/a Asset Safe</p>
                       <div className="space-y-2">
                         <Label>Date:</Label>
                         <Input 
@@ -958,7 +958,7 @@ const AdminLegalAgreements = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-3 p-4 border rounded-lg">
                       <p className="font-medium">Company:</p>
-                      <p>Michael Lewis</p>
+                      <p>Michael Lewis<br />Ellidair LLC d/b/a Asset Safe</p>
                       <div className="space-y-2">
                         <Label>Signature:</Label>
                         <Input 
@@ -1027,9 +1027,9 @@ const AdminLegalAgreements = () => {
               </CardHeader>
               <CardContent className="space-y-6 text-sm">
                 <p>This Founder Equity Vesting Agreement ("Agreement") is entered into as of [Effective Date], by and between:</p>
-                <p><strong>Michael Lewis</strong>, Founder of Asset Safe ("Company"),<br />
-                and<br />
-                <strong>Vinh Nguyen</strong> ("Founder" or "Recipient").</p>
+                <p><strong>Michael Lewis</strong>, Founder of Ellidair LLC, doing business as Asset Safe ("Company"),<br />
+                 and<br />
+                 <strong>Vinh Nguyen</strong> ("Founder" or "Recipient").</p>
                 <p>This Agreement governs the grant and vesting of equity ownership in Asset Safe.</p>
 
                 <Separator />
@@ -1230,7 +1230,7 @@ const AdminLegalAgreements = () => {
 
                 <div className="space-y-4">
                   <h3 className="font-semibold text-base">11. FUTURE ENTITY CONVERSION</h3>
-                  <p>Recipient acknowledges Asset Safe intends to form a Texas LLC or corporation.</p>
+                  <p>Recipient acknowledges Ellidair LLC, doing business as Asset Safe, intends to form a Texas LLC or corporation.</p>
                   <p>Upon formation, this Agreement shall automatically convert into the equivalent equity structure (membership units or shares).</p>
                 </div>
 
@@ -1287,7 +1287,7 @@ const AdminLegalAgreements = () => {
                         })}
                       />
                       <Label htmlFor="equity-conversion" className="text-sm font-medium text-amber-700 dark:text-amber-300">
-                        I understand that this equity grant is not active unless and until a written contractor-to-founder conversion is executed by Asset Safe.
+                        I understand that this equity grant is not active unless and until a written contractor-to-founder conversion is executed by Ellidair LLC d/b/a Asset Safe.
                       </Label>
                     </div>
                   </div>
@@ -1295,7 +1295,7 @@ const AdminLegalAgreements = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-3 p-4 border rounded-lg">
                       <p className="font-medium">Company Representative:</p>
-                      <p>Michael Lewis<br />Founder, Asset Safe</p>
+                      <p>Michael Lewis<br />Founder, Ellidair LLC d/b/a Asset Safe</p>
                       <div className="space-y-2">
                         <Label>Signature:</Label>
                         <Input 

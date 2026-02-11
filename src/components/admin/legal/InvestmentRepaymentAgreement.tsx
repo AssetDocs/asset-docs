@@ -37,9 +37,9 @@ const InvestmentRepaymentAgreement: React.FC<InvestmentRepaymentAgreementProps> 
             This Amendment ("Amendment") is entered into as of [Date], by and between:
           </p>
           
-          <div className="space-y-2">
+            <div className="space-y-2">
             <p><strong>Company:</strong><br />
-            Asset Safe<br />
+            Ellidair LLC, doing business as Asset Safe<br />
             Represented by: Michael Lewis, Founder<br />
             ("Company")</p>
             
@@ -205,7 +205,7 @@ const InvestmentRepaymentAgreement: React.FC<InvestmentRepaymentAgreementProps> 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-3 p-4 border rounded-lg">
                 <p className="font-medium">Company Representative:</p>
-                <p>Michael Lewis<br />Founder, Asset Safe</p>
+                <p>Michael Lewis<br />Founder, Ellidair LLC d/b/a Asset Safe</p>
                 <div className="space-y-2">
                   <Label>Signature:</Label>
                   <Input 

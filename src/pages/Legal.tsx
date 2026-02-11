@@ -139,7 +139,7 @@ const Legal: React.FC = () => {
             <p className="text-sm text-gray-600 leading-relaxed">
               This platform provides property documentation tools and estimated valuations for personal use. 
               For official appraisals, insurance claims, estate planning, or legal proceedings, please consult qualified professionals. 
-              Asset Safe is not liable for decisions made based on estimated valuations or documentation provided through this platform.
+              Ellidair LLC, doing business as Asset Safe, is not liable for decisions made based on estimated valuations or documentation provided through this platform.
               By using this service, you acknowledge that all valuations are estimates only and should not be considered professional appraisals or legal advice.
             </p>
           </div>

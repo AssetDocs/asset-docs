@@ -22,11 +22,11 @@ const SubscriptionAgreement: React.FC = () => {
             
             <div className="prose prose-lg max-w-none text-gray-700">
               <p className="text-lg mb-6">
-                Welcome to Asset Safe.
+                Welcome to Asset Safe, a product of Ellidair LLC.
               </p>
               
               <p className="mb-6">
-                Asset Safe provides secure digital documentation and record-keeping tools designed to help you organize, store, and preserve important asset information.
+                Ellidair LLC, doing business as Asset Safe, provides secure digital documentation and record-keeping tools designed to help you organize, store, and preserve important asset information.
               </p>
               
               <p className="mb-8">
