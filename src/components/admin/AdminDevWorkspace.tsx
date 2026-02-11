@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import SystemInfrastructure from './SystemInfrastructure';
 import SystemArchitectureFlowcharts from './SystemArchitectureFlowcharts';
+import AdminLegalAgreements from '@/pages/AdminLegalAgreements';
 import { useDevWorkspace, DevSupportStatus, DevReleaseStatus } from '@/hooks/useDevWorkspace';
 import { AddTaskModal } from './dev-workspace/AddTaskModal';
 import { AddBugModal } from './dev-workspace/AddBugModal';
@@ -42,7 +43,8 @@ import {
   Rocket,
   ClipboardCheck,
   HeadphonesIcon,
-  Tag
+  Tag,
+  Scale
 } from 'lucide-react';
 
 const AdminDevWorkspace: React.FC = () => {
@@ -193,6 +195,10 @@ const AdminDevWorkspace: React.FC = () => {
             <TabsTrigger value="docs" className="flex items-center gap-2">
               <FileText className="w-4 h-4" />
               <span className="hidden sm:inline">Docs</span>
+            </TabsTrigger>
+            <TabsTrigger value="legal" className="flex items-center gap-2">
+              <Scale className="w-4 h-4" />
+              <span className="hidden sm:inline">Legal</span>
             </TabsTrigger>
           </TabsList>
         </div>
@@ -865,6 +871,11 @@ Add required keys`}
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Legal Agreements Tab */}
+        <TabsContent value="legal">
+          <AdminLegalAgreements />
         </TabsContent>
       </Tabs>
 
