@@ -14,7 +14,7 @@ const Terms: React.FC = () => {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4">1. Terms</h2>
             <p>
-              By accessing this web site, you are agreeing to be bound by these web site Terms and Conditions of Use, 
+              Ellidair LLC, doing business as Asset Safe. By accessing this web site, you are agreeing to be bound by these web site Terms and Conditions of Use, 
               all applicable laws and regulations, and agree that you are responsible for compliance with any 
               applicable local laws. If you do not agree with any of these terms, you are prohibited from using or 
               accessing this site. The materials contained in this web site are protected by applicable copyright 
@@ -27,7 +27,7 @@ const Terms: React.FC = () => {
             <p>
               All content, materials, software, source code, algorithms, proprietary information, designs, graphics, 
               text, images, videos, audio files, data, databases, third-party integrations, APIs, and other intellectual 
-              property contained within this website and application are the exclusive property of Asset Safe and 
+              property contained within this website and application are the exclusive property of Ellidair LLC, doing business as Asset Safe, and 
               are protected by United States federal copyright laws, international copyright treaties, and other applicable 
               intellectual property laws.
             </p>
@@ -44,7 +44,7 @@ const Terms: React.FC = () => {
               Violation of these copyright protections may subject the violator to legal action and monetary damages.
             </p>
             <p className="mt-4">
-              © 2025 Asset Safe. All rights reserved under U.S. and international copyright law.
+              © 2026 Asset Safe™. A product of Ellidair LLC. All rights reserved under U.S. and international copyright law.
             </p>
           </section>
           
