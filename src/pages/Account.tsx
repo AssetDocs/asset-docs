@@ -20,6 +20,7 @@ import FeedbackSection from '@/components/FeedbackSection';
 import AdminContributorPlanInfo from '@/components/AdminContributorPlanInfo';
 import WelcomeBanner from '@/components/WelcomeBanner';
 import SecurityProgress from '@/components/SecurityProgress';
+import MFADropdown from '@/components/MFADropdown';
 import DashboardGrid from '@/components/DashboardGrid';
 import InsightsToolsGrid from '@/components/InsightsToolsGrid';
 import LifeHubGrid from '@/components/LifeHubGrid';
@@ -139,8 +140,11 @@ const Account: React.FC = () => {
               <div className="mb-4">
                 <WelcomeBanner />
               </div>
-              <div className="mb-6">
+              <div className="mb-4">
                 <SecurityProgress />
+              </div>
+              <div className="mb-4">
+                <MFADropdown />
               </div>
               <AdminContributorPlanInfo />
             </>
