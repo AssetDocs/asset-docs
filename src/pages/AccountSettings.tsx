@@ -9,6 +9,7 @@ import NotificationsTab from '@/components/NotificationsTab';
 import CookieSettings from '@/components/CookieSettings';
 import TOTPSettings from '@/components/TOTPSettings';
 import BackupCodesSettings from '@/components/BackupCodesSettings';
+import MFADropdown from '@/components/MFADropdown';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import StorageDashboard from '@/components/StorageDashboard';
 import { ViewerRestriction, ViewerRestrictionBanner } from '@/components/ViewerRestriction';
@@ -126,7 +127,7 @@ const AccountSettings: React.FC = () => {
       
       <div className="flex-grow py-8 px-4 bg-gray-50">
         <div className="max-w-4xl mx-auto">
-          <DashboardBreadcrumb />
+          <DashboardBreadcrumb hidePageName />
           
           <ViewerRestrictionBanner />
 
@@ -211,10 +212,7 @@ const AccountSettings: React.FC = () => {
                 </TabsContent>
 
                 <TabsContent value="security">
-                  <div className="space-y-6">
-                    <TOTPSettings />
-                    <BackupCodesSettings />
-                  </div>
+                  <MFADropdown />
                 </TabsContent>
 
                 <TabsContent value="privacy">
