@@ -1,47 +1,65 @@
 
-# Fix: Remove Property Limit Enforcement
 
-## Root Cause
+## Property Profiles UI Cleanup
 
-The property limit is coming from the `profiles.property_limit` database column (which is NULL for most users, defaulting to `1`). The code in `subscriptionFeatures.ts` correctly defines unlimited properties for all tiers, but this config is never actually used in the property-add flow.
+### Goal
+Restructure the Property Profiles page (`/account/properties`) to match the layout patterns used by Asset Documentation and Family Archive -- a clean header with title/subtitle and a top-right action button, with property cards displayed in a responsive side-by-side grid.
 
-The chain of failure:
-1. Edge function `check-subscription` reads `profile.property_limit` from the database -- gets NULL, defaults to `1`
-2. `SubscriptionContext` receives `property_limit: 1`, stores it as `propertyLimit`
-3. `PropertyManagement.handleAddProperty()` checks `properties.length < propertyLimit` (i.e., `< 1`), blocks the user
+### Current State
+- The Properties page uses a 1/3 + 2/3 column split (sidebar list + detail panel)
+- The "+ Add Property" button is buried inside the `PropertyManagement` component's header
+- The page header ("My Properties") is styled differently from other dashboard sections
+- Property cards are stacked vertically in a single column
 
-## Fix (3 files)
+### What Changes
 
-### 1. `supabase/functions/check-subscription/index.ts`
+**1. Page Header -- match Asset Documentation pattern**
+- Replace the current `<h1>` header block with the same layout used by `AssetDocumentationGrid`: title + subtitle on the left, `+ Add Property` button on the top right
+- Title: "Property Profiles" (bold, `text-2xl`)
+- Subtitle: "View and manage all your property documentation"
+- Button: `+ Add Property` (primary style, top-right, matching `+ Upload`)
 
-Change the `propertyLimit` assignment (line 71) to always return `Infinity` (or a very large number like `999999` since JSON cannot serialize `Infinity`):
+**2. Property Cards -- side-by-side grid using `DashboardGridCard`**
+- Remove the current 1/3 + 2/3 split layout
+- Display properties in a `grid grid-cols-1 sm:grid-cols-2 gap-5` grid (same as Asset Documentation's 2-column layout)
+- Each property rendered as a `DashboardGridCard` with:
+  - Icon: `Home`
+  - Title: property name
+  - Description: property address
+  - Tags: property type, estimated value (if present), year built (if present)
+  - Action button: "View Property" (navigates to the property's assets page)
+  - Color: `blue` (matching the Property Profiles color from the dashboard grid)
 
+**3. Empty State**
+- Keep the existing empty state (Home icon + "No Properties Added" + "Add Your First Property" button) but center it full-width
+
+**4. Remove the right-side detail panel**
+- The `PropertyHeader` detail panel (the 2/3 column) will be removed from this page since each card now links directly to `/account/properties/:id/assets`
+
+**5. Move Add/Edit/Delete dialog logic into Properties.tsx**
+- The Add Property dialog will be triggered from the new top-right button
+- Edit and Delete actions will remain accessible via small icon buttons on each property card (similar to current behavior)
+
+### Technical Details
+
+**Files to modify:**
+- `src/pages/Properties.tsx` -- Complete restructure of the page layout to use the grid pattern with `DashboardGridCard` components, move the `+ Add Property` button to the header, and remove the sidebar/detail split
+- `src/components/PropertyManagement.tsx` -- Refactor to accept a simplified role: either extract its Add/Edit/Delete dialog logic into a shared hook or keep it as-is and just change how `Properties.tsx` composes it
+
+**Key pattern to follow (from `AssetDocumentationGrid.tsx`):**
+```text
++--------------------------------------------------+
+| Property Profiles              [+ Add Property]   |
+| View and manage all your ...                       |
++--------------------------------------------------+
+| +---------------------+  +---------------------+  |
+| | [Home] Main Home    |  | [Home] Vacation     |  |
+| | 123 Oak St...       |  | 456 Beach Rd...     |  |
+| | Single Family · $X  |  | Vacation Home · $Y  |  |
+| | [View Property]     |  | [View Property]     |  |
+| +---------------------+  +---------------------+  |
++--------------------------------------------------+
 ```
-// Before
-let propertyLimit = profile?.property_limit || 1;
 
-// After
-let propertyLimit = 999999; // Unlimited for all plans
-```
+**Max width:** Changed from `max-w-7xl` to `max-w-6xl` to match the dashboard container width.
 
-Remove the same pattern from the contributor fallback (line 126) and the error response (line 158).
-
-### 2. `src/contexts/SubscriptionContext.tsx`
-
-Change line 66 to default to unlimited instead of 1:
-
-```
-// Before
-const propertyLimit = subscriptionStatus.property_limit || 1;
-
-// After
-const propertyLimit = subscriptionStatus.property_limit || 999999;
-```
-
-### 3. `src/components/PropertyManagement.tsx`
-
-Simplify `handleAddProperty` (lines 123-141) to remove the limit check entirely, since properties are unlimited for all plans. Also remove the "X properties allowed" subtitle text or update it to always say "Unlimited".
-
-## No database migration needed
-
-The `profiles.property_limit` column can remain as-is -- we simply stop using it as a gate.
