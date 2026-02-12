@@ -207,7 +207,7 @@ const SecurityProgress: React.FC = () => {
           <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 flex-shrink-0">
             <ClipboardList className="h-4 w-4 text-primary" />
           </div>
-          <div>
+          <div className="text-left">
             <span className="text-sm font-semibold text-foreground">Documentation Checklist</span>
             <p className="text-[11px] text-muted-foreground">A guided checklist for documenting your home, business, and more</p>
           </div>
