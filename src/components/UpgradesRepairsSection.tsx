@@ -424,12 +424,10 @@ const UpgradesRepairsSection: React.FC = () => {
     <div className="space-y-6">
       {/* Header with Add Button */}
       {!isAdding && (
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-xl font-semibold">Upgrades & Repairs</h2>
-            <p className="text-muted-foreground text-sm">{records.length} record(s)</p>
-          </div>
-          <Button onClick={() => setIsAdding(true)} className="bg-brand-green hover:bg-brand-green/90">
+        <div>
+          <h2 className="text-xl font-semibold">Upgrades & Repairs</h2>
+          <p className="text-muted-foreground text-sm mb-3">{records.length} record(s)</p>
+          <Button onClick={() => setIsAdding(true)} className="w-full bg-brand-blue hover:bg-brand-blue/90">
             <Plus className="h-4 w-4 mr-2" />
             Add New
           </Button>

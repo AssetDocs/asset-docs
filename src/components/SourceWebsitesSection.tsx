@@ -154,24 +154,20 @@ const SourceWebsitesSection: React.FC = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center">
-                <Globe className="h-6 w-6 mr-2 text-primary" />
-                Source Websites
-              </CardTitle>
-              <CardDescription>
-                Catalog websites where you can find important asset information
-              </CardDescription>
-            </div>
-            <Button
-              onClick={() => setShowAddForm(!showAddForm)}
-              variant={showAddForm ? "outline" : "default"}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              {showAddForm ? 'Cancel' : 'Add Website'}
-            </Button>
-          </div>
+          <CardTitle className="flex items-center">
+            <Globe className="h-6 w-6 mr-2 text-primary" />
+            Source Websites
+          </CardTitle>
+          <CardDescription>
+            Catalog websites where you can find important asset information
+          </CardDescription>
+          <Button
+            onClick={() => setShowAddForm(!showAddForm)}
+            className="w-full bg-brand-blue hover:bg-brand-blue/90 mt-3"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            {showAddForm ? 'Cancel' : 'Add Website'}
+          </Button>
         </CardHeader>
 
         {showAddForm && (

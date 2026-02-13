@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Search, Package, DollarSign, FileText, Eye, Plus, Trash2, CheckSquare, Square, ChevronLeft } from 'lucide-react';
+import { Search, Package, DollarSign, FileText, Eye, Plus, Trash2, CheckSquare, Square } from 'lucide-react';
 import { ItemService, Item } from '@/services/ItemService';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
@@ -171,39 +171,27 @@ const Inventory: React.FC = () => {
       <Navbar />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <DashboardBreadcrumb />
-        
-        {/* Back to Dashboard */}
-        <div className="w-full mb-6">
-          <Button
-            onClick={() => navigate('/account?tab=insights-tools')}
-            variant="outline"
-            size="sm"
-            className="bg-white text-brand-orange border-brand-orange hover:bg-brand-orange/10"
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to Dashboard
-          </Button>
-        </div>
+        <DashboardBreadcrumb 
+          hidePageName
+          parentRoute="/account?tab=insights-tools"
+          parentLabel="Back to Insights & Tools"
+        />
         
         <div className="mb-8">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Manual Entry</h1>
-              <p className="text-muted-foreground mt-2">
-                Manage your items and their documentation
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                onClick={() => setShowAddForm(!showAddForm)} 
-                className="flex items-center bg-brand-blue hover:bg-brand-lightBlue"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add New Item
-              </Button>
-            </div>
+          <div className="mb-4">
+            <h1 className="text-3xl font-bold text-foreground">Manual Entry</h1>
+            <p className="text-muted-foreground mt-2">
+              Manage your items and their documentation
+            </p>
           </div>
+
+          <Button 
+            onClick={() => setShowAddForm(!showAddForm)} 
+            className="w-full bg-brand-blue hover:bg-brand-blue/90 mb-4"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            {showAddForm ? 'Cancel' : 'Add New Item'}
+          </Button>
 
           {/* Add Item Form */}
           {showAddForm && (

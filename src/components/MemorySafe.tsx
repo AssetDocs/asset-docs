@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Archive, Plus, SortAsc, Calendar, Type, Grid3X3, List, CheckSquare, Square, Trash2, Loader2 } from 'lucide-react';
+import { Archive, Plus, SortAsc, Calendar, Type, Grid3X3, List, CheckSquare, Square, Trash2, Loader2, Filter } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useNavigate } from 'react-router-dom';
 import DocumentFolders from '@/components/DocumentFolders';
 import MediaGalleryGrid from '@/components/MediaGalleryGrid';
@@ -21,6 +22,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc';
 type ViewMode = 'grid' | 'list';
+type MediaFilter = 'all' | 'photos' | 'videos';
 
 interface Folder {
   id: string;
@@ -42,6 +44,7 @@ const MemorySafe: React.FC = () => {
   const [sortBy, setSortBy] = useState<SortOption>('date-desc');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [selectedMemories, setSelectedMemories] = useState<string[]>([]);
+  const [mediaFilter, setMediaFilter] = useState<MediaFilter>('all');
 
   const [showCreateFolder, setShowCreateFolder] = useState(false);
   const [showEditFolder, setShowEditFolder] = useState(false);
@@ -111,8 +114,17 @@ const MemorySafe: React.FC = () => {
     folderId: mem.folder_id
   }));
 
+  const IMAGE_EXTS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'heic'];
+  const VIDEO_EXTS = ['mp4', 'mov', 'avi', 'mkv', 'webm', 'wmv'];
+
   const filteredMemories = transformedMemories.filter(m => {
-    return selectedFolder ? m.folderId === selectedFolder : true;
+    const folderMatch = selectedFolder ? m.folderId === selectedFolder : true;
+    if (!folderMatch) return false;
+    if (mediaFilter === 'all') return true;
+    const ext = m.type?.toLowerCase() || '';
+    if (mediaFilter === 'photos') return IMAGE_EXTS.includes(ext);
+    if (mediaFilter === 'videos') return VIDEO_EXTS.includes(ext);
+    return true;
   });
 
   const sortedMemories = [...filteredMemories].sort((a, b) => {
@@ -241,6 +253,9 @@ const MemorySafe: React.FC = () => {
             onDeleteFolder={handleDeleteFolder}
             onCreateFolder={() => setShowCreateFolder(true)}
             onEditFolder={handleEditFolder}
+            titleOverride="Folder Organization"
+            allItemsLabel="All Memories"
+            allItemsDescription="View all memories"
           />
         </div>
 
@@ -254,7 +269,20 @@ const MemorySafe: React.FC = () => {
                   {selectedFolder ? folders.find(f => f.id === selectedFolder)?.folder_name || 'Memories' : 'All Memories'}
                   <Badge variant="secondary">{sortedMemories.length}</Badge>
                 </CardTitle>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* Media filter */}
+                  <Select value={mediaFilter} onValueChange={(v) => setMediaFilter(v as MediaFilter)}>
+                    <SelectTrigger className="w-[140px] h-9">
+                      <Filter className="h-4 w-4 mr-1" />
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Files</SelectItem>
+                      <SelectItem value="photos">Photos Only</SelectItem>
+                      <SelectItem value="videos">Videos Only</SelectItem>
+                    </SelectContent>
+                  </Select>
+
                   {/* Sort */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
