@@ -22,6 +22,9 @@ interface DocumentFoldersProps {
   onCreateFolder: () => void;
   onReorderFolders?: (folders: FolderItem[]) => void;
   onEditFolder?: (folder: FolderItem) => void;
+  titleOverride?: string;
+  allItemsLabel?: string;
+  allItemsDescription?: string;
 }
 
 const DocumentFolders: React.FC<DocumentFoldersProps> = ({
@@ -32,7 +35,10 @@ const DocumentFolders: React.FC<DocumentFoldersProps> = ({
   onDeleteFolder,
   onCreateFolder,
   onReorderFolders,
-  onEditFolder
+  onEditFolder,
+  titleOverride,
+  allItemsLabel,
+  allItemsDescription
 }) => {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -83,7 +89,7 @@ const DocumentFolders: React.FC<DocumentFoldersProps> = ({
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">
           <FileText className="h-5 w-5" />
-          Document Organization
+          {titleOverride || 'Document Organization'}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -106,8 +112,8 @@ const DocumentFolders: React.FC<DocumentFoldersProps> = ({
             <FileText className="h-4 w-4 text-white" />
           </div>
           <div className="flex-1 text-left min-w-0">
-            <div className="font-medium text-sm">All Documents</div>
-            <div className="text-xs text-muted-foreground">View all documents</div>
+            <div className="font-medium text-sm">{allItemsLabel || 'All Documents'}</div>
+            <div className="text-xs text-muted-foreground">{allItemsDescription || 'View all documents'}</div>
           </div>
           <Badge variant="secondary" className="ml-2">
             {documentCount}
