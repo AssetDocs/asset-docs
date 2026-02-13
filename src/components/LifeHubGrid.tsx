@@ -7,6 +7,7 @@ import {
   Briefcase,
   BookOpen,
   ChefHat,
+  Archive,
 } from 'lucide-react';
 
 interface LifeHubGridProps {
@@ -77,6 +78,17 @@ const LifeHubGrid: React.FC<LifeHubGridProps> = ({ onTabChange }) => {
           description="Preserve cherished family recipes for generations."
           actionLabel="View Recipes"
           onClick={() => onTabChange('family-recipes')}
+          color="rose"
+          variant="compact"
+        />
+
+        {/* Memory Safe */}
+        <DashboardGridCard
+          icon={<Archive className="h-5 w-5" />}
+          title="Memory Safe"
+          description="A protected place for the memories you want to keep — and pass on."
+          actionLabel="Open Memory Safe"
+          onClick={() => onTabChange('memory-safe')}
           color="rose"
           variant="compact"
         />
