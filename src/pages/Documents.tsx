@@ -570,24 +570,23 @@ const Documents: React.FC = () => {
           <DashboardBreadcrumb parentRoute="/account?tab=asset-documentation" parentLabel="Back to Asset Documentation" hidePageName />
           
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-            <div className="mb-4 sm:mb-0">
-              <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+          <Card className="mb-6">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-2xl font-bold flex items-center">
                 <FileText className="h-6 w-6 mr-2 text-brand-blue" />
                 Documents & Records
-              </h1>
-              <p className="text-sm text-gray-500">
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
                 Store policies, receipts, warranties, titles, licenses, and other critical records
               </p>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3 mb-6">
-            <Button onClick={() => setShowTypeSelector(true)} size="sm">
-              <Plus className="h-4 w-4 mr-1" />
-              Add Document
-            </Button>
-          </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <Button onClick={() => setShowTypeSelector(true)} className="w-full bg-brand-blue hover:bg-brand-lightBlue">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Document
+              </Button>
+            </CardContent>
+          </Card>
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Sidebar with Folders */}
