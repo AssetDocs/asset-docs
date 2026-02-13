@@ -54,6 +54,8 @@ import InsuranceForm from "./pages/InsuranceForm";
 import InsuranceDetail from "./pages/InsuranceDetail";
 import InsuranceEdit from "./pages/InsuranceEdit";
 import DocumentEdit from "./pages/DocumentEdit";
+import MemoryUpload from "./pages/MemoryUpload";
+import MemoryEdit from "./pages/MemoryEdit";
 import ScheduleProfessional from "./pages/ScheduleProfessional";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
@@ -315,6 +317,8 @@ const AppContent = () => {
         <Route path="/account/insurance/:id" element={<ProtectedRoute><InsuranceDetail /></ProtectedRoute>} />
         <Route path="/account/insurance/:id/edit" element={<ProtectedRoute><InsuranceEdit /></ProtectedRoute>} />
         <Route path="/account/documents/:id/edit" element={<ProtectedRoute><DocumentEdit /></ProtectedRoute>} />
+        <Route path="/account/memory-safe/upload" element={<ProtectedRoute><MemoryUpload /></ProtectedRoute>} />
+        <Route path="/account/memory-safe/:id/edit" element={<ProtectedRoute><MemoryEdit /></ProtectedRoute>} />
         <Route path="/account/settings" element={<ProtectedRoute><AccountSettings /></ProtectedRoute>} />
         <Route path="/account/contacts" element={<ProtectedRoute><VIPContacts /></ProtectedRoute>} />
         <Route path="/schedule-professional" element={<ProtectedRoute><ScheduleProfessional /></ProtectedRoute>} />

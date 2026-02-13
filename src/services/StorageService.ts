@@ -4,7 +4,7 @@ import type { SubscriptionTier } from '@/config/subscriptionFeatures';
 import FileValidator, { type FileValidationOptions } from '@/utils/fileValidator';
 import RateLimiter from '@/utils/rateLimiter';
 
-export type FileType = 'photos' | 'videos' | 'documents' | 'floor-plans';
+export type FileType = 'photos' | 'videos' | 'documents' | 'floor-plans' | 'memory-safe';
 
 export interface StorageUsage {
   bucket_name: string;
@@ -59,6 +59,17 @@ export class StorageService {
       maxFileSize: 15 * 1024 * 1024, // 15MB
       allowedMimeTypes: ['image/jpeg', 'image/png', 'application/pdf'],
       allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
+      checkMagicBytes: true
+    },
+    'memory-safe': {
+      maxFileSize: 25 * 1024 * 1024, // 25MB
+      allowedMimeTypes: [
+        'image/jpeg', 'image/png', 'image/webp', 'image/gif',
+        'video/mp4', 'video/quicktime',
+        'application/pdf', 'text/plain',
+        'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ],
+      allowedExtensions: ['jpg', 'jpeg', 'png', 'webp', 'gif', 'mp4', 'mov', 'pdf', 'txt', 'doc', 'docx'],
       checkMagicBytes: true
     }
   };
