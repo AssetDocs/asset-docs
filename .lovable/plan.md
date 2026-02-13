@@ -1,65 +1,78 @@
 
 
-## Property Profiles UI Cleanup
+## Memory Safe - Full UI Implementation
 
-### Goal
-Restructure the Property Profiles page (`/account/properties`) to match the layout patterns used by Asset Documentation and Family Archive -- a clean header with title/subtitle and a top-right action button, with property cards displayed in a responsive side-by-side grid.
+### Overview
+Transform the Memory Safe page from a "Coming Soon" placeholder into a fully functional media management interface that mirrors the Documents & Records section. Users will be able to create folders, upload memories (photos/files), view thumbnails with dates and titles, and manage their files with the same controls available in Asset Documentation.
 
-### Current State
-- The Properties page uses a 1/3 + 2/3 column split (sidebar list + detail panel)
-- The "+ Add Property" button is buried inside the `PropertyManagement` component's header
-- The page header ("My Properties") is styled differently from other dashboard sections
-- Property cards are stacked vertically in a single column
+### Database Changes
 
-### What Changes
+**1. Create `memory_safe_folders` table**
+- Mirrors `document_folders` schema: id, user_id, folder_name, description, gradient_color, created_at, updated_at
+- RLS policies: users can only CRUD their own folders
 
-**1. Page Header -- match Asset Documentation pattern**
-- Replace the current `<h1>` header block with the same layout used by `AssetDocumentationGrid`: title + subtitle on the left, `+ Add Property` button on the top right
-- Title: "Property Profiles" (bold, `text-2xl`)
-- Subtitle: "View and manage all your property documentation"
-- Button: `+ Add Property` (primary style, top-right, matching `+ Upload`)
+**2. Create `memory_safe_items` table**
+- Mirrors `user_documents` schema: id, user_id, file_name, file_path, file_url, file_size, file_type, title (display name), description, tags, folder_id, created_at, updated_at
+- RLS policies: users can only CRUD their own items
 
-**2. Property Cards -- side-by-side grid using `DashboardGridCard`**
-- Remove the current 1/3 + 2/3 split layout
-- Display properties in a `grid grid-cols-1 sm:grid-cols-2 gap-5` grid (same as Asset Documentation's 2-column layout)
-- Each property rendered as a `DashboardGridCard` with:
-  - Icon: `Home`
-  - Title: property name
-  - Description: property address
-  - Tags: property type, estimated value (if present), year built (if present)
-  - Action button: "View Property" (navigates to the property's assets page)
-  - Color: `blue` (matching the Property Profiles color from the dashboard grid)
+**3. Create `memory-safe` storage bucket**
+- Private bucket (matching the pattern of photos/videos/documents buckets)
+- RLS policies allowing authenticated users to manage their own files
 
-**3. Empty State**
-- Keep the existing empty state (Home icon + "No Properties Added" + "Add Your First Property" button) but center it full-width
+### Frontend Changes
 
-**4. Remove the right-side detail panel**
-- The `PropertyHeader` detail panel (the 2/3 column) will be removed from this page since each card now links directly to `/account/properties/:id/assets`
+**1. Rewrite `src/components/MemorySafe.tsx`**
+Replace the placeholder with a full-featured page matching the Documents & Records layout:
+- Header: "Memory Safe" title + subtitle + "+ Add Memory" button (full-width, brand-blue)
+- 1/4 + 3/4 grid layout:
+  - Left sidebar: `DocumentFolders` component (reused) labeled "Memory Organization" with "All Memories" default option
+  - Right content: `MediaGalleryGrid` component (reused) showing memory thumbnails with date, title, size
+- Sort controls (Newest/Oldest/Name A-Z/Z-A) and Grid/List view toggle inside the content card header
+- Select All / Deselect / Bulk Delete controls
+- Folder CRUD: create, edit, delete folders via existing `CreateFolderModal` and `EditFolderModal`
+- File delete confirmation via existing `DeleteConfirmationDialog`
 
-**5. Move Add/Edit/Delete dialog logic into Properties.tsx**
-- The Add Property dialog will be triggered from the new top-right button
-- Edit and Delete actions will remain accessible via small icon buttons on each property card (similar to current behavior)
+**2. Create `src/pages/MemoryUpload.tsx`**
+- A dedicated upload page for adding memories to the safe
+- File upload input (photos, documents, etc.) uploading to the `memory-safe` storage bucket
+- Fields: Title, Description, Tags, Folder selection
+- Saves metadata to `memory_safe_items` table
+- Navigation: Back to Memory Safe
+
+**3. Create `src/pages/MemoryEdit.tsx`**
+- Edit page for existing memory items (title, description, tags, folder)
+- Matches the pattern of existing media edit pages
+
+**4. Update `src/pages/Account.tsx`**
+- Add routes/tab handling for memory upload and edit if needed
+
+**5. Update `src/App.tsx`**
+- Add routes: `/account/memory-safe/upload` and `/account/memory-safe/:id/edit`
 
 ### Technical Details
 
+**Reused components (no modifications needed):**
+- `DocumentFolders` - sidebar folder navigation (parameterized title via props or wrapper)
+- `MediaGalleryGrid` - thumbnail grid/list with view, download, edit, delete actions
+- `MediaThumbnail` - signed URL generation for private bucket previews
+- `CreateFolderModal` - folder creation dialog
+- `EditFolderModal` - folder editing dialog
+- `DeleteConfirmationDialog` - delete confirmation
+- `DashboardBreadcrumb` - navigation breadcrumb
+
+**Data flow:**
+- Memories stored in `memory-safe` private storage bucket
+- Metadata stored in `memory_safe_items` table
+- Folders stored in `memory_safe_folders` table
+- Signed URLs generated via `MediaThumbnail` for secure preview
+
+**Files to create:**
+- SQL migration for `memory_safe_folders`, `memory_safe_items` tables and `memory-safe` bucket
+- `src/pages/MemoryUpload.tsx`
+- `src/pages/MemoryEdit.tsx`
+
 **Files to modify:**
-- `src/pages/Properties.tsx` -- Complete restructure of the page layout to use the grid pattern with `DashboardGridCard` components, move the `+ Add Property` button to the header, and remove the sidebar/detail split
-- `src/components/PropertyManagement.tsx` -- Refactor to accept a simplified role: either extract its Add/Edit/Delete dialog logic into a shared hook or keep it as-is and just change how `Properties.tsx` composes it
-
-**Key pattern to follow (from `AssetDocumentationGrid.tsx`):**
-```text
-+--------------------------------------------------+
-| Property Profiles              [+ Add Property]   |
-| View and manage all your ...                       |
-+--------------------------------------------------+
-| +---------------------+  +---------------------+  |
-| | [Home] Main Home    |  | [Home] Vacation     |  |
-| | 123 Oak St...       |  | 456 Beach Rd...     |  |
-| | Single Family · $X  |  | Vacation Home · $Y  |  |
-| | [View Property]     |  | [View Property]     |  |
-| +---------------------+  +---------------------+  |
-+--------------------------------------------------+
-```
-
-**Max width:** Changed from `max-w-7xl` to `max-w-6xl` to match the dashboard container width.
+- `src/components/MemorySafe.tsx` (complete rewrite)
+- `src/App.tsx` (add routes)
+- `src/pages/Account.tsx` (if needed for tab routing)
 
