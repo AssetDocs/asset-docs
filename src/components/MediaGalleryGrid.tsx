@@ -44,6 +44,7 @@ interface MediaGalleryGridProps {
   onDeleteFile: (fileId: string) => void;
   onEditFile?: (fileId: string) => void;
   mediaType: MediaType;
+  emptyMessage?: string;
 }
 
 const MediaGalleryGrid: React.FC<MediaGalleryGridProps> = ({
@@ -53,7 +54,8 @@ const MediaGalleryGrid: React.FC<MediaGalleryGridProps> = ({
   onFileSelect,
   onDeleteFile,
   onEditFile,
-  mediaType
+  mediaType,
+  emptyMessage: emptyMessageOverride
 }) => {
   const { toast } = useToast();
   const [loadingFileId, setLoadingFileId] = useState<string | null>(null);
@@ -146,9 +148,9 @@ const MediaGalleryGrid: React.FC<MediaGalleryGridProps> = ({
   };
 
   const Icon = getIcon();
-  const emptyMessage = mediaType === 'photo' ? 'No photos found' : 
+  const emptyMessage = emptyMessageOverride || (mediaType === 'photo' ? 'No photos found' : 
                        mediaType === 'video' ? 'No videos found' : 
-                       'No documents found';
+                       'No documents found');
 
   if (files.length === 0) {
     return (

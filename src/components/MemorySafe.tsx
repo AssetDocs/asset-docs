@@ -253,9 +253,9 @@ const MemorySafe: React.FC = () => {
             onDeleteFolder={handleDeleteFolder}
             onCreateFolder={() => setShowCreateFolder(true)}
             onEditFolder={handleEditFolder}
-            titleOverride="Document Organization"
-            allItemsLabel="All Documents"
-            allItemsDescription="View all documents"
+            titleOverride="Memory Organization"
+            allItemsLabel="All Memories"
+            allItemsDescription="View all memories"
           />
         </div>
 
@@ -353,6 +353,7 @@ const MemorySafe: React.FC = () => {
                   onDeleteFile={handleDeleteMemory}
                   onEditFile={(id) => navigate(`/account/memory-safe/${id}/edit`)}
                   mediaType="document"
+                  emptyMessage="No memories found"
                 />
               )}
             </CardContent>
