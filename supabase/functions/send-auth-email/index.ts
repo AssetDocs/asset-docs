@@ -81,7 +81,7 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     const displayName = user.user_metadata?.first_name || "Valued User";
-    const appUrl = "https://www.assetsafe.net";
+    const appUrl = "https://www.getassetsafe.com";
     const confirmationUrl = `${appUrl}/auth/callback?token_hash=${email_data.token_hash}&type=${email_data.email_action_type}&redirect_to=${encodeURIComponent(email_data.redirect_to || "/account")}`;
 
     let subject = "";
@@ -160,7 +160,7 @@ function createEmailVerificationTemplate(displayName: string, confirmationUrl: s
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="text-align: center; margin-bottom: 30px;">
-        <img src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 20px;" />
+        <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 20px;" />
         <h1 style="color: #1e40af; font-size: 28px; margin: 0;">Verify Your Email</h1>
       </div>
       
@@ -230,7 +230,7 @@ function createPasswordResetTemplate(displayName: string, resetUrl: string, emai
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="text-align: center; margin-bottom: 30px;">
-        <img src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 20px;" />
+        <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 20px;" />
         <h1 style="color: #dc2626; font-size: 28px; margin: 0;">Reset Your Password</h1>
       </div>
       
@@ -289,7 +289,7 @@ function createMagicLinkTemplate(displayName: string, magicUrl: string, email: s
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="text-align: center; margin-bottom: 30px;">
-        <img src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 20px;" />
+        <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 20px;" />
         <h1 style="color: #059669; font-size: 28px; margin: 0;">Your Magic Link</h1>
       </div>
       
@@ -345,7 +345,7 @@ function createInviteTemplate(displayName: string, inviteUrl: string, email: str
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="text-align: center; margin-bottom: 30px;">
-        <img src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 20px;" />
+        <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 20px;" />
         <h1 style="color: #7c3aed; font-size: 28px; margin: 0;">You've Been Invited!</h1>
       </div>
       

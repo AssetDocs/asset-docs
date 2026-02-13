@@ -76,8 +76,8 @@ image_transformation = true
 
 [auth]
 enabled = true
-site_url = "https://lovable.dev"
-additional_redirect_urls = ["https://127.0.0.1:3000", "http://127.0.0.1:3000", "https://lovable.dev"]
+site_url = "https://www.getassetsafe.com"
+additional_redirect_urls = ["https://127.0.0.1:3000", "http://127.0.0.1:3000", "https://www.getassetsafe.com", "https://getassetsafe.com"]
 jwt_expiry = 3600
 enable_refresh_token_rotation = true
 refresh_token_reuse_interval = 10
