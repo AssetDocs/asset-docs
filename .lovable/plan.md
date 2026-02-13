@@ -1,78 +1,82 @@
 
 
-## Memory Safe - Full UI Implementation
+## Dashboard UI Unification
 
-### Overview
-Transform the Memory Safe page from a "Coming Soon" placeholder into a fully functional media management interface that mirrors the Documents & Records section. Users will be able to create folders, upload memories (photos/files), view thumbnails with dates and titles, and manage their files with the same controls available in Asset Documentation.
+### Goal
+Comb through every dashboard sub-page and standardize the button styles, navigation patterns, labels, and filter controls so they all follow a single consistent pattern.
 
-### Database Changes
+### Audit of Issues Found
 
-**1. Create `memory_safe_folders` table**
-- Mirrors `document_folders` schema: id, user_id, folder_name, description, gradient_color, created_at, updated_at
-- RLS policies: users can only CRUD their own folders
+**Inventory / Manual Entry (`src/pages/Inventory.tsx`)**
+1. Two "Back to Dashboard" buttons (one from `DashboardBreadcrumb`, one manual)
+2. Breadcrumb shows "> Page" text next to back button
+3. "Add New Item" button is small, top-right -- should be full-width
+4. Missing secondary "Back to Insights & Tools" button
 
-**2. Create `memory_safe_items` table**
-- Mirrors `user_documents` schema: id, user_id, file_name, file_path, file_url, file_size, file_type, title (display name), description, tags, folder_id, created_at, updated_at
-- RLS policies: users can only CRUD their own items
+**Source Websites (`src/components/SourceWebsitesSection.tsx`)**
+5. "Add Website" button is small, top-right corner -- should be full-width
 
-**3. Create `memory-safe` storage bucket**
-- Private bucket (matching the pattern of photos/videos/documents buckets)
-- RLS policies allowing authenticated users to manage their own files
+**Upgrades & Repairs (`src/components/UpgradesRepairsSection.tsx`)**
+6. "Add New" button is small, top-right -- should be full-width
 
-### Frontend Changes
+**Memory Safe (`src/components/MemorySafe.tsx`)**
+7. `DocumentFolders` sidebar shows "Document Organization" -- change to "Folder Organization"
+8. "All Documents" label and "View all documents" text -- change to "All Memories" / "View all memories"
+9. "No documents found" placeholder text -- change to "No files found"
+10. Missing media type filter (All Files / Photos Only / Videos Only) like CombinedMedia has
 
-**1. Rewrite `src/components/MemorySafe.tsx`**
-Replace the placeholder with a full-featured page matching the Documents & Records layout:
-- Header: "Memory Safe" title + subtitle + "+ Add Memory" button (full-width, brand-blue)
-- 1/4 + 3/4 grid layout:
-  - Left sidebar: `DocumentFolders` component (reused) labeled "Memory Organization" with "All Memories" default option
-  - Right content: `MediaGalleryGrid` component (reused) showing memory thumbnails with date, title, size
-- Sort controls (Newest/Oldest/Name A-Z/Z-A) and Grid/List view toggle inside the content card header
-- Select All / Deselect / Bulk Delete controls
-- Folder CRUD: create, edit, delete folders via existing `CreateFolderModal` and `EditFolderModal`
-- File delete confirmation via existing `DeleteConfirmationDialog`
+**DocumentFolders (`src/components/DocumentFolders.tsx`)**
+11. Title is hardcoded as "Document Organization" -- needs a `titleOverride` prop
+12. "All Documents" / "View all documents" labels are hardcoded -- need override props
 
-**2. Create `src/pages/MemoryUpload.tsx`**
-- A dedicated upload page for adding memories to the safe
-- File upload input (photos, documents, etc.) uploading to the `memory-safe` storage bucket
-- Fields: Title, Description, Tags, Folder selection
-- Saves metadata to `memory_safe_items` table
-- Navigation: Back to Memory Safe
+### Pages Left As-Is (form-based input sections)
+- Paint Codes -- has inline form entry, leave as-is
+- Asset Values -- read-only summary view, leave as-is
+- Family Recipes -- already uses full-width button pattern
+- Notes & Traditions -- already uses full-width button pattern
+- Voice Notes -- different input pattern (recording), leave as-is
 
-**3. Create `src/pages/MemoryEdit.tsx`**
-- Edit page for existing memory items (title, description, tags, folder)
-- Matches the pattern of existing media edit pages
+### Changes
 
-**4. Update `src/pages/Account.tsx`**
-- Add routes/tab handling for memory upload and edit if needed
+**1. `src/pages/Inventory.tsx`**
+- Remove the manual "Back to Dashboard" `Button` block (lines 176-187)
+- Update `DashboardBreadcrumb` to include `parentRoute="/account?tab=insights-tools"` and `parentLabel="Back to Insights & Tools"` and `hidePageName`
+- Change the "Add New Item" button from small top-right to full-width `bg-brand-blue`, placed below the title/subtitle block (matching Notes & Traditions pattern)
 
-**5. Update `src/App.tsx`**
-- Add routes: `/account/memory-safe/upload` and `/account/memory-safe/:id/edit`
+**2. `src/components/SourceWebsitesSection.tsx`**
+- Move the "Add Website" button from the small top-right position to a full-width button below the card header (matching the Family Recipes and Notes & Traditions pattern)
+
+**3. `src/components/UpgradesRepairsSection.tsx`**
+- Change the "Add New" button from small top-right to full-width below the header
+
+**4. `src/components/DocumentFolders.tsx`**
+- Add optional props: `titleOverride`, `allItemsLabel`, `allItemsDescription`
+- Default values: "Document Organization", "All Documents", "View all documents"
+- Memory Safe will pass: "Folder Organization", "All Memories", "View all memories"
+
+**5. `src/components/MemorySafe.tsx`**
+- Pass the new label override props to `DocumentFolders`
+- Add a media type filter dropdown (All Files / Photos Only / Videos Only) matching the CombinedMedia pattern, filtering by file extension (image vs video vs all)
+- Change the empty state text from "No documents found" to "No files found"
 
 ### Technical Details
 
-**Reused components (no modifications needed):**
-- `DocumentFolders` - sidebar folder navigation (parameterized title via props or wrapper)
-- `MediaGalleryGrid` - thumbnail grid/list with view, download, edit, delete actions
-- `MediaThumbnail` - signed URL generation for private bucket previews
-- `CreateFolderModal` - folder creation dialog
-- `EditFolderModal` - folder editing dialog
-- `DeleteConfirmationDialog` - delete confirmation
-- `DashboardBreadcrumb` - navigation breadcrumb
-
-**Data flow:**
-- Memories stored in `memory-safe` private storage bucket
-- Metadata stored in `memory_safe_items` table
-- Folders stored in `memory_safe_folders` table
-- Signed URLs generated via `MediaThumbnail` for secure preview
-
-**Files to create:**
-- SQL migration for `memory_safe_folders`, `memory_safe_items` tables and `memory-safe` bucket
-- `src/pages/MemoryUpload.tsx`
-- `src/pages/MemoryEdit.tsx`
-
 **Files to modify:**
-- `src/components/MemorySafe.tsx` (complete rewrite)
-- `src/App.tsx` (add routes)
-- `src/pages/Account.tsx` (if needed for tab routing)
+- `src/pages/Inventory.tsx` -- remove duplicate back button, add parent route, make add button full-width, hide breadcrumb page name
+- `src/components/SourceWebsitesSection.tsx` -- restructure button to full-width
+- `src/components/UpgradesRepairsSection.tsx` -- restructure button to full-width
+- `src/components/DocumentFolders.tsx` -- add title/label override props
+- `src/components/MemorySafe.tsx` -- pass label overrides, add media filter, fix empty state text
+- `src/components/MediaGalleryGrid.tsx` -- no changes needed (already has `emptyMessage` support via its internal logic, empty state text is controlled by the parent)
 
+**UI pattern to follow (full-width button):**
+```text
++--------------------------------------------------+
+| Section Title                                      |
+| Subtitle text here                                 |
+|                                                    |
+| [===========  + Add New Item  ==================] |
+|                                                    |
+| (content below)                                    |
++--------------------------------------------------+
+```
