@@ -399,21 +399,20 @@ const CombinedMedia: React.FC = () => {
           <DashboardBreadcrumb parentRoute="/account?tab=asset-documentation" parentLabel="Back to Asset Documentation" hidePageName />
           
           {/* Header */}
-          <div className="mb-6">
-            <div className="mb-4">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Photos & Videos</h1>
-              <p className="text-gray-600 mt-1">
+          <Card className="mb-6">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-2xl sm:text-3xl font-bold">Photos & Videos</CardTitle>
+              <p className="text-muted-foreground mt-1">
                 Capture and organize photos and videos of your property and belongings.
               </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <Button onClick={() => navigate('/account/media/upload')} className="w-full sm:w-auto bg-brand-blue hover:bg-brand-lightBlue">
+            </CardHeader>
+            <CardContent className="pt-0">
+              <Button onClick={() => navigate('/account/media/upload')} className="w-full bg-brand-blue hover:bg-brand-lightBlue">
                 <Plus className="h-4 w-4 mr-2" />
                 Upload Photo/Video
               </Button>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* High-Value Items Section */}
           {(() => {
