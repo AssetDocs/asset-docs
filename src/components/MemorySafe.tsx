@@ -1,6 +1,7 @@
 import React from 'react';
-import { Archive } from 'lucide-react';
+import { Archive, Plus } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 const MemorySafe: React.FC = () => {
   return (
@@ -11,6 +12,11 @@ const MemorySafe: React.FC = () => {
           A protected place for the memories you want to keep — and pass on.
         </p>
       </div>
+
+      <Button className="w-full bg-brand-blue hover:bg-brand-blue/90" disabled>
+        <Plus className="h-4 w-4 mr-2" />
+        Add Memory
+      </Button>
 
       <Card className="border border-dashed border-muted-foreground/30">
         <CardContent className="flex flex-col items-center justify-center py-16 text-center">
