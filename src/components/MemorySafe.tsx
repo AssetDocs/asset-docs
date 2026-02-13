@@ -253,9 +253,9 @@ const MemorySafe: React.FC = () => {
             onDeleteFolder={handleDeleteFolder}
             onCreateFolder={() => setShowCreateFolder(true)}
             onEditFolder={handleEditFolder}
-            titleOverride="Folder Organization"
-            allItemsLabel="All Memories"
-            allItemsDescription="View all memories"
+            titleOverride="Document Organization"
+            allItemsLabel="All Documents"
+            allItemsDescription="View all documents"
           />
         </div>
 
