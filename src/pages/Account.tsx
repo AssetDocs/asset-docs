@@ -26,6 +26,7 @@ import InsightsToolsGrid from '@/components/InsightsToolsGrid';
 import LifeHubGrid from '@/components/LifeHubGrid';
 import NotesAndTraditions from '@/components/NotesAndTraditions';
 import FamilyRecipes from '@/components/FamilyRecipes';
+import MemorySafe from '@/components/MemorySafe';
 import AssetDocumentationGrid from '@/components/AssetDocumentationGrid';
 import ProtectionScore from '@/components/ProtectionScore';
 import { supabase } from '@/integrations/supabase/client';
@@ -117,6 +118,7 @@ const Account: React.FC = () => {
       'upgrades-repairs': { title: 'Upgrades & Repairs', subtitle: 'Document property improvements and repair history.' },
       'notes-traditions': { title: 'Notes & Traditions', subtitle: 'Capture family traditions, stories, and important notes.' },
       'family-recipes': { title: 'Family Recipes', subtitle: 'Preserve cherished family recipes for generations.' },
+      'memory-safe': { title: 'Memory Safe', subtitle: 'A protected place for the memories you want to keep — and pass on.' },
       'access-activity': { title: 'Access & Activity', subtitle: 'Manage authorized users and monitor recent account activity.' },
     };
     return configs[activeTab] || { title: '', subtitle: '' };
@@ -164,7 +166,7 @@ const Account: React.FC = () => {
                   Back to Dashboard
                 </Button>
 
-                {['voice-notes', 'service-pros', 'notes-traditions', 'family-recipes'].includes(activeTab) && (
+                {['voice-notes', 'service-pros', 'notes-traditions', 'family-recipes', 'memory-safe'].includes(activeTab) && (
                   <Button
                     onClick={() => setActiveTab('life-hub')}
                     variant="outline"
@@ -322,6 +324,10 @@ const Account: React.FC = () => {
 
             <TabsContent value="family-recipes">
               <FamilyRecipes />
+            </TabsContent>
+
+            <TabsContent value="memory-safe">
+              <MemorySafe />
             </TabsContent>
 
             {/* Access & Activity */}
