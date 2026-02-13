@@ -143,10 +143,7 @@ const Account: React.FC = () => {
                 <WelcomeBanner />
               </div>
               <div className="mb-4">
-                <SecurityProgress />
-              </div>
-              <div className="mb-4">
-                <MFADropdown />
+                <SecurityProgress hideChecklist />
               </div>
               <AdminContributorPlanInfo />
             </>

@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { DashboardGridCard } from './DashboardGridCard';
 import { ExportAssetsButton } from './ExportAssetsButton';
 import { ExportService } from '@/services/ExportService';
+import DocumentationChecklist from '@/components/DocumentationChecklist';
+import MFADropdown from '@/components/MFADropdown';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -89,6 +91,11 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           color="red"
         />
 
+        {/* Documentation Checklist - contextual guidance after documentation cards */}
+        <div className="md:col-span-2">
+          <DocumentationChecklist embedded />
+        </div>
+
         {/* Row 2: Yellow */}
         <DashboardGridCard
           icon={<Shield className="h-6 w-6" />}
@@ -115,6 +122,11 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           badge="Authorized Users Only"
           badgeIcon={<span className="text-[10px]">🔒</span>}
         />
+
+        {/* MFA Dropdown - security control near restricted sections */}
+        <div className="md:col-span-2">
+          <MFADropdown />
+        </div>
 
         {/* Row 3: Green */}
         <DashboardGridCard

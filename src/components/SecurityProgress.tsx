@@ -8,7 +8,11 @@ import UserStatusBadge from '@/components/UserStatusBadge';
 import { Progress } from '@/components/ui/progress';
 import DocumentationChecklist from '@/components/DocumentationChecklist';
 
-const SecurityProgress: React.FC = () => {
+interface SecurityProgressProps {
+  hideChecklist?: boolean;
+}
+
+const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = false }) => {
   const { status, loading, refreshVerification } = useVerification();
   const { profile, user } = useAuth();
   const [isProgressOpen, setIsProgressOpen] = useState(false);
@@ -199,31 +203,35 @@ const SecurityProgress: React.FC = () => {
       )}
 
       {/* ─── Section 2: Documentation Checklist ─── */}
-      <button
-        onClick={handleToggleChecklist}
-        className="w-full px-4 py-3 flex items-center justify-between gap-3 border-t border-border hover:bg-muted/30 transition-colors"
-      >
-        <div className="flex items-center gap-3 flex-1 min-w-0">
-          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 flex-shrink-0">
-            <ClipboardList className="h-4 w-4 text-primary" />
-          </div>
-          <div className="text-left">
-            <span className="text-sm font-semibold text-foreground">Documentation Checklist</span>
-            <p className="text-[11px] text-muted-foreground">A guided checklist for documenting your home, business, and more</p>
-          </div>
-        </div>
+      {!hideChecklist && (
+        <>
+          <button
+            onClick={handleToggleChecklist}
+            className="w-full px-4 py-3 flex items-center justify-between gap-3 border-t border-border hover:bg-muted/30 transition-colors"
+          >
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 flex-shrink-0">
+                <ClipboardList className="h-4 w-4 text-primary" />
+              </div>
+              <div className="text-left">
+                <span className="text-sm font-semibold text-foreground">Documentation Checklist</span>
+                <p className="text-[11px] text-muted-foreground">A guided checklist for documenting your home, business, and more</p>
+              </div>
+            </div>
 
-        {isChecklistOpen ? (
-          <ChevronUp className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-        ) : (
-          <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-        )}
-      </button>
+            {isChecklistOpen ? (
+              <ChevronUp className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            ) : (
+              <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            )}
+          </button>
 
-      {isChecklistOpen && (
-        <div className="border-t border-border">
-          <DocumentationChecklist embedded />
-        </div>
+          {isChecklistOpen && (
+            <div className="border-t border-border">
+              <DocumentationChecklist embedded />
+            </div>
+          )}
+        </>
       )}
     </div>
   );
