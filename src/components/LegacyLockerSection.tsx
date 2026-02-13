@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import legacyLockerLogo from '@/assets/legacy-locker-logo.png';
 
 const LegacyLockerSection: React.FC = () => {
+  const [whatItIsOpen, setWhatItIsOpen] = useState(false);
+
   return (
     <section className="py-20 bg-gradient-to-br from-blue-50 to-teal-50">
       <div className="container mx-auto px-4">
@@ -15,6 +19,29 @@ const LegacyLockerSection: React.FC = () => {
               <p className="text-xl text-gray-700">
                 A secure vault for organizing the information that matters most to your loved ones
               </p>
+
+              {/* What It Is - Collapsible */}
+              <button
+                onClick={() => setWhatItIsOpen(!whatItIsOpen)}
+                className="mt-4 flex items-center gap-2 text-brand-blue font-medium hover:underline mx-auto lg:mx-0"
+              >
+                <span>What It Is</span>
+                {whatItIsOpen ? (
+                  <ChevronUp className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
+              </button>
+              <div
+                className={cn(
+                  "overflow-hidden transition-all duration-300 ease-in-out",
+                  whatItIsOpen ? "max-h-96 opacity-100 mt-3" : "max-h-0 opacity-0"
+                )}
+              >
+                <p className="text-gray-600 text-base">
+                  Legacy Locker captures the things a legal will can't: your voice, your intentions, your stories, and the guidance your family will be grateful for. It's not a legal will—it's the heart behind it. Here you can securely store memories, notes, access details, and clear instructions for the people you trust most.
+                </p>
+              </div>
             </div>
             <div className="flex-1 w-full max-w-md lg:max-w-none">
               <div className="relative w-full aspect-video rounded-lg overflow-hidden shadow-lg">
