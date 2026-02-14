@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Folder, Images, Trash2, Plus, GripVertical, Pencil } from 'lucide-react';
+import { Folder, Images, Trash2, Plus, GripVertical, Pencil, Star } from 'lucide-react';
 
 interface FolderItem {
   id: string;
@@ -23,6 +23,7 @@ interface PhotoGalleryFoldersProps {
   onReorderFolders?: (folders: FolderItem[]) => void;
   onEditFolder?: (folder: FolderItem) => void;
   isRoomBased?: boolean;
+  highValueCount?: number;
 }
 
 const PhotoGalleryFolders: React.FC<PhotoGalleryFoldersProps> = ({
@@ -34,7 +35,8 @@ const PhotoGalleryFolders: React.FC<PhotoGalleryFoldersProps> = ({
   onCreateFolder,
   onReorderFolders,
   onEditFolder,
-  isRoomBased = false
+  isRoomBased = false,
+  highValueCount = 0
 }) => {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -98,6 +100,24 @@ const PhotoGalleryFolders: React.FC<PhotoGalleryFoldersProps> = ({
           {isRoomBased ? 'Add Room' : 'Create Folder'}
         </Button>
         
+        {/* High-Value Items - permanent folder */}
+        <Button
+          variant={selectedFolder === 'high-value' ? 'default' : 'ghost'}
+          className="w-full justify-start p-3 h-auto"
+          onClick={() => onFolderSelect('high-value')}
+        >
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center mr-3">
+            <Star className="h-4 w-4 text-white fill-white" />
+          </div>
+          <div className="flex-1 text-left min-w-0">
+            <div className="font-medium text-sm">High-Value Items</div>
+            <div className="text-xs text-muted-foreground">Items marked as high-value</div>
+          </div>
+          <Badge variant="secondary" className="ml-2">
+            {highValueCount}
+          </Badge>
+        </Button>
+
         {/* ALL Photos Option */}
         <Button
           variant={selectedFolder === null ? 'default' : 'ghost'}
