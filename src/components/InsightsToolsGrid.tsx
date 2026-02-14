@@ -2,7 +2,6 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardGridCard } from './DashboardGridCard';
 import {
-  DollarSign,
   Package,
   Hammer,
   Globe,
@@ -26,17 +25,6 @@ const InsightsToolsGrid: React.FC<InsightsToolsGridProps> = ({ onTabChange }) =>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Asset Values */}
-        <DashboardGridCard
-          icon={<DollarSign className="h-5 w-5" />}
-          title="Asset Values"
-          description="Track the estimated value of your documented assets."
-          actionLabel="View Values"
-          onClick={() => onTabChange('asset-values')}
-          color="teal"
-          variant="compact"
-        />
-
         {/* Manual Entry Items */}
         <DashboardGridCard
           icon={<Package className="h-5 w-5" />}

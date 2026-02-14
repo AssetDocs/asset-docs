@@ -175,7 +175,7 @@ const Account: React.FC = () => {
                   </Button>
                 )}
 
-                {['asset-values', 'source-websites', 'paint-codes', 'upgrades-repairs'].includes(activeTab) && (
+                {['source-websites', 'paint-codes', 'upgrades-repairs'].includes(activeTab) && (
                   <Button
                     onClick={() => setActiveTab('insights-tools')}
                     variant="outline"

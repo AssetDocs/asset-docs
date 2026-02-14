@@ -9,6 +9,7 @@ import DocumentationChecklist from '@/components/DocumentationChecklist';
 import MFADropdown from '@/components/MFADropdown';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import AssetValuesSection from '@/components/AssetValuesSection';
 import {
   Settings,
   Home,
@@ -22,6 +23,8 @@ import {
   Download,
   AlertTriangle,
   Loader2,
+  DollarSign,
+  ChevronDown,
 } from 'lucide-react';
 
 interface DashboardGridProps {
@@ -33,6 +36,15 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isAssetValuesOpen, setIsAssetValuesOpen] = useState(() => {
+    return localStorage.getItem('assetValuesDropdownOpen') === 'true';
+  });
+
+  const handleToggleAssetValues = () => {
+    const newState = !isAssetValuesOpen;
+    setIsAssetValuesOpen(newState);
+    localStorage.setItem('assetValuesDropdownOpen', String(newState));
+  };
 
   const handleDownloadAll = async () => {
     const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
@@ -151,6 +163,29 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           onClick={() => navigate('/account/properties')}
           color="blue"
         />
+
+        {/* Asset Values Collapsible Bar */}
+        <div className="md:col-span-2">
+          <div className="w-full bg-card border border-border rounded-lg overflow-hidden">
+            <button
+              onClick={handleToggleAssetValues}
+              className="w-full px-6 py-4 flex items-center justify-between gap-3 hover:bg-muted/30 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <DollarSign className="h-4 w-4 text-primary" />
+                </div>
+                <span className="text-sm font-semibold text-foreground">Asset Values</span>
+              </div>
+              <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${isAssetValuesOpen ? '' : '-rotate-90'}`} />
+            </button>
+            {isAssetValuesOpen && (
+              <div className="px-4 pb-4 pt-2 border-t border-border">
+                <AssetValuesSection />
+              </div>
+            )}
+          </div>
+        </div>
 
         <DashboardGridCard
           icon={<Settings className="h-6 w-6" />}

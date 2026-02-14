@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, ChevronUp, Shield } from 'lucide-react';
+import { ChevronDown, Shield } from 'lucide-react';
 import TOTPSettings from './TOTPSettings';
 import BackupCodesSettings from './BackupCodesSettings';
 
@@ -27,21 +27,15 @@ const MFADropdown: React.FC = () => {
           <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 flex-shrink-0">
             <Shield className="h-4 w-4 text-primary" />
           </div>
-          <div className="text-left">
-            <span className="text-sm font-semibold text-foreground">Multi-Factor Authentication (MFA)</span>
-            <p className="text-[11px] text-muted-foreground">Secure your account with an authenticator app or backup codes</p>
-          </div>
+          <span className="text-sm font-semibold text-foreground">Multi-Factor Authentication (MFA)</span>
         </div>
 
-        {isOpen ? (
-          <ChevronUp className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-        ) : (
-          <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-        )}
+        <ChevronDown className={`h-5 w-5 text-muted-foreground flex-shrink-0 transition-transform ${isOpen ? '' : '-rotate-90'}`} />
       </button>
 
       {isOpen && (
         <div className="px-4 pb-4 pt-2 border-t border-border space-y-4">
+          <p className="text-[11px] text-muted-foreground">Secure your account with an authenticator app or backup codes</p>
           <TOTPSettings />
           <BackupCodesSettings />
         </div>
