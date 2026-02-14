@@ -693,10 +693,10 @@ const DocumentationChecklist: React.FC<DocumentationChecklistProps> = ({ embedde
               <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <ClipboardList className="h-6 w-6 text-primary" />
-                    <div>
-                      <CardTitle className="text-xl">Documentation Checklist</CardTitle>
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 flex-shrink-0">
+                      <ClipboardList className="h-4 w-4 text-primary" />
                     </div>
+                    <span className="text-sm font-semibold text-foreground">Documentation Checklist</span>
                   </div>
                   <div className="flex items-center gap-4">
                   <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${isOpen ? '' : '-rotate-90'}`} />
