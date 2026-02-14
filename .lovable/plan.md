@@ -1,46 +1,79 @@
 
 
-# Add High-Value Items as Permanent Folder in Room Organization
+# Dashboard UI Refinements: Asset Values Bar, Subtitle Removal, Arrow Consistency
 
 ## Overview
 
-Move the "High-Value Items" from a standalone card above the page into a permanent, non-deletable folder entry inside the "Room Organization" sidebar. When users click it, the main content area filters to show only files marked as high-value.
+Three changes: extract Asset Values into its own collapsible bar on the dashboard, remove subtitle text from collapsed dropdown bars, and standardize all expand arrows to point downward.
 
 ---
 
 ## Changes
 
-### 1. PhotoGalleryFolders.tsx — Add permanent High-Value Items folder
+### 1. DashboardGrid.tsx -- Add "Asset Values" collapsible bar
 
-- Add a new `Star` icon import from lucide-react
-- Add new props: `highValueCount` (number) and `onHighValueSelect` callback
-- Add a new `selectedFolder` value convention: use a special string like `"high-value"` to represent this virtual folder
-- Insert a new button **above** the "All Photos and Videos" button, styled with an amber gradient icon and a star, labeled "High-Value Items" with a badge showing the count
-- This folder cannot be deleted, edited, or dragged — it is always present
+- Import `AssetValuesSection` and `DollarSign` icon
+- Add a new full-width collapsible bar after the Insights & Tools card and Property Profiles card (after the blue row, before the orange utility row)
+- Style it identically to the Documentation Checklist and MFA bars: `bg-card border border-border rounded-lg`, with a clickable header containing a `DollarSign` icon in a rounded circle, the title "Asset Values", a `ChevronDown` with rotation animation, and localStorage persistence for open/closed state
+- When expanded, render `<AssetValuesSection />` inside the content area
+- Add state: `isAssetValuesOpen` with localStorage key `assetValuesDropdownOpen`
 
-### 2. CombinedMedia.tsx — Wire up the high-value folder
+### 2. InsightsToolsGrid.tsx -- Remove Asset Values card
 
-- Pass `highValueCount` and `onHighValueSelect` props to `PhotoGalleryFolders`
-- When `selectedFolder === 'high-value'`, filter `getFilteredItems()` to only show files where `is_high_value === true`
-- Update `currentFolderName` to show "High-Value Items" when this virtual folder is selected
-- Remove the standalone high-value items `Card` section (lines ~417-460) since it is now integrated into the folder sidebar
+- Remove the "Asset Values" `DashboardGridCard` entry (lines 29-38) since it now lives as its own collapsible bar on the main dashboard
+
+### 3. MFADropdown.tsx -- Remove subtitle, fix arrow
+
+- Remove the `<p>` subtitle line ("Secure your account with an authenticator app or backup codes") from the collapsed trigger area
+- Move that text inside the expanded content area (above the TOTP/Backup settings)
+- Replace the `ChevronUp`/`ChevronDown` toggle with a single `ChevronDown` that uses `transition-transform` and `-rotate-90` when collapsed (matching the Documentation Checklist pattern)
+
+### 4. SecurityProgress.tsx -- Remove subtitle, fix arrows
+
+- **Security Progress section**: Remove the `<p>` subtitle ("Overall account protection status") from the collapsed trigger; move it into the expanded content (above the existing instructions text)
+- Replace `ChevronUp`/`ChevronDown` toggle with single `ChevronDown` + rotation animation
+- **Documentation Checklist section** (embedded in SecurityProgress): Same treatment -- remove the `<p>` subtitle ("A guided checklist for documenting your home, business, and more") from trigger; move inside expanded content. Replace chevron toggle with single `ChevronDown` + rotation
+
+### 5. Account.tsx -- Update tab routing
+
+- Remove the `asset-values` case from the "Back to Insights & Tools" button group since it is no longer a sub-tab of Insights & Tools
+- Keep the `asset-values` TabsContent so the page still renders if navigated to directly, or alternatively redirect to the dashboard
 
 ---
 
 ## Technical Details
 
-**New props on PhotoGalleryFolders:**
-```
-highValueCount: number
+**Arrow pattern (standardized across all dropdowns):**
+```tsx
+<ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${isOpen ? '' : '-rotate-90'}`} />
 ```
 
-**Folder selection logic in CombinedMedia:**
-- `selectedFolder === null` → all files (existing)
-- `selectedFolder === 'high-value'` → files where `is_high_value === true` (new)
-- `selectedFolder === '<uuid>'` → files in that room folder (existing)
+**Asset Values collapsible bar structure:**
+```tsx
+<div className="md:col-span-2">
+  <div className="w-full bg-card border border-border rounded-lg overflow-hidden">
+    <button onClick={handleToggleAssetValues} className="w-full px-6 py-4 flex items-center justify-between gap-3 hover:bg-muted/30 transition-colors">
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+          <DollarSign className="h-4 w-4 text-primary" />
+        </div>
+        <span className="text-sm font-semibold text-foreground">Asset Values</span>
+      </div>
+      <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${isAssetValuesOpen ? '' : '-rotate-90'}`} />
+    </button>
+    {isAssetValuesOpen && (
+      <div className="px-4 pb-4 pt-2 border-t border-border">
+        <AssetValuesSection />
+      </div>
+    )}
+  </div>
+</div>
+```
 
-**High-Value folder button styling:**
-- Amber gradient background (`from-amber-400 to-amber-600`)
-- `Star` icon (filled white)
-- No delete/edit/drag controls — permanently pinned at top
+**Files to modify:**
+- `src/components/DashboardGrid.tsx`
+- `src/components/InsightsToolsGrid.tsx`
+- `src/components/MFADropdown.tsx`
+- `src/components/SecurityProgress.tsx`
+- `src/pages/Account.tsx`
 
