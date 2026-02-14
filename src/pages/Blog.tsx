@@ -123,7 +123,7 @@ const Blog = () => {
       <SEOHead 
         title="Blog - Asset Protection & Estate Planning Insights | Asset Safe"
         description="Expert insights on home inventory management, estate planning, insurance claims, and asset protection. Learn how to protect what matters most."
-        canonicalUrl="https://www.assetsafe.net/blog"
+        canonicalUrl="https://www.getassetsafe.com/blog"
       />
       <div className="min-h-screen flex flex-col bg-background">
         <Navbar />

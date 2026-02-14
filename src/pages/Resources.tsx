@@ -14,8 +14,8 @@ const Resources: React.FC = () => {
   const [activeTab, setActiveTab] = useState("education");
 
   const structuredData = breadcrumbSchema([
-    { name: 'Home', url: 'https://www.assetsafe.net/' },
-    { name: 'Resources', url: 'https://www.assetsafe.net/resources' }
+    { name: 'Home', url: 'https://www.getassetsafe.com/' },
+    { name: 'Resources', url: 'https://www.getassetsafe.com/resources' }
   ]);
 
   useEffect(() => {
@@ -31,7 +31,7 @@ const Resources: React.FC = () => {
         title="Resources & Security - Educational Guides & Trust Information"
         description="Access comprehensive guides on property documentation, photography tips, insurance claims, and learn about Asset Safe's enterprise-grade security measures and data protection."
         keywords="property documentation guides, home inventory tips, insurance claim resources, data security, privacy protection, photography guides, estate planning resources"
-        canonicalUrl="https://www.assetsafe.net/resources"
+        canonicalUrl="https://www.getassetsafe.com/resources"
         structuredData={structuredData}
       />
       <Navbar />

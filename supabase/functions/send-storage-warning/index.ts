@@ -43,7 +43,7 @@ const handler = async (req: Request): Promise<Response> => {
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="text-align: center; margin-bottom: 30px;">
-            <img src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 20px;" />
+            <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 20px;" />
             <h1 style="color: #dc2626; margin-bottom: 10px;">⚠️ Storage Quota Warning</h1>
           </div>
           
@@ -72,7 +72,7 @@ const handler = async (req: Request): Promise<Response> => {
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="https://www.assetsafe.net/account-settings?tab=subscription" 
+            <a href="https://www.getassetsafe.com/account-settings?tab=subscription" 
                style="background: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
               Upgrade Storage
             </a>

@@ -168,7 +168,7 @@ Deno.serve(async (req) => {
               </div>
               
               <div style="text-align: center; margin: 30px 0;">
-                <a href="https://www.assetsafe.net/account" style="display: inline-block; background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Review Request</a>
+                <a href="https://www.getassetsafe.com/account" style="display: inline-block; background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Review Request</a>
               </div>
               
               <p style="color: #666; font-size: 14px;">If you did not authorize this request or have concerns, please contact support immediately at support@assetsafe.net</p>

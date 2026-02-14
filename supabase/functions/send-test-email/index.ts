@@ -46,7 +46,7 @@ const handler = async (req: Request): Promise<Response> => {
           <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
             <p style="margin: 0; color: #666;">
               <strong>Service:</strong> Resend Email Service<br>
-              <strong>Domain:</strong> assetsafe.net<br>
+              <strong>Domain:</strong> getassetsafe.com<br>
               <strong>Status:</strong> ✅ Connected and Working
             </p>
           </div>
@@ -56,7 +56,7 @@ const handler = async (req: Request): Promise<Response> => {
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
           <p style="font-size: 12px; color: #999; text-align: center;">
             Asset Safe - Secure Your Property Documentation<br>
-            <a href="https://www.assetsafe.net" style="color: #2563eb;">www.assetsafe.net</a>
+            <a href="https://www.getassetsafe.com" style="color: #2563eb;">www.getassetsafe.com</a>
           </p>
         </div>
       `,

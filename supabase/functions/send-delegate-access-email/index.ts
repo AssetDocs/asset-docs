@@ -128,7 +128,7 @@ const handler = async (req: Request): Promise<Response> => {
       // Continue anyway - this is not critical
     }
 
-    const acknowledgmentUrl = `https://www.assetsafe.net/acknowledge-access?token=${acknowledgmentToken}&lockerId=${legacyLockerId}&delegateId=${delegateUserId}`;
+    const acknowledgmentUrl = `https://www.getassetsafe.com/acknowledge-access?token=${acknowledgmentToken}&lockerId=${legacyLockerId}&delegateId=${delegateUserId}`;
 
     const emailResponse = await resend.emails.send({
       from: "Asset Safe <support@assetsafe.net>",
@@ -156,7 +156,7 @@ const handler = async (req: Request): Promise<Response> => {
           <body>
             <div class="container">
               <div class="header">
-                <img src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" class="logo" />
+                <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" class="logo" />
               </div>
               
               <div class="content">

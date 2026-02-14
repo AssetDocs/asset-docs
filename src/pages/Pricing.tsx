@@ -49,8 +49,8 @@ const Pricing: React.FC = () => {
       productSchema("Asset Safe Premium Plan", "18.99", "Professional plan with unlimited properties and 100GB storage for estate managers"),
       faqSchema(faqData),
       breadcrumbSchema([
-        { name: 'Home', url: 'https://www.assetsafe.net/' },
-        { name: 'Pricing', url: 'https://www.assetsafe.net/pricing' }
+        { name: 'Home', url: 'https://www.getassetsafe.com/' },
+        { name: 'Pricing', url: 'https://www.getassetsafe.com/pricing' }
       ])
     ]
   };
@@ -211,7 +211,7 @@ const Pricing: React.FC = () => {
         title="Pricing - Affordable Plans for Home & Property Documentation"
         description="Choose from Standard ($12.99/mo) or Premium ($18.99/mo) plans. No long-term contract. Cancel anytime. Secure cloud storage, unlimited photos/videos, insurance claims support."
         keywords="home inventory pricing, property documentation cost, digital asset management pricing, insurance inventory app cost, estate planning tools pricing"
-        canonicalUrl="https://www.assetsafe.net/pricing"
+        canonicalUrl="https://www.getassetsafe.com/pricing"
         structuredData={structuredData}
       />
       <Navbar />

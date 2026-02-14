@@ -77,7 +77,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const billingText = `Your next billing date is ${billingDate}.`;
 
-    const baseUrl = 'https://www.assetsafe.net';
+    const baseUrl = 'https://www.getassetsafe.com';
     const dashboardUrl = `${baseUrl}/welcome`;
 
     const emailResponse = await resend.emails.send({
@@ -87,7 +87,7 @@ const handler = async (req: Request): Promise<Response> => {
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="text-align: center; margin-bottom: 20px;">
-            <img src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
+            <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
           </div>
           <h1 style="color: #2563eb; margin-bottom: 20px;">Welcome to Asset Safe!</h1>
           

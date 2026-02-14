@@ -37,7 +37,7 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
   const handleDownloadAll = async () => {
     const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
     if (isOnSampleDashboard) {
-      alert('AssetSafe.net says\n\nDemo: This would download all your uploaded photos, videos, and documents as a ZIP file.');
+      alert('Asset Safe says\n\nDemo: This would download all your uploaded photos, videos, and documents as a ZIP file.');
       return;
     }
 

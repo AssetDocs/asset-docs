@@ -148,7 +148,7 @@ Deno.serve(async (req) => {
               
               ${action === 'approve' ? `
                 <div style="text-align: center; margin: 30px 0;">
-                  <a href="https://www.assetsafe.net/account" style="display: inline-block; background-color: #dc2626; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Proceed with Deletion</a>
+                  <a href="https://www.getassetsafe.com/account" style="display: inline-block; background-color: #dc2626; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Proceed with Deletion</a>
                 </div>
               ` : ''}
               

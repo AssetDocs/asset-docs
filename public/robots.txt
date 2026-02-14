@@ -63,4 +63,4 @@ Allow: /legal
 Allow: /cookie-policy
 
 # Sitemap location
-Sitemap: https://www.assetsafe.net/sitemap.xml
+Sitemap: https://www.getassetsafe.com/sitemap.xml
