@@ -20,7 +20,7 @@ const InsightsToolsGrid: React.FC<InsightsToolsGridProps> = ({ onTabChange }) =>
       <div>
         <h2 className="text-2xl font-bold text-foreground">Insights & Tools</h2>
         <p className="text-muted-foreground text-sm mt-1">
-          Track values, manage repairs, and organize property details.
+          Manage repairs and organize property details.
         </p>
       </div>
 
