@@ -1,64 +1,114 @@
 
 
-## Reposition Dashboard Dropdown Modules
+# Domain Migration: assetsafe.net → getassetsafe.com (Updated Plan)
 
-### Overview
-Move the Documentation Checklist and MFA dropdown from the top-of-dashboard stack into contextually relevant positions within the DashboardGrid, keeping only Security Progress as the global top-level widget.
+## Key Decision
 
-### Current Layout (Overview Tab)
-```text
-WelcomeBanner
-SecurityProgress (contains Security Progress + Documentation Checklist)
-MFADropdown
-AdminContributorPlanInfo
-DashboardGrid
-  Row 1 (Red): Asset Documentation | Family Archive
-  Row 2 (Yellow): Legacy Locker | Password Catalog
-  Row 3 (Green): Insights & Tools
-  Row 4 (Blue): Property Profiles | Account Settings | Access & Activity
-  Bottom: Export | Download | Post Damage
-```
+**All email addresses stay as `@assetsafe.net`** (Google Workspace). Only website URLs and display references change to `getassetsafe.com`. This means no Resend domain changes are needed.
 
-### New Layout
-```text
-WelcomeBanner
-SecurityProgress (Security Progress ONLY - no checklist)
-AdminContributorPlanInfo
-DashboardGrid
-  Row 1 (Red): Asset Documentation | Family Archive
-  --- Documentation Checklist (full-width, collapsed) ---
-  Row 2 (Yellow): Legacy Locker | Password Catalog
-  --- MFA Dropdown (full-width, collapsed) ---
-  Row 3 (Green): Insights & Tools
-  Row 4 (Blue): Property Profiles | Account Settings | Access & Activity
-  Bottom: Export | Download | Post Damage
-```
+---
 
-### Changes
+## What Changes
 
-**1. `src/components/SecurityProgress.tsx`**
-- Add an optional prop `hideChecklist?: boolean` (default `false`)
-- When `hideChecklist` is `true`, skip rendering the Documentation Checklist section (the second collapsible button and its content)
-- This preserves backward compatibility for any other usage of the component
+| Category | What changes | What stays the same |
+|----------|-------------|-------------------|
+| Website URLs | `assetsafe.net` → `getassetsafe.com` | -- |
+| Email "from" addresses | -- | `support@assetsafe.net`, `noreply@assetsafe.net`, etc. |
+| `mailto:` links | -- | `support@assetsafe.net` |
+| Email template links | `assetsafe.net/...` → `getassetsafe.com/...` | -- |
+| Email template logo URLs | `assetsafe.net/lovable-uploads/...` → `getassetsafe.com/lovable-uploads/...` | -- |
 
-**2. `src/pages/Account.tsx`**
-- Pass `hideChecklist` to SecurityProgress on the overview tab
-- Remove the standalone `<MFADropdown />` from the overview top stack (line 148-150)
+---
 
-**3. `src/components/DashboardGrid.tsx`**
-- Import `DocumentationChecklist` and `MFADropdown`
-- Insert `<DocumentationChecklist embedded />` as a full-width row between the Red row (Asset Documentation + Family Archive) and the Yellow row (Legacy Locker + Password Catalog)
-- Insert `<MFADropdown />` as a full-width row between the Yellow row and the Green row (Insights and Tools)
-- Both remain collapsed by default (existing behavior)
+## Phase 1 — SEO and Static Files
 
-### Files to Modify
-- `src/components/SecurityProgress.tsx` -- add `hideChecklist` prop
-- `src/pages/Account.tsx` -- remove MFADropdown from top stack, pass `hideChecklist` to SecurityProgress
-- `src/components/DashboardGrid.tsx` -- insert DocumentationChecklist and MFADropdown between grid rows
+Update all canonical URLs, Open Graph tags, and sitemap entries.
 
-### What Does NOT Change
-- Internal functionality of any module
-- Collapsed-by-default behavior
-- No duplication of modules
-- SecurityProgress stays at top as global status
+**Files:**
+- `index.html` — canonical, og:url, og:image, twitter:image URLs
+- `public/sitemap.xml` — all page URLs (~20 entries)
+- `public/robots.txt` — Sitemap URL
+- `src/utils/structuredData.ts` — organization schema, product schema, breadcrumb URLs, logo URL
+
+**~24 page files** with `canonicalUrl` or `breadcrumbSchema` references:
+- `Index.tsx`, `About.tsx`, `Blog.tsx`, `Claims.tsx`, `Contact.tsx`, `CookiePolicy.tsx`, `Features.tsx`, `Gift.tsx`, `Glossary.tsx`, `Install.tsx`, `Insurance.tsx`, `AwarenessGuide.tsx`, `IndustryRequirements.tsx`, `Legal.tsx`, `LegacyLockerInfo.tsx`, `PhotographyGuide.tsx`, `Pricing.tsx`, `QA.tsx`, `Resources.tsx`, `Scenarios.tsx`, `SocialImpact.tsx`, `StateRequirements.tsx`, `Terms.tsx`, `Testimonials.tsx`
+
+---
+
+## Phase 2 — Frontend Display References
+
+Update hardcoded website references (not email addresses).
+
+- `src/pages/Install.tsx` — PWA instructions mentioning `assetsafe.net`
+- `src/components/ExportAssetsButton.tsx` — alert text referencing `AssetSafe.net`
+- `src/pages/TestEmail.tsx` — display text referencing domain
+- Any other UI text that says "assetsafe.net" as a website name
+
+**Not changing:** Any `mailto:support@assetsafe.net` references remain as-is.
+
+---
+
+## Phase 3 — Edge Function Email Templates (Links and Images Only)
+
+Update only the **website URLs and logo image URLs** inside email HTML templates. The `from:` addresses stay unchanged.
+
+**21 edge functions affected (links/images only, NOT from addresses):**
+- `send-gift-email`
+- `send-cancellation-notice`
+- `send-contact-email`
+- `send-contributor-invitation`
+- `send-delegate-access-email`
+- `send-subscription-welcome-email`
+- `send-deletion-confirmation`
+- `send-test-email`
+- `send-reminder-email`
+- `send-payment-reminder`
+- `send-recovery-request-email`
+- `send-recovery-approved-email`
+- `send-recovery-rejected-email`
+- `send-property-update`
+- `send-security-alert`
+- `send-storage-warning`
+- `send-payment-receipt` / `send-payment-receipt-internal`
+- `invite-dev-team-member`
+- `submit-deletion-request`
+- `respond-deletion-request`
+- `send-welcome-email`
+- `notify-visitor-access`
+
+**What changes in each function:**
+- `https://www.assetsafe.net/account` → `https://www.getassetsafe.com/account` (and similar page links)
+- `https://www.assetsafe.net/lovable-uploads/...` → `https://www.getassetsafe.com/lovable-uploads/...` (logo images)
+- Any footer text referencing the website URL
+
+**What does NOT change:**
+- `from: "AssetSafe <support@assetsafe.net>"` — stays
+- `to: ["support@assetsafe.net"]` — stays
+- `mailto:support@assetsafe.net` in email footers — stays
+
+---
+
+## Phase 4 — Verification
+
+- Test email delivery by sending a test email from the TestEmail page
+- Verify all email links point to `getassetsafe.com`
+- Verify logo images load in emails
+- Check sitemap and robots.txt are accessible at `getassetsafe.com`
+
+---
+
+## No Prerequisites Needed
+
+Since we are keeping all `@assetsafe.net` email addresses and only changing website URLs, there are no Resend domain verification steps required before implementation.
+
+---
+
+## Technical Detail
+
+The migration is a targeted find-and-replace:
+- `https://www.assetsafe.net` → `https://www.getassetsafe.com` (website URLs)
+- `https://assetsafe.net` → `https://getassetsafe.com` (without www)
+- Display text `"assetsafe.net"` → `"getassetsafe.com"` (where referring to the website, not email)
+
+All `@assetsafe.net` email addresses and `mailto:` links are explicitly excluded from changes.
 
