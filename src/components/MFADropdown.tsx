@@ -21,7 +21,7 @@ const MFADropdown: React.FC = () => {
     <div className="w-full bg-card border border-border rounded-lg overflow-hidden">
       <button
         onClick={handleToggle}
-        className="w-full px-4 py-3 flex items-center justify-between gap-3 hover:bg-muted/30 transition-colors"
+        className="w-full px-6 py-4 flex items-center justify-between gap-3 hover:bg-muted/30 transition-colors"
       >
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 flex-shrink-0">
