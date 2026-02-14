@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { DashboardGridCard } from './DashboardGridCard';
 import { Camera, FileText, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AssetTypeSelector, { type AssetUploadType } from './AssetTypeSelector';
 import ScanToPDF from './ScanToPDF';
 import { useAuth } from '@/contexts/AuthContext';
@@ -75,18 +76,20 @@ const AssetDocumentationGrid: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">Asset Documentation</h2>
-          <p className="text-muted-foreground text-sm mt-1">
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-2xl sm:text-3xl font-bold">Asset Documentation</CardTitle>
+          <p className="text-muted-foreground mt-1">
             Claim-ready proof for your home and belongings.
           </p>
-        </div>
-        <Button onClick={() => setSelectorOpen(true)} className="shrink-0">
-          <Plus className="h-4 w-4 mr-1" />
-          Upload
-        </Button>
-      </div>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <Button onClick={() => setSelectorOpen(true)} className="w-full bg-brand-blue hover:bg-brand-lightBlue">
+            <Plus className="h-4 w-4 mr-2" />
+            Upload
+          </Button>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <DashboardGridCard
