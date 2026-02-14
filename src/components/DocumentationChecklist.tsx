@@ -695,7 +695,7 @@ const DocumentationChecklist: React.FC<DocumentationChecklistProps> = ({ embedde
                   <div className="flex items-center gap-3">
                     <ClipboardList className="h-6 w-6 text-primary" />
                     <div>
-                      <CardTitle className="text-xl">Complete Documentation Checklist</CardTitle>
+                      <CardTitle className="text-xl">Documentation Checklist</CardTitle>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
