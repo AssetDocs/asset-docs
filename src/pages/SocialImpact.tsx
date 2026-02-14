@@ -6,8 +6,8 @@ import { breadcrumbSchema } from '@/utils/structuredData';
 
 const SocialImpact: React.FC = () => {
   const structuredData = breadcrumbSchema([
-    { name: 'Home', url: 'https://www.assetsafe.net/' },
-    { name: 'Social Impact', url: 'https://www.assetsafe.net/social-impact' }
+    { name: 'Home', url: 'https://www.getassetsafe.com/' },
+    { name: 'Social Impact', url: 'https://www.getassetsafe.com/social-impact' }
   ]);
 
   return (
@@ -16,7 +16,7 @@ const SocialImpact: React.FC = () => {
         title="Social Impact - How Asset Safe Helps Communities"
         description="Learn how Asset Safe supports families, small businesses, and communities during disasters, transitions, and recovery. Our mission is to make documentation accessible to everyone."
         keywords="social impact, community support, disaster recovery, small business protection, family asset protection, estate planning help"
-        canonicalUrl="https://www.assetsafe.net/social-impact"
+        canonicalUrl="https://www.getassetsafe.com/social-impact"
         structuredData={structuredData}
       />
       <Navbar />

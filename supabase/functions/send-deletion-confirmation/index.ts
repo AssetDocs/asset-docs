@@ -41,7 +41,7 @@ const handler = async (req: Request): Promise<Response> => {
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="text-align: center; margin-bottom: 30px;">
-            <img src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 20px;" />
+            <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 20px;" />
             <h1 style="color: #1f2937; margin-bottom: 10px;">Account Deletion Confirmed</h1>
           </div>
           
@@ -75,7 +75,7 @@ const handler = async (req: Request): Promise<Response> => {
               We're sorry to see you go. If you deleted your account by mistake or would like to return in the future, you can always create a new account at:
             </p>
             <p style="margin: 0; text-align: center;">
-              <a href="https://www.assetsafe.net/auth" style="color: #2563eb; font-weight: bold;">www.assetsafe.net</a>
+              <a href="https://www.getassetsafe.com/auth" style="color: #2563eb; font-weight: bold;">www.getassetsafe.com</a>
             </p>
           </div>
           

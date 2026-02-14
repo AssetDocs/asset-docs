@@ -145,7 +145,7 @@ const Install = () => {
                 <CardContent className="space-y-4">
                   <ol className="list-decimal list-inside space-y-3 text-muted-foreground">
                     <li>Open <strong>Chrome</strong></li>
-                    <li>Go to <strong>https://assetsafe.net</strong></li>
+                    <li>Go to <strong>https://getassetsafe.com</strong></li>
                     <li>Tap or click the <strong>menu icon (⋮)</strong> in the top-right corner</li>
                     <li>Select <strong>"Add to Home Screen"</strong> or <strong>"Install App"</strong></li>
                     <li>Confirm when prompted</li>
@@ -172,7 +172,7 @@ const Install = () => {
                 <CardContent className="space-y-4">
                   <ol className="list-decimal list-inside space-y-3 text-muted-foreground">
                     <li>Open <strong>Microsoft Edge</strong></li>
-                    <li>Visit <strong>https://assetsafe.net</strong></li>
+                    <li>Visit <strong>https://getassetsafe.com</strong></li>
                     <li>Click the <strong>menu icon (⋯)</strong> in the top-right corner</li>
                     <li>Choose <strong>Apps</strong></li>
                     <li>Select <strong>"Install this site as an app"</strong></li>

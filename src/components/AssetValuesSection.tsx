@@ -73,7 +73,7 @@ const AssetValuesSection: React.FC = () => {
           onClick={() => {
             const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
             if (isOnSampleDashboard) {
-              alert('AssetSafe.net says\n\nDemo: This toggles between category summary and itemized list view.');
+              alert('Asset Safe says\n\nDemo: This toggles between category summary and itemized list view.');
               return;
             }
             setViewMode(viewMode === 'summary' ? 'itemized' : 'summary');

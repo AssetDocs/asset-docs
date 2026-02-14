@@ -10,7 +10,7 @@ const SubscriptionAgreement: React.FC = () => {
       <SEOHead
         title="Subscription Agreement | Asset Safe"
         description="Read the Asset Safe Subscription Agreement covering billing, renewals, cancellations, data storage, and service terms."
-        canonicalUrl="https://www.assetsafe.net/subscription-agreement"
+        canonicalUrl="https://www.getassetsafe.com/subscription-agreement"
       />
       <Navbar />
       <main className="flex-grow bg-gray-50 py-12">

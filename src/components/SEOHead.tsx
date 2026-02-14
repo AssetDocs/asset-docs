@@ -15,12 +15,12 @@ const SEOHead: React.FC<SEOHeadProps> = ({
   title = 'Asset Safe | Digital Home Inventory, Legacy Locker & Property Documentation Platform',
   description = 'Complete property documentation platform for homeowners, renters & businesses. Secure digital inventory, insurance claims support, estate planning tools & legacy locker. No long-term contract required.',
   keywords = 'digital home inventory, property documentation, insurance claims, asset protection, legacy locker, estate planning, home inventory app, property management, homeowner documentation, digital estate vault',
-  ogImage = 'https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email-v2.jpg',
+  ogImage = 'https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg',
   canonicalUrl,
   type = 'website',
   structuredData
 }) => {
-  const siteUrl = 'https://www.assetsafe.net';
+  const siteUrl = 'https://www.getassetsafe.com';
   const fullCanonicalUrl = canonicalUrl || siteUrl;
   const fullTitle = title.includes('Asset Safe') ? title : `${title} | Asset Safe`;
 

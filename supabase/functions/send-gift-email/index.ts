@@ -61,7 +61,7 @@ const handler = async (req: Request): Promise<Response> => {
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="text-align: center; margin-bottom: 40px;">
-            <img src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 20px;" />
+            <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 20px;" />
             <h1 style="color: #2563eb; margin-bottom: 10px;">🎁 Congratulations!</h1>
             <h2 style="color: #1f2937; margin: 0;">You've received a gift subscription to Asset Safe</h2>
           </div>
@@ -88,7 +88,7 @@ const handler = async (req: Request): Promise<Response> => {
             <div style="margin-bottom: 30px;">
             <h3 style="color: #1f2937;">How to redeem your gift:</h3>
             <ol style="color: #374151; line-height: 1.6;">
-              <li>Click the button below or visit <a href="https://www.assetsafe.net/login?giftCode=${giftSub.gift_code}" style="color: #2563eb;">www.assetsafe.net/login</a></li>
+              <li>Click the button below or visit <a href="https://www.getassetsafe.com/login?giftCode=${giftSub.gift_code}" style="color: #2563eb;">www.getassetsafe.com/login</a></li>
               <li>Create an account or sign in to your existing account</li>
               <li>Your gift code <strong>${giftSub.gift_code}</strong> will be automatically applied</li>
               <li>Start documenting and protecting your valuable assets!</li>
@@ -124,7 +124,7 @@ const handler = async (req: Request): Promise<Response> => {
           </div>
           
           <div style="text-align: center; margin-top: 40px;">
-            <a href="https://www.assetsafe.net/login?giftCode=${giftSub.gift_code}" style="background: #2563eb; color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+            <a href="https://www.getassetsafe.com/login?giftCode=${giftSub.gift_code}" style="background: #2563eb; color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
               Redeem Your Gift Now
             </a>
           </div>
@@ -151,7 +151,7 @@ const handler = async (req: Request): Promise<Response> => {
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="text-align: center; margin-bottom: 40px;">
-            <img src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 20px;" />
+            <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 20px;" />
             <h1 style="color: #2563eb; margin-bottom: 10px;">🎁 Gift Sent Successfully!</h1>
             <h2 style="color: #1f2937; margin: 0;">Your Asset Safe gift subscription has been delivered</h2>
           </div>
@@ -183,7 +183,7 @@ const handler = async (req: Request): Promise<Response> => {
             <h3 style="color: #1f2937;">What happens next?</h3>
             <ul style="color: #374151; line-height: 1.6;">
               <li>Your recipient has received an email with their gift code and redemption instructions</li>
-              <li>They can create an account at www.assetsafe.net and enter the gift code to activate their subscription</li>
+              <li>They can create an account at www.getassetsafe.com and enter the gift code to activate their subscription</li>
               <li>Once activated, they'll have full access to all ${giftSub.plan_type} plan features for 12 months</li>
             </ul>
           </div>

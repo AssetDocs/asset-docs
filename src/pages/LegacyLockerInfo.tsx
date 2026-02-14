@@ -48,8 +48,8 @@ const LegacyLockerInfo = () => {
     "@graph": [
       faqSchema(legacyFaqs),
       breadcrumbSchema([
-        { name: 'Home', url: 'https://www.assetsafe.net/' },
-        { name: 'Legacy Locker', url: 'https://www.assetsafe.net/legacy-locker' }
+        { name: 'Home', url: 'https://www.getassetsafe.com/' },
+        { name: 'Legacy Locker', url: 'https://www.getassetsafe.com/legacy-locker' }
       ])
     ]
   };
@@ -60,7 +60,7 @@ const LegacyLockerInfo = () => {
         title="Legacy Locker - Secure Digital Vault for Estate Planning"
         description="Legacy Locker provides encrypted storage for passwords, accounts, and important documents your loved ones will need. Multi-factor authentication, trusted contact controls, and purpose-driven access."
         keywords="legacy locker, digital estate vault, password storage, estate planning vault, secure digital vault, trusted contacts, encrypted storage, digital legacy"
-        canonicalUrl="https://www.assetsafe.net/legacy-locker"
+        canonicalUrl="https://www.getassetsafe.com/legacy-locker"
         structuredData={structuredData}
       />
       <Navbar />

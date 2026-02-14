@@ -15,8 +15,8 @@ const Scenarios: React.FC = () => {
         "Insurance Documentation"
       ),
       breadcrumbSchema([
-        { name: 'Home', url: 'https://www.assetsafe.net/' },
-        { name: 'Scenarios', url: 'https://www.assetsafe.net/scenarios' }
+        { name: 'Home', url: 'https://www.getassetsafe.com/' },
+        { name: 'Scenarios', url: 'https://www.getassetsafe.com/scenarios' }
       ])
     ]
   };
@@ -27,7 +27,7 @@ const Scenarios: React.FC = () => {
         title="Insurance Claim Scenarios - When Documentation Matters Most"
         description="Protect your property against natural disasters, theft, fire, and more. Learn how Asset Safe documentation helps expedite insurance claims and maximize settlements."
         keywords="insurance claim scenarios, natural disaster documentation, theft claim, fire damage claim, property loss documentation, hurricane claim, flood damage, home inventory for insurance"
-        canonicalUrl="https://www.assetsafe.net/scenarios"
+        canonicalUrl="https://www.getassetsafe.com/scenarios"
         structuredData={structuredData}
       />
       <Navbar />

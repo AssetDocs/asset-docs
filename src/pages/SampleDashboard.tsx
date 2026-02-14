@@ -41,7 +41,7 @@ const SampleDashboard: React.FC = () => {
   const [storageOpen, setStorageOpen] = useState(false);
 
   const showDemoAlert = (title: string, description: string) => {
-    alert(`AssetSafe.net says\n\n${title}\n\n${description}`);
+    alert(`Asset Safe says\n\n${title}\n\n${description}`);
   };
 
   // Demo Welcome Banner

@@ -187,7 +187,7 @@ const handler = async (req: Request): Promise<Response> => {
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f8fafc;">
           <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="background: ${alertColor}; color: white; padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0;">
-              <img src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 150px; margin-bottom: 15px;" />
+              <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 150px; margin-bottom: 15px;" />
               <h1 style="margin: 0; font-size: 24px;">${alertTitle}</h1>
             </div>
             
@@ -208,7 +208,7 @@ const handler = async (req: Request): Promise<Response> => {
               </div>
               
               <div style="text-align: center; margin: 30px 0;">
-                <a href="https://www.assetsafe.net/account" 
+                <a href="https://www.getassetsafe.com/account" 
                    style="display: inline-block; background: #1e40af; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-right: 10px;">
                   Review Account Settings
                 </a>
@@ -230,7 +230,7 @@ const handler = async (req: Request): Promise<Response> => {
               <p style="margin: 10px 0 0 0;">
                 You received this security alert because it's important for your account safety.
                 <br>
-                <a href="https://www.assetsafe.net/account" style="color: #1e40af;">Manage notification preferences</a>
+                <a href="https://www.getassetsafe.com/account" style="color: #1e40af;">Manage notification preferences</a>
               </p>
             </div>
           </div>

@@ -23,7 +23,7 @@ export const ExportAssetsButton: React.FC<ExportAssetsButtonProps> = ({
     // Handle demo mode
     const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
     if (isOnSampleDashboard) {
-      alert('AssetSafe.net says\n\nDemo: This would export your complete asset summary as a PDF and ZIP file.');
+      alert('Asset Safe says\n\nDemo: This would export your complete asset summary as a PDF and ZIP file.');
       return;
     }
 

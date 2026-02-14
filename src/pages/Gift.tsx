@@ -17,8 +17,8 @@ const Gift: React.FC = () => {
       productSchema("Asset Safe Gift - Standard", "129", "One-year gift subscription for homeowners with 3 properties and 25GB storage"),
       productSchema("Asset Safe Gift - Premium", "189", "One-year gift subscription for managing unlimited properties with 100GB storage"),
       breadcrumbSchema([
-        { name: 'Home', url: 'https://www.assetsafe.net/' },
-        { name: 'Gift', url: 'https://www.assetsafe.net/gift' }
+        { name: 'Home', url: 'https://www.getassetsafe.com/' },
+        { name: 'Gift', url: 'https://www.getassetsafe.com/gift' }
       ])
     ]
   };
@@ -78,7 +78,7 @@ const Gift: React.FC = () => {
         title="Gift Asset Safe - Give Protection & Peace of Mind"
         description="Give the gift of property protection. One-year gift subscriptions starting at $129. Perfect for new homeowners, newlyweds, and families. No auto-renew."
         keywords="gift subscription, home inventory gift, property protection gift, estate planning gift, digital vault gift, homeowner gift ideas"
-        canonicalUrl="https://www.assetsafe.net/gift"
+        canonicalUrl="https://www.getassetsafe.com/gift"
         structuredData={structuredData}
       />
       <Navbar />

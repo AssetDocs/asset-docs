@@ -115,7 +115,7 @@ const handler = async (req: Request): Promise<Response> => {
           <body>
             <div class="container">
               <div class="header">
-                <img src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 15px;" />
+                <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 15px;" />
                 <h1 style="margin: 0; font-size: 28px;">Payment Method Update Required</h1>
                 <p style="margin: 10px 0 0 0; opacity: 0.9;">AssetSafe</p>
               </div>
@@ -148,13 +148,13 @@ const handler = async (req: Request): Promise<Response> => {
                 </ol>
                 
                 <div style="text-align: center; margin: 30px 0;">
-                  <a href="https://www.assetsafe.net/account" class="button">Update Payment Method</a>
+                  <a href="https://www.getassetsafe.com/account" class="button">Update Payment Method</a>
                 </div>
                 
                 <p><strong>Need help?</strong> Our support team is here to assist you:</p>
                 <ul>
                   <li>Email: <a href="mailto:support@assetsafe.net">support@assetsafe.net</a></li>
-                  <li>Visit: <a href="https://www.assetsafe.net/contact">Contact Support</a></li>
+                  <li>Visit: <a href="https://www.getassetsafe.com/contact">Contact Support</a></li>
                 </ul>
                 
                 <p style="margin-top: 30px;">Thank you for being a valued AssetSafe customer!</p>
@@ -168,7 +168,7 @@ const handler = async (req: Request): Promise<Response> => {
               <div class="footer">
                 <p>AssetSafe - Professional Asset Documentation Platform</p>
                 <p>This is an automated message. Please do not reply to this email.</p>
-                <p>If you no longer wish to receive these emails, you can <a href="https://www.assetsafe.net/account">manage your preferences</a> in your account settings.</p>
+                <p>If you no longer wish to receive these emails, you can <a href="https://www.getassetsafe.com/account">manage your preferences</a> in your account settings.</p>
               </div>
             </div>
           </body>

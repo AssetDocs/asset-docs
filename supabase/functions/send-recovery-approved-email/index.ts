@@ -46,7 +46,7 @@ const handler = async (req: Request): Promise<Response> => {
           <body>
             <div class="container">
               <div class="header">
-                <img src="https://www.assetsafe.net/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" class="logo" />
+                <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" class="logo" />
               </div>
               
               <div class="content">
@@ -68,7 +68,7 @@ const handler = async (req: Request): Promise<Response> => {
                 </ul>
                 
                 <center>
-                  <a href="https://www.assetsafe.net/account" class="button">Access Legacy Locker</a>
+                  <a href="https://www.getassetsafe.com/account" class="button">Access Legacy Locker</a>
                 </center>
                 
                 <p><strong>Security reminder:</strong> This information is highly sensitive. Please handle it with the appropriate care and discretion.</p>

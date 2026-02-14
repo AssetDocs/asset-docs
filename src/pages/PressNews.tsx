@@ -140,7 +140,7 @@ const PressNews: React.FC = () => {
           </ul>
 
           <p class="text-lg font-semibold text-gray-800 mb-4">Ready to make your assets undeniable, insurable, and easily managed?</p>
-          <p class="text-lg text-blue-600 font-medium">Visit AssetSafe.net to get started.</p>
+          <p class="text-lg text-blue-600 font-medium">Visit GetAssetSafe.com to get started.</p>
         </div>
       `,
       featured: true
@@ -522,7 +522,7 @@ const PressNews: React.FC = () => {
                   </ul>
 
                   <p className="text-lg font-semibold mb-4">Ready to make your assets undeniable, insurable, and easily managed?</p>
-                  <p className="text-lg text-primary font-medium">Visit AssetSafe.net to get started.</p>
+                  <p className="text-lg text-primary font-medium">Visit GetAssetSafe.com to get started.</p>
                 </div>
               )}
               {selectedArticle.id !== 1 && (

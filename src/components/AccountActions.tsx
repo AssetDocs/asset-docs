@@ -32,7 +32,7 @@ const AccountActions: React.FC<AccountActionsProps> = () => {
               onClick={() => {
                 const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
                 if (isOnSampleDashboard) {
-                  alert('AssetSafe.net says\n\nDemo: This allows you to upload photos and document your items with estimated values.');
+                  alert('Asset Safe says\n\nDemo: This allows you to upload photos and document your items with estimated values.');
                   return;
                 }
                 window.location.href = '/account/photos/upload';
@@ -46,7 +46,7 @@ const AccountActions: React.FC<AccountActionsProps> = () => {
               onClick={() => {
                 const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
                 if (isOnSampleDashboard) {
-                  alert('AssetSafe.net says\n\nDemo: This allows you to view, organize, download, and categorize your uploaded photos.');
+                  alert('Asset Safe says\n\nDemo: This allows you to view, organize, download, and categorize your uploaded photos.');
                   return;
                 }
                 window.location.href = '/account/photos';
@@ -77,7 +77,7 @@ const AccountActions: React.FC<AccountActionsProps> = () => {
               onClick={() => {
                 const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
                 if (isOnSampleDashboard) {
-                  alert('AssetSafe.net says\n\nDemo: This allows you to upload and manage video recordings of your property and belongings.');
+                  alert('Asset Safe says\n\nDemo: This allows you to upload and manage video recordings of your property and belongings.');
                   return;
                 }
                 window.location.href = '/account/videos/upload';
@@ -91,7 +91,7 @@ const AccountActions: React.FC<AccountActionsProps> = () => {
               onClick={() => {
                 const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
                 if (isOnSampleDashboard) {
-                  alert('AssetSafe.net says\n\nDemo: This allows you to view, watch, download, and categorize your uploaded videos.');
+                  alert('Asset Safe says\n\nDemo: This allows you to view, watch, download, and categorize your uploaded videos.');
                   return;
                 }
                 window.location.href = '/account/videos';
@@ -123,7 +123,7 @@ const AccountActions: React.FC<AccountActionsProps> = () => {
               onClick={() => {
                 const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
                 if (isOnSampleDashboard) {
-                  alert('AssetSafe.net says\n\nDemo: This allows you to store PDFs, receipts, warranties, licenses, titles, and other important documents.');
+                  alert('Asset Safe says\n\nDemo: This allows you to store PDFs, receipts, warranties, licenses, titles, and other important documents.');
                   return;
                 }
                 window.location.href = '/account/documents?add=1';
@@ -137,7 +137,7 @@ const AccountActions: React.FC<AccountActionsProps> = () => {
               onClick={() => {
                 const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
                 if (isOnSampleDashboard) {
-                  alert('AssetSafe.net says\n\nDemo: This allows you to view, organize, download, and manage your stored documents.');
+                  alert('Asset Safe says\n\nDemo: This allows you to view, organize, download, and manage your stored documents.');
                   return;
                 }
                 window.location.href = '/account/documents';
@@ -168,7 +168,7 @@ const AccountActions: React.FC<AccountActionsProps> = () => {
               onClick={() => {
                 const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
                 if (isOnSampleDashboard) {
-                  alert('AssetSafe.net says\n\nDemo: This allows you to add and manage insurance policies, claims, and related documentation.');
+                  alert('Asset Safe says\n\nDemo: This allows you to add and manage insurance policies, claims, and related documentation.');
                   return;
                 }
                 window.location.href = '/account/insurance/new';
@@ -182,7 +182,7 @@ const AccountActions: React.FC<AccountActionsProps> = () => {
               onClick={() => {
                 const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
                 if (isOnSampleDashboard) {
-                  alert('AssetSafe.net says\n\nDemo: This allows you to view and manage your insurance policies and claims.');
+                  alert('Asset Safe says\n\nDemo: This allows you to view and manage your insurance policies and claims.');
                   return;
                 }
                 window.location.href = '/account/insurance';
@@ -213,7 +213,7 @@ const AccountActions: React.FC<AccountActionsProps> = () => {
               // Mock export for sample dashboard
               const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
               if (isOnSampleDashboard) {
-                alert('AssetSafe.net says\n\nDemo: This would export your complete asset summary as a PDF and ZIP file.');
+                alert('Asset Safe says\n\nDemo: This would export your complete asset summary as a PDF and ZIP file.');
                 return;
               }
             }}

@@ -10,9 +10,9 @@ import { breadcrumbSchema } from '@/utils/structuredData';
 
 const Glossary = () => {
   const structuredData = breadcrumbSchema([
-    { name: 'Home', url: 'https://www.assetsafe.net/' },
-    { name: 'Resources', url: 'https://www.assetsafe.net/resources' },
-    { name: 'Glossary', url: 'https://www.assetsafe.net/glossary' }
+    { name: 'Home', url: 'https://www.getassetsafe.com/' },
+    { name: 'Resources', url: 'https://www.getassetsafe.com/resources' },
+    { name: 'Glossary', url: 'https://www.getassetsafe.com/glossary' }
   ]);
   const termSections = [
     {
@@ -299,7 +299,7 @@ const Glossary = () => {
         title="Insurance & Valuation Glossary - Terms Defined"
         description="Comprehensive glossary of insurance, valuation, and asset documentation terms. Understand premiums, deductibles, claims, appraisals, and more."
         keywords="insurance glossary, insurance terms, property valuation terms, deductible definition, premium meaning, insurance claim definition, appraisal terms"
-        canonicalUrl="https://www.assetsafe.net/glossary"
+        canonicalUrl="https://www.getassetsafe.com/glossary"
         structuredData={structuredData}
       />
       <Navbar />

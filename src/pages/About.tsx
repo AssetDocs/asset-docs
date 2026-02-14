@@ -13,8 +13,8 @@ const About: React.FC = () => {
     "@graph": [
       organizationSchema,
       breadcrumbSchema([
-        { name: 'Home', url: 'https://www.assetsafe.net/' },
-        { name: 'About', url: 'https://www.assetsafe.net/about' }
+        { name: 'Home', url: 'https://www.getassetsafe.com/' },
+        { name: 'About', url: 'https://www.getassetsafe.com/about' }
       ])
     ]
   };
@@ -25,7 +25,7 @@ const About: React.FC = () => {
         title="About Asset Safe - Your Digital Guardian for Property Protection"
         description="Learn about Asset Safe's mission to simplify property documentation and asset protection for families and businesses. Secure, comprehensive, and trusted by homeowners nationwide."
         keywords="about asset safe, property documentation platform, home inventory company, digital asset protection, estate planning tools, insurance claims support"
-        canonicalUrl="https://www.assetsafe.net/about"
+        canonicalUrl="https://www.getassetsafe.com/about"
         structuredData={structuredData}
       />
       <Navbar />

@@ -21,7 +21,7 @@ const Partnership: React.FC = () => {
               <div className="space-y-2 text-muted-foreground">
                 <p><strong>Presented to:</strong> Chris Harden, RE/MAX Broker</p>
                 <p><strong>From:</strong> Michael Lewis, Founder – Asset Safe</p>
-                <p><strong>Contact:</strong> support@assetsafe.net | www.assetsafe.net</p>
+                <p><strong>Contact:</strong> support@assetsafe.net | www.getassetsafe.com</p>
               </div>
             </CardHeader>
           </Card>
@@ -359,13 +359,13 @@ const Partnership: React.FC = () => {
                   </p>
                   <p className="flex items-center gap-2">
                     <span>🌐</span>
-                    <a href="https://www.assetsafe.net" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">www.assetsafe.net</a>
+                    <a href="https://www.getassetsafe.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">www.getassetsafe.com</a>
                   </p>
                 </div>
                 
                 <div className="mt-6">
                   <Button asChild className="w-full">
-                    <a href="https://www.assetsafe.net" target="_blank" rel="noopener noreferrer">
+                    <a href="https://www.getassetsafe.com" target="_blank" rel="noopener noreferrer">
                       Go to Asset Safe Website
                     </a>
                   </Button>
