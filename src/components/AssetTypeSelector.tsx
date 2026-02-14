@@ -123,7 +123,7 @@ const AssetTypeSelector: React.FC<AssetTypeSelectorProps> = ({
 }) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>What are you uploading?</DialogTitle>
           <DialogDescription>
@@ -131,12 +131,12 @@ const AssetTypeSelector: React.FC<AssetTypeSelectorProps> = ({
           </DialogDescription>
         </DialogHeader>
         
-        <div className="grid grid-cols-2 gap-3 py-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 py-4">
           {assetTypes.map((assetType) => (
             <Button
               key={assetType.type}
               variant="outline"
-              className="h-auto min-h-32 py-4 px-3 flex flex-col items-center text-center hover:border-brand-blue hover:bg-brand-blue/5 transition-colors"
+              className="h-auto min-h-24 sm:min-h-28 py-3 px-3 flex flex-col items-center text-center hover:border-brand-blue hover:bg-brand-blue/5 transition-colors"
               onClick={() => onSelect(assetType.type)}
             >
               <div className="w-10 h-10 rounded-full bg-yellow text-yellow-foreground flex items-center justify-center mb-2">

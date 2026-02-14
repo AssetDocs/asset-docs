@@ -91,9 +91,9 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           color="red"
         />
 
-        {/* Documentation Checklist - contextual guidance after documentation cards */}
+        {/* Documentation Checklist - collapsed by default */}
         <div className="md:col-span-2">
-          <DocumentationChecklist embedded />
+          <DocumentationChecklist />
         </div>
 
         {/* Row 2: Yellow */}
