@@ -699,11 +699,7 @@ const DocumentationChecklist: React.FC<DocumentationChecklistProps> = ({ embedde
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
-                    {isOpen ? (
-                      <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                    ) : (
-                      <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                    )}
+                  <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${isOpen ? '' : '-rotate-90'}`} />
                   </div>
                 </div>
               </CardHeader>
