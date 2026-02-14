@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useVerification } from '@/hooks/useVerification';
 import { useAuth } from '@/contexts/AuthContext';
-import { Check, ChevronDown, ChevronUp, Shield, ClipboardList } from 'lucide-react';
+import { Check, ChevronDown, Shield, ClipboardList } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import UserStatusBadge from '@/components/UserStatusBadge';
@@ -128,13 +128,8 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-foreground">Security Progress</span>
-                  <UserStatusBadge status={statusLabel} size="sm" />
-                </div>
-                <p className="text-[11px] text-muted-foreground">Overall account protection status</p>
-              </div>
+              <span className="text-sm font-semibold text-foreground">Security Progress</span>
+              <UserStatusBadge status={statusLabel} size="sm" />
             </div>
 
             <div className="flex items-center gap-2">
@@ -146,16 +141,13 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
           </div>
         </div>
 
-        {isProgressOpen ? (
-          <ChevronUp className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-        ) : (
-          <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-        )}
+        <ChevronDown className={`h-5 w-5 text-muted-foreground flex-shrink-0 transition-transform ${isProgressOpen ? '' : '-rotate-90'}`} />
       </button>
 
       {/* Expanded: All 9 Tasks */}
       {isProgressOpen && (
         <div className="px-4 pb-4 pt-1 border-t border-border">
+          <p className="text-[11px] text-muted-foreground mb-2">Overall account protection status</p>
           <p className="text-xs text-muted-foreground mb-3">
             Complete these steps to strengthen your account protection:
           </p>
@@ -213,17 +205,10 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
               <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 flex-shrink-0">
                 <ClipboardList className="h-4 w-4 text-primary" />
               </div>
-              <div className="text-left">
-                <span className="text-sm font-semibold text-foreground">Documentation Checklist</span>
-                <p className="text-[11px] text-muted-foreground">A guided checklist for documenting your home, business, and more</p>
-              </div>
+              <span className="text-sm font-semibold text-foreground">Documentation Checklist</span>
             </div>
 
-            {isChecklistOpen ? (
-              <ChevronUp className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-            ) : (
-              <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-            )}
+            <ChevronDown className={`h-5 w-5 text-muted-foreground flex-shrink-0 transition-transform ${isChecklistOpen ? '' : '-rotate-90'}`} />
           </button>
 
           {isChecklistOpen && (
