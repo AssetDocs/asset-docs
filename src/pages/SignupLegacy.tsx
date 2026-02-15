@@ -134,9 +134,13 @@ const Signup: React.FC = () => {
           }
           navigate('/contributor-welcome');
         } else {
-          // If gift code provided, pass it to welcome page for validation after email verification
+          // Redirect to login page - user will verify email via link and then sign in
+          toast({
+            title: "Account Created!",
+            description: "Please check your email to verify your account, then sign in.",
+          });
           const giftCodeParam = data.giftCode?.trim() ? `?giftCode=${encodeURIComponent(data.giftCode.trim())}` : '';
-          navigate(`/welcome${giftCodeParam}`);
+          navigate(`/auth${giftCodeParam ? `?${giftCodeParam.substring(1)}` : ''}`);
         }
       }
     } catch (error: any) {

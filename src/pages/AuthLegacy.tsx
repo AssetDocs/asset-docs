@@ -175,7 +175,6 @@ const Auth: React.FC = () => {
             description: "Please check your email and click the verification link before signing in.",
             variant: "destructive",
           });
-          navigate('/email-verification');
         } else {
           throw error;
         }
