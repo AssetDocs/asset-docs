@@ -86,100 +86,69 @@ const ContributorsTab: React.FC = () => {
     }
 
     setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    // Get user's profile information for the invitation email
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('first_name, last_name')
-      .eq('user_id', user.id)
-      .single();
-
-    const inviterName = profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : user.email;
-    
-    // Create redirect URL for password creation
-    const redirectUrl = `${window.location.origin}/auth?mode=contributor&email=${encodeURIComponent(email)}`;
-
-    // First, create the database record
-    const { error: dbError } = await supabase
-      .from('contributors')
-      .insert({
-        account_owner_id: user.id,
-        contributor_email: email,
-        first_name: firstName.trim(),
-        last_name: lastName.trim(),
-        role: role,
-      });
-
-    if (dbError) {
-      if (dbError.code === '23505') {
-        toast({
-          title: "Error",
-          description: "This email is already invited as a contributor",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to invite contributor",
-          variant: "destructive",
-        });
-      }
-      setLoading(false);
-      return;
-    }
-
-    // Then, send the invitation email with redirect URL
     try {
-      const { error: emailError } = await supabase.functions.invoke('send-contributor-invitation', {
+      const { data, error } = await supabase.functions.invoke('invite-contributor', {
         body: {
           contributor_email: email,
-          contributor_name: `${firstName.trim()} ${lastName.trim()}`,
-          contributor_role: role,
-          inviter_name: inviterName || 'Asset Safe User',
-          inviter_email: user.email,
-          redirect_url: redirectUrl,
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          role: role,
         },
       });
 
-      if (emailError) {
-        console.error('Email sending error:', emailError);
-        toast({
-          title: "Warning",
-          description: "Contributor added but invitation email failed to send",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Success",
-          description: "Contributor invitation sent successfully. They will be prompted to create a password.",
-        });
-        
-        // Log activity
-        logActivity({
-          action_type: 'contributor_invite',
-          action_category: 'contributor',
-          resource_type: 'contributor',
-          resource_name: `${firstName.trim()} ${lastName.trim()}`,
-          details: { email, role }
-        });
+      if (error) {
+        throw error;
       }
-    } catch (error) {
-      console.error('Error sending invitation email:', error);
+
+      if (data?.error) {
+        if (data.code === 'DUPLICATE') {
+          toast({
+            title: "Error",
+            description: "This email is already invited as a contributor",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: data.error,
+            variant: "destructive",
+          });
+        }
+        setLoading(false);
+        return;
+      }
+
       toast({
-        title: "Warning", 
-        description: "Contributor added but invitation email failed to send",
+        title: "Success",
+        description: data?.isExistingUser
+          ? "Invitation sent! They can sign in to accept."
+          : "Invitation sent! They'll receive an email to set up their account.",
+      });
+
+      // Log activity
+      logActivity({
+        action_type: 'contributor_invite',
+        action_category: 'contributor',
+        resource_type: 'contributor',
+        resource_name: `${firstName.trim()} ${lastName.trim()}`,
+        details: { email, role }
+      });
+
+      setEmail('');
+      setFirstName('');
+      setLastName('');
+      setRole('viewer');
+      fetchContributors();
+    } catch (error: any) {
+      console.error('Error inviting contributor:', error);
+      toast({
+        title: "Error",
+        description: "Failed to invite contributor. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
-
-    setEmail('');
-    setFirstName('');
-    setLastName('');
-    setRole('viewer');
-    fetchContributors();
-    setLoading(false);
   };
 
   const removeContributor = async (contributorId: string) => {

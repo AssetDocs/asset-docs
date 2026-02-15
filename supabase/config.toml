@@ -196,3 +196,6 @@ verify_jwt = true
 
 [functions.accept-dev-invite]
 verify_jwt = false
+
+[functions.invite-contributor]
+verify_jwt = false

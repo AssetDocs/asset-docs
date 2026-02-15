@@ -108,6 +108,8 @@ const Auth: React.FC = () => {
     handleHashAuth();
   }, [navigate, toast]);
 
+  const [hasActiveSession, setHasActiveSession] = useState(false);
+
   // Check for contributor mode
   useEffect(() => {
     const mode = searchParams.get('mode');
@@ -119,13 +121,21 @@ const Auth: React.FC = () => {
     }
   }, [searchParams]);
 
-  // Redirect if already logged in (but not if in contributor mode with different email)
+  // Check if contributor already has an active session (from invite magic link)
   useEffect(() => {
-    if (user && !isContributorMode) {
-      navigate('/account');
-    }
-    // If logged in user's email matches contributor email, redirect to account
-    if (user && isContributorMode && user.email?.toLowerCase() === contributorEmail.toLowerCase()) {
+    if (isContributorMode && user && user.email?.toLowerCase() === contributorEmail.toLowerCase()) {
+      // Check if user was invited via admin API (has session but might need password)
+      const metadata = user.user_metadata;
+      if (metadata?.invited_as_contributor) {
+        setHasActiveSession(true);
+        // Pre-fill name from metadata
+        if (metadata.first_name) setContributorFirstName(metadata.first_name);
+        if (metadata.last_name) setContributorLastName(metadata.last_name);
+      } else {
+        // Existing user already has password, just accept invitation and redirect
+        navigate('/account');
+      }
+    } else if (user && !isContributorMode) {
       navigate('/account');
     }
   }, [user, navigate, isContributorMode, contributorEmail]);
@@ -257,8 +267,54 @@ const Auth: React.FC = () => {
 
     setIsLoading(true);
     try {
-      // For contributors, we sign up directly without email verification redirect
-      // since they were already invited via email (email is pre-validated)
+      if (hasActiveSession && user) {
+        // User arrived via invite magic link - already has session, just set password + update profile
+        const { error: updateError } = await supabase.auth.updateUser({
+          password: contributorPassword,
+          data: {
+            first_name: contributorFirstName.trim(),
+            last_name: contributorLastName.trim(),
+          },
+        });
+
+        if (updateError) throw updateError;
+
+        // Update profile table
+        await supabase.from('profiles').update({
+          first_name: contributorFirstName.trim(),
+          last_name: contributorLastName.trim(),
+        }).eq('user_id', user.id);
+
+        // Accept pending invitations
+        const { data: session } = await supabase.auth.getSession();
+        if (session?.session?.access_token) {
+          const { data: invitationData } = await supabase.functions.invoke(
+            'accept-contributor-invitation',
+            {
+              headers: {
+                Authorization: `Bearer ${session.session.access_token}`
+              }
+            }
+          );
+
+          if (invitationData?.invitations?.length > 0) {
+            toast({
+              title: "Account Ready!",
+              description: `Welcome! You now have access to ${invitationData.invitations.length} account(s).`,
+            });
+          } else {
+            toast({
+              title: "Account Ready!",
+              description: "Your password has been set. Welcome to Asset Safe!",
+            });
+          }
+        }
+
+        navigate('/account');
+        return;
+      }
+
+      // Legacy flow: full signup for contributors who arrived without magic link session
       const { data: signUpData, error } = await supabase.auth.signUp({
         email: contributorEmail,
         password: contributorPassword,
@@ -271,7 +327,6 @@ const Auth: React.FC = () => {
       });
       
       if (error) {
-        // Check if user already exists
         if (error.message?.includes('User already registered') || error.message?.includes('already exists')) {
           toast({
             title: "Account Already Exists",
@@ -285,11 +340,8 @@ const Auth: React.FC = () => {
         throw error;
       }
 
-      // If signup created a session directly (email confirmation disabled), use it
       if (signUpData?.session?.access_token) {
-        console.log('Session created directly after signup, accepting invitation...');
-        
-        const { data: invitationData, error: inviteError } = await supabase.functions.invoke(
+        const { data: invitationData } = await supabase.functions.invoke(
           'accept-contributor-invitation',
           {
             headers: {
@@ -298,90 +350,24 @@ const Auth: React.FC = () => {
           }
         );
         
-        if (inviteError) {
-          console.error('Invitation acceptance error:', inviteError);
-        }
-        
-        if (invitationData?.invitations?.length > 0) {
-          toast({
-            title: "Account Created!",
-            description: `Your contributor account has been created. You now have access to ${invitationData.invitations.length} account(s).`,
-          });
-        } else {
-          toast({
-            title: "Account Created!",
-            description: "Your contributor account has been created. You now have access to the dashboard.",
-          });
-        }
+        toast({
+          title: "Account Created!",
+          description: invitationData?.invitations?.length > 0
+            ? `Your account has been created. You now have access to ${invitationData.invitations.length} account(s).`
+            : "Your account has been created. Welcome to Asset Safe!",
+        });
         
         navigate('/account');
         return;
       }
       
-      // If email confirmation is required, user will need to verify first
-      // But since contributor was invited via email, we can try signing in directly
-      // This handles the case where Supabase's "Confirm email" is disabled
-      
-      // Wait a moment for the user to be created
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Try to sign in with the credentials
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email: contributorEmail,
-        password: contributorPassword
+      // Email confirmation required
+      toast({
+        title: "Please Verify Your Email",
+        description: "A verification email has been sent. Please verify your email and then sign in.",
       });
-      
-      if (signInError) {
-        // If email confirmation is required, inform user
-        if (signInError.message?.includes('Email not confirmed')) {
-          toast({
-            title: "Please Verify Your Email",
-            description: "A verification email has been sent. Please verify your email and then sign in.",
-          });
-          setIsContributorMode(false);
-          signInForm.setValue('email', contributorEmail);
-          return;
-        }
-        throw signInError;
-      }
-      
-      if (signInData?.session?.access_token) {
-        console.log('Signed in after signup, accepting invitation...');
-        
-        const { data: invitationData, error: inviteError } = await supabase.functions.invoke(
-          'accept-contributor-invitation',
-          {
-            headers: {
-              Authorization: `Bearer ${signInData.session.access_token}`
-            }
-          }
-        );
-        
-        if (inviteError) {
-          console.error('Invitation acceptance error:', inviteError);
-        }
-        
-        if (invitationData?.invitations?.length > 0) {
-          toast({
-            title: "Account Created!",
-            description: `Your contributor account has been created. You now have access to ${invitationData.invitations.length} account(s).`,
-          });
-        } else {
-          toast({
-            title: "Account Created!",
-            description: "Your contributor account has been created. You now have access to the dashboard.",
-          });
-        }
-        
-        navigate('/account');
-      } else {
-        toast({
-          title: "Account Created",
-          description: "Please sign in to complete the process.",
-        });
-        setIsContributorMode(false);
-        signInForm.setValue('email', contributorEmail);
-      }
+      setIsContributorMode(false);
+      signInForm.setValue('email', contributorEmail);
     } catch (error: any) {
       console.error('Contributor signup error:', error);
       toast({
@@ -411,9 +397,11 @@ const Auth: React.FC = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>Create Your Account</CardTitle>
+              <CardTitle>{hasActiveSession ? 'Set Your Password' : 'Create Your Account'}</CardTitle>
               <CardDescription>
-                You've been invited as a contributor. Create your password to access the dashboard.
+                {hasActiveSession 
+                  ? 'Your email has been verified. Set a password to secure your account.'
+                  : "You've been invited as a contributor. Create your password to access the dashboard."}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -498,7 +486,7 @@ const Auth: React.FC = () => {
                   className="w-full"
                   disabled={isLoading}
                 >
-                  {isLoading ? "Creating Account..." : "Create Account & Access Dashboard"}
+                  {isLoading ? "Setting up..." : (hasActiveSession ? "Set Password & Continue" : "Create Account & Access Dashboard")}
                 </Button>
                 
                 <div className="text-center mt-4 pt-4 border-t">

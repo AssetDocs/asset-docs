@@ -70,7 +70,17 @@ const AuthCallback = () => {
         }
 
         // Show success message based on the type
-        if (type === 'signup' || type === 'email_change_confirm_new') {
+        if (type === 'invite') {
+          // Contributor invite flow - redirect to set password page
+          console.log('Processing invite callback, redirecting to contributor setup');
+          toast({
+            title: "Welcome to Asset Safe!",
+            description: "Please set your password to complete account setup.",
+          });
+          const email = searchParams.get('email') || '';
+          navigate(`/auth?mode=contributor&email=${encodeURIComponent(email)}`, { replace: true });
+          return;
+        } else if (type === 'signup' || type === 'email_change_confirm_new') {
           toast({
             title: "Email Verified Successfully!",
             description: isContributor 
