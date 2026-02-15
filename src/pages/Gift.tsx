@@ -55,7 +55,7 @@ const Gift: React.FC = () => {
     "Photo, video, and document upload",
     "Full web platform access",
     "Voice notes for item details",
-    "Post damage documentation",
+    "Post-damage documentation reports",
     "Export detailed reports",
     "24/7 chat support",
     "Share with trusted contacts",

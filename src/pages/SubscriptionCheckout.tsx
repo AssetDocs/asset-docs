@@ -91,7 +91,7 @@ const SubscriptionCheckout: React.FC = () => {
     "Photo and video uploads",
     "Full web platform access",
     "Voice notes for item details",
-    "Post damage documentation",
+    "Post-damage documentation reports",
     "Export detailed reports",
     "Email support",
     "Share with trusted contacts"
