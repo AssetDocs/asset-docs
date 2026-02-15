@@ -1,79 +1,117 @@
 
 
-# Dashboard UI Refinements: Asset Values Bar, Subtitle Removal, Arrow Consistency
+## Streamline Contributor Invitation Flow
 
-## Overview
+### Problem
+Currently, when a user is invited as a trusted contact (viewer, contributor, administrator), they go through a 4-step process:
+1. Click "Accept Invitation" in email -> goes to `/auth?mode=contributor`
+2. Fill out name + password to create an account
+3. Receive a separate verification email, wait for it, click it
+4. Finally log in and access the dashboard
 
-Three changes: extract Asset Values into its own collapsible bar on the dashboard, remove subtitle text from collapsed dropdown bars, and standardize all expand arrows to point downward.
+Steps 3 and 4 are redundant since the contributor already proved they own the email by clicking the invitation link.
 
----
+### Solution
+Use Supabase's `admin.inviteUserByEmail()` API from a new edge function. This sends a single magic link email that, when clicked, creates a **pre-verified** user with an active session. The contributor then only needs to set a password -- no separate email verification step.
 
-## Changes
+### New Flow
 
-### 1. DashboardGrid.tsx -- Add "Asset Values" collapsible bar
-
-- Import `AssetValuesSection` and `DollarSign` icon
-- Add a new full-width collapsible bar after the Insights & Tools card and Property Profiles card (after the blue row, before the orange utility row)
-- Style it identically to the Documentation Checklist and MFA bars: `bg-card border border-border rounded-lg`, with a clickable header containing a `DollarSign` icon in a rounded circle, the title "Asset Values", a `ChevronDown` with rotation animation, and localStorage persistence for open/closed state
-- When expanded, render `<AssetValuesSection />` inside the content area
-- Add state: `isAssetValuesOpen` with localStorage key `assetValuesDropdownOpen`
-
-### 2. InsightsToolsGrid.tsx -- Remove Asset Values card
-
-- Remove the "Asset Values" `DashboardGridCard` entry (lines 29-38) since it now lives as its own collapsible bar on the main dashboard
-
-### 3. MFADropdown.tsx -- Remove subtitle, fix arrow
-
-- Remove the `<p>` subtitle line ("Secure your account with an authenticator app or backup codes") from the collapsed trigger area
-- Move that text inside the expanded content area (above the TOTP/Backup settings)
-- Replace the `ChevronUp`/`ChevronDown` toggle with a single `ChevronDown` that uses `transition-transform` and `-rotate-90` when collapsed (matching the Documentation Checklist pattern)
-
-### 4. SecurityProgress.tsx -- Remove subtitle, fix arrows
-
-- **Security Progress section**: Remove the `<p>` subtitle ("Overall account protection status") from the collapsed trigger; move it into the expanded content (above the existing instructions text)
-- Replace `ChevronUp`/`ChevronDown` toggle with single `ChevronDown` + rotation animation
-- **Documentation Checklist section** (embedded in SecurityProgress): Same treatment -- remove the `<p>` subtitle ("A guided checklist for documenting your home, business, and more") from trigger; move inside expanded content. Replace chevron toggle with single `ChevronDown` + rotation
-
-### 5. Account.tsx -- Update tab routing
-
-- Remove the `asset-values` case from the "Back to Insights & Tools" button group since it is no longer a sub-tab of Insights & Tools
-- Keep the `asset-values` TabsContent so the page still renders if navigated to directly, or alternatively redirect to the dashboard
-
----
-
-## Technical Details
-
-**Arrow pattern (standardized across all dropdowns):**
-```tsx
-<ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${isOpen ? '' : '-rotate-90'}`} />
+```text
++----------------------------+
+| Owner invites contributor  |
++----------------------------+
+            |
+            v
++----------------------------+
+| Edge function calls        |
+| admin.inviteUserByEmail()  |
+| with redirect to           |
+| /auth?mode=contributor     |
++----------------------------+
+            |
+            v
++----------------------------+
+| Contributor receives ONE   |
+| email with magic link      |
++----------------------------+
+            |
+            v
++----------------------------+
+| Click link -> arrives at   |
+| /auth?mode=contributor     |
+| with active session        |
+| (email already verified)   |
++----------------------------+
+            |
+            v
++----------------------------+
+| Set password + name        |
+| (profile update, not       |
+| full signup)               |
++----------------------------+
+            |
+            v
++----------------------------+
+| Auto-accept invitation     |
+| Redirect to /account       |
++----------------------------+
 ```
 
-**Asset Values collapsible bar structure:**
-```tsx
-<div className="md:col-span-2">
-  <div className="w-full bg-card border border-border rounded-lg overflow-hidden">
-    <button onClick={handleToggleAssetValues} className="w-full px-6 py-4 flex items-center justify-between gap-3 hover:bg-muted/30 transition-colors">
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-          <DollarSign className="h-4 w-4 text-primary" />
-        </div>
-        <span className="text-sm font-semibold text-foreground">Asset Values</span>
-      </div>
-      <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${isAssetValuesOpen ? '' : '-rotate-90'}`} />
-    </button>
-    {isAssetValuesOpen && (
-      <div className="px-4 pb-4 pt-2 border-t border-border">
-        <AssetValuesSection />
-      </div>
-    )}
-  </div>
-</div>
-```
+### Technical Details
 
-**Files to modify:**
-- `src/components/DashboardGrid.tsx`
-- `src/components/InsightsToolsGrid.tsx`
-- `src/components/MFADropdown.tsx`
-- `src/components/SecurityProgress.tsx`
-- `src/pages/Account.tsx`
+#### 1. New Edge Function: `invite-contributor`
+Creates a new edge function that:
+- Receives contributor email, name, role, and inviter info
+- Uses `supabase.auth.admin.inviteUserByEmail()` with the SERVICE_ROLE_KEY to send the invite
+- Sets `redirectTo` to `{origin}/auth/callback?type=invite&redirect_to=/auth?mode=contributor&email={email}`
+- Also inserts the contributor record into the `contributors` table (moving DB insert logic from the frontend)
+- Sends a branded invitation email via `inviteUserByEmail`'s built-in email OR keeps the current Resend email with a modified link
+
+**Decision point**: Supabase's invite email template may not match the branded AssetSafe design. The preferred approach is:
+- Use `admin.inviteUserByEmail()` to create the user invite token
+- Continue using the existing Resend-based `send-contributor-invitation` edge function for the branded email, but change the link URL to use Supabase's invite confirmation endpoint with the generated token
+
+Alternatively, the simpler approach: use `admin.inviteUserByEmail()` directly (which sends Supabase's default invite email), and customize the invite email template in the Supabase dashboard to match AssetSafe branding.
+
+**Recommended approach**: Create a single new `invite-contributor` edge function that:
+1. Calls `admin.inviteUserByEmail()` with `data: { first_name, last_name, invited_as_contributor: true }` 
+2. Uses the custom Resend email (existing branded template) but with the Supabase invite magic link URL
+3. Inserts the `contributors` table record
+
+#### 2. Modify `AuthLegacy.tsx` - Contributor Mode
+When a contributor arrives at `/auth?mode=contributor` after clicking the magic link:
+- They already have an active session (email pre-verified by Supabase)
+- Detect this: if `user` exists and `isContributorMode` is true, show a simplified "Set Your Password" form
+- After setting the password via `supabase.auth.updateUser({ password })`, auto-accept the invitation and redirect to `/account`
+- Remove the full signup form for contributors (no longer needed)
+
+#### 3. Update `AuthCallback.tsx`
+- Handle the `type=invite` callback type
+- After token verification, redirect to `/auth?mode=contributor&email={email}` with the active session
+
+#### 4. Update `ContributorsTab.tsx`
+- Replace the direct `supabase.from('contributors').insert(...)` + `send-contributor-invitation` calls with a single call to the new `invite-contributor` edge function
+- The edge function handles both the DB insert and the invite email
+
+#### 5. Remove/Simplify `ContributorWelcome.tsx`
+- The "waiting for email verification" page becomes unnecessary
+- Can be simplified to a brief "Welcome!" redirect page, or removed entirely since the flow now goes directly to `/account`
+
+#### 6. Update `supabase/config.toml`
+- Add `[functions.invite-contributor]` with `verify_jwt = true` (only authenticated account owners should invoke it)
+
+### Edge Cases
+- **Existing user invited as contributor**: If the email already has an account, `inviteUserByEmail` will fail. Handle this by catching the error and instead just sending the invitation email with a link to sign in (existing flow for returning users).
+- **Multiple invitations**: The `accept-contributor-invitation` edge function already handles accepting all pending invitations for a user -- no changes needed there.
+- **Supabase "Confirm email" setting**: This approach works regardless of the project's email confirmation setting since `admin.inviteUserByEmail()` bypasses it.
+
+### Files to Create/Modify
+| File | Action |
+|------|--------|
+| `supabase/functions/invite-contributor/index.ts` | **Create** - New edge function using admin invite API |
+| `supabase/config.toml` | **Modify** - Add config for new function |
+| `src/components/ContributorsTab.tsx` | **Modify** - Call new edge function instead of direct DB insert + email |
+| `src/pages/AuthLegacy.tsx` | **Modify** - Simplify contributor mode to "Set Password" for pre-authenticated users |
+| `src/pages/AuthCallback.tsx` | **Modify** - Handle `type=invite` redirect |
+| `src/pages/ContributorWelcome.tsx` | **Modify** - Remove email verification waiting; simplify or remove |
 
