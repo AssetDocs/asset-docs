@@ -134,9 +134,6 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
 
             <div className="flex items-center gap-2">
               <Progress value={progressPercent} className="h-1.5 flex-1" />
-              <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
-                {progressPercent}%
-              </span>
             </div>
           </div>
         </div>
