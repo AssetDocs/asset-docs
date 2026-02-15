@@ -13,7 +13,7 @@ import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useContributor } from '@/contexts/ContributorContext';
 import { ViewerRestrictionBanner } from '@/components/ViewerRestriction';
 import { useAuth } from '@/contexts/AuthContext';
-import EmailVerificationNotice from '@/components/EmailVerificationNotice';
+
 import { useToast } from '@/hooks/use-toast';
 import SecureVault from '@/components/SecureVault';
 import FeedbackSection from '@/components/FeedbackSection';
@@ -129,7 +129,7 @@ const Account: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
-      <EmailVerificationNotice />
+      
 
       <div className="flex-grow py-8 px-4 bg-gray-50">
         <div className="max-w-6xl mx-auto">

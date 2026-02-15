@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Home, Edit3, Trash2, Loader2, Eye, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardGridCard } from '@/components/DashboardGridCard';
-import EmailVerificationNotice from '@/components/EmailVerificationNotice';
+
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import GoogleMapsAutocomplete from '@/components/GoogleMapsAutocomplete';
 import RealEstateDataService from '@/services/RealEstateDataService';
@@ -180,7 +180,7 @@ const Properties: React.FC = () => {
       <Navbar />
       <div className="flex-grow py-8 px-4 bg-gray-50">
         <div className="max-w-6xl mx-auto">
-          <EmailVerificationNotice />
+          
           <DashboardBreadcrumb hidePageName />
 
           <div className="space-y-4">
