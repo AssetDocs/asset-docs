@@ -126,9 +126,9 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
             <Shield className="h-4 w-4 text-primary" />
           </div>
 
-          <Progress value={progressPercent} className="h-1.5 w-24 flex-shrink-0" />
           <span className="text-sm font-semibold text-foreground whitespace-nowrap">Security Progress</span>
           <UserStatusBadge status={statusLabel} size="sm" />
+          <Progress value={progressPercent} className="h-1.5 flex-1 min-w-0" />
         </div>
 
         <ChevronDown className={`h-5 w-5 text-muted-foreground flex-shrink-0 transition-transform ${isProgressOpen ? '' : '-rotate-90'}`} />
