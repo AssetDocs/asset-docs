@@ -215,6 +215,10 @@ const AccountSettings: React.FC = () => {
                   <MFADropdown />
                 </TabsContent>
 
+                <TabsContent value="notifications">
+                  <NotificationsTab />
+                </TabsContent>
+
                 <TabsContent value="privacy">
                   <CookieSettings />
                 </TabsContent>

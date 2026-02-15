@@ -247,6 +247,26 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Security alert email sent successfully for ${alertType}:`, emailResponse);
 
+    // Store notification in user_notifications table for in-app bell icon
+    try {
+      const { error: notifError } = await supabase
+        .from("user_notifications")
+        .insert({
+          user_id: userId,
+          title: alertTitle.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').trim(),
+          message: actionRequired,
+          type: "security",
+        });
+
+      if (notifError) {
+        console.error("Failed to store notification:", notifError.message);
+      } else {
+        console.log("In-app notification stored for user", userId);
+      }
+    } catch (notifErr) {
+      console.error("Error storing notification:", notifErr);
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true, 

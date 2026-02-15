@@ -9,6 +9,7 @@ import DocumentationChecklist from '@/components/DocumentationChecklist';
 import MFADropdown from '@/components/MFADropdown';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useUnreadNotifications } from '@/hooks/useUnreadNotifications';
 import AssetValuesSection from '@/components/AssetValuesSection';
 import {
   Settings,
@@ -25,6 +26,7 @@ import {
   Loader2,
   DollarSign,
   ChevronDown,
+  Bell,
 } from 'lucide-react';
 
 interface DashboardGridProps {
@@ -39,6 +41,7 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
   const [isAssetValuesOpen, setIsAssetValuesOpen] = useState(() => {
     return localStorage.getItem('assetValuesDropdownOpen') === 'true';
   });
+  const unreadCount = useUnreadNotifications();
 
   const handleToggleAssetValues = () => {
     const newState = !isAssetValuesOpen;
@@ -188,7 +191,16 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
         </div>
 
         <DashboardGridCard
-          icon={<Settings className="h-6 w-6" />}
+          icon={
+            <div className="relative">
+              <Settings className="h-6 w-6" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-2 -right-2 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold leading-none">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </div>
+          }
           title="Account Settings"
           description="Manage your account details, security, and preferences."
           tags={['Plan', 'Billing', 'Alerts']}
