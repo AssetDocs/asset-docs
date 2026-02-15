@@ -24,9 +24,9 @@ const Scenarios: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <SEOHead
-        title="Insurance Claim Scenarios - When Documentation Matters Most"
+        title="Insurance Claim Scenarios | Asset Safe"
         description="Protect your property against natural disasters, theft, fire, and more. Learn how Asset Safe documentation helps expedite insurance claims and maximize settlements."
-        keywords="insurance claim scenarios, natural disaster documentation, theft claim, fire damage claim, property loss documentation, hurricane claim, flood damage, home inventory for insurance"
+        keywords="insurance claim scenarios, natural disaster documentation, theft claim, fire damage claim, property loss documentation, hurricane claim, flood damage"
         canonicalUrl="https://www.getassetsafe.com/scenarios"
         structuredData={structuredData}
       />
@@ -35,7 +35,7 @@ const Scenarios: React.FC = () => {
       {/* Hero Section */}
       <section className="bg-brand-blue text-white py-16">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl font-bold mb-6">Scenarios</h1>
+          <h1 className="text-4xl font-bold mb-6">Insurance Claim Scenarios</h1>
           <p className="text-xl max-w-4xl mx-auto">
             Asset Safe is invaluable in these situations where comprehensive documentation protects your interests and streamlines the claims process.
           </p>

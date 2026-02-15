@@ -5,12 +5,25 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import SEOHead from '@/components/SEOHead';
+import { breadcrumbSchema } from '@/utils/structuredData';
 
 const PhotographyGuide: React.FC = () => {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-white">
+      <SEOHead
+        title="Photography Guide for Documentation | Asset Safe"
+        description="Best practices for photographing your assets. Lighting, angles, and tips to create insurance-ready property documentation photos."
+        keywords="asset photography guide, home inventory photos, insurance documentation photos, property photography tips, how to photograph belongings"
+        canonicalUrl="https://www.getassetsafe.com/photography-guide"
+        structuredData={breadcrumbSchema([
+          { name: 'Home', url: 'https://www.getassetsafe.com/' },
+          { name: 'Resources', url: 'https://www.getassetsafe.com/resources' },
+          { name: 'Photography Guide', url: 'https://www.getassetsafe.com/photography-guide' }
+        ])}
+      />
       <Navbar />
       
       <main className="pt-24 pb-16">

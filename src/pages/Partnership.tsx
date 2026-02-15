@@ -3,10 +3,19 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import SEOHead from '@/components/SEOHead';
 
 const Partnership: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20">
+      <SEOHead
+        title="Partnership Opportunities | Asset Safe"
+        description="Explore partnership opportunities with Asset Safe. Insurance, real estate, and home service professionals welcome. Grow together."
+        keywords="asset safe partnership, real estate partnership, insurance partnership, home service partnership, business collaboration"
+        canonicalUrl="https://www.getassetsafe.com/partnership"
+      />
       <div className="container mx-auto px-6 py-12">
         <div className="max-w-4xl mx-auto">
           {/* Header */}

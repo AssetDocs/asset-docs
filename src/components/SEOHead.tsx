@@ -9,6 +9,7 @@ interface SEOHeadProps {
   canonicalUrl?: string;
   type?: 'website' | 'article';
   structuredData?: object;
+  noIndex?: boolean;
 }
 
 const SEOHead: React.FC<SEOHeadProps> = ({
@@ -18,7 +19,8 @@ const SEOHead: React.FC<SEOHeadProps> = ({
   ogImage = 'https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg',
   canonicalUrl,
   type = 'website',
-  structuredData
+  structuredData,
+  noIndex = false
 }) => {
   const siteUrl = 'https://www.getassetsafe.com';
   const fullCanonicalUrl = canonicalUrl || siteUrl;
@@ -32,7 +34,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
       <meta name="description" content={description} />
       <meta name="keywords" content={keywords} />
       <link rel="canonical" href={fullCanonicalUrl} />
-      <meta name="robots" content="index, follow" />
+      <meta name="robots" content={noIndex ? "noindex, nofollow" : "index, follow"} />
       <meta name="language" content="English" />
       <meta name="author" content="Asset Safe" />
       <meta httpEquiv="Content-Type" content="text/html; charset=utf-8" />

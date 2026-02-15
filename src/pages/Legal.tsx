@@ -1,6 +1,7 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import SEOHead from '@/components/SEOHead';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertTriangle, Scale, FileText, Shield } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -8,6 +9,12 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 const Legal: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen">
+      <SEOHead
+        title="Legal & Ethical Considerations | Asset Safe"
+        description="Important legal disclaimers about property valuations, documentation standards, and ethical considerations for Asset Safe users and their insurance claims."
+        keywords="asset safe legal, valuation disclaimer, property documentation legal, ethical considerations, insurance documentation guidelines"
+        canonicalUrl="https://www.getassetsafe.com/legal"
+      />
       <Navbar />
       
       <div className="flex-grow py-12 px-4 bg-gray-50">

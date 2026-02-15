@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import SEOHead from '@/components/SEOHead';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -250,6 +251,12 @@ const SampleDashboard: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <SEOHead
+        title="Sample Dashboard Preview | Asset Safe"
+        description="Preview the Asset Safe dashboard before signing up. See how property documentation, inventory tracking, and security features work in action."
+        keywords="asset safe demo, sample dashboard, property documentation preview, home inventory demo, asset safe features preview"
+        canonicalUrl="https://www.getassetsafe.com/sample-dashboard"
+      />
       <Navbar />
       
       <div className="flex-grow py-8 px-4 bg-muted/50">

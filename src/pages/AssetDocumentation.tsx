@@ -1,8 +1,10 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import SEOHead from '@/components/SEOHead';
 import { Card } from '@/components/ui/card';
 import { FileText, TrendingUp, Building2, Package, Zap, Clock } from 'lucide-react';
+import { breadcrumbSchema } from '@/utils/structuredData';
 
 const AssetDocumentation: React.FC = () => {
   const assetTypes = [
@@ -46,6 +48,16 @@ const AssetDocumentation: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <SEOHead
+        title="Asset Documentation Types | Asset Safe"
+        description="Understand asset categories: liquid, fixed, tangible, intangible, and operating assets. Learn what to document and why for insurance and estate planning."
+        keywords="asset types, asset documentation, liquid assets, fixed assets, tangible assets, intangible assets, property documentation categories"
+        canonicalUrl="https://www.getassetsafe.com/asset-documentation"
+        structuredData={breadcrumbSchema([
+          { name: 'Home', url: 'https://www.getassetsafe.com/' },
+          { name: 'Asset Documentation', url: 'https://www.getassetsafe.com/asset-documentation' }
+        ])}
+      />
       <Navbar />
       
       <div className="flex-grow bg-gray-50">

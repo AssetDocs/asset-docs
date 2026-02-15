@@ -208,8 +208,8 @@ const Pricing: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <SEOHead
-        title="Pricing - Affordable Plans for Home & Property Documentation"
-        description="Choose from Standard ($12.99/mo) or Premium ($18.99/mo) plans. No long-term contract. Cancel anytime. Secure cloud storage, unlimited photos/videos, insurance claims support."
+        title="Plans & Pricing - From $12.99/mo | Asset Safe"
+        description="Choose from Standard ($12.99/mo) or Premium ($18.99/mo) plans. No long-term contract. Cancel anytime. Secure cloud storage, unlimited uploads, insurance claims support."
         keywords="home inventory pricing, property documentation cost, digital asset management pricing, insurance inventory app cost, estate planning tools pricing"
         canonicalUrl="https://www.getassetsafe.com/pricing"
         structuredData={structuredData}
