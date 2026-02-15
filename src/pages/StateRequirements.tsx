@@ -3,13 +3,25 @@ import { MapPin, Building, AlertTriangle, Clock, FileText, Scale } from 'lucide-
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import SEOHead from '@/components/SEOHead';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { breadcrumbSchema } from '@/utils/structuredData';
 
 const StateRequirements = () => {
   return (
     <div className="flex flex-col min-h-screen">
+      <SEOHead
+        title="State Insurance Requirements | Asset Safe"
+        description="Understand how insurance requirements and claim processes vary by state. Regional guidance for property documentation compliance and claims filing."
+        keywords="state insurance requirements, insurance claims by state, regional insurance rules, property documentation compliance, state claim process"
+        canonicalUrl="https://www.getassetsafe.com/state-requirements"
+        structuredData={breadcrumbSchema([
+          { name: 'Home', url: 'https://www.getassetsafe.com/' },
+          { name: 'State Requirements', url: 'https://www.getassetsafe.com/state-requirements' }
+        ])}
+      />
       <Navbar />
 
       {/* Header */}

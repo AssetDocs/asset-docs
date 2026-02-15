@@ -4,10 +4,22 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle, Clock, AlertTriangle, FileText, Home, Zap } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import SEOHead from '@/components/SEOHead';
+import { breadcrumbSchema } from '@/utils/structuredData';
 
 const IndustryRequirements: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title="Industry Claims Requirements | Asset Safe"
+        description="Complete guide to industry-standard insurance claims processes. Steps, documentation, and requirements for filing property and contents claims successfully."
+        keywords="insurance claims process, industry requirements, claims documentation, property claim steps, insurance filing guide"
+        canonicalUrl="https://www.getassetsafe.com/industry-requirements"
+        structuredData={breadcrumbSchema([
+          { name: 'Home', url: 'https://www.getassetsafe.com/' },
+          { name: 'Industry Requirements', url: 'https://www.getassetsafe.com/industry-requirements' }
+        ])}
+      />
       <Navbar />
       
       <main className="container mx-auto px-4 py-8 mt-16">

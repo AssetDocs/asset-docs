@@ -3,25 +3,25 @@
   <!-- Core Pages -->
   <url>
     <loc>https://www.getassetsafe.com/</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://www.getassetsafe.com/features</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.getassetsafe.com/pricing</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.getassetsafe.com/about</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -29,9 +29,15 @@
   <!-- Blog -->
   <url>
     <loc>https://www.getassetsafe.com/blog</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.getassetsafe.com/blog/best-closing-gift-real-estate-agents</loc>
+    <lastmod>2026-02-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.getassetsafe.com/blog/what-documents-to-upload</loc>
@@ -61,13 +67,13 @@
   <!-- Product Pages -->
   <url>
     <loc>https://www.getassetsafe.com/legacy-locker</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.getassetsafe.com/gift</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -75,19 +81,37 @@
   <!-- Resources -->
   <url>
     <loc>https://www.getassetsafe.com/resources</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.getassetsafe.com/qa</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.getassetsafe.com/glossary</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.getassetsafe.com/video-help</loc>
+    <lastmod>2026-02-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.getassetsafe.com/photography-guide</loc>
+    <lastmod>2026-02-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.getassetsafe.com/asset-documentation</loc>
+    <lastmod>2026-02-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -95,33 +119,39 @@
   <!-- Use Case Pages -->
   <url>
     <loc>https://www.getassetsafe.com/scenarios</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.getassetsafe.com/claims</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.getassetsafe.com/awareness-guide</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.getassetsafe.com/press-news</loc>
+    <lastmod>2026-02-15</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   
   <!-- Industry Pages -->
   <url>
     <loc>https://www.getassetsafe.com/industry-requirements</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.getassetsafe.com/state-requirements</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -129,47 +159,67 @@
   <!-- Social & Trust -->
   <url>
     <loc>https://www.getassetsafe.com/social-impact</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.getassetsafe.com/testimonials</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
+  </url>
+  
+  <!-- Tools & Demos -->
+  <url>
+    <loc>https://www.getassetsafe.com/sample-dashboard</loc>
+    <lastmod>2026-02-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.getassetsafe.com/install</loc>
+    <lastmod>2026-02-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.getassetsafe.com/partnership</loc>
+    <lastmod>2026-02-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
   </url>
   
   <!-- Support -->
   <url>
     <loc>https://www.getassetsafe.com/contact</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.getassetsafe.com/video-help</loc>
-    <lastmod>2026-02-14</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
   </url>
   
   <!-- Legal -->
   <url>
     <loc>https://www.getassetsafe.com/terms</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://www.getassetsafe.com/legal</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://www.getassetsafe.com/cookie-policy</loc>
-    <lastmod>2026-02-14</lastmod>
+    <lastmod>2026-02-15</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://www.getassetsafe.com/subscription-agreement</loc>
+    <lastmod>2026-02-15</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>

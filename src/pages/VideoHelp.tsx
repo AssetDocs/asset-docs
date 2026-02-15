@@ -2,10 +2,12 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import SEOHead from '@/components/SEOHead';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Play, BookOpen, UserPlus, Camera, Upload, Building, FileText, Settings } from 'lucide-react';
 import walkthroughCover from '@/assets/youtube-cover-walkthrough.jpg';
+import { breadcrumbSchema } from '@/utils/structuredData';
 
 const VideoHelp: React.FC = () => {
   const handleWatchVideo = (videoUrl: string) => {
@@ -97,6 +99,16 @@ const VideoHelp: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <SEOHead
+        title="Video Tutorials & Help | Asset Safe"
+        description="Watch step-by-step video tutorials on account setup, property documentation, photo uploads, and Asset Safe dashboard features."
+        keywords="asset safe tutorials, video help, how to use asset safe, property documentation tutorial, home inventory walkthrough"
+        canonicalUrl="https://www.getassetsafe.com/video-help"
+        structuredData={breadcrumbSchema([
+          { name: 'Home', url: 'https://www.getassetsafe.com/' },
+          { name: 'Video Help', url: 'https://www.getassetsafe.com/video-help' }
+        ])}
+      />
       <Navbar />
       
       <div className="flex-grow py-12 px-4 bg-gray-50">

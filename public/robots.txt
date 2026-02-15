@@ -1,5 +1,5 @@
 # Asset Safe - Robots.txt
-# Updated: 2026-01-02
+# Updated: 2026-02-15
 
 User-agent: *
 Allow: /
@@ -9,6 +9,7 @@ Disallow: /auth
 Disallow: /login
 Disallow: /signup
 Disallow: /admin
+Disallow: /admin/*
 Disallow: /account
 Disallow: /account-settings
 Disallow: /crm
@@ -27,7 +28,7 @@ Disallow: /gift-checkout
 Disallow: /gift-success
 Disallow: /gift-claim
 
-# Disallow user-specific pages
+# Disallow user-specific dashboard pages
 Disallow: /properties
 Disallow: /documents
 Disallow: /photos
@@ -35,6 +36,20 @@ Disallow: /videos
 Disallow: /inventory
 Disallow: /insurance
 Disallow: /checklists
+Disallow: /vip-contacts
+Disallow: /activity-log
+Disallow: /media
+Disallow: /combined-media
+
+# Disallow internal/utility pages
+Disallow: /test-email
+Disallow: /feedback
+Disallow: /contributor-welcome
+Disallow: /dev-invite
+Disallow: /acknowledge-access
+Disallow: /schedule-professional
+Disallow: /damage-photo-upload
+Disallow: /damage-video-upload
 
 # Allow all public marketing pages
 Allow: /
@@ -58,9 +73,15 @@ Allow: /industry-requirements
 Allow: /state-requirements
 Allow: /sample-dashboard
 Allow: /video-help
+Allow: /photography-guide
+Allow: /press-news
+Allow: /asset-documentation
+Allow: /install
+Allow: /partnership
 Allow: /terms
 Allow: /legal
 Allow: /cookie-policy
+Allow: /subscription-agreement
 
 # Sitemap location
 Sitemap: https://www.getassetsafe.com/sitemap.xml

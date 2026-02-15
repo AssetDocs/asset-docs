@@ -121,8 +121,9 @@ const Blog = () => {
   return (
     <>
       <SEOHead 
-        title="Blog - Asset Protection & Estate Planning Insights | Asset Safe"
+        title="Blog - Property & Estate Planning Insights | Asset Safe"
         description="Expert insights on home inventory management, estate planning, insurance claims, and asset protection. Learn how to protect what matters most."
+        keywords="property documentation blog, home inventory tips, estate planning insights, insurance claims guide, asset protection articles"
         canonicalUrl="https://www.getassetsafe.com/blog"
       />
       <div className="min-h-screen flex flex-col bg-background">

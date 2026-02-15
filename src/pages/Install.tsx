@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Smartphone, Download, Check, Apple, Chrome, Monitor, Wifi, WifiOff, Shield, Compass, ChevronLeft } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -53,6 +54,12 @@ const Install = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEOHead
+        title="Install the App | Asset Safe"
+        description="Install Asset Safe on your phone or desktop for quick access. Available as a progressive web app on iOS, Android, and desktop browsers."
+        keywords="install asset safe, asset safe app, progressive web app, home inventory app download, property documentation mobile app"
+        canonicalUrl="https://www.getassetsafe.com/install"
+      />
       <Navbar />
       
       <main className="flex-1 container mx-auto px-4 py-12">

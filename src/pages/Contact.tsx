@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import SEOHead from '@/components/SEOHead';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,6 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { MessageCircle, HelpCircle, ChevronLeft } from 'lucide-react';
+import { breadcrumbSchema } from '@/utils/structuredData';
 
 interface ContactFormData {
   name: string;
@@ -65,6 +67,16 @@ const Contact: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <SEOHead
+        title="Contact Us - Get Support | Asset Safe"
+        description="Reach the Asset Safe team for questions about property documentation, account support, or partnership inquiries. We're here to help you stay organized and protected."
+        keywords="contact asset safe, customer support, property documentation help, account support, partnership inquiry"
+        canonicalUrl="https://www.getassetsafe.com/contact"
+        structuredData={breadcrumbSchema([
+          { name: 'Home', url: 'https://www.getassetsafe.com/' },
+          { name: 'Contact', url: 'https://www.getassetsafe.com/contact' }
+        ])}
+      />
       <Navbar />
       
       <div className="container mx-auto px-4 py-12 flex-grow">

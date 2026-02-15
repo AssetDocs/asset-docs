@@ -2,10 +2,17 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import SEOHead from '@/components/SEOHead';
 
 const CookiePolicy: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen">
+      <SEOHead
+        title="Cookie Policy | Asset Safe"
+        description="Learn how Asset Safe uses cookies to improve your experience. Manage your cookie preferences and understand our data practices."
+        keywords="cookie policy, cookies, data privacy, cookie preferences, asset safe privacy"
+        canonicalUrl="https://www.getassetsafe.com/cookie-policy"
+      />
       <Navbar />
       
       <div className="container mx-auto px-4 py-12 flex-grow">

@@ -1,9 +1,11 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import SEOHead from '@/components/SEOHead';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, Home, Shield } from 'lucide-react';
+import { breadcrumbSchema } from '@/utils/structuredData';
 
 const AwarenessGuide: React.FC = () => {
   const risks = [
@@ -61,6 +63,16 @@ const AwarenessGuide: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <SEOHead
+        title="Home Risk Awareness Guide | Asset Safe"
+        description="Identify hidden home risks from dryer vents to mold. Protect your property with proactive awareness and documentation strategies."
+        keywords="home risks, property damage prevention, home maintenance guide, hidden home dangers, property protection tips"
+        canonicalUrl="https://www.getassetsafe.com/awareness-guide"
+        structuredData={breadcrumbSchema([
+          { name: 'Home', url: 'https://www.getassetsafe.com/' },
+          { name: 'Awareness Guide', url: 'https://www.getassetsafe.com/awareness-guide' }
+        ])}
+      />
       <Navbar />
       
       <main className="flex-grow py-12 px-4 bg-gradient-to-br from-gray-50 to-gray-100">

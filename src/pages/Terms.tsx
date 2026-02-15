@@ -1,10 +1,17 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import SEOHead from '@/components/SEOHead';
 
 const Terms: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen">
+      <SEOHead
+        title="Terms and Conditions | Asset Safe"
+        description="Read the Asset Safe terms of service covering usage, privacy, intellectual property, and subscription policies for our property documentation platform."
+        keywords="asset safe terms, terms of service, usage policy, subscription terms, privacy policy"
+        canonicalUrl="https://www.getassetsafe.com/terms"
+      />
       <Navbar />
       
       <div className="container mx-auto px-4 py-12 flex-grow">
