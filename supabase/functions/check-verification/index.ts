@@ -6,7 +6,6 @@ const corsHeaders = {
 };
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -24,12 +23,10 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
 
-    // Create client with user's token to validate auth
     const userClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } }
     });
 
-    // Validate the JWT and get user
     const token = authHeader.replace('Bearer ', '');
     const { data: claimsData, error: claimsError } = await userClient.auth.getUser(token);
     
@@ -44,10 +41,9 @@ Deno.serve(async (req) => {
     const userId = claimsData.user.id;
     console.log(`Computing verification status for user: ${userId}`);
 
-    // Create service role client to call security definer function and update table
     const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Compute verification status using the SQL function
+    // Compute verification status using the SQL function (returns 8 milestones, no MFA)
     const { data: verificationData, error: computeError } = await serviceClient
       .rpc('compute_user_verification', { target_user_id: userId });
 
@@ -61,7 +57,7 @@ Deno.serve(async (req) => {
 
     console.log('Verification computed:', verificationData);
 
-    // Check if user has 2FA enabled using auth admin API
+    // Check MFA (milestone 5 - requires auth admin API)
     let has2fa = false;
     try {
       const { data: mfaData, error: mfaError } = await serviceClient.auth.admin.mfa.listFactors({
@@ -71,7 +67,6 @@ Deno.serve(async (req) => {
       if (mfaError) {
         console.error('Error checking MFA factors:', mfaError);
       } else {
-        // Check if user has a verified TOTP factor
         has2fa = mfaData?.factors?.some(
           (f: any) => f.factor_type === 'totp' && f.status === 'verified'
         ) ?? false;
@@ -81,10 +76,12 @@ Deno.serve(async (req) => {
       console.error('MFA check failed:', mfaErr);
     }
 
-    // Upsert the verification record
-    const now = new Date().toISOString();
-    const isVerified = verificationData.is_verified;
+    // Recompute milestone count with MFA as 9th milestone
+    const milestoneCount = (verificationData.milestone_count as number) + (has2fa ? 1 : 0);
+    const isVerified = verificationData.account_age_met && (milestoneCount >= 5);
     const isVerifiedPlus = isVerified && has2fa;
+
+    const now = new Date().toISOString();
 
     const { data: upsertData, error: upsertError } = await serviceClient
       .from('account_verification')
@@ -99,6 +96,12 @@ Deno.serve(async (req) => {
         profile_complete: verificationData.profile_complete,
         has_property: verificationData.has_property,
         has_2fa: has2fa,
+        has_contributors: verificationData.has_contributors,
+        has_documents: verificationData.has_documents,
+        has_vault_encryption: verificationData.has_vault_encryption,
+        has_vault_data_and_passwords: verificationData.has_vault_data_and_passwords,
+        has_recovery_delegate: verificationData.has_recovery_delegate,
+        milestone_count: milestoneCount,
         is_verified_plus: isVerifiedPlus,
         verified_plus_at: isVerifiedPlus ? now : null,
         last_checked_at: now,
@@ -117,7 +120,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log(`Verification status saved for user ${userId}: is_verified=${isVerified}, is_verified_plus=${isVerifiedPlus}`);
+    console.log(`Verification saved for user ${userId}: is_verified=${isVerified}, milestone_count=${milestoneCount}, is_verified_plus=${isVerifiedPlus}`);
 
     return new Response(
       JSON.stringify({
@@ -130,7 +133,13 @@ Deno.serve(async (req) => {
           upload_count: verificationData.upload_count,
           profile_complete: verificationData.profile_complete,
           has_property: verificationData.has_property,
-          has_2fa: has2fa
+          has_2fa: has2fa,
+          has_contributors: verificationData.has_contributors,
+          has_documents: verificationData.has_documents,
+          has_vault_encryption: verificationData.has_vault_encryption,
+          has_vault_data_and_passwords: verificationData.has_vault_data_and_passwords,
+          has_recovery_delegate: verificationData.has_recovery_delegate,
+          milestone_count: milestoneCount
         },
         verified_at: upsertData?.verified_at || null,
         verified_plus_at: upsertData?.verified_plus_at || null,
