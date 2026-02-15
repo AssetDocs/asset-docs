@@ -5,8 +5,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import SystemInfrastructure from './SystemInfrastructure';
-import SystemArchitectureFlowcharts from './SystemArchitectureFlowcharts';
 import AdminLegalAgreements from '@/pages/AdminLegalAgreements';
 import { useDevWorkspace, DevSupportStatus, DevReleaseStatus } from '@/hooks/useDevWorkspace';
 import { AddTaskModal } from './dev-workspace/AddTaskModal';
@@ -188,9 +186,9 @@ const AdminDevWorkspace: React.FC = () => {
               <Tag className="w-4 h-4" />
               <span className="hidden sm:inline">DoD</span>
             </TabsTrigger>
-            <TabsTrigger value="infrastructure" className="flex items-center gap-2">
+            <TabsTrigger value="infrastructure" className="flex items-center gap-2 opacity-50 cursor-not-allowed" disabled>
               <Server className="w-4 h-4" />
-              <span className="hidden sm:inline">Infra</span>
+              <span className="hidden sm:inline">Infra 🔒</span>
             </TabsTrigger>
             <TabsTrigger value="docs" className="flex items-center gap-2">
               <FileText className="w-4 h-4" />
@@ -731,10 +729,17 @@ const AdminDevWorkspace: React.FC = () => {
           </Card>
         </TabsContent>
 
-        {/* Infrastructure Tab */}
+        {/* Infrastructure Tab - Locked for dev workspace */}
         <TabsContent value="infrastructure" className="space-y-6">
-          <SystemInfrastructure />
-          <SystemArchitectureFlowcharts />
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+              <Server className="w-12 h-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Infrastructure — Restricted</h3>
+              <p className="text-muted-foreground text-sm max-w-md">
+                System infrastructure documentation is available in the Owner workspace only.
+              </p>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Docs Tab */}
