@@ -10,6 +10,12 @@ export interface VerificationCriteria {
   profile_complete: boolean;
   has_property: boolean;
   has_2fa: boolean;
+  has_contributors: boolean;
+  has_documents: boolean;
+  has_vault_encryption: boolean;
+  has_vault_data_and_passwords: boolean;
+  has_recovery_delegate: boolean;
+  milestone_count: number;
 }
 
 export interface VerificationStatus {
@@ -27,7 +33,6 @@ export const useVerification = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch cached status from database
   const fetchCachedStatus = useCallback(async () => {
     if (!user) {
       setStatus(null);
@@ -60,7 +65,13 @@ export const useVerification = () => {
             upload_count: data.upload_count,
             profile_complete: data.profile_complete,
             has_property: data.has_property,
-            has_2fa: data.has_2fa
+            has_2fa: data.has_2fa,
+            has_contributors: (data as any).has_contributors ?? false,
+            has_documents: (data as any).has_documents ?? false,
+            has_vault_encryption: (data as any).has_vault_encryption ?? false,
+            has_vault_data_and_passwords: (data as any).has_vault_data_and_passwords ?? false,
+            has_recovery_delegate: (data as any).has_recovery_delegate ?? false,
+            milestone_count: (data as any).milestone_count ?? 0,
           },
           verified_at: data.verified_at,
           verified_plus_at: data.verified_plus_at,
@@ -75,7 +86,6 @@ export const useVerification = () => {
     }
   }, [user]);
 
-  // Refresh verification status by calling the edge function
   const refreshVerification = useCallback(async () => {
     if (!user) return null;
 
@@ -112,12 +122,9 @@ export const useVerification = () => {
     }
   }, [user]);
 
-  // Initial fetch on mount - refresh verification to ensure latest data
   useEffect(() => {
     if (user) {
-      // First fetch cached status quickly for UI
       fetchCachedStatus();
-      // Then refresh in background to ensure accuracy
       refreshVerification();
     } else {
       setStatus(null);
@@ -125,18 +132,7 @@ export const useVerification = () => {
     }
   }, [user]);
 
-  // Calculate progress percentage (5 base criteria + 2FA bonus)
-  const baseProgress = status ? 
-    ([
-      status.criteria.email_verified,
-      status.criteria.account_age_met,
-      status.criteria.upload_count_met,
-      status.criteria.profile_complete,
-      status.criteria.has_property
-    ].filter(Boolean).length / 5) * 100 : 0;
-
-  // Full progress includes 2FA as a 6th criterion for Verified+ (optional display)
-  const progress = baseProgress;
+  const progress = status ? Math.round((status.criteria.milestone_count / 9) * 100) : 0;
 
   return {
     status,

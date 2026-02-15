@@ -3,7 +3,6 @@ import { useVerification } from '@/hooks/useVerification';
 import { useAuth } from '@/contexts/AuthContext';
 import { Check, ChevronDown, Shield, ClipboardList } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/integrations/supabase/client';
 import UserStatusBadge from '@/components/UserStatusBadge';
 import { Progress } from '@/components/ui/progress';
 import DocumentationChecklist from '@/components/DocumentationChecklist';
@@ -14,17 +13,9 @@ interface SecurityProgressProps {
 
 const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = false }) => {
   const { status, loading, refreshVerification } = useVerification();
-  const { profile, user } = useAuth();
+  const { profile } = useAuth();
   const [isProgressOpen, setIsProgressOpen] = useState(false);
   const [isChecklistOpen, setIsChecklistOpen] = useState(false);
-
-  // Additional data for all phases
-  const [hasContributors, setHasContributors] = useState(false);
-  const [hasVaultEncryption, setHasVaultEncryption] = useState(false);
-  const [hasVaultData, setHasVaultData] = useState(false);
-  const [hasPasswordEntries, setHasPasswordEntries] = useState(false);
-  const [hasDocuments, setHasDocuments] = useState(false);
-  const [hasRecoveryDelegate, setHasRecoveryDelegate] = useState(false);
 
   useEffect(() => {
     const progressState = localStorage.getItem('securityProgressOpen');
@@ -37,57 +28,26 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
     refreshVerification();
   }, []);
 
-  useEffect(() => {
-    const fetchAdditionalData = async () => {
-      if (!user) return;
-
-      const [contributorsRes, legacyRes, passwordsRes, docsRes] = await Promise.all([
-        supabase.from('contributors').select('id').eq('account_owner_id', user.id).limit(1),
-        supabase.from('legacy_locker').select('id, is_encrypted, full_legal_name, executor_name, delegate_user_id').eq('user_id', user.id).maybeSingle(),
-        supabase.from('password_catalog').select('id').eq('user_id', user.id).limit(1),
-        supabase.from('property_files').select('id').eq('user_id', user.id).eq('file_type', 'document').limit(1),
-      ]);
-
-      setHasContributors((contributorsRes.data?.length ?? 0) > 0);
-
-      const legacyLocker = legacyRes.data;
-      const hasLegacyData = legacyLocker && (legacyLocker.full_legal_name || legacyLocker.executor_name);
-      setHasVaultData(!!hasLegacyData);
-      setHasVaultEncryption(legacyLocker?.is_encrypted ?? false);
-      setHasRecoveryDelegate(!!legacyLocker?.delegate_user_id);
-
-      setHasPasswordEntries((passwordsRes.data?.length ?? 0) > 0);
-      setHasDocuments((docsRes.data?.length ?? 0) > 0);
-    };
-
-    fetchAdditionalData();
-  }, [user]);
-
   if (loading && !status) return null;
 
-  // Build all tasks across all phases
-  const isProfileComplete = status?.criteria?.profile_complete ?? !!(profile?.first_name);
-  const hasProperty = status?.criteria?.has_property ?? false;
-  const hasUploads = (status?.criteria?.upload_count ?? 0) > 0;
-  const has2FA = status?.criteria?.has_2fa ?? false;
+  const criteria = status?.criteria;
 
   const allTasks = [
-    { label: 'Complete Your Profile', completed: isProfileComplete, phase: 1 },
-    { label: 'Create Your First Property', completed: hasProperty, phase: 1 },
-    { label: 'Upload Your First Photos or Documents', completed: hasUploads, phase: 1 },
-    { label: 'Add an Authorized User', completed: hasContributors, phase: 2 },
-    { label: 'Enable Multi-Factor Authentication', completed: has2FA, phase: 2 },
-    { label: 'Upload Important Documents & Records', completed: hasDocuments, phase: 2 },
-    { label: 'Enable Secure Vault Protection', completed: hasVaultEncryption, phase: 3 },
-    { label: 'Add Legacy Locker & Password Catalog Details', completed: hasVaultData && hasPasswordEntries, phase: 3 },
-    { label: 'Assign a Recovery Delegate (inside the Secure Vault)', completed: hasRecoveryDelegate, phase: 3 },
+    { label: 'Complete Your Profile', completed: criteria?.profile_complete ?? !!(profile?.first_name), phase: 1 },
+    { label: 'Create Your First Property', completed: criteria?.has_property ?? false, phase: 1 },
+    { label: 'Upload Your First Photos or Documents', completed: criteria?.upload_count_met ?? false, phase: 1 },
+    { label: 'Add an Authorized User', completed: criteria?.has_contributors ?? false, phase: 2 },
+    { label: 'Enable Multi-Factor Authentication', completed: criteria?.has_2fa ?? false, phase: 2 },
+    { label: 'Upload Important Documents & Records', completed: criteria?.has_documents ?? false, phase: 2 },
+    { label: 'Enable Secure Vault Protection', completed: criteria?.has_vault_encryption ?? false, phase: 3 },
+    { label: 'Add Legacy Locker & Password Catalog Details', completed: criteria?.has_vault_data_and_passwords ?? false, phase: 3 },
+    { label: 'Assign a Recovery Delegate (inside the Secure Vault)', completed: criteria?.has_recovery_delegate ?? false, phase: 3 },
   ];
 
   const completedCount = allTasks.filter(t => t.completed).length;
   const totalCount = allTasks.length;
   const progressPercent = Math.round((completedCount / totalCount) * 100);
 
-  // Determine status label
   const getStatusLabel = () => {
     if (status?.is_verified_plus) return 'Verified+';
     if (status?.is_verified) return 'Verified';
@@ -114,9 +74,12 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
     localStorage.setItem('securityChecklistOpen', String(newState));
   };
 
+  const accountAgeNote = criteria?.account_age_met === false
+    ? ' · Account must be 14+ days old to qualify'
+    : '';
+
   return (
     <div className="w-full bg-card border border-border rounded-lg overflow-hidden">
-      {/* ─── Section 1: Security Progress ─── */}
       <button
         onClick={handleToggleProgress}
         className="w-full px-4 py-3 flex items-center justify-between gap-3 hover:bg-muted/30 transition-colors"
@@ -125,21 +88,18 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
           <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 flex-shrink-0">
             <Shield className="h-4 w-4 text-primary" />
           </div>
-
           <span className="text-sm font-semibold text-foreground whitespace-nowrap">Security Progress</span>
           <UserStatusBadge status={statusLabel} size="sm" />
           <Progress value={progressPercent} className="h-1.5 flex-1 min-w-0" />
         </div>
-
         <ChevronDown className={`h-5 w-5 text-muted-foreground flex-shrink-0 transition-transform ${isProgressOpen ? '' : '-rotate-90'}`} />
       </button>
 
-      {/* Expanded: All 9 Tasks */}
       {isProgressOpen && (
         <div className="px-4 pb-4 pt-1 border-t border-border">
           <p className="text-[11px] text-muted-foreground mb-2">Overall account protection status</p>
           <p className="text-xs text-muted-foreground mb-3">
-            Complete these steps to strengthen your account protection:
+            Complete any 5 of the following steps to reach Verified status:
           </p>
           <div className="space-y-2">
             {allTasks.map((task, index) => (
@@ -173,10 +133,9 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
             ))}
           </div>
 
-          {/* Summary note */}
           <p className="text-[10px] text-muted-foreground mt-3 pt-2 border-t border-border">
             {completedCount} of {totalCount} completed · {statusLabel === 'User' 
-              ? 'Complete 5 milestones to reach Verified status' 
+              ? `Complete any 5 milestones to reach Verified status${accountAgeNote}` 
               : statusLabel === 'Verified' 
               ? 'Enable MFA to reach Verified+ status' 
               : 'Maximum protection enabled'}
@@ -184,7 +143,6 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
         </div>
       )}
 
-      {/* ─── Section 2: Documentation Checklist ─── */}
       {!hideChecklist && (
         <>
           <button
@@ -197,7 +155,6 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
               </div>
               <span className="text-sm font-semibold text-foreground">Documentation Checklist</span>
             </div>
-
             <ChevronDown className={`h-5 w-5 text-muted-foreground flex-shrink-0 transition-transform ${isChecklistOpen ? '' : '-rotate-90'}`} />
           </button>
 

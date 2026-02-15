@@ -62,11 +62,17 @@ export type Database = {
           created_at: string
           email_verified: boolean
           has_2fa: boolean
+          has_contributors: boolean
+          has_documents: boolean
           has_property: boolean
+          has_recovery_delegate: boolean
+          has_vault_data_and_passwords: boolean
+          has_vault_encryption: boolean
           id: string
           is_verified: boolean
           is_verified_plus: boolean
           last_checked_at: string
+          milestone_count: number
           profile_complete: boolean
           updated_at: string
           upload_count: number
@@ -80,11 +86,17 @@ export type Database = {
           created_at?: string
           email_verified?: boolean
           has_2fa?: boolean
+          has_contributors?: boolean
+          has_documents?: boolean
           has_property?: boolean
+          has_recovery_delegate?: boolean
+          has_vault_data_and_passwords?: boolean
+          has_vault_encryption?: boolean
           id?: string
           is_verified?: boolean
           is_verified_plus?: boolean
           last_checked_at?: string
+          milestone_count?: number
           profile_complete?: boolean
           updated_at?: string
           upload_count?: number
@@ -98,11 +110,17 @@ export type Database = {
           created_at?: string
           email_verified?: boolean
           has_2fa?: boolean
+          has_contributors?: boolean
+          has_documents?: boolean
           has_property?: boolean
+          has_recovery_delegate?: boolean
+          has_vault_data_and_passwords?: boolean
+          has_vault_encryption?: boolean
           id?: string
           is_verified?: boolean
           is_verified_plus?: boolean
           last_checked_at?: string
+          milestone_count?: number
           profile_complete?: boolean
           updated_at?: string
           upload_count?: number
