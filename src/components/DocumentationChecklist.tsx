@@ -687,22 +687,18 @@ const DocumentationChecklist: React.FC<DocumentationChecklistProps> = ({ embedde
           </Tabs>
         </div>
       ) : (
-        <Card className="w-full">
+        <div className="w-full bg-card border border-border rounded-lg overflow-hidden">
           <Collapsible open={isOpen} onOpenChange={setIsOpen}>
             <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-                <div className="flex items-center justify-between">
+              <button className="w-full px-6 py-4 flex items-center justify-between gap-3 cursor-pointer hover:bg-muted/30 transition-colors">
                   <div className="flex items-center gap-3">
                     <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 flex-shrink-0">
                       <ClipboardList className="h-4 w-4 text-primary" />
                     </div>
                     <span className="text-sm font-semibold text-foreground">Documentation Checklist</span>
                   </div>
-                  <div className="flex items-center gap-4">
-                  <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${isOpen ? '' : '-rotate-90'}`} />
-                  </div>
-                </div>
-              </CardHeader>
+                  <ChevronDown className={`h-5 w-5 text-muted-foreground flex-shrink-0 transition-transform ${isOpen ? '' : '-rotate-90'}`} />
+              </button>
             </CollapsibleTrigger>
 
             <CollapsibleContent>
@@ -743,7 +739,7 @@ const DocumentationChecklist: React.FC<DocumentationChecklistProps> = ({ embedde
               </CardContent>
             </CollapsibleContent>
           </Collapsible>
-        </Card>
+        </div>
       )}
     </>
   );
