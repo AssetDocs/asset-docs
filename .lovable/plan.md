@@ -1,65 +1,28 @@
 
 
-## Audit and Enhance PDF Export
+## Restore Collapsible MFA on Dashboard
 
-After reviewing the `ExportService.ts` thoroughly, here is what the PDF currently covers and what is missing.
+The recent change to flatten the security tab in Account Settings removed the collapsible wrapper from `MFADropdown.tsx`, which is shared between two locations:
 
-### Currently Exported (PDF + ZIP)
+1. **Dashboard** (`DashboardGrid.tsx`) -- should be collapsible (currently broken)
+2. **Account Settings Security tab** (`AccountSettings.tsx`) -- should be flat (working correctly)
 
-| Section | Data Source | Status |
-|---------|-----------|--------|
-| Properties | `properties` table | Covered |
-| Photos | `property_files` (photos bucket) | Covered |
-| Videos | `property_files` (videos bucket) | Covered |
-| Documents | `property_files` (documents bucket) + `legacy_locker_files` + `receipts` | Covered |
-| Floor Plans | `property_files` (floor-plans bucket) | Covered |
-| Inventory Items | `items` table | Covered |
-| Voice Notes | `legacy_locker_voice_notes` | Covered |
-| Paint Codes | `paint_codes` table | Covered |
-| Source Websites | `source_websites` table | Covered |
-| VIP Contacts | `vip_contacts` + `vip_contact_attachments` | Covered |
-| Damage Reports | `damage_reports` table | Covered |
+### Solution
 
-### What is Missing
+**Option A (cleanest):** Add a prop to `MFADropdown` to control whether it renders as collapsible or flat.
 
-| Gap | Description |
-|-----|-------------|
-| Account Verification Status | The PDF header shows name and account number but does NOT show whether the user is "User", "Verified", or "Verified+" |
-| Emergency Contact Flag | VIP Contacts were recently updated with `is_emergency_contact` -- the export does not reflect this designation |
-| Insurance Policies | The `insurance_policies` table has full policy data (company, policy number, coverage, agent info) but is not included in the export |
-| Family Recipes | The `family_recipes` table exists but recipes are not exported |
-| Contributors List | The `contributors` table tracks who the user has invited -- not included in the export |
+- **`src/components/MFADropdown.tsx`**: Add `collapsible?: boolean` prop (default `true`). When `true`, wrap the content in a `Collapsible` from Radix with a clickable header that toggles open/closed. When `false`, render flat as it does now.
+- **`src/pages/AccountSettings.tsx`**: Pass `collapsible={false}` to `<MFADropdown />` in the security tab.
+- **`src/components/DashboardGrid.tsx`**: No change needed -- it will use the default `collapsible={true}`.
 
-### Planned Changes
+### Technical Detail
 
-All changes are in a single file: **`src/services/ExportService.ts`**
+In `MFADropdown.tsx`:
+- Import `Collapsible`, `CollapsibleTrigger`, `CollapsibleContent` from `@/components/ui/collapsible`
+- Add `ChevronDown` icon for the toggle indicator
+- Add `isOpen` state (default `false`)
+- When `collapsible` is `true`: wrap the header in `CollapsibleTrigger` and the TOTP/Backup settings in `CollapsibleContent`
+- When `collapsible` is `false`: render everything directly as it does today
 
-**1. Add Account Verification Status to PDF Header**
-- In `exportCompleteAssetSummary`, fetch from `account_verification` table alongside the profile.
-- Pass verification data to `generateAssetSummaryPDF`.
-- Display "Account Status: Verified+" / "Verified" / "User" right after the name/account number in the header section.
-
-**2. Add Emergency Contact Badge to VIP Contacts**
-- Update the `vipContacts` mapping in `getUserAssets` to include the `is_emergency_contact` field.
-- Update the `AssetSummary` interface to add `isEmergencyContact` to VIP contact type.
-- In the PDF rendering, show "[EMERGENCY CONTACT]" label next to contacts that have this flag set.
-
-**3. Add Insurance Policies Section**
-- Add `insurancePolicies` to the `AssetSummary` interface.
-- Fetch from `insurance_policies` table in `getUserAssets`.
-- Render a new "Insurance Policies" section in the PDF showing company, policy number, type, coverage amount, deductible, premium, agent info, and status.
-- Add to summary statistics count.
-
-**4. Add Family Recipes Section**
-- Add `familyRecipes` to the `AssetSummary` interface.
-- Fetch from `family_recipes` table in `getUserAssets`.
-- Render a "Family Recipes" section in the PDF showing recipe name, creator, and details.
-- Include recipe file attachments in the ZIP download.
-- Add to summary statistics count.
-
-**5. Add Contributors Section**
-- Add `contributors` to the `AssetSummary` interface.
-- Fetch from `contributors` table in `getUserAssets` (only accepted contributors).
-- Render a "Contributors" section listing name, email, role, and accepted date.
-- Add to summary statistics count.
+This is a two-file change (`MFADropdown.tsx` and `AccountSettings.tsx`) that restores the dashboard behavior without affecting the Account Settings security tab.
 
