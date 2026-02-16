@@ -16,7 +16,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useContributor } from '@/contexts/ContributorContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Edit, Trash2, Star, Phone, Mail, MapPin, User, ChevronLeft, ChevronDown, ChevronUp, Paperclip } from 'lucide-react';
+import { Plus, Edit, Trash2, Star, Phone, Mail, MapPin, User, ChevronLeft, ChevronDown, ChevronUp, Paperclip, AlertTriangle } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface VIPContact {
@@ -93,7 +94,8 @@ const VIPContacts: React.FC = () => {
     state: '',
     zip_code: '',
     notes: '',
-    priority: 3
+    priority: 3,
+    is_emergency_contact: false
   });
 
   const effectiveUserId = accountOwnerId || user?.id;
@@ -140,7 +142,8 @@ const VIPContacts: React.FC = () => {
       state: '',
       zip_code: '',
       notes: '',
-      priority: 3
+      priority: 3,
+      is_emergency_contact: false
     });
     setEditingContact(null);
   };
@@ -157,7 +160,8 @@ const VIPContacts: React.FC = () => {
       state: contact.state || '',
       zip_code: contact.zip_code || '',
       notes: contact.notes || '',
-      priority: contact.priority
+      priority: contact.priority,
+      is_emergency_contact: (contact as any).is_emergency_contact || false
     });
     setIsDialogOpen(true);
   };
@@ -197,6 +201,7 @@ const VIPContacts: React.FC = () => {
         zip_code: formData.zip_code.trim() || null,
         notes: formData.notes.trim() || null,
         priority: formData.priority,
+        is_emergency_contact: formData.is_emergency_contact,
         user_id: effectiveUserId
       };
 
@@ -469,6 +474,18 @@ const VIPContacts: React.FC = () => {
                         onChange={(v) => setFormData({ ...formData, priority: v })} 
                       />
 
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="is_emergency_contact"
+                          checked={formData.is_emergency_contact}
+                          onCheckedChange={(checked) => setFormData({ ...formData, is_emergency_contact: checked === true })}
+                        />
+                        <Label htmlFor="is_emergency_contact" className="flex items-center gap-1.5 cursor-pointer text-sm font-medium">
+                          <AlertTriangle className="h-4 w-4 text-destructive" />
+                          Designate as Emergency Contact
+                        </Label>
+                      </div>
+
                       <div className="space-y-2">
                         <Label htmlFor="notes">Notes</Label>
                         <Textarea
@@ -525,9 +542,23 @@ const VIPContacts: React.FC = () => {
                           <User className="h-5 w-5 text-brand-blue" />
                           {contact.name}
                         </CardTitle>
-                        {contact.relationship && (
-                          <CardDescription className="mt-1">
+                         {contact.relationship && (
+                          <CardDescription className="mt-1 flex items-center gap-2">
                             {contact.relationship}
+                            {(contact as any).is_emergency_contact && (
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-destructive/10 text-destructive">
+                                <AlertTriangle className="h-3 w-3" />
+                                Emergency
+                              </span>
+                            )}
+                          </CardDescription>
+                        )}
+                        {!contact.relationship && (contact as any).is_emergency_contact && (
+                          <CardDescription className="mt-1">
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-destructive/10 text-destructive">
+                              <AlertTriangle className="h-3 w-3" />
+                              Emergency Contact
+                            </span>
                           </CardDescription>
                         )}
                       </div>

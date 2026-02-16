@@ -3153,6 +3153,7 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
+          is_emergency_contact: boolean
           name: string
           notes: string | null
           phone: string | null
@@ -3169,6 +3170,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          is_emergency_contact?: boolean
           name: string
           notes?: string | null
           phone?: string | null
@@ -3185,6 +3187,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          is_emergency_contact?: boolean
           name?: string
           notes?: string | null
           phone?: string | null

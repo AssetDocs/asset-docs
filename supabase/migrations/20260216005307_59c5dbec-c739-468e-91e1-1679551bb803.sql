@@ -1,0 +1,1 @@
+ALTER TABLE public.vip_contacts ADD COLUMN is_emergency_contact boolean NOT NULL DEFAULT false;
