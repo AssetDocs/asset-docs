@@ -221,7 +221,7 @@ const AccountSettings: React.FC = () => {
                 </TabsContent>
 
                 <TabsContent value="security">
-                  <MFADropdown />
+                  <MFADropdown collapsible={false} />
                 </TabsContent>
 
                 <TabsContent value="notifications">
