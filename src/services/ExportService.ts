@@ -852,15 +852,45 @@ export class ExportService {
         .eq('user_id', userId);
 
       if (!propertyFilesError && propertyFiles) {
+        // Group files by bucket to batch-sign URLs
+        const bucketGroups: Record<string, typeof propertyFiles> = {};
+        for (const file of propertyFiles) {
+          const bucket = file.bucket_name || 'documents';
+          if (!bucketGroups[bucket]) bucketGroups[bucket] = [];
+          bucketGroups[bucket].push(file);
+        }
+
+        // Generate fresh signed URLs for all files (private buckets)
+        const signedUrlMap: Record<string, string> = {};
+        for (const [bucket, files] of Object.entries(bucketGroups)) {
+          const paths = files.map(f => f.file_path);
+          try {
+            const { data: signedUrls } = await supabase.storage
+              .from(bucket)
+              .createSignedUrls(paths, 3600);
+            if (signedUrls) {
+              for (const s of signedUrls) {
+                if (s.signedUrl && s.path) {
+                  signedUrlMap[`${bucket}:${s.path}`] = s.signedUrl;
+                }
+              }
+            }
+          } catch (err) {
+            console.error(`Error signing URLs for bucket ${bucket}:`, err);
+          }
+        }
+
         propertyFiles.forEach(file => {
+          const bucket = file.bucket_name || 'documents';
+          const freshUrl = signedUrlMap[`${bucket}:${file.file_path}`] || file.file_url;
           const fileData = {
             id: file.id,
             name: file.file_name,
-            url: file.file_url,
+            url: freshUrl,
             uploadDate: file.created_at || new Date().toISOString()
           };
 
-          switch (file.bucket_name) {
+          switch (bucket) {
             case 'photos':
               assets.photos.push({
                 ...fileData,
@@ -879,6 +909,12 @@ export class ExportService {
             case 'floor-plans':
               assets.floorPlans.push(fileData);
               break;
+            case 'memory-safe':
+              assets.documents.push({
+                ...fileData,
+                type: 'Memory Safe'
+              });
+              break;
           }
         });
       }
@@ -889,16 +925,43 @@ export class ExportService {
         .select('*')
         .eq('user_id', userId);
 
-      if (!legacyFilesError && legacyFiles) {
+      if (!legacyFilesError && legacyFiles && legacyFiles.length > 0) {
+        // Sign URLs for legacy locker files grouped by bucket
+        const legacyBucketGroups: Record<string, typeof legacyFiles> = {};
+        for (const file of legacyFiles) {
+          const bucket = file.bucket_name || 'documents';
+          if (!legacyBucketGroups[bucket]) legacyBucketGroups[bucket] = [];
+          legacyBucketGroups[bucket].push(file);
+        }
+
+        const legacySignedMap: Record<string, string> = {};
+        for (const [bucket, files] of Object.entries(legacyBucketGroups)) {
+          const paths = files.map(f => f.file_path).filter(Boolean) as string[];
+          if (paths.length === 0) continue;
+          try {
+            const { data: signedUrls } = await supabase.storage
+              .from(bucket)
+              .createSignedUrls(paths, 3600);
+            if (signedUrls) {
+              for (const s of signedUrls) {
+                if (s.signedUrl && s.path) legacySignedMap[`${bucket}:${s.path}`] = s.signedUrl;
+              }
+            }
+          } catch (err) {
+            console.error(`Error signing legacy file URLs:`, err);
+          }
+        }
+
         legacyFiles.forEach(file => {
+          const bucket = file.bucket_name || 'documents';
+          const freshUrl = (file.file_path ? legacySignedMap[`${bucket}:${file.file_path}`] : null) || file.file_url;
           const fileData = {
             id: file.id,
             name: file.file_name,
-            url: file.file_url,
+            url: freshUrl,
             uploadDate: file.created_at || new Date().toISOString()
           };
 
-          // Categorize based on file type
           const ext = file.file_name.toLowerCase().split('.').pop();
           if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext || '')) {
             assets.photos.push({ ...fileData, category: 'Legacy Locker' });
@@ -929,34 +992,106 @@ export class ExportService {
           createdAt: item.created_at || new Date().toISOString()
         }));
 
-        // Also add item photos
-        items.forEach(item => {
-          if (item.photo_url) {
-            assets.photos.push({
-              id: item.id,
-              name: item.name || 'Item Photo',
-              url: item.photo_url,
-              uploadDate: item.created_at || new Date().toISOString(),
-              category: item.category || 'Inventory'
+        // Also add item photos with fresh signed URLs
+        const itemsWithPhotos = items.filter(item => item.photo_path);
+        if (itemsWithPhotos.length > 0) {
+          const photoPaths = itemsWithPhotos.map(i => i.photo_path!);
+          try {
+            const { data: signedUrls } = await supabase.storage
+              .from('photos')
+              .createSignedUrls(photoPaths, 3600);
+            const itemPhotoMap: Record<string, string> = {};
+            if (signedUrls) {
+              for (const s of signedUrls) {
+                if (s.signedUrl && s.path) itemPhotoMap[s.path] = s.signedUrl;
+              }
+            }
+            itemsWithPhotos.forEach(item => {
+              const freshUrl = itemPhotoMap[item.photo_path!] || item.photo_url;
+              if (freshUrl) {
+                assets.photos.push({
+                  id: item.id,
+                  name: item.name || 'Item Photo',
+                  url: freshUrl,
+                  uploadDate: item.created_at || new Date().toISOString(),
+                  category: item.category || 'Inventory'
+                });
+              }
             });
+          } catch (err) {
+            console.error('Error signing item photo URLs:', err);
           }
-        });
+        }
       }
 
       // Fetch receipts
       const { data: receipts, error: receiptsError } = await supabase
         .from('receipts')
-        .select('id, receipt_name, receipt_url, created_at')
+        .select('id, receipt_name, receipt_url, receipt_path, created_at')
         .eq('user_id', userId);
 
-      if (!receiptsError && receipts) {
+      if (!receiptsError && receipts && receipts.length > 0) {
+        const receiptPaths = receipts.map(r => r.receipt_path).filter(Boolean) as string[];
+        const receiptSignedMap: Record<string, string> = {};
+        if (receiptPaths.length > 0) {
+          try {
+            const { data: signedUrls } = await supabase.storage
+              .from('documents')
+              .createSignedUrls(receiptPaths, 3600);
+            if (signedUrls) {
+              for (const s of signedUrls) {
+                if (s.signedUrl && s.path) receiptSignedMap[s.path] = s.signedUrl;
+              }
+            }
+          } catch (err) {
+            console.error('Error signing receipt URLs:', err);
+          }
+        }
+
         receipts.forEach(receipt => {
+          const freshUrl = (receipt.receipt_path ? receiptSignedMap[receipt.receipt_path] : null) || receipt.receipt_url;
           assets.documents.push({
             id: receipt.id,
             name: receipt.receipt_name,
-            url: receipt.receipt_url,
+            url: freshUrl,
             type: 'Receipt',
             uploadDate: receipt.created_at || new Date().toISOString()
+          });
+        });
+      }
+
+      // Fetch user_documents (standalone documents not in property_files)
+      const { data: userDocs, error: userDocsError } = await supabase
+        .from('user_documents')
+        .select('*')
+        .eq('user_id', userId);
+
+      if (!userDocsError && userDocs && userDocs.length > 0) {
+        const docPaths = userDocs.map(d => d.file_path).filter(Boolean) as string[];
+        const docSignedMap: Record<string, string> = {};
+        if (docPaths.length > 0) {
+          try {
+            const { data: signedUrls } = await supabase.storage
+              .from('documents')
+              .createSignedUrls(docPaths, 3600);
+            if (signedUrls) {
+              for (const s of signedUrls) {
+                if (s.signedUrl && s.path) docSignedMap[s.path] = s.signedUrl;
+              }
+            }
+          } catch (err) {
+            console.error('Error signing user document URLs:', err);
+          }
+        }
+
+        userDocs.forEach(doc => {
+          const freshUrl = (doc.file_path ? docSignedMap[doc.file_path] : null) || doc.file_url;
+          assets.documents.push({
+            id: doc.id,
+            name: doc.file_name || doc.document_name || 'Document',
+            url: freshUrl,
+            type: doc.document_type || doc.category || 'Document',
+            uploadDate: doc.created_at || new Date().toISOString()
           });
         });
       }
@@ -967,12 +1102,31 @@ export class ExportService {
         .select('*')
         .eq('user_id', userId);
 
-      if (!voiceNotesError && voiceNotes) {
+      if (!voiceNotesError && voiceNotes && voiceNotes.length > 0) {
+        // Sign voice note audio URLs
+        const notesWithPaths = voiceNotes.filter(n => n.audio_path);
+        const voiceSignedMap: Record<string, string> = {};
+        if (notesWithPaths.length > 0) {
+          const paths = notesWithPaths.map(n => n.audio_path!);
+          try {
+            const { data: signedUrls } = await supabase.storage
+              .from('memory-safe')
+              .createSignedUrls(paths, 3600);
+            if (signedUrls) {
+              for (const s of signedUrls) {
+                if (s.signedUrl && s.path) voiceSignedMap[s.path] = s.signedUrl;
+              }
+            }
+          } catch (err) {
+            console.error('Error signing voice note URLs:', err);
+          }
+        }
+
         assets.voiceNotes = voiceNotes.map(note => ({
           id: note.id,
           title: note.title,
           description: note.description || undefined,
-          audioUrl: note.audio_url || undefined,
+          audioUrl: (note.audio_path ? voiceSignedMap[note.audio_path] : null) || note.audio_url || undefined,
           duration: note.duration || undefined,
           createdAt: note.created_at || new Date().toISOString()
         }));
@@ -1105,14 +1259,34 @@ export class ExportService {
         .select('*')
         .eq('user_id', userId);
 
-      if (!recipesError && familyRecipes) {
+      if (!recipesError && familyRecipes && familyRecipes.length > 0) {
+        // Sign recipe file URLs
+        const recipesWithFiles = familyRecipes.filter(r => r.file_path);
+        const recipeSignedMap: Record<string, string> = {};
+        if (recipesWithFiles.length > 0) {
+          const paths = recipesWithFiles.map(r => r.file_path!);
+          const bucket = recipesWithFiles[0].bucket_name || 'documents';
+          try {
+            const { data: signedUrls } = await supabase.storage
+              .from(bucket)
+              .createSignedUrls(paths, 3600);
+            if (signedUrls) {
+              for (const s of signedUrls) {
+                if (s.signedUrl && s.path) recipeSignedMap[s.path] = s.signedUrl;
+              }
+            }
+          } catch (err) {
+            console.error('Error signing recipe file URLs:', err);
+          }
+        }
+
         assets.familyRecipes = familyRecipes.map(recipe => ({
           id: recipe.id,
           recipeName: recipe.recipe_name,
           createdByPerson: recipe.created_by_person || undefined,
           details: recipe.details || undefined,
           fileName: recipe.file_name || undefined,
-          fileUrl: recipe.file_url || undefined,
+          fileUrl: (recipe.file_path ? recipeSignedMap[recipe.file_path] : null) || recipe.file_url || undefined,
           createdAt: recipe.created_at || new Date().toISOString()
         }));
       }
