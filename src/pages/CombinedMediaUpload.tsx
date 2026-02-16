@@ -17,6 +17,7 @@ import { usePropertyFiles } from '@/hooks/usePropertyFiles';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useVerification } from '@/hooks/useVerification';
 
 interface MediaFolder {
   id: string;
@@ -42,6 +43,7 @@ const CombinedMediaUpload: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { refreshVerification } = useVerification();
   const attachmentInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -180,7 +182,7 @@ const CombinedMediaUpload: React.FC = () => {
         title: "Success",
         description: `${selectedFiles.length} file(s) uploaded successfully`
       });
-      setSelectedFiles([]);
+      refreshVerification();
       setMediaName('');
       setDescription('');
       setTags('');
