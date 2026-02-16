@@ -1,34 +1,65 @@
 
 
-## Add Security Alerts Panel to Notifications Tab
+## Audit and Enhance PDF Export
 
-### What Changes
+After reviewing the `ExportService.ts` thoroughly, here is what the PDF currently covers and what is missing.
 
-**1. Security Alerts List (Collapsible Panel)**
-- Add a new "Security Alerts" section at the top of the Notifications tab, above the existing preference toggles.
-- This section will be a collapsible panel (using the existing Radix Collapsible component) that shows recent security alerts fetched from the `user_notifications` table.
-- Each alert will display:
-  - An icon based on the alert type (shield for security, etc.)
-  - The alert title (e.g., "Password Changed", "New Login Detected")
-  - The alert message with details about what happened
-  - A timestamp showing when the alert occurred
-- When there are no alerts, a friendly empty state message will be shown.
-- The collapsible follows the dashboard's existing pattern: a clickable bar with a chevron that rotates when collapsed/expanded. It will default to **open** if there are unread alerts, and **closed** if all are read.
+### Currently Exported (PDF + ZIP)
 
-**2. Badge on Alerts Tab Clears on Click**
-- Already implemented -- clicking the Alerts tab calls `markAllRead()`, which clears the unread badge. No additional changes needed here.
+| Section | Data Source | Status |
+|---------|-----------|--------|
+| Properties | `properties` table | Covered |
+| Photos | `property_files` (photos bucket) | Covered |
+| Videos | `property_files` (videos bucket) | Covered |
+| Documents | `property_files` (documents bucket) + `legacy_locker_files` + `receipts` | Covered |
+| Floor Plans | `property_files` (floor-plans bucket) | Covered |
+| Inventory Items | `items` table | Covered |
+| Voice Notes | `legacy_locker_voice_notes` | Covered |
+| Paint Codes | `paint_codes` table | Covered |
+| Source Websites | `source_websites` table | Covered |
+| VIP Contacts | `vip_contacts` + `vip_contact_attachments` | Covered |
+| Damage Reports | `damage_reports` table | Covered |
 
-### Technical Details
+### What is Missing
 
-**File: `src/components/NotificationsTab.tsx`**
-- Import `Collapsible`, `CollapsibleTrigger`, `CollapsibleContent` from `@/components/ui/collapsible`.
-- Import `ChevronDown`, `ShieldAlert`, `AlertTriangle`, `Clock` icons from `lucide-react`.
-- Add a `useEffect` to fetch notifications from `user_notifications` table for the current user, ordered by `created_at DESC`, limited to recent alerts (e.g., last 20).
-- Render a collapsible "Security Alerts" card above the "Notification Preferences" card:
-  - Trigger bar: "Security Alerts" title with a count badge and rotating chevron.
-  - Content: A scrollable list of alert items showing title, message, and relative timestamp (using `date-fns` `formatDistanceToNow`).
-  - Each alert item styled with a left border color based on type (red for security, amber for billing, blue for info).
-- No database changes needed -- the `user_notifications` table already has all required columns.
+| Gap | Description |
+|-----|-------------|
+| Account Verification Status | The PDF header shows name and account number but does NOT show whether the user is "User", "Verified", or "Verified+" |
+| Emergency Contact Flag | VIP Contacts were recently updated with `is_emergency_contact` -- the export does not reflect this designation |
+| Insurance Policies | The `insurance_policies` table has full policy data (company, policy number, coverage, agent info) but is not included in the export |
+| Family Recipes | The `family_recipes` table exists but recipes are not exported |
+| Contributors List | The `contributors` table tracks who the user has invited -- not included in the export |
 
-**No other files need changes** -- this is entirely contained within the `NotificationsTab` component.
+### Planned Changes
+
+All changes are in a single file: **`src/services/ExportService.ts`**
+
+**1. Add Account Verification Status to PDF Header**
+- In `exportCompleteAssetSummary`, fetch from `account_verification` table alongside the profile.
+- Pass verification data to `generateAssetSummaryPDF`.
+- Display "Account Status: Verified+" / "Verified" / "User" right after the name/account number in the header section.
+
+**2. Add Emergency Contact Badge to VIP Contacts**
+- Update the `vipContacts` mapping in `getUserAssets` to include the `is_emergency_contact` field.
+- Update the `AssetSummary` interface to add `isEmergencyContact` to VIP contact type.
+- In the PDF rendering, show "[EMERGENCY CONTACT]" label next to contacts that have this flag set.
+
+**3. Add Insurance Policies Section**
+- Add `insurancePolicies` to the `AssetSummary` interface.
+- Fetch from `insurance_policies` table in `getUserAssets`.
+- Render a new "Insurance Policies" section in the PDF showing company, policy number, type, coverage amount, deductible, premium, agent info, and status.
+- Add to summary statistics count.
+
+**4. Add Family Recipes Section**
+- Add `familyRecipes` to the `AssetSummary` interface.
+- Fetch from `family_recipes` table in `getUserAssets`.
+- Render a "Family Recipes" section in the PDF showing recipe name, creator, and details.
+- Include recipe file attachments in the ZIP download.
+- Add to summary statistics count.
+
+**5. Add Contributors Section**
+- Add `contributors` to the `AssetSummary` interface.
+- Fetch from `contributors` table in `getUserAssets` (only accepted contributors).
+- Render a "Contributors" section listing name, email, role, and accepted date.
+- Add to summary statistics count.
 
