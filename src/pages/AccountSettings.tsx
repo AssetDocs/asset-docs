@@ -22,6 +22,7 @@ import { ArrowLeft, User, CreditCard, Package, Bell, Copy, Check, Shield, Lock, 
 import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useUnreadNotifications } from '@/hooks/useUnreadNotifications';
 
 // Restricted profile tab - only allows name, email, password changes
 const RestrictedProfileTab: React.FC<{ roleLabel: string }> = ({ roleLabel }) => {
@@ -49,6 +50,7 @@ const AccountSettings: React.FC = () => {
   const { toast } = useToast();
   const location = useLocation();
   const { isViewer, isContributor, isContributorRole, contributorRole, ownerName, canAccessSettings } = useContributor();
+  const { unreadCount, markAllRead } = useUnreadNotifications();
   
   // Restricted tabs for viewers and contributors (only administrators can access these)
   const restrictedTabs = ['billing', 'subscription', 'security', 'notifications', 'privacy'];
@@ -185,8 +187,15 @@ const AccountSettings: React.FC = () => {
                     <Lock className="h-4 w-4" />
                     <span className="hidden sm:inline">Security</span>
                   </TabsTrigger>
-                  <TabsTrigger value="notifications" className="flex items-center gap-2">
-                    <Bell className="h-4 w-4" />
+                  <TabsTrigger value="notifications" className="flex items-center gap-2" onClick={() => markAllRead()}>
+                    <div className="relative">
+                      <Bell className="h-4 w-4" />
+                      {unreadCount > 0 && (
+                        <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[14px] h-[14px] px-0.5 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold leading-none">
+                          {unreadCount > 99 ? '99+' : unreadCount}
+                        </span>
+                      )}
+                    </div>
                     <span className="hidden sm:inline">Alerts</span>
                   </TabsTrigger>
                   <TabsTrigger value="privacy" className="flex items-center gap-2">

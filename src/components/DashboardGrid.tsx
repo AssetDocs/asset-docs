@@ -41,7 +41,7 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
   const [isAssetValuesOpen, setIsAssetValuesOpen] = useState(() => {
     return localStorage.getItem('assetValuesDropdownOpen') === 'true';
   });
-  const unreadCount = useUnreadNotifications();
+  const { unreadCount } = useUnreadNotifications();
 
   const handleToggleAssetValues = () => {
     const newState = !isAssetValuesOpen;
