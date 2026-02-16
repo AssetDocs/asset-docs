@@ -11,7 +11,6 @@ const LIFETIME_CODES = ["ASL2025"];
 
 interface ValidateCodeRequest {
   code: string;
-  user_id: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -21,29 +20,45 @@ const handler = async (req: Request): Promise<Response> => {
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-  
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
 
   try {
-    const { code, user_id }: ValidateCodeRequest = await req.json();
+    // Authenticate the caller
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ success: false, error: 'Authentication required' }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
 
-    console.log('Validating lifetime code:', code, 'for user:', user_id);
+    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await authClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims?.sub) {
+      return new Response(JSON.stringify({ success: false, error: 'Invalid or expired token' }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    const user_id = claimsData.claims.sub as string;
+
+    // Use service role client for privileged operations
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const { code }: ValidateCodeRequest = await req.json();
+
+    console.log('Validating lifetime code:', code, 'for authenticated user:', user_id);
 
     // Validate code
     if (!code || !LIFETIME_CODES.includes(code.toUpperCase().trim())) {
       return new Response(JSON.stringify({ 
         success: false, 
         error: 'Invalid gift code' 
-      }), {
-        status: 400,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
-    }
-
-    if (!user_id) {
-      return new Response(JSON.stringify({ 
-        success: false, 
-        error: 'User ID required' 
       }), {
         status: 400,
         headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -74,7 +89,7 @@ const handler = async (req: Request): Promise<Response> => {
         email: userEmail,
         subscribed: true,
         subscription_tier: 'premium',
-        subscription_end: '2099-12-31T23:59:59Z', // Effectively lifetime
+        subscription_end: '2099-12-31T23:59:59Z',
         trial_end: null,
         updated_at: new Date().toISOString()
       }, {
@@ -107,7 +122,6 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (profileError) {
       console.error('Error updating profile:', profileError);
-      // Don't fail - subscriber is already updated
     }
 
     // Send welcome email
@@ -128,7 +142,6 @@ const handler = async (req: Request): Promise<Response> => {
       });
     } catch (emailError) {
       console.error('Error sending welcome email:', emailError);
-      // Don't fail the whole operation for email
     }
 
     console.log('Successfully activated lifetime subscription for user:', user_id);
@@ -148,7 +161,7 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error.message 
+        error: 'An unexpected error occurred' 
       }),
       {
         status: 500,
