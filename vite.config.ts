@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => ({
     mode === 'development' && componentTagger(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.jpg', 'lovable-uploads/**/*'],
+      includeAssets: ['favicon.png', 'lovable-uploads/**/*'],
       manifest: {
         name: 'Asset Safe - Digital Home Inventory',
         short_name: 'Asset Safe',
@@ -28,15 +28,15 @@ export default defineConfig(({ mode }) => ({
         scope: '/',
         icons: [
           {
-            src: '/favicon.jpg',
+            src: '/favicon.png',
             sizes: '192x192',
-            type: 'image/jpeg',
+            type: 'image/png',
             purpose: 'any maskable'
           },
           {
-            src: '/favicon.jpg',
+            src: '/favicon.png',
             sizes: '512x512',
-            type: 'image/jpeg',
+            type: 'image/png',
             purpose: 'any maskable'
           }
         ]
