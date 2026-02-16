@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Shield, ChevronDown } from 'lucide-react';
+import { Shield, ChevronDown, Check } from 'lucide-react';
 import TOTPSettings from './TOTPSettings';
 import BackupCodesSettings from './BackupCodesSettings';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
+import { useTOTP } from '@/hooks/useTOTP';
 
 interface MFADropdownProps {
   collapsible?: boolean;
@@ -10,6 +11,7 @@ interface MFADropdownProps {
 
 const MFADropdown: React.FC<MFADropdownProps> = ({ collapsible = true }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const { isEnrolled } = useTOTP();
 
   const header = (
     <div className="flex items-center gap-3">
@@ -22,6 +24,12 @@ const MFADropdown: React.FC<MFADropdownProps> = ({ collapsible = true }) => {
           <p className="text-[11px] text-muted-foreground">Secure your account with an authenticator app or backup codes</p>
         )}
       </div>
+      {collapsible && isEnrolled && (
+        <span className="flex items-center gap-1 text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+          <Check className="h-3 w-3" />
+          Enabled
+        </span>
+      )}
     </div>
   );
 

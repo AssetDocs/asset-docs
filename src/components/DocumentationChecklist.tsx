@@ -48,7 +48,14 @@ interface DocumentationChecklistProps {
 }
 
 const DocumentationChecklist: React.FC<DocumentationChecklistProps> = ({ embedded = false }) => {
-  const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
+  const [checkedItems, setCheckedItems] = useState<Set<string>>(() => {
+    try {
+      const saved = localStorage.getItem('documentationChecklistItems');
+      return saved ? new Set(JSON.parse(saved)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
   const [isOpen, setIsOpen] = useState(false);
   const [viewModes, setViewModes] = useState<Record<string, 'room' | 'category'>>({
     homeowners: 'room',
@@ -495,6 +502,7 @@ const DocumentationChecklist: React.FC<DocumentationChecklistProps> = ({ embedde
       }
     }
     setCheckedItems(newCheckedItems);
+    localStorage.setItem('documentationChecklistItems', JSON.stringify([...newCheckedItems]));
   };
 
   // Calculate progress for a specific checklist
