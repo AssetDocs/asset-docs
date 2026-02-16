@@ -1,33 +1,34 @@
 
 
-# Fix: "Complete Your Profile" Milestone Bug
+## Add Security Alerts Panel to Notifications Tab
 
-## Root Cause
+### What Changes
 
-The `compute_user_verification` SQL function has a column name bug on this line:
+**1. Security Alerts List (Collapsible Panel)**
+- Add a new "Security Alerts" section at the top of the Notifications tab, above the existing preference toggles.
+- This section will be a collapsible panel (using the existing Radix Collapsible component) that shows recent security alerts fetched from the `user_notifications` table.
+- Each alert will display:
+  - An icon based on the alert type (shield for security, etc.)
+  - The alert title (e.g., "Password Changed", "New Login Detected")
+  - The alert message with details about what happened
+  - A timestamp showing when the alert occurred
+- When there are no alerts, a friendly empty state message will be shown.
+- The collapsible follows the dashboard's existing pattern: a clickable bar with a chevron that rotates when collapsed/expanded. It will default to **open** if there are unread alerts, and **closed** if all are read.
 
-```sql
-SELECT EXISTS(
-  SELECT 1 FROM profiles
-  WHERE id = target_user_id   -- BUG: should be user_id
-    AND first_name IS NOT NULL AND first_name != ''
-    AND last_name IS NOT NULL AND last_name != ''
-) INTO v_profile_complete;
-```
+**2. Badge on Alerts Tab Clears on Click**
+- Already implemented -- clicking the Alerts tab calls `markAllRead()`, which clears the unread badge. No additional changes needed here.
 
-The `profiles` table has two UUID columns:
-- `id` -- the row's own primary key (e.g., `79e8bfe3-...`)
-- `user_id` -- the auth user's UUID (e.g., `5950acba-...`)
+### Technical Details
 
-The function passes `target_user_id` (the auth UUID) but compares it against `id` instead of `user_id`. Since these never match, **every user's profile_complete is always false**.
+**File: `src/components/NotificationsTab.tsx`**
+- Import `Collapsible`, `CollapsibleTrigger`, `CollapsibleContent` from `@/components/ui/collapsible`.
+- Import `ChevronDown`, `ShieldAlert`, `AlertTriangle`, `Clock` icons from `lucide-react`.
+- Add a `useEffect` to fetch notifications from `user_notifications` table for the current user, ordered by `created_at DESC`, limited to recent alerts (e.g., last 20).
+- Render a collapsible "Security Alerts" card above the "Notification Preferences" card:
+  - Trigger bar: "Security Alerts" title with a count badge and rotating chevron.
+  - Content: A scrollable list of alert items showing title, message, and relative timestamp (using `date-fns` `formatDistanceToNow`).
+  - Each alert item styled with a left border color based on type (red for security, amber for billing, blue for info).
+- No database changes needed -- the `user_notifications` table already has all required columns.
 
-## Fix
-
-A single database migration that replaces `WHERE id = target_user_id` with `WHERE user_id = target_user_id` in the `compute_user_verification` function.
-
-No frontend or edge function changes needed -- once the SQL function returns the correct value, everything downstream already works.
-
-## Verification
-
-After applying the fix, re-running `check-verification` for user AS010125 (Michael Lewis) should flip `profile_complete` to `true` and increase his `milestone_count` from 5 to 6.
+**No other files need changes** -- this is entirely contained within the `NotificationsTab` component.
 
