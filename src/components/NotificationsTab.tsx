@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
-import { Save, Loader2, ExternalLink, ChevronDown, ShieldAlert, AlertTriangle, Clock, Info } from 'lucide-react';
+import { Save, Loader2, ExternalLink, ChevronDown, ShieldAlert, AlertTriangle, Clock, Info, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -55,6 +56,8 @@ const NotificationsTab: React.FC = () => {
   const [hasChanges, setHasChanges] = useState(false);
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const [alertsOpen, setAlertsOpen] = useState(false);
+  const [selectedAlerts, setSelectedAlerts] = useState<Set<string>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
   const [preferences, setPreferences] = useState<NotificationPreferences>({
     email_notifications: true,
     security_alerts: true,
@@ -213,6 +216,46 @@ const NotificationsTab: React.FC = () => {
     }
   };
 
+  const toggleAlertSelection = (id: string) => {
+    setSelectedAlerts(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedAlerts.size === alerts.length) {
+      setSelectedAlerts(new Set());
+    } else {
+      setSelectedAlerts(new Set(alerts.map(a => a.id)));
+    }
+  };
+
+  const deleteAlerts = async (ids: string[]) => {
+    if (!user?.id || ids.length === 0) return;
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase
+        .from('user_notifications')
+        .delete()
+        .in('id', ids)
+        .eq('user_id', user.id);
+      if (error) throw error;
+      setAlerts(prev => prev.filter(a => !ids.includes(a.id)));
+      setSelectedAlerts(prev => {
+        const next = new Set(prev);
+        ids.forEach(id => next.delete(id));
+        return next;
+      });
+      toast({ title: "Deleted", description: `${ids.length} alert(s) removed.` });
+    } catch {
+      toast({ title: "Error", description: "Failed to delete alerts.", variant: "destructive" });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <Card>
@@ -253,26 +296,63 @@ const NotificationsTab: React.FC = () => {
                   <p className="text-sm text-muted-foreground">No security alerts — you're all clear!</p>
                 </div>
               ) : (
-                <div className="space-y-2 max-h-80 overflow-y-auto">
-                  {alerts.map((alert) => (
-                    <div
-                      key={alert.id}
-                      className={`flex items-start gap-3 p-3 rounded-lg border border-l-4 ${alertBorderColor(alert.type)} bg-card`}
-                    >
-                      <AlertIcon type={alert.type} />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm">{alert.title}</p>
-                        <p className="text-sm text-muted-foreground mt-0.5">{alert.message}</p>
-                        <div className="flex items-center gap-1 mt-1.5">
-                          <Clock className="h-3 w-3 text-muted-foreground/70" />
-                          <span className="text-xs text-muted-foreground/70">
-                            {formatDistanceToNow(new Date(alert.created_at), { addSuffix: true })}
-                          </span>
+                <>
+                  {/* Bulk actions bar */}
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="flex items-center gap-2 cursor-pointer text-sm text-muted-foreground">
+                      <Checkbox
+                        checked={selectedAlerts.size === alerts.length && alerts.length > 0}
+                        onCheckedChange={toggleSelectAll}
+                      />
+                      Select all
+                    </label>
+                    {selectedAlerts.size > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => deleteAlerts(Array.from(selectedAlerts))}
+                        disabled={isDeleting}
+                      >
+                        {isDeleting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Trash2 className="h-4 w-4 mr-1" />}
+                        Delete ({selectedAlerts.size})
+                      </Button>
+                    )}
+                  </div>
+                  <div className="space-y-2 max-h-80 overflow-y-auto">
+                    {alerts.map((alert) => (
+                      <div
+                        key={alert.id}
+                        className={`flex items-start gap-3 p-3 rounded-lg border border-l-4 ${alertBorderColor(alert.type)} bg-card`}
+                      >
+                        <Checkbox
+                          checked={selectedAlerts.has(alert.id)}
+                          onCheckedChange={() => toggleAlertSelection(alert.id)}
+                          className="mt-0.5 shrink-0"
+                        />
+                        <AlertIcon type={alert.type} />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm">{alert.title}</p>
+                          <p className="text-sm text-muted-foreground mt-0.5">{alert.message}</p>
+                          <div className="flex items-center gap-1 mt-1.5">
+                            <Clock className="h-3 w-3 text-muted-foreground/70" />
+                            <span className="text-xs text-muted-foreground/70">
+                              {formatDistanceToNow(new Date(alert.created_at), { addSuffix: true })}
+                            </span>
+                          </div>
                         </div>
+                        <button
+                          onClick={() => deleteAlerts([alert.id])}
+                          className="shrink-0 p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                          title="Delete alert"
+                          disabled={isDeleting}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                </>
               )}
             </CardContent>
           </CollapsibleContent>
