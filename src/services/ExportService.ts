@@ -89,6 +89,7 @@ export interface AssetSummary {
     zipCode?: string;
     notes?: string;
     priority: number;
+    isEmergencyContact?: boolean;
     attachments: Array<{
       fileName: string;
       fileType: string;
@@ -112,13 +113,46 @@ export interface AssetSummary {
     additionalObservations?: string;
     createdAt: string;
   }>;
+  insurancePolicies: Array<{
+    id: string;
+    policyType: string;
+    insuranceCompany: string;
+    policyNumber: string;
+    agentName?: string;
+    agentPhone?: string;
+    agentEmail?: string;
+    policyStartDate?: string;
+    policyEndDate?: string;
+    premiumAmount?: number;
+    deductible?: number;
+    coverageAmount?: number;
+    coverageDetails?: string;
+    status: string;
+  }>;
+  familyRecipes: Array<{
+    id: string;
+    recipeName: string;
+    createdByPerson?: string;
+    details?: string;
+    fileName?: string;
+    fileUrl?: string;
+    createdAt: string;
+  }>;
+  contributors: Array<{
+    id: string;
+    firstName?: string;
+    lastName?: string;
+    email: string;
+    role: string;
+    acceptedAt?: string;
+  }>;
 }
 
 export class ExportService {
   /**
    * Generate a comprehensive PDF summary of all assets
    */
-  static async generateAssetSummaryPDF(assets: AssetSummary, userProfile?: any): Promise<void> {
+  static async generateAssetSummaryPDF(assets: AssetSummary, userProfile?: any, verificationData?: any): Promise<void> {
     const pdf = new jsPDF();
     let yPosition = 20;
     const pageHeight = pdf.internal.pageSize.height;
@@ -145,6 +179,18 @@ export class ExportService {
       pdf.text(`Account: ${userProfile.account_number || 'N/A'}`, 20, yPosition);
       yPosition += lineHeight;
       pdf.text(`Name: ${userProfile.first_name || ''} ${userProfile.last_name || ''}`, 20, yPosition);
+      yPosition += lineHeight;
+
+      // Account verification status
+      let accountStatus = 'User';
+      if (verificationData?.is_verified_plus) {
+        accountStatus = 'Verified+';
+      } else if (verificationData?.is_verified) {
+        accountStatus = 'Verified';
+      }
+      pdf.setFont(undefined, 'bold');
+      pdf.text(`Account Status: ${accountStatus}`, 20, yPosition);
+      pdf.setFont(undefined, 'normal');
       yPosition += lineHeight;
     }
 
@@ -181,6 +227,12 @@ export class ExportService {
     pdf.text(`VIP Contacts: ${assets.vipContacts.length}`, 30, yPosition);
     yPosition += lineHeight;
     pdf.text(`Damage Reports: ${assets.damageReports.length}`, 30, yPosition);
+    yPosition += lineHeight;
+    pdf.text(`Insurance Policies: ${assets.insurancePolicies.length}`, 30, yPosition);
+    yPosition += lineHeight;
+    pdf.text(`Family Recipes: ${assets.familyRecipes.length}`, 30, yPosition);
+    yPosition += lineHeight;
+    pdf.text(`Contributors: ${assets.contributors.length}`, 30, yPosition);
     yPosition += 20;
 
     // Properties section
@@ -316,7 +368,6 @@ export class ExportService {
         yPosition += lineHeight;
         pdf.setFont(undefined, 'normal');
         if (note.description) {
-          // Wrap long descriptions
           const maxWidth = 150;
           const lines = pdf.splitTextToSize(`   ${note.description}`, maxWidth);
           lines.forEach((line: string) => {
@@ -407,7 +458,8 @@ export class ExportService {
         pdf.setFontSize(10);
         pdf.setFont(undefined, 'bold');
         const priorityStars = '★'.repeat(contact.priority) + '☆'.repeat(5 - contact.priority);
-        pdf.text(`${index + 1}. ${contact.name} ${priorityStars}`, 30, yPosition);
+        const emergencyLabel = contact.isEmergencyContact ? ' [EMERGENCY CONTACT]' : '';
+        pdf.text(`${index + 1}. ${contact.name} ${priorityStars}${emergencyLabel}`, 30, yPosition);
         yPosition += lineHeight;
         pdf.setFont(undefined, 'normal');
         
@@ -515,6 +567,129 @@ export class ExportService {
       });
     }
 
+    // Insurance Policies section
+    if (assets.insurancePolicies.length > 0) {
+      checkPageSpace(30);
+      pdf.setFontSize(16);
+      pdf.setFont(undefined, 'bold');
+      pdf.text('Insurance Policies', 20, yPosition);
+      yPosition += 10;
+
+      assets.insurancePolicies.forEach((policy, index) => {
+        checkPageSpace(50);
+        pdf.setFontSize(10);
+        pdf.setFont(undefined, 'bold');
+        pdf.text(`${index + 1}. ${policy.insuranceCompany} - ${policy.policyType}`, 30, yPosition);
+        yPosition += lineHeight;
+        pdf.setFont(undefined, 'normal');
+        pdf.text(`   Policy #: ${policy.policyNumber} | Status: ${policy.status}`, 30, yPosition);
+        yPosition += lineHeight;
+        if (policy.coverageAmount) {
+          pdf.text(`   Coverage: $${policy.coverageAmount.toLocaleString()}`, 30, yPosition);
+          yPosition += lineHeight;
+        }
+        if (policy.deductible) {
+          pdf.text(`   Deductible: $${policy.deductible.toLocaleString()}`, 30, yPosition);
+          yPosition += lineHeight;
+        }
+        if (policy.premiumAmount) {
+          pdf.text(`   Premium: $${policy.premiumAmount.toLocaleString()}`, 30, yPosition);
+          yPosition += lineHeight;
+        }
+        if (policy.policyStartDate || policy.policyEndDate) {
+          const dates = [
+            policy.policyStartDate && `Start: ${new Date(policy.policyStartDate).toLocaleDateString()}`,
+            policy.policyEndDate && `End: ${new Date(policy.policyEndDate).toLocaleDateString()}`
+          ].filter(Boolean).join(' | ');
+          pdf.text(`   ${dates}`, 30, yPosition);
+          yPosition += lineHeight;
+        }
+        if (policy.agentName) {
+          const agentInfo = [
+            policy.agentName,
+            policy.agentPhone,
+            policy.agentEmail
+          ].filter(Boolean).join(' | ');
+          pdf.text(`   Agent: ${agentInfo}`, 30, yPosition);
+          yPosition += lineHeight;
+        }
+        if (policy.coverageDetails) {
+          const maxWidth = 150;
+          const lines = pdf.splitTextToSize(`   Details: ${policy.coverageDetails}`, maxWidth);
+          lines.forEach((line: string) => {
+            checkPageSpace(lineHeight);
+            pdf.text(line, 30, yPosition);
+            yPosition += lineHeight;
+          });
+        }
+        yPosition += 3;
+      });
+      yPosition += 10;
+    }
+
+    // Family Recipes section
+    if (assets.familyRecipes.length > 0) {
+      checkPageSpace(30);
+      pdf.setFontSize(16);
+      pdf.setFont(undefined, 'bold');
+      pdf.text('Family Recipes', 20, yPosition);
+      yPosition += 10;
+
+      assets.familyRecipes.forEach((recipe, index) => {
+        checkPageSpace(25);
+        pdf.setFontSize(10);
+        pdf.setFont(undefined, 'bold');
+        pdf.text(`${index + 1}. ${recipe.recipeName}`, 30, yPosition);
+        yPosition += lineHeight;
+        pdf.setFont(undefined, 'normal');
+        if (recipe.createdByPerson) {
+          pdf.text(`   Created by: ${recipe.createdByPerson}`, 30, yPosition);
+          yPosition += lineHeight;
+        }
+        if (recipe.details) {
+          const maxWidth = 150;
+          const lines = pdf.splitTextToSize(`   ${recipe.details}`, maxWidth);
+          lines.forEach((line: string) => {
+            checkPageSpace(lineHeight);
+            pdf.text(line, 30, yPosition);
+            yPosition += lineHeight;
+          });
+        }
+        if (recipe.fileName) {
+          pdf.text(`   Attachment: ${recipe.fileName}`, 30, yPosition);
+          yPosition += lineHeight;
+        }
+        pdf.text(`   Added: ${new Date(recipe.createdAt).toLocaleDateString()}`, 30, yPosition);
+        yPosition += lineHeight + 3;
+      });
+      yPosition += 10;
+    }
+
+    // Contributors section
+    if (assets.contributors.length > 0) {
+      checkPageSpace(30);
+      pdf.setFontSize(16);
+      pdf.setFont(undefined, 'bold');
+      pdf.text('Contributors', 20, yPosition);
+      yPosition += 10;
+
+      assets.contributors.forEach((contributor, index) => {
+        checkPageSpace(20);
+        pdf.setFontSize(10);
+        pdf.setFont(undefined, 'normal');
+        const name = [contributor.firstName, contributor.lastName].filter(Boolean).join(' ') || contributor.email;
+        pdf.text(`${index + 1}. ${name}`, 30, yPosition);
+        yPosition += lineHeight;
+        pdf.text(`   Email: ${contributor.email} | Role: ${contributor.role}`, 30, yPosition);
+        yPosition += lineHeight;
+        if (contributor.acceptedAt) {
+          pdf.text(`   Accepted: ${new Date(contributor.acceptedAt).toLocaleDateString()}`, 30, yPosition);
+          yPosition += lineHeight;
+        }
+        yPosition += 2;
+      });
+    }
+
     // Save the PDF
     const fileName = `asset-safe-summary-${new Date().toISOString().split('T')[0]}.pdf`;
     pdf.save(fileName);
@@ -526,7 +701,8 @@ export class ExportService {
   static async downloadAssetsZip(assets: AssetSummary): Promise<void> {
     const zip = new JSZip();
     let downloadedCount = 0;
-    const totalFiles = assets.photos.length + assets.videos.length + assets.documents.length + assets.floorPlans.length + assets.voiceNotes.filter(n => n.audioUrl).length;
+    const recipeFiles = assets.familyRecipes.filter(r => r.fileUrl);
+    const totalFiles = assets.photos.length + assets.videos.length + assets.documents.length + assets.floorPlans.length + assets.voiceNotes.filter(n => n.audioUrl).length + recipeFiles.length;
 
     if (totalFiles === 0) {
       toast({
@@ -558,6 +734,7 @@ export class ExportService {
     const documentsFolder = zip.folder('documents');
     const floorPlansFolder = zip.folder('floor-plans');
     const voiceNotesFolder = zip.folder('voice-notes');
+    const recipesFolder = zip.folder('family-recipes');
 
     const downloadPromises: Promise<void>[] = [];
 
@@ -594,6 +771,14 @@ export class ExportService {
       if (voiceNotesFolder && note.audioUrl) {
         const fileName = `${note.title.replace(/[^a-zA-Z0-9]/g, '_')}.mp3`;
         downloadPromises.push(downloadFile(note.audioUrl, voiceNotesFolder, fileName));
+      }
+    });
+
+    // Download family recipe attachments
+    recipeFiles.forEach((recipe) => {
+      if (recipesFolder && recipe.fileUrl) {
+        const fileName = recipe.fileName || `${recipe.recipeName.replace(/[^a-zA-Z0-9]/g, '_')}`;
+        downloadPromises.push(downloadFile(recipe.fileUrl, recipesFolder, fileName));
       }
     });
 
@@ -635,7 +820,10 @@ export class ExportService {
       sourceWebsites: [],
       items: [],
       vipContacts: [],
-      damageReports: []
+      damageReports: [],
+      insurancePolicies: [],
+      familyRecipes: [],
+      contributors: []
     };
 
     try {
@@ -849,6 +1037,7 @@ export class ExportService {
           zipCode: contact.zip_code || undefined,
           notes: contact.notes || undefined,
           priority: contact.priority,
+          isEmergencyContact: (contact as any).is_emergency_contact || false,
           attachments: (allAttachments || [])
             .filter(att => att.contact_id === contact.id)
             .map(att => ({
@@ -885,6 +1074,67 @@ export class ExportService {
         }));
       }
 
+      // Fetch insurance policies
+      const { data: insurancePolicies, error: insuranceError } = await supabase
+        .from('insurance_policies')
+        .select('*')
+        .eq('user_id', userId);
+
+      if (!insuranceError && insurancePolicies) {
+        assets.insurancePolicies = insurancePolicies.map(policy => ({
+          id: policy.id,
+          policyType: policy.policy_type,
+          insuranceCompany: policy.insurance_company,
+          policyNumber: policy.policy_number,
+          agentName: policy.agent_name || undefined,
+          agentPhone: policy.agent_phone || undefined,
+          agentEmail: policy.agent_email || undefined,
+          policyStartDate: policy.policy_start_date || undefined,
+          policyEndDate: policy.policy_end_date || undefined,
+          premiumAmount: policy.premium_amount || undefined,
+          deductible: policy.deductible || undefined,
+          coverageAmount: policy.coverage_amount || undefined,
+          coverageDetails: policy.coverage_details || undefined,
+          status: policy.status
+        }));
+      }
+
+      // Fetch family recipes
+      const { data: familyRecipes, error: recipesError } = await supabase
+        .from('family_recipes')
+        .select('*')
+        .eq('user_id', userId);
+
+      if (!recipesError && familyRecipes) {
+        assets.familyRecipes = familyRecipes.map(recipe => ({
+          id: recipe.id,
+          recipeName: recipe.recipe_name,
+          createdByPerson: recipe.created_by_person || undefined,
+          details: recipe.details || undefined,
+          fileName: recipe.file_name || undefined,
+          fileUrl: recipe.file_url || undefined,
+          createdAt: recipe.created_at || new Date().toISOString()
+        }));
+      }
+
+      // Fetch contributors (accepted only)
+      const { data: contributors, error: contributorsError } = await supabase
+        .from('contributors')
+        .select('*')
+        .eq('account_owner_id', userId)
+        .eq('status', 'accepted');
+
+      if (!contributorsError && contributors) {
+        assets.contributors = contributors.map(c => ({
+          id: c.id,
+          firstName: c.first_name || undefined,
+          lastName: c.last_name || undefined,
+          email: c.contributor_email,
+          role: c.role,
+          acceptedAt: c.accepted_at || undefined
+        }));
+      }
+
     } catch (error) {
       console.error('Error fetching user assets:', error);
     }
@@ -902,18 +1152,20 @@ export class ExportService {
         description: "Gathering your assets for export...",
       });
 
-      // Get user profile
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
+      // Get user profile and verification status in parallel
+      const [profileResult, verificationResult] = await Promise.all([
+        supabase.from('profiles').select('*').eq('user_id', userId).single(),
+        supabase.from('account_verification').select('is_verified, is_verified_plus').eq('user_id', userId).maybeSingle()
+      ]);
+
+      const profile = profileResult.data;
+      const verificationData = verificationResult.data;
 
       // Get user assets
       const assets = await this.getUserAssets(userId);
 
       // Generate PDF summary
-      await this.generateAssetSummaryPDF(assets, profile);
+      await this.generateAssetSummaryPDF(assets, profile, verificationData);
       
       // Create and download assets zip
       await this.downloadAssetsZip(assets);
