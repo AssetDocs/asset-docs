@@ -35,7 +35,7 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
   const allTasks = [
     { label: 'Complete Your Profile', completed: criteria?.profile_complete ?? !!(profile?.first_name), phase: 1 },
     { label: 'Create Your First Property', completed: criteria?.has_property ?? false, phase: 1 },
-    { label: 'Upload Your First Photos or Documents', completed: criteria?.upload_count_met ?? false, phase: 1 },
+    { label: 'Upload Your First Photos or Videos', completed: criteria?.upload_count_met ?? false, phase: 1 },
     { label: 'Add an Authorized User', completed: criteria?.has_contributors ?? false, phase: 2 },
     { label: 'Enable Multi-Factor Authentication', completed: criteria?.has_2fa ?? false, phase: 2 },
     { label: 'Upload Important Documents & Records', completed: criteria?.has_documents ?? false, phase: 2 },
