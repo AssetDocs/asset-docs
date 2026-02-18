@@ -77,7 +77,8 @@ const CombinedMediaUpload: React.FC = () => {
     if (!user) return;
     
     try {
-      const tableName = activeTab === 'photos' ? 'photo_folders' : 'video_folders';
+      // Photo folders are shared for both photo and video organization
+      const tableName = 'photo_folders';
       const { data, error } = await supabase
         .from(tableName)
         .select('*')
@@ -269,18 +270,10 @@ const CombinedMediaUpload: React.FC = () => {
       
       <div className="flex-grow py-8 px-4 bg-gray-50">
         <div className="max-w-3xl mx-auto">
-          <DashboardBreadcrumb />
+          <DashboardBreadcrumb parentRoute="/account?tab=asset-documentation" parentLabel="Back to Asset Documentation" hidePageName />
           
           {/* Header */}
           <div className="mb-6">
-            <Button
-              variant="ghost"
-              onClick={handleBack}
-              className="mb-4"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Media
-            </Button>
             <h1 className="text-2xl sm:text-3xl font-bold text-brand-orange mb-2">
               Upload Photos/Videos
             </h1>
