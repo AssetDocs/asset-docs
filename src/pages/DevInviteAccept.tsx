@@ -36,36 +36,23 @@ const DevInviteAccept: React.FC = () => {
       }
 
       try {
-        // Verify the token is valid
-        const { data, error } = await supabase
-          .from('dev_team_invitations')
-          .select('*')
-          .eq('invitation_token', token)
-          .is('accepted_at', null)
-          .single();
+        // Verify the token via edge function (no direct table access)
+        const { data, error } = await supabase.functions.invoke('verify-dev-invite', {
+          body: { token }
+        });
 
-        if (error || !data) {
-          setErrorMessage('This invitation is invalid or has already been used');
+        if (error || !data?.valid) {
+          setErrorMessage(data?.error || 'This invitation is invalid or has already been used');
           setStep('error');
           return;
         }
 
-        // Check if expired
-        if (new Date(data.token_expires_at) < new Date()) {
-          setErrorMessage('This invitation has expired. Please request a new invitation.');
-          setStep('error');
-          return;
-        }
-
-        setInvitation(data);
+        const inviteData = { email: data.email, role: data.role, token };
+        setInvitation(inviteData);
         setEmail(data.email);
 
-        // If user is already logged in and matches the invitation email
-        if (user && user.email?.toLowerCase() === data.email.toLowerCase()) {
-          await acceptInvitation(data);
-        } else {
-          setStep('login');
-        }
+        // Always show the login/activate step
+        setStep('login');
       } catch (error) {
         console.error('Error verifying invitation:', error);
         setErrorMessage('An error occurred while verifying the invitation');
@@ -76,45 +63,6 @@ const DevInviteAccept: React.FC = () => {
     verifyToken();
   }, [token, user]);
 
-  const acceptInvitation = async (inviteData: any) => {
-    try {
-      // Mark invitation as accepted
-      const { error: updateError } = await supabase
-        .from('dev_team_invitations')
-        .update({ accepted_at: new Date().toISOString() })
-        .eq('id', inviteData.id);
-
-      if (updateError) {
-        throw updateError;
-      }
-
-      // Add user role
-      const { data: session } = await supabase.auth.getSession();
-      if (session?.session?.user) {
-        const { error: roleError } = await supabase
-          .from('user_roles')
-          .upsert({
-            user_id: session.session.user.id,
-            role: inviteData.role,
-          }, { onConflict: 'user_id,role' });
-
-        if (roleError) {
-          console.error('Error adding role:', roleError);
-        }
-      }
-
-      setStep('success');
-      
-      // Redirect to dev workspace after a short delay
-      setTimeout(() => {
-        navigate('/admin/dev');
-      }, 2000);
-    } catch (error: any) {
-      console.error('Error accepting invitation:', error);
-      setErrorMessage('Failed to accept invitation');
-      setStep('error');
-    }
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
