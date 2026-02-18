@@ -16,16 +16,6 @@ const VideoHelp: React.FC = () => {
 
   const tutorials = [
     {
-      id: 1,
-      title: "Account Creation, Payment & Dashboard Overview",
-      description: "Complete walkthrough of creating your Asset Safe account, completing payment, and an overview of your dashboard features.",
-      duration: "5:00",
-      icon: UserPlus,
-      category: "Getting Started",
-      thumbnail: "/placeholder.svg",
-      videoUrl: "https://youtu.be/SgJuSe52umM"
-    },
-    {
       id: 2,
       title: "Adding Your First Property",
       description: "Step-by-step guide to adding property information and basic details.",
@@ -123,38 +113,6 @@ const VideoHelp: React.FC = () => {
               From getting started to advanced features, we'll guide you through every step.
             </p>
           </div>
-
-          {/* Featured Tutorial */}
-          <Card className="mb-12 bg-gradient-to-r from-brand-blue to-brand-lightBlue text-white">
-            <CardContent className="p-8">
-              <div className="flex flex-col md:flex-row items-center gap-6">
-                <div className="flex-1">
-                  <h2 className="text-2xl font-bold mb-2">New User? Start Here!</h2>
-                  <p className="text-blue-100 mb-4">
-                    Watch our comprehensive getting started guide that covers account creation, 
-                    payment setup, and a complete dashboard overview.
-                  </p>
-                  <Button 
-                    onClick={() => handleWatchVideo('https://youtu.be/SgJuSe52umM')}
-                    className="bg-white text-brand-blue hover:bg-gray-100"
-                  >
-                    <Play className="h-4 w-4 mr-2" />
-                    Watch Now
-                  </Button>
-                </div>
-                <div className="w-full md:w-80 h-48 rounded-lg overflow-hidden relative group cursor-pointer" onClick={() => handleWatchVideo('https://youtu.be/SgJuSe52umM')}>
-                  <img 
-                    src={walkthroughCover} 
-                    alt="Account Creation & Dashboard Overview Tutorial"
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black/30 flex items-center justify-center group-hover:bg-black/40 transition-colors">
-                    <Play className="h-16 w-16 text-white" />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
           {/* Tutorial Categories */}
           {categories.map(category => {
