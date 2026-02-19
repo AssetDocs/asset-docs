@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,14 +9,36 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, Camera, Shield, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Camera, CheckCircle, AlertTriangle, Users } from 'lucide-react';
+import { useAdminRole } from '@/hooks/useAdminRole';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { format } from 'date-fns';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
+interface PhotographerSubmission {
+  id: string;
+  full_name: string;
+  business_name: string | null;
+  email: string;
+  phone: string;
+  city_state: string | null;
+  primary_service_area: string;
+  website_url: string | null;
+  years_experience: string;
+  currently_active: boolean;
+  additional_notes: string | null;
+  created_at: string;
+}
+
 const PhotographerInterest: React.FC = () => {
   const navigate = useNavigate();
+  const { hasOwnerAccess } = useAdminRole();
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submissions, setSubmissions] = useState<PhotographerSubmission[]>([]);
+  const [loadingSubmissions, setLoadingSubmissions] = useState(false);
   const [form, setForm] = useState({
     full_name: '',
     business_name: '',
@@ -29,6 +51,28 @@ const PhotographerInterest: React.FC = () => {
     currently_active: 'yes',
     additional_notes: '',
   });
+
+  useEffect(() => {
+    if (hasOwnerAccess) {
+      fetchSubmissions();
+    }
+  }, [hasOwnerAccess]);
+
+  const fetchSubmissions = async () => {
+    setLoadingSubmissions(true);
+    try {
+      const { data, error } = await supabase
+        .from('photographer_interest')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      setSubmissions((data as PhotographerSubmission[]) || []);
+    } catch (err) {
+      console.error('Failed to load submissions:', err);
+    } finally {
+      setLoadingSubmissions(false);
+    }
+  };
 
   const updateField = (field: string, value: string) => {
     setForm(prev => ({ ...prev, [field]: value }));
@@ -60,6 +104,7 @@ const PhotographerInterest: React.FC = () => {
       if (error) throw error;
 
       setSubmitted(true);
+      if (hasOwnerAccess) fetchSubmissions();
       toast({ title: 'Interest form submitted successfully' });
     } catch (err: any) {
       console.error('Submission error:', err);
@@ -292,6 +337,69 @@ const PhotographerInterest: React.FC = () => {
         <p className="text-sm text-muted-foreground text-center pb-8">
           Asset Safe will review submissions and follow up with additional details as the program develops. Submission of this form does not guarantee participation.
         </p>
+
+        {/* Admin-only Submissions List */}
+        {hasOwnerAccess && (
+          <section className="space-y-4 pb-8">
+            <div className="flex items-center gap-3">
+              <Users className="w-6 h-6 text-primary" />
+              <h2 className="text-2xl font-semibold text-foreground">Submissions</h2>
+              <Badge variant="secondary">{submissions.length}</Badge>
+            </div>
+
+            {loadingSubmissions ? (
+              <p className="text-muted-foreground">Loading submissions…</p>
+            ) : submissions.length === 0 ? (
+              <p className="text-muted-foreground">No submissions yet.</p>
+            ) : (
+              <Card>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Email</TableHead>
+                          <TableHead>Phone</TableHead>
+                          <TableHead>Location</TableHead>
+                          <TableHead>Service Area</TableHead>
+                          <TableHead>Experience</TableHead>
+                          <TableHead>Active</TableHead>
+                          <TableHead>Submitted</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {submissions.map((s) => (
+                          <TableRow key={s.id}>
+                            <TableCell className="font-medium">
+                              {s.full_name}
+                              {s.business_name && (
+                                <span className="block text-xs text-muted-foreground">{s.business_name}</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-sm">{s.email}</TableCell>
+                            <TableCell className="text-sm">{s.phone}</TableCell>
+                            <TableCell className="text-sm">{s.city_state || '—'}</TableCell>
+                            <TableCell className="text-sm max-w-[200px] truncate">{s.primary_service_area}</TableCell>
+                            <TableCell className="text-sm">{s.years_experience}</TableCell>
+                            <TableCell>
+                              <Badge variant={s.currently_active ? 'default' : 'secondary'}>
+                                {s.currently_active ? 'Yes' : 'No'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
+                              {format(new Date(s.created_at), 'MMM d, yyyy')}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </section>
+        )}
       </main>
 
       <Footer />
