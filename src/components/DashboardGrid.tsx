@@ -7,6 +7,7 @@ import { ExportAssetsButton } from './ExportAssetsButton';
 import { ExportService } from '@/services/ExportService';
 import DocumentationChecklist from '@/components/DocumentationChecklist';
 import MFADropdown from '@/components/MFADropdown';
+import EmergencyInstructions from '@/components/EmergencyInstructions';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useUnreadNotifications } from '@/hooks/useUnreadNotifications';
@@ -220,6 +221,10 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           onClick={() => onTabChange('access-activity')}
           color="blue"
         />
+        {/* Emergency Instructions Collapsible */}
+        <div className="md:col-span-2">
+          <EmergencyInstructions onNavigate={onTabChange} />
+        </div>
       </div>
 
       {/* Bottom Utility Row - 3 columns (orange) */}
