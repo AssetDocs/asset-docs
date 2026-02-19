@@ -159,26 +159,41 @@ const EmergencyInstructions: React.FC<EmergencyInstructionsProps> = ({ onNavigat
     </div>
   );
 
-  const SectionHeader = ({ number, title, description }: { number: number; title: string; description: string }) => (
-    <div className="pb-2 border-b border-border mb-4">
-      <h4 className="text-sm font-bold text-foreground">Section {number}: {title}</h4>
-      <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
-    </div>
-  );
+  const CollapsibleSection = ({ number, title, description, children }: { number: number; title: string; description: string; children: React.ReactNode }) => {
+    const [open, setOpen] = useState(false);
+    return (
+      <Collapsible open={open} onOpenChange={setOpen}>
+        <CollapsibleTrigger asChild>
+          <button className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-muted/30 hover:bg-muted/50 rounded-lg transition-colors">
+            <div className="text-left">
+              <h4 className="text-sm font-bold text-foreground">Section {number}: {title}</h4>
+              {open && <p className="text-xs text-muted-foreground mt-0.5">{description}</p>}
+            </div>
+            <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform flex-shrink-0 ${open ? '' : '-rotate-90'}`} />
+          </button>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="pt-4 px-1">
+            {children}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+    );
+  };
 
   const formContent = (
     <div className="space-y-6">
       {/* Subtext */}
       <p className="text-xs text-muted-foreground">Clear guidance that brings clarity during unexpected situations.</p>
 
-      {/* Access Notice Banner */}
+      {/* Access Notice Banner - sticky */}
       {hasContributors === false && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+        <div className="sticky top-0 z-10 bg-amber-50 border border-amber-200 rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
           <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
             <AlertTriangle className="h-4 w-4 text-amber-600" />
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className="text-sm font-bold text-amber-900">Authorized User Required</h4>
+            <h4 className="text-sm font-bold text-amber-900">🔔 Authorized User Required</h4>
             <p className="text-xs text-amber-700 mt-0.5">
               Emergency Instructions are designed to help trusted people act on your behalf.
               To be effective, at least one Authorized User must be added to your account.
@@ -204,8 +219,7 @@ const EmergencyInstructions: React.FC<EmergencyInstructionsProps> = ({ onNavigat
       ) : (
         <>
           {/* SECTION 1 */}
-          <div>
-            <SectionHeader number={1} title="Immediate Contacts" description="Who should be contacted first in an emergency." />
+          <CollapsibleSection number={1} title="Immediate Contacts" description="Who should be contacted first in an emergency.">
             <div className="space-y-4">
               <p className="text-xs font-semibold text-foreground">Primary Emergency Contact</p>
               <p className="text-[11px] text-muted-foreground -mt-3">The person who should be contacted first in an urgent or unexpected situation.</p>
@@ -250,11 +264,10 @@ const EmergencyInstructions: React.FC<EmergencyInstructionsProps> = ({ onNavigat
                 </div>
               </div>
             </div>
-          </div>
+          </CollapsibleSection>
 
           {/* SECTION 2 */}
-          <div>
-            <SectionHeader number={2} title="What To Do First" description="Simple instructions that help reduce confusion and stress." />
+          <CollapsibleSection number={2} title="What To Do First" description="Simple instructions that help reduce confusion and stress.">
             <div className="space-y-3">
               <Field label="The first action to take in a time-sensitive situation is…" helper="Example: Contact our insurance agent and document any visible damage.">
                 <Textarea className="text-xs min-h-[60px]" value={firstActions.first_action} onChange={e => setFirstActions(p => ({ ...p, first_action: e.target.value }))} />
@@ -266,11 +279,10 @@ const EmergencyInstructions: React.FC<EmergencyInstructionsProps> = ({ onNavigat
                 <Textarea className="text-xs min-h-[60px]" value={firstActions.do_not_do} onChange={e => setFirstActions(p => ({ ...p, do_not_do: e.target.value }))} />
               </Field>
             </div>
-          </div>
+          </CollapsibleSection>
 
           {/* SECTION 3 */}
-          <div>
-            <SectionHeader number={3} title="Access & Information Notes" description="Where trusted people can find critical information without sharing access." />
+          <CollapsibleSection number={3} title="Access & Information Notes" description="Where trusted people can find critical information without sharing access.">
             <div className="space-y-3">
               <Field label="Insurance Information Location" helper="Example: Insurance policies are saved in the Insurance Documents section.">
                 <Input className="h-8 text-xs" value={accessNotes.insurance_location} onChange={e => setAccessNotes(p => ({ ...p, insurance_location: e.target.value }))} />
@@ -282,11 +294,10 @@ const EmergencyInstructions: React.FC<EmergencyInstructionsProps> = ({ onNavigat
                 <Input className="h-8 text-xs" value={accessNotes.password_notes} onChange={e => setAccessNotes(p => ({ ...p, password_notes: e.target.value }))} />
               </Field>
             </div>
-          </div>
+          </CollapsibleSection>
 
           {/* SECTION 4 */}
-          <div>
-            <SectionHeader number={4} title="Property & Asset Priorities" description="Guidance for protecting property and documenting assets." />
+          <CollapsibleSection number={4} title="Property & Asset Priorities" description="Guidance for protecting property and documenting assets.">
             <div className="space-y-3">
               <Field label="If there is property damage, focus on…" helper="Example: Photograph each room before moving or cleaning anything.">
                 <Textarea className="text-xs min-h-[60px]" value={propertyAssets.focus_on} onChange={e => setPropertyAssets(p => ({ ...p, focus_on: e.target.value }))} />
@@ -298,11 +309,10 @@ const EmergencyInstructions: React.FC<EmergencyInstructionsProps> = ({ onNavigat
                 <Textarea className="text-xs min-h-[60px]" value={propertyAssets.do_not_discard} onChange={e => setPropertyAssets(p => ({ ...p, do_not_discard: e.target.value }))} />
               </Field>
             </div>
-          </div>
+          </CollapsibleSection>
 
           {/* SECTION 5 */}
-          <div>
-            <SectionHeader number={5} title="Trusted Professionals" description="Professionals who may need to be contacted during an emergency." />
+          <CollapsibleSection number={5} title="Trusted Professionals" description="Professionals who may need to be contacted during an emergency.">
             <div className="space-y-4">
               {professionals.map((pro, i) => (
                 <div key={i} className="border border-border rounded-lg p-3 space-y-3 bg-muted/20">
@@ -336,15 +346,14 @@ const EmergencyInstructions: React.FC<EmergencyInstructionsProps> = ({ onNavigat
                 Add Another Professional
               </Button>
             </div>
-          </div>
+          </CollapsibleSection>
 
           {/* SECTION 6 */}
-          <div>
-            <SectionHeader number={6} title="Notes for Family" description="Optional notes meant to provide clarity or reassurance." />
+          <CollapsibleSection number={6} title="Notes for Family" description="Optional notes meant to provide clarity or reassurance.">
             <Field label="Additional Notes" helper="Anything you want your family or trusted people to know in this situation.">
               <Textarea className="text-xs min-h-[80px]" value={familyNotes} onChange={e => setFamilyNotes(e.target.value)} />
             </Field>
-          </div>
+          </CollapsibleSection>
 
           {/* Footer */}
           <div className="border-t border-border pt-4 space-y-3">
