@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Menu, X, Video, LogOut, User, Home } from 'lucide-react';
+import { Menu, X, LogOut, User, Home } from 'lucide-react';
 import SearchBar from '@/components/SearchBar';
 import assetSafeLogo from '@/assets/asset-safe-logo.png';
 
@@ -87,15 +87,6 @@ const Navbar: React.FC = () => {
                  >
                    Blog
                  </NavLink>
-                <NavLink 
-                  to="/video-help" 
-                  className={({ isActive }) => 
-                    `text-gray-700 hover:text-brand-blue transition-colors flex items-center ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
-                  }
-                >
-                  <Video className="h-4 w-4 mr-1" />
-                  {translate('nav.videoHelp')}
-                </NavLink>
                  <div className="flex items-center space-x-4">
                    <Link 
                      to="/account" 
@@ -157,15 +148,6 @@ const Navbar: React.FC = () => {
                     >
                       Blog
                     </NavLink>
-                 <NavLink 
-                   to="/video-help" 
-                   className={({ isActive }) => 
-                     `transition-colors flex items-center ${isActive ? 'text-brand-green font-medium' : 'text-gray-700 hover:text-brand-blue'}`
-                   }
-                 >
-                   <Video className="h-4 w-4 mr-1" />
-                   {translate('nav.videoHelp')}
-                 </NavLink>
                  <Button asChild variant="outline">
                    <Link 
                      to="/login" 
@@ -264,16 +246,6 @@ const Navbar: React.FC = () => {
                     >
                       Blog
                     </NavLink>
-                   <NavLink 
-                    to="/video-help" 
-                    className={({ isActive }) => 
-                      `text-gray-700 hover:text-brand-blue transition-colors py-2 flex items-center ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
-                    }
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <Video className="h-4 w-4 mr-1" />
-                    {translate('nav.videoHelp')}
-                  </NavLink>
                    <Link 
                      to="/account" 
                      className="text-gray-700 hover:text-brand-blue transition-colors py-2 flex items-center"
@@ -342,16 +314,6 @@ const Navbar: React.FC = () => {
                     >
                       Blog
                     </NavLink>
-                   <NavLink 
-                    to="/video-help" 
-                    className={({ isActive }) => 
-                      `text-gray-700 hover:text-brand-blue transition-colors py-2 flex items-center ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
-                    }
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <Video className="h-4 w-4 mr-1" />
-                    {translate('nav.videoHelp')}
-                  </NavLink>
                 </>
               )}
             </div>

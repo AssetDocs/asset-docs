@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
-import UnderConstructionBanner from '@/components/UnderConstructionBanner';
+
 import HeroSection from '@/components/HeroSection';
 
 import GiftSection from '@/components/GiftSection';
@@ -47,7 +47,7 @@ const Index: React.FC = () => {
         canonicalUrl="https://www.getassetsafe.com/"
         structuredData={structuredData}
       />
-      <UnderConstructionBanner />
+      
       <Navbar />
       <HeroSection />
       <DocumentProtectSection />
