@@ -192,11 +192,12 @@ const DocumentUpload: React.FC = () => {
           {/* Header */}
           <div className="mb-6">
             <Button
-              variant="ghost"
+              variant="outline"
+              size="sm"
               onClick={() => navigate('/account/documents')}
-              className="mb-4"
+              className="mb-4 flex items-center gap-2 bg-white text-brand-orange border-brand-orange hover:bg-brand-orange/10"
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeft className="h-4 w-4" />
               Back to Documents
             </Button>
             <h1 className="text-2xl sm:text-3xl font-bold text-brand-orange mb-2 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
