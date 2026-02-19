@@ -188,6 +188,14 @@ const AdminOwnerWorkspace: React.FC = () => {
                 <span className="font-semibold">Enterprise White-Label</span>
                 <span className="text-sm text-muted-foreground">Organizations & group deployments</span>
               </Button>
+              <Button 
+                variant="outline" 
+                className="h-auto py-4 flex flex-col items-start text-left"
+                onClick={() => navigate('/admin/photographer-interest')}
+              >
+                <span className="font-semibold">Photographer Network</span>
+                <span className="text-sm text-muted-foreground">Trusted photographer interest form</span>
+              </Button>
             </div>
           </CardContent>
         </Card>

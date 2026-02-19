@@ -2102,6 +2102,51 @@ export type Database = {
         }
         Relationships: []
       }
+      photographer_interest: {
+        Row: {
+          additional_notes: string | null
+          business_name: string | null
+          city_state: string
+          created_at: string
+          currently_active: boolean
+          email: string
+          full_name: string
+          id: string
+          phone: string
+          primary_service_area: string
+          website_url: string | null
+          years_experience: string
+        }
+        Insert: {
+          additional_notes?: string | null
+          business_name?: string | null
+          city_state: string
+          created_at?: string
+          currently_active?: boolean
+          email: string
+          full_name: string
+          id?: string
+          phone: string
+          primary_service_area: string
+          website_url?: string | null
+          years_experience: string
+        }
+        Update: {
+          additional_notes?: string | null
+          business_name?: string | null
+          city_state?: string
+          created_at?: string
+          currently_active?: boolean
+          email?: string
+          full_name?: string
+          id?: string
+          phone?: string
+          primary_service_area?: string
+          website_url?: string | null
+          years_experience?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           account_number: string | null
