@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MessageCircle, Smartphone } from 'lucide-react';
+import { MessageCircle, Smartphone, Video } from 'lucide-react';
 
 const Footer: React.FC = () => {
   return (
@@ -83,6 +83,12 @@ const Footer: React.FC = () => {
                   <Link to="/install" className="text-gray-300 hover:text-white transition-colors text-sm flex items-center gap-1">
                     <Smartphone className="h-3 w-3" />
                     Install App
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/video-help" className="text-gray-300 hover:text-white transition-colors text-sm flex items-center gap-1">
+                    <Video className="h-3 w-3" />
+                    Video Help
                   </Link>
                 </li>
               </ul>
