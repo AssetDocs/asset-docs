@@ -34,6 +34,7 @@ import UpgradesRepairsSection from '@/components/UpgradesRepairsSection';
 import PaintCodesSection from '@/components/PaintCodesSection';
 import ServiceProsSection from '@/components/ServiceProsSection';
 import AccessActivitySection from '@/components/AccessActivitySection';
+import EmergencyInstructions from '@/components/EmergencyInstructions';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
@@ -120,6 +121,7 @@ const Account: React.FC = () => {
       'family-recipes': { title: 'Family Recipes', subtitle: 'Preserve cherished family recipes for generations.' },
       'memory-safe': { title: 'Memory Safe', subtitle: 'A protected place for the memories you want to keep — and pass on.' },
       'access-activity': { title: 'Access & Activity', subtitle: 'Manage authorized users and monitor recent account activity.' },
+      'emergency-instructions': { title: 'Emergency Instructions', subtitle: 'Clear guidance that brings clarity during unexpected situations.' },
     };
     return configs[activeTab] || { title: '', subtitle: '' };
   };
@@ -330,6 +332,11 @@ const Account: React.FC = () => {
             {/* Access & Activity */}
             <TabsContent value="access-activity">
               <AccessActivitySection />
+            </TabsContent>
+
+            {/* Emergency Instructions */}
+            <TabsContent value="emergency-instructions">
+              <EmergencyInstructions onNavigate={setActiveTab} standalone />
             </TabsContent>
           </Tabs>
 

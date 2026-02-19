@@ -878,6 +878,48 @@ export type Database = {
         }
         Relationships: []
       }
+      emergency_instructions: {
+        Row: {
+          access_notes: Json | null
+          created_at: string
+          family_notes: string | null
+          first_actions: Json | null
+          id: string
+          primary_contact: Json | null
+          professionals: Json | null
+          property_assets: Json | null
+          secondary_contact: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_notes?: Json | null
+          created_at?: string
+          family_notes?: string | null
+          first_actions?: Json | null
+          id?: string
+          primary_contact?: Json | null
+          professionals?: Json | null
+          property_assets?: Json | null
+          secondary_contact?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_notes?: Json | null
+          created_at?: string
+          family_notes?: string | null
+          first_actions?: Json | null
+          id?: string
+          primary_contact?: Json | null
+          professionals?: Json | null
+          property_assets?: Json | null
+          secondary_contact?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       entitlements: {
         Row: {
           created_at: string
