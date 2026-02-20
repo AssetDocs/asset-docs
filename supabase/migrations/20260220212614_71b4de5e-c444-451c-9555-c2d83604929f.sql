@@ -1,0 +1,1 @@
+ALTER TABLE public.password_catalog ADD COLUMN username text;

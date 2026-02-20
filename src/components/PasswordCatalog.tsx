@@ -17,6 +17,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 const passwordSchema = z.object({
   websiteName: z.string().trim().min(1, "Website name is required").max(100),
   websiteUrl: z.string().trim().max(500).optional(),
+  username: z.string().trim().max(200).optional(),
   password: z.string().trim().min(1, "Password is required").max(500),
   notes: z.string().trim().max(1000).optional(),
 });
@@ -41,6 +42,7 @@ interface PasswordEntry {
   id: string;
   website_name: string;
   website_url: string;
+  username: string | null;
   password: string;
   notes: string | null;
   created_at: string;
@@ -94,11 +96,12 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
   
   // Edit state
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editData, setEditData] = useState({ websiteName: '', websiteUrl: '', password: '', notes: '' });
+  const [editData, setEditData] = useState({ websiteName: '', websiteUrl: '', username: '', password: '', notes: '' });
   
   const [formData, setFormData] = useState({
     websiteName: '',
     websiteUrl: '',
+    username: '',
     password: '',
     notes: '',
   });
@@ -277,6 +280,7 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
           user_id: user.id,
           website_name: formData.websiteName,
           website_url: formData.websiteUrl || null,
+          username: formData.username || null,
           password: encryptedPassword,
           notes: formData.notes || null,
         });
@@ -291,6 +295,7 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
       setFormData({
         websiteName: '',
         websiteUrl: '',
+        username: '',
         password: '',
         notes: '',
       });
@@ -348,6 +353,7 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
     setEditData({
       websiteName: password.website_name,
       websiteUrl: password.website_url || '',
+      username: password.username || '',
       password: decryptedPasswords[password.id] || '',
       notes: password.notes || '',
     });
@@ -355,7 +361,7 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
 
   const cancelEdit = () => {
     setEditingId(null);
-    setEditData({ websiteName: '', websiteUrl: '', password: '', notes: '' });
+    setEditData({ websiteName: '', websiteUrl: '', username: '', password: '', notes: '' });
   };
 
   const handleEditSave = async (id: string) => {
@@ -371,6 +377,7 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
         .update({
           website_name: editData.websiteName.trim(),
           website_url: editData.websiteUrl.trim() || null,
+          username: editData.username.trim() || null,
           password: encryptedPassword,
           notes: editData.notes.trim() || null,
         })
@@ -557,6 +564,16 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
             </div>
           </div>
           <div className="space-y-2">
+            <Label htmlFor="username">Username / ID / Email (Optional)</Label>
+            <Input
+              id="username"
+              type="text"
+              value={formData.username}
+              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+              placeholder="e.g., john@email.com, johndoe123"
+            />
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <Input
               id="password"
@@ -610,6 +627,10 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
                         </div>
                       </div>
                       <div className="space-y-1">
+                        <Label className="text-xs">Username / ID / Email (Optional)</Label>
+                        <Input value={editData.username} onChange={(e) => setEditData({ ...editData, username: e.target.value })} placeholder="e.g., john@email.com" />
+                      </div>
+                      <div className="space-y-1">
                         <Label className="text-xs">Password</Label>
                         <Input value={editData.password} onChange={(e) => setEditData({ ...editData, password: e.target.value })} />
                       </div>
@@ -656,6 +677,12 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
                           </AlertDialog>
                         </div>
                       </div>
+                      {password.username && (
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Username / ID / Email</Label>
+                          <span className="text-sm block">{password.username}</span>
+                        </div>
+                      )}
                       <div className="space-y-1">
                         <Label className="text-xs text-muted-foreground">Password</Label>
                         <span className="font-mono text-sm block">{decryptedPasswords[password.id] || 'Decrypting...'}</span>
@@ -881,6 +908,16 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
               </div>
             </div>
             <div className="space-y-2">
+              <Label htmlFor="usernameStandalone">Username / ID / Email (Optional)</Label>
+              <Input
+                id="usernameStandalone"
+                type="text"
+                value={formData.username}
+                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                placeholder="e.g., john@email.com, johndoe123"
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="passwordStandalone">Password</Label>
               <Input
                 id="passwordStandalone"
@@ -934,6 +971,10 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
                           </div>
                         </div>
                         <div className="space-y-1">
+                          <Label className="text-xs">Username / ID / Email (Optional)</Label>
+                          <Input value={editData.username} onChange={(e) => setEditData({ ...editData, username: e.target.value })} placeholder="e.g., john@email.com" />
+                        </div>
+                        <div className="space-y-1">
                           <Label className="text-xs">Password</Label>
                           <Input value={editData.password} onChange={(e) => setEditData({ ...editData, password: e.target.value })} />
                         </div>
@@ -980,6 +1021,12 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
                             </AlertDialog>
                           </div>
                         </div>
+                        {password.username && (
+                          <div className="space-y-1">
+                            <Label className="text-xs text-muted-foreground">Username / ID / Email</Label>
+                            <span className="text-sm">{password.username}</span>
+                          </div>
+                        )}
                         <div className="space-y-1">
                           <Label className="text-xs text-muted-foreground">Password</Label>
                           <span className="font-mono text-sm">{decryptedPasswords[password.id] || 'Decrypting...'}</span>

@@ -2139,6 +2139,7 @@ export type Database = {
           password: string
           updated_at: string
           user_id: string
+          username: string | null
           website_name: string
           website_url: string
         }
@@ -2149,6 +2150,7 @@ export type Database = {
           password: string
           updated_at?: string
           user_id: string
+          username?: string | null
           website_name: string
           website_url: string
         }
@@ -2159,6 +2161,7 @@ export type Database = {
           password?: string
           updated_at?: string
           user_id?: string
+          username?: string | null
           website_name?: string
           website_url?: string
         }
