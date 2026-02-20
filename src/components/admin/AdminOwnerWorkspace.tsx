@@ -11,6 +11,7 @@ import SecurityChecklist from './SecurityChecklist';
 import AdminLegalAgreements from '@/pages/AdminLegalAgreements';
 import DevTeamManagement from './DevTeamManagement';
 import MarketSizing from './MarketSizing';
+import AdminDocuments from './AdminDocuments';
 import { 
   Users, 
   CreditCard, 
@@ -20,7 +21,8 @@ import {
   BarChart,
   Handshake,
   UserPlus,
-  TrendingUp
+  TrendingUp,
+  FolderOpen
 } from 'lucide-react';
 
 const AdminOwnerWorkspace: React.FC = () => {
@@ -29,7 +31,7 @@ const AdminOwnerWorkspace: React.FC = () => {
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-      <TabsList className="grid grid-cols-4 md:grid-cols-9 gap-2 h-auto p-1">
+      <TabsList className="grid grid-cols-4 md:grid-cols-10 gap-2 h-auto p-1">
         <TabsTrigger value="overview" className="flex items-center gap-2">
           <BarChart className="w-4 h-4" />
           Overview
@@ -61,6 +63,10 @@ const AdminOwnerWorkspace: React.FC = () => {
         <TabsTrigger value="legal" className="flex items-center gap-2">
           <FileText className="w-4 h-4" />
           Legal
+        </TabsTrigger>
+        <TabsTrigger value="documents" className="flex items-center gap-2">
+          <FolderOpen className="w-4 h-4" />
+          Documents
         </TabsTrigger>
         <TabsTrigger value="settings" className="flex items-center gap-2">
           <Settings className="w-4 h-4" />
@@ -227,6 +233,10 @@ const AdminOwnerWorkspace: React.FC = () => {
 
       <TabsContent value="legal">
         <AdminLegalAgreements />
+      </TabsContent>
+
+      <TabsContent value="documents">
+        <AdminDocuments />
       </TabsContent>
 
       <TabsContent value="settings">

@@ -14,7 +14,7 @@ import { useAdminRole } from '@/hooks/useAdminRole';
 import { useToast } from '@/hooks/use-toast';
 import SecureStorage from '@/utils/secureStorage';
 import AdminPasswordGate from '@/components/AdminPasswordGate';
-import { LogOut, Building2, Code2, AlertTriangle, Shield } from 'lucide-react';
+import { LogOut, Building2, Code2, AlertTriangle, Shield, ArrowLeft } from 'lucide-react';
 
 type Workspace = 'owner' | 'dev';
 
@@ -178,6 +178,10 @@ const AdminShell: React.FC = () => {
                 </Select>
               )}
               
+              <Button variant="outline" onClick={() => navigate('/')}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Site
+              </Button>
               <Button variant="outline" onClick={handleLogout}>
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout
