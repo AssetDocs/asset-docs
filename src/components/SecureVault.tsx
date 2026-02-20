@@ -4,8 +4,20 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Lock, Shield, Unlock, Info, ChevronDown, ChevronRight, AlertTriangle, UserX } from 'lucide-react';
+import { Lock, Shield, Unlock, Info, ChevronDown, ChevronRight, AlertTriangle, UserX, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { Input } from '@/components/ui/input';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { decryptPassword } from '@/utils/encryption';
 import { useAuth } from '@/contexts/AuthContext';
 import { useContributor } from '@/contexts/ContributorContext';
 import { useToast } from '@/hooks/use-toast';
@@ -235,11 +247,154 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
     }
   };
 
+  // Remove encryption state
+  const [showRemoveEncryptionDialog, setShowRemoveEncryptionDialog] = useState(false);
+  const [removeEncryptionPassword, setRemoveEncryptionPassword] = useState('');
+  const [isRemovingEncryption, setIsRemovingEncryption] = useState(false);
+
   const handleEncryptionToggle = (checked: boolean) => {
     if (checked && !sessionMasterPassword) {
       handleUnlockClick();
+    } else if (!checked && existingEncrypted) {
+      setShowRemoveEncryptionDialog(true);
+      return;
     }
     setIsEncrypted(checked);
+  };
+
+  const handleRemoveEncryption = async () => {
+    if (!user) return;
+
+    const masterPw = sessionMasterPassword || removeEncryptionPassword;
+    if (!masterPw) {
+      toast({ title: "Error", description: "Master password is required.", variant: "destructive" });
+      return;
+    }
+
+    setIsRemovingEncryption(true);
+    try {
+      // 1. Decrypt all password_catalog entries
+      const { data: passwords, error: pwError } = await supabase
+        .from('password_catalog')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (pwError) throw pwError;
+
+      for (const entry of (passwords || [])) {
+        try {
+          const decryptedPw = await decryptPassword(entry.password, masterPw);
+          await supabase
+            .from('password_catalog')
+            .update({ password: decryptedPw })
+            .eq('id', entry.id);
+        } catch (err) {
+          console.error(`Failed to decrypt password entry ${entry.id}:`, err);
+          throw new Error('Decryption failed — incorrect master password or corrupted data.');
+        }
+      }
+
+      // 2. Decrypt all financial_accounts entries
+      const { data: accounts, error: acctError } = await supabase
+        .from('financial_accounts')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (acctError) throw acctError;
+
+      for (const acct of (accounts || [])) {
+        try {
+          const updates: any = {};
+          updates.account_number = await decryptPassword(acct.account_number, masterPw);
+          if (acct.routing_number) updates.routing_number = await decryptPassword(acct.routing_number, masterPw);
+          if (acct.notes) updates.notes = await decryptPassword(acct.notes, masterPw);
+          await supabase.from('financial_accounts').update(updates).eq('id', acct.id);
+        } catch (err) {
+          console.error(`Failed to decrypt financial account ${acct.id}:`, err);
+        }
+      }
+
+      // 3. Decrypt legacy_locker fields
+      const { data: locker, error: lockerError } = await supabase
+        .from('legacy_locker')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (lockerError) throw lockerError;
+
+      if (locker) {
+        const textFields = [
+          'full_legal_name', 'address', 'executor_name', 'executor_relationship',
+          'executor_contact', 'backup_executor_name', 'backup_executor_contact',
+          'guardian_name', 'guardian_relationship', 'guardian_contact',
+          'backup_guardian_name', 'backup_guardian_contact',
+          'spouse_name', 'spouse_contact', 'attorney_name', 'attorney_firm', 'attorney_contact',
+          'business_partner_name', 'business_partner_company', 'business_partner_contact',
+          'investment_firm_name', 'investment_advisor_name', 'investment_firm_contact',
+          'financial_advisor_name', 'financial_advisor_firm', 'financial_advisor_contact',
+          'residuary_estate', 'digital_assets', 'real_estate_instructions', 'debts_expenses',
+          'funeral_wishes', 'burial_or_cremation', 'ceremony_preferences',
+          'letters_to_loved_ones', 'pet_care_instructions', 'business_succession_plan',
+          'ethical_will'
+        ];
+
+        const decryptedLocker: any = {};
+        for (const field of textFields) {
+          const value = (locker as any)[field];
+          if (value && typeof value === 'string') {
+            try {
+              decryptedLocker[field] = await decryptPassword(value, masterPw);
+            } catch (err) {
+              console.error(`Failed to decrypt legacy locker field ${field}`);
+            }
+          }
+        }
+
+        await supabase
+          .from('legacy_locker')
+          .update({
+            ...decryptedLocker,
+            is_encrypted: false,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('user_id', user.id);
+      }
+
+      // 4. Log activity
+      logActivity({
+        action_type: 'remove_encryption',
+        action_category: 'vault',
+        resource_type: 'vault',
+        resource_name: 'Secure Vault',
+        details: { action: 'encryption_removed' },
+      });
+
+      // 5. Update local state
+      setExistingEncrypted(false);
+      setIsEncrypted(false);
+      setIsUnlocked(false);
+      setSessionMasterPassword(null);
+      localStorage.removeItem(MASTER_PASSWORD_HASH_KEY);
+
+      setShowRemoveEncryptionDialog(false);
+      setRemoveEncryptionPassword('');
+      toast({
+        title: "Encryption Removed",
+        description: "Your Secure Vault data is no longer encrypted. Data has been saved as plaintext.",
+      });
+
+      fetchVaultStatus();
+    } catch (error: any) {
+      console.error('Error removing encryption:', error);
+      toast({
+        title: "Failed to Remove Encryption",
+        description: error.message || "An error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRemovingEncryption(false);
+    }
   };
 
   const handleSaveDelegate = async () => {
@@ -468,7 +623,7 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
               <div className="flex items-center gap-3">
                 <Label 
                   htmlFor="vault-encryption-toggle" 
-                  className={`font-semibold ${existingEncrypted ? "text-muted-foreground" : "text-yellow-700 dark:text-yellow-300"}`}
+                  className="font-semibold text-yellow-700 dark:text-yellow-300"
                 >
                   {existingEncrypted ? "🔒 Encrypted" : "🔓 Encrypt"}
                 </Label>
@@ -476,7 +631,7 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
                   id="vault-encryption-toggle"
                   checked={isEncrypted}
                   onCheckedChange={handleEncryptionToggle}
-                  disabled={existingEncrypted}
+                  disabled={false}
                 />
               </div>
             </div>
@@ -634,6 +789,66 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
         onVerified={handleTOTPVerified}
         actionDescription="access your Secure Vault"
       />
+
+      {/* Remove Encryption Confirmation Dialog */}
+      <AlertDialog open={showRemoveEncryptionDialog} onOpenChange={(open) => {
+        if (!open && !isRemovingEncryption) {
+          setShowRemoveEncryptionDialog(false);
+          setRemoveEncryptionPassword('');
+        }
+      }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Remove Vault Encryption?
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>
+                  This will <strong>permanently remove encryption</strong> from your Secure Vault. All passwords, financial accounts, and Legacy Locker data will be stored without encryption.
+                </p>
+                <p className="text-destructive font-medium">
+                  This is a security downgrade. Only proceed if you understand the risks.
+                </p>
+                {!sessionMasterPassword && (
+                  <div className="pt-2">
+                    <Label htmlFor="remove-encryption-pw" className="text-sm font-medium">
+                      Enter your master password to confirm:
+                    </Label>
+                    <Input
+                      id="remove-encryption-pw"
+                      type="password"
+                      value={removeEncryptionPassword}
+                      onChange={(e) => setRemoveEncryptionPassword(e.target.value)}
+                      placeholder="Master password"
+                      className="mt-1"
+                      disabled={isRemovingEncryption}
+                    />
+                  </div>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isRemovingEncryption}>Cancel</AlertDialogCancel>
+            <Button
+              variant="destructive"
+              onClick={handleRemoveEncryption}
+              disabled={isRemovingEncryption || (!sessionMasterPassword && !removeEncryptionPassword)}
+            >
+              {isRemovingEncryption ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Removing Encryption...
+                </>
+              ) : (
+                'Yes, Remove Encryption'
+              )}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
