@@ -3,7 +3,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Shield, Info, Save, Loader2 } from "lucide-react";
+import { Shield, Info, Save, Loader2, UserPlus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface Contributor {
   id: string;
@@ -33,6 +34,7 @@ export const RecoveryDelegateSelector: React.FC<RecoveryDelegateSelectorProps> =
   isSaving = false,
   hasChanges = false,
 }) => {
+  const navigate = useNavigate();
   const adminContributors = contributors.filter(c => c.role === 'administrator' && c.contributor_user_id);
 
   return (
@@ -52,8 +54,19 @@ export const RecoveryDelegateSelector: React.FC<RecoveryDelegateSelectorProps> =
       {adminContributors.length === 0 && (
         <Alert className="bg-muted border-border">
           <Info className="h-4 w-4" />
-          <AlertDescription>
-            You must first add an authorized user with <strong>Administrator</strong> access in Account Settings → Authorized Users before you can select a Recovery Delegate. Only administrators will appear in this list.
+          <AlertDescription className="space-y-3">
+            <p>
+              You must first add an authorized user with <strong>Administrator</strong> access in Account Settings → Authorized Users before you can select a Recovery Delegate. Only administrators will appear in this list.
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={() => navigate('/account?tab=access-activity')}
+            >
+              <UserPlus className="h-4 w-4" />
+              + Add Authorized User
+            </Button>
           </AlertDescription>
         </Alert>
       )}

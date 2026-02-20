@@ -561,7 +561,12 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
               <CollapsibleTrigger asChild>
                 <button className="w-full p-4 flex items-center justify-between hover:bg-yellow-100/50 dark:hover:bg-yellow-800/20 transition-colors rounded-t-lg">
                   <h3 className="text-lg font-bold text-yellow-800 dark:text-yellow-300 flex items-center gap-2">
-                    <span className="bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">1</span>
+                    <span className="relative bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">
+                      1
+                      {existingEncrypted && (
+                        <Lock className="h-3 w-3 text-destructive absolute -top-1 -right-1 drop-shadow-sm" />
+                      )}
+                    </span>
                     Password Catalog
                   </h3>
                   {passwordCatalogOpen ? (
@@ -588,7 +593,12 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
               <CollapsibleTrigger asChild>
                 <button className="w-full p-4 flex items-center justify-between hover:bg-yellow-100/50 dark:hover:bg-yellow-800/20 transition-colors rounded-t-lg">
                   <h3 className="text-lg font-bold text-yellow-800 dark:text-yellow-300 flex items-center gap-2">
-                    <span className="bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">2</span>
+                    <span className="relative bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">
+                      2
+                      {existingEncrypted && (
+                        <Lock className="h-3 w-3 text-destructive absolute -top-1 -right-1 drop-shadow-sm" />
+                      )}
+                    </span>
                     Legacy Locker
                   </h3>
                   {legacyLockerOpen ? (
