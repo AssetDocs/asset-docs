@@ -1,11 +1,13 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardGridCard } from './DashboardGridCard';
+import { useCalendarNotifications } from '@/hooks/useCalendarNotifications';
 import {
   Package,
   Hammer,
   Globe,
   Palette,
+  CalendarDays,
 } from 'lucide-react';
 
 interface InsightsToolsGridProps {
@@ -14,6 +16,7 @@ interface InsightsToolsGridProps {
 
 const InsightsToolsGrid: React.FC<InsightsToolsGridProps> = ({ onTabChange }) => {
   const navigate = useNavigate();
+  const { todayCount } = useCalendarNotifications();
 
   return (
     <div className="space-y-4">
@@ -25,6 +28,26 @@ const InsightsToolsGrid: React.FC<InsightsToolsGridProps> = ({ onTabChange }) =>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Smart Calendar */}
+        <DashboardGridCard
+          icon={
+            <div className="relative">
+              <CalendarDays className="h-5 w-5" />
+              {todayCount > 0 && (
+                <span className="absolute -top-2 -right-2 flex items-center justify-center min-w-[16px] h-[16px] px-1 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold leading-none">
+                  {todayCount > 99 ? '99+' : todayCount}
+                </span>
+              )}
+            </div>
+          }
+          title="Smart Calendar"
+          description="Reminders, records, and timelines — all in one place."
+          actionLabel="Open Calendar"
+          onClick={() => onTabChange('smart-calendar')}
+          color="teal"
+          variant="compact"
+        />
+
         {/* Manual Entry Items */}
         <DashboardGridCard
           icon={<Package className="h-5 w-5" />}

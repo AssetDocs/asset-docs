@@ -238,6 +238,143 @@ export type Database = {
         }
         Relationships: []
       }
+      calendar_event_attachments: {
+        Row: {
+          created_at: string
+          event_id: string
+          file_name: string | null
+          file_path: string | null
+          file_size: number | null
+          file_type: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          file_name?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          file_name?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_event_attachments_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calendar_events: {
+        Row: {
+          category:
+            | Database["public"]["Enums"]["calendar_event_category"]
+            | null
+          completed_at: string | null
+          created_at: string
+          end_date: string | null
+          id: string
+          is_dismissed: boolean
+          is_suggested: boolean
+          linked_asset_id: string | null
+          linked_property_id: string | null
+          notes: string | null
+          notify_1_week: boolean
+          notify_30_days: boolean
+          notify_day_of: boolean
+          recurrence: string
+          recurrence_end_date: string | null
+          start_date: string
+          status: string
+          template_key: string | null
+          title: string
+          updated_at: string
+          user_id: string
+          visibility: string
+        }
+        Insert: {
+          category?:
+            | Database["public"]["Enums"]["calendar_event_category"]
+            | null
+          completed_at?: string | null
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          is_dismissed?: boolean
+          is_suggested?: boolean
+          linked_asset_id?: string | null
+          linked_property_id?: string | null
+          notes?: string | null
+          notify_1_week?: boolean
+          notify_30_days?: boolean
+          notify_day_of?: boolean
+          recurrence?: string
+          recurrence_end_date?: string | null
+          start_date: string
+          status?: string
+          template_key?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+          visibility?: string
+        }
+        Update: {
+          category?:
+            | Database["public"]["Enums"]["calendar_event_category"]
+            | null
+          completed_at?: string | null
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          is_dismissed?: boolean
+          is_suggested?: boolean
+          linked_asset_id?: string | null
+          linked_property_id?: string | null
+          notes?: string | null
+          notify_1_week?: boolean
+          notify_30_days?: boolean
+          notify_day_of?: boolean
+          recurrence?: string
+          recurrence_end_date?: string | null
+          start_date?: string
+          status?: string
+          template_key?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          visibility?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_events_linked_asset_id_fkey"
+            columns: ["linked_asset_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_events_linked_property_id_fkey"
+            columns: ["linked_property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       companies: {
         Row: {
           created_at: string | null
@@ -3544,6 +3681,24 @@ export type Database = {
         | "developer"
         | "qa"
         | "owner"
+      calendar_event_category:
+        | "home_property"
+        | "maintenance_care"
+        | "utilities_household"
+        | "appliances_systems"
+        | "warranties_coverage"
+        | "property_lifecycle"
+        | "compliance_filings"
+        | "equipment_assets"
+        | "subscriptions_auto_drafts"
+        | "hr_admin"
+        | "tenant_lifecycle"
+        | "inspections_turnover"
+        | "rent_financial"
+        | "legal_compliance"
+        | "legal_document_reviews"
+        | "authorized_user_reviews"
+        | "legacy_emergency_planning"
       contributor_role: "administrator" | "contributor" | "viewer"
       dev_blocker_status: "open" | "resolved" | "deferred"
       dev_blocker_type:
@@ -3705,6 +3860,25 @@ export const Constants = {
         "developer",
         "qa",
         "owner",
+      ],
+      calendar_event_category: [
+        "home_property",
+        "maintenance_care",
+        "utilities_household",
+        "appliances_systems",
+        "warranties_coverage",
+        "property_lifecycle",
+        "compliance_filings",
+        "equipment_assets",
+        "subscriptions_auto_drafts",
+        "hr_admin",
+        "tenant_lifecycle",
+        "inspections_turnover",
+        "rent_financial",
+        "legal_compliance",
+        "legal_document_reviews",
+        "authorized_user_reviews",
+        "legacy_emergency_planning",
       ],
       contributor_role: ["administrator", "contributor", "viewer"],
       dev_blocker_status: ["open", "resolved", "deferred"],
