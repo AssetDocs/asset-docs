@@ -11,6 +11,7 @@ import EmergencyInstructions from '@/components/EmergencyInstructions';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useUnreadNotifications } from '@/hooks/useUnreadNotifications';
+import { useCalendarNotifications } from '@/hooks/useCalendarNotifications';
 import AssetValuesSection from '@/components/AssetValuesSection';
 import {
   Settings,
@@ -43,6 +44,7 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
     return localStorage.getItem('assetValuesDropdownOpen') === 'true';
   });
   const { unreadCount } = useUnreadNotifications();
+  const { todayCount: calendarTodayCount } = useCalendarNotifications();
 
   const handleToggleAssetValues = () => {
     const newState = !isAssetValuesOpen;
@@ -146,10 +148,19 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
 
         {/* Row 3: Green */}
         <DashboardGridCard
-          icon={<Wrench className="h-6 w-6" />}
+          icon={
+            <div className="relative">
+              <Wrench className="h-6 w-6" />
+              {calendarTodayCount > 0 && (
+                <span className="absolute -top-2 -right-2 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold leading-none">
+                  {calendarTodayCount > 99 ? '99+' : calendarTodayCount}
+                </span>
+              )}
+            </div>
+          }
           title="Insights & Tools"
           description="Track values, manage repairs, and organize property details."
-          tags={['Asset Values', 'Manual Entry', 'Upgrades & Repairs', 'Source Websites', 'Paint Codes']}
+          tags={['Smart Calendar', 'Asset Values', 'Manual Entry', 'Upgrades & Repairs', 'Source Websites', 'Paint Codes']}
           actionLabel="Open Tools"
           actionIcon={<Wrench className="h-4 w-4" />}
           onClick={() => onTabChange('insights-tools')}

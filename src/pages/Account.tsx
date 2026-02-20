@@ -30,6 +30,7 @@ import MemorySafe from '@/components/MemorySafe';
 import AssetDocumentationGrid from '@/components/AssetDocumentationGrid';
 import ProtectionScore from '@/components/ProtectionScore';
 import { supabase } from '@/integrations/supabase/client';
+import SmartCalendar from '@/components/SmartCalendar';
 import UpgradesRepairsSection from '@/components/UpgradesRepairsSection';
 import PaintCodesSection from '@/components/PaintCodesSection';
 import ServiceProsSection from '@/components/ServiceProsSection';
@@ -117,6 +118,7 @@ const Account: React.FC = () => {
       'paint-codes': { title: 'Paint Codes', subtitle: 'Store paint colors, brands, and finish details.' },
       'service-pros': { title: 'Trusted Professionals', subtitle: 'Track your trusted service providers and contractors.' },
       'upgrades-repairs': { title: 'Upgrades & Repairs', subtitle: 'Document property improvements and repair history.' },
+      'smart-calendar': { title: 'Smart Calendar', subtitle: 'Reminders, records, and timelines — all in one place.' },
       'notes-traditions': { title: 'Notes & Traditions', subtitle: 'Capture family traditions, stories, and important notes.' },
       'family-recipes': { title: 'Family Recipes', subtitle: 'Preserve cherished family recipes for generations.' },
       'memory-safe': { title: 'Memory Safe', subtitle: 'A protected place for the memories you want to keep — and pass on.' },
@@ -177,7 +179,7 @@ const Account: React.FC = () => {
                   </Button>
                 )}
 
-                {['source-websites', 'paint-codes', 'upgrades-repairs'].includes(activeTab) && (
+                {['source-websites', 'paint-codes', 'upgrades-repairs', 'smart-calendar'].includes(activeTab) && (
                   <Button
                     onClick={() => setActiveTab('insights-tools')}
                     variant="outline"
@@ -315,6 +317,10 @@ const Account: React.FC = () => {
                 </div>
                 <UpgradesRepairsSection />
               </div>
+            </TabsContent>
+
+            <TabsContent value="smart-calendar">
+              <SmartCalendar />
             </TabsContent>
 
             <TabsContent value="notes-traditions">
