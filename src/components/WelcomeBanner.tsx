@@ -167,7 +167,7 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange }) => {
             <div className="flex gap-2 mt-1">
               <button
                 onClick={() => navigate('/account/settings')}
-                className="flex flex-col items-center gap-1 bg-white/15 hover:bg-white/25 transition-colors rounded-lg px-3 py-2 text-white/90 hover:text-white"
+                className="flex flex-col items-center justify-center gap-1 bg-white/15 hover:bg-white/25 transition-colors rounded-lg w-[72px] h-[56px] text-white/90 hover:text-white"
                 title="Account Settings"
               >
                 <Settings className="h-4 w-4" />
@@ -175,7 +175,7 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange }) => {
               </button>
               <button
                 onClick={() => navigate('/account/properties')}
-                className="flex flex-col items-center gap-1 bg-white/15 hover:bg-white/25 transition-colors rounded-lg px-3 py-2 text-white/90 hover:text-white"
+                className="flex flex-col items-center justify-center gap-1 bg-white/15 hover:bg-white/25 transition-colors rounded-lg w-[72px] h-[56px] text-white/90 hover:text-white"
                 title="Property Profiles"
               >
                 <Home className="h-4 w-4" />
@@ -183,7 +183,7 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange }) => {
               </button>
               <button
                 onClick={() => onTabChange?.('access-activity')}
-                className="flex flex-col items-center gap-1 bg-white/15 hover:bg-white/25 transition-colors rounded-lg px-3 py-2 text-white/90 hover:text-white"
+                className="flex flex-col items-center justify-center gap-1 bg-white/15 hover:bg-white/25 transition-colors rounded-lg w-[72px] h-[56px] text-white/90 hover:text-white"
                 title="Access & Activity"
               >
                 <Users className="h-4 w-4" />
