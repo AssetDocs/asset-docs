@@ -322,8 +322,8 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
       toast({
         title: checked ? "Admin Access Enabled" : "Admin Access Disabled",
         description: checked 
-          ? "Administrator contributors can now access the Secure Vault."
-          : "Administrator contributors are now restricted from the Secure Vault.",
+          ? "Administrators (authorized user) can now access the Secure Vault."
+          : "Administrators (authorized user) are now restricted from the Secure Vault.",
       });
     } catch (error: any) {
       console.error('Error updating admin access:', error);
@@ -528,8 +528,8 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
                     <h4 className="font-semibold text-orange-800 dark:text-orange-300">Admin Access Control</h4>
                     <p className="text-sm text-orange-700 dark:text-orange-400 mt-1">
                       {allowAdminAccess 
-                        ? "Administrator contributors can currently access the Secure Vault."
-                        : "Administrator contributors are currently restricted from the Secure Vault."
+                        ? "Administrators (authorized user) can currently access the Secure Vault."
+                        : "Administrators (authorized user) are currently restricted from the Secure Vault."
                       }
                     </p>
                     <p className="text-xs text-muted-foreground mt-2">
