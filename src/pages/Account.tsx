@@ -142,7 +142,7 @@ const Account: React.FC = () => {
           {isOverview && (
             <>
               <div className="mb-4">
-                <WelcomeBanner />
+                <WelcomeBanner onTabChange={setActiveTab} />
               </div>
               <div className="mb-4">
                 <SecurityProgress hideChecklist />

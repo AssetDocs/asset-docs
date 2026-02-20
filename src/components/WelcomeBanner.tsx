@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronUp, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, X, Settings, Home, Users } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 
-const WelcomeBanner: React.FC = () => {
+interface WelcomeBannerProps {
+  onTabChange?: (tab: string) => void;
+}
+
+const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange }) => {
   const { profile, user } = useAuth();
+  const navigate = useNavigate();
   const [contributorInfo, setContributorInfo] = useState<{
     first_name: string | null;
     last_name: string | null;
@@ -152,13 +157,39 @@ const WelcomeBanner: React.FC = () => {
             </p>
           </div>
 
-          {/* Right side: Account # */}
+          {/* Right side: Account # and shortcuts */}
           <div className="flex flex-col gap-2 sm:items-end">
             {accountNumber && (
               <span className="text-white/90 font-medium text-sm bg-white/20 px-3 py-1 rounded-md">
                 Account #: {accountNumber}
               </span>
             )}
+            <div className="flex gap-2 mt-1">
+              <button
+                onClick={() => navigate('/account/settings')}
+                className="flex flex-col items-center gap-1 bg-white/15 hover:bg-white/25 transition-colors rounded-lg px-3 py-2 text-white/90 hover:text-white"
+                title="Account Settings"
+              >
+                <Settings className="h-4 w-4" />
+                <span className="text-[10px] font-medium leading-tight">Settings</span>
+              </button>
+              <button
+                onClick={() => navigate('/account/properties')}
+                className="flex flex-col items-center gap-1 bg-white/15 hover:bg-white/25 transition-colors rounded-lg px-3 py-2 text-white/90 hover:text-white"
+                title="Property Profiles"
+              >
+                <Home className="h-4 w-4" />
+                <span className="text-[10px] font-medium leading-tight">Properties</span>
+              </button>
+              <button
+                onClick={() => onTabChange?.('access-activity')}
+                className="flex flex-col items-center gap-1 bg-white/15 hover:bg-white/25 transition-colors rounded-lg px-3 py-2 text-white/90 hover:text-white"
+                title="Access & Activity"
+              >
+                <Users className="h-4 w-4" />
+                <span className="text-[10px] font-medium leading-tight">Access</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
