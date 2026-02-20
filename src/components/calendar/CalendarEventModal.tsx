@@ -59,7 +59,7 @@ const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
     event?.end_date ? parseISO(event.end_date) : undefined
   );
   const [recurrence, setRecurrence] = useState<CalendarEventRecurrence>(event?.recurrence || prefill?.recurrence || 'one_time');
-  const [linkedPropertyId, setLinkedPropertyId] = useState(event?.linked_property_id || '');
+  const [linkedPropertyId, setLinkedPropertyId] = useState(event?.linked_property_id || 'none');
   const [notes, setNotes] = useState(event?.notes || prefill?.notes || '');
   const [visibility, setVisibility] = useState<CalendarEventVisibility>(event?.visibility || 'private');
   const [notifyDayOf, setNotifyDayOf] = useState(event?.notify_day_of ?? prefill?.notify_day_of ?? true);
@@ -74,7 +74,7 @@ const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
       setStartDate(event?.start_date ? parseISO(event.start_date) : prefill?.start_date ? parseISO(prefill.start_date) : undefined);
       setEndDate(event?.end_date ? parseISO(event.end_date) : undefined);
       setRecurrence(event?.recurrence || prefill?.recurrence || 'one_time');
-      setLinkedPropertyId(event?.linked_property_id || '');
+      setLinkedPropertyId(event?.linked_property_id || 'none');
       setNotes(event?.notes || prefill?.notes || '');
       setVisibility(event?.visibility || 'private');
       setNotifyDayOf(event?.notify_day_of ?? prefill?.notify_day_of ?? true);
@@ -91,7 +91,7 @@ const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
       start_date: format(startDate, 'yyyy-MM-dd'),
       end_date: endDate ? format(endDate, 'yyyy-MM-dd') : null,
       recurrence,
-      linked_property_id: linkedPropertyId || null,
+      linked_property_id: linkedPropertyId === 'none' ? null : linkedPropertyId || null,
       notes: notes.trim() || null,
       visibility,
       notify_day_of: notifyDayOf,
@@ -105,7 +105,7 @@ const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" onOpenAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Edit Event' : 'New Calendar Event'}</DialogTitle>
         </DialogHeader>
@@ -186,7 +186,7 @@ const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
               <Select value={linkedPropertyId} onValueChange={setLinkedPropertyId}>
                 <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {properties.map((p: any) => (
                     <SelectItem key={p.id} value={p.id}>{p.name || p.address || 'Unnamed Property'}</SelectItem>
                   ))}
