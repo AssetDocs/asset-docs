@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Trash2, Plus, ExternalLink, Lock, Shield } from 'lucide-react';
+import { Trash2, Plus, ExternalLink, Lock, Shield, Pencil, Check, X } from 'lucide-react';
 import { z } from 'zod';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import MasterPasswordModal from './MasterPasswordModal';
@@ -16,10 +16,16 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const passwordSchema = z.object({
   websiteName: z.string().trim().min(1, "Website name is required").max(100),
-  websiteUrl: z.string().trim().min(1, "Website/URL is required").max(500),
+  websiteUrl: z.string().trim().max(500).optional(),
   password: z.string().trim().min(1, "Password is required").max(500),
   notes: z.string().trim().max(1000).optional(),
 });
+
+const normalizeUrl = (url: string) => {
+  if (!url) return '';
+  if (url.match(/^https?:\/\//i)) return url;
+  return `https://${url}`;
+};
 
 const accountSchema = z.object({
   accountType: z.string().trim().min(1, "Account type is required").max(100),
@@ -85,6 +91,10 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
   const [decryptedAccountNumbers, setDecryptedAccountNumbers] = useState<{ [key: string]: string }>({});
   const [decryptedRoutingNumbers, setDecryptedRoutingNumbers] = useState<{ [key: string]: string }>({});
   const [decryptedAccountNotes, setDecryptedAccountNotes] = useState<{ [key: string]: string }>({});
+  
+  // Edit state
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editData, setEditData] = useState({ websiteName: '', websiteUrl: '', password: '', notes: '' });
   
   const [formData, setFormData] = useState({
     websiteName: '',
@@ -266,7 +276,7 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
         .insert({
           user_id: user.id,
           website_name: formData.websiteName,
-          website_url: formData.websiteUrl,
+          website_url: formData.websiteUrl || null,
           password: encryptedPassword,
           notes: formData.notes || null,
         });
@@ -330,6 +340,48 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
         description: "Failed to delete password",
         variant: "destructive",
       });
+    }
+  };
+
+  const startEdit = (password: PasswordEntry) => {
+    setEditingId(password.id);
+    setEditData({
+      websiteName: password.website_name,
+      websiteUrl: password.website_url || '',
+      password: decryptedPasswords[password.id] || '',
+      notes: password.notes || '',
+    });
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditData({ websiteName: '', websiteUrl: '', password: '', notes: '' });
+  };
+
+  const handleEditSave = async (id: string) => {
+    if (!user || !sessionMasterPassword) return;
+    if (!editData.websiteName.trim() || !editData.password.trim()) {
+      toast({ title: "Validation Error", description: "Website name and password are required.", variant: "destructive" });
+      return;
+    }
+    try {
+      const encryptedPassword = await encryptPassword(editData.password, sessionMasterPassword);
+      const { error } = await supabase
+        .from('password_catalog')
+        .update({
+          website_name: editData.websiteName.trim(),
+          website_url: editData.websiteUrl.trim() || null,
+          password: encryptedPassword,
+          notes: editData.notes.trim() || null,
+        })
+        .eq('id', id);
+      if (error) throw error;
+      toast({ title: "Success", description: "Password updated successfully" });
+      setEditingId(null);
+      fetchPasswords(sessionMasterPassword);
+    } catch (error) {
+      console.error('Error updating password:', error);
+      toast({ title: "Error", description: "Failed to update password", variant: "destructive" });
     }
   };
 
@@ -494,14 +546,13 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="websiteUrl">Website/URL</Label>
+              <Label htmlFor="websiteUrl">Website/URL (Optional)</Label>
               <Input
                 id="websiteUrl"
                 type="text"
                 value={formData.websiteUrl}
                 onChange={(e) => setFormData({ ...formData, websiteUrl: e.target.value })}
                 placeholder="e.g., facebook.com, gmail.com"
-                required
               />
             </div>
           </div>
@@ -546,42 +597,78 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
             <div className="space-y-3">
               {passwords.map((password) => (
                 <div key={password.id} className="p-4 border rounded-lg bg-card space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-semibold">{password.website_name}</h4>
-                      <a href={password.website_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80">
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
+                  {editingId === password.id ? (
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs">Website Name</Label>
+                          <Input value={editData.websiteName} onChange={(e) => setEditData({ ...editData, websiteName: e.target.value })} />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Website/URL (Optional)</Label>
+                          <Input value={editData.websiteUrl} onChange={(e) => setEditData({ ...editData, websiteUrl: e.target.value })} placeholder="e.g., gmail.com" />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Password</Label>
+                        <Input value={editData.password} onChange={(e) => setEditData({ ...editData, password: e.target.value })} />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Notes (Optional)</Label>
+                        <Input value={editData.notes} onChange={(e) => setEditData({ ...editData, notes: e.target.value })} />
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" onClick={() => handleEditSave(password.id)}><Check className="h-4 w-4 mr-1" />Save</Button>
+                        <Button size="sm" variant="outline" onClick={cancelEdit}><X className="h-4 w-4 mr-1" />Cancel</Button>
+                      </div>
                     </div>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="sm" className="text-destructive">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Delete Password</AlertDialogTitle>
-                          <AlertDialogDescription>Are you sure you want to delete this password? This action cannot be undone.</AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleDelete(password.id)}>Delete</AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">Password</Label>
-                    <span className="font-mono text-sm block">{decryptedPasswords[password.id] || 'Decrypting...'}</span>
-                  </div>
-                  {password.notes && (
-                    <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">Notes</Label>
-                      <p className="text-sm">{password.notes}</p>
-                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-semibold">{password.website_name}</h4>
+                          {password.website_url && (
+                            <a href={normalizeUrl(password.website_url)} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80">
+                              <ExternalLink className="h-4 w-4" />
+                            </a>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="sm" onClick={() => startEdit(password)} className="text-muted-foreground hover:text-foreground">
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="sm" className="text-destructive">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Password</AlertDialogTitle>
+                                <AlertDialogDescription>Are you sure you want to delete this password? This action cannot be undone.</AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDelete(password.id)}>Delete</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Password</Label>
+                        <span className="font-mono text-sm block">{decryptedPasswords[password.id] || 'Decrypting...'}</span>
+                      </div>
+                      {password.notes && (
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Notes</Label>
+                          <p className="text-sm">{password.notes}</p>
+                        </div>
+                      )}
+                      <p className="text-xs text-muted-foreground">Added: {new Date(password.created_at).toLocaleDateString()}</p>
+                    </>
                   )}
-                  <p className="text-xs text-muted-foreground">Added: {new Date(password.created_at).toLocaleDateString()}</p>
                 </div>
               ))}
             </div>
@@ -783,14 +870,13 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="websiteUrlStandalone">Website/URL</Label>
+                <Label htmlFor="websiteUrlStandalone">Website/URL (Optional)</Label>
                 <Input
                   id="websiteUrlStandalone"
                   type="text"
                   value={formData.websiteUrl}
                   onChange={(e) => setFormData({ ...formData, websiteUrl: e.target.value })}
                   placeholder="e.g., facebook.com"
-                  required
                 />
               </div>
             </div>
@@ -835,42 +921,78 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
               <div className="space-y-3">
                 {passwords.map((password) => (
                   <div key={password.id} className="p-4 border rounded-lg bg-card space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-semibold">{password.website_name}</h4>
-                        <a href={password.website_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80">
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
+                    {editingId === password.id ? (
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <Label className="text-xs">Website Name</Label>
+                            <Input value={editData.websiteName} onChange={(e) => setEditData({ ...editData, websiteName: e.target.value })} />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs">Website/URL (Optional)</Label>
+                            <Input value={editData.websiteUrl} onChange={(e) => setEditData({ ...editData, websiteUrl: e.target.value })} placeholder="e.g., gmail.com" />
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Password</Label>
+                          <Input value={editData.password} onChange={(e) => setEditData({ ...editData, password: e.target.value })} />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Notes (Optional)</Label>
+                          <Input value={editData.notes} onChange={(e) => setEditData({ ...editData, notes: e.target.value })} />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={() => handleEditSave(password.id)}><Check className="h-4 w-4 mr-1" />Save</Button>
+                          <Button size="sm" variant="outline" onClick={cancelEdit}><X className="h-4 w-4 mr-1" />Cancel</Button>
+                        </div>
                       </div>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="sm" className="text-destructive">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Password</AlertDialogTitle>
-                            <AlertDialogDescription>Are you sure? This action cannot be undone.</AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDelete(password.id)}>Delete</AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">Password</Label>
-                      <span className="font-mono text-sm">{decryptedPasswords[password.id] || 'Decrypting...'}</span>
-                    </div>
-                    {password.notes && (
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Notes</Label>
-                        <p className="text-sm">{password.notes}</p>
-                      </div>
+                    ) : (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-semibold">{password.website_name}</h4>
+                            {password.website_url && (
+                              <a href={normalizeUrl(password.website_url)} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80">
+                                <ExternalLink className="h-4 w-4" />
+                              </a>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Button variant="ghost" size="sm" onClick={() => startEdit(password)} className="text-muted-foreground hover:text-foreground">
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="sm" className="text-destructive">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Password</AlertDialogTitle>
+                                  <AlertDialogDescription>Are you sure? This action cannot be undone.</AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => handleDelete(password.id)}>Delete</AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Password</Label>
+                          <span className="font-mono text-sm">{decryptedPasswords[password.id] || 'Decrypting...'}</span>
+                        </div>
+                        {password.notes && (
+                          <div className="space-y-1">
+                            <Label className="text-xs text-muted-foreground">Notes</Label>
+                            <p className="text-sm">{password.notes}</p>
+                          </div>
+                        )}
+                        <p className="text-xs text-muted-foreground">Added: {new Date(password.created_at).toLocaleDateString()}</p>
+                      </>
                     )}
-                    <p className="text-xs text-muted-foreground">Added: {new Date(password.created_at).toLocaleDateString()}</p>
                   </div>
                 ))}
               </div>
