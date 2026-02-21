@@ -243,6 +243,9 @@ const AskAssetSafe: React.FC = () => {
     return parts.length > 0 ? parts : text;
   };
 
+  // Hide on sample dashboard
+  if (location.pathname.startsWith('/sample-dashboard')) return null;
+
   // Collapsed state - just show the floating button
   if (!isOpen) {
     return (
