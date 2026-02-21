@@ -107,7 +107,7 @@ Deno.serve(async (req) => {
           id: mainItem.id,
           price_data: {
             currency: "usd",
-            product: mainItem.price?.product as string,
+            product_data: { name: priceConfig.product_name },
             unit_amount: priceConfig.amount,
             recurring: { interval: currentInterval as "month" | "year" },
           },
