@@ -1,41 +1,57 @@
 
 
-## Remove User: photography4mls@gmail.com
+## Streamline New User Account Creation Flow
 
-### User Details
-- **User ID**: `b81398f2-ad02-4701-8b13-9c4936f30eb9`
-- **Email**: photography4mls@gmail.com
-- **Created**: 2026-02-21
-- **Data found**: profiles (1), contacts (1), entitlements (1), notification_preferences (1)
-- **No data in**: subscribers, properties, items, contributors
+### Current Flow (Problems)
+1. User signs up at `/signup`
+2. Gets redirected to `/auth` (login page) with a small toast notification saying "check your email"
+3. After clicking email verification link, user lands on `/account` (dashboard) directly
+4. The `ProtectedRoute` component has an `allowFreeAccess` fallback that lets unpaid users into the dashboard
 
-### Approach
+### Desired Flow
+1. User creates account at `/signup`
+2. User is redirected to `/welcome` -- a prominent, quarter-page (or larger) verification prompt that stays on screen until email is verified (this page already exists and polls for verification status)
+3. After email verification, user is redirected to `/pricing` to choose and pay for a subscription
+4. Only after payment can the user access the dashboard
 
-Run a SQL migration that deletes all related records and then removes the auth user. The deletion order respects foreign key constraints:
+### Changes Required
 
-1. Delete from `notification_preferences`
-2. Delete from `entitlements`
-3. Delete from `contacts`
-4. Delete from `profiles`
-5. Delete the auth user via `auth.users`
+**1. Signup page (`src/pages/SignupLegacy.tsx`)**
+- After successful signup, redirect to `/welcome` instead of `/auth`
+- Remove the small toast that says "check your email and sign in" -- the Welcome page already handles this messaging prominently
 
-### SQL to Execute
+**2. Welcome / Email Verification page (`src/pages/Welcome.tsx`)**
+- After email is confirmed, redirect to `/pricing` instead of `/auth`
+- Update messaging: once verified, tell the user "Email verified! Redirecting to choose your plan..."
+- Keep the existing full-page layout (already meets the "quarter page" requirement -- it's actually full-screen)
 
-```sql
-DO $$
-DECLARE
-  target_id uuid := 'b81398f2-ad02-4701-8b13-9c4936f30eb9';
-BEGIN
-  DELETE FROM public.notification_preferences WHERE user_id = target_id;
-  DELETE FROM public.entitlements WHERE user_id = target_id;
-  DELETE FROM public.contacts WHERE user_id = target_id;
-  DELETE FROM public.profiles WHERE user_id = target_id;
-  DELETE FROM auth.users WHERE id = target_id;
-END $$;
+**3. Auth Callback (`src/pages/AuthCallback.tsx`)**
+- For `type === 'signup'` (email verification click), redirect to `/pricing` instead of `/account`
+- This handles the case where the user clicks the verification link directly
+
+**4. ProtectedRoute in `src/App.tsx`**
+- Remove the `allowFreeAccess` bypass that currently lets unpaid users into the dashboard
+- Users without an active subscription (and without contributor access) should be redirected to `/pricing`
+- Keep the existing `skipSubscriptionCheck` flag for routes like `/subscription-success`
+
+### Technical Details
+
+```
+Signup (/signup)
+    |
+    v
+Welcome Page (/welcome) -- full-screen verification prompt, polls every 3s
+    |  (email verified)
+    v
+Pricing Page (/pricing) -- user selects plan and pays via Stripe
+    |  (payment complete)
+    v
+Dashboard (/account) -- ProtectedRoute enforces active subscription
 ```
 
-### Important Notes
-- This is a permanent, irreversible deletion.
-- The user has minimal data (no properties, items, documents, or files), so no storage cleanup is needed.
-- No Stripe subscription exists, so no billing cancellation is required.
+**Files to modify:**
+- `src/pages/SignupLegacy.tsx` -- change post-signup redirect from `/auth` to `/welcome`
+- `src/pages/Welcome.tsx` -- change post-verification redirect from `/auth` to `/pricing`
+- `src/pages/AuthCallback.tsx` -- change signup callback redirect from `/account` to `/pricing`
+- `src/App.tsx` -- remove `allowFreeAccess` bypass in `ProtectedRoute` so unpaid users are sent to `/pricing`
 
