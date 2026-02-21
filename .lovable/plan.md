@@ -1,57 +1,65 @@
 
 
-## Streamline New User Account Creation Flow
+## In-App Plan Upgrade/Downgrade
 
-### Current Flow (Problems)
-1. User signs up at `/signup`
-2. Gets redirected to `/auth` (login page) with a small toast notification saying "check your email"
-3. After clicking email verification link, user lands on `/account` (dashboard) directly
-4. The `ProtectedRoute` component has an `allowFreeAccess` fallback that lets unpaid users into the dashboard
+### Problem
+When a subscribed user clicks "Switch to Premium" or "Switch to Standard", they are sent to the Stripe Customer Portal, which does not have plan switching configured. Users have no way to change their plan.
 
-### Desired Flow
-1. User creates account at `/signup`
-2. User is redirected to `/welcome` -- a prominent, quarter-page (or larger) verification prompt that stays on screen until email is verified (this page already exists and polls for verification status)
-3. After email verification, user is redirected to `/pricing` to choose and pay for a subscription
-4. Only after payment can the user access the dashboard
+### Solution
+Handle plan changes directly within Asset Safe by creating a new edge function that uses the Stripe API to swap the subscription item's price. The UI button will call this function instead of opening the Stripe portal.
 
-### Changes Required
+### How It Will Work
+1. User clicks "Switch to Premium" or "Switch to Standard" on the Subscription tab
+2. A confirmation dialog appears explaining what will change (price, features, proration)
+3. On confirm, the app calls a new `change-plan` edge function
+4. The edge function finds the user's active Stripe subscription and updates it to the new plan using Stripe's subscription update API (with proration)
+5. The webhook processes the resulting `customer.subscription.updated` event to update entitlements
+6. The UI refreshes to show the new plan
 
-**1. Signup page (`src/pages/SignupLegacy.tsx`)**
-- After successful signup, redirect to `/welcome` instead of `/auth`
-- Remove the small toast that says "check your email and sign in" -- the Welcome page already handles this messaging prominently
+### Changes
 
-**2. Welcome / Email Verification page (`src/pages/Welcome.tsx`)**
-- After email is confirmed, redirect to `/pricing` instead of `/auth`
-- Update messaging: once verified, tell the user "Email verified! Redirecting to choose your plan..."
-- Keep the existing full-page layout (already meets the "quarter page" requirement -- it's actually full-screen)
+**1. New edge function: `supabase/functions/change-plan/index.ts`**
+- Authenticates the user
+- Finds their active Stripe subscription
+- Creates new price data for the target plan (preserving billing interval -- monthly or yearly)
+- Calls `stripe.subscriptions.update()` to swap the subscription item to the new price
+- Uses `proration_behavior: 'create_prorations'` so users get credit for unused time
+- Updates the entitlements table immediately (plan, storage_quota_gb)
+- Returns success with the new plan details
 
-**3. Auth Callback (`src/pages/AuthCallback.tsx`)**
-- For `type === 'signup'` (email verification click), redirect to `/pricing` instead of `/account`
-- This handles the case where the user clicks the verification link directly
+**2. Update `src/components/SubscriptionTab.tsx`**
+- Replace the `handleManageSubscription` call on the "Switch to..." button with a new `handleChangePlan` function
+- Add a confirmation dialog that shows: current plan, new plan, and a note about proration
+- On confirm, call the `change-plan` edge function
+- On success, refresh subscription status and show a success toast
+- Remove the "Click to modify your subscription through Stripe" text
 
-**4. ProtectedRoute in `src/App.tsx`**
-- Remove the `allowFreeAccess` bypass that currently lets unpaid users into the dashboard
-- Users without an active subscription (and without contributor access) should be redirected to `/pricing`
-- Keep the existing `skipSubscriptionCheck` flag for routes like `/subscription-success`
+**3. Update `supabase/config.toml`**
+- Add `[functions.change-plan]` with `verify_jwt = false` (auth handled in code)
 
 ### Technical Details
 
-```
-Signup (/signup)
-    |
-    v
-Welcome Page (/welcome) -- full-screen verification prompt, polls every 3s
-    |  (email verified)
-    v
-Pricing Page (/pricing) -- user selects plan and pays via Stripe
-    |  (payment complete)
-    v
-Dashboard (/account) -- ProtectedRoute enforces active subscription
+The `change-plan` edge function will:
+
+```text
+1. Verify user auth token
+2. Look up Stripe customer by email
+3. Retrieve active subscription (stripe.subscriptions.list)
+4. Determine current billing interval from the existing subscription item
+5. Build new price_data for the target plan (standard or premium) with same interval
+6. Call stripe.subscriptions.update() with:
+   - items: [{ id: existing_item_id, price_data: new_price_data }]
+   - proration_behavior: 'create_prorations'
+7. Update entitlements table (plan, storage_quota_gb)
+8. Return { success: true, plan: targetPlan }
 ```
 
-**Files to modify:**
-- `src/pages/SignupLegacy.tsx` -- change post-signup redirect from `/auth` to `/welcome`
-- `src/pages/Welcome.tsx` -- change post-verification redirect from `/auth` to `/pricing`
-- `src/pages/AuthCallback.tsx` -- change signup callback redirect from `/account` to `/pricing`
-- `src/App.tsx` -- remove `allowFreeAccess` bypass in `ProtectedRoute` so unpaid users are sent to `/pricing`
+The confirmation dialog will clearly state:
+- "You are switching from [Current Plan] to [New Plan]"
+- "Your billing will be prorated -- you'll receive credit for unused time on your current plan"
+- Two buttons: "Cancel" and "Confirm Change"
 
+### Files to Create/Modify
+- **Create**: `supabase/functions/change-plan/index.ts`
+- **Modify**: `src/components/SubscriptionTab.tsx` (replace portal redirect with in-app plan change)
+- **Modify**: `supabase/config.toml` (add function config)
