@@ -197,6 +197,14 @@ const AdminOwnerWorkspace: React.FC = () => {
               <Button 
                 variant="outline" 
                 className="h-auto py-4 flex flex-col items-start text-left"
+                onClick={() => navigate('/admin/lender-partnership')}
+              >
+                <span className="font-semibold">Lender Partnership</span>
+                <span className="text-sm text-muted-foreground">Closing gifts & pre-lending advantage</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-auto py-4 flex flex-col items-start text-left"
                 onClick={() => navigate('/admin/photographer-interest')}
               >
                 <span className="font-semibold">Photographer Network</span>
