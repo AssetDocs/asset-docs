@@ -113,6 +113,7 @@ import VIPContacts from "./pages/VIPContacts";
 import SubscriptionAgreement from "./pages/SubscriptionAgreement";
 import DevInviteAccept from "./pages/DevInviteAccept";
 import PhotographerInterest from "./pages/PhotographerInterest";
+import LenderPartnership from "./pages/LenderPartnership";
 
 const queryClient = new QueryClient();
 
@@ -362,6 +363,7 @@ const AppContent = () => {
         <Route path="/admin/habitat-pilot" element={<HabitatPilot />} />
         <Route path="/admin/enterprise" element={<EnterpriseWhiteLabel />} />
         <Route path="/admin/photographer-interest" element={<PhotographerInterest />} />
+        <Route path="/admin/lender-partnership" element={<LenderPartnership />} />
         <Route path="/admin/dev-invite" element={<DevInviteAccept />} />
         <Route path="/acknowledge-access" element={<AcknowledgeAccess />} />
         
