@@ -1219,6 +1219,119 @@ export type Database = {
         }
         Relationships: []
       }
+      financial_loan_folders: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number
+          folder_name: string
+          gradient_color: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          folder_name: string
+          gradient_color?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          folder_name?: string
+          gradient_color?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      financial_loans: {
+        Row: {
+          account_number: string | null
+          apr: number | null
+          bucket_name: string
+          created_at: string
+          file_name: string | null
+          file_path: string | null
+          file_size: number | null
+          file_type: string | null
+          file_url: string | null
+          folder_id: string | null
+          id: string
+          institution: string | null
+          loan_terms: string | null
+          loan_type: string | null
+          maturity_date: string | null
+          monthly_payment: number | null
+          notes: string | null
+          start_date: string | null
+          status: string
+          total_amount: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_number?: string | null
+          apr?: number | null
+          bucket_name?: string
+          created_at?: string
+          file_name?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          folder_id?: string | null
+          id?: string
+          institution?: string | null
+          loan_terms?: string | null
+          loan_type?: string | null
+          maturity_date?: string | null
+          monthly_payment?: number | null
+          notes?: string | null
+          start_date?: string | null
+          status?: string
+          total_amount?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_number?: string | null
+          apr?: number | null
+          bucket_name?: string
+          created_at?: string
+          file_name?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          folder_id?: string | null
+          id?: string
+          institution?: string | null
+          loan_terms?: string | null
+          loan_type?: string | null
+          maturity_date?: string | null
+          monthly_payment?: number | null
+          notes?: string | null
+          start_date?: string | null
+          status?: string
+          total_amount?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_loans_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "financial_loan_folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gift_claim_attempts: {
         Row: {
           attempted_at: string | null
@@ -2890,6 +3003,98 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      tax_return_folders: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number
+          folder_name: string
+          gradient_color: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          folder_name: string
+          gradient_color?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          folder_name?: string
+          gradient_color?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tax_returns: {
+        Row: {
+          bucket_name: string
+          created_at: string
+          file_name: string | null
+          file_path: string | null
+          file_size: number | null
+          file_type: string | null
+          file_url: string | null
+          folder_id: string | null
+          id: string
+          notes: string | null
+          tags: string | null
+          tax_year: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bucket_name?: string
+          created_at?: string
+          file_name?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          folder_id?: string | null
+          id?: string
+          notes?: string | null
+          tags?: string | null
+          tax_year?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bucket_name?: string
+          created_at?: string
+          file_name?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          folder_id?: string | null
+          id?: string
+          notes?: string | null
+          tags?: string | null
+          tax_year?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tax_returns_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "tax_return_folders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tickets: {
         Row: {

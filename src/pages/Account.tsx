@@ -23,6 +23,8 @@ import SecurityProgress from '@/components/SecurityProgress';
 import MFADropdown from '@/components/MFADropdown';
 import DashboardGrid from '@/components/DashboardGrid';
 import InsightsToolsGrid from '@/components/InsightsToolsGrid';
+import TaxReturnOrganizer from '@/components/TaxReturnOrganizer';
+import FinancialLoans from '@/components/FinancialLoans';
 import LifeHubGrid from '@/components/LifeHubGrid';
 import NotesAndTraditions from '@/components/NotesAndTraditions';
 import QuickNotesSection from '@/components/QuickNotesSection';
@@ -126,6 +128,8 @@ const Account: React.FC = () => {
       'memory-safe': { title: 'Memory Safe', subtitle: 'A protected place for the memories you want to keep — and pass on.' },
       'access-activity': { title: 'Access & Activity', subtitle: 'Manage authorized users and monitor recent account activity.' },
       'emergency-instructions': { title: 'Emergency Instructions', subtitle: 'Clear guidance that brings clarity during unexpected situations.' },
+      'tax-returns': { title: 'Tax Return Organizer', subtitle: 'Store and organize previous tax returns and associated documents.' },
+      'financial-loans': { title: 'Financial Loans', subtitle: 'Track and organize your loans and associated documents.' },
     };
     return configs[activeTab] || { title: '', subtitle: '' };
   };
@@ -181,7 +185,7 @@ const Account: React.FC = () => {
                   </Button>
                 )}
 
-                {['source-websites', 'paint-codes', 'upgrades-repairs', 'smart-calendar'].includes(activeTab) && (
+                {['source-websites', 'paint-codes', 'upgrades-repairs', 'smart-calendar', 'tax-returns', 'financial-loans'].includes(activeTab) && (
                   <Button
                     onClick={() => setActiveTab('insights-tools')}
                     variant="outline"
@@ -355,6 +359,16 @@ const Account: React.FC = () => {
             {/* Emergency Instructions */}
             <TabsContent value="emergency-instructions">
               <EmergencyInstructions onNavigate={setActiveTab} standalone />
+            </TabsContent>
+
+            {/* Tax Return Organizer */}
+            <TabsContent value="tax-returns">
+              <TaxReturnOrganizer />
+            </TabsContent>
+
+            {/* Financial Loans */}
+            <TabsContent value="financial-loans">
+              <FinancialLoans />
             </TabsContent>
           </Tabs>
 
