@@ -46,11 +46,10 @@ const AdminDocuments: React.FC = () => {
               <CardContent className="p-4 flex flex-col items-center text-center gap-3">
                 {/* Thumbnail */}
                 <div className="w-full aspect-[3/4] bg-muted rounded-md flex items-center justify-center overflow-hidden">
-                  <iframe
-                    src={`${doc.file}#toolbar=0&navpanes=0&scrollbar=0`}
-                    className="w-full h-full pointer-events-none"
-                    title={doc.name}
-                  />
+                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                    <FileText className="h-12 w-12" />
+                    <span className="text-xs font-medium text-center px-2 leading-tight">PDF</span>
+                  </div>
                 </div>
 
                 <p className="text-sm font-medium line-clamp-2 leading-tight">{doc.name}</p>
