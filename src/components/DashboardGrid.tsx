@@ -29,7 +29,10 @@ import {
   DollarSign,
   ChevronDown,
   Bell,
+  LockKeyhole,
+  LockOpen,
 } from 'lucide-react';
+import { useVaultEncryptionStatus } from '@/hooks/useVaultEncryptionStatus';
 
 interface DashboardGridProps {
   onTabChange: (tab: string) => void;
@@ -45,6 +48,17 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
   });
   const { unreadCount } = useUnreadNotifications();
   const { todayCount: calendarTodayCount } = useCalendarNotifications();
+  const { isEncrypted } = useVaultEncryptionStatus();
+
+  const vaultBadge = isEncrypted ? 'Encrypted' : 'Not Encrypted';
+  const vaultBadgeIcon = isEncrypted ? (
+    <LockKeyhole className="h-3 w-3 text-emerald-600" />
+  ) : (
+    <span className="relative">
+      <LockOpen className="h-3 w-3 text-amber-600" />
+      <span className="absolute -top-1 -right-1.5 text-amber-600 font-bold text-[8px] leading-none">!</span>
+    </span>
+  );
 
   const handleToggleAssetValues = () => {
     const newState = !isAssetValuesOpen;
@@ -124,8 +138,8 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           actionIcon={<Shield className="h-4 w-4" />}
           onClick={() => onTabChange('legacy-locker')}
           color="yellow"
-          badge="Authorized Users Only"
-          badgeIcon={<span className="text-[10px]">🔒</span>}
+          badge={vaultBadge}
+          badgeIcon={vaultBadgeIcon}
         />
 
         <DashboardGridCard
@@ -137,8 +151,8 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           actionIcon={<Key className="h-4 w-4" />}
           onClick={() => onTabChange('password-catalog')}
           color="yellow"
-          badge="Authorized Users Only"
-          badgeIcon={<span className="text-[10px]">🔒</span>}
+          badge={vaultBadge}
+          badgeIcon={vaultBadgeIcon}
         />
 
         {/* MFA Dropdown - security control near restricted sections */}
