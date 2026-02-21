@@ -180,7 +180,7 @@ const QuickNotesSection: React.FC = () => {
               </div>
             </div>
           ) : (
-            <Button onClick={() => setIsAdding(true)} className="w-full" variant="outline">
+            <Button onClick={() => setIsAdding(true)} className="w-full">
               <Plus className="h-4 w-4 mr-2" />
               Add Note
             </Button>
