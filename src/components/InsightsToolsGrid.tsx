@@ -8,6 +8,7 @@ import {
   Globe,
   Palette,
   CalendarDays,
+  StickyNote,
 } from 'lucide-react';
 
 interface InsightsToolsGridProps {
@@ -88,6 +89,17 @@ const InsightsToolsGrid: React.FC<InsightsToolsGridProps> = ({ onTabChange }) =>
           description="Store paint colors, brands, and finish details."
           actionLabel="View Paint Codes"
           onClick={() => onTabChange('paint-codes')}
+          color="teal"
+          variant="compact"
+        />
+
+        {/* Quick Notes */}
+        <DashboardGridCard
+          icon={<StickyNote className="h-5 w-5" />}
+          title="Quick Notes"
+          description="Jot down quick reminders or thoughts."
+          actionLabel="View Notes"
+          onClick={() => onTabChange('quick-notes')}
           color="teal"
           variant="compact"
         />
