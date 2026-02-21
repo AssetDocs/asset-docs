@@ -3238,23 +3238,35 @@ export type Database = {
       }
       user_notes: {
         Row: {
+          bucket_name: string | null
           content: string
           created_at: string
+          file_name: string | null
+          file_path: string | null
           id: string
+          title: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          bucket_name?: string | null
           content: string
           created_at?: string
+          file_name?: string | null
+          file_path?: string | null
           id?: string
+          title?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          bucket_name?: string | null
           content?: string
           created_at?: string
+          file_name?: string | null
+          file_path?: string | null
           id?: string
+          title?: string | null
           updated_at?: string
           user_id?: string
         }
