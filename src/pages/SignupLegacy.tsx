@@ -134,13 +134,9 @@ const Signup: React.FC = () => {
           }
           navigate('/contributor-welcome');
         } else {
-          // Redirect to login page - user will verify email via link and then sign in
-          toast({
-            title: "Account Created!",
-            description: "Please check your email to verify your account, then sign in.",
-          });
+          // Redirect to welcome page for email verification prompt
           const giftCodeParam = data.giftCode?.trim() ? `?giftCode=${encodeURIComponent(data.giftCode.trim())}` : '';
-          navigate(`/auth${giftCodeParam ? `?${giftCodeParam.substring(1)}` : ''}`);
+          navigate(`/welcome${giftCodeParam}`);
         }
       }
     } catch (error: any) {
