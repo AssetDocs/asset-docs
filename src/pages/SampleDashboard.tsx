@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   Eye,
   Home,
@@ -35,6 +36,9 @@ import {
   FileDown,
   Download,
   AlertTriangle,
+  LockKeyhole,
+  ShieldCheck,
+  ClipboardList,
 } from 'lucide-react';
 
 const SampleDashboard: React.FC = () => {
@@ -183,6 +187,28 @@ const SampleDashboard: React.FC = () => {
     </Card>
   );
 
+  // Demo collapsible bar (static, click shows alert)
+  const DemoCollapsibleBar = ({ icon, label, alertTitle, alertDescription }: {
+    icon: React.ReactNode; label: string; alertTitle: string; alertDescription: string;
+  }) => (
+    <div className="md:col-span-2">
+      <div className="w-full bg-card border border-border rounded-lg overflow-hidden">
+        <button
+          onClick={() => showDemoAlert(alertTitle, alertDescription)}
+          className="w-full px-6 py-4 flex items-center justify-between gap-3 hover:bg-muted/30 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+              {icon}
+            </div>
+            <span className="text-sm font-semibold text-foreground">{label}</span>
+          </div>
+          <ChevronDown className="h-5 w-5 text-muted-foreground -rotate-90" />
+        </button>
+      </div>
+    </div>
+  );
+
   // Reusable demo grid card matching DashboardGridCard style
   const DemoGridCard = ({ icon, title, description, tags, actionLabel, color, badge, badgeIcon, alertTitle, alertDescription }: {
     icon: React.ReactNode; title: string; description: string; tags?: string[]; actionLabel: string;
@@ -198,32 +224,39 @@ const SampleDashboard: React.FC = () => {
     const c = colorStyles[color] || colorStyles.blue;
 
     return (
-      <Card className={`border-l-4 ${c.border} hover:shadow-lg transition-all cursor-pointer bg-white`} onClick={() => showDemoAlert(alertTitle, alertDescription)}>
-        <CardContent className="pt-6">
-          <div className="flex items-start gap-4">
-            <div className={`w-12 h-12 ${c.iconBg} rounded-xl flex items-center justify-center flex-shrink-0`}>
-              <div className={c.iconText}>{icon}</div>
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-bold text-lg text-foreground">{title}</h3>
-                {badge && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-semibold uppercase tracking-wide border border-amber-200">
-                    {badgeIcon}{badge}
-                  </span>
-                )}
+      <Tooltip delayDuration={300}>
+        <TooltipTrigger asChild>
+          <Card className={`border-l-4 ${c.border} hover:shadow-lg transition-all cursor-pointer bg-white`} onClick={() => showDemoAlert(alertTitle, alertDescription)}>
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-4">
+                <div className={`w-12 h-12 ${c.iconBg} rounded-xl flex items-center justify-center flex-shrink-0`}>
+                  <div className={c.iconText}>{icon}</div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-bold text-lg text-foreground">{title}</h3>
+                    {badge && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-semibold uppercase tracking-wide border border-amber-200">
+                        {badgeIcon}{badge}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">{description}</p>
+                  {tags && tags.length > 0 && (
+                    <p className="mt-2 text-xs font-medium text-muted-foreground">{tags.join(' · ')}</p>
+                  )}
+                </div>
               </div>
-              <p className="text-sm text-muted-foreground mt-1">{description}</p>
-              {tags && tags.length > 0 && (
-                <p className="mt-2 text-xs font-medium text-muted-foreground">{tags.join(' · ')}</p>
-              )}
-            </div>
-          </div>
-          <Button variant="outline" className={`w-full mt-4 font-medium ${c.btnBorder} ${c.btnText} ${c.btnHover}`}>
-            {actionLabel}
-          </Button>
-        </CardContent>
-      </Card>
+              <Button variant="outline" className={`w-full mt-4 font-medium ${c.btnBorder} ${c.btnText} ${c.btnHover}`}>
+                {actionLabel}
+              </Button>
+            </CardContent>
+          </Card>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="max-w-xs text-sm">
+          {alertDescription}
+        </TooltipContent>
+      </Tooltip>
     );
   };
 
@@ -231,22 +264,29 @@ const SampleDashboard: React.FC = () => {
   const DemoUtilityCard = ({ icon, title, description, actionLabel, alertTitle, alertDescription }: {
     icon: React.ReactNode; title: string; description: string; actionLabel: string; alertTitle: string; alertDescription: string;
   }) => (
-    <Card className="border-l-4 border-l-orange-500 bg-white hover:shadow-lg transition-all cursor-pointer" onClick={() => showDemoAlert(alertTitle, alertDescription)}>
-      <CardContent className="pt-5 pb-5">
-        <div className="flex items-start gap-3 mb-4">
-          <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center flex-shrink-0">
-            <div className="text-orange-600">{icon}</div>
-          </div>
-          <div>
-            <h3 className="font-bold text-sm text-foreground">{title}</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
-          </div>
-        </div>
-        <Button variant="outline" className="w-full border-orange-200 text-orange-700 hover:bg-orange-50 h-8 text-xs font-medium">
-          {actionLabel}
-        </Button>
-      </CardContent>
-    </Card>
+    <Tooltip delayDuration={300}>
+      <TooltipTrigger asChild>
+        <Card className="border-l-4 border-l-orange-500 bg-white hover:shadow-lg transition-all cursor-pointer" onClick={() => showDemoAlert(alertTitle, alertDescription)}>
+          <CardContent className="pt-5 pb-5">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                <div className="text-orange-600">{icon}</div>
+              </div>
+              <div>
+                <h3 className="font-bold text-sm text-foreground">{title}</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
+              </div>
+            </div>
+            <Button variant="outline" className="w-full border-orange-200 text-orange-700 hover:bg-orange-50 h-8 text-xs font-medium">
+              {actionLabel}
+            </Button>
+          </CardContent>
+        </Card>
+      </TooltipTrigger>
+      <TooltipContent side="top" className="max-w-xs text-sm">
+        {alertDescription}
+      </TooltipContent>
+    </Tooltip>
   );
 
   return (
@@ -266,7 +306,7 @@ const SampleDashboard: React.FC = () => {
             <Eye className="h-4 w-4" />
             <AlertDescription className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <span>
-                <strong>Sample Dashboard</strong> — Click on any tile to learn what it does. Features are disabled for demonstration.
+                <strong>Sample Dashboard</strong> — Hover over or click any tile to learn what it does. Features are disabled for demonstration.
               </span>
               <Button onClick={() => navigate('/pricing')} size="sm" className="bg-brand-green hover:bg-brand-green/90">
                 Start Your Free Trial
@@ -287,129 +327,164 @@ const SampleDashboard: React.FC = () => {
           <DemoSecurityProgress />
 
           {/* Main Dashboard Grid */}
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {/* Row 1: Red */}
-              <DemoGridCard
-                icon={<FolderOpen className="h-6 w-6" />}
-                title="Asset Documentation"
-                description="Claim-ready proof for your home and belongings."
-                tags={['Photos', 'Videos', 'Documents', 'Records']}
-                actionLabel="Open Documentation"
-                color="red"
-                alertTitle="Asset Documentation"
-                alertDescription="Upload and organize photos, videos, documents, and records for all your properties. This is your central hub for claim-ready proof—organized by room, category, or property. Includes Scan to PDF, receipts, warranties, and insurance documents."
-              />
-              <DemoGridCard
-                icon={<Heart className="h-6 w-6" />}
-                title="Family Archive"
-                description="Everyday life, organized and protected."
-                tags={['VIP Contacts', 'Voice Notes', 'Trusted Pros', 'Notes & Traditions', 'Family Recipes']}
-                actionLabel="Open Family Archive"
-                color="red"
-                alertTitle="Family Archive"
-                alertDescription="Store the personal details that matter most. Keep VIP contacts (attorneys, insurance agents, financial advisors), record voice notes, save trusted service professionals, preserve family traditions and notes, and catalog cherished family recipes—all in one secure place."
-              />
+          <TooltipProvider>
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {/* Row 1: Red */}
+                <DemoGridCard
+                  icon={<FolderOpen className="h-6 w-6" />}
+                  title="Asset Documentation"
+                  description="Claim-ready proof for your home and belongings."
+                  tags={['Photos', 'Videos', 'Documents', 'Records']}
+                  actionLabel="Open Documentation"
+                  color="red"
+                  alertTitle="Asset Documentation"
+                  alertDescription="Upload and organize photos, videos, documents, and records for all your properties. This is your central hub for claim-ready proof—organized by room, category, or property. Includes Scan to PDF, receipts, warranties, and insurance documents."
+                />
+                <DemoGridCard
+                  icon={<Heart className="h-6 w-6" />}
+                  title="Family Archive"
+                  description="Everyday life, organized and protected."
+                  tags={['VIP Contacts', 'Voice Notes', 'Trusted Pros', 'Notes & Traditions', 'Family Recipes']}
+                  actionLabel="Open Family Archive"
+                  color="red"
+                  alertTitle="Family Archive"
+                  alertDescription="Store the personal details that matter most. Keep VIP contacts (attorneys, insurance agents, financial advisors), record voice notes, save trusted service professionals, preserve family traditions and notes, and catalog cherished family recipes—all in one secure place."
+                />
 
-              {/* Row 2: Yellow */}
-              <DemoGridCard
-                icon={<Shield className="h-6 w-6" />}
-                title="Legacy Locker"
-                description="Guidance and access when you can't be there."
-                tags={['Instructions', 'Access', 'Recovery']}
-                actionLabel="Manage Legacy"
-                color="yellow"
-                badge="Authorized Users Only"
-                badgeIcon={<span className="text-[10px]">🔒</span>}
-                alertTitle="Legacy Locker"
-                alertDescription="A password-protected vault for your most sensitive legacy information. Store estate planning documents, wills, trust details, executor instructions, and delegate access for loved ones. Only you and your designated recovery delegates can access this section."
-              />
-              <DemoGridCard
-                icon={<Key className="h-6 w-6" />}
-                title="Password Catalog"
-                description="Your most private information, fully encrypted."
-                tags={['Websites', 'Passwords', 'Sensitive Data']}
-                actionLabel="Open Catalog"
-                color="yellow"
-                badge="Authorized Users Only"
-                badgeIcon={<span className="text-[10px]">🔒</span>}
-                alertTitle="Password Catalog"
-                alertDescription="Securely store website credentials, sensitive account information, and private data behind an additional master password. All entries are encrypted and only accessible by authorized users."
-              />
+                {/* Documentation Checklist collapsible bar */}
+                <DemoCollapsibleBar
+                  icon={<ClipboardList className="h-4 w-4 text-primary" />}
+                  label="Documentation Checklist"
+                  alertTitle="Documentation Checklist"
+                  alertDescription="Track your documentation progress across all properties. This checklist helps ensure you've captured photos, videos, documents, and inventory for every room and category—so nothing is missed when you need it most."
+                />
 
-              {/* Row 3: Green */}
-              <DemoGridCard
-                icon={<Wrench className="h-6 w-6" />}
-                title="Insights & Tools"
-                description="Track values, manage repairs, and organize property details."
-                tags={['Asset Values', 'Manual Entry', 'Upgrades & Repairs', 'Source Websites', 'Paint Codes']}
-                actionLabel="Open Tools"
-                color="green"
-                alertTitle="Insights & Tools"
-                alertDescription="A toolkit for managing your property details. Track total asset values across properties, manually add inventory items, log home upgrades and repairs, save purchase source websites for warranty reference, and store paint codes for every room."
-              />
+                {/* Row 2: Yellow */}
+                <DemoGridCard
+                  icon={<Shield className="h-6 w-6" />}
+                  title="Legacy Locker"
+                  description="Guidance and access when you can't be there."
+                  tags={['Instructions', 'Access', 'Recovery']}
+                  actionLabel="Manage Legacy"
+                  color="yellow"
+                  badge="Encrypted"
+                  badgeIcon={<LockKeyhole className="h-3 w-3 text-emerald-600" />}
+                  alertTitle="Legacy Locker"
+                  alertDescription="A password-protected vault for your most sensitive legacy information. Store estate planning documents, wills, trust details, executor instructions, and delegate access for loved ones. Only you and your designated recovery delegates can access this section."
+                />
+                <DemoGridCard
+                  icon={<Key className="h-6 w-6" />}
+                  title="Password Catalog"
+                  description="Your most private information, fully encrypted."
+                  tags={['Websites', 'Passwords', 'Sensitive Data']}
+                  actionLabel="Open Catalog"
+                  color="yellow"
+                  badge="Encrypted"
+                  badgeIcon={<LockKeyhole className="h-3 w-3 text-emerald-600" />}
+                  alertTitle="Password Catalog"
+                  alertDescription="Securely store website credentials, sensitive account information, and private data behind an additional master password. All entries are encrypted and only accessible by authorized users."
+                />
 
-              {/* Row 4: Blue */}
-              <DemoGridCard
-                icon={<Home className="h-6 w-6" />}
-                title="Property Profiles"
-                description="Keep track of your properties and manage important details."
-                tags={['All Homes', 'Vacation Houses', 'Rentals']}
-                actionLabel="View Profiles"
-                color="blue"
-                alertTitle="Property Profiles"
-                alertDescription="Create unlimited property profiles for your homes, vacation houses, rentals, and storage units. Each property stores its address, square footage, year built, estimated value, and links to all associated photos, videos, documents, and inventory."
-              />
-              <DemoGridCard
-                icon={<Settings className="h-6 w-6" />}
-                title="Account Settings"
-                description="Manage your account details, security, and preferences."
-                tags={['Plan', 'Billing', 'Alerts']}
-                actionLabel="Account Settings"
-                color="blue"
-                alertTitle="Account Settings"
-                alertDescription="Control your subscription plan, billing details, notification preferences, profile information, and security settings including two-factor authentication and backup codes."
-              />
-              <DemoGridCard
-                icon={<Users className="h-6 w-6" />}
-                title="Access & Activity"
-                description="Authorized users and recent actions."
-                tags={['Invite Users', 'Roles', 'Activity Log']}
-                actionLabel="Manage Access & Activity"
-                color="blue"
-                alertTitle="Access & Activity"
-                alertDescription="Invite contributors (family members, professionals) to your account with role-based permissions. Monitor all account activity with a detailed log of uploads, edits, logins, and access events."
-              />
+                {/* MFA Dropdown collapsible bar */}
+                <DemoCollapsibleBar
+                  icon={<ShieldCheck className="h-4 w-4 text-primary" />}
+                  label="Multi-Factor Authentication"
+                  alertTitle="Multi-Factor Authentication"
+                  alertDescription="Enable and manage two-factor authentication (TOTP) for your account. This adds an extra layer of security to your Legacy Locker and Password Catalog, requiring a code from your authenticator app each session."
+                />
+
+                {/* Row 3: Green */}
+                <DemoGridCard
+                  icon={<Wrench className="h-6 w-6" />}
+                  title="Insights & Tools"
+                  description="Track values, manage repairs, and organize property details."
+                  tags={['Smart Calendar', 'Asset Values', 'Manual Entry', 'Upgrades & Repairs', 'Source Websites', 'Paint Codes']}
+                  actionLabel="Open Tools"
+                  color="green"
+                  alertTitle="Insights & Tools"
+                  alertDescription="A toolkit for managing your property details. Track total asset values across properties, manually add inventory items, log home upgrades and repairs, save purchase source websites for warranty reference, and store paint codes for every room."
+                />
+
+                {/* Row 4: Blue */}
+                <DemoGridCard
+                  icon={<Home className="h-6 w-6" />}
+                  title="Property Profiles"
+                  description="Keep track of your properties and manage important details."
+                  tags={['All Homes', 'Vacation Houses', 'Rentals']}
+                  actionLabel="View Profiles"
+                  color="blue"
+                  alertTitle="Property Profiles"
+                  alertDescription="Create unlimited property profiles for your homes, vacation houses, rentals, and storage units. Each property stores its address, square footage, year built, estimated value, and links to all associated photos, videos, documents, and inventory."
+                />
+
+                {/* Asset Values collapsible bar */}
+                <DemoCollapsibleBar
+                  icon={<DollarSign className="h-4 w-4 text-primary" />}
+                  label="Asset Values"
+                  alertTitle="Asset Values"
+                  alertDescription="View a high-level financial summary of all your documented assets. See total values across properties, itemized breakdowns by category, and track changes over time to ensure your coverage stays up to date."
+                />
+
+                <DemoGridCard
+                  icon={<Settings className="h-6 w-6" />}
+                  title="Account Settings"
+                  description="Manage your account details, security, and preferences."
+                  tags={['Plan', 'Billing', 'Alerts']}
+                  actionLabel="Account Settings"
+                  color="blue"
+                  alertTitle="Account Settings"
+                  alertDescription="Control your subscription plan, billing details, notification preferences, profile information, and security settings including two-factor authentication and backup codes."
+                />
+                <DemoGridCard
+                  icon={<Users className="h-6 w-6" />}
+                  title="Access & Activity"
+                  description="Authorized users and recent actions."
+                  tags={['Invite Users', 'Roles', 'Activity Log']}
+                  actionLabel="Manage Access & Activity"
+                  color="blue"
+                  alertTitle="Access & Activity"
+                  alertDescription="Invite contributors (family members, professionals) to your account with role-based permissions. Monitor all account activity with a detailed log of uploads, edits, logins, and access events."
+                />
+
+                {/* Emergency Instructions collapsible bar */}
+                <DemoCollapsibleBar
+                  icon={<AlertTriangle className="h-4 w-4 text-primary" />}
+                  label="Emergency Instructions"
+                  alertTitle="Emergency Instructions"
+                  alertDescription="Prepare step-by-step instructions for your family in case of emergency. Define primary and secondary contacts, list first actions to take, document property access details, and store professional contacts—so your loved ones know exactly what to do."
+                />
+              </div>
+
+              {/* Bottom Utility Row: Orange */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <DemoUtilityCard
+                  icon={<FileDown className="h-5 w-5" />}
+                  title="Export Assets"
+                  description="Generate a PDF summary of your assets."
+                  actionLabel="Export Assets"
+                  alertTitle="Export Assets"
+                  alertDescription="Generate a comprehensive PDF report of all your documented assets including photos, descriptions, values, and property details. Perfect for sharing with insurance agents, attorneys, or family members."
+                />
+                <DemoUtilityCard
+                  icon={<Download className="h-5 w-5" />}
+                  title="Download All Files"
+                  description="Download all files in a single ZIP."
+                  actionLabel="Download All"
+                  alertTitle="Download All Files"
+                  alertDescription="Download every photo, video, and document you've uploaded in a single ZIP file. Great for creating local backups or transferring to another storage service."
+                />
+                <DemoUtilityCard
+                  icon={<AlertTriangle className="h-5 w-5" />}
+                  title="Post Damage Report"
+                  description="Document damage and submit post-incident details."
+                  actionLabel="Post Report"
+                  alertTitle="Post Damage Report"
+                  alertDescription="After an incident (fire, flood, theft, storm), use this tool to document damage for insurance claims. Upload photos and videos of affected areas, describe the damage, select impacted rooms, and track your claim progress."
+                />
+              </div>
             </div>
-
-            {/* Bottom Utility Row: Orange */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <DemoUtilityCard
-                icon={<FileDown className="h-5 w-5" />}
-                title="Export Assets"
-                description="Generate a PDF summary of your assets."
-                actionLabel="Export Assets"
-                alertTitle="Export Assets"
-                alertDescription="Generate a comprehensive PDF report of all your documented assets including photos, descriptions, values, and property details. Perfect for sharing with insurance agents, attorneys, or family members."
-              />
-              <DemoUtilityCard
-                icon={<Download className="h-5 w-5" />}
-                title="Download All Files"
-                description="Download all files in a single ZIP."
-                actionLabel="Download All"
-                alertTitle="Download All Files"
-                alertDescription="Download every photo, video, and document you've uploaded in a single ZIP file. Great for creating local backups or transferring to another storage service."
-              />
-              <DemoUtilityCard
-                icon={<AlertTriangle className="h-5 w-5" />}
-                title="Post Damage Report"
-                description="Document damage and submit post-incident details."
-                actionLabel="Post Report"
-                alertTitle="Post Damage Report"
-                alertDescription="After an incident (fire, flood, theft, storm), use this tool to document damage for insurance claims. Upload photos and videos of affected areas, describe the damage, select impacted rooms, and track your claim progress."
-              />
-            </div>
-          </div>
+          </TooltipProvider>
         </div>
       </div>
       
