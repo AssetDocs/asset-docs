@@ -9,8 +9,6 @@ import {
   Palette,
   CalendarDays,
   StickyNote,
-  Receipt,
-  Landmark,
 } from 'lucide-react';
 
 interface InsightsToolsGridProps {
@@ -106,27 +104,6 @@ const InsightsToolsGrid: React.FC<InsightsToolsGridProps> = ({ onTabChange }) =>
           variant="compact"
         />
 
-        {/* Tax Return Organizer */}
-        <DashboardGridCard
-          icon={<Receipt className="h-5 w-5" />}
-          title="Tax Return Organizer"
-          description="Store previous tax returns and associated documents."
-          actionLabel="View Tax Returns"
-          onClick={() => onTabChange('tax-returns')}
-          color="teal"
-          variant="compact"
-        />
-
-        {/* Financial Loans */}
-        <DashboardGridCard
-          icon={<Landmark className="h-5 w-5" />}
-          title="Financial Loans"
-          description="Track loans, terms, and financial documents."
-          actionLabel="View Loans"
-          onClick={() => onTabChange('financial-loans')}
-          color="teal"
-          variant="compact"
-        />
       </div>
     </div>
   );
