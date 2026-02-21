@@ -25,6 +25,7 @@ import DashboardGrid from '@/components/DashboardGrid';
 import InsightsToolsGrid from '@/components/InsightsToolsGrid';
 import LifeHubGrid from '@/components/LifeHubGrid';
 import NotesAndTraditions from '@/components/NotesAndTraditions';
+import QuickNotesSection from '@/components/QuickNotesSection';
 import FamilyRecipes from '@/components/FamilyRecipes';
 import MemorySafe from '@/components/MemorySafe';
 import AssetDocumentationGrid from '@/components/AssetDocumentationGrid';
@@ -119,6 +120,7 @@ const Account: React.FC = () => {
       'service-pros': { title: 'Trusted Professionals', subtitle: 'Track your trusted service providers and contractors.' },
       'upgrades-repairs': { title: 'Upgrades & Repairs', subtitle: 'Document property improvements and repair history.' },
       'smart-calendar': { title: 'Smart Calendar', subtitle: 'Reminders, records, and timelines — all in one place.' },
+      'quick-notes': { title: 'Quick Notes', subtitle: 'Jot down quick reminders or thoughts.' },
       'notes-traditions': { title: 'Notes & Traditions', subtitle: 'Capture family traditions, stories, and important notes.' },
       'family-recipes': { title: 'Family Recipes', subtitle: 'Preserve cherished family recipes for generations.' },
       'memory-safe': { title: 'Memory Safe', subtitle: 'A protected place for the memories you want to keep — and pass on.' },
@@ -321,6 +323,16 @@ const Account: React.FC = () => {
 
             <TabsContent value="smart-calendar">
               <SmartCalendar />
+            </TabsContent>
+
+            <TabsContent value="quick-notes">
+              <div className="space-y-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground">{getSectionConfig().title}</h2>
+                  <p className="text-muted-foreground text-sm mt-1">{getSectionConfig().subtitle}</p>
+                </div>
+                <QuickNotesSection />
+              </div>
             </TabsContent>
 
             <TabsContent value="notes-traditions">
