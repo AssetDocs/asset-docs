@@ -1,48 +1,29 @@
 
-## Add "Remove Encryption" Option to the Secure Vault
 
-### Current Behavior
-Once a user enables encryption, the toggle becomes permanently disabled. There is no way to reverse it. All password catalog entries and legacy locker data are stored as AES-256-GCM ciphertext in the database.
+## Dynamic Lock Icon for Legacy Locker and Password Catalog
 
-### Proposed Flow
-Allow users to remove encryption by:
-1. Requiring them to enter their master password (to prove they have access)
-2. Decrypting all stored data client-side
-3. Re-saving everything as plaintext to the database
-4. Clearing the `is_encrypted` flag
+### What Changes
+The lock icon overlay on the Legacy Locker and Password Catalog dashboard cards will dynamically reflect whether the Secure Vault is encrypted or not:
 
-### User Experience
-- The encryption toggle will no longer be permanently disabled once encrypted
-- When a user toggles encryption OFF, a confirmation dialog appears warning them:
-  - "This will remove encryption from your Secure Vault. All passwords and Legacy Locker data will be stored without encryption. Are you sure?"
-- User must enter their master password to confirm
-- A loading state shows progress while all entries are being decrypted and re-saved
-- On success, the vault returns to its unencrypted state
+- **Locked (encrypted)**: Closed lock icon (current behavior)
+- **Unlocked (not encrypted)**: Open lock icon with an amber/yellow warning indicator
 
-### Technical Changes
+### Technical Details
 
-**File: `src/components/SecureVault.tsx`**
+**1. Create a hook to fetch vault encryption status**
+- New file: `src/hooks/useVaultEncryptionStatus.ts`
+- Queries the `legacy_locker` table for the current user's `is_encrypted` field
+- Returns `{ isEncrypted: boolean, loading: boolean }`
+- Simple, lightweight query -- no need for the full SecureVault logic
 
-1. Remove `disabled={existingEncrypted}` from the Switch component (line 479) so the toggle can be turned off
-2. Update `handleEncryptionToggle` to handle the `checked === false` case:
-   - Show a confirmation dialog
-   - Prompt for master password if not already in session
-   - Call a new `handleRemoveEncryption` function
-3. Add `handleRemoveEncryption` function that:
-   - Fetches all `password_catalog` entries for the user
-   - Decrypts each entry's `encrypted_password`, `username`, and `website_url` fields using the session master password
-   - Updates each entry in the database with the plaintext values
-   - Fetches the `legacy_locker` record and decrypts any encrypted fields
-   - Updates the `legacy_locker` record with plaintext values
-   - Sets `is_encrypted = false` on the `legacy_locker` record
-   - Updates local state (`existingEncrypted`, `isEncrypted`, clears `sessionMasterPassword`)
-4. Add a confirmation AlertDialog with a warning message about the security implications
+**2. Update `DashboardGrid.tsx`**
+- Import the new hook and `LockKeyhole` + `LockOpen` from lucide-react
+- Replace the static `🔒` emoji on both the Legacy Locker and Password Catalog cards with:
+  - `LockKeyhole` icon (closed lock) when `isEncrypted` is true -- shown in red/amber
+  - `LockOpen` icon (open lock) with an `AlertTriangle` or exclamation-style indicator when `isEncrypted` is false -- shown in amber/warning color to subtly encourage encryption
+- The badge text will also update: "Encrypted" vs "Not Encrypted"
 
-**File: `src/components/PasswordCatalog.tsx`**
-- No changes needed -- the component already handles both encrypted and unencrypted modes based on props
+**3. Files to modify**
+- `src/hooks/useVaultEncryptionStatus.ts` (new)
+- `src/components/DashboardGrid.tsx` (update badge logic for 2 cards)
 
-### Security Considerations
-- The master password is required to decrypt, so only the rightful owner can remove encryption
-- A clear warning is shown about the security downgrade
-- The operation is atomic per-entry (if it fails mid-way, some entries remain encrypted -- the user can retry)
-- An audit log entry should be created when encryption is removed
