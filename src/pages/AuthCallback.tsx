@@ -85,10 +85,10 @@ const AuthCallback = () => {
             title: "Email Verified Successfully!",
             description: isContributor 
               ? "Your contributor account is ready. Redirecting to dashboard..."
-              : "Welcome to Asset Safe! Redirecting to your dashboard...",
+              : "Email verified! Redirecting to choose your plan...",
           });
-          // Redirect directly to dashboard for all verified users
-          navigate('/account', { replace: true });
+          // Contributors go to dashboard, new signups go to pricing
+          navigate(isContributor ? '/account' : '/pricing', { replace: true });
           return;
         } else {
           // For other types, show toast and redirect

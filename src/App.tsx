@@ -128,7 +128,7 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
   const { isAuthenticated, loading, user } = useAuth();
   const [checkingSubscription, setCheckingSubscription] = useState(!skipSubscriptionCheck);
   const [hasSubscription, setHasSubscription] = useState(false);
-  const [allowFreeAccess, setAllowFreeAccess] = useState(false);
+  
 
   useEffect(() => {
     const checkSubscription = async (retryCount = 0) => {
@@ -159,13 +159,7 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
           return;
         }
         
-        // Allow free tier access for users without paid subscription
-        // This includes ASL2025 lifetime code users and new signups
-        if (data && !data.subscribed) {
-          setAllowFreeAccess(true);
-          setCheckingSubscription(false);
-          return;
-        }
+
         
         // Fallback: Check contributor status directly if subscription check fails
         // IMPORTANT: Must also verify owner's subscription is active
@@ -240,7 +234,7 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
   }
 
   // Check if user has subscription (unless skipping the check)
-  if (!skipSubscriptionCheck && !hasSubscription && !allowFreeAccess) {
+  if (!skipSubscriptionCheck && !hasSubscription) {
     return <Navigate to="/pricing" replace />;
   }
   
