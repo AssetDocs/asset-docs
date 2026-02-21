@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -116,6 +117,9 @@ const SubscriptionTab: React.FC = () => {
   const [contributorInfo, setContributorInfo] = useState<ContributorInfo | null>(null);
   const [pendingDeletionRequest, setPendingDeletionRequest] = useState<DeletionRequest | null>(null);
   const [incomingDeletionRequests, setIncomingDeletionRequests] = useState<DeletionRequest[]>([]);
+  const [showChangePlanDialog, setShowChangePlanDialog] = useState(false);
+  const [changePlanTarget, setChangePlanTarget] = useState<'standard' | 'premium'>('standard');
+  const [isChangingPlan, setIsChangingPlan] = useState(false);
   const [subscriptionStatus, setSubscriptionStatus] = useState<{
     subscribed: boolean;
     subscription_tier?: string;
@@ -340,6 +344,38 @@ const SubscriptionTab: React.FC = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleChangePlan = async () => {
+    if (!user) return;
+    setIsChangingPlan(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const { data, error } = await supabase.functions.invoke('change-plan', {
+        body: { targetPlan: changePlanTarget },
+        headers: {
+          Authorization: `Bearer ${sessionData.session?.access_token}`
+        }
+      });
+      if (error) throw error;
+      
+      toast({
+        title: "Plan Changed Successfully",
+        description: `You've been switched to the ${changePlanTarget === 'premium' ? 'Premium' : 'Standard'} plan. Your billing has been prorated.`,
+      });
+      
+      setShowChangePlanDialog(false);
+      await checkSubscription();
+    } catch (error: any) {
+      console.error('Error changing plan:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to change plan. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsChangingPlan(false);
     }
   };
 
@@ -853,20 +889,20 @@ const SubscriptionTab: React.FC = () => {
                           ))}
                         </ul>
                         <Button 
-                          onClick={handleManageSubscription}
-                          disabled={isLoading}
+                          onClick={() => {
+                            setChangePlanTarget(key as 'standard' | 'premium');
+                            setShowChangePlanDialog(true);
+                          }}
+                          disabled={isLoading || isChangingPlan}
                           variant={key === 'premium' ? 'default' : 'outline'}
                           className="w-full"
                         >
-                          {isLoading ? 'Loading...' : `Switch to ${key === 'premium' ? 'Premium' : 'Standard'}`}
+                          {isChangingPlan ? 'Processing...' : `Switch to ${key === 'premium' ? 'Premium' : 'Standard'}`}
                         </Button>
                       </CardContent>
                     </Card>
                   ))}
               </div>
-              <p className="text-sm text-muted-foreground text-center mt-4">
-                Click to modify your subscription through Stripe
-              </p>
             </div>
 
             {/* Storage Add-ons */}
@@ -1256,6 +1292,38 @@ const SubscriptionTab: React.FC = () => {
         isOpen={showAccountDeletedDialog}
         onClose={handleAccountDeletedClose}
       />
+
+      {/* Change Plan Confirmation Dialog */}
+      <Dialog open={showChangePlanDialog} onOpenChange={setShowChangePlanDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Plan Change</DialogTitle>
+            <DialogDescription>
+              You are switching from <strong>{activeTier === 'standard' ? 'Standard' : 'Premium'}</strong> to <strong>{changePlanTarget === 'standard' ? 'Standard' : 'Premium'}</strong>.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="flex items-center gap-2 text-sm">
+              {planConfigs[changePlanTarget]?.icon}
+              <span className="font-medium">{planConfigs[changePlanTarget]?.title}</span>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Your billing will be prorated — you'll receive credit for unused time on your current plan.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              The change takes effect immediately.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowChangePlanDialog(false)} disabled={isChangingPlan}>
+              Cancel
+            </Button>
+            <Button onClick={handleChangePlan} disabled={isChangingPlan}>
+              {isChangingPlan ? 'Processing...' : 'Confirm Change'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
