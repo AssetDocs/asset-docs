@@ -1,116 +1,53 @@
 
 
-## Add Tax Return Organizer and Financial Loans to Insights & Tools
+## Update Sample Dashboard to Match Current User Dashboard
 
 ### Overview
-Two new sections will be added to the Insights & Tools grid on the dashboard. Both will follow the existing patterns used by Documents, Photos, and other sections -- including folder organization, file uploads with metadata, and the standard card-based UI.
+Synchronize the Sample Dashboard with the current user dashboard layout, add missing collapsible sections, update card data, and implement hover tooltips so visitors can learn about each section without clicking.
 
 ---
 
-### 1. Database Changes (2 new tables + 2 folder tables)
+### Changes
 
-**`tax_return_folders`** -- stores user-created folders for organizing tax returns
-- id (uuid, PK)
-- user_id (uuid, NOT NULL)
-- folder_name (text, NOT NULL)
-- description (text, nullable)
-- gradient_color (text, default 'bg-blue-500')
-- display_order (integer, default 0)
-- created_at (timestamptz)
+#### 1. Add missing collapsible demo sections between card rows
 
-**`tax_returns`** -- stores individual tax return documents with metadata
-- id (uuid, PK)
-- user_id (uuid, NOT NULL)
-- folder_id (uuid, nullable, FK to tax_return_folders)
-- title (text, NOT NULL)
-- tax_year (text, nullable) -- e.g. "2024"
-- notes (text, nullable)
-- file_name (text, nullable)
-- file_path (text, nullable)
-- file_url (text, nullable)
-- file_size (bigint, nullable)
-- file_type (text, nullable)
-- bucket_name (text, default 'documents')
-- tags (text, nullable)
-- created_at (timestamptz)
-- updated_at (timestamptz)
+The real dashboard has four collapsible bars that the sample dashboard lacks. We will add static demo versions of each:
 
-**`financial_loan_folders`** -- stores user-created folders for organizing loans
-- id (uuid, PK)
-- user_id (uuid, NOT NULL)
-- folder_name (text, NOT NULL)
-- description (text, nullable)
-- gradient_color (text, default 'bg-blue-500')
-- display_order (integer, default 0)
-- created_at (timestamptz)
+- **Documentation Checklist** -- between the red row (Asset Documentation / Family Archive) and the yellow row (Legacy Locker / Password Catalog). A collapsed bar with a ChevronDown icon; clicking shows a demo alert explaining what it does.
+- **MFA Dropdown** -- between the yellow row and the green row. Same collapsed-bar pattern.
+- **Asset Values** -- between the green row and the blue Property Profiles card. Collapsed bar matching the real dashboard's DollarSign icon and "Asset Values" label.
+- **Emergency Instructions** -- after the blue row (Account Settings / Access & Activity), before the orange utility row. Collapsed bar with a demo alert.
 
-**`financial_loans`** -- stores individual loan records with metadata
-- id (uuid, PK)
-- user_id (uuid, NOT NULL)
-- folder_id (uuid, nullable, FK to financial_loan_folders)
-- loan_type (text, nullable) -- e.g. "Mortgage", "Auto", "Personal", "Student", "Business", "Other"
-- institution (text, nullable)
-- loan_terms (text, nullable) -- e.g. "30-year fixed"
-- total_amount (numeric, nullable)
-- apr (numeric, nullable)
-- monthly_payment (numeric, nullable)
-- start_date (date, nullable)
-- maturity_date (date, nullable)
-- account_number (text, nullable)
-- notes (text, nullable)
-- file_name (text, nullable)
-- file_path (text, nullable)
-- file_url (text, nullable)
-- file_size (bigint, nullable)
-- file_type (text, nullable)
-- bucket_name (text, default 'documents')
-- status (text, default 'active') -- active, paid_off, defaulted
-- created_at (timestamptz)
-- updated_at (timestamptz)
+Each will use the standardized collapsible bar styling: `px-6 py-4`, `text-sm font-semibold`, `ChevronDown` icon that rotates -90 degrees when collapsed.
 
-All 4 tables will have RLS enabled with policies restricting access to the owning user only (matching existing patterns like `paint_codes`, `source_websites`, etc.).
+#### 2. Update card content to match current dashboard
+
+- **Insights & Tools tags**: Update from `['Asset Values', 'Manual Entry', 'Upgrades & Repairs', 'Source Websites', 'Paint Codes']` to `['Smart Calendar', 'Asset Values', 'Manual Entry', 'Upgrades & Repairs', 'Source Websites', 'Paint Codes']`
+- **Vault badges**: Change from `"Authorized Users Only"` with a `🔒` emoji to `"Encrypted"` with a `LockKeyhole` icon (matching the real dashboard's encrypted state display)
+
+#### 3. Add hover tooltips for descriptions
+
+- Wrap each `DemoGridCard` and `DemoUtilityCard` with a Radix `Tooltip` component
+- On hover, display the card's `alertDescription` text in a tooltip
+- Keep the existing click-to-alert behavior as well (for mobile users who can't hover)
+- The tooltip will appear after a short delay (~300ms) and show a concise version of the description
+
+#### 4. Update banner text
+
+- Change the demo banner instruction from "Click on any tile to learn what it does" to "Hover over or click any tile to learn what it does"
 
 ---
 
-### 2. New Components
-
-**`src/components/TaxReturnOrganizer.tsx`** -- Main section component
-- Full-width blue "+ Upload Document" button at the top
-- Sidebar folder panel using the existing `DocumentFolders` component pattern (with custom labels)
-- Document list showing saved tax returns with title, tax year, notes, and file info
-- Upload modal/form with fields: Title, Tax Year, Notes, File upload, Tags
-- Edit and delete capabilities on saved entries
-
-**`src/components/FinancialLoans.tsx`** -- Main section component
-- Full-width blue "+ Add Loan" button at the top
-- Sidebar folder panel for organizing loans
-- Loan list showing saved records with type, institution, amount, APR, etc.
-- Add/Edit form with fields: Loan Type (dropdown), Institution, Terms, Total Amount, APR, Monthly Payment, Start Date, Maturity Date, Account Number, Notes, File upload
-- Edit and delete capabilities on saved entries
-
----
-
-### 3. Integration Points
-
-**`src/components/InsightsToolsGrid.tsx`**
-- Add two new `DashboardGridCard` entries:
-  - "Tax Return Organizer" with a `Receipt` or `FileSpreadsheet` icon
-  - "Financial Loans" with a `Banknote` or `Landmark` icon
-- Both will call `onTabChange('tax-returns')` and `onTabChange('financial-loans')` respectively
-
-**`src/pages/Account.tsx`**
-- Add section configs for `'tax-returns'` and `'financial-loans'` in `getSectionConfig()`
-- Add two new `TabsContent` blocks rendering the new components
-
----
-
-### 4. File Summary
+### Files to Edit
 
 | File | Action |
 |------|--------|
-| DB migration | Create 4 tables with RLS |
-| `src/components/TaxReturnOrganizer.tsx` | Create |
-| `src/components/FinancialLoans.tsx` | Create |
-| `src/components/InsightsToolsGrid.tsx` | Edit -- add 2 cards |
-| `src/pages/Account.tsx` | Edit -- add tab configs and content |
+| `src/pages/SampleDashboard.tsx` | Full update: add collapsible bars, update tags/badges, wrap cards with tooltips |
 
+### Technical Notes
+
+- Import `LockKeyhole` from lucide-react (replaces the `🔒` emoji)
+- Import `Tooltip`, `TooltipContent`, `TooltipProvider`, `TooltipTrigger` from `@/components/ui/tooltip`
+- Import additional icons: `FileCheck`, `ShieldCheck`, `DollarSign` (for collapsible bar icons)
+- The collapsible demo bars will be non-functional (just show alerts on click) since the sample dashboard has no real data
+- No database or routing changes required
