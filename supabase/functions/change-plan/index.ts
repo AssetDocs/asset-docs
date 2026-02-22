@@ -100,19 +100,22 @@ Deno.serve(async (req) => {
     // Get the target price config
     const priceConfig = PLAN_PRICES[targetPlan][currentInterval];
 
-    // Update the subscription with new price_data
+    // Step 1: Create a new Stripe product
+    const product = await stripe.products.create({
+      name: priceConfig.product_name,
+    });
+
+    // Step 2: Create a new price linked to that product
+    const newPrice = await stripe.prices.create({
+      currency: "usd",
+      product: product.id,
+      unit_amount: priceConfig.amount,
+      recurring: { interval: currentInterval as "month" | "year" },
+    });
+
+    // Step 3: Update the subscription with the new price ID
     const updatedSubscription = await stripe.subscriptions.update(subscription.id, {
-      items: [
-        {
-          id: mainItem.id,
-          price_data: {
-            currency: "usd",
-            product_data: { name: priceConfig.product_name },
-            unit_amount: priceConfig.amount,
-            recurring: { interval: currentInterval as "month" | "year" },
-          },
-        },
-      ],
+      items: [{ id: mainItem.id, price: newPrice.id }],
       proration_behavior: "create_prorations",
     });
 
