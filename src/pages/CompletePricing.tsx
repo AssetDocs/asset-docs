@@ -37,16 +37,11 @@ const CompletePricing: React.FC = () => {
     setIsLoading(true);
     try {
       // Create Stripe checkout session
+      const lookupKey = `${planType}_monthly`;
       const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-checkout', {
         body: { 
-          planType,
+          planLookupKey: lookupKey,
           email,
-          customerInfo: {
-            firstName: firstName || '',
-            lastName: lastName || '',
-            phone: phone || '',
-            heardAbout: heardAbout || '',
-          }
         },
       });
       

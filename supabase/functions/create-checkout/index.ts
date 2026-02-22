@@ -12,6 +12,14 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
 };
 
+// Map legacy planType + billingInterval to lookup key
+function toLookupKey(planType: string, billingInterval: string): string {
+  const plan = planType.toLowerCase();
+  const interval = billingInterval === 'year' ? 'yearly' : 'monthly';
+  if (plan === 'premium' || plan === 'professional') return `premium_${interval}`;
+  return `standard_${interval}`;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -27,20 +35,15 @@ serve(async (req) => {
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
-    logStep("Stripe key verified");
 
-    // Parse request body to get plan type, billing interval, and optional email
-    const { planType, billingInterval = 'month', email: providedEmail } = await req.json();
-    if (!planType) throw new Error("Plan type is required");
-    logStep("Request body parsed", { planType, billingInterval, providedEmail });
+    const body = await req.json();
+    const { planLookupKey, planType, billingInterval = 'month', email: providedEmail } = body;
+    
+    // Determine the lookup key - prefer explicit planLookupKey, fall back to legacy mapping
+    const lookupKey = planLookupKey || toLookupKey(planType || 'standard', billingInterval);
+    logStep("Resolved lookup key", { lookupKey, planLookupKey, planType, billingInterval });
 
-    // Validate billing interval
-    const validIntervals = ['month', 'year'];
-    if (!validIntervals.includes(billingInterval)) {
-      throw new Error("Invalid billing interval");
-    }
-
-    // Attempt to retrieve authenticated user (optional)
+    // Authenticate user (optional for pre-signup flow)
     let user = null;
     let userEmail = null;
     
@@ -54,15 +57,13 @@ serve(async (req) => {
           userEmail = user.email;
           logStep("Authenticated user found", { userId: user.id, email: userEmail });
         }
-      } catch (error) {
+      } catch (_error) {
         logStep("No valid authentication found");
       }
     }
 
-    // Use provided email if no authenticated user
     if (!userEmail && providedEmail) {
       userEmail = providedEmail;
-      logStep("Using provided email", { email: userEmail });
     }
 
     if (!userEmail) {
@@ -70,86 +71,40 @@ serve(async (req) => {
     }
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
+
+    // Look up the Stripe Price by lookup_key - MUST be active
+    const prices = await stripe.prices.list({ lookup_keys: [lookupKey], active: true, limit: 1 });
+    if (prices.data.length === 0) {
+      throw new Error(`No active Stripe price found for lookup_key: ${lookupKey}`);
+    }
+    const price = prices.data[0];
+    logStep("Found Stripe price", { priceId: price.id, lookupKey });
+
+    // Find or reference existing customer
     const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
     let customerId;
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
       logStep("Found existing customer", { customerId });
-    } else {
-      logStep("Creating new customer");
     }
 
-    // Define pricing based on plan type and billing interval
-    let priceData;
-    const isYearly = billingInterval === 'year';
-    
-    switch (planType) {
-      case 'standard':
-        priceData = {
-          currency: "usd",
-          product_data: { 
-            name: isYearly 
-              ? "Standard Plan (Homeowner Plan) - Annual" 
-              : "Standard Plan (Homeowner Plan)" 
-          },
-          unit_amount: isYearly ? 12900 : 1299, // $129/year or $12.99/month
-          recurring: { interval: billingInterval as 'month' | 'year' },
-        };
-        break;
-      case 'premium':
-        priceData = {
-          currency: "usd",
-          product_data: { 
-            name: isYearly 
-              ? "Premium Plan (Professional Plan) - Annual" 
-              : "Premium Plan (Professional Plan)" 
-          },
-          unit_amount: isYearly ? 18900 : 1899, // $189/year or $18.99/month
-          recurring: { interval: billingInterval as 'month' | 'year' },
-        };
-        break;
-      default:
-        throw new Error("Invalid plan type");
-    }
-
-    logStep("Creating checkout session", { priceData, billingInterval });
+    const origin = req.headers.get("origin") || "https://www.getassetsafe.com";
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : userEmail,
-      line_items: [
-        {
-          price_data: priceData,
-          quantity: 1,
-        },
-      ],
+      line_items: [{ price: price.id, quantity: 1 }],
       mode: "subscription",
-      success_url: `${req.headers.get("origin")}/account?payment_success=true`,
-      cancel_url: `${req.headers.get("origin")}/pricing`,
-      // Immediate payment - no trial period
+      success_url: `${origin}/subscription-success?session_id={CHECKOUT_SESSION_ID}&plan=${lookupKey}`,
+      cancel_url: `${origin}/pricing`,
       payment_method_collection: 'always',
-      // Enable automatic tax collection
-      automatic_tax: {
-        enabled: true,
-      },
-      // Collect customer's tax ID if needed for compliance
-      tax_id_collection: {
-        enabled: true,
-      },
-      // Collect billing address and restrict to US only
+      automatic_tax: { enabled: true },
+      tax_id_collection: { enabled: true },
       billing_address_collection: 'required',
-      shipping_address_collection: {
-        allowed_countries: ['US'],
-      },
-      // Update customer name automatically for existing customers
-      customer_update: customerId ? {
-        name: 'auto',
-        address: 'auto'
-      } : undefined,
-      // Pass plan type and billing interval in metadata for webhook processing
+      shipping_address_collection: { allowed_countries: ['US'] },
+      customer_update: customerId ? { name: 'auto', address: 'auto' } : undefined,
       metadata: {
-        plan_type: planType,
-        billing_interval: billingInterval,
+        plan_lookup_key: lookupKey,
         user_id: user?.id || ''
       }
     });

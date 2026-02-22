@@ -74,21 +74,15 @@ const Pricing: React.FC = () => {
   }, [user]);
 
   const handleSubscribe = async (planType: string, yearly: boolean = false) => {
-    // If user is already logged in, go directly to Stripe checkout
     if (user) {
       setIsLoading(true);
       try {
+        const lookupKey = `${planType}_${yearly ? 'yearly' : 'monthly'}`;
         const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-checkout', {
-          body: { 
-            planType,
-            billingInterval: yearly ? 'year' : 'month',
-            email: user.email,
-          },
+          body: { planLookupKey: lookupKey },
         });
         
         if (checkoutError) throw checkoutError;
-        
-        // Redirect to Stripe checkout
         window.location.href = checkoutData.url;
       } catch (error: any) {
         console.error('Error creating checkout:', error);
@@ -103,7 +97,6 @@ const Pricing: React.FC = () => {
       return;
     }
     
-    // For new users, navigate to signup page
     window.location.href = `/signup?plan=${planType}&billing=${yearly ? 'yearly' : 'monthly'}`;
   };
 

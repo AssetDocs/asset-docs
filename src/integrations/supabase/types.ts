@@ -1059,32 +1059,59 @@ export type Database = {
       }
       entitlements: {
         Row: {
+          base_storage_gb: number
+          cancel_at_period_end: boolean
           created_at: string
           current_period_end: string | null
           id: string
           plan: string
+          plan_lookup_key: string | null
           source_event_id: string | null
           status: string
+          storage_addon_blocks_qty: number
+          stripe_customer_id: string | null
+          stripe_plan_price_id: string | null
+          stripe_subscription_id: string | null
+          subscription_status: string | null
+          total_storage_gb: number | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          base_storage_gb?: number
+          cancel_at_period_end?: boolean
           created_at?: string
           current_period_end?: string | null
           id?: string
           plan?: string
+          plan_lookup_key?: string | null
           source_event_id?: string | null
           status?: string
+          storage_addon_blocks_qty?: number
+          stripe_customer_id?: string | null
+          stripe_plan_price_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: string | null
+          total_storage_gb?: number | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          base_storage_gb?: number
+          cancel_at_period_end?: boolean
           created_at?: string
           current_period_end?: string | null
           id?: string
           plan?: string
+          plan_lookup_key?: string | null
           source_event_id?: string | null
           status?: string
+          storage_addon_blocks_qty?: number
+          stripe_customer_id?: string | null
+          stripe_plan_price_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: string | null
+          total_storage_gb?: number | null
           updated_at?: string
           user_id?: string
         }

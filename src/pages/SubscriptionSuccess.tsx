@@ -35,36 +35,42 @@ const SubscriptionSuccess: React.FC = () => {
     };
   }, []);
 
-  // Phase 3: Sync subscription immediately after Stripe checkout
+  // Smart sync: check-subscription first, only sync if stale
   useEffect(() => {
-    const syncSubscription = async () => {
+    const activateSubscription = async () => {
       if (!user || !sessionId || isSyncing || syncComplete) return;
       
       setIsSyncing(true);
-      console.log('[SubscriptionSuccess] Syncing subscription after checkout...');
+      console.log('[SubscriptionSuccess] Checking subscription after checkout...');
       
       try {
+        // First try check-subscription (reads from entitlements)
+        const { data: checkData, error: checkError } = await supabase.functions.invoke('check-subscription');
+        
+        if (!checkError && checkData?.subscribed) {
+          console.log('[SubscriptionSuccess] Entitlements already updated by webhook');
+          setSyncComplete(true);
+          toast({
+            title: "Subscription Activated!",
+            description: `Your ${checkData?.subscription_tier || planType} plan is now active.`,
+          });
+          setTimeout(() => navigate('/properties'), 1500);
+          return;
+        }
+
+        // Entitlements not yet updated - call sync as fallback
+        console.log('[SubscriptionSuccess] Entitlements stale, syncing...');
         const { data, error } = await supabase.functions.invoke('sync-subscription');
         
         if (error) {
-          console.error('[SubscriptionSuccess] Sync error:', error);
-          toast({
-            title: "Syncing subscription...",
-            description: "Please wait while we activate your account.",
-          });
+          toast({ title: "Syncing subscription...", description: "Please wait while we activate your account." });
         } else {
-          console.log('[SubscriptionSuccess] Sync successful:', data);
           setSyncComplete(true);
-          
           toast({
             title: "Subscription Activated!",
             description: `Your ${data?.plan || planType} plan is now active.`,
           });
-          
-          // Redirect to dashboard after successful sync
-          setTimeout(() => {
-            navigate('/properties');
-          }, 1500);
+          setTimeout(() => navigate('/properties'), 1500);
         }
       } catch (err) {
         console.error('[SubscriptionSuccess] Sync exception:', err);
@@ -73,7 +79,7 @@ const SubscriptionSuccess: React.FC = () => {
       }
     };
 
-    syncSubscription();
+    activateSubscription();
   }, [user, sessionId, isSyncing, syncComplete, navigate, toast, planType]);
 
   // Initiate Stripe checkout for users who haven't paid yet
@@ -86,8 +92,9 @@ const SubscriptionSuccess: React.FC = () => {
         setIsCreatingCheckout(true);
         
         try {
+          const lookupKey = `${planType}_monthly`;
           const { data, error } = await supabase.functions.invoke('create-checkout', {
-            body: { planType }
+            body: { planLookupKey: lookupKey }
           });
 
           if (error) throw error;
