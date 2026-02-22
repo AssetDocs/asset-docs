@@ -67,6 +67,10 @@ Deno.serve(async (req) => {
         },
       ],
       mode: 'subscription',
+      billing_address_collection: 'required',
+      shipping_address_collection: {
+        allowed_countries: ['US'],
+      },
       success_url: `${req.headers.get('origin') || 'https://www.assetsafe.net'}/account?storage_added=true`,
       cancel_url: `${req.headers.get('origin') || 'https://www.assetsafe.net'}/account-settings?tab=subscription`,
       metadata: {

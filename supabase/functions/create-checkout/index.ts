@@ -136,8 +136,11 @@ serve(async (req) => {
       tax_id_collection: {
         enabled: true,
       },
-      // Enable customer details collection for tax calculation
+      // Collect billing address and restrict to US only
       billing_address_collection: 'required',
+      shipping_address_collection: {
+        allowed_countries: ['US'],
+      },
       // Update customer name automatically for existing customers
       customer_update: customerId ? {
         name: 'auto',

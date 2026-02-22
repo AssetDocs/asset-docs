@@ -129,8 +129,11 @@ const PricingPlans: React.FC = () => {
             <div className="mt-12 max-w-4xl mx-auto">
               <div className="bg-muted/30 rounded-lg p-8">
                 <h3 className="text-xl font-semibold text-center mb-4">Included in Both Plans</h3>
-                <p className="text-sm text-muted-foreground text-center mb-4">
+              <p className="text-sm text-muted-foreground text-center mb-4">
                   Billed monthly. No long-term contract. Cancel anytime.
+                </p>
+                <p className="text-xs text-muted-foreground text-center mb-2">
+                  🇺🇸 Paid subscriptions are currently available to U.S. billing addresses only.
                 </p>
                 <p className="text-sm text-muted-foreground text-center mb-6">
                   All plans include full access to your data and complete exports anytime.
