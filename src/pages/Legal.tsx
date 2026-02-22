@@ -141,6 +141,15 @@ const Legal: React.FC = () => {
             </CardContent>
           </Card>
 
+          <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">Geographic Availability</h3>
+            <p className="text-sm text-gray-600 leading-relaxed">
+              Paid subscription plans for Asset Safe are currently available only to users with a United States billing address. 
+              While the website and informational content are accessible globally, paid features require a valid U.S. billing address. 
+              Asset Safe reserves the right to expand availability to additional countries in the future.
+            </p>
+          </div>
+
           <div className="bg-gray-100 p-6 rounded-lg">
             <h3 className="text-lg font-semibold text-gray-900 mb-3">Legal Notice</h3>
             <p className="text-sm text-gray-600 leading-relaxed">
