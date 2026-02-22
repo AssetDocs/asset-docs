@@ -76,8 +76,7 @@ const commonFeatures = [
 ];
 
 const storageAddOns = [
-  { size: 25, price: "$4.99", priceInCents: 499, functionName: 'add-storage-25gb' },
-  { size: 50, price: "$9.99", priceInCents: 999, functionName: 'add-storage' }
+  { size: 25, price: "$4.99", priceInCents: 499, functionName: 'add-storage-25gb' }
 ];
 
 interface DeletionRequest {
@@ -654,25 +653,31 @@ const SubscriptionTab: React.FC = () => {
 
             {/* Storage Add-ons */}
             <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg p-4">
-              <p className="text-base font-semibold text-foreground mb-3">Need more space?</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {storageAddOns.map((addon) => (
-                  <div key={addon.size} className="flex items-center justify-between bg-background/60 rounded-lg p-3">
-                    <div>
-                      <p className="font-medium">+{addon.size}GB Storage</p>
-                      <p className="text-sm text-muted-foreground">{addon.price}/month</p>
-                    </div>
-                    <Button
-                      onClick={() => handleAddStorage(addon.functionName)}
-                      disabled={isLoading}
-                      size="sm"
-                      variant="outline"
-                    >
-                      Add
-                    </Button>
-                  </div>
-                ))}
+              <p className="text-base font-semibold text-foreground mb-1">Your life evolves — your storage can too</p>
+              <p className="text-sm text-muted-foreground mb-3">Flexible storage you can adjust anytime.</p>
+              <p className="text-sm text-muted-foreground mb-3">Add 25GB storage increments anytime.</p>
+              <div className="bg-background/60 rounded-lg p-3 mb-3">
+                <p className="font-medium text-center"><span className="font-bold">+25GB</span> for <span className="text-brand-orange font-bold">$4.99 / month</span></p>
               </div>
+              <ul className="text-sm text-muted-foreground space-y-1 mb-3">
+                <li className="flex items-center gap-2">
+                  <CheckIcon className="h-4 w-4 text-green-500 flex-shrink-0" />
+                  Add multiple increments as needed
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckIcon className="h-4 w-4 text-green-500 flex-shrink-0" />
+                  Upgrade or remove storage anytime
+                </li>
+              </ul>
+              <Button
+                onClick={() => handleAddStorage('add-storage-25gb')}
+                disabled={isLoading}
+                size="sm"
+                variant="outline"
+                className="w-full"
+              >
+                {isLoading ? 'Processing...' : 'Add 25GB'}
+              </Button>
             </div>
 
             {/* User Information Display */}
@@ -850,7 +855,7 @@ const SubscriptionTab: React.FC = () => {
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-blue-900">
-                      {addOnStorageGb === 25 ? '$4.99/mo' : addOnStorageGb === 50 ? '$9.99/mo' : `$${(addOnStorageGb / 50 * 9.99).toFixed(2)}/mo`}
+                      ${`$${(addOnStorageGb / 25 * 4.99).toFixed(2)}/mo`}
                     </p>
                     <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200">Active</Badge>
                   </div>
@@ -907,24 +912,30 @@ const SubscriptionTab: React.FC = () => {
 
             {/* Storage Add-ons */}
             <div className="mt-6 bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg p-4">
-              <p className="text-base font-semibold text-foreground mb-3">Need more space?</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {storageAddOns.map((addon) => (
-                  <div key={addon.size} className="flex items-center justify-between bg-background/60 rounded-lg p-3">
-                    <div>
-                      <p className="font-medium">+{addon.size}GB Storage</p>
-                      <p className="text-sm text-muted-foreground">{addon.price}/month</p>
-                    </div>
-                    <Button
-                      onClick={() => handleAddStorage(addon.functionName)}
-                      disabled={isLoading}
-                      size="sm"
-                    >
-                      {isLoading ? 'Processing...' : 'Add Storage'}
-                    </Button>
-                  </div>
-                ))}
+              <p className="text-base font-semibold text-foreground mb-1">Your life evolves — your storage can too</p>
+              <p className="text-sm text-muted-foreground mb-3">Flexible storage you can adjust anytime.</p>
+              <p className="text-sm text-muted-foreground mb-3">Add 25GB storage increments anytime.</p>
+              <div className="bg-background/60 rounded-lg p-3 mb-3">
+                <p className="font-medium text-center"><span className="font-bold">+25GB</span> for <span className="text-brand-orange font-bold">$4.99 / month</span></p>
               </div>
+              <ul className="text-sm text-muted-foreground space-y-1 mb-3">
+                <li className="flex items-center gap-2">
+                  <CheckIcon className="h-4 w-4 text-green-500 flex-shrink-0" />
+                  Add multiple increments as needed
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckIcon className="h-4 w-4 text-green-500 flex-shrink-0" />
+                  Upgrade or remove storage anytime
+                </li>
+              </ul>
+              <Button
+                onClick={() => handleAddStorage('add-storage-25gb')}
+                disabled={isLoading}
+                size="sm"
+                className="w-full"
+              >
+                {isLoading ? 'Processing...' : 'Add 25GB'}
+              </Button>
               <StorageNotation />
             </div>
           </div>

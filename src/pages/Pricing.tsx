@@ -354,18 +354,25 @@ const Pricing: React.FC = () => {
 
                 {/* Storage Add-on */}
                 <div className="mt-8 max-w-2xl mx-auto">
-                  <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg p-6 text-center">
-                    <p className="text-lg font-semibold text-foreground mb-3">
-                      Need more space?
+                  <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg p-6">
+                    <p className="text-lg font-semibold text-foreground mb-1 text-center">
+                      Your life evolves — your storage can too
                     </p>
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                      <div className="bg-background/80 rounded-lg px-4 py-2">
-                        <span className="font-medium">+25GB</span> for <span className="text-brand-orange font-bold">$4.99/mo</span>
-                      </div>
-                      <div className="bg-background/80 rounded-lg px-4 py-2">
-                        <span className="font-medium">+50GB</span> for <span className="text-brand-orange font-bold">$9.99/mo</span>
-                      </div>
+                    <p className="text-sm text-muted-foreground text-center mb-3">Flexible storage you can adjust anytime.</p>
+                    <p className="text-sm text-muted-foreground text-center mb-3">Add 25GB storage increments anytime.</p>
+                    <div className="bg-background/80 rounded-lg px-4 py-2 text-center mb-3">
+                      <span className="font-bold">+25GB</span> for <span className="text-brand-orange font-bold">$4.99 / month</span>
                     </div>
+                    <ul className="text-sm text-muted-foreground space-y-1 max-w-xs mx-auto">
+                      <li className="flex items-center gap-2">
+                        <CheckIcon className="h-4 w-4 text-green-500 flex-shrink-0" />
+                        Add multiple increments as needed
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckIcon className="h-4 w-4 text-green-500 flex-shrink-0" />
+                        Upgrade or remove storage anytime
+                      </li>
+                    </ul>
                   </div>
                 </div>
 
