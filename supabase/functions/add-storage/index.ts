@@ -38,22 +38,18 @@ Deno.serve(async (req) => {
 
     console.log('[ADD-STORAGE] User authenticated:', user.id);
 
-    // Get user profile to check current storage
-    const { data: profile } = await supabaseClient
-      .from('profiles')
-      .select('stripe_customer_id, storage_quota_gb')
-      .eq('user_id', user.id)
-      .single();
-
-    if (!profile?.stripe_customer_id) {
-      throw new Error('No Stripe customer found');
+    // Find Stripe customer by email
+    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    if (!customers.data.length) {
+      throw new Error('No Stripe customer found for this email');
     }
+    const customerId = customers.data[0].id;
 
     console.log('[ADD-STORAGE] Creating checkout session for storage add-on');
 
     // Create Stripe checkout session for storage add-on
     const session = await stripe.checkout.sessions.create({
-      customer: profile.stripe_customer_id,
+      customer: customerId,
       line_items: [
         {
           price_data: {
@@ -78,7 +74,6 @@ Deno.serve(async (req) => {
         type: 'storage_addon',
         storage_amount_gb: '50',
       },
-      // Pass metadata to the subscription so webhook can detect storage add-on
       subscription_data: {
         metadata: {
           type: 'storage_addon',
