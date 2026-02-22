@@ -1308,10 +1308,10 @@ const SubscriptionTab: React.FC = () => {
               <span className="font-medium">{planConfigs[changePlanTarget]?.title}</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              Your billing will be prorated — you'll receive credit for unused time on your current plan.
+              Your plan will upgrade immediately.
             </p>
             <p className="text-sm text-muted-foreground">
-              The change takes effect immediately.
+              You'll only be charged the difference for the remainder of your billing period.
             </p>
           </div>
           <DialogFooter>
