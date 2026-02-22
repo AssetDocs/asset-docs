@@ -247,8 +247,9 @@ const Pricing: React.FC = () => {
                   <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-4">
                     Choose the plan that works for you
                   </p>
-                  <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 max-w-md mx-auto">
+                <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 max-w-md mx-auto space-y-1">
                     <p className="text-sm text-muted-foreground">No long-term contract. Cancel anytime</p>
+                    <p className="text-xs text-muted-foreground">🇺🇸 Paid subscriptions are currently available to U.S. billing addresses only.</p>
                   </div>
                 </div>
 
