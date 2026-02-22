@@ -8,7 +8,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, AlertCircle, KeyRound } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, Mail, CheckCircle2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
@@ -20,26 +20,11 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isPasskeyLoading, setIsPasskeyLoading] = useState(false);
+  const [isMagicLinkLoading, setIsMagicLinkLoading] = useState(false);
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
   const [loginError, setLoginError] = useState(false);
-  const [passkeySupported, setPasskeySupported] = useState(false);
   const { signIn, user } = useAuth();
   const { toast } = useToast();
-
-  // Check if passkey/WebAuthn is supported
-  useEffect(() => {
-    const checkPasskeySupport = async () => {
-      if (window.PublicKeyCredential) {
-        try {
-          const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-          setPasskeySupported(available);
-        } catch {
-          setPasskeySupported(false);
-        }
-      }
-    };
-    checkPasskeySupport();
-  }, []);
 
   // Get redirect URL from params (e.g., for gift code users)
   const redirectTo = searchParams.get('redirect') || '/account';
@@ -127,17 +112,41 @@ const Login: React.FC = () => {
     }
   };
 
-  const handlePasskeySignIn = async () => {
-    setIsPasskeyLoading(true);
+  const handleMagicLink = async () => {
+    if (!email) {
+      toast({
+        title: "Email Required",
+        description: "Please enter your email address to receive a magic link.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    // Note: Supabase doesn't have native passkey support yet
-    // This is a placeholder for future implementation with simplewebauthn
-    toast({
-      title: "Passkey Coming Soon",
-      description: "Passkey authentication will be available in a future update. Please use email and password for now.",
-    });
-    
-    setIsPasskeyLoading(false);
+    setIsMagicLinkLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback?type=magiclink&redirect_to=${encodeURIComponent(redirectTo)}`,
+        },
+      });
+
+      if (error) throw error;
+
+      setMagicLinkSent(true);
+      toast({
+        title: "Magic Link Sent!",
+        description: "Check your email for a sign-in link.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send magic link.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsMagicLinkLoading(false);
+    }
   };
 
   return (
@@ -260,26 +269,42 @@ const Login: React.FC = () => {
               {isLoading ? 'Signing In...' : 'Sign In'}
             </Button>
 
-            {passkeySupported && (
-              <>
-                <div className="relative my-4">
-                  <Separator />
-                  <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-xs text-muted-foreground">
-                    or
-                  </span>
-                </div>
-                
-                <Button 
+            <div className="relative my-4">
+              <Separator />
+              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-xs text-muted-foreground">
+                or
+              </span>
+            </div>
+
+            {magicLinkSent ? (
+              <div className="text-center space-y-3 p-4 rounded-lg border border-primary/20 bg-primary/5">
+                <CheckCircle2 className="h-8 w-8 text-primary mx-auto" />
+                <p className="text-sm font-medium text-foreground">Check your email!</p>
+                <p className="text-xs text-muted-foreground">
+                  We sent a sign-in link to <strong>{email}</strong>. Click the link to log in.
+                </p>
+                <Button
                   type="button"
-                  variant="outline"
-                  className="w-full border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white"
-                  onClick={handlePasskeySignIn}
-                  disabled={isPasskeyLoading}
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleMagicLink}
+                  disabled={isMagicLinkLoading}
+                  className="text-primary"
                 >
-                  <KeyRound className="mr-2 h-4 w-4" />
-                  {isPasskeyLoading ? 'Authenticating...' : 'Sign in with Passkey'}
+                  {isMagicLinkLoading ? 'Resending...' : 'Resend Magic Link'}
                 </Button>
-              </>
+              </div>
+            ) : (
+              <Button 
+                type="button"
+                variant="outline"
+                className="w-full border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white"
+                onClick={handleMagicLink}
+                disabled={isMagicLinkLoading}
+              >
+                <Mail className="mr-2 h-4 w-4" />
+                {isMagicLinkLoading ? 'Sending...' : 'Send me a Magic Link'}
+              </Button>
             )}
             
             <div className="text-center mt-4">
