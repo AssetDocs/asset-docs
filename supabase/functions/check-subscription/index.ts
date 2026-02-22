@@ -27,7 +27,6 @@ serve(async (req) => {
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header provided");
-    logStep("Authorization header found");
 
     const token = authHeader.replace("Bearer ", "");
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
@@ -47,38 +46,28 @@ serve(async (req) => {
       logStep("Error fetching entitlement", entitlementError);
     }
 
-    // Get profile for property/storage limits (still needed for quotas)
-    const { data: profile, error: profileError } = await supabaseClient
-      .from("profiles")
-      .select("property_limit, storage_quota_gb")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (profileError) {
-      logStep("Error fetching profile", profileError);
-    }
-
     logStep("Entitlement fetched", { 
       plan: entitlement?.plan,
       status: entitlement?.status,
-      currentPeriodEnd: entitlement?.current_period_end
+      plan_lookup_key: entitlement?.plan_lookup_key,
+      base_storage_gb: entitlement?.base_storage_gb,
+      storage_addon_blocks_qty: entitlement?.storage_addon_blocks_qty,
+      total_storage_gb: entitlement?.total_storage_gb,
     });
 
     let isSubscribed = false;
     let subscriptionTier = 'free';
     let planStatus = 'inactive';
     let currentPeriodEnd = null;
-    let propertyLimit = 999999; // Unlimited for all plans
-    let storageQuotaGb = profile?.storage_quota_gb || 5;
+    let propertyLimit = 999999;
+    // Use total_storage_gb from entitlements as authoritative quota
+    let storageQuotaGb = entitlement?.total_storage_gb || 0;
 
     if (entitlement) {
-      // Use entitlements as source of truth
       isSubscribed = entitlement.status === 'active' || entitlement.status === 'trialing';
       subscriptionTier = entitlement.plan;
       planStatus = entitlement.status;
       currentPeriodEnd = entitlement.current_period_end;
-      
-      logStep("User entitlement found", { isSubscribed, tier: subscriptionTier, status: planStatus });
     }
 
     // If user doesn't have their own subscription, check contributor access
@@ -86,17 +75,12 @@ serve(async (req) => {
       logStep("Checking contributor access");
       const { data: contributorAccess, error: contributorError } = await supabaseClient
         .from("contributors")
-        .select(`
-          account_owner_id,
-          status,
-          role
-        `)
+        .select("account_owner_id, status, role")
         .eq("contributor_user_id", user.id)
         .eq("status", "accepted")
         .maybeSingle();
 
       if (!contributorError && contributorAccess) {
-        // Get owner's entitlement
         const { data: ownerEntitlement } = await supabaseClient
           .from("entitlements")
           .select("*")
@@ -104,27 +88,12 @@ serve(async (req) => {
           .maybeSingle();
 
         if (ownerEntitlement && (ownerEntitlement.status === 'active' || ownerEntitlement.status === 'trialing')) {
-          logStep("User has contributor access to subscribed account", {
-            role: contributorAccess.role,
-            ownerPlan: ownerEntitlement.plan,
-            ownerStatus: ownerEntitlement.status
-          });
-          
+          logStep("User has contributor access", { ownerPlan: ownerEntitlement.plan });
           isSubscribed = true;
           subscriptionTier = ownerEntitlement.plan;
           planStatus = ownerEntitlement.status;
           currentPeriodEnd = ownerEntitlement.current_period_end;
-
-          // Get owner's profile for limits
-          const { data: ownerProfile } = await supabaseClient
-            .from("profiles")
-            .select("property_limit, storage_quota_gb")
-            .eq("user_id", contributorAccess.account_owner_id)
-            .maybeSingle();
-
-          if (ownerProfile) {
-            storageQuotaGb = ownerProfile.storage_quota_gb || 5;
-          }
+          storageQuotaGb = ownerEntitlement.total_storage_gb || 0;
         }
       }
     }
@@ -137,7 +106,14 @@ serve(async (req) => {
       property_limit: propertyLimit,
       storage_quota_gb: storageQuotaGb,
       is_trial: planStatus === 'trialing',
-      trial_end: planStatus === 'trialing' ? currentPeriodEnd : null
+      trial_end: planStatus === 'trialing' ? currentPeriodEnd : null,
+      // New fields from hardened entitlements
+      plan_lookup_key: entitlement?.plan_lookup_key || null,
+      base_storage_gb: entitlement?.base_storage_gb || 0,
+      storage_addon_blocks_qty: entitlement?.storage_addon_blocks_qty || 0,
+      total_storage_gb: entitlement?.total_storage_gb || 0,
+      cancel_at_period_end: entitlement?.cancel_at_period_end || false,
+      stripe_subscription_id: entitlement?.stripe_subscription_id || null,
     };
 
     logStep("Returning subscription status", response);
@@ -155,10 +131,14 @@ serve(async (req) => {
       subscription_tier: 'free',
       plan_status: 'inactive',
       property_limit: 999999,
-      storage_quota_gb: 5
+      storage_quota_gb: 0,
+      base_storage_gb: 0,
+      storage_addon_blocks_qty: 0,
+      total_storage_gb: 0,
+      cancel_at_period_end: false,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200, // Return 200 with default values instead of 500
+      status: 200,
     });
   }
 });

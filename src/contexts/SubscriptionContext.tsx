@@ -13,6 +13,12 @@ interface SubscriptionStatus {
   storage_quota_gb?: number;
   is_trial?: boolean;
   trial_end?: string;
+  // New fields from hardened entitlements
+  plan_lookup_key?: string;
+  base_storage_gb?: number;
+  storage_addon_blocks_qty?: number;
+  total_storage_gb?: number;
+  cancel_at_period_end?: boolean;
 }
 
 interface SubscriptionContextType {
@@ -48,9 +54,9 @@ const mapTierToEnum = (tier?: string): SubscriptionTier | null => {
     case 'enterprise':
       return 'premium';
     case 'free':
-      return null; // Free tier means no subscription
+      return null;
     default:
-      return 'standard'; // Default to standard for backward compatibility
+      return 'standard';
   }
 };
 
@@ -61,10 +67,11 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [loading, setLoading] = useState(true);
 
   const subscriptionTier = mapTierToEnum(subscriptionStatus.subscription_tier);
-  const isInTrial = false; // Trial no longer supported
+  const isInTrial = false;
   const isPremium = subscriptionTier === 'premium';
   const propertyLimit = subscriptionStatus.property_limit || 999999;
-  const storageQuotaGb = subscriptionStatus.storage_quota_gb || 5;
+  // Use total_storage_gb from entitlements as authoritative quota
+  const storageQuotaGb = subscriptionStatus.total_storage_gb || subscriptionStatus.storage_quota_gb || 0;
 
   const checkSubscription = async () => {
     if (!user) {
@@ -92,8 +99,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const hasFeature = (featureKey: string): boolean => {
     const feature = SUBSCRIPTION_FEATURES[featureKey];
-    if (!feature) return true; // If feature doesn't exist in config, allow access
-    
+    if (!feature) return true;
     return hasFeatureAccess(subscriptionTier, feature.requiredTier, isInTrial);
   };
 
@@ -102,7 +108,6 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     if (!feature) {
       return { hasAccess: true, feature: null };
     }
-    
     const hasAccess = hasFeatureAccess(subscriptionTier, feature.requiredTier, isInTrial);
     return { hasAccess, feature };
   };

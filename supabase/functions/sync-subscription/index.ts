@@ -12,13 +12,38 @@ const logStep = (step: string, details?: any) => {
   console.log(`[SYNC-SUBSCRIPTION] ${step}${detailsStr}`);
 };
 
+// Parse subscription items by lookup_key (same logic as webhook)
+function parseSubscriptionItems(items: Stripe.SubscriptionItem[]) {
+  let plan = 'free';
+  let planLookupKey: string | null = null;
+  let planPriceId: string | null = null;
+  let baseStorageGb = 0;
+  let storageAddonBlocksQty = 0;
+
+  for (const item of items) {
+    const lookupKey = item.price?.lookup_key;
+    if (!lookupKey) continue;
+
+    if (lookupKey.startsWith('standard_') || lookupKey.startsWith('premium_')) {
+      planLookupKey = lookupKey;
+      planPriceId = item.price.id;
+      plan = lookupKey.startsWith('premium_') ? 'premium' : 'standard';
+      baseStorageGb = plan === 'premium' ? 100 : 25;
+    } else if (lookupKey === 'storage_25gb_monthly') {
+      storageAddonBlocksQty = item.quantity || 0;
+    }
+  }
+
+  return { plan, planLookupKey, planPriceId, baseStorageGb, storageAddonBlocksQty };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    logStep("Function started - Phase 3 race-condition fix");
+    logStep("Function started");
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -32,7 +57,6 @@ serve(async (req) => {
       auth: { persistSession: false }
     });
 
-    // Get authenticated user
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header provided");
 
@@ -50,113 +74,53 @@ serve(async (req) => {
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     if (customers.data.length === 0) {
       logStep("No Stripe customer found - creating inactive entitlement");
+      await supabaseClient.from('entitlements').upsert({
+        user_id: user.id, plan: 'free', status: 'inactive',
+        base_storage_gb: 0, storage_addon_blocks_qty: 0,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
       
-      // Ensure user has a base entitlement record
-      await supabaseClient
-        .from('entitlements')
-        .upsert({
-          user_id: user.id,
-          plan: 'free',
-          status: 'inactive',
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id' });
-      
-      return new Response(JSON.stringify({ 
-        synced: true, 
-        status: 'inactive',
-        message: "No Stripe customer found for this email" 
-      }), {
+      return new Response(JSON.stringify({ synced: true, status: 'inactive' }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
       });
     }
 
     const customerId = customers.data[0].id;
-    logStep("Found Stripe customer", { customerId });
 
     // Get subscriptions - prioritize active ones
     const subscriptions = await stripe.subscriptions.list({
-      customer: customerId,
-      status: 'all',
-      limit: 10,
+      customer: customerId, status: 'all', limit: 10,
+      expand: ['data.items.data.price']
     });
 
-    // Find the most relevant subscription
     const priorityOrder = ['active', 'trialing', 'past_due', 'incomplete'];
     let subscription: Stripe.Subscription | null = null;
-
     for (const status of priorityOrder) {
       const found = subscriptions.data.find(s => s.status === status);
-      if (found) {
-        subscription = found;
-        break;
-      }
+      if (found) { subscription = found; break; }
     }
-
-    // If no subscription in priority list, take the most recent
     if (!subscription && subscriptions.data.length > 0) {
       subscription = subscriptions.data[0];
     }
 
     if (!subscription) {
       logStep("No subscriptions found - setting inactive");
+      await supabaseClient.from('entitlements').upsert({
+        user_id: user.id, plan: 'free', status: 'inactive',
+        stripe_customer_id: customerId,
+        base_storage_gb: 0, storage_addon_blocks_qty: 0,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
       
-      // Ensure user has a base entitlement record
-      await supabaseClient
-        .from('entitlements')
-        .upsert({
-          user_id: user.id,
-          plan: 'free',
-          status: 'inactive',
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id' });
-      
-      return new Response(JSON.stringify({ 
-        synced: true, 
-        status: 'inactive',
-        message: "No subscriptions found for this customer" 
-      }), {
+      return new Response(JSON.stringify({ synced: true, status: 'inactive' }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
       });
     }
 
-    logStep("Found subscription", { 
-      subscriptionId: subscription.id, 
-      status: subscription.status,
-      productId: subscription.items.data[0]?.price?.product
-    });
+    // Parse subscription items by lookup_key
+    const parsed = parseSubscriptionItems(subscription.items.data as Stripe.SubscriptionItem[]);
+    logStep("Parsed subscription", { ...parsed, subscriptionId: subscription.id, status: subscription.status });
 
-    // Determine plan details from subscription
-    const productId = subscription.items.data[0]?.price?.product as string;
-    const priceId = subscription.items.data[0]?.price?.id || '';
-    let planId = 'standard';
-    let propertyLimit = 3;
-    let storageQuotaGb = 25;
-
-    // Try to get product name to determine plan
-    try {
-      const product = await stripe.products.retrieve(productId);
-      const productName = product.name.toLowerCase();
-      logStep("Product retrieved", { productName });
-      
-      if (productName.includes('premium') || productName.includes('professional')) {
-        planId = 'premium';
-        propertyLimit = -1; // Unlimited
-        storageQuotaGb = 100;
-      }
-    } catch (e) {
-      // Fallback: check price ID
-      const priceLower = priceId.toLowerCase();
-      if (priceLower.includes('premium') || priceLower.includes('professional')) {
-        planId = 'premium';
-        propertyLimit = -1;
-        storageQuotaGb = 100;
-      }
-      logStep("Could not retrieve product, checked price ID", { planId });
-    }
-
-    // Map Stripe status to entitlement status
     let entitlementStatus = 'inactive';
     if (subscription.status === 'active' || subscription.status === 'trialing') {
       entitlementStatus = 'active';
@@ -167,94 +131,69 @@ serve(async (req) => {
     }
 
     const currentPeriodEnd = new Date(subscription.current_period_end * 1000).toISOString();
+    const totalStorageGb = parsed.baseStorageGb + (parsed.storageAddonBlocksQty * 25);
 
-    // PRIMARY: Update entitlements table (source of truth)
-    const { error: entitlementError } = await supabaseClient
-      .from('entitlements')
-      .upsert({
-        user_id: user.id,
-        plan: planId,
-        status: entitlementStatus,
-        current_period_end: currentPeriodEnd,
-        source_event_id: `sync_${Date.now()}`,
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'user_id' });
-
-    if (entitlementError) {
-      logStep("Error updating entitlements", entitlementError);
-      throw new Error("Failed to update entitlements");
-    }
-
-    logStep("Entitlements updated", { plan: planId, status: entitlementStatus });
+    // PRIMARY: Update entitlements
+    await supabaseClient.from('entitlements').upsert({
+      user_id: user.id,
+      plan: parsed.plan,
+      status: entitlementStatus,
+      stripe_customer_id: customerId,
+      stripe_subscription_id: subscription.id,
+      stripe_plan_price_id: parsed.planPriceId,
+      plan_lookup_key: parsed.planLookupKey,
+      subscription_status: subscription.status,
+      cancel_at_period_end: subscription.cancel_at_period_end || false,
+      base_storage_gb: parsed.baseStorageGb,
+      storage_addon_blocks_qty: parsed.storageAddonBlocksQty,
+      current_period_end: currentPeriodEnd,
+      source_event_id: `sync_${Date.now()}`,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' });
 
     // BACKWARDS COMPAT: Update profile
-    const { error: updateError } = await supabaseClient
-      .from('profiles')
-      .update({
-        stripe_customer_id: customerId,
-        plan_id: planId,
-        plan_status: entitlementStatus,
-        property_limit: propertyLimit,
-        storage_quota_gb: storageQuotaGb,
-        current_period_end: currentPeriodEnd,
-        updated_at: new Date().toISOString()
-      })
-      .eq('user_id', user.id);
+    await supabaseClient.from('profiles').update({
+      stripe_customer_id: customerId,
+      plan_id: parsed.plan,
+      plan_status: entitlementStatus,
+      property_limit: 999999,
+      storage_quota_gb: totalStorageGb,
+      current_period_end: currentPeriodEnd,
+      updated_at: new Date().toISOString()
+    }).eq('user_id', user.id);
 
-    if (updateError) {
-      logStep("Error updating profile", updateError);
-      // Don't throw - entitlements is the source of truth
-    }
+    // BACKWARDS COMPAT: Update subscribers
+    await supabaseClient.from('subscribers').upsert({
+      user_id: user.id,
+      email: user.email,
+      stripe_customer_id: customerId,
+      subscribed: entitlementStatus === 'active',
+      subscription_tier: parsed.plan,
+      subscription_end: currentPeriodEnd,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' });
 
-    // BACKWARDS COMPAT: Update subscribers record
-    const { error: subscribersError } = await supabaseClient
-      .from('subscribers')
-      .upsert({
-        user_id: user.id,
-        email: user.email,
-        stripe_customer_id: customerId,
-        subscribed: entitlementStatus === 'active',
-        subscription_tier: planId,
-        subscription_end: currentPeriodEnd,
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'user_id'
-      });
-
-    if (subscribersError) {
-      logStep("Error updating subscribers", subscribersError);
-      // Don't throw - entitlements is the source of truth
-    }
-
-    logStep("Subscription synced successfully", { 
-      plan: planId, 
-      status: entitlementStatus, 
-      propertyLimit, 
-      storageQuotaGb,
-      subscriptionId: subscription.id
-    });
+    logStep("Subscription synced successfully", { plan: parsed.plan, status: entitlementStatus, totalStorageGb });
 
     return new Response(JSON.stringify({ 
       synced: true,
-      plan: planId,
+      plan: parsed.plan,
       status: entitlementStatus,
-      property_limit: propertyLimit,
-      storage_quota_gb: storageQuotaGb,
+      storage_quota_gb: totalStorageGb,
+      base_storage_gb: parsed.baseStorageGb,
+      storage_addon_blocks_qty: parsed.storageAddonBlocksQty,
       current_period_end: currentPeriodEnd,
+      cancel_at_period_end: subscription.cancel_at_period_end,
       subscription_id: subscription.id,
       customer_id: customerId
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
     });
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message: errorMessage });
-    return new Response(JSON.stringify({ 
-      synced: false, 
-      error: errorMessage 
-    }), {
+    return new Response(JSON.stringify({ synced: false, error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
