@@ -36,7 +36,17 @@ const SubscriptionAgreement: React.FC = () => {
               </p>
 
               <section className="mb-8">
-                <h2 className="text-2xl font-semibold text-brand-blue mb-4">1. Subscription Plans</h2>
+                <h2 className="text-2xl font-semibold text-brand-blue mb-4">1. Geographic Availability</h2>
+                <p className="mb-4">
+                  Paid subscription plans for Asset Safe are currently available only to users with a valid United States billing address. While the platform is accessible globally for browsing and account creation, completing a paid subscription requires a U.S. billing address at checkout.
+                </p>
+                <p>
+                  Asset Safe reserves the right to expand paid subscription availability to additional countries in the future.
+                </p>
+              </section>
+
+              <section className="mb-8">
+                <h2 className="text-2xl font-semibold text-brand-blue mb-4">2. Subscription Plans</h2>
                 <p className="mb-4">
                   Asset Safe offers subscription plans with varying features, storage limits, and pricing. Details for each plan are available on our website at the time of signup.
                 </p>
@@ -46,7 +56,7 @@ const SubscriptionAgreement: React.FC = () => {
               </section>
 
               <section className="mb-8">
-                <h2 className="text-2xl font-semibold text-brand-blue mb-4">2. Billing & Renewal</h2>
+                <h2 className="text-2xl font-semibold text-brand-blue mb-4">3. Billing & Renewal</h2>
                 <ul className="list-disc pl-6 space-y-2">
                   <li>Subscriptions automatically renew at the end of each billing period unless canceled before renewal.</li>
                   <li>You authorize Asset Safe to charge the applicable subscription fees to your selected payment method.</li>
@@ -55,7 +65,7 @@ const SubscriptionAgreement: React.FC = () => {
               </section>
 
               <section className="mb-8">
-                <h2 className="text-2xl font-semibold text-brand-blue mb-4">3. Cancellations & Access</h2>
+                <h2 className="text-2xl font-semibold text-brand-blue mb-4">4. Cancellations & Access</h2>
                 <ul className="list-disc pl-6 space-y-2">
                   <li>You may cancel your subscription at any time through your account settings.</li>
                   <li>Access to paid features remains active until the end of your current billing period.</li>
@@ -65,7 +75,7 @@ const SubscriptionAgreement: React.FC = () => {
               </section>
 
               <section className="mb-8">
-                <h2 className="text-2xl font-semibold text-brand-blue mb-4">4. Data Storage & Retention</h2>
+                <h2 className="text-2xl font-semibold text-brand-blue mb-4">5. Data Storage & Retention</h2>
                 <p className="mb-4">
                   Asset Safe is designed to help you document and preserve information. You are responsible for maintaining your own copies of important records.
                 </p>
@@ -76,14 +86,14 @@ const SubscriptionAgreement: React.FC = () => {
               </section>
 
               <section className="mb-8">
-                <h2 className="text-2xl font-semibold text-brand-blue mb-4">5. No Legal, Financial, or Insurance Advice</h2>
+                <h2 className="text-2xl font-semibold text-brand-blue mb-4">6. No Legal, Financial, or Insurance Advice</h2>
                 <p>
                   Asset Safe provides documentation and organizational tools only. We do not provide legal, financial, insurance, or tax advice, and Asset Safe does not verify or guarantee the accuracy or validity of user-submitted information.
                 </p>
               </section>
 
               <section className="mb-8">
-                <h2 className="text-2xl font-semibold text-brand-blue mb-4">6. Updates to This Agreement</h2>
+                <h2 className="text-2xl font-semibold text-brand-blue mb-4">7. Updates to This Agreement</h2>
                 <p>
                   We may update this Subscription Agreement from time to time. Continued use of Asset Safe after updates constitutes acceptance of the revised terms.
                 </p>

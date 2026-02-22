@@ -138,9 +138,16 @@ const Terms: React.FC = () => {
               Web Site.
             </p>
           </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">10. Geographic Availability</h2>
+            <p>
+              Paid subscription plans for Asset Safe are currently available only to users with a United States billing address. While anyone may browse the website and create a free account, paid features and subscriptions require a valid U.S. billing address at checkout. Asset Safe reserves the right to expand availability to additional countries in the future.
+            </p>
+          </section>
           
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">10. Billing and Payments</h2>
+            <h2 className="text-2xl font-semibold mb-4">11. Billing and Payments</h2>
             <p>
               Subscription fees are exclusive of applicable sales, use, or similar taxes, which may be added based on your billing address and applicable law.
             </p>
@@ -153,7 +160,7 @@ const Terms: React.FC = () => {
           </section>
           
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">11. Privacy Policy</h2>
+            <h2 className="text-2xl font-semibold mb-4">12. Privacy Policy</h2>
             <p>
               Your privacy is very important to us. Accordingly, we have developed this Policy in order for 
               you to understand how we collect, use, communicate and disclose and make use of personal information. 
