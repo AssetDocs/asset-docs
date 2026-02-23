@@ -5,32 +5,23 @@ import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Checkbox } from '@/components/ui/checkbox';
+import { cn } from '@/lib/utils';
 import {
   Eye,
   Home,
-  Camera,
   FileText,
-  FileImage,
   Settings,
-  Plus,
-  HardDrive,
-  BarChart3,
-  DollarSign,
   FolderOpen,
-  Lock,
-  CheckCircle2,
-  AlertCircle,
+  DollarSign,
+  Check,
   ChevronDown,
-  ChevronUp,
   Shield,
   Key,
   Users,
-  FileCheck,
   Heart,
   Wrench,
   FileDown,
@@ -43,149 +34,148 @@ import {
 
 const SampleDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [storageOpen, setStorageOpen] = useState(false);
+  const [securityOpen, setSecurityOpen] = useState(false);
 
   const showDemoAlert = (title: string, description: string) => {
     alert(`Asset Safe says\n\n${title}\n\n${description}`);
   };
 
-  // Demo Welcome Banner
+  // Demo Welcome Banner - matches real WelcomeBanner layout
   const DemoWelcomeBanner = () => (
     <div className="bg-gradient-to-r from-brand-blue to-brand-lightBlue p-6 rounded-lg text-white">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <h1 className="text-2xl font-bold">Welcome, Demo User!</h1>
-        <span className="text-white/90 font-medium text-sm bg-white/20 px-3 py-1 rounded-md">
-          Account #: DEMO-12345
-        </span>
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div className="flex-1">
+          <p className="text-white/80 text-sm font-medium">
+            Welcome, Demo User!
+          </p>
+          <h1 className="text-2xl font-bold mt-0.5">
+            Your Asset Safe Dashboard
+          </h1>
+          <p className="text-white/70 text-sm mt-2">
+            Everything you use today — and what protects you for tomorrow.
+          </p>
+        </div>
+        <div className="flex flex-col gap-2 sm:items-end">
+          <span className="text-white/90 font-medium text-sm bg-white/20 px-3 py-1 rounded-md">
+            Account #: DEMO-12345
+          </span>
+          <div className="flex gap-2 mt-1">
+            <button
+              onClick={() => showDemoAlert('Account Settings', 'Manage your subscription plan, billing details, notification preferences, profile information, and security settings.')}
+              className="flex flex-col items-center justify-center gap-1 bg-white/15 hover:bg-white/25 transition-colors rounded-lg w-[72px] h-[56px] text-white/90 hover:text-white"
+              title="Account Settings"
+            >
+              <Settings className="h-4 w-4" />
+              <span className="text-[10px] font-medium leading-tight">Settings</span>
+            </button>
+            <button
+              onClick={() => showDemoAlert('Property Profiles', 'Create unlimited property profiles for your homes, vacation houses, rentals, and storage units.')}
+              className="flex flex-col items-center justify-center gap-1 bg-white/15 hover:bg-white/25 transition-colors rounded-lg w-[72px] h-[56px] text-white/90 hover:text-white"
+              title="Property Profiles"
+            >
+              <Home className="h-4 w-4" />
+              <span className="text-[10px] font-medium leading-tight">Properties</span>
+            </button>
+            <button
+              onClick={() => showDemoAlert('Access & Activity', 'Invite contributors and monitor all account activity with a detailed log.')}
+              className="flex flex-col items-center justify-center gap-1 bg-white/15 hover:bg-white/25 transition-colors rounded-lg w-[72px] h-[56px] text-white/90 hover:text-white"
+              title="Access & Activity"
+            >
+              <Users className="h-4 w-4" />
+              <span className="text-[10px] font-medium leading-tight">Access</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
 
-  // Demo Account Stats
-  const DemoAccountHeader = () => (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-      <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => showDemoAlert('Total Items', 'This shows the total number of items you have documented across all properties, including photos, videos, documents, and inventory items.')}>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Total Items</p>
-              <p className="text-2xl font-bold text-brand-blue">247</p>
-            </div>
-            <BarChart3 className="h-8 w-8 text-brand-blue" />
-          </div>
-        </CardContent>
-      </Card>
-      <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => showDemoAlert('Total Value', 'The estimated total value of all your documented assets. Helps you understand coverage needs and provides documentation for insurance claims.')}>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Total Value</p>
-              <p className="text-2xl font-bold text-emerald-600">$48,329</p>
-            </div>
-            <DollarSign className="h-8 w-8 text-emerald-600" />
-          </div>
-        </CardContent>
-      </Card>
-      <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => showDemoAlert('Properties', 'The number of property profiles you have created. Each property can be documented separately with its own photos, videos, and inventory.')}>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Properties</p>
-              <p className="text-2xl font-bold text-brand-blue">3</p>
-            </div>
-            <Home className="h-8 w-8 text-brand-blue" />
-          </div>
-        </CardContent>
-      </Card>
-      <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => showDemoAlert('Storage Used', 'Your current storage usage. Upgrade your plan for additional storage space.')}>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Storage Used</p>
-              <p className="text-2xl font-bold text-orange-600">2.4 GB</p>
-            </div>
-            <FolderOpen className="h-8 w-8 text-orange-600" />
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+  // Demo Security Progress Bar - matches real compact collapsible bar
+  const DemoSecurityProgressBar = () => {
+    const demoTasks = [
+      { label: 'Complete Your Profile', completed: true, phase: 1 },
+      { label: 'Create Your First Property', completed: true, phase: 1 },
+      { label: 'Upload Your First Photos or Videos', completed: true, phase: 1 },
+      { label: 'Add an Authorized User', completed: true, phase: 2 },
+      { label: 'Enable Multi-Factor Authentication', completed: false, phase: 2 },
+      { label: 'Upload Important Documents & Records', completed: false, phase: 2 },
+      { label: 'Enable Secure Vault Protection', completed: false, phase: 3 },
+      { label: 'Add Legacy Locker & Password Catalog Details', completed: false, phase: 3 },
+      { label: 'Assign a Recovery Delegate (inside the Secure Vault)', completed: false, phase: 3 },
+    ];
+    const completedCount = demoTasks.filter(t => t.completed).length;
+    const progressPercent = Math.round((completedCount / demoTasks.length) * 100);
 
-  // Demo Storage Dashboard
-  const DemoStorageDashboard = () => (
-    <Collapsible open={storageOpen} onOpenChange={setStorageOpen} className="mb-6">
-      <div className="flex items-center justify-between p-4 bg-card border rounded-lg">
-        <div className="flex items-center gap-2">
-          <HardDrive className="h-5 w-5 text-brand-blue" />
-          <h3 className="font-semibold text-lg">Storage Usage</h3>
-        </div>
-        <CollapsibleTrigger asChild>
-          <Button variant="ghost" size="sm">
-            {storageOpen ? (
-              <><span className="mr-2 text-sm">Hide Details</span><ChevronUp className="h-4 w-4" /></>
-            ) : (
-              <><span className="mr-2 text-sm">Show Details</span><ChevronDown className="h-4 w-4" /></>
-            )}
-          </Button>
-        </CollapsibleTrigger>
+    const getPhaseLabel = (phase: number) => {
+      if (phase === 1) return 'Getting Started';
+      if (phase === 2) return 'Next Steps';
+      return 'Advanced';
+    };
+
+    return (
+      <div className="w-full bg-card border border-border rounded-lg overflow-hidden">
+        <button
+          onClick={() => setSecurityOpen(!securityOpen)}
+          className="w-full px-4 py-3 flex items-center justify-between gap-3 hover:bg-muted/30 transition-colors"
+        >
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 flex-shrink-0">
+              <Shield className="h-4 w-4 text-primary" />
+            </div>
+            <span className="text-sm font-semibold text-foreground whitespace-nowrap">Security Progress</span>
+            {/* Static "User" badge matching UserStatusBadge */}
+            <div className="inline-flex items-center gap-1 rounded-full border bg-blue-50 border-blue-200 px-2 py-0.5">
+              <Shield className="h-4 w-4 text-blue-600" />
+              <span className="text-xs text-blue-700 font-medium">User</span>
+            </div>
+            <Progress value={progressPercent} className="h-1.5 flex-1 min-w-0" />
+          </div>
+          <ChevronDown className={`h-5 w-5 text-muted-foreground flex-shrink-0 transition-transform ${securityOpen ? '' : '-rotate-90'}`} />
+        </button>
+
+        {securityOpen && (
+          <div className="px-4 pb-4 pt-1 border-t border-border">
+            <p className="text-[11px] text-muted-foreground mb-2">Overall account protection status</p>
+            <p className="text-xs text-muted-foreground mb-3">
+              Complete any 5 of the following steps to reach Verified status:
+            </p>
+            <div className="space-y-2">
+              {demoTasks.map((task, index) => (
+                <div key={index} className="flex items-start gap-2.5">
+                  <div className={cn(
+                    "flex items-center justify-center w-5 h-5 rounded mt-0.5 flex-shrink-0",
+                    task.completed
+                      ? "bg-primary text-primary-foreground"
+                      : "border border-muted-foreground/40 text-muted-foreground"
+                  )}>
+                    {task.completed ? (
+                      <Check className="h-3 w-3" />
+                    ) : (
+                      <span className="text-[10px] font-semibold">{index + 1}</span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className={cn(
+                      "text-sm",
+                      task.completed ? "line-through text-muted-foreground" : "text-foreground"
+                    )}>
+                      {task.label}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground ml-2">
+                      {getPhaseLabel(task.phase)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-3 pt-2 border-t border-border">
+              {completedCount} of {demoTasks.length} completed · Complete any 5 milestones to reach Verified status
+            </p>
+          </div>
+        )}
       </div>
-      <CollapsibleContent className="mt-4">
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card className="cursor-pointer" onClick={() => showDemoAlert('Storage Quota', 'Monitor your storage usage and available space. Upgrade your subscription for more storage.')}>
-            <CardHeader><CardTitle className="flex items-center"><FolderOpen className="h-5 w-5 mr-2 text-brand-blue" />Storage Quota</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Used</span><span className="font-semibold">2.4 GB of 5 GB</span></div>
-                <Progress value={48} className="h-2" />
-                <p className="text-xs text-muted-foreground">48% of storage used</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="cursor-pointer" onClick={() => showDemoAlert('Storage Breakdown', 'See how your storage is distributed across photos, videos, and documents.')}>
-            <CardHeader><CardTitle className="flex items-center"><BarChart3 className="h-5 w-5 mr-2 text-brand-blue" />Storage Breakdown</CardTitle></CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between items-center"><div className="flex items-center gap-2"><Camera className="h-4 w-4 text-blue-500" /><span className="text-sm">Photos</span></div><span className="text-sm font-semibold">1.2 GB</span></div>
-              <div className="flex justify-between items-center"><div className="flex items-center gap-2"><FileImage className="h-4 w-4 text-purple-500" /><span className="text-sm">Videos</span></div><span className="text-sm font-semibold">0.8 GB</span></div>
-              <div className="flex justify-between items-center"><div className="flex items-center gap-2"><FileText className="h-4 w-4 text-emerald-500" /><span className="text-sm">Documents</span></div><span className="text-sm font-semibold">0.4 GB</span></div>
-            </CardContent>
-          </Card>
-        </div>
-      </CollapsibleContent>
-    </Collapsible>
-  );
-
-  // Demo Security Progress
-  const DemoSecurityProgress = () => (
-    <Card className="cursor-pointer mb-6" onClick={() => showDemoAlert('Security Progress', 'Track your account security setup. Complete all steps—email verification, 2FA, property profile, and uploads—to reach Verified+ status and unlock the full protection score.')}>
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <FileCheck className="h-5 w-5 mr-2 text-brand-blue" />
-          Security Progress
-        </CardTitle>
-        <CardDescription>Track your account verification milestones</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-lg">
-            <div className="flex items-center gap-3"><CheckCircle2 className="h-5 w-5 text-emerald-600" /><span className="text-sm font-medium">Email Verified</span></div>
-            <Badge variant="outline" className="bg-emerald-100 text-emerald-800">Complete</Badge>
-          </div>
-          <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-lg">
-            <div className="flex items-center gap-3"><CheckCircle2 className="h-5 w-5 text-emerald-600" /><span className="text-sm font-medium">Property Profile Created</span></div>
-            <Badge variant="outline" className="bg-emerald-100 text-emerald-800">Complete</Badge>
-          </div>
-          <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
-            <div className="flex items-center gap-3"><AlertCircle className="h-5 w-5 text-yellow-600" /><span className="text-sm font-medium">Two-Factor Authentication</span></div>
-            <Badge variant="outline" className="bg-yellow-100 text-yellow-800">In Progress</Badge>
-          </div>
-          <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-            <div className="flex items-center gap-3"><AlertCircle className="h-5 w-5 text-muted-foreground" /><span className="text-sm font-medium">Upload Milestone (10 items)</span></div>
-            <Badge variant="outline" className="bg-muted text-muted-foreground">Not Started</Badge>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
+    );
+  };
 
   // Demo collapsible bar (static, click shows alert)
   const DemoCollapsibleBar = ({ icon, label, alertTitle, alertDescription }: {
@@ -317,14 +307,8 @@ const SampleDashboard: React.FC = () => {
           {/* Welcome Banner */}
           <div className="mb-6"><DemoWelcomeBanner /></div>
 
-          {/* Account Stats */}
-          <DemoAccountHeader />
-
-          {/* Storage Dashboard */}
-          <DemoStorageDashboard />
-
-          {/* Security Progress */}
-          <DemoSecurityProgress />
+          {/* Security Progress Bar */}
+          <div className="mb-6"><DemoSecurityProgressBar /></div>
 
           {/* Main Dashboard Grid */}
           <TooltipProvider>
@@ -394,19 +378,17 @@ const SampleDashboard: React.FC = () => {
                   alertDescription="Enable and manage two-factor authentication (TOTP) for your account. This adds an extra layer of security to your Legacy Locker and Password Catalog, requiring a code from your authenticator app each session."
                 />
 
-                {/* Row 3: Green */}
+                {/* Row 3: Green + Blue */}
                 <DemoGridCard
                   icon={<Wrench className="h-6 w-6" />}
                   title="Insights & Tools"
                   description="Track values, manage repairs, and organize property details."
-                  tags={['Smart Calendar', 'Asset Values', 'Manual Entry', 'Upgrades & Repairs', 'Source Websites', 'Paint Codes']}
+                  tags={['Smart Calendar', 'Asset Values', 'Manual Entry', 'Upgrades & Repairs', 'Source Websites', 'Paint Codes', 'Quick Notes']}
                   actionLabel="Open Tools"
                   color="green"
                   alertTitle="Insights & Tools"
-                  alertDescription="A toolkit for managing your property details. Track total asset values across properties, manually add inventory items, log home upgrades and repairs, save purchase source websites for warranty reference, and store paint codes for every room."
+                  alertDescription="A toolkit for managing your property details. Track total asset values across properties, manually add inventory items, log home upgrades and repairs, save purchase source websites for warranty reference, store paint codes for every room, and jot down quick notes and reminders with optional file attachments."
                 />
-
-                {/* Row 4: Blue */}
                 <DemoGridCard
                   icon={<Home className="h-6 w-6" />}
                   title="Property Profiles"
