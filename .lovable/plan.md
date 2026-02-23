@@ -1,36 +1,26 @@
 
 
-## Add "Life Support" Dropdown to Features Page (Homeowners Tab)
+## Update Pricing Page: Badge Width + Toggle Style
 
-Add a new `FeatureCategory` titled **"Life Support"** to the Homeowners tab, positioned directly after the existing "Property & Assets" (Core Platform Features) dropdown.
+### 1. Fix "Most Popular" badge to single line
 
-### Content Structure
+**File:** `src/pages/Pricing.tsx` (line 286-288)
 
-The dropdown will contain two subsections, each with a header and a grid of feature cards:
+The badge text "Most Popular for Families and Businesses" wraps because the pill uses `rounded-full` with no `whitespace-nowrap`. Add `whitespace-nowrap` to the `<span>` so the text stays on one line.
 
-**1. Family Archive** -- "Everyday life, organized and protected."
-Six cards in a 3-column grid:
-- **VIP Contacts** (Contact icon) -- "Your most important contacts with priority levels."
-- **Voice Notes** (Mic icon) -- "Record and store voice memos for your records."
-- **Trusted Professionals** (Briefcase icon) -- "Track your trusted service providers and contractors."
-- **Notes & Traditions** (BookOpen icon) -- "Capture family traditions, stories, and important notes."
-- **Family Recipes** (ChefHat icon) -- "Preserve cherished family recipes for generations."
-- **Memory Safe** (Archive icon) -- "A protected place for the memories you want to keep -- and pass on."
+Only this instance on the Pricing page is changed -- the identical markup in `PricingPlans.tsx`, `CompletePricing.tsx`, and `SubscriptionTab.tsx` remains untouched.
 
-**2. Insights & Tools** -- "Manage repairs and organize property details."
-Six cards in a 3-column grid:
-- **Smart Calendar** (CalendarDays icon) -- "Reminders, records, and timelines -- all in one place."
-- **Manual Entry Items** (Package icon) -- "Add items manually with descriptions and values."
-- **Upgrades & Repairs** (Hammer icon) -- "Document property improvements and repair history."
-- **Source Websites** (Globe icon) -- "Save product sources and reference links."
-- **Paint Codes** (Palette icon) -- "Store paint colors, brands, and finish details."
-- **Quick Notes** (StickyNote icon) -- "Jot down quick reminders or thoughts."
+### 2. Match billing toggle to Account Settings style
 
-### Technical Details
+**File:** `src/pages/Pricing.tsx` (lines 250-272)
 
-**File modified:** `src/pages/Features.tsx`
+Currently the pricing page uses two separate `<button>` elements with `bg-brand-orange` active state and a plain green `<span>` for "Save". The Account Settings toggle (in `SubscriptionTab.tsx`) uses a Radix `Tabs` + `TabsList` + `TabsTrigger` with a `Badge` styled `bg-brand-green/10 text-brand-green`.
 
-- Add new icon imports: `Contact, Mic, BookOpen, ChefHat, CalendarDays, Package, StickyNote` from `lucide-react` (Briefcase, Globe, Palette, Hammer, Archive already imported)
-- Insert a new `FeatureCategory` block titled "Life Support" between the "Property & Assets" category (line 120) and the "Protection & Insurance" category (line 122)
-- Inside the category, render two labeled subsections with subtitle text and 3-column grids of `FeatureCard` components
-- No new components, dependencies, or files needed
+Replace the two-button toggle with:
+- A Radix `Tabs` component (already imported on this page) with `TabsList` and two `TabsTrigger` values
+- The "Monthly" trigger gets an orange active style via conditional class: `data-[state=active]:bg-brand-orange data-[state=active]:text-white`
+- The "Yearly" trigger gets the same orange active style, plus a `Badge` with `bg-brand-green/10 text-brand-green` for the "Save" pill -- matching the Account Settings exactly
+- Import `Badge` from `@/components/ui/badge`
+
+This gives the orange pill highlight for the active tab and a bright green pill around "Save", matching the Account Settings toggle.
+
