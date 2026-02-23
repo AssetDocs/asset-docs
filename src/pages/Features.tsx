@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Camera, Shield, Lock, FileImage, BarChart, Clock, Home, Building, Briefcase, Scale, Truck, Users, TrendingUp, Heart, Handshake, MapPin, Smartphone, Cloud, Share2, FileText, DollarSign, UserCheck, Globe, Calculator, ClipboardList, ShieldCheck, Timer, Archive, Download, GraduationCap, Car, Plane, Anchor, Factory, Stethoscope, HardHat, Church, Palette, Hammer, Trash2, Scan, Upload, CheckCircle, AlertTriangle, KeyRound, UserPlus, ChevronDown } from 'lucide-react';
+import { Camera, Shield, Lock, FileImage, BarChart, Clock, Home, Building, Briefcase, Scale, Truck, Users, TrendingUp, Heart, Handshake, MapPin, Smartphone, Cloud, Share2, FileText, DollarSign, UserCheck, Globe, Calculator, ClipboardList, ShieldCheck, Timer, Archive, Download, GraduationCap, Car, Plane, Anchor, Factory, Stethoscope, HardHat, Church, Palette, Hammer, Trash2, Scan, Upload, CheckCircle, AlertTriangle, KeyRound, UserPlus, ChevronDown, Contact, Mic, BookOpen, ChefHat, CalendarDays, Package, StickyNote } from 'lucide-react';
 import { breadcrumbSchema } from '@/utils/structuredData';
 
 // Feature card component for reuse
@@ -116,6 +116,39 @@ const Features: React.FC = () => {
                   <FeatureCard icon={Archive} title="Assets" description="Comprehensive asset tracking with photos, receipts, and valuations for complete property and personal inventory management." />
                   <FeatureCard icon={FileText} title="Export Assets" description="Export your complete asset inventory to CSV, PDF, or other formats for insurance, legal, or personal use." />
                   <FeatureCard icon={Download} title="Download All Files" description="Bulk download all your photos, videos, documents, and files for backup or external storage purposes." />
+                </div>
+              </FeatureCategory>
+
+              {/* Life Support */}
+              <FeatureCategory title="Life Support">
+                <div className="space-y-8">
+                  {/* Family Archive */}
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-800 mb-1">Family Archive</h4>
+                    <p className="text-sm text-gray-500 mb-4">Everyday life, organized and protected.</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <FeatureCard icon={Contact} title="VIP Contacts" description="Your most important contacts with priority levels." />
+                      <FeatureCard icon={Mic} title="Voice Notes" description="Record and store voice memos for your records." />
+                      <FeatureCard icon={Briefcase} title="Trusted Professionals" description="Track your trusted service providers and contractors." />
+                      <FeatureCard icon={BookOpen} title="Notes & Traditions" description="Capture family traditions, stories, and important notes." />
+                      <FeatureCard icon={ChefHat} title="Family Recipes" description="Preserve cherished family recipes for generations." />
+                      <FeatureCard icon={Archive} title="Memory Safe" description="A protected place for the memories you want to keep — and pass on." />
+                    </div>
+                  </div>
+
+                  {/* Insights & Tools */}
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-800 mb-1">Insights & Tools</h4>
+                    <p className="text-sm text-gray-500 mb-4">Manage repairs and organize property details.</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <FeatureCard icon={CalendarDays} title="Smart Calendar" description="Reminders, records, and timelines — all in one place." />
+                      <FeatureCard icon={Package} title="Manual Entry Items" description="Add items manually with descriptions and values." />
+                      <FeatureCard icon={Hammer} title="Upgrades & Repairs" description="Document property improvements and repair history." />
+                      <FeatureCard icon={Globe} title="Source Websites" description="Save product sources and reference links." />
+                      <FeatureCard icon={Palette} title="Paint Codes" description="Store paint colors, brands, and finish details." />
+                      <FeatureCard icon={StickyNote} title="Quick Notes" description="Jot down quick reminders or thoughts." />
+                    </div>
+                  </div>
                 </div>
               </FeatureCategory>
 
