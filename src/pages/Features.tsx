@@ -372,7 +372,7 @@ const Features: React.FC = () => {
               <div className="bg-white p-6 rounded-lg shadow border">
                 <Camera className="h-8 w-8 text-brand-blue mb-3" />
                 <h3 className="text-lg font-semibold mb-2">High-Resolution Photography</h3>
-                <p className="text-gray-600 text-sm">Upload high quality images straight from your mobile device with automatic organization.</p>
+                <p className="text-gray-600 text-sm">Upload high-quality images directly from your mobile device.</p>
               </div>
               
               <div className="bg-white p-6 rounded-lg shadow border">
