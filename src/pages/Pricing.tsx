@@ -8,6 +8,7 @@ import PricingFAQ from '@/components/PricingFAQ';
 import PricingContactCTA from '@/components/PricingContactCTA';
 import SubscriptionPlan from '@/components/SubscriptionPlan';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -247,28 +248,24 @@ const Pricing: React.FC = () => {
                 </div>
 
                 {/* Billing Cycle Toggle */}
-                <div className="flex items-center justify-center gap-4 mb-8">
-                  <button
-                    onClick={() => setBillingCycle('monthly')}
-                    className={`px-6 py-2 rounded-full font-medium transition-all ${
-                      billingCycle === 'monthly'
-                        ? 'bg-brand-orange text-white'
-                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                    }`}
-                  >
-                    Monthly
-                  </button>
-                  <button
-                    onClick={() => setBillingCycle('yearly')}
-                    className={`px-6 py-2 rounded-full font-medium transition-all ${
-                      billingCycle === 'yearly'
-                        ? 'bg-brand-orange text-white'
-                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                    }`}
-                  >
-                    Yearly
-                    <span className="ml-2 text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">Save</span>
-                  </button>
+                <div className="flex items-center justify-center mb-8">
+                  <Tabs value={billingCycle} onValueChange={(v) => setBillingCycle(v as 'monthly' | 'yearly')}>
+                    <TabsList className="bg-muted rounded-full p-1">
+                      <TabsTrigger
+                        value="monthly"
+                        className="rounded-full px-6 py-2 font-medium data-[state=active]:bg-brand-orange data-[state=active]:text-white"
+                      >
+                        Monthly
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="yearly"
+                        className="rounded-full px-6 py-2 font-medium data-[state=active]:bg-brand-orange data-[state=active]:text-white"
+                      >
+                        Yearly
+                        <Badge className="ml-2 bg-brand-green/10 text-brand-green border-0 text-xs">Save</Badge>
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
@@ -283,7 +280,7 @@ const Pricing: React.FC = () => {
                       )}
                       {plan.popular && (
                         <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-                          <span className="bg-amber-500 text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
+                          <span className="bg-amber-500 text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1 whitespace-nowrap">
                             <Star className="h-3 w-3" /> Most Popular for Families and Businesses
                           </span>
                         </div>
