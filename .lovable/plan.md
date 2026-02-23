@@ -1,53 +1,54 @@
 
 
-## Add Magic Link (Passwordless) Login Option
+## Update Sample Dashboard to Mirror Current User Dashboard
 
-Add a "Sign in with Magic Link" option to the login page, allowing users to choose between password-based login and receiving a one-time email link.
+The sample dashboard is outdated and shows UI patterns that no longer exist on the real user dashboard. This update will align it 1:1 with the current layout.
 
-### How It Works
+### What's Changing
 
-1. User enters their email on the login page
-2. Instead of entering a password, they can click "Send Magic Link"
-3. They receive an email with a secure link
-4. Clicking the link signs them in automatically via the existing `/auth/callback` route
+**Remove outdated sections:**
+- Remove `DemoAccountHeader` (the 4 stat cards: Total Items, Total Value, Properties, Storage Used) -- these do not appear on the real dashboard overview
+- Remove `DemoStorageDashboard` (the collapsible storage usage section) -- not present on the real dashboard overview
+- Remove `DemoSecurityProgress` (the card-style milestone list) -- replaced with a compact collapsible bar
 
-### Changes
+**Update Welcome Banner to match real layout:**
+- Current sample: just "Welcome, Demo User!" with account number on one line
+- Real dashboard: two-line header ("Welcome, [Name]!" subtitle + "Your Asset Safe Dashboard" title), a tagline, and three shortcut buttons (Settings, Properties, Access) on the right
+- Update demo banner to match this layout with static demo shortcuts that trigger alerts
 
-**`src/pages/Login.tsx`** -- Add magic link UI and handler:
-- Add a `magicLinkSent` state to toggle between the form and a "check your email" confirmation
-- Add a "Send me a Magic Link" button below the password sign-in button (always visible, replacing the passkey placeholder which is non-functional)
-- Remove the passkey placeholder code (it just shows a "coming soon" toast)
-- The handler calls `supabase.auth.signInWithOtp({ email, options: { emailRedirectTo } })` with the redirect URL pointing to `/auth/callback?type=magiclink&redirect_to=/account`
-- After sending, show a confirmation message with a "Resend" option
-- The email field is shared between password login and magic link -- user enters email once, then chooses their method
+**Replace Security Progress with compact collapsible bar:**
+- Real dashboard uses a single-line collapsible bar: Shield icon, "Security Progress" label, UserStatusBadge, a flex-1 Progress bar, and a ChevronDown toggle
+- When expanded: shows 9 numbered milestone checklist items grouped by phase
+- Sample will show a static version of this bar with demo data (e.g., 4/9 completed, 44% progress)
 
-**`src/pages/AuthCallback.tsx`** -- Already handles `magiclink` type (line 103-107). No changes needed. It shows a toast and redirects to `/account`.
+**Grid card layout verification (already matches):**
+The grid card order and structure already matches the real dashboard:
+1. Asset Documentation (red) + Family Archive (red)
+2. Documentation Checklist collapsible bar (full-width)
+3. Legacy Locker (yellow) + Password Catalog (yellow)
+4. MFA collapsible bar (full-width)
+5. Insights & Tools (green) + Property Profiles (blue)
+6. Asset Values collapsible bar (full-width)
+7. Account Settings (blue) + Access & Activity (blue)
+8. Emergency Instructions collapsible bar (full-width)
+9. Bottom utility row: Export Assets + Download All + Post Damage Report (3-col orange)
 
-**`src/contexts/AuthContext.tsx`** -- No changes needed. The `onAuthStateChange` listener will pick up the magic link session automatically.
+All tooltip descriptions and click alerts remain in place.
 
-No database changes, no edge function changes, no new dependencies.
+**Add missing Quick Notes card:**
+The real Insights & Tools grid has a "Quick Notes" card -- verify it's represented in the sample's Insights & Tools tooltip description.
 
 ### Technical Details
 
-The magic link flow uses Supabase's built-in `signInWithOtp` method:
+**File modified:** `src/pages/SampleDashboard.tsx`
 
-```text
-supabase.auth.signInWithOtp({
-  email: userEmail,
-  options: {
-    emailRedirectTo: `${window.location.origin}/auth/callback?type=magiclink&redirect_to=/account`
-  }
-})
-```
+Changes:
+- Delete `DemoWelcomeBanner` component (lines 53-62) and replace with a new version matching WelcomeBanner layout: two-line header, tagline, account number badge, and 3 static shortcut buttons (Settings, Properties, Access) that trigger `showDemoAlert`
+- Delete `DemoAccountHeader` component (lines 65-112) and all references
+- Delete `DemoStorageDashboard` component (lines 114-155) and all references, including `storageOpen` state
+- Delete `DemoSecurityProgress` component (lines 158-188) and replace with a new `DemoSecurityProgressBar` that renders the compact collapsible bar format: Shield icon + "Security Progress" text + static "User" badge + Progress bar at 44% + ChevronDown toggle. When expanded, shows a static 9-item milestone checklist matching the real component's phases (Getting Started, Next Steps, Advanced)
+- Update the render section to remove the deleted sections and use the new components
+- Ensure the Insights & Tools tooltip includes "Quick Notes" in its tags/description
 
-This sends a tokenized link to the user's email. Supabase handles token generation and verification. The existing `AuthCallback` page processes the token and establishes the session.
-
-**Important**: Magic link only works for existing accounts (users who have already signed up). For new users, the signup flow remains unchanged.
-
-**UI layout on Login page:**
-- Email field (shared)
-- Password field + "Sign In" button
-- Separator with "or"
-- "Send me a Magic Link" button (always visible, no feature detection needed)
-- After clicking, the form switches to a "Check your email" confirmation with resend option
+No other files are modified. No new dependencies.
 
