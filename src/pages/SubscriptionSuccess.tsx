@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,17 +8,20 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
+const MAX_POLL_ATTEMPTS = 10;
+const POLL_INTERVAL_MS = 2000; // 2s between attempts → up to ~20s total
+
 const SubscriptionSuccess: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
-  const [isSyncing, setIsSyncing] = useState(false);
   const [syncComplete, setSyncComplete] = useState(false);
+  const [pollTimedOut, setPollTimedOut] = useState(false);
   const [isCreatingCheckout, setIsCreatingCheckout] = useState(false);
   
   const planType = searchParams.get('plan') || 'standard';
-  const sessionId = searchParams.get('session_id'); // From Stripe redirect
+  const sessionId = searchParams.get('session_id');
 
   // Prevent back navigation
   useEffect(() => {
@@ -26,102 +29,79 @@ const SubscriptionSuccess: React.FC = () => {
       e.preventDefault();
       window.history.pushState(null, '', window.location.pathname);
     };
-
     window.history.pushState(null, '', window.location.pathname);
     window.addEventListener('popstate', handlePopState);
-
-    return () => {
-      window.removeEventListener('popstate', handlePopState);
-    };
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // Smart sync: check-subscription first, only sync if stale
+  // Poll check-subscription until active, then redirect
   useEffect(() => {
-    const activateSubscription = async () => {
-      if (!user || !sessionId || isSyncing || syncComplete) return;
-      
-      setIsSyncing(true);
-      console.log('[SubscriptionSuccess] Checking subscription after checkout...');
-      
-      try {
-        // First try check-subscription (reads from entitlements)
-        const { data: checkData, error: checkError } = await supabase.functions.invoke('check-subscription');
-        
-        if (!checkError && checkData?.subscribed) {
-          console.log('[SubscriptionSuccess] Entitlements already updated by webhook');
-          setSyncComplete(true);
-          toast({
-            title: "Subscription Activated!",
-            description: `Your ${checkData?.subscription_tier || planType} plan is now active.`,
-          });
-          setTimeout(() => navigate('/account'), 1500);
-          return;
+    if (!user || !sessionId || syncComplete || pollTimedOut) return;
+
+    let attempt = 0;
+    let cancelled = false;
+
+    const poll = async () => {
+      while (attempt < MAX_POLL_ATTEMPTS && !cancelled) {
+        attempt++;
+        console.log(`[SubscriptionSuccess] Poll attempt ${attempt}/${MAX_POLL_ATTEMPTS}`);
+
+        try {
+          const { data, error } = await supabase.functions.invoke('check-subscription');
+          if (!error && data?.subscribed) {
+            if (cancelled) return;
+            setSyncComplete(true);
+            toast({
+              title: "Subscription Activated!",
+              description: `Your ${data.subscription_tier || planType} plan is now active.`,
+            });
+            navigate('/account');
+            return;
+          }
+        } catch (err) {
+          console.error('[SubscriptionSuccess] Poll error:', err);
         }
 
-        // Entitlements not yet updated - call sync as fallback
-        console.log('[SubscriptionSuccess] Entitlements stale, syncing...');
-        const { data, error } = await supabase.functions.invoke('sync-subscription');
-        
-        if (error) {
-          toast({ title: "Syncing subscription...", description: "Please wait while we activate your account." });
-        } else {
-          setSyncComplete(true);
-          toast({
-            title: "Subscription Activated!",
-            description: `Your ${data?.plan || planType} plan is now active.`,
-          });
-          setTimeout(() => navigate('/account'), 1500);
+        // If not last attempt, try sync-subscription once halfway through
+        if (attempt === Math.ceil(MAX_POLL_ATTEMPTS / 2)) {
+          try {
+            console.log('[SubscriptionSuccess] Triggering sync-subscription fallback');
+            await supabase.functions.invoke('sync-subscription');
+          } catch {}
         }
-      } catch (err) {
-        console.error('[SubscriptionSuccess] Sync exception:', err);
-      } finally {
-        setIsSyncing(false);
+
+        if (!cancelled && attempt < MAX_POLL_ATTEMPTS) {
+          await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
+        }
+      }
+
+      if (!cancelled) {
+        console.log('[SubscriptionSuccess] Polling timed out');
+        setPollTimedOut(true);
       }
     };
 
-    activateSubscription();
-  }, [user, sessionId, isSyncing, syncComplete, navigate, toast, planType]);
+    poll();
+    return () => { cancelled = true; };
+  }, [user, sessionId, syncComplete, pollTimedOut, navigate, toast, planType]);
 
   // Initiate Stripe checkout for users who haven't paid yet
   useEffect(() => {
-    const initiateCheckout = async () => {
-      // Skip if we're returning from Stripe (have session_id)
-      if (sessionId) return;
-      
-      if (user && user.email_confirmed_at && !isCreatingCheckout) {
-        setIsCreatingCheckout(true);
-        
-        try {
-          const lookupKey = `${planType}_monthly`;
-          const { data, error } = await supabase.functions.invoke('create-checkout', {
-            body: { planLookupKey: lookupKey }
-          });
-
-          if (error) throw error;
-          
-          if (data?.url) {
-            window.location.href = data.url;
+    if (sessionId) return;
+    if (user && user.email_confirmed_at && !isCreatingCheckout) {
+      setIsCreatingCheckout(true);
+      const lookupKey = `${planType}_monthly`;
+      supabase.functions.invoke('create-checkout', { body: { planLookupKey: lookupKey } })
+        .then(({ data, error }) => {
+          if (error || !data?.url) {
+            toast({ title: "Error", description: "Failed to create checkout session.", variant: "destructive" });
+            navigate('/account/settings?tab=subscription');
           } else {
-            throw new Error('No checkout URL returned');
+            window.location.href = data.url;
           }
-        } catch (error: any) {
-          console.error('Error creating checkout:', error);
-          toast({
-            title: "Error",
-            description: "Failed to create checkout session. Please try again from your account settings.",
-            variant: "destructive",
-          });
-          navigate('/account/settings?tab=subscription');
-        }
-      }
-    };
-
-    initiateCheckout();
+        });
+    }
   }, [user, planType, isCreatingCheckout, navigate, toast, sessionId]);
-
-  const handleEmailVerificationComplete = () => {
-    window.location.reload();
-  };
 
   // Returning from Stripe - show sync status
   if (sessionId) {
@@ -144,14 +124,24 @@ const SubscriptionSuccess: React.FC = () => {
                 <CardDescription className="text-lg">
                   {syncComplete 
                     ? "Your subscription is now active. Redirecting to your dashboard..." 
-                    : "Please wait while we set up your account."}
+                    : pollTimedOut
+                      ? "Activation is taking longer than expected."
+                      : "Please wait while we set up your account."}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {!syncComplete && (
-                  <p className="text-muted-foreground">
-                    This usually takes just a moment.
-                  </p>
+                {!syncComplete && !pollTimedOut && (
+                  <p className="text-muted-foreground">This usually takes just a moment.</p>
+                )}
+                {pollTimedOut && (
+                  <div className="space-y-4">
+                    <p className="text-muted-foreground">
+                      Your payment was received. It may take a moment for your account to update.
+                    </p>
+                    <Button onClick={() => navigate('/account')} size="lg">
+                      Go to Dashboard
+                    </Button>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -189,7 +179,6 @@ const SubscriptionSuccess: React.FC = () => {
                   <p className="text-muted-foreground">
                     Your email has been verified. You will be redirected to complete your subscription payment shortly.
                   </p>
-                  
                   {user && !user.email_confirmed_at && (
                     <Alert className="border-blue-200 bg-blue-50">
                       <Mail className="h-4 w-4" />
@@ -199,19 +188,14 @@ const SubscriptionSuccess: React.FC = () => {
                             <strong className="text-blue-800">Important: Check Your Email</strong>
                             <p className="text-blue-700 mt-1">
                               We've sent a verification email to <strong>{user.email}</strong>. 
-                              Please check your inbox and click the verification link to complete your account setup.
+                              Please check your inbox and click the verification link.
                             </p>
                           </div>
                           <div className="text-sm text-blue-600">
                             <p>• Check your spam/junk folder if you don't see the email</p>
                             <p>• The verification link will activate your subscription checkout</p>
                           </div>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={handleEmailVerificationComplete}
-                            className="mt-2"
-                          >
+                          <Button variant="outline" size="sm" onClick={() => window.location.reload()} className="mt-2">
                             I've Verified My Email
                           </Button>
                         </div>
