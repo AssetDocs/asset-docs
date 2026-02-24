@@ -1,42 +1,48 @@
 
 
-## Fix: "Failed to open billing management" Error
+## Fix: Post-Payment Redirect Lands on Pricing Page
 
 ### Root Cause
 
-The `customer-portal` edge function creates a **new Stripe Billing Portal configuration on every single invocation**. This fails because:
+The issue is a **race condition** between subscription activation and the dashboard's access check:
 
-1. It fetches 5 prices by lookup key (`standard_monthly`, `standard_yearly`, `premium_monthly`, `premium_yearly`, `storage_25gb_monthly`)
-2. Groups them by product ID
-3. Passes them to `stripe.billingPortal.configurations.create()`
-4. Stripe rejects this because multiple prices on the same product have duplicate billing intervals (e.g., two prices both set to "monthly" on the same product)
+1. Stripe redirects to `/subscription-success?session_id=...`
+2. `SubscriptionSuccess` page syncs the subscription, then redirects to `/account` after 1.5 seconds
+3. `/account` is wrapped in `ProtectedRoute`, which calls `check-subscription` up to 3 times (with 1.5s delays)
+4. If entitlements still haven't propagated from the Stripe webhook, `ProtectedRoute` concludes the user has no subscription and **redirects to `/pricing`** (line 238 of `App.tsx`)
 
-Additionally, creating a new configuration per request is wasteful and hits Stripe API limits.
+### Fix (2 changes)
 
-### Fix
+**1. `src/components/PricingPlans.tsx` -- Remove the flag emoji**
 
-Simplify the `customer-portal` edge function to **not create a custom portal configuration**. Instead, let Stripe use the **default portal configuration**, which should be set up once in the Stripe Dashboard.
+Change the U.S. billing notice text to remove the flag emoji as requested.
 
-**File:** `supabase/functions/customer-portal/index.ts`
+**2. `src/pages/SubscriptionSuccess.tsx` -- Stay on the success page longer and redirect with a flag**
 
-Changes:
-- Remove all the price-fetching logic (lines ~56-86 that fetch prices, group by product, and create a portal config)
-- Remove the `configuration` parameter from `billingPortal.sessions.create()`
-- Just create a simple portal session with the customer ID and return URL
+Instead of redirecting to `/account` after 1.5 seconds (where the subscription guard may reject them), redirect to `/account?from=subscription-success`. Then in `ProtectedRoute`, when this query param is present, skip the subscription check -- treating it the same as `skipSubscriptionCheck`.
 
-The resulting function becomes much simpler:
-1. Authenticate user
-2. Find or create Stripe customer
-3. Create a portal session (no custom configuration -- uses the default set in Stripe Dashboard)
-4. Return the URL
+**Alternative (simpler) approach**: Rather than modifying `ProtectedRoute`, change the `SubscriptionSuccess` page to:
+- Wait longer before redirecting (give the webhook more time)
+- Add retry logic: if the first `check-subscription` call doesn't show active, retry with increasing delays before redirecting
+- Only redirect to `/account` once `check-subscription` confirms the subscription is active
+- Add a manual "Go to Dashboard" button as a fallback after ~10 seconds
 
-### Stripe Dashboard Setup Required
+This approach keeps all the logic contained in `SubscriptionSuccess.tsx` without modifying the global `ProtectedRoute`.
 
-After deploying, the portal behavior (which plans users can switch between, cancellation options, etc.) should be configured once in the Stripe Dashboard under **Settings > Billing > Customer Portal**. This is the standard Stripe-recommended approach.
+### Detailed Changes
+
+**File 1: `src/components/PricingPlans.tsx`**
+- Line 121: Change `🇺🇸 Paid subscriptions are currently available to U.S. billing addresses only.` to `Paid subscriptions are currently available to U.S. billing addresses only.`
+
+**File 2: `src/pages/SubscriptionSuccess.tsx`**
+- Modify the sync logic to **poll `check-subscription` until it confirms active** (up to ~15 seconds with retries) before redirecting
+- Only call `navigate('/account')` after getting a confirmed `subscribed: true` response
+- After ~15 seconds of polling without success, show a manual "Go to Dashboard" button instead of auto-redirecting to a page that will reject them
+- Remove the fixed 1.5-second `setTimeout` redirect
 
 ### What Stays the Same
-- Authentication flow
-- Customer lookup/creation
-- Return URL logic
-- All other edge functions unaffected
+- All edge functions unchanged
+- `ProtectedRoute` logic unchanged
+- Stripe checkout URLs unchanged
+- The subscription-success route still has `skipSubscriptionCheck={true}`
 
