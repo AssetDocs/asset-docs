@@ -1,40 +1,32 @@
 
 
-## Match Billing Toggle Style in SubscriptionTab
+## Fix: Checkout "Plan type is required" Error
 
-Update the Monthly/Yearly toggle in the "Complete Your Subscription" section (`src/components/SubscriptionTab.tsx`, lines 360-370) to match the pricing page's orange pill style.
+### Root Cause
 
-### What Changes
+The edge function logs show the error: **"Plan type is required"**
 
-**Current:** Default Radix `TabsList` with flat gray styling and a green "Save" badge.
+The code in the repository (`supabase/functions/create-checkout/index.ts`) correctly accepts `planLookupKey` and falls back to `planType`. However, the **deployed** version of the function is outdated and still requires `planType` to be present.
 
-**Updated:** Rounded pill container with orange active-state highlights, matching the pricing page toggle exactly:
-- `TabsList` gets `bg-muted rounded-full p-1` (pill container)
-- Both `TabsTrigger` elements get `rounded-full px-6 py-2 font-medium data-[state=active]:bg-brand-orange data-[state=active]:text-white` (orange active pill)
-- The "Save" `Badge` keeps its existing `bg-brand-green/10 text-brand-green` styling (already correct) but adds `border-0` to remove any border
+The pricing page sends `{ planLookupKey: "standard_monthly" }` (without `planType`), which the old deployed code rejects.
 
-### Technical Details
+### Fix
 
-**File:** `src/components/SubscriptionTab.tsx` (lines 361-369)
+**Redeploy the `create-checkout` edge function.** No code changes are needed -- the repository already has the correct version. A redeployment will sync the deployed function with the codebase.
 
-Replace the `TabsList` and its children with:
+### Post-deploy flow verification
 
-```tsx
-<TabsList className="bg-muted rounded-full p-1">
-  <TabsTrigger
-    value="month"
-    className="rounded-full px-6 py-2 font-medium data-[state=active]:bg-brand-orange data-[state=active]:text-white"
-  >
-    Monthly
-  </TabsTrigger>
-  <TabsTrigger
-    value="year"
-    className="rounded-full px-6 py-2 font-medium data-[state=active]:bg-brand-orange data-[state=active]:text-white"
-  >
-    Yearly
-    <Badge className="ml-2 text-xs bg-brand-green/10 text-brand-green border-0 font-semibold">Save</Badge>
-  </TabsTrigger>
-</TabsList>
-```
+After redeployment, the flow will work as follows:
 
-No new imports or dependencies needed -- `Badge`, `Tabs`, `TabsList`, and `TabsTrigger` are already imported in this file.
+1. User clicks "Get Started" on a plan
+2. Frontend sends `{ planLookupKey: "standard_monthly" }` (or `premium_yearly`, etc.)
+3. Edge function resolves the lookup key, finds the matching Stripe Price, and creates a Checkout Session
+4. User is redirected to Stripe Checkout to enter payment details
+5. After payment, Stripe redirects to `/subscription-success`
+6. User logs in and accesses the dashboard
+
+### What this plan does
+
+- Redeploy the existing `create-checkout` edge function (no file edits required)
+- Verify the function responds correctly after deployment
+
