@@ -107,6 +107,26 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
+    // Upsert entitlements table (single source of truth)
+    const { error: entitlementError } = await supabase
+      .from('entitlements')
+      .upsert({
+        user_id,
+        plan: 'premium',
+        status: 'active',
+        entitlement_source: 'lifetime',
+        base_storage_gb: 100,
+        storage_addon_blocks_qty: 0,
+        current_period_end: '2099-12-31T23:59:59Z',
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id'
+      });
+
+    if (entitlementError) {
+      console.error('Error upserting entitlement:', entitlementError);
+    }
+
     // Update profile with premium limits
     const { error: profileError } = await supabase
       .from('profiles')

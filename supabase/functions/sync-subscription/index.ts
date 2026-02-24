@@ -138,6 +138,7 @@ serve(async (req) => {
       user_id: user.id,
       plan: parsed.plan,
       status: entitlementStatus,
+      entitlement_source: 'stripe',
       stripe_customer_id: customerId,
       stripe_subscription_id: subscription.id,
       stripe_plan_price_id: parsed.planPriceId,
