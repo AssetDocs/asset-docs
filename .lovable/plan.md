@@ -1,68 +1,96 @@
 
+## Entitlement Source Classification and Audit Hardening
 
-## Billing and Subscription Management Improvements
-
-### Overview
-Four changes to improve how users manage their payment methods, storage add-ons, and subscription plan from within their dashboard.
+This plan adds an explicit `entitlement_source` field to distinguish between Stripe-backed, lifetime/code-based, and admin-granted subscriptions. This eliminates false audit anomalies and enforces data integrity rules per source type.
 
 ---
 
-### 1. Simplify Payment Methods Card (BillingTab)
+### 1. Add `entitlement_source` column and backfill
 
-**Current:** Shows "No payment methods on file" text and icon when empty, which is unnecessary clutter.
+**Database migration:**
 
-**Change:** Remove the empty-state text/icon. Always show just the card title, description, and a single "Manage Payment Methods" button regardless of whether cards are on file.
-
-**File:** `src/components/BillingTab.tsx`
-- Remove the loading skeleton, the card display loop, and the empty-state block
-- Replace with a single "Manage Payment Methods" button that opens the Stripe Customer Portal
-- Keep the title "Payment Methods" and description "Your saved payment methods for subscriptions"
-
----
-
-### 2. Add Storage Add-on CTA (SubscriptionTab - Subscribed View)
-
-**Current:** The storage add-on info section (lines 634-652) shows "+25GB for $4.99/month" with bullet points but has **no button** to actually purchase it.
-
-**Change:** Add an "Add Storage" button at the bottom of that section. This button will open the Stripe Customer Portal where users can adjust their storage add-on quantity (1x25GB, 2x25GB, etc.).
-
-**File:** `src/components/SubscriptionTab.tsx` (subscribed view, ~line 651)
-- Add a "Add Storage via Stripe" button that calls the existing `handleManageBilling` function
+- Add column `entitlement_source TEXT NOT NULL DEFAULT 'stripe'` with a CHECK constraint limiting values to `'stripe'`, `'lifetime'`, `'admin'`
+- Backfill existing records:
+  - Records with `stripe_subscription_id IS NOT NULL` -> `'stripe'`
+  - Records with `plan != 'free'` AND `stripe_subscription_id IS NULL` -> `'admin'` (covers user 5950acba)
+  - All remaining `free/inactive` records stay as `'stripe'` (default, harmless -- they have no active entitlement)
 
 ---
 
-### 3. Stripe Customer Portal Configuration (Information)
+### 2. Add Stripe-source safety constraint (database trigger)
 
-The Stripe Customer Portal must be configured in the **Stripe Dashboard** to allow plan switching and product management. This is **not a code change** -- it requires updating settings at:
+**Database migration:**
 
-**Stripe Dashboard > Settings > Billing > Customer Portal**
-
-- Enable "Allow customers to switch plans" and add your Standard and Premium prices
-- Enable "Allow customers to update subscriptions" to let them adjust the 25GB storage add-on quantity
-- These settings control what options appear when users click "Manage Billing"
-
-This is a Stripe-side configuration, not a Lovable change.
+Create a validation trigger on the `entitlements` table that enforces:
+- If `entitlement_source = 'stripe'` AND `status IN ('active', 'trialing')`, then `stripe_subscription_id`, `stripe_customer_id`, `stripe_plan_price_id`, and `plan_lookup_key` must all be non-null
+- Rejects writes that violate this, preventing half-billed customers
 
 ---
 
-### 4. Add "Manage Subscription" CTA to Plan Tab (SubscriptionTab - Subscribed View)
+### 3. Normalize admin/lifetime storage defaults (database trigger)
 
-**Current:** The subscribed view shows the current plan details and a single "Manage Billing" button at the bottom. There's no clear CTA specifically for upgrading/downgrading plans.
+**Database migration:**
 
-**Change:** Add a dedicated "Upgrade or Change Plan" button inside the current plan display card (the green box), making it immediately visible. This will also open the Stripe Customer Portal.
+Create or extend the validation trigger so that on INSERT or UPDATE:
+- If `entitlement_source IN ('admin', 'lifetime')`:
+  - When `plan = 'standard'`, force `base_storage_gb = 25`
+  - When `plan = 'premium'`, force `base_storage_gb = 100`
+  - Recompute `total_storage_gb = base_storage_gb + (storage_addon_blocks_qty * 25)`
 
-**File:** `src/components/SubscriptionTab.tsx` (subscribed view, ~line 607)
-- Add a "Change Plan" button inside the current plan card that calls `handleManageBilling`
+Also run a one-time UPDATE to fix user 5950acba's storage (premium with 0GB -> 100GB).
 
 ---
 
-### Technical Details
+### 4. Update `validate-lifetime-code` edge function
 
-**Files to modify:**
-- `src/components/BillingTab.tsx` -- Simplify to title + description + single CTA
-- `src/components/SubscriptionTab.tsx` -- Add two buttons (storage add-on CTA + change plan CTA)
+**File:** `supabase/functions/validate-lifetime-code/index.ts`
 
-**No backend changes needed.** All buttons reuse the existing `customer-portal` edge function.
+- Add an upsert to the `entitlements` table (currently missing -- it only writes to `subscribers` and `profiles`)
+- Set `entitlement_source = 'lifetime'`, `plan = 'premium'`, `status = 'active'`, `base_storage_gb = 100`, `total_storage_gb = 100`
+- This ensures lifetime codes create proper entitlement records going forward
 
-**Important Stripe Dashboard action required:** Configure the Customer Portal to allow plan switching and subscription updates. Without this, the portal will only show invoice history and payment method management.
+---
 
+### 5. Update `stripe-webhook` and `sync-subscription` to set source
+
+**Files:**
+- `supabase/functions/stripe-webhook/index.ts` -- Add `entitlement_source: 'stripe'` to all entitlement upserts
+- `supabase/functions/sync-subscription/index.ts` -- Add `entitlement_source: 'stripe'` to all entitlement upserts
+
+This is belt-and-suspenders: the column defaults to `'stripe'`, but being explicit prevents confusion.
+
+---
+
+### 6. Update `check-subscription` to return `entitlement_source`
+
+**File:** `supabase/functions/check-subscription/index.ts`
+
+- Include `entitlement_source` in the response object so the frontend and audit tools can see the billing provenance
+
+---
+
+### 7. Add billing provenance badge in admin UI
+
+**File:** `src/components/admin/AdminUsers.tsx`
+
+- Display a non-editable badge (Stripe / Lifetime / Admin) next to each user in the admin dashboard, derived from the `entitlement_source` field on the entitlements table
+- Color coding: Stripe = blue, Lifetime = purple, Admin = amber
+
+---
+
+### Summary of changes
+
+| Area | What changes |
+|------|-------------|
+| Database | New column `entitlement_source`, validation trigger, backfill + fix 5950's storage |
+| `validate-lifetime-code` | Write to `entitlements` table with `source = 'lifetime'` |
+| `stripe-webhook` | Explicitly set `entitlement_source: 'stripe'` |
+| `sync-subscription` | Explicitly set `entitlement_source: 'stripe'` |
+| `check-subscription` | Return `entitlement_source` in response |
+| Admin UI | Show provenance badge per user |
+
+### What this does NOT do (intentionally)
+- Does not auto-create Stripe subscriptions for non-Stripe users
+- Does not backfill fake Stripe IDs
+- Does not assign lookup keys to admin/lifetime entitlements
+- Does not delete legacy test users
