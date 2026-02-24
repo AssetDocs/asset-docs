@@ -102,7 +102,7 @@ serve(async (req) => {
       tax_id_collection: { enabled: true },
       billing_address_collection: 'required',
       shipping_address_collection: { allowed_countries: ['US'] },
-      customer_update: customerId ? { name: 'auto', address: 'auto' } : undefined,
+      customer_update: customerId ? { name: 'auto', address: 'auto', shipping: 'auto' } : undefined,
       metadata: {
         plan_lookup_key: lookupKey,
         user_id: user?.id || ''
