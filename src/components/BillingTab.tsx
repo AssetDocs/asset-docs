@@ -96,15 +96,6 @@ const BillingTab: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleManageBilling}
-                    disabled={isLoading}
-                  >
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Manage
-                  </Button>
                 </div>
               ))}
               <Button
@@ -114,7 +105,7 @@ const BillingTab: React.FC = () => {
                 className="w-full mt-2"
               >
                 <ExternalLink className="h-4 w-4 mr-2" />
-                {isLoading ? 'Loading...' : 'Add or Update Payment Method'}
+                {isLoading ? 'Loading...' : 'Manage Payment Methods'}
               </Button>
             </div>
           ) : (
@@ -126,7 +117,7 @@ const BillingTab: React.FC = () => {
                 disabled={isLoading}
               >
                 <ExternalLink className="h-4 w-4 mr-2" />
-                {isLoading ? 'Loading...' : 'Add Payment Method'}
+                {isLoading ? 'Loading...' : 'Manage Payment Methods'}
               </Button>
             </div>
           )}

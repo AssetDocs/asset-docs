@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CreditCard, Receipt } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { CreditCard, Receipt, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -23,7 +24,26 @@ interface Payment {
 const PaymentHistory: React.FC = () => {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isPortalLoading, setIsPortalLoading] = useState(false);
   const { toast } = useToast();
+
+  const handleViewFullHistory = async () => {
+    setIsPortalLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('customer-portal');
+      if (error) throw error;
+      if (data?.url) window.open(data.url, '_blank');
+    } catch (error) {
+      console.error('Error opening customer portal:', error);
+      toast({
+        title: "Error",
+        description: "Failed to open billing history. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsPortalLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchPaymentHistory();
@@ -114,10 +134,18 @@ const PaymentHistory: React.FC = () => {
       </CardHeader>
       <CardContent>
         {payments.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-muted-foreground">
             <Receipt className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>No payment history found</p>
-            <p className="text-sm">Payments will appear here once you subscribe</p>
+            <p className="text-sm mb-4">Payments will appear here once you subscribe</p>
+            <Button
+              variant="outline"
+              onClick={handleViewFullHistory}
+              disabled={isPortalLoading}
+            >
+              <ExternalLink className="h-4 w-4 mr-2" />
+              {isPortalLoading ? 'Loading...' : 'View Full Billing History in Stripe'}
+            </Button>
           </div>
         ) : (
           <div className="space-y-4">
@@ -154,6 +182,19 @@ const PaymentHistory: React.FC = () => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+        {payments.length > 0 && (
+          <div className="mt-4 pt-4 border-t">
+            <Button
+              variant="outline"
+              onClick={handleViewFullHistory}
+              disabled={isPortalLoading}
+              className="w-full"
+            >
+              <ExternalLink className="h-4 w-4 mr-2" />
+              {isPortalLoading ? 'Loading...' : 'View Full Billing History in Stripe'}
+            </Button>
           </div>
         )}
       </CardContent>
