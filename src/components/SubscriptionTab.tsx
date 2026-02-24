@@ -359,11 +359,11 @@ const SubscriptionTab: React.FC = () => {
             {/* Billing Interval Toggle */}
             <div className="flex justify-center">
               <Tabs value={billingInterval} onValueChange={(v) => setBillingInterval(v as 'month' | 'year')}>
-                <TabsList className="grid w-full max-w-xs grid-cols-2">
-                  <TabsTrigger value="month">Monthly</TabsTrigger>
-                  <TabsTrigger value="year">
+                <TabsList className="bg-muted rounded-full p-1">
+                  <TabsTrigger value="month" className="rounded-full px-6 py-2 font-medium data-[state=active]:bg-brand-orange data-[state=active]:text-white">Monthly</TabsTrigger>
+                  <TabsTrigger value="year" className="rounded-full px-6 py-2 font-medium data-[state=active]:bg-brand-orange data-[state=active]:text-white">
                     Yearly
-                    <Badge variant="secondary" className="ml-2 text-xs bg-brand-green/10 text-brand-green font-semibold">Save</Badge>
+                    <Badge className="ml-2 text-xs bg-brand-green/10 text-brand-green border-0 font-semibold">Save</Badge>
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
