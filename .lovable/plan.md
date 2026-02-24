@@ -1,48 +1,33 @@
 
 
-## Fix: Post-Payment Redirect Lands on Pricing Page
+## Billing Tab Improvements
 
-### Root Cause
+Two changes to streamline the Billing tab with a "read-only summary + manage in Stripe" pattern.
 
-The issue is a **race condition** between subscription activation and the dashboard's access check:
+### 1. Simplify Payment Methods Card
 
-1. Stripe redirects to `/subscription-success?session_id=...`
-2. `SubscriptionSuccess` page syncs the subscription, then redirects to `/account` after 1.5 seconds
-3. `/account` is wrapped in `ProtectedRoute`, which calls `check-subscription` up to 3 times (with 1.5s delays)
-4. If entitlements still haven't propagated from the Stripe webhook, `ProtectedRoute` concludes the user has no subscription and **redirects to `/pricing`** (line 238 of `App.tsx`)
+**Current state:** Shows card details with a per-card "Manage" button AND a separate "Add or Update Payment Method" button -- redundant CTAs.
 
-### Fix (2 changes)
+**Change:** Keep the read-only card display (brand, last4, expiration) but remove the per-card "Manage" button. Replace the bottom "Add or Update Payment Method" button with a single "Manage Payment Methods" button. When no cards are on file, show the same single CTA.
 
-**1. `src/components/PricingPlans.tsx` -- Remove the flag emoji**
+**File:** `src/components/BillingTab.tsx`
+- Remove the `<Button>` inside each card row (lines 99-107)
+- Change the bottom button label to "Manage Payment Methods"
+- Same button in the empty state
 
-Change the U.S. billing notice text to remove the flag emoji as requested.
+### 2. Add "View Full Billing History" CTA to Payment History
 
-**2. `src/pages/SubscriptionSuccess.tsx` -- Stay on the success page longer and redirect with a flag**
+**Current state:** Shows recent payments in-app with no way to access invoices, PDFs, or refund details.
 
-Instead of redirecting to `/account` after 1.5 seconds (where the subscription guard may reject them), redirect to `/account?from=subscription-success`. Then in `ProtectedRoute`, when this query param is present, skip the subscription check -- treating it the same as `skipSubscriptionCheck`.
+**Change:** Add a "View Full Billing History" button at the bottom of the payment list that opens the Stripe Customer Portal (same `customer-portal` edge function already used by BillingTab).
 
-**Alternative (simpler) approach**: Rather than modifying `ProtectedRoute`, change the `SubscriptionSuccess` page to:
-- Wait longer before redirecting (give the webhook more time)
-- Add retry logic: if the first `check-subscription` call doesn't show active, retry with increasing delays before redirecting
-- Only redirect to `/account` once `check-subscription` confirms the subscription is active
-- Add a manual "Go to Dashboard" button as a fallback after ~10 seconds
+**File:** `src/components/PaymentHistory.tsx`
+- Import `Button` from ui/button and `ExternalLink` from lucide-react
+- Add `supabase` import (already present)
+- Add `handleViewFullHistory` function that invokes `customer-portal` and opens the URL
+- Add a `Button` after the payment list: "View Full Billing History in Stripe"
+- Also show this button in the empty state as a secondary option
 
-This approach keeps all the logic contained in `SubscriptionSuccess.tsx` without modifying the global `ProtectedRoute`.
-
-### Detailed Changes
-
-**File 1: `src/components/PricingPlans.tsx`**
-- Line 121: Change `🇺🇸 Paid subscriptions are currently available to U.S. billing addresses only.` to `Paid subscriptions are currently available to U.S. billing addresses only.`
-
-**File 2: `src/pages/SubscriptionSuccess.tsx`**
-- Modify the sync logic to **poll `check-subscription` until it confirms active** (up to ~15 seconds with retries) before redirecting
-- Only call `navigate('/account')` after getting a confirmed `subscribed: true` response
-- After ~15 seconds of polling without success, show a manual "Go to Dashboard" button instead of auto-redirecting to a page that will reject them
-- Remove the fixed 1.5-second `setTimeout` redirect
-
-### What Stays the Same
-- All edge functions unchanged
-- `ProtectedRoute` logic unchanged
-- Stripe checkout URLs unchanged
-- The subscription-success route still has `skipSubscriptionCheck={true}`
+### No Backend Changes
+Both changes reuse the existing `customer-portal` edge function. No new edge functions, database changes, or secrets needed.
 
