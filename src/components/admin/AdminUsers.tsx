@@ -25,6 +25,7 @@ interface UserRecord {
   ownerEmail?: string | null;
   ownerName?: string | null;
   ownerAccountNumber?: string | null;
+  entitlement_source?: string | null;
 }
 
 interface ContributorRecord {
@@ -117,6 +118,15 @@ const AdminUsers = () => {
           .from('subscribers')
           .select('user_id, email, subscription_tier, subscribed');
 
+        // Get entitlement sources
+        const { data: entitlementsData } = await supabase
+          .from('entitlements')
+          .select('user_id, entitlement_source');
+
+        const entitlementSourceMap = new Map(
+          entitlementsData?.map(e => [e.user_id, e.entitlement_source]) || []
+        );
+
         // Get user emails from auth.users via edge function
         let authEmails: Record<string, string | null> = {};
         try {
@@ -161,7 +171,8 @@ const AdminUsers = () => {
             contributorRole: contributorRecord?.role || null,
             ownerEmail: ownerEmail || null,
             ownerName: ownerProfile ? `${ownerProfile.first_name || ''} ${ownerProfile.last_name || ''}`.trim() : null,
-            ownerAccountNumber: ownerProfile?.account_number || null
+            ownerAccountNumber: ownerProfile?.account_number || null,
+            entitlement_source: entitlementSourceMap.get(user.user_id) || null
           };
         });
 
@@ -407,6 +418,7 @@ const AdminUsers = () => {
                       <TableHead>Role/Type</TableHead>
                       <TableHead>Linked Owner</TableHead>
                       <TableHead>Plan</TableHead>
+                      <TableHead>Source</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Created</TableHead>
                     </TableRow>
@@ -464,6 +476,17 @@ const AdminUsers = () => {
                               </div>
                             );
                           })()}
+                        </TableCell>
+                        <TableCell>
+                          {user.entitlement_source === 'lifetime' ? (
+                            <Badge className="bg-purple-600 text-white">Lifetime</Badge>
+                          ) : user.entitlement_source === 'admin' ? (
+                            <Badge className="bg-amber-500 text-white">Admin</Badge>
+                          ) : user.entitlement_source === 'stripe' ? (
+                            <Badge className="bg-blue-500 text-white">Stripe</Badge>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">-</span>
+                          )}
                         </TableCell>
                         <TableCell>{getStatusBadge(user.plan_status, user.subscribed)}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">

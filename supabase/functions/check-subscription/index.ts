@@ -114,6 +114,7 @@ serve(async (req) => {
       total_storage_gb: entitlement?.total_storage_gb || 0,
       cancel_at_period_end: entitlement?.cancel_at_period_end || false,
       stripe_subscription_id: entitlement?.stripe_subscription_id || null,
+      entitlement_source: entitlement?.entitlement_source || 'stripe',
     };
 
     logStep("Returning subscription status", response);
