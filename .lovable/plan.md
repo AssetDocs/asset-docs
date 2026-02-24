@@ -1,31 +1,42 @@
 
 
-## Remove Shipping Address from Stripe Checkout
+## Fix: "Failed to open billing management" Error
 
-### Problem
-All three checkout edge functions currently include `shipping_address_collection: { allowed_countries: ['US'] }`, which shows an "Enter shipping address" section on the Stripe Checkout page. Asset Safe is a SaaS product -- nothing is shipped.
+### Root Cause
 
-### Solution
-Remove `shipping_address_collection` from all three functions. The billing address (already required via `billing_address_collection: 'required'`) is sufficient for Stripe Tax to calculate correctly. Also remove the now-unnecessary `shipping: 'auto'` from `customer_update` in `create-checkout`.
+The `customer-portal` edge function creates a **new Stripe Billing Portal configuration on every single invocation**. This fails because:
 
-### Changes
+1. It fetches 5 prices by lookup key (`standard_monthly`, `standard_yearly`, `premium_monthly`, `premium_yearly`, `storage_25gb_monthly`)
+2. Groups them by product ID
+3. Passes them to `stripe.billingPortal.configurations.create()`
+4. Stripe rejects this because multiple prices on the same product have duplicate billing intervals (e.g., two prices both set to "monthly" on the same product)
 
-**1. `supabase/functions/create-checkout/index.ts`**
-- Remove line: `shipping_address_collection: { allowed_countries: ['US'] },`
-- Change `customer_update` from `{ name: 'auto', address: 'auto', shipping: 'auto' }` to `{ name: 'auto', address: 'auto' }`
+Additionally, creating a new configuration per request is wasteful and hits Stripe API limits.
 
-**2. `supabase/functions/add-storage/index.ts`**
-- Remove lines 71-73: `shipping_address_collection: { allowed_countries: ['US'] },`
+### Fix
 
-**3. `supabase/functions/add-storage-25gb/index.ts`**
-- Remove lines 71-73: `shipping_address_collection: { allowed_countries: ['US'] },`
+Simplify the `customer-portal` edge function to **not create a custom portal configuration**. Instead, let Stripe use the **default portal configuration**, which should be set up once in the Stripe Dashboard.
 
-### What stays the same
-- `billing_address_collection: 'required'` -- kept in all three functions
-- `automatic_tax: { enabled: true }` -- kept in `create-checkout` (Stripe Tax uses billing address)
-- `tax_id_collection: { enabled: true }` -- kept in `create-checkout`
-- All success/cancel URLs, line items, mode, and metadata unchanged
-- Webhook and entitlement logic completely unaffected
+**File:** `supabase/functions/customer-portal/index.ts`
 
-### After code changes
-All three edge functions will be redeployed. The Stripe Checkout page will show "Billing address" only, with no shipping section.
+Changes:
+- Remove all the price-fetching logic (lines ~56-86 that fetch prices, group by product, and create a portal config)
+- Remove the `configuration` parameter from `billingPortal.sessions.create()`
+- Just create a simple portal session with the customer ID and return URL
+
+The resulting function becomes much simpler:
+1. Authenticate user
+2. Find or create Stripe customer
+3. Create a portal session (no custom configuration -- uses the default set in Stripe Dashboard)
+4. Return the URL
+
+### Stripe Dashboard Setup Required
+
+After deploying, the portal behavior (which plans users can switch between, cancellation options, etc.) should be configured once in the Stripe Dashboard under **Settings > Billing > Customer Portal**. This is the standard Stripe-recommended approach.
+
+### What Stays the Same
+- Authentication flow
+- Customer lookup/creation
+- Return URL logic
+- All other edge functions unaffected
+
