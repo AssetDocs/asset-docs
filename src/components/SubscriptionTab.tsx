@@ -604,6 +604,10 @@ const SubscriptionTab: React.FC = () => {
                   </div>
                 )}
               </div>
+              <Button onClick={handleManageBilling} disabled={isLoading} variant="outline" className="mt-4">
+                <ExternalLink className="h-4 w-4 mr-2" />
+                {isLoading ? 'Opening...' : 'Upgrade or Change Plan'}
+              </Button>
             </div>
 
             {/* Active Add-ons Section */}
@@ -648,6 +652,10 @@ const SubscriptionTab: React.FC = () => {
                   Upgrade or remove storage anytime
                 </li>
               </ul>
+              <Button onClick={handleManageBilling} disabled={isLoading} variant="outline" className="w-full mt-3">
+                <HardDrive className="h-4 w-4 mr-2" />
+                {isLoading ? 'Opening...' : 'Add or Adjust Storage'}
+              </Button>
               <StorageNotation />
             </div>
 
