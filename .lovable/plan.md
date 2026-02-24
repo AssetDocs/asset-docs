@@ -1,26 +1,40 @@
 
 
-## Update Pricing Page: Badge Width + Toggle Style
+## Match Billing Toggle Style in SubscriptionTab
 
-### 1. Fix "Most Popular" badge to single line
+Update the Monthly/Yearly toggle in the "Complete Your Subscription" section (`src/components/SubscriptionTab.tsx`, lines 360-370) to match the pricing page's orange pill style.
 
-**File:** `src/pages/Pricing.tsx` (line 286-288)
+### What Changes
 
-The badge text "Most Popular for Families and Businesses" wraps because the pill uses `rounded-full` with no `whitespace-nowrap`. Add `whitespace-nowrap` to the `<span>` so the text stays on one line.
+**Current:** Default Radix `TabsList` with flat gray styling and a green "Save" badge.
 
-Only this instance on the Pricing page is changed -- the identical markup in `PricingPlans.tsx`, `CompletePricing.tsx`, and `SubscriptionTab.tsx` remains untouched.
+**Updated:** Rounded pill container with orange active-state highlights, matching the pricing page toggle exactly:
+- `TabsList` gets `bg-muted rounded-full p-1` (pill container)
+- Both `TabsTrigger` elements get `rounded-full px-6 py-2 font-medium data-[state=active]:bg-brand-orange data-[state=active]:text-white` (orange active pill)
+- The "Save" `Badge` keeps its existing `bg-brand-green/10 text-brand-green` styling (already correct) but adds `border-0` to remove any border
 
-### 2. Match billing toggle to Account Settings style
+### Technical Details
 
-**File:** `src/pages/Pricing.tsx` (lines 250-272)
+**File:** `src/components/SubscriptionTab.tsx` (lines 361-369)
 
-Currently the pricing page uses two separate `<button>` elements with `bg-brand-orange` active state and a plain green `<span>` for "Save". The Account Settings toggle (in `SubscriptionTab.tsx`) uses a Radix `Tabs` + `TabsList` + `TabsTrigger` with a `Badge` styled `bg-brand-green/10 text-brand-green`.
+Replace the `TabsList` and its children with:
 
-Replace the two-button toggle with:
-- A Radix `Tabs` component (already imported on this page) with `TabsList` and two `TabsTrigger` values
-- The "Monthly" trigger gets an orange active style via conditional class: `data-[state=active]:bg-brand-orange data-[state=active]:text-white`
-- The "Yearly" trigger gets the same orange active style, plus a `Badge` with `bg-brand-green/10 text-brand-green` for the "Save" pill -- matching the Account Settings exactly
-- Import `Badge` from `@/components/ui/badge`
+```tsx
+<TabsList className="bg-muted rounded-full p-1">
+  <TabsTrigger
+    value="month"
+    className="rounded-full px-6 py-2 font-medium data-[state=active]:bg-brand-orange data-[state=active]:text-white"
+  >
+    Monthly
+  </TabsTrigger>
+  <TabsTrigger
+    value="year"
+    className="rounded-full px-6 py-2 font-medium data-[state=active]:bg-brand-orange data-[state=active]:text-white"
+  >
+    Yearly
+    <Badge className="ml-2 text-xs bg-brand-green/10 text-brand-green border-0 font-semibold">Save</Badge>
+  </TabsTrigger>
+</TabsList>
+```
 
-This gives the orange pill highlight for the active tab and a bright green pill around "Save", matching the Account Settings toggle.
-
+No new imports or dependencies needed -- `Badge`, `Tabs`, `TabsList`, and `TabsTrigger` are already imported in this file.
