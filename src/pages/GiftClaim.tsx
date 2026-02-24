@@ -104,7 +104,7 @@ const GiftClaim: React.FC = () => {
 
       // Redirect to dashboard after a short delay
       setTimeout(() => {
-        navigate('/properties');
+        navigate('/account');
       }, 3000);
 
     } catch (error) {
@@ -157,7 +157,7 @@ const GiftClaim: React.FC = () => {
                   Redirecting you to your dashboard in a few seconds...
                 </p>
 
-                <Button onClick={() => navigate('/properties')} size="lg" className="w-full">
+                <Button onClick={() => navigate('/account')} size="lg" className="w-full">
                   Go to Dashboard Now
                 </Button>
               </CardContent>

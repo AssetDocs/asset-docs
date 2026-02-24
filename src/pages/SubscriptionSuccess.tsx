@@ -54,7 +54,7 @@ const SubscriptionSuccess: React.FC = () => {
             title: "Subscription Activated!",
             description: `Your ${checkData?.subscription_tier || planType} plan is now active.`,
           });
-          setTimeout(() => navigate('/properties'), 1500);
+          setTimeout(() => navigate('/account'), 1500);
           return;
         }
 
@@ -70,7 +70,7 @@ const SubscriptionSuccess: React.FC = () => {
             title: "Subscription Activated!",
             description: `Your ${data?.plan || planType} plan is now active.`,
           });
-          setTimeout(() => navigate('/properties'), 1500);
+          setTimeout(() => navigate('/account'), 1500);
         }
       } catch (err) {
         console.error('[SubscriptionSuccess] Sync exception:', err);
