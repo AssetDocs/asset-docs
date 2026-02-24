@@ -1,33 +1,68 @@
 
 
-## Billing Tab Improvements
+## Billing and Subscription Management Improvements
 
-Two changes to streamline the Billing tab with a "read-only summary + manage in Stripe" pattern.
+### Overview
+Four changes to improve how users manage their payment methods, storage add-ons, and subscription plan from within their dashboard.
 
-### 1. Simplify Payment Methods Card
+---
 
-**Current state:** Shows card details with a per-card "Manage" button AND a separate "Add or Update Payment Method" button -- redundant CTAs.
+### 1. Simplify Payment Methods Card (BillingTab)
 
-**Change:** Keep the read-only card display (brand, last4, expiration) but remove the per-card "Manage" button. Replace the bottom "Add or Update Payment Method" button with a single "Manage Payment Methods" button. When no cards are on file, show the same single CTA.
+**Current:** Shows "No payment methods on file" text and icon when empty, which is unnecessary clutter.
+
+**Change:** Remove the empty-state text/icon. Always show just the card title, description, and a single "Manage Payment Methods" button regardless of whether cards are on file.
 
 **File:** `src/components/BillingTab.tsx`
-- Remove the `<Button>` inside each card row (lines 99-107)
-- Change the bottom button label to "Manage Payment Methods"
-- Same button in the empty state
+- Remove the loading skeleton, the card display loop, and the empty-state block
+- Replace with a single "Manage Payment Methods" button that opens the Stripe Customer Portal
+- Keep the title "Payment Methods" and description "Your saved payment methods for subscriptions"
 
-### 2. Add "View Full Billing History" CTA to Payment History
+---
 
-**Current state:** Shows recent payments in-app with no way to access invoices, PDFs, or refund details.
+### 2. Add Storage Add-on CTA (SubscriptionTab - Subscribed View)
 
-**Change:** Add a "View Full Billing History" button at the bottom of the payment list that opens the Stripe Customer Portal (same `customer-portal` edge function already used by BillingTab).
+**Current:** The storage add-on info section (lines 634-652) shows "+25GB for $4.99/month" with bullet points but has **no button** to actually purchase it.
 
-**File:** `src/components/PaymentHistory.tsx`
-- Import `Button` from ui/button and `ExternalLink` from lucide-react
-- Add `supabase` import (already present)
-- Add `handleViewFullHistory` function that invokes `customer-portal` and opens the URL
-- Add a `Button` after the payment list: "View Full Billing History in Stripe"
-- Also show this button in the empty state as a secondary option
+**Change:** Add an "Add Storage" button at the bottom of that section. This button will open the Stripe Customer Portal where users can adjust their storage add-on quantity (1x25GB, 2x25GB, etc.).
 
-### No Backend Changes
-Both changes reuse the existing `customer-portal` edge function. No new edge functions, database changes, or secrets needed.
+**File:** `src/components/SubscriptionTab.tsx` (subscribed view, ~line 651)
+- Add a "Add Storage via Stripe" button that calls the existing `handleManageBilling` function
+
+---
+
+### 3. Stripe Customer Portal Configuration (Information)
+
+The Stripe Customer Portal must be configured in the **Stripe Dashboard** to allow plan switching and product management. This is **not a code change** -- it requires updating settings at:
+
+**Stripe Dashboard > Settings > Billing > Customer Portal**
+
+- Enable "Allow customers to switch plans" and add your Standard and Premium prices
+- Enable "Allow customers to update subscriptions" to let them adjust the 25GB storage add-on quantity
+- These settings control what options appear when users click "Manage Billing"
+
+This is a Stripe-side configuration, not a Lovable change.
+
+---
+
+### 4. Add "Manage Subscription" CTA to Plan Tab (SubscriptionTab - Subscribed View)
+
+**Current:** The subscribed view shows the current plan details and a single "Manage Billing" button at the bottom. There's no clear CTA specifically for upgrading/downgrading plans.
+
+**Change:** Add a dedicated "Upgrade or Change Plan" button inside the current plan display card (the green box), making it immediately visible. This will also open the Stripe Customer Portal.
+
+**File:** `src/components/SubscriptionTab.tsx` (subscribed view, ~line 607)
+- Add a "Change Plan" button inside the current plan card that calls `handleManageBilling`
+
+---
+
+### Technical Details
+
+**Files to modify:**
+- `src/components/BillingTab.tsx` -- Simplify to title + description + single CTA
+- `src/components/SubscriptionTab.tsx` -- Add two buttons (storage add-on CTA + change plan CTA)
+
+**No backend changes needed.** All buttons reuse the existing `customer-portal` edge function.
+
+**Important Stripe Dashboard action required:** Configure the Customer Portal to allow plan switching and subscription updates. Without this, the portal will only show invoice history and payment method management.
 
