@@ -1,13 +1,10 @@
 
 
-## Fix Mobile CTA Centering
+## Fix Text Overflow on Mobile
 
-**File:** `src/components/MobileCTA.tsx`
+**File:** `src/components/DocumentProtectSection.tsx` (line 117)
 
-Update the component to fix the off-center positioning and text alignment:
+Remove `whitespace-nowrap` from the `<p>` tag so the text naturally wraps to two lines on smaller screens. Optionally add `max-w-md` or `max-w-lg` to keep it nicely contained and centered.
 
-- On the outer fixed container: ensure `max-w-full overflow-hidden` to prevent any horizontal overflow
-- On the Button/Link: change from `w-full block` to `w-full flex items-center justify-center` so the text is properly centered within the button
-
-No other files or dependencies affected.
+**Change:** Replace `whitespace-nowrap` with `text-center` (it may already be centered by parent, but this ensures it). The text will naturally break across two lines on mobile.
 
