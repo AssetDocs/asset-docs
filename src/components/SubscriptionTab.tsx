@@ -677,7 +677,7 @@ const SubscriptionTab: React.FC = () => {
                 <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-6">
                   <h4 className="text-lg font-semibold text-center mb-4 text-amber-800 dark:text-amber-200">Premium-Only Features</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
-                    {["🔒 Trusted Contacts", "🔒 Emergency Access Sharing", "🔒 Legacy Locker Mode", "🔒 Executor / Family Continuity Tools"].map((feature, index) => (
+                    {["🔒 Authorized Users", "🔒 Emergency Access Sharing", "🔒 Legacy Locker Mode", "🔒 Executor / Family Continuity Tools"].map((feature, index) => (
                       <div key={index} className="flex items-center gap-2">
                         <span className="text-amber-700 dark:text-amber-300 text-sm">{feature}</span>
                       </div>

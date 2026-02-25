@@ -45,7 +45,7 @@ const PricingPlans: React.FC = () => {
   ];
 
   const premiumOnlyFeatures = [
-    "🔒 Trusted Contacts (Premium Only)",
+    "🔒 Authorized Users (Premium Only)",
     "🔒 Emergency Access Sharing (Premium Only)",
     "🔒 Legacy Locker Mode (Premium Only)",
     "🔒 Executor / Family Continuity Tools (Premium Only)"
