@@ -37,6 +37,8 @@ const PricingPlans: React.FC = () => {
     "Post-damage documentation reports",
     "Manual Entries",
     "Upgrades & Repairs Record",
+    "Memory Safe",
+    "Quick Notes",
     "Paint Code Reference",
     "Source Websites",
     "Service Pros Directory"
