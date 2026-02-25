@@ -15,9 +15,9 @@ const MobileCTA: React.FC = () => {
   if (shouldHide || subscriptionTier) return null;
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border safe-area-bottom overflow-hidden box-border">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border safe-area-bottom max-w-full overflow-hidden box-border">
       <div className="px-4 py-4">
-        <Button asChild className="w-full block" size="lg">
+        <Button asChild className="w-full flex items-center justify-center" size="lg">
           <Link to="/pricing">Create Your Digital Safety Net</Link>
         </Button>
       </div>
