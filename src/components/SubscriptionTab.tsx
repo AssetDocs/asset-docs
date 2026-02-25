@@ -12,12 +12,14 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { CheckIcon, ExternalLink, CreditCard, Shield, Star, Zap, Trash2, Clock, AlertTriangle, X, Check, HardDrive, XCircle } from 'lucide-react';
+import { CheckIcon, ExternalLink, CreditCard, Shield, Star, Zap, Trash2, Clock, AlertTriangle, X, Check, HardDrive, XCircle, ChevronDown } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import AccountDeletedDialog from '@/components/AccountDeletedDialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
+import SubscriptionPlan from '@/components/SubscriptionPlan';
 
 // Plan configurations with monthly and yearly pricing
 const planConfigs = {
@@ -69,6 +71,8 @@ const commonFeatures = [
   "Post-damage documentation reports",
   "Manual Entries",
   "Upgrades & Repairs Record",
+  "Memory Safe",
+  "Quick Notes",
   "Paint Code Reference",
   "Source Websites",
   "Service Pros Directory"
@@ -606,9 +610,82 @@ const SubscriptionTab: React.FC = () => {
               </div>
               <Button onClick={handleManageBilling} disabled={isLoading} variant="outline" className="mt-4">
                 <ExternalLink className="h-4 w-4 mr-2" />
-                {isLoading ? 'Opening...' : 'Upgrade or Change Plan'}
+                {isLoading ? 'Opening...' : 'Manage Your Subscription'}
               </Button>
+              <p className="text-xs text-muted-foreground mt-2">Plan changes take effect on your next billing cycle</p>
             </div>
+
+            {/* Compare Plans Collapsible */}
+            <Collapsible>
+              <CollapsibleTrigger className="flex items-center justify-between w-full bg-muted/30 border rounded-lg p-4 hover:bg-muted/50 transition-colors group">
+                <div className="text-left">
+                  <h4 className="font-semibold text-foreground">Compare Plans</h4>
+                  <p className="text-sm text-muted-foreground">See what's included in Standard vs Premium</p>
+                </div>
+                <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-4 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="relative">
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+                      <span className="bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">Basic Protection</span>
+                    </div>
+                    <SubscriptionPlan
+                      title="Standard (Homeowner Plan)"
+                      price="$12.99"
+                      description="For individuals documenting and protecting their home."
+                      features={planConfigs.standard.features}
+                      buttonText="$12.99/mo"
+                      buttonClassName="w-full bg-muted text-muted-foreground cursor-default pointer-events-none"
+                    />
+                  </div>
+                  <div className="relative">
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+                      <span className="bg-amber-500 text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
+                        <Star className="h-3 w-3" /> Most Popular
+                      </span>
+                    </div>
+                    <SubscriptionPlan
+                      title="Premium (Legacy & Business Protection)"
+                      price="$18.99"
+                      description="For families, business owners, and anyone who wants shared protection and continuity."
+                      features={planConfigs.premium.features}
+                      buttonText="$18.99/mo"
+                      buttonClassName="w-full bg-muted text-muted-foreground cursor-default pointer-events-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Included in Both Plans */}
+                <div className="bg-muted/30 rounded-lg p-6">
+                  <h4 className="font-semibold text-center mb-4">Included in Both Plans</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+                    {commonFeatures.map((feature, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <div className="h-5 w-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                          <svg className="h-3 w-3 text-primary" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                            <path d="M5 13l4 4L19 7"></path>
+                          </svg>
+                        </div>
+                        <span className="text-foreground text-sm">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Premium-Only Features */}
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-6">
+                  <h4 className="text-lg font-semibold text-center mb-4 text-amber-800 dark:text-amber-200">Premium-Only Features</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+                    {["🔒 Trusted Contacts", "🔒 Emergency Access Sharing", "🔒 Legacy Locker Mode", "🔒 Executor / Family Continuity Tools"].map((feature, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <span className="text-amber-700 dark:text-amber-300 text-sm">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
 
             {/* Active Add-ons Section */}
             {hasStorageAddOn && (
