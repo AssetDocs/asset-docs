@@ -8,36 +8,31 @@ export interface FeatureConfig {
 }
 
 export const SUBSCRIPTION_FEATURES: Record<string, FeatureConfig> = {
-  // =====================================
-  // STANDARD FEATURES (available to all subscribers)
-  // =====================================
+  // All features are included in the Asset Safe Plan (single plan)
   
-  // Photo and Media Features
   photo_upload: {
     name: 'Photo Upload',
     description: 'Upload and manage property photos',
     requiredTier: 'standard',
-    fallbackMessage: 'Upgrade to Standard to start uploading photos'
+    fallbackMessage: 'Subscribe to start uploading photos'
   },
   video_upload: {
     name: 'Video Upload', 
     description: 'Upload and manage property videos',
     requiredTier: 'standard',
-    fallbackMessage: 'Upgrade to Standard or Premium to upload videos'
+    fallbackMessage: 'Subscribe to upload videos'
   },
   storage_limits: {
-    name: 'Storage Limits',
-    description: 'Tier-based storage space allocation',
+    name: 'Storage',
+    description: 'Cloud storage allocation',
     requiredTier: 'standard',
-    fallbackMessage: 'Storage limits apply based on your subscription tier'
+    fallbackMessage: 'Subscribe to access cloud storage'
   },
-
-  // Download and Export Features
   export_assets: {
     name: 'Export Assets',
     description: 'Export your asset inventory to various formats (CSV, PDF, etc.)',
     requiredTier: 'standard',
-    fallbackMessage: 'Upgrade to Standard or Premium to export your asset inventory.',
+    fallbackMessage: 'Subscribe to export your asset inventory.',
   },
   download_all_files: {
     name: 'Download All Files',
@@ -48,173 +43,141 @@ export const SUBSCRIPTION_FEATURES: Record<string, FeatureConfig> = {
     name: 'Basic Export',
     description: 'Claim-ready export with basic report download',
     requiredTier: 'standard',
-    fallbackMessage: 'Upgrade to Standard for basic export capabilities'
+    fallbackMessage: 'Subscribe for export capabilities'
   },
-
-  // Property Management
   multiple_properties: {
     name: 'Multiple Properties',
     description: 'Manage unlimited properties',
     requiredTier: 'standard',
-    fallbackMessage: 'Upgrade to Standard to manage multiple properties'
+    fallbackMessage: 'Subscribe to manage properties'
   },
   property_limits: {
     name: 'Property Limits',
-    description: 'Unlimited properties for all subscription tiers',
+    description: 'Unlimited properties',
     requiredTier: 'standard',
-    fallbackMessage: 'Upgrade to manage properties'
+    fallbackMessage: 'Subscribe to manage properties'
   },
-
-  // Export and Reporting
   export_reports: {
     name: 'Export Reports',
     description: 'Export detailed property reports',
     requiredTier: 'standard',
-    fallbackMessage: 'Upgrade to Standard to export reports'
+    fallbackMessage: 'Subscribe to export reports'
   },
-
-  // Documentation and Checklists
   documentation_checklists: {
     name: 'Documentation Checklists',
     description: 'Access comprehensive documentation checklists',
     requiredTier: 'standard',
-    fallbackMessage: 'Upgrade to Standard to access documentation checklists'
+    fallbackMessage: 'Subscribe to access documentation checklists'
   },
   custom_checklists: {
     name: 'Custom Checklists',
     description: 'Create and customize your own checklists',
     requiredTier: 'standard',
-    fallbackMessage: 'Upgrade to Standard to create custom checklists'
+    fallbackMessage: 'Subscribe to create custom checklists'
   },
-
-  // Voice Notes and Damage Features
   voice_notes: {
     name: 'Voice Notes',
     description: 'Record voice notes for items with sentimental or historical significance',
     requiredTier: 'standard',
-    fallbackMessage: 'Upgrade to Standard to access voice notes feature'
+    fallbackMessage: 'Subscribe to access voice notes feature'
   },
   post_damage_reports: {
     name: 'Post Damage Reports',
     description: 'Generate comprehensive damage reports with photos and videos',
     requiredTier: 'standard',
-    fallbackMessage: 'Upgrade to Standard to access damage reporting feature'
+    fallbackMessage: 'Subscribe to access damage reporting feature'
   },
-
-  // Password Catalog (accessible to all subscribers)
   password_catalog: {
     name: 'Password Catalog',
-    description: 'Securely store and manage passwords (private use)',
+    description: 'Securely store and manage passwords',
     requiredTier: 'standard',
-    fallbackMessage: 'Upgrade to Standard to access Password Catalog'
+    fallbackMessage: 'Subscribe to access Password Catalog'
   },
-
-  // Secure Vault (private access)
   secure_vault_private: {
-    name: 'Secure Vault (Private)',
-    description: 'Private secure vault access',
+    name: 'Secure Vault',
+    description: 'Secure vault access',
     requiredTier: 'standard',
-    fallbackMessage: 'Upgrade to Standard for private Secure Vault access'
+    fallbackMessage: 'Subscribe for Secure Vault access'
   },
-
-  // Standard Support
   standard_support: {
-    name: 'Standard Support',
+    name: 'Support',
     description: 'Email support',
     requiredTier: 'standard',
-    fallbackMessage: 'Upgrade to Standard for support access'
+    fallbackMessage: 'Subscribe for support access'
   },
 
-  // =====================================
-  // PREMIUM FEATURES (Premium tier only)
-  // =====================================
-
-  // Legacy Locker - Premium Only
+  // All previously "premium-only" features are now included in the Asset Safe Plan
   legacy_locker: {
     name: 'Legacy Locker',
     description: 'Secure legacy planning and document storage for family access',
-    requiredTier: 'premium',
-    fallbackMessage: 'Legacy Locker is available on Premium for trusted family access.'
+    requiredTier: 'standard',
+    fallbackMessage: 'Subscribe to access Legacy Locker.'
   },
-
-  // Trusted Contacts/Contributors - Premium Only
   trusted_contacts: {
-    name: 'Trusted Contacts',
+    name: 'Authorized Users',
     description: 'Add trusted contacts to share access with family members',
-    requiredTier: 'premium',
-    fallbackMessage: 'Add trusted contacts with Premium to share access with family.'
+    requiredTier: 'standard',
+    fallbackMessage: 'Subscribe to add authorized users.'
   },
   contributor_roles: {
-    name: 'Contributor Roles',
+    name: 'Authorized Users',
     description: 'Invite contributors (spouse, adult child, planner) to your account',
-    requiredTier: 'premium',
-    fallbackMessage: 'Invite contributors with Premium for family collaboration.'
+    requiredTier: 'standard',
+    fallbackMessage: 'Subscribe to invite authorized users.'
   },
-
-  // Emergency Access - Premium Only
   emergency_access: {
     name: 'Emergency Access Sharing',
     description: 'Share vault access during emergencies',
-    requiredTier: 'premium',
-    fallbackMessage: 'Emergency vault sharing requires Premium subscription.'
+    requiredTier: 'standard',
+    fallbackMessage: 'Subscribe to enable emergency access sharing.'
   },
-
-  // Executor Tools - Premium Only
   executor_tools: {
     name: 'Executor Tools',
     description: 'Executor assignment and continuity planning',
-    requiredTier: 'premium',
-    fallbackMessage: 'Executor assignment available on Premium for continuity planning.'
+    requiredTier: 'standard',
+    fallbackMessage: 'Subscribe for executor and continuity planning tools.'
   },
-
-  // Advanced Exports - Premium Only
   advanced_exports: {
     name: 'Advanced Exports',
     description: 'Advanced claim and legal export bundles',
-    requiredTier: 'premium',
-    fallbackMessage: 'Advanced claim and legal export bundles require Premium.'
+    requiredTier: 'standard',
+    fallbackMessage: 'Subscribe for advanced exports.'
   },
-
-  // Priority Support - Premium Only
   priority_support: {
     name: 'Priority Support',
     description: 'Priority email and phone support',
-    requiredTier: 'premium',
-    fallbackMessage: 'Priority support available with Premium subscription.'
+    requiredTier: 'standard',
+    fallbackMessage: 'Subscribe for priority support.'
   },
-
-  // Verified+ Badge - Premium Only
   verified_plus_badge: {
     name: 'Verified+ Badge',
     description: 'Verified+ badge eligibility for your account',
-    requiredTier: 'premium',
-    fallbackMessage: 'Verified+ badge is available with Premium subscription.'
+    requiredTier: 'standard',
+    fallbackMessage: 'Subscribe for Verified+ badge eligibility.'
   },
-
-  // Advanced Features - Premium Only
   advanced_features: {
     name: 'Advanced Features',
-    description: 'Premium analysis and insights',
-    requiredTier: 'premium',
-    fallbackMessage: 'Upgrade to Premium for advanced features'
+    description: 'Full platform features and insights',
+    requiredTier: 'standard',
+    fallbackMessage: 'Subscribe for full platform access'
   },
   unlimited_storage: {
-    name: '100GB Storage',
-    description: '100GB secure cloud storage',
-    requiredTier: 'premium',
-    fallbackMessage: 'Upgrade to Premium for 100GB storage'
+    name: '25GB Storage',
+    description: '25GB secure cloud storage (+ add-ons available)',
+    requiredTier: 'standard',
+    fallbackMessage: 'Subscribe for cloud storage'
   },
   advanced_reporting: {
-    name: 'Advanced Reporting',
-    description: 'Comprehensive analytics and insights',
-    requiredTier: 'premium',
-    fallbackMessage: 'Upgrade to Premium for advanced reporting'
+    name: 'Reporting',
+    description: 'Comprehensive reports and exports',
+    requiredTier: 'standard',
+    fallbackMessage: 'Subscribe for reporting'
   },
   professional_services: {
     name: 'Professional Services',
     description: 'Access to professional documentation services',
-    requiredTier: 'premium',
-    fallbackMessage: 'Upgrade to Premium for professional services'
+    requiredTier: 'standard',
+    fallbackMessage: 'Subscribe for professional services'
   },
 };
 
@@ -226,7 +189,7 @@ export const getTierHierarchy = (): Record<SubscriptionTier, number> => ({
 export const hasFeatureAccess = (
   userTier: SubscriptionTier | null | undefined,
   requiredTier: SubscriptionTier,
-  _isInTrial?: boolean // Deprecated - trial no longer supported
+  _isInTrial?: boolean
 ): boolean => {
   if (!userTier) return false;
   
@@ -240,14 +203,12 @@ export const getFeaturesByTier = (tier: SubscriptionTier): FeatureConfig[] => {
   );
 };
 
-// Storage limits in bytes
+// Storage limits — base 25GB; total governed by entitlements total_storage_gb
 export const STORAGE_LIMITS: Record<SubscriptionTier, number> = {
-  standard: 25 * 1024 * 1024 * 1024, // 25GB
-  premium: 100 * 1024 * 1024 * 1024 // 100GB
+  standard: 25 * 1024 * 1024 * 1024,
+  premium: 25 * 1024 * 1024 * 1024
 };
 
-// Free/no-tier fallback (used when subscription state hasn't loaded yet or user is on free plan)
-// Keep this small but functional so uploads don't silently fail.
 export const FREE_STORAGE_LIMIT_BYTES = 5 * 1024 * 1024 * 1024; // 5GB
 
 export const getStorageLimit = (tier: SubscriptionTier | null | undefined): number | null => {
@@ -268,13 +229,11 @@ export const formatStorageSize = (bytes: number): string => {
   return `${size.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
 };
 
-// Property limits by tier - Both tiers now have unlimited properties
 export const PROPERTY_LIMITS: Record<SubscriptionTier, number> = {
-  standard: Infinity, // Unlimited properties for Standard
-  premium: Infinity   // Unlimited properties for Premium
+  standard: Infinity,
+  premium: Infinity
 };
 
-// Contributor limits by tier - now unlimited for all tiers
 export const CONTRIBUTOR_LIMITS: Record<SubscriptionTier, number> = {
   standard: Infinity,
   premium: Infinity
@@ -293,12 +252,10 @@ export const getContributorLimit = (tier: SubscriptionTier | null | undefined): 
 export const checkPropertyLimit = (
   currentCount: number,
   userTier: SubscriptionTier | null | undefined,
-  _isInTrial?: boolean // Deprecated - trial no longer supported
+  _isInTrial?: boolean
 ): { canAdd: boolean; limit: number; message?: string } => {
   const limit = getPropertyLimit(userTier);
   
-  // If no tier but current count is 0, allow at least one property
-  // This handles edge cases where subscription hasn't loaded yet
   if (!userTier && currentCount === 0) {
     return { canAdd: true, limit: 1 };
   }
@@ -306,14 +263,12 @@ export const checkPropertyLimit = (
   const canAdd = currentCount < limit;
   
   if (!canAdd) {
-    const upgradeMessage = !userTier 
-      ? 'Please subscribe to add more properties.'
-      : 'You have reached the maximum number of properties for your plan.';
-    
     return {
       canAdd: false,
       limit: limit || 1,
-      message: upgradeMessage
+      message: !userTier 
+        ? 'Please subscribe to add more properties.'
+        : 'You have reached the maximum number of properties for your plan.'
     };
   }
   
@@ -323,9 +278,8 @@ export const checkPropertyLimit = (
 export const checkContributorLimit = (
   currentCount: number,
   userTier: SubscriptionTier | null | undefined,
-  _isInTrial?: boolean // Deprecated - trial no longer supported
+  _isInTrial?: boolean
 ): { canAdd: boolean; limit: number; message?: string } => {
-  // No limit on contributors - always allow adding
   if (!userTier) {
     return {
       canAdd: false,
@@ -337,7 +291,6 @@ export const checkContributorLimit = (
   return { canAdd: true, limit: Infinity };
 };
 
-// Check if user has Premium tier
 export const isPremiumTier = (tier: SubscriptionTier | null | undefined): boolean => {
   return tier === 'premium';
 };
