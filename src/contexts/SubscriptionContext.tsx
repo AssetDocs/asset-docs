@@ -44,19 +44,16 @@ export const useSubscription = () => {
   return context;
 };
 
+// Single-plan migration: all active subscribers map to 'premium' so all
+// existing PremiumFeatureGate checks pass — there is effectively one plan.
 const mapTierToEnum = (tier?: string): SubscriptionTier | null => {
   if (!tier) return null;
-  
   switch (tier.toLowerCase()) {
-    case 'standard':
-      return 'standard';
-    case 'premium':
-    case 'enterprise':
-      return 'premium';
     case 'free':
       return null;
     default:
-      return 'standard';
+      // standard, premium, enterprise — all get full access
+      return 'premium';
   }
 };
 

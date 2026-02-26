@@ -46,8 +46,7 @@ const Pricing: React.FC = () => {
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
-      productSchema("Asset Safe Standard Plan", "12.99", "Comprehensive home documentation with up to 3 properties and 25GB storage"),
-      productSchema("Asset Safe Premium Plan", "18.99", "Professional plan with unlimited properties and 100GB storage for estate managers"),
+      productSchema("Asset Safe Plan", "12.99", "One simple plan. Everything included. Secure asset documentation, cloud storage, legacy tools, and trusted access."),
       faqSchema(faqData),
       breadcrumbSchema([
         { name: 'Home', url: 'https://www.getassetsafe.com/' },
@@ -101,97 +100,35 @@ const Pricing: React.FC = () => {
     window.location.href = `/signup?plan=${planType}&billing=${yearly ? 'yearly' : 'monthly'}`;
   };
 
-  const planDifferences = {
-    standard: [
-      "Unlimited properties",
-      "25GB secure cloud storage",
-      "Guided home inventory system",
-      "Secure Vault (owner-only access)",
-      "Password Catalog (personal use)",
-      "Claim-ready documentation exports",
-      "Simple, ongoing protection for your home"
-    ],
-    premium: [
-      "Unlimited properties",
-      "100GB secure cloud storage",
-      "⭐ Shared access with authorized users",
-      "⭐ Legacy Locker (family continuity & instructions)",
-      "⭐ Emergency Access Sharing",
-      "⭐ Protection that extends beyond you"
-    ]
-  };
-
-  const commonFeatures = [
-    "Photo, video, and document uploads",
+  const unifiedFeatures = [
+    "Unlimited properties",
+    "25GB secure cloud storage (+ add-ons available)",
+    "Photo, video & document uploads",
     "Room-by-room inventory organization",
-    "Voice notes and item details",
     "Secure Vault & Password Catalog",
-    "Claim-ready documentation exports (available anytime)",
-    "Multi-factor authentication",
-    "Full web platform access",
-    "Post-damage documentation reports",
-    "Manual Entries",
-    "Upgrades & Repairs Record",
-    "Paint Code Reference",
-    "Source Websites",
+    "Legacy Locker (family continuity & instructions)",
+    "Authorized Users",
+    "Emergency Access Sharing",
+    "Voice notes, damage reports, exports",
+    "Memory Safe & Quick Notes",
+    "MFA, full web platform access",
     "Service Pros Directory"
   ];
 
-  const premiumOnlyIndicators = [
-    "🔒 Trusted Contacts (Premium Only)",
-    "🔒 Emergency Access Sharing (Premium Only)",
-    "🔒 Legacy Locker Mode (Premium Only)",
-    "🔒 Executor / Family Continuity Tools (Premium Only)"
-  ];
-
-  const plans = [
-    {
-      title: "Standard (Homeowner Plan)",
-      monthlyPrice: "$12.99",
-      yearlyPrice: "$129",
-      description: "For individuals documenting and protecting their home.",
-      features: planDifferences.standard,
-      planType: "standard",
-      icon: <Zap className="h-6 w-6" />
-    },
-    {
-      title: "Premium (Legacy & Business Protection)",
-      monthlyPrice: "$18.99",
-      yearlyPrice: "$189",
-      description: "For families, business owners, and anyone who wants shared protection and continuity.",
-      features: planDifferences.premium,
-      planType: "premium",
-      icon: <Star className="h-6 w-6" />,
-      popular: true
-    }
-  ];
-
-  const giftPlans = [
-    {
-      title: "Gift – Standard",
-      price: "$129 / 1 year",
-      description: "For individuals documenting and protecting their home.",
-      features: [
-        "Unlimited properties",
-        "25GB secure cloud storage",
-        "Password Catalog + Secure Vault",
-        "Recipient opts in to renew monthly or yearly"
-      ],
-      planType: "standard"
-    },
-    {
-      title: "Gift – Premium",
-      price: "$189 / 1 year",
-      description: "For families who want continuity and shared protection.",
-      features: [
-        "Unlimited properties",
-        "100GB secure cloud storage",
-        "Legacy Locker + Trusted Contacts",
-        "Recipient opts in to renew monthly or yearly"
-      ],
-      planType: "premium"
-    }
-  ];
+  const giftPlan = {
+    title: "Gift – Asset Safe Plan",
+    price: "$129 / 1 year",
+    description: "Give a full year of protection. Everything included.",
+    features: [
+      "Unlimited properties",
+      "25GB secure cloud storage",
+      "Legacy Locker + Authorized Users",
+      "Emergency Access Sharing",
+      "Full platform access — everything included",
+      "Recipient opts in to renew monthly or yearly"
+    ],
+    planType: "standard"
+  };
 
   const StorageNotation = () => (
     <div className="text-center text-sm text-muted-foreground mt-4 space-y-1">
@@ -203,8 +140,8 @@ const Pricing: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <SEOHead
-        title="Plans & Pricing - From $12.99/mo | Asset Safe"
-        description="Choose from Standard ($12.99/mo) or Premium ($18.99/mo) plans. No long-term contract. Cancel anytime. Secure cloud storage, unlimited uploads, insurance claims support."
+        title="Asset Safe Plan — Everything Included | Asset Safe"
+        description="One simple plan starting at $12.99/mo. Secure asset documentation, cloud storage, legacy tools, and trusted access — with flexible storage that grows with you."
         keywords="home inventory pricing, property documentation cost, digital asset management pricing, insurance inventory app cost, estate planning tools pricing"
         canonicalUrl="https://www.getassetsafe.com/pricing"
         structuredData={structuredData}
@@ -239,9 +176,9 @@ const Pricing: React.FC = () => {
               <TabsContent value="for-you" className="mt-0">
                 <div className="mb-8">
                   <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-4">
-                    Choose the plan that works for you
+                    One simple plan. Everything included.
                   </p>
-                <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 max-w-md mx-auto space-y-1">
+                  <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 max-w-md mx-auto space-y-1">
                     <p className="text-sm text-muted-foreground">No long-term contract. Cancel anytime</p>
                     <p className="text-xs text-muted-foreground">🇺🇸 Paid subscriptions are currently available to U.S. billing addresses only.</p>
                   </div>
@@ -268,67 +205,42 @@ const Pricing: React.FC = () => {
                   </Tabs>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                  {plans.map((plan) => (
-                    <div key={plan.title} className="relative">
-                      {!plan.popular && (
-                        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-                          <span className="bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
-                            Basic Protection
-                          </span>
-                        </div>
-                      )}
-                      {plan.popular && (
-                        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-                          <span className="bg-amber-500 text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1 whitespace-nowrap">
-                            <Star className="h-3 w-3" /> Most Popular for Families and Businesses
-                          </span>
-                        </div>
-                      )}
-                      {subscriptionStatus.subscribed && subscriptionStatus.subscription_tier === plan.title && (
-                        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-4 py-1 rounded-full text-sm font-medium z-10">
-                          Current Plan
-                        </div>
-                      )}
-                      <SubscriptionPlan
-                        title={plan.title}
-                        price={billingCycle === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice}
-                        description={
-                          billingCycle === 'yearly' 
-                            ? `${plan.description} – Save when you pay yearly`
-                            : plan.description
-                        }
-                        features={plan.features}
-                        billingInterval={billingCycle === 'yearly' ? 'year' : 'month'}
-                        buttonText={
-                          subscriptionStatus.subscribed && subscriptionStatus.subscription_tier === plan.title 
-                            ? "Current Plan" 
-                            : isLoading ? "Processing..." : "Get Started"
-                        }
-                        onClick={() => handleSubscribe(plan.planType, billingCycle === 'yearly')}
-                      />
+                <div className="max-w-lg mx-auto">
+                  {subscriptionStatus.subscribed && (
+                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-4 py-1 rounded-full text-sm font-medium z-10">
+                      Current Plan
                     </div>
-                  ))}
+                  )}
+                  <SubscriptionPlan
+                    title="Asset Safe Plan"
+                    price={billingCycle === 'monthly' ? '$12.99' : '$129'}
+                    description={billingCycle === 'yearly' ? 'One simple plan. Everything included. — Save when you pay yearly' : 'One simple plan. Everything included.'}
+                    features={unifiedFeatures}
+                    billingInterval={billingCycle === 'yearly' ? 'year' : 'month'}
+                    recommended={true}
+                    buttonText={subscriptionStatus.subscribed ? 'Current Plan' : isLoading ? 'Processing...' : 'Get Started'}
+                    onClick={() => handleSubscribe('standard', billingCycle === 'yearly')}
+                  />
                 </div>
 
                 {/* Storage Notation */}
                 <StorageNotation />
 
-          {/* Common Features */}
-          <div className="mt-12 max-w-4xl mx-auto">
-            <div className="bg-muted/30 rounded-lg p-8">
-              <h3 className="text-xl font-semibold text-center mb-4">Included in Both Plans</h3>
-              <p className="text-sm text-muted-foreground text-center mb-4">
-                Billed monthly. No long-term contract. Cancel anytime.
-              </p>
-              <p className="text-sm text-muted-foreground text-center mb-6">
-                All plans include full access to your data and complete exports anytime.
-              </p>
+                {/* What's Included */}
+                <div className="mt-12 max-w-4xl mx-auto">
+                  <div className="bg-muted/30 rounded-lg p-8">
+                    <h3 className="text-xl font-semibold text-center mb-4">What's Included</h3>
+                    <p className="text-sm text-muted-foreground text-center mb-4">
+                      Billed monthly or yearly. No long-term contract. Cancel anytime.
+                    </p>
+                    <p className="text-sm text-muted-foreground text-center mb-6">
+                      Full access to your data and complete exports anytime.
+                    </p>
                     <p className="text-sm font-medium text-center mb-6">
                       Everything you need to fully document and protect your home:
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
-                      {commonFeatures.map((feature, index) => (
+                      {unifiedFeatures.map((feature, index) => (
                         <div key={index} className="flex items-center gap-2">
                           <div className="h-5 w-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
                             <svg className="h-3 w-3 text-primary" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
@@ -348,8 +260,7 @@ const Pricing: React.FC = () => {
                     <p className="text-lg font-semibold text-foreground mb-1 text-center">
                       Your life evolves — your storage can too
                     </p>
-                    <p className="text-sm text-muted-foreground text-center mb-3">Flexible storage you can adjust anytime.</p>
-                    <p className="text-sm text-muted-foreground text-center mb-3">Add 25GB storage increments anytime.</p>
+                    <p className="text-sm text-muted-foreground text-center mb-3">Add storage anytime as your assets grow.</p>
                     <div className="bg-background/80 rounded-lg px-4 py-2 text-center mb-3">
                       <span className="font-bold">+25GB</span> for <span className="text-brand-orange font-bold">$4.99 / month</span>
                     </div>
@@ -360,10 +271,24 @@ const Pricing: React.FC = () => {
                       </li>
                       <li className="flex items-center gap-2">
                         <CheckIcon className="h-4 w-4 text-green-500 flex-shrink-0" />
-                        Upgrade or remove storage anytime
+                        Adjust storage anytime
                       </li>
                     </ul>
                   </div>
+                </div>
+
+                {/* Why one plan? */}
+                <div className="mt-12 max-w-2xl mx-auto text-center">
+                  <h3 className="text-2xl font-bold mb-4">Why one plan?</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Most services make you choose between "good" and "better." We don't think that makes sense when it comes to protecting what matters most.
+                  </p>
+                  <p className="text-muted-foreground mb-4">
+                    Asset Safe is built as a complete system, not a set of gated features. That's why there's only one plan — everything included — with flexible storage you can adjust anytime as your needs evolve.
+                  </p>
+                  <p className="text-muted-foreground font-medium">
+                    Simple. Transparent. Built for the long term.
+                  </p>
                 </div>
 
                 {user && subscriptionStatus.subscribed && (
@@ -445,35 +370,33 @@ const Pricing: React.FC = () => {
 
                 {/* Choose the Perfect Gift Plan */}
                 <div className="mb-8">
-                  <h3 className="text-2xl font-bold mb-4">Choose the Perfect Gift Plan</h3>
+                  <h3 className="text-2xl font-bold mb-4">Gift the Asset Safe Plan</h3>
                   <p className="text-muted-foreground max-w-2xl mx-auto">
-                    All gift subscriptions are for 1 year with no auto-renew. Recipients can choose to renew monthly or yearly when their gift expires.
+                    Gift subscriptions are for 1 year with no auto-renew. Recipients can choose to renew monthly or yearly when their gift expires.
                   </p>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                  {giftPlans.map((plan) => (
-                    <SubscriptionPlan
-                      key={plan.title}
-                      title={plan.title}
-                      price={plan.price}
-                      description={plan.description}
-                      features={plan.features}
-                      buttonText="Gift This Plan"
-                      onClick={() => window.location.href = `/gift-checkout?plan=${plan.planType}`}
-                    />
-                  ))}
+                <div className="max-w-lg mx-auto">
+                  <SubscriptionPlan
+                    title={giftPlan.title}
+                    price={giftPlan.price}
+                    description={giftPlan.description}
+                    features={giftPlan.features}
+                    recommended={true}
+                    buttonText="Gift This Plan"
+                    onClick={() => window.location.href = `/gift-checkout?plan=${giftPlan.planType}`}
+                  />
                 </div>
 
                 {/* Storage Notation for Gifts */}
                 <StorageNotation />
 
-                {/* Features included in both plans */}
+                {/* What's Included */}
                 <div className="mt-12 max-w-4xl mx-auto">
                   <div className="bg-muted/30 rounded-lg p-8">
-                    <h3 className="text-xl font-semibold text-center mb-6">Features included in both plans</h3>
+                    <h3 className="text-xl font-semibold text-center mb-6">What's Included</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
-                      {[...commonFeatures.map(f => f === "Photo and video uploads" ? "Photo, video, and document upload" : f), "12-month gift subscription"].map((feature, index) => (
+                      {[...unifiedFeatures, "12-month gift subscription"].map((feature, index) => (
                         <div key={index} className="flex items-center gap-2">
                           <div className="h-5 w-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
                             <svg className="h-3 w-3 text-primary" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">

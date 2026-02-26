@@ -21,43 +21,28 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import SubscriptionPlan from '@/components/SubscriptionPlan';
 
-// Plan configurations with monthly and yearly pricing
-const planConfigs = {
-  standard: {
-    title: "Standard (Homeowner Plan)", 
-    monthlyPrice: "$12.99",
-    yearlyPrice: "$129",
-    yearlySavings: "Save when you pay yearly",
-    description: "For individuals documenting and protecting their home.",
-    features: [
-      "Unlimited properties",
-      "25GB secure cloud storage",
-      "Guided home inventory system",
-      "Secure Vault (owner-only access)",
-      "Password Catalog (personal use)",
-      "Claim-ready documentation exports",
-      "Simple, ongoing protection for your home"
-    ],
-    icon: <Zap className="h-6 w-6 text-orange-600" />,
-    popular: false
-  },
-  premium: {
-    title: "Premium (Legacy & Business Protection)",
-    monthlyPrice: "$18.99",
-    yearlyPrice: "$189",
-    yearlySavings: "Save when you pay yearly",
-    description: "For families, business owners, and anyone who wants shared protection and continuity.",
-    features: [
-      "Unlimited properties",
-      "100GB secure cloud storage",
-      "⭐ Shared access with authorized users",
-      "⭐ Legacy Locker (family continuity & instructions)",
-      "⭐ Emergency Access Sharing",
-      "⭐ Protection that extends beyond you"
-    ],
-    icon: <Star className="h-6 w-6 text-purple-600" />,
-    popular: true
-  }
+// Single Asset Safe Plan configuration
+const planConfig = {
+  title: "Asset Safe Plan",
+  monthlyPrice: "$12.99",
+  yearlyPrice: "$129",
+  yearlySavings: "Save when you pay yearly",
+  description: "One simple plan. Everything included.",
+  features: [
+    "Unlimited properties",
+    "25GB secure cloud storage (+ add-ons available)",
+    "Photo, video & document uploads",
+    "Room-by-room inventory organization",
+    "Secure Vault & Password Catalog",
+    "Legacy Locker (family continuity & instructions)",
+    "Authorized Users",
+    "Emergency Access Sharing",
+    "Voice notes, damage reports, exports",
+    "Memory Safe & Quick Notes",
+    "MFA, full web platform access",
+    "Service Pros Directory"
+  ],
+  icon: <Shield className="h-6 w-6 text-primary" />,
 };
 
 const commonFeatures = [
@@ -100,7 +85,7 @@ const SubscriptionTab: React.FC = () => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<keyof typeof planConfigs>('standard');
+  // billingInterval drives both the not-subscribed and subscribed views
   const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('month');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showAccountDeletedDialog, setShowAccountDeletedDialog] = useState(false);
@@ -300,7 +285,7 @@ const SubscriptionTab: React.FC = () => {
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       // Build lookup key from selected plan + billing interval
-      const lookupKey = `${selectedPlan}_${billingInterval === 'year' ? 'yearly' : 'monthly'}`;
+      const lookupKey = `standard_${billingInterval === 'year' ? 'yearly' : 'monthly'}`;
       
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { planLookupKey: lookupKey },
@@ -348,8 +333,7 @@ const SubscriptionTab: React.FC = () => {
 
   // ===== NOT SUBSCRIBED VIEW =====
   if (!hasActivePlan) {
-    const currentPlan = planConfigs[selectedPlan];
-    const displayPrice = billingInterval === 'year' ? currentPlan.yearlyPrice : currentPlan.monthlyPrice;
+    const displayPrice = billingInterval === 'year' ? planConfig.yearlyPrice : planConfig.monthlyPrice;
     const priceLabel = billingInterval === 'year' ? '/year' : '/month';
     
     return (
@@ -357,7 +341,7 @@ const SubscriptionTab: React.FC = () => {
         <Card>
           <CardHeader>
             <CardTitle>Complete Your Subscription</CardTitle>
-            <CardDescription>Choose your plan and enter your payment information to get started</CardDescription>
+            <CardDescription>Start your Asset Safe membership and get full access to everything.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Billing Interval Toggle */}
@@ -373,63 +357,36 @@ const SubscriptionTab: React.FC = () => {
               </Tabs>
             </div>
 
-            {/* Plan Selection */}
-            <div>
-              <Label htmlFor="plan-select" className="text-base font-semibold">Select Your Plan</Label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-                {Object.entries(planConfigs).map(([key, plan]) => (
-                  <div key={key} className="relative">
-                    {!plan.popular && (
-                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-                        <span className="bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">Basic Protection</span>
-                      </div>
-                    )}
-                    {plan.popular && (
-                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-                        <span className="bg-amber-500 text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1 whitespace-nowrap">
-                          <Star className="h-3 w-3" /> Most Popular for Families and Businesses
-                        </span>
-                      </div>
-                    )}
-                    <div
-                      className={`p-4 border rounded-lg cursor-pointer transition-all h-full ${
-                        selectedPlan === key ? 'border-primary bg-primary/5 ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'
-                      } ${plan.popular ? 'mt-2' : ''}`}
-                      onClick={() => setSelectedPlan(key as keyof typeof planConfigs)}
-                    >
-                      <div className="flex items-center gap-2 mb-2">
-                        {plan.icon}
-                        <h3 className="font-semibold">{plan.title}</h3>
-                      </div>
-                      <div className="text-2xl font-bold mb-1">
-                        {billingInterval === 'year' ? plan.yearlyPrice : plan.monthlyPrice}
-                        <span className="text-sm font-normal text-muted-foreground">{billingInterval === 'year' ? '/year' : '/month'}</span>
-                      </div>
-                      {billingInterval === 'year' && <p className="text-sm text-green-600 font-medium mb-2">{plan.yearlySavings}</p>}
-                      <p className="text-sm text-muted-foreground mb-3">{plan.description}</p>
-                      <ul className="space-y-1">
-                        {plan.features.map((feature, index) => (
-                          <li key={index} className="flex items-center gap-2 text-sm">
-                            <CheckIcon className="h-4 w-4 text-green-500 flex-shrink-0" />
-                            {feature}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                ))}
+            {/* Single Plan Card */}
+            <div className="border-2 border-primary rounded-lg p-6 bg-primary/5">
+              <div className="flex items-center gap-2 mb-3">
+                {planConfig.icon}
+                <h3 className="font-semibold text-lg">{planConfig.title}</h3>
               </div>
+              <div className="text-3xl font-bold mb-1">
+                {displayPrice}
+                <span className="text-base font-normal text-muted-foreground">{priceLabel}</span>
+              </div>
+              {billingInterval === 'year' && <p className="text-sm text-green-600 font-medium mb-2">{planConfig.yearlySavings}</p>}
+              <p className="text-sm text-muted-foreground mb-4">{planConfig.description}</p>
+              <ul className="space-y-1">
+                {planConfig.features.map((feature, index) => (
+                  <li key={index} className="flex items-center gap-2 text-sm">
+                    <CheckIcon className="h-4 w-4 text-green-500 flex-shrink-0" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
             </div>
 
-            {/* Common Features */}
+            {/* What's Included */}
             <div className="mt-6">
               <div className="bg-muted/30 rounded-lg p-6">
-                <h4 className="font-semibold text-center mb-3">Included in Both Plans</h4>
-                <p className="text-xs text-muted-foreground text-center mb-3">Billed monthly. No long-term contract. Cancel anytime.</p>
-                <p className="text-xs text-muted-foreground text-center mb-4">All plans include full access to your data and complete exports anytime.</p>
-                <p className="text-xs font-medium text-center mb-4">Everything you need to fully document and protect your home:</p>
+                <h4 className="font-semibold text-center mb-3">What's Included</h4>
+                <p className="text-xs text-muted-foreground text-center mb-3">Billed monthly or yearly. No long-term contract. Cancel anytime.</p>
+                <p className="text-xs text-muted-foreground text-center mb-4">Full access to your data and complete exports anytime.</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
-                  {commonFeatures.map((feature, index) => (
+                  {planConfig.features.map((feature, index) => (
                     <div key={index} className="flex items-center gap-2 text-sm">
                       <div className="h-4 w-4 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
                         <svg className="h-2.5 w-2.5 text-primary" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
@@ -482,17 +439,17 @@ const SubscriptionTab: React.FC = () => {
             <Card className="border-primary/20 bg-primary/5">
               <CardContent className="pt-6">
                 <div className="flex items-center gap-3 mb-4">
-                  {currentPlan.icon}
+                  {planConfig.icon}
                   <div>
-                    <h4 className="font-semibold">{currentPlan.title}</h4>
-                    <p className="text-sm text-muted-foreground">{currentPlan.description}</p>
+                    <h4 className="font-semibold">{planConfig.title}</h4>
+                    <p className="text-sm text-muted-foreground">{planConfig.description}</p>
                   </div>
                 </div>
                 <div className="text-3xl font-bold mb-2">
-                  {displayPrice}
-                  <span className="text-lg font-normal text-muted-foreground">{priceLabel}</span>
+                  {billingInterval === 'year' ? planConfig.yearlyPrice : planConfig.monthlyPrice}
+                  <span className="text-lg font-normal text-muted-foreground">{billingInterval === 'year' ? '/year' : '/month'}</span>
                 </div>
-                {billingInterval === 'year' && <p className="text-sm text-green-600 font-medium mb-2">{currentPlan.yearlySavings}</p>}
+                {billingInterval === 'year' && <p className="text-sm text-green-600 font-medium mb-2">{planConfig.yearlySavings}</p>}
                 <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 mb-4">
                   <p className="text-xs text-muted-foreground">No long-term contract. Cancel anytime.</p>
                 </div>
@@ -566,7 +523,7 @@ const SubscriptionTab: React.FC = () => {
                   <div>
                     <p className="text-sm text-muted-foreground">Current Plan</p>
                     <h3 className="text-2xl font-bold text-green-900">
-                      {planConfigs[activeTier as keyof typeof planConfigs]?.title || 'Standard Plan'}
+                      Asset Safe Plan
                     </h3>
                   </div>
                 </div>
@@ -615,77 +572,22 @@ const SubscriptionTab: React.FC = () => {
               <p className="text-xs text-muted-foreground mt-2">Plan changes take effect on your next billing cycle</p>
             </div>
 
-            {/* Compare Plans Collapsible */}
-            <Collapsible>
-              <CollapsibleTrigger className="flex items-center justify-between w-full bg-muted/30 border rounded-lg p-4 hover:bg-muted/50 transition-colors group">
-                <div className="text-left">
-                  <h4 className="font-semibold text-foreground">Compare Plans</h4>
-                  <p className="text-sm text-muted-foreground">See what's included in Standard vs Premium</p>
-                </div>
-                <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
-              </CollapsibleTrigger>
-              <CollapsibleContent className="mt-4 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="relative">
-                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-                      <span className="bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">Basic Protection</span>
+            {/* What's Included (single plan) */}
+            <div className="bg-muted/30 rounded-lg p-6">
+              <h4 className="font-semibold text-center mb-4">What's Included in Your Asset Safe Plan</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+                {planConfig.features.map((feature, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <div className="h-5 w-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                      <svg className="h-3 w-3 text-primary" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                        <path d="M5 13l4 4L19 7"></path>
+                      </svg>
                     </div>
-                    <SubscriptionPlan
-                      title="Standard (Homeowner Plan)"
-                      price="$12.99"
-                      description="For individuals documenting and protecting their home."
-                      features={planConfigs.standard.features}
-                      buttonText="$12.99/mo"
-                      buttonClassName="w-full bg-muted text-muted-foreground cursor-default pointer-events-none"
-                    />
+                    <span className="text-foreground text-sm">{feature}</span>
                   </div>
-                  <div className="relative">
-                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-                      <span className="bg-amber-500 text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
-                        <Star className="h-3 w-3" /> Most Popular
-                      </span>
-                    </div>
-                    <SubscriptionPlan
-                      title="Premium (Legacy & Business Protection)"
-                      price="$18.99"
-                      description="For families, business owners, and anyone who wants shared protection and continuity."
-                      features={planConfigs.premium.features}
-                      buttonText="$18.99/mo"
-                      buttonClassName="w-full bg-muted text-muted-foreground cursor-default pointer-events-none"
-                    />
-                  </div>
-                </div>
-
-                {/* Included in Both Plans */}
-                <div className="bg-muted/30 rounded-lg p-6">
-                  <h4 className="font-semibold text-center mb-4">Included in Both Plans</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
-                    {commonFeatures.map((feature, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <div className="h-5 w-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                          <svg className="h-3 w-3 text-primary" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                            <path d="M5 13l4 4L19 7"></path>
-                          </svg>
-                        </div>
-                        <span className="text-foreground text-sm">{feature}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Premium-Only Features */}
-                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-6">
-                  <h4 className="text-lg font-semibold text-center mb-4 text-amber-800 dark:text-amber-200">Premium-Only Features</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
-                    {["🔒 Authorized Users", "🔒 Emergency Access Sharing", "🔒 Legacy Locker Mode", "🔒 Executor / Family Continuity Tools"].map((feature, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <span className="text-amber-700 dark:text-amber-300 text-sm">{feature}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
+                ))}
+              </div>
+            </div>
 
             {/* Active Add-ons Section */}
             {hasStorageAddOn && (

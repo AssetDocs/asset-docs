@@ -14,8 +14,7 @@ const Gift: React.FC = () => {
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
-      productSchema("Asset Safe Gift - Standard", "129", "One-year gift subscription for homeowners with 3 properties and 25GB storage"),
-      productSchema("Asset Safe Gift - Premium", "189", "One-year gift subscription for managing unlimited properties with 100GB storage"),
+      productSchema("Asset Safe Gift Plan", "129", "One-year gift subscription — everything included. The perfect gift for homeowners and families."),
       breadcrumbSchema([
         { name: 'Home', url: 'https://www.getassetsafe.com/' },
         { name: 'Gift', url: 'https://www.getassetsafe.com/gift' }
@@ -23,34 +22,20 @@ const Gift: React.FC = () => {
     ]
   };
 
-  const giftPlans = [
-    {
-      title: "Gift – Standard",
-      price: "$129 / 1 year",
-      description: "For individuals documenting and protecting their home.",
-      features: [
-        "Unlimited properties",
-        "25GB secure cloud storage",
-        "Password Catalog + Secure Vault",
-        "Recipient opts in to renew monthly or yearly"
-      ],
-      planType: "standard",
-      popular: false
-    },
-    {
-      title: "Gift – Premium",
-      price: "$189 / 1 year",
-      description: "For families who want continuity and shared protection.",
-      features: [
-        "Unlimited properties",
-        "100GB secure cloud storage",
-        "Legacy Locker + Trusted Contacts",
-        "Recipient opts in to renew monthly or yearly"
-      ],
-      planType: "premium",
-      popular: true
-    }
-  ];
+  const giftPlan = {
+    title: "Gift – Asset Safe Plan",
+    price: "$129 / 1 year",
+    description: "Give a full year of protection. Everything included.",
+    features: [
+      "Unlimited properties",
+      "25GB secure cloud storage",
+      "Legacy Locker + Authorized Users",
+      "Emergency Access Sharing",
+      "Full platform access — everything included",
+      "Recipient opts in to renew monthly or yearly"
+    ],
+    planType: "standard"
+  };
 
   const commonFeatures = [
     "Legacy Locker access",
@@ -139,41 +124,24 @@ const Gift: React.FC = () => {
           <div className="container mx-auto px-6">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                Choose the Perfect Gift Plan
+                Gift the Asset Safe Plan
               </h2>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                All gift subscriptions are for 1 year with no auto-renew. Recipients can choose to renew monthly or yearly when their gift expires.
+                Gift subscriptions are for 1 year with no auto-renew. Recipients can choose to renew monthly or yearly when their gift expires.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-              {giftPlans.map((plan) => (
-                <div key={plan.title} className="relative pt-4">
-                  {!plan.popular && (
-                    <div className="absolute -top-0 left-1/2 transform -translate-x-1/2 z-10">
-                      <span className="bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
-                        Basic Protection
-                      </span>
-                    </div>
-                  )}
-                  {plan.popular && (
-                    <div className="absolute -top-0 left-1/2 transform -translate-x-1/2 z-10">
-                      <span className="bg-amber-500 text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1 whitespace-nowrap">
-                        <Star className="h-3 w-3" /> Most Popular for Families and Businesses
-                      </span>
-                    </div>
-                  )}
-                  <SubscriptionPlan
-                    title={plan.title}
-                    price={plan.price}
-                    description={plan.description}
-                    features={plan.features}
-                    buttonText="Gift This Plan"
-                    buttonClassName="w-full bg-brand-orange hover:bg-brand-orange/90"
-                    onClick={() => handleGiftPurchase(plan.planType)}
-                  />
-                </div>
-              ))}
+            <div className="max-w-lg mx-auto">
+              <SubscriptionPlan
+                title={giftPlan.title}
+                price={giftPlan.price}
+                description={giftPlan.description}
+                features={giftPlan.features}
+                recommended={true}
+                buttonText="Gift This Plan"
+                buttonClassName="w-full bg-brand-orange hover:bg-brand-orange/90"
+                onClick={() => handleGiftPurchase(giftPlan.planType)}
+              />
             </div>
 
             {/* Storage Notation */}
