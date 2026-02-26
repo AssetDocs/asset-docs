@@ -37,7 +37,7 @@ const SampleDashboard: React.FC = () => {
   const [securityOpen, setSecurityOpen] = useState(false);
 
   const showDemoAlert = (title: string, description: string) => {
-    alert(`Asset Safe says\n\n${title}\n\n${description}`);
+    alert(description);
   };
 
   // Demo Welcome Banner - matches real WelcomeBanner layout
@@ -375,7 +375,7 @@ const SampleDashboard: React.FC = () => {
                   icon={<ShieldCheck className="h-4 w-4 text-primary" />}
                   label="Multi-Factor Authentication"
                   alertTitle="Multi-Factor Authentication"
-                  alertDescription="Enable and manage two-factor authentication (TOTP) for your account. This adds an extra layer of security to your Legacy Locker and Password Catalog, requiring a code from your authenticator app each session."
+                  alertDescription="Enable and manage multi-factor authentication (TOTP) for your account. This adds an extra layer of security to your Legacy Locker and Password Catalog, requiring a code from your authenticator app each session."
                 />
 
                 {/* Row 3: Green + Blue */}
@@ -454,7 +454,7 @@ const SampleDashboard: React.FC = () => {
                   description="Download all files in a single ZIP."
                   actionLabel="Download All"
                   alertTitle="Download All Files"
-                  alertDescription="Download every photo, video, and document you've uploaded in a single ZIP file. Great for creating local backups or transferring to another storage service."
+                  alertDescription="Download every photo, video, and document you've uploaded in a single ZIP file. Download for use alongside your insurance claim forms and as a personal backup."
                 />
                 <DemoUtilityCard
                   icon={<AlertTriangle className="h-5 w-5" />}

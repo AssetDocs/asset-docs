@@ -27,26 +27,28 @@ const Gift: React.FC = () => {
     {
       title: "Gift – Standard",
       price: "$129 / 1 year",
-      description: "Everything most homeowners need to fully document and protect their home.",
+      description: "For individuals documenting and protecting their home.",
       features: [
-        "Up to 3 properties",
+        "Unlimited properties",
         "25GB secure cloud storage",
+        "Password Catalog + Secure Vault",
         "Recipient opts in to renew monthly or yearly"
       ],
       planType: "standard",
-      icon: <Zap className="h-6 w-6" />
+      popular: false
     },
     {
       title: "Gift – Premium",
       price: "$189 / 1 year",
-      description: "Built for managing multiple properties, estates, or complex asset portfolios.",
+      description: "For families who want continuity and shared protection.",
       features: [
         "Unlimited properties",
         "100GB secure cloud storage",
+        "Legacy Locker + Trusted Contacts",
         "Recipient opts in to renew monthly or yearly"
       ],
       planType: "premium",
-      icon: <Star className="h-6 w-6" />
+      popular: true
     }
   ];
 
@@ -144,9 +146,23 @@ const Gift: React.FC = () => {
               </p>
             </div>
 
-            <div className="flex justify-center gap-8 max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
               {giftPlans.map((plan) => (
-                <div key={plan.title} className="w-full max-w-sm">
+                <div key={plan.title} className="relative pt-4">
+                  {!plan.popular && (
+                    <div className="absolute -top-0 left-1/2 transform -translate-x-1/2 z-10">
+                      <span className="bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
+                        Basic Protection
+                      </span>
+                    </div>
+                  )}
+                  {plan.popular && (
+                    <div className="absolute -top-0 left-1/2 transform -translate-x-1/2 z-10">
+                      <span className="bg-amber-500 text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1 whitespace-nowrap">
+                        <Star className="h-3 w-3" /> Most Popular for Families and Businesses
+                      </span>
+                    </div>
+                  )}
                   <SubscriptionPlan
                     title={plan.title}
                     price={plan.price}
