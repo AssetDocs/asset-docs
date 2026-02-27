@@ -1,233 +1,241 @@
 
-## Gift Subscription Overhaul + Pre-Checkout Consent Gate
+## Asset Safe — Cleanup & Alignment Plan
 
-This is a large, multi-layer implementation. Here is the full breakdown of every change, new file, and database migration required.
+### What This Request Is Doing
 
----
+This is a targeted cleanup pass to align the entire codebase with the final single-plan model. No new features are being built. The work falls into four categories:
 
-### Overview of What's Changing
-
-The current gift flow uses the existing `gift_subscriptions` table, `create-gift-checkout` edge function, and `GiftCheckout.tsx` form. Per the brief, we are:
-
-1. **Replacing** the `gift_subscriptions` table with a new canonical `gifts` table (with token-based redemption)
-2. **Replacing** the `create-gift-checkout` edge function with a new webhook-driven flow
-3. **Adding** a `user_consents` table for legal consent logging
-4. **Adding** consent gates (checkbox + DB record) to both the gift checkout and the core subscription checkout
-5. **Rewriting** `GiftCheckout.tsx` to use the new single-plan gift model with consent
-6. **Creating** a new `/redeem` page (`src/pages/GiftRedeem.tsx`)
-7. **Updating** the Stripe webhook to handle the new gift flow (create `gifts` record, cancel auto-renew, send emails)
-8. **Adding** `Pricing.tsx` consent gate before regular subscription checkout
-9. **Adding** `/redeem` route in `App.tsx`
+1. **Backend lookup key cleanup** — replace all `standard_*` / `premium_*` references with `asset_safe_*`
+2. **Storage add-on guard** — prevent storage checkout without an active base entitlement
+3. **UI display cleanup** — derive billing frequency from `plan_lookup_key` instead of static strings; fix copy
+4. **Gift payment mode** — update webhook to accept `mode: "payment"` for the gift one-time flow
 
 ---
 
-### Part 1: Database Migrations (2 migrations)
+### Part 1: Stripe Webhook — Add New Lookup Keys + Gift Payment Mode
 
-**Migration A: `gifts` table + `user_consents` table**
+**File:** `supabase/functions/stripe-webhook/index.ts`
 
-```sql
--- New gifts table (replaces gift_subscriptions for the new flow)
-CREATE TABLE IF NOT EXISTS public.gifts (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  token UUID UNIQUE NOT NULL DEFAULT gen_random_uuid(),
-  recipient_email TEXT NOT NULL,
-  from_name TEXT NOT NULL,
-  gift_message TEXT,
-  term TEXT NOT NULL CHECK (term IN ('monthly', 'yearly')),
-  expires_at TIMESTAMPTZ,
-  redeemed BOOLEAN NOT NULL DEFAULT false,
-  redeemed_by_user_id UUID,
-  stripe_checkout_session_id TEXT,
-  stripe_subscription_id TEXT,
-  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'paid', 'redeemed', 'expired')),
-  amount INTEGER,
-  currency TEXT DEFAULT 'usd',
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
+**Change A:** `parseSubscriptionItems()` currently only recognizes `standard_*` and `premium_*`. Add the new keys:
 
-ALTER TABLE public.gifts ENABLE ROW LEVEL SECURITY;
+```typescript
+// Before (line 26)
+if (lookupKey.startsWith('standard_') || lookupKey.startsWith('premium_')) {
 
--- Users can read their own redeemed gift
-CREATE POLICY "Users can read their own redeemed gift"
-  ON public.gifts FOR SELECT
-  USING (redeemed_by_user_id = auth.uid() OR recipient_email = auth.email());
+// After — keeps legacy support + adds new keys
+if (
+  lookupKey.startsWith('standard_') ||
+  lookupKey.startsWith('premium_') ||
+  lookupKey === 'asset_safe_monthly' ||
+  lookupKey === 'asset_safe_annual'
+) {
+  plan = 'standard';
+  baseStorageGb = 25;
+  planLookupKey = lookupKey;
+  planPriceId = item.price.id;
+}
+```
 
--- Service role manages all (webhook writes via service role)
+**Change B:** The gift handler checks `session.mode === 'subscription'`. Since the new gift product is a one-time payment (`mode: "payment"`), update the condition:
 
--- user_consents table for audit trail
-CREATE TABLE IF NOT EXISTS public.user_consents (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_email TEXT NOT NULL,
-  consent_type TEXT NOT NULL,
-  terms_version TEXT NOT NULL DEFAULT 'v1.0',
-  ip_address TEXT,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
+```typescript
+// Before
+if (session.metadata?.gift === "true" && session.mode === 'subscription' && session.subscription) {
 
-ALTER TABLE public.user_consents ENABLE ROW LEVEL SECURITY;
-
--- Public insert allowed (pre-auth checkout flow)
-CREATE POLICY "Anyone can log consent"
-  ON public.user_consents FOR INSERT
-  WITH CHECK (true);
+// After
+if (session.metadata?.gift === "true" && 
+    (session.mode === 'payment' || session.mode === 'subscription')) {
+  // For payment mode: skip cancel_at_period_end step (no subscription to cancel)
+  // For subscription mode: keep existing cancel_at_period_end logic
+}
 ```
 
 ---
 
-### Part 2: New / Updated Edge Functions
+### Part 2: `create-checkout` — Update Fallback Lookup Keys + Storage Guard
 
-**A. `supabase/functions/create-gift-checkout/index.ts` — Full Rewrite**
+**File:** `supabase/functions/create-checkout/index.ts`
 
-The current function creates a `gift_subscriptions` row before payment. The new pattern:
+**Change A:** Update `toLookupKey()` to produce new keys instead of legacy ones:
 
-- Accepts: `{ recipientEmail, fromName, giftMessage, term }` (no plan type selector — always core)
-- Validates: checks `user_consents` table for a recent consent record for this email
-- Creates Stripe Checkout Session with:
-  - Price: `standard_yearly` (gifts are always yearly at $189)
-  - Mode: `subscription` (needed for Stripe to create subscription, then we cancel auto-renew in webhook)
-  - Metadata: `{ gift: "true", gift_term: "yearly", recipient_email, from_name, gift_message }`
-  - `cancel_url` and `success_url`
-- Does NOT insert into `gifts` yet — that happens in the webhook after payment
-- Returns: `{ url }`
+```typescript
+// Before
+function toLookupKey(planType: string, billingInterval: string): string {
+  const interval = billingInterval === 'year' ? 'yearly' : 'monthly';
+  if (plan === 'premium' || plan === 'professional') return `premium_${interval}`;
+  return `standard_${interval}`;
+}
 
-**B. `supabase/functions/stripe-webhook/index.ts` — Add gift handling block**
-
-After `checkout.session.completed`, check `metadata.gift === "true"`:
-1. Generate a `token` (UUID)
-2. Calculate `expires_at` = now + 1 year (for yearly gifts)
-3. Insert into `public.gifts` table
-4. Immediately cancel the Stripe subscription auto-renew: `stripe.subscriptions.update(subscriptionId, { cancel_at_period_end: true })`
-5. Send two emails via Resend:
-   - Recipient email: "You've been gifted full access to Asset Safe" with CTA link `https://www.getassetsafe.com/redeem?token=<token>`
-   - Gifter email: "Your Asset Safe gift was delivered" with recipient name + message
-
-**C. `supabase/functions/log-consent/index.ts` — New lightweight function**
-
-- Accepts: `{ userEmail, consentType, termsVersion, ipAddress }`
-- Inserts into `user_consents`
-- Returns: `{ success: true, id }`
-- Used by both the gift form and the regular subscription button
-
----
-
-### Part 3: Frontend Changes
-
-**A. `src/pages/GiftCheckout.tsx` — Major Rewrite**
-
-Remove the old dual-plan logic (`planConfigs` with `standard`/`premium`). Replace with:
-
-- Single plan: "Gift – Asset Safe Plan | $189 / 1 year"
-- Form fields:
-  - Your name (from_name)
-  - Your email (for consent logging + Stripe customer)
-  - Recipient email
-  - Gift message (optional)
-  - Delivery: immediately or scheduled date
-- Consent checkbox (required before submit):
-  > "I agree to the [Terms of Service](/terms) and [Subscription Agreement](/legal)."
-- Submit button disabled until consent checked
-- On submit:
-  1. Call `log-consent` edge function to record consent
-  2. If consent logged successfully, call `create-gift-checkout`
-  3. Redirect to Stripe
-- Plan summary card on the right: shows "Gift – Asset Safe Plan", $189/yr, full feature list, "No auto-renew. Recipient opts in after gift expires."
-
-**B. `src/pages/Pricing.tsx` — Add consent gate for regular subscription**
-
-Before calling `create-checkout` in `handleSubscribe`:
-- Show a modal or inline consent section with the same checkbox
-- The "Get Started" button only becomes active after consent is checked
-- On click, log consent then create checkout session
-- Implementation: a small `ConsentModal` component or inline consent below the plan card
-
-**C. `src/pages/GiftRedeem.tsx` — New page**
-
-Route: `/redeem?token=<uuid>`
-
-Logic:
-1. Read `token` from URL query param
-2. Query `public.gifts` where `token = ?` and `status = 'paid'` and `redeemed = false`
-3. Check `expires_at > now()`
-4. If invalid/expired: show error state with CTA to `/pricing`
-5. If user not logged in: show "Create your account or log in to redeem your gift" → link to `/signup` with `?redirect=/redeem?token=<token>`
-6. If logged in + valid: show gift details (from_name, message, expires_at)
-7. "Redeem Gift" button:
-   - Update `gifts` record: `redeemed = true`, `redeemed_by_user_id = auth.uid()`, `status = 'redeemed'`
-   - Upsert into `entitlements`: `plan = 'core'` (or `standard`), `status = 'active'`, `expires_at = gift.expires_at`, `billing_status = 'gifted'`
-   - Redirect to `/dashboard`
-
-**D. `src/App.tsx` — Add `/redeem` route**
-
-Add `import GiftRedeem from "./pages/GiftRedeem"` and `<Route path="/redeem" element={<GiftRedeem />} />`.
-
-**E. `src/pages/Gift.tsx` — Minor update**
-
-Update `handleGiftPurchase` to navigate to `/gift-checkout` directly (already does this, just ensure no plan type selection required since there's only one plan). Remove the old `planType` param.
-
----
-
-### Part 4: Email Templates
-
-The webhook will call the existing `send-gift-email` edge function (already deployed) for the gifter confirmation. For the recipient email ("You've been gifted"), we'll add logic to call the existing `send-welcome-email` or create a new direct Resend call inside the webhook. Both use `RESEND_API_KEY` (already set as a secret).
-
-Recipient email content:
-- Subject: "You've been gifted full access to Asset Safe"
-- Body: From name, gift message, CTA button → `https://www.getassetsafe.com/redeem?token=<token>`
-
-Gifter confirmation email:
-- Subject: "Your Asset Safe gift was delivered"
-- Body: Recipient email, copy of message, Stripe receipt link
-
----
-
-### Part 5: Entitlements for Gifted Users
-
-The `entitlements` table already has a `plan`, `status`, and `expires_at` column. Redemption upserts:
-```sql
-plan = 'standard'  (for backend compat)
-status = 'active'
-expires_at = gift.expires_at
-billing_status = 'gifted'  (new field needed)
+// After
+function toLookupKey(planType: string, billingInterval: string): string {
+  const interval = billingInterval === 'year' ? 'annual' : 'monthly';
+  return `asset_safe_${interval}`;
+}
 ```
 
-We need to check if `billing_status` column exists — if not, add it in the migration. This allows the UI to display "Gifted access expires on [date]" and block storage add-ons during gift period.
+**Change B:** Add a guard that blocks storage add-on checkout (`storage_25gb_monthly`) when there is no active base entitlement. Before creating the Stripe session, if the lookupKey is `storage_25gb_monthly`, verify the user has an active entitlement:
 
-**Migration B addendum: add `billing_status` to entitlements if not present:**
-```sql
-ALTER TABLE public.entitlements
-  ADD COLUMN IF NOT EXISTS billing_status TEXT DEFAULT 'active';
+```typescript
+if (lookupKey === 'storage_25gb_monthly') {
+  if (!user) throw new Error("Authentication required for storage add-ons");
+  const supabaseService = createClient(url, serviceKey);
+  const { data: entitlement } = await supabaseService
+    .from('entitlements')
+    .select('status')
+    .eq('user_id', user.id)
+    .maybeSingle();
+  if (!entitlement || !['active', 'trialing'].includes(entitlement.status)) {
+    throw new Error("An active Asset Safe Plan is required before adding storage.");
+  }
+}
 ```
 
 ---
 
-### Files To Create / Edit (Summary)
+### Part 3: `check-subscription` — Expose `billing_status`
 
-| File | Action |
-|------|--------|
-| `supabase/migrations/XXXX_gifts_and_consents.sql` | New — creates `gifts`, `user_consents`, adds `billing_status` to `entitlements` |
-| `supabase/functions/create-gift-checkout/index.ts` | Rewrite — single plan, metadata-only, no pre-insert |
-| `supabase/functions/stripe-webhook/index.ts` | Update — handle gift metadata, create `gifts` record, cancel auto-renew, send emails |
-| `supabase/functions/log-consent/index.ts` | New — logs consent record |
-| `src/pages/GiftCheckout.tsx` | Rewrite — single plan, consent checkbox, calls `log-consent` then `create-gift-checkout` |
-| `src/pages/GiftRedeem.tsx` | New — token validation, login gate, redemption logic |
-| `src/pages/Pricing.tsx` | Update — add consent gate (inline checkbox + `log-consent` call) before `create-checkout` |
-| `src/App.tsx` | Update — add `/redeem` route |
-| `src/pages/Gift.tsx` | Minor — remove plan type param from navigate |
+**File:** `supabase/functions/check-subscription/index.ts`
+
+Add `billing_status` to the response object (already exists as a column after prior migration):
+
+```typescript
+billing_status: entitlement?.billing_status || 'active',
+```
+
+This allows the frontend to detect gifted users and gate the storage add-on UI.
 
 ---
 
-### What Is NOT Changed
+### Part 4: `SubscriptionContext` — Expose `billing_status` + `billingStatus`
 
-- The `gift_subscriptions` table remains intact (legacy data)
-- `GiftSuccess.tsx` and `GiftClaim.tsx` remain (legacy redemption still works for old codes)
-- `SubscriptionTab.tsx`, `PricingPlans.tsx`, `PricingHero.tsx` — no changes needed
-- `create-checkout` edge function — no changes (already correct for subscriptions)
-- The `standard_yearly` Stripe price ID is reused for gift checkout (same product, one plan)
+**File:** `src/contexts/SubscriptionContext.tsx`
+
+Add `billing_status` to the `SubscriptionStatus` interface and expose `billingStatus` in the context value. This allows `SubscriptionTab` and `StorageTab` to read it:
+
+```typescript
+interface SubscriptionStatus {
+  // ... existing fields
+  billing_status?: string; // 'active' | 'gifted' | 'expired'
+}
+
+interface SubscriptionContextType {
+  // ... existing fields
+  billingStatus: string;
+}
+
+// In the provider:
+const billingStatus = subscriptionStatus.billing_status || 'active';
+```
 
 ---
 
-### Stripe Behavior Note
+### Part 5: `SubscriptionTab` — Fix Lookup Key + Derive Billing Frequency Display + Storage Copy
 
-Gifts use `mode: "subscription"` in Stripe Checkout so that Stripe creates a proper subscription object (which we immediately mark `cancel_at_period_end = true` in the webhook). This means the gift period is tracked by Stripe but will never auto-renew. The recipient is not charged — the subscription cancels at period end and `billing_status = 'gifted'` gates the UI.
+**File:** `src/components/SubscriptionTab.tsx`
 
-The alternative — `mode: "payment"` — is simpler but loses Stripe's subscription period tracking. Using subscription mode is the correct pattern per the brief ("Cancel Stripe subscription auto-renew immediately after purchase").
+**Change A (line 288):** Replace legacy lookup key in `handleStartSubscription`:
+
+```typescript
+// Before
+const lookupKey = `standard_${billingInterval === 'year' ? 'yearly' : 'monthly'}`;
+
+// After
+const lookupKey = billingInterval === 'year' ? 'asset_safe_annual' : 'asset_safe_monthly';
+```
+
+**Change B (line 498–550):** Remove tier-based logic and static price string. Derive billing frequency from `plan_lookup_key`:
+
+```typescript
+// Before
+const activeTier = rawTier.includes('premium') ? 'premium' : 'standard';
+// ...
+{(activeTier === 'standard' || activeTier === 'premium') && '$18.99/mo or $189/yr'}
+
+// After
+const planLookupKey = subscriptionStatus.plan_lookup_key || '';
+const billingFrequency = planLookupKey.includes('annual') || planLookupKey.includes('yearly')
+  ? 'Billed yearly · $189/yr + tax'
+  : planLookupKey.includes('monthly')
+  ? 'Billed monthly · $18.99/mo + tax'
+  : '$18.99/mo or $189/yr + tax'; // fallback for legacy keys
+```
+
+Display this under the "Asset Safe Plan" heading in the subscribed view (fulfills checklist §8: "Dashboard shows: Asset Safe Plan / Billed monthly / yearly").
+
+**Change C (line 406 and 618):** Update storage add-on copy from "Your life evolves — your storage can too" to "Need more room to grow? Add storage anytime." (per checklist §7).
+
+**Change D:** Remove the `activeTier` / `rawTier` tier-based conditionals entirely. Since there is only one plan, the subscribed view does not need to branch on tier.
+
+---
+
+### Part 6: `Pricing.tsx` — Fix `handleSubscribe` Lookup Key
+
+**File:** `src/pages/Pricing.tsx`
+
+**Change (line 100):** The `handleSubscribe` function currently builds:
+
+```typescript
+// Before
+const lookupKey = `${planType}_${yearly ? 'yearly' : 'monthly'}`;
+// This produces 'standard_yearly' / 'standard_monthly'
+
+// After
+const lookupKey = yearly ? 'asset_safe_annual' : 'asset_safe_monthly';
+```
+
+Also remove the `planType` parameter from the `handleSubscribe` call on line 243:
+
+```tsx
+// Before
+onClick={() => handleSubscribe('standard', billingCycle === 'yearly')}
+
+// After
+onClick={() => handleSubscribe(billingCycle === 'yearly')}
+```
+
+And simplify the function signature: `handleSubscribe(yearly: boolean = false)`.
+
+---
+
+### Part 7: `StorageTab` — Gift Period Guard
+
+**File:** `src/components/StorageTab.tsx`
+
+Read `billingStatus` from `useSubscription()`. If `billingStatus === 'gifted'`, show an info message instead of the "Add storage" CTA:
+
+```tsx
+// If in gifted period
+{billingStatus === 'gifted' ? (
+  <p className="text-sm text-muted-foreground text-center py-2">
+    Additional storage becomes available after your gifted period ends.
+  </p>
+) : (
+  <Button onClick={handleAddStorage}>Add Storage</Button>
+)}
+```
+
+---
+
+### Summary of Files Changed
+
+| File | What Changes |
+|------|-------------|
+| `supabase/functions/stripe-webhook/index.ts` | Add `asset_safe_monthly`/`asset_safe_annual` to parser; support `mode: 'payment'` in gift handler |
+| `supabase/functions/create-checkout/index.ts` | Update `toLookupKey()` to new keys; add storage add-on entitlement guard |
+| `supabase/functions/check-subscription/index.ts` | Add `billing_status` to response |
+| `src/contexts/SubscriptionContext.tsx` | Add `billing_status` to interface; expose `billingStatus` in context |
+| `src/components/SubscriptionTab.tsx` | Fix `handleStartSubscription` lookup key; derive billing frequency label from `plan_lookup_key`; remove tier conditionals; update storage copy |
+| `src/pages/Pricing.tsx` | Fix `handleSubscribe` lookup key construction; simplify function signature |
+| `src/components/StorageTab.tsx` | Add gifted-period guard on storage add-on CTA |
+
+### No Database Migration Required
+
+The `billing_status` column was added in the prior migration. The `plan_lookup_key` column already stores whatever key the webhook writes. Existing subscribers with `standard_*` keys continue to work — the webhook still recognizes those keys for backward compatibility.
+
+### Stripe Dashboard Prerequisite (Code Cannot Do This)
+
+Before any subscription flows work with the new keys, these prices must exist in Stripe with exact lookup keys:
+- `asset_safe_monthly` — $18.99/mo recurring
+- `asset_safe_annual` — $189.00/yr recurring
+- `storage_25gb_monthly` — $4.99/mo recurring (quantity-enabled)
+- `asset_safe_gift_annual` — $189.00 one-time
