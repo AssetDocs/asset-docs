@@ -133,14 +133,14 @@ export class StorageService {
   }
 
   /**
-   * Sanitize filename to prevent security issues
+   * Sanitize filename to prevent security issues and PII leakage in storage paths.
+   * Uses an opaque timestamp + random suffix to avoid exposing addresses or user data
+   * in storage paths (visible in network logs and signed URL path segments).
    */
   private static sanitizeFileName(fileName: string): string {
-    // Remove or replace dangerous characters
-    return fileName
-      .replace(/[^a-zA-Z0-9.-]/g, '_') // Replace special chars with underscore
-      .replace(/\.{2,}/g, '.') // Replace multiple dots with single dot
-      .substring(0, 100); // Limit length
+    const ext = fileName.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'bin';
+    const randomSuffix = Math.random().toString(36).slice(2, 10);
+    return `${Date.now()}-${randomSuffix}.${ext}`;
   }
 
   /**
