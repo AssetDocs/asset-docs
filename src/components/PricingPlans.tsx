@@ -113,7 +113,7 @@ const PricingPlans: React.FC = () => {
                 </p>
                 <p className="text-sm text-muted-foreground text-center mb-3">Add storage anytime as your assets grow.</p>
                 <div className="bg-background/80 rounded-lg px-4 py-2 text-center mb-3">
-                  <span className="font-bold">+25GB</span> for <span className="text-brand-orange font-bold">$4.99 / month</span>
+                  <span className="font-bold">+25GB</span> for <span className="text-brand-orange font-bold">$4.99 / month</span><span className="text-xs text-muted-foreground ml-1">+ tax</span>
                 </div>
                 <ul className="text-sm text-muted-foreground space-y-1 max-w-xs mx-auto">
                   <li className="flex items-center gap-2">
