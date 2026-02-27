@@ -217,12 +217,6 @@ const FAQAccordion: React.FC = () => {
             </AccordionContent>
           </AccordionItem>
           
-          <AccordionItem value="using-7">
-            <AccordionTrigger className="text-lg font-medium">Can I upgrade or downgrade my plan?</AccordionTrigger>
-            <AccordionContent>
-              Yes. You can change your subscription at any time. Upgrades take effect immediately, giving you access to additional storage or features right away. Downgrades apply at the end of your current billing cycle, so you won't lose access mid-period.
-            </AccordionContent>
-          </AccordionItem>
         </Accordion>
       </div>
 
