@@ -1,2 +1,5 @@
+# Subscription Agreement merged into Terms of Service
+/subscription-agreement  /terms  301
+
 # SPA fallback for all routes
 /*    /index.html   200
