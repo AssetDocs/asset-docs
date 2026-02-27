@@ -26,6 +26,7 @@ import Gift from "./pages/Gift";
 import GiftCheckout from "./pages/GiftCheckout";
 import GiftSuccess from "./pages/GiftSuccess";
 import GiftClaim from "./pages/GiftClaim";
+import GiftRedeem from "./pages/GiftRedeem";
 
 import Auth from "./pages/AuthLegacy";
 import Signup from "./pages/SignupLegacy";
@@ -263,6 +264,7 @@ const AppContent = () => {
           <Route path="/gift-checkout" element={<GiftCheckout />} />
           <Route path="/gift-success" element={<GiftSuccess />} />
           <Route path="/gift-claim" element={<GiftClaim />} />
+          <Route path="/redeem" element={<GiftRedeem />} />
         <Route path="/subscription-checkout" element={<SubscriptionCheckout />} />
         <Route path="/video-help" element={<VideoHelp />} />
         <Route path="/test-email" element={<TestEmail />} />
