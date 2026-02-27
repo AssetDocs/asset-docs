@@ -24,8 +24,8 @@ import SubscriptionPlan from '@/components/SubscriptionPlan';
 // Single Asset Safe Plan configuration
 const planConfig = {
   title: "Asset Safe Plan",
-  monthlyPrice: "$12.99",
-  yearlyPrice: "$129",
+  monthlyPrice: "$18.99",
+  yearlyPrice: "$189",
   yearlySavings: "Save when you pay yearly",
   description: "One simple plan. Everything included.",
   features: [
@@ -547,8 +547,7 @@ const SubscriptionTab: React.FC = () => {
                 <div>
                   <Label className="text-sm text-muted-foreground">Price</Label>
                   <p className="text-xl font-bold text-gray-900">
-                    {activeTier === 'standard' && '$12.99/mo or $129/yr'}
-                    {activeTier === 'premium' && '$18.99/mo or $189/yr'}
+                    {(activeTier === 'standard' || activeTier === 'premium') && '$18.99/mo or $189/yr'}
                   </p>
                 </div>
                 <div>

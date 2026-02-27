@@ -69,7 +69,7 @@ const PricingPlans: React.FC = () => {
             <div className="max-w-lg mx-auto">
               <SubscriptionPlan
                 title="Asset Safe Plan"
-                price="$12.99"
+                price="$18.99"
                 description="One simple plan. Everything included."
                 features={assetSafeFeatures}
                 buttonText="Get Started"

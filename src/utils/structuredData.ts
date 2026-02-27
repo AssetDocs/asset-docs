@@ -80,7 +80,7 @@ export const webApplicationSchema = {
   "operatingSystem": "Web Browser",
   "offers": {
     "@type": "Offer",
-    "price": "12.99",
+    "price": "18.99",
     "priceCurrency": "USD"
   },
   "description": "Digital home inventory and property documentation platform with secure cloud storage, insurance claims support, and legacy planning tools.",
@@ -103,7 +103,7 @@ export const softwareApplicationSchema = {
   "applicationCategory": "LifestyleApplication",
   "offers": {
     "@type": "Offer",
-    "price": "12.99",
+    "price": "18.99",
     "priceCurrency": "USD",
     "priceValidUntil": "2026-12-31"
   }
