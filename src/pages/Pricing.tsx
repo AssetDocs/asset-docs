@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -10,10 +9,12 @@ import SubscriptionPlan from '@/components/SubscriptionPlan';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { CheckIcon, Zap, Shield, Star, Gift } from 'lucide-react';
+import { CheckIcon, Shield, Gift } from 'lucide-react';
 import { productSchema, faqSchema, breadcrumbSchema } from '@/utils/structuredData';
 
 const Pricing: React.FC = () => {
@@ -73,10 +74,29 @@ const Pricing: React.FC = () => {
     }
   }, [user]);
 
+  const [consentChecked, setConsentChecked] = useState(false);
+  const [consentLogging, setConsentLogging] = useState(false);
+
   const handleSubscribe = async (planType: string, yearly: boolean = false) => {
+    if (!consentChecked) return;
+
     if (user) {
       setIsLoading(true);
+      setConsentLogging(true);
       try {
+        // Log consent before checkout
+        const { data: consentData, error: consentErr } = await supabase.functions.invoke('log-consent', {
+          body: {
+            userEmail: user.email,
+            consentType: 'subscription_checkout',
+            termsVersion: 'v1.0',
+          },
+        });
+        if (consentErr || !consentData?.success) {
+          throw new Error('Failed to record consent. Please try again.');
+        }
+        setConsentLogging(false);
+
         const lookupKey = `${planType}_${yearly ? 'yearly' : 'monthly'}`;
         const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-checkout', {
           body: { planLookupKey: lookupKey },
@@ -93,6 +113,7 @@ const Pricing: React.FC = () => {
         });
       } finally {
         setIsLoading(false);
+        setConsentLogging(false);
       }
       return;
     }
@@ -218,9 +239,34 @@ const Pricing: React.FC = () => {
                     features={unifiedFeatures}
                     billingInterval={billingCycle === 'yearly' ? 'year' : 'month'}
                     recommended={true}
-                    buttonText={subscriptionStatus.subscribed ? 'Current Plan' : isLoading ? 'Processing...' : 'Get Started'}
+                    buttonText={subscriptionStatus.subscribed ? 'Current Plan' : isLoading || consentLogging ? 'Processing...' : consentChecked ? 'Get Started' : 'Agree to Continue'}
                     onClick={() => handleSubscribe('standard', billingCycle === 'yearly')}
                   />
+
+                  {/* Consent Gate */}
+                  {!subscriptionStatus.subscribed && (
+                    <div className="mt-4 flex items-start gap-3 bg-muted/30 rounded-lg p-4">
+                      <Checkbox
+                        id="pricing-consent"
+                        checked={consentChecked}
+                        onCheckedChange={(v) => setConsentChecked(v === true)}
+                        className="mt-0.5"
+                      />
+                      <Label htmlFor="pricing-consent" className="text-sm font-normal cursor-pointer leading-snug">
+                        I agree to the{' '}
+                        <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                          Terms of Service
+                        </a>
+                        {' '}and{' '}
+                        <a href="/subscription-agreement" target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                          Subscription Agreement
+                        </a>.
+                        <span className="block text-xs text-muted-foreground mt-1">
+                          Required before proceeding to payment.
+                        </span>
+                      </Label>
+                    </div>
+                  )}
                 </div>
 
                 {/* Storage Notation */}

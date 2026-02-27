@@ -49,14 +49,8 @@ const Gift: React.FC = () => {
     "12-month gift subscription"
   ];
 
-  const handleGiftPurchase = (planType: string) => {
-    navigate('/gift-checkout', { 
-      state: { 
-        selectedPlan: planType,
-        isGift: true,
-        giftDuration: '12months'
-      } 
-    });
+  const handleGiftPurchase = () => {
+    navigate('/gift-checkout');
   };
 
   return (
@@ -140,7 +134,7 @@ const Gift: React.FC = () => {
                 recommended={true}
                 buttonText="Gift This Plan"
                 buttonClassName="w-full bg-brand-orange hover:bg-brand-orange/90"
-                onClick={() => handleGiftPurchase(giftPlan.planType)}
+                onClick={() => handleGiftPurchase()}
               />
             </div>
 

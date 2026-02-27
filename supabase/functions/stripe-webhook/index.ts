@@ -448,7 +448,120 @@ async function handleCheckoutCompleted(
 ) {
   logStep('Handling checkout completion', { sessionId: session.id, mode: session.mode, metadata: session.metadata });
 
-  // Handle gift subscriptions
+  // ── GIFT FLOW ──────────────────────────────────────────────────────────────
+  if (session.metadata?.gift === "true" && session.mode === 'subscription' && session.subscription) {
+    logStep('Gift checkout completed, processing gift flow');
+    try {
+      const token = crypto.randomUUID();
+      const giftTerm = session.metadata.gift_term || 'yearly';
+      const now = new Date();
+      const expiresAt = new Date(now);
+      if (giftTerm === 'monthly') {
+        expiresAt.setMonth(expiresAt.getMonth() + 1);
+      } else {
+        expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+      }
+
+      // Immediately cancel auto-renew on the subscription
+      await stripe.subscriptions.update(session.subscription as string, {
+        cancel_at_period_end: true,
+      });
+      logStep('Subscription set to cancel_at_period_end', { subscriptionId: session.subscription });
+
+      // Insert into gifts table
+      const { error: giftInsertError } = await supabase.from('gifts').insert({
+        token,
+        recipient_email: session.metadata.recipient_email,
+        from_name: session.metadata.from_name,
+        gift_message: session.metadata.gift_message || null,
+        term: giftTerm,
+        expires_at: expiresAt.toISOString(),
+        stripe_checkout_session_id: session.id,
+        stripe_subscription_id: session.subscription as string,
+        status: 'paid',
+        amount: session.amount_total || 18900,
+        currency: session.currency || 'usd',
+      });
+
+      if (giftInsertError) {
+        logStep('Error inserting gift record', giftInsertError);
+      } else {
+        logStep('Gift record created', { token, expiresAt: expiresAt.toISOString() });
+      }
+
+      // Send recipient email
+      const redeemUrl = `https://www.getassetsafe.com/redeem?token=${token}`;
+      const resendKey = Deno.env.get('RESEND_API_KEY');
+      if (resendKey) {
+        try {
+          await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${resendKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              from: 'Asset Safe <no-reply@getassetsafe.com>',
+              to: [session.metadata.recipient_email],
+              subject: "You've been gifted full access to Asset Safe",
+              html: `
+                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+                  <h2 style="color: #1a1a1a;">You've received a gift! 🎁</h2>
+                  <p><strong>${session.metadata.from_name}</strong> has gifted you a full year of access to Asset Safe — the secure home documentation platform.</p>
+                  ${session.metadata.gift_message ? `<blockquote style="border-left: 3px solid #f97316; padding-left: 16px; color: #555;">${session.metadata.gift_message}</blockquote>` : ''}
+                  <p>Your access includes everything: unlimited properties, 25GB storage, Legacy Locker, Vault, and more.</p>
+                  <p><strong>Your access expires:</strong> ${expiresAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                  <div style="text-align: center; margin: 32px 0;">
+                    <a href="${redeemUrl}" style="background: #f97316; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold;">Redeem Your Gift</a>
+                  </div>
+                  <p style="color: #888; font-size: 12px;">No auto-renew. After your gift expires, you can choose to subscribe monthly or yearly.</p>
+                </div>
+              `,
+            }),
+          });
+          logStep('Recipient gift email sent');
+        } catch (emailError) {
+          logStep('Failed to send recipient email', emailError);
+        }
+
+        // Send gifter confirmation email
+        try {
+          const gifterEmail = session.metadata.purchaser_email || session.customer_details?.email;
+          if (gifterEmail) {
+            await fetch('https://api.resend.com/emails', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${resendKey}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                from: 'Asset Safe <no-reply@getassetsafe.com>',
+                to: [gifterEmail],
+                subject: "Your Asset Safe gift was delivered",
+                html: `
+                  <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #1a1a1a;">Your gift is on its way! 🎉</h2>
+                    <p>Your gift to <strong>${session.metadata.recipient_email}</strong> has been processed and the redemption link has been delivered.</p>
+                    ${session.metadata.gift_message ? `<p><strong>Your message:</strong> "${session.metadata.gift_message}"</p>` : ''}
+                    <p><strong>Access period:</strong> 1 year (expires ${expiresAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })})</p>
+                    <p>Thank you for sharing Asset Safe with someone you care about.</p>
+                  </div>
+                `,
+              }),
+            });
+            logStep('Gifter confirmation email sent');
+          }
+        } catch (emailError) {
+          logStep('Failed to send gifter confirmation email', emailError);
+        }
+      }
+    } catch (giftError) {
+      logStep('Error in gift flow', { error: (giftError as Error).message });
+    }
+    return; // Skip regular subscription processing for gifts
+  }
+
+  // Legacy: Handle old gift_subscriptions flow
   if (session.metadata?.gift_code) {
     await supabase.from('gift_subscriptions').update({ status: 'paid' }).eq('gift_code', session.metadata.gift_code);
   }
