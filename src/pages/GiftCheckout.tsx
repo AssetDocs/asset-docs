@@ -300,8 +300,8 @@ const GiftCheckout: React.FC = () => {
                                       Terms of Service
                                     </a>
                                     {' '}and{' '}
-                                    <a href="/subscription-agreement" target="_blank" rel="noopener noreferrer" className="text-primary underline">
-                                      Subscription Agreement
+                                    <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                                      Terms of Service
                                     </a>.
                                   </FormLabel>
                                   <FormMessage />

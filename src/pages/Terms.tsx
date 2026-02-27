@@ -8,8 +8,8 @@ const Terms: React.FC = () => {
     <div className="flex flex-col min-h-screen">
       <SEOHead
         title="Terms and Conditions | Asset Safe"
-        description="Read the Asset Safe terms of service covering usage, privacy, intellectual property, and subscription policies for our property documentation platform."
-        keywords="asset safe terms, terms of service, usage policy, subscription terms, privacy policy"
+        description="Read the Asset Safe Terms of Service covering usage, subscription terms, billing, cancellations, data storage, privacy, and U.S.-only availability."
+        keywords="asset safe terms, terms of service, usage policy, subscription terms, billing, cancellations, privacy policy, us only"
         canonicalUrl="https://www.getassetsafe.com/terms"
       />
       <Navbar />
@@ -142,17 +142,20 @@ const Terms: React.FC = () => {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4">10. Geographic Availability</h2>
             <p>
-              Paid subscription plans for Asset Safe are currently available only to users with a United States billing address. While anyone may browse the website and create a free account, paid features and subscriptions require a valid U.S. billing address at checkout. Asset Safe reserves the right to expand availability to additional countries in the future.
+              Paid subscription plans for Asset Safe — including monthly, yearly, and gift subscriptions — are currently available only to users with a valid United States billing address. While the platform is accessible globally for browsing and free account creation, completing a paid subscription requires a U.S. billing address at checkout. Asset Safe reserves the right to expand paid subscription availability to additional countries in the future.
             </p>
           </section>
-          
+
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4">11. Billing and Payments</h2>
             <p>
               Subscription fees are exclusive of applicable sales, use, or similar taxes, which may be added based on your billing address and applicable law.
             </p>
             <p className="mt-4">
-              All subscription fees are billed in advance on a recurring basis (monthly or annually, depending on the plan selected). You authorize Asset Safe to charge the payment method on file for all applicable fees. Failure to pay may result in suspension or termination of your account.
+              All subscription fees are billed in advance on a recurring basis (monthly or annually, depending on the plan selected). Subscriptions automatically renew at the end of each billing period unless canceled before renewal. You authorize Asset Safe to charge the applicable subscription fees to your selected payment method at each renewal. Failure to pay may result in suspension or termination of your account.
+            </p>
+            <p className="mt-4">
+              If pricing changes apply to your plan, you will be notified in advance and given an opportunity to cancel before the new pricing takes effect.
             </p>
             <p className="mt-4">
               Refunds are handled on a case-by-case basis. If you believe you are entitled to a refund, please contact our support team at support@assetsafe.net.
@@ -199,6 +202,35 @@ const Terms: React.FC = () => {
             <p className="mt-4">
               We are committed to conducting our business in accordance with these principles in order to ensure 
               that the confidentiality of personal information is protected and maintained.
+            </p>
+          </section>
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">13. Subscription Plans</h2>
+            <p>
+              Asset Safe offers a single subscription plan with access to all features, available in monthly and yearly billing frequencies. Both billing options provide identical access to platform features — the only difference is the billing period and pricing.
+            </p>
+            <p className="mt-4">
+              Your subscription begins on the date payment is successfully processed and continues for the selected billing period (monthly or annually) unless canceled. Subscription access is personal and non-transferable, except where a gift subscription has been purchased on your behalf.
+            </p>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">14. Cancellations &amp; Access</h2>
+            <ul className="list-disc pl-6 space-y-2">
+              <li>You may cancel your subscription at any time through your account settings.</li>
+              <li>Access to paid features remains active until the end of your current billing period.</li>
+              <li>Refunds are not provided for unused portions of monthly subscription periods.</li>
+              <li>If payment fails or your subscription lapses, access to certain features may be limited until payment is resolved or the billing period ends.</li>
+            </ul>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">15. Data Storage &amp; Retention</h2>
+            <p>
+              Asset Safe is designed to help you document and preserve important information. You are responsible for maintaining your own copies of important records. Asset Safe does not guarantee uninterrupted access to stored data and is not a substitute for your own backup practices.
+            </p>
+            <p className="mt-4">
+              If your account remains inactive or unpaid for an extended period, data may be archived or removed in accordance with these Terms. Asset Safe will make reasonable efforts to notify you before any such action is taken.
             </p>
           </section>
         </div>
