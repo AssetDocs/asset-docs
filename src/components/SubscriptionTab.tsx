@@ -285,7 +285,7 @@ const SubscriptionTab: React.FC = () => {
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       // Build lookup key from selected plan + billing interval
-      const lookupKey = `standard_${billingInterval === 'year' ? 'yearly' : 'monthly'}`;
+      const lookupKey = billingInterval === 'year' ? 'asset_safe_annual' : 'asset_safe_monthly';
       
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { planLookupKey: lookupKey },
@@ -403,7 +403,7 @@ const SubscriptionTab: React.FC = () => {
 
             {/* Storage Add-on Info */}
             <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg p-4">
-              <p className="text-base font-semibold text-foreground mb-1">Your life evolves — your storage can too</p>
+              <p className="text-base font-semibold text-foreground mb-1">Need more room to grow? Add storage anytime.</p>
               <p className="text-sm text-muted-foreground mb-3">Flexible storage you can adjust anytime.</p>
               <div className="bg-background/60 rounded-lg p-3 mb-3">
                 <p className="font-medium text-center"><span className="font-bold">+25GB</span> for <span className="text-brand-orange font-bold">$4.99 / month</span></p>
@@ -495,10 +495,8 @@ const SubscriptionTab: React.FC = () => {
   }
 
   // ===== SUBSCRIBED VIEW =====
-  const rawTier = subscriptionStatus.subscription_tier?.toLowerCase() || '';
-  const activeTier = rawTier.includes('premium') ? 'premium' : 'standard';
   const totalStorageGb = subscriptionStatus.total_storage_gb || subscriptionStatus.storage_quota_gb || 0;
-  const baseStorageGb = subscriptionStatus.base_storage_gb || (activeTier === 'premium' ? 100 : 25);
+  const baseStorageGb = subscriptionStatus.base_storage_gb || 25;
   const addOnBlocks = subscriptionStatus.storage_addon_blocks_qty || 0;
   const addOnStorageGb = addOnBlocks * 25;
   const hasStorageAddOn = addOnStorageGb > 0;
@@ -545,9 +543,13 @@ const SubscriptionTab: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                 <div>
-                  <Label className="text-sm text-muted-foreground">Price</Label>
-                  <p className="text-xl font-bold text-gray-900">
-                    {(activeTier === 'standard' || activeTier === 'premium') && '$18.99/mo or $189/yr'}
+                  <Label className="text-sm text-muted-foreground">Billing</Label>
+                  <p className="text-base font-bold text-gray-900">
+                    {subscriptionStatus.plan_lookup_key?.includes('annual') || subscriptionStatus.plan_lookup_key?.includes('yearly')
+                      ? 'Billed yearly · $189/yr + tax'
+                      : subscriptionStatus.plan_lookup_key?.includes('monthly')
+                      ? 'Billed monthly · $18.99/mo + tax'
+                      : '$18.99/mo or $189/yr + tax'}
                   </p>
                 </div>
                 <div>
@@ -615,7 +617,7 @@ const SubscriptionTab: React.FC = () => {
 
             {/* Storage Add-on Info */}
             <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg p-4">
-              <p className="text-base font-semibold text-foreground mb-1">Your life evolves — your storage can too</p>
+              <p className="text-base font-semibold text-foreground mb-1">Need more room to grow? Add storage anytime.</p>
               <p className="text-sm text-muted-foreground mb-3">Flexible storage you can adjust anytime.</p>
               <div className="bg-background/60 rounded-lg p-3 mb-3">
                 <p className="font-medium text-center"><span className="font-bold">+25GB</span> for <span className="text-brand-orange font-bold">$4.99 / month</span></p>

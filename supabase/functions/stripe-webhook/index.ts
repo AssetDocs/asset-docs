@@ -23,7 +23,12 @@ function parseSubscriptionItems(items: Stripe.SubscriptionItem[]) {
     const lookupKey = item.price?.lookup_key;
     if (!lookupKey) continue;
 
-    if (lookupKey.startsWith('standard_') || lookupKey.startsWith('premium_')) {
+    if (
+      lookupKey.startsWith('standard_') ||
+      lookupKey.startsWith('premium_') ||
+      lookupKey === 'asset_safe_monthly' ||
+      lookupKey === 'asset_safe_annual'
+    ) {
       // Base plan item
       planLookupKey = lookupKey;
       planPriceId = item.price.id;
@@ -449,8 +454,8 @@ async function handleCheckoutCompleted(
   logStep('Handling checkout completion', { sessionId: session.id, mode: session.mode, metadata: session.metadata });
 
   // ── GIFT FLOW ──────────────────────────────────────────────────────────────
-  if (session.metadata?.gift === "true" && session.mode === 'subscription' && session.subscription) {
-    logStep('Gift checkout completed, processing gift flow');
+  if (session.metadata?.gift === "true" && (session.mode === 'payment' || session.mode === 'subscription')) {
+    logStep('Gift checkout completed, processing gift flow', { mode: session.mode });
     try {
       const token = crypto.randomUUID();
       const giftTerm = session.metadata.gift_term || 'yearly';
@@ -462,11 +467,14 @@ async function handleCheckoutCompleted(
         expiresAt.setFullYear(expiresAt.getFullYear() + 1);
       }
 
-      // Immediately cancel auto-renew on the subscription
-      await stripe.subscriptions.update(session.subscription as string, {
-        cancel_at_period_end: true,
-      });
-      logStep('Subscription set to cancel_at_period_end', { subscriptionId: session.subscription });
+      // For subscription mode: immediately cancel auto-renew (legacy gift flow)
+      if (session.mode === 'subscription' && session.subscription) {
+        await stripe.subscriptions.update(session.subscription as string, {
+          cancel_at_period_end: true,
+        });
+        logStep('Subscription set to cancel_at_period_end', { subscriptionId: session.subscription });
+      }
+      // For payment mode (asset_safe_gift_annual): no subscription to cancel
 
       // Insert into gifts table
       const { error: giftInsertError } = await supabase.from('gifts').insert({
@@ -477,7 +485,7 @@ async function handleCheckoutCompleted(
         term: giftTerm,
         expires_at: expiresAt.toISOString(),
         stripe_checkout_session_id: session.id,
-        stripe_subscription_id: session.subscription as string,
+        stripe_subscription_id: session.mode === 'subscription' ? session.subscription as string : null,
         status: 'paid',
         amount: session.amount_total || 18900,
         currency: session.currency || 'usd',

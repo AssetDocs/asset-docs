@@ -77,7 +77,7 @@ const Pricing: React.FC = () => {
   const [consentChecked, setConsentChecked] = useState(false);
   const [consentLogging, setConsentLogging] = useState(false);
 
-  const handleSubscribe = async (planType: string, yearly: boolean = false) => {
+  const handleSubscribe = async (yearly: boolean = false) => {
     if (!consentChecked) return;
 
     if (user) {
@@ -97,7 +97,7 @@ const Pricing: React.FC = () => {
         }
         setConsentLogging(false);
 
-        const lookupKey = `${planType}_${yearly ? 'yearly' : 'monthly'}`;
+        const lookupKey = yearly ? 'asset_safe_annual' : 'asset_safe_monthly';
         const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-checkout', {
           body: { planLookupKey: lookupKey },
         });
@@ -118,7 +118,7 @@ const Pricing: React.FC = () => {
       return;
     }
     
-    window.location.href = `/signup?plan=${planType}&billing=${yearly ? 'yearly' : 'monthly'}`;
+    window.location.href = `/signup?billing=${yearly ? 'yearly' : 'monthly'}`;
   };
 
   const unifiedFeatures = [
@@ -240,7 +240,7 @@ const Pricing: React.FC = () => {
                     billingInterval={billingCycle === 'yearly' ? 'year' : 'month'}
                     recommended={true}
                     buttonText={subscriptionStatus.subscribed ? 'Current Plan' : isLoading || consentLogging ? 'Processing...' : consentChecked ? 'Get Started' : 'Agree to Continue'}
-                    onClick={() => handleSubscribe('standard', billingCycle === 'yearly')}
+                    onClick={() => handleSubscribe(billingCycle === 'yearly')}
                   />
 
                   {/* Consent Gate */}
