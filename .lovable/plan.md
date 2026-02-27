@@ -1,271 +1,387 @@
 
-# Asset Safe — Supabase Security Audit Report
-**Audit Date:** February 27, 2026
-**Tables Reviewed:** 80 | **RLS Policies Reviewed:** 265 | **Edge Functions Reviewed:** All deployed
+# Asset Safe — Deep RLS Ownership & Authorization Audit
+**Based on:** 263 live policies, 80 tables, full schema analysis
 
 ---
 
-## Overall Assessment
+## Audit Approach
 
-The project has a mature, well-structured security foundation. RLS is enabled on all 80 tables, all-or-nothing access is correctly blocked on internal/CRM tables, and the roles system is properly separated from the profiles table. However, there are several specific issues — some serious — that require remediation before production launch.
+For every table accessible by the frontend, the analysis below covers:
+- How `auth.uid()` is used and whether it is always the identity of the requesting client
+- Whether joins/subqueries in policies can be bypassed or produce unintended results
+- Whether contributor/delegate access is correctly scoped
+- Specific edge cases that could allow cross-account data access
 
 ---
 
-## SECTION 1 — Confirmed Risks
+## CATEGORY 1 — Core Asset Records
 
-### RISK-01 · `has_contributor_access` function is logically broken — **CRITICAL**
+### `properties` table
+**How access is determined:**
+- SELECT/UPDATE: `auth.uid() = user_id OR has_contributor_access(auth.uid(), 'viewer'/'contributor')`
+- INSERT: owner OR contributor role
+- DELETE: owner OR administrator contributor
 
-**Location:** `public.has_contributor_access()` database function
+**Analysis:**
+- `auth.uid()` usage is correct — always the requesting client's identity
+- `has_contributor_access` is now fixed (C-1 remediation) and only queries the `contributors` table
 
-The function has a flaw in its final `OR` clause:
+**Edge case — INSERT without ownership binding:**
+The INSERT policy allows `has_contributor_access(auth.uid(), 'contributor')` to insert a new property, but there is **no enforcement that the new row's `user_id` equals the account_owner_id of the contributor's account**. A contributor with the `contributor` role could insert a property with `user_id = auth.uid()` (their own ID), effectively creating a property under their own account while authenticated as a contributor. The INSERT policy should require `user_id = <account_owner_id>` not just contributor role.
 
+**Recommended fix:**
 ```sql
--- Current (BROKEN) final OR clause:
-OR _user_id IN (
-  SELECT user_id FROM public.profiles WHERE user_id = _user_id
+-- Current (allows contributor to insert property under their OWN user_id):
+WITH CHECK ((auth.uid() = user_id) OR has_contributor_access(auth.uid(), 'contributor'))
+
+-- Correct (contributors must insert under the account owner's user_id):
+WITH CHECK (
+  auth.uid() = user_id
+  OR (
+    has_contributor_access(auth.uid(), 'contributor'::contributor_role)
+    AND EXISTS (
+      SELECT 1 FROM contributors c
+      WHERE c.contributor_user_id = auth.uid()
+        AND c.account_owner_id = properties.user_id
+        AND c.status = 'accepted'
+    )
+  )
 )
 ```
 
-This means **every authenticated user who has a profile row will pass the `has_contributor_access` check**, regardless of whether they are actually an authorized contributor. The `OR` clause resolves to `TRUE` for any user who has a profile (i.e., every registered user).
+**Risk: HIGH** — same pattern applies to `property_files`, `items`, `receipts`.
 
-**Impact:** Any user can read and write to **properties**, **property_files**, **items**, **receipts** — i.e., every property document, photo, video, and inventory item belonging to any other account. This is the most severe finding.
+---
 
-**Tables affected:**
-- `properties` (SELECT, INSERT, UPDATE, DELETE)
-- `property_files` (SELECT, INSERT, UPDATE, DELETE)
-- `items` (SELECT, INSERT, UPDATE, DELETE)
-- `receipts` (SELECT, INSERT, UPDATE, DELETE)
+### `property_files` table
+**How access is determined:**
+- SELECT: `auth.uid() = user_id OR has_contributor_access(auth.uid(), 'viewer')`
+- INSERT: owner OR contributor role
+- UPDATE: owner OR contributor role
+- DELETE: owner OR administrator role
 
-**Fix — replace the broken OR clause:**
+**Same edge case as `properties`:** The INSERT and UPDATE WITH CHECK policies allow a contributor to write rows with `user_id = auth.uid()` (their own ID). A contributor could upload files attributed to themselves rather than the account owner.
+
+**Additional issue — no `property_id` scope check in contributor INSERT:**
+A contributor can INSERT a property_file and set `property_id` to any UUID — including a property belonging to a completely different account — because the INSERT policy only checks the contributor role, not whether the `property_id` belongs to the account owner:
 ```sql
-CREATE OR REPLACE FUNCTION public.has_contributor_access(_user_id uuid, _required_role contributor_role)
-RETURNS boolean
-LANGUAGE sql
-STABLE SECURITY DEFINER
-SET search_path = public
-AS $$
-  SELECT EXISTS (
-    SELECT 1
-    FROM public.contributors c
-    WHERE c.contributor_user_id = _user_id
-      AND c.status = 'accepted'
-      AND CASE _required_role
-            WHEN 'viewer'       THEN c.role IN ('viewer', 'contributor', 'administrator')
-            WHEN 'contributor'  THEN c.role IN ('contributor', 'administrator')
-            WHEN 'administrator' THEN c.role = 'administrator'
-          END
-  )
-  OR EXISTS (
-    SELECT 1 FROM public.profiles WHERE user_id = _user_id AND user_id = _user_id
-    -- replaced with: account owner check should be done in the POLICY itself using auth.uid() = user_id
-    -- The function should ONLY check contributor relationship, not ownership
+-- Current:
+WITH CHECK ((auth.uid() = user_id) OR has_contributor_access(auth.uid(), 'contributor'))
+-- Gap: property_id is not validated against the account owner's properties
+```
+
+**Risk: HIGH** — A contributor could associate files with arbitrary properties.
+
+---
+
+### `items` table
+**How access is determined:**
+- SELECT: `auth.uid() = user_id OR has_contributor_access(auth.uid(), 'viewer')`
+- INSERT: owner OR contributor role
+- UPDATE: owner OR contributor role
+- DELETE: owner OR administrator role
+
+**Same ownership-binding gap as `properties`:** A contributor with `contributor` role can insert an item with `user_id = auth.uid()`, creating items attributed to themselves.
+
+**Risk: HIGH**
+
+---
+
+### `receipts` table
+**How access is determined:**
+- SELECT: `auth.uid() = user_id OR has_contributor_access(auth.uid(), 'viewer')`
+- INSERT: owner OR contributor role
+- UPDATE: owner OR contributor role
+- DELETE: owner OR administrator role
+
+**Same ownership-binding gap.** Additionally, `item_id` is not validated — a contributor could associate a receipt with an item they don't own.
+
+**Risk: HIGH**
+
+---
+
+## CATEGORY 2 — Legacy Locker / Estate Data
+
+### `legacy_locker` table
+**How access is determined:**
+- SELECT: Two policies — owner only, AND "Administrator contributors can view"
+- INSERT: owner only (`auth.uid() = user_id`)
+- UPDATE: owner only (`auth.uid() = user_id`)
+- DELETE: owner only (`auth.uid() = user_id`)
+
+**Analysis:**
+- The administrator contributor SELECT policy correctly queries the `contributors` table with `c.status = 'accepted'` and `c.role = 'administrator'` — the join is correct and tight.
+- The `delegate_user_id` column is writeable by the owner via UPDATE. A user cannot assign themselves as their own delegate at the RLS layer, but there is no constraint preventing `delegate_user_id = user_id`. If a user sets themselves as their own delegate, they could initiate a recovery request on their own locker.
+
+**Edge case — `allow_admin_access` flag:**
+The `allow_admin_access` boolean column exists but is **not referenced in any RLS policy**. It appears to be an application-layer flag only. This means the admin SELECT policy (`has_app_role(auth.uid(), 'admin')`) always grants admin access to all legacy locker rows regardless of this flag's value. If the flag was intended to give users control over whether admins can see their estate data, the policy must be updated to check it.
+
+**Recommended fix for delegate self-assignment:**
+```sql
+ALTER TABLE public.legacy_locker 
+ADD CONSTRAINT chk_delegate_not_self 
+CHECK (delegate_user_id IS NULL OR delegate_user_id != user_id);
+```
+
+**Risk: MEDIUM** — `allow_admin_access` flag is ignored; potential for delegate self-assignment.
+
+---
+
+### `legacy_locker_files`, `legacy_locker_folders`, `legacy_locker_voice_notes`
+**How access is determined:**
+- Each has: owner-only INSERT/UPDATE/DELETE
+- SELECT: owner AND administrator contributor (inline subquery on `contributors` table)
+
+**Analysis:**
+- All inline subqueries correctly check `c.account_owner_id = [table].user_id` AND `c.contributor_user_id = auth.uid()` AND `c.status = 'accepted'` AND `c.role = 'administrator'`
+- No cross-account gaps detected in these tables
+- INSERT/UPDATE/DELETE are correctly owner-only — contributors cannot modify estate files
+
+**Risk: LOW** — Policies are tight and correct.
+
+---
+
+## CATEGORY 3 — Documents
+
+### `user_documents` table
+**How access is determined:**
+- SELECT/INSERT/UPDATE/DELETE: `auth.uid() = user_id` only — no contributor access
+
+**Analysis:**
+- Documents are owner-only. Contributors cannot see user documents.
+- The `property_id` column (nullable) links documents to properties but is not validated by RLS — a user could set `property_id` to a property they don't own. This is a data integrity concern but not a cross-account access risk since RLS only affects their own rows.
+
+**Risk: LOW** — tight ownership, but `property_id` FK not RLS-validated.
+
+---
+
+### `document_folders` table
+- All operations: `auth.uid() = user_id` — correct, no gaps.
+
+---
+
+## CATEGORY 4 — Family Archive / Memory Safe
+
+### `memory_safe_items` and `memory_safe_folders`
+**How access is determined:**
+- All operations: `auth.uid() = user_id` only
+
+**Analysis:**
+- No contributor access to memory safe. Correct and tight.
+- `folder_id` on items references `memory_safe_folders` but is not validated by RLS — a user could set `folder_id` to a folder belonging to another user. Data integrity issue, not a security breach since SELECT filters by `user_id`.
+
+**Risk: LOW** — correct owner-only isolation.
+
+---
+
+### `family_recipes`, `notes_traditions`
+- All operations: `auth.uid() = user_id` — correct, no gaps.
+
+---
+
+## CATEGORY 5 — Authorized User (Contributor) Mappings
+
+### `contributors` table — The Access Control Fabric
+**How access is determined:**
+- ALL (full CRUD): `auth.uid() = account_owner_id` — owner manages their contributors
+- SELECT: `auth.uid() = contributor_user_id OR auth.email() = contributor_email` — contributors see their own invitations
+- UPDATE: `auth.uid() = contributor_user_id OR auth.email() = contributor_email` — contributors update their own acceptance
+
+**Critical edge case — `auth.email()` in UPDATE policy:**
+The UPDATE policy uses:
+```sql
+USING ((auth.uid() = contributor_user_id) OR (auth.email() = contributor_email))
+WITH CHECK ((auth.uid() = contributor_user_id) OR (auth.email() = contributor_email))
+```
+
+`auth.email()` matches unverified email addresses in the JWT. If an attacker registers with an email address that matches a pending contributor invitation before the invited person accepts, they could UPDATE the invitation row (setting `contributor_user_id` to their own ID, changing `status` to `'accepted'`), hijacking the contributor access.
+
+**Recommended fix:** Restrict the UPDATE policy to require both `auth.uid() = contributor_user_id` (the UID must already be bound) and `auth.email() = contributor_email`. For the pre-acceptance case (where `contributor_user_id IS NULL`), the acceptance should be handled via a `SECURITY DEFINER` edge function that validates the token, not direct client UPDATE.
+
+**Risk: HIGH** — email-based contributor hijack on pending invitations.
+
+---
+
+### `user_activity_logs` table
+**How access is determined:**
+- SELECT: owner OR admin contributor (administrator role) OR app admin
+- INSERT: `auth.uid() = user_id`
+
+**Edge case — INSERT policy allows actor spoofing:**
+The INSERT policy only checks `auth.uid() = user_id`. The `actor_user_id` column (who performed the action) is a separate column with no RLS validation. A user could insert an activity log entry claiming `actor_user_id` is someone else's UUID, attributing actions to other users in the audit trail.
+
+**Risk: MEDIUM** — Activity logs can be falsified by any authenticated user.
+
+---
+
+## CATEGORY 6 — Recovery Requests
+
+### `recovery_requests` table (post-fixes)
+**How access is determined:**
+- INSERT: `auth.uid() = delegate_user_id AND EXISTS (legacy_locker WHERE delegate_user_id = auth.uid())` — tight, correct
+- SELECT: multiple overlapping policies — owner OR delegate
+- UPDATE: `auth.uid() = owner_user_id` (two duplicate UPDATE policies)
+
+**Duplicate UPDATE policies:**
+There are two UPDATE policies with identical `USING (auth.uid() = owner_user_id)` — `"Owners can respond to recovery requests"` and `"Owners update recovery requests"`. Duplicate policies are harmless (both evaluate to the same result) but should be cleaned up to reduce policy confusion.
+
+**Risk: LOW** — Secure post-fix, but duplicate UPDATE policies should be removed.
+
+---
+
+## CATEGORY 7 — Sensitive Vault Tables
+
+### `password_catalog`
+- All operations: `auth.uid() = user_id` — tight, no gaps.
+- **Remaining concern:** No `is_encrypted` flag. Vault encryption is opt-in at the application layer. The RLS is correct; this is an application-layer risk.
+
+### `financial_accounts`
+- All operations: `auth.uid() = user_id` — tight, no gaps.
+- **Remaining concern:** `account_number` and `routing_number` stored as plaintext text columns. RLS is correct; this is an application-layer encryption risk.
+
+### `trust_information`
+- SELECT: owner AND administrator contributor (inline subquery, tight)
+- INSERT/UPDATE/DELETE: owner only
+- **Has `is_encrypted` boolean** — good. But no enforcement that data is encrypted before insert at the RLS layer (same as legacy_locker).
+
+---
+
+## CATEGORY 8 — Profiles
+
+### `profiles` table
+**How access is determined:**
+- SELECT: `auth.uid() = user_id` (own), AND `has_app_role('admin')` (admin), AND contributor SELECT (any accepted contributor sees account owner profile)
+
+**The contributor SELECT policy exposes ALL profile columns:**
+```sql
+USING ((auth.uid() = user_id) OR (EXISTS (
+  SELECT 1 FROM contributors c
+  WHERE c.contributor_user_id = auth.uid()
+    AND c.account_owner_id = profiles.user_id
+    AND c.status = 'accepted'
+)))
+```
+Any contributor of any role (viewer, contributor, administrator) can read the full profiles row including `stripe_customer_id`, `household_income`, `phone`, and `storage_quota_gb`. The `stripe_customer_id` is unnecessary for contributors. `household_income` is sensitive financial data that contributors/viewers don't need.
+
+**Risk: MEDIUM** — Sensitive profile columns exposed to all contributor roles.
+
+---
+
+## CATEGORY 9 — Calendar Events
+
+### `calendar_events` table
+**How access is determined:**
+- Owner: full CRUD
+- Contributors: SELECT/INSERT/UPDATE for `visibility = 'shared'` only (role-checked)
+- Delegates: SELECT for `visibility = 'emergency_only'` via `legacy_locker.delegate_user_id = auth.uid()`
+
+**Edge case — contributor INSERT with visibility manipulation:**
+The contributor INSERT policy allows creating events with `visibility = 'shared'`. There is no `WITH CHECK` restriction on what `user_id` is set to in the new row. A contributor could insert an event with `user_id = auth.uid()` (their own ID) rather than the account owner's ID, though this would only affect their own isolated view.
+
+**Edge case — delegate emergency access:**
+The delegate SELECT policy uses:
+```sql
+EXISTS (SELECT 1 FROM legacy_locker ll
+  WHERE ll.user_id = calendar_events.user_id AND ll.delegate_user_id = auth.uid())
+```
+This correctly cross-references `legacy_locker`. However, if the `recovery_status` has not yet been acknowledged, the delegate can still see emergency events. Consider whether delegate calendar access should require `recovery_status = 'delegate_acknowledged'`.
+
+**Risk: MEDIUM** — Delegates see emergency calendar events before formal access acknowledgment.
+
+---
+
+## CATEGORY 10 — `gifts` table (legacy)
+
+**Current SELECT policy:**
+```sql
+USING ((redeemed_by_user_id = auth.uid()) OR (recipient_email = auth.email()))
+```
+
+`auth.email()` is the unverified email from the JWT. If email verification is not enforced on signup, an attacker can register with any email address and use `auth.email()` to match gift rows. The `supabase/config.toml` has `enable_confirmations = true` for auth.email, which mitigates this — but the mitigation is a configuration dependency, not enforced at the RLS layer.
+
+**Risk: MEDIUM** — Depends on email confirmation being enabled. If ever disabled, gift hijacking becomes trivial.
+
+---
+
+## Summary Table
+
+| Table | Finding | Severity | Type |
+|-------|---------|----------|------|
+| `properties` | Contributors can INSERT with their own `user_id`, not account owner's | **HIGH** | Ownership binding |
+| `property_files` | Same + `property_id` not scoped to account owner | **HIGH** | Ownership binding |
+| `items` | Contributors can INSERT with their own `user_id` | **HIGH** | Ownership binding |
+| `receipts` | Contributors can INSERT with their own `user_id`; `item_id` unvalidated | **HIGH** | Ownership binding |
+| `contributors` | Email-based UPDATE hijacks pending invitations | **HIGH** | Identity spoofing |
+| `legacy_locker` | `allow_admin_access` flag ignored by RLS; delegate self-assignment possible | **MEDIUM** | Policy intent |
+| `user_activity_logs` | `actor_user_id` column not RLS-validated — any user can falsify it | **MEDIUM** | Audit integrity |
+| `profiles` | `stripe_customer_id` and `household_income` visible to all contributor roles | **MEDIUM** | Data minimization |
+| `calendar_events` | Delegates see emergency events before formal acknowledgment | **MEDIUM** | Access scope |
+| `gifts` | `auth.email()` match depends on email confirmation being enabled | **MEDIUM** | Configuration dependency |
+| `recovery_requests` | Duplicate UPDATE policies (harmless but confusing) | **LOW** | Policy hygiene |
+| `user_documents` | `property_id` FK not RLS-validated (integrity only) | **LOW** | Data integrity |
+| `memory_safe_items` | `folder_id` FK not RLS-validated (integrity only) | **LOW** | Data integrity |
+
+---
+
+## Recommended Migrations
+
+### Fix 1 (HIGH) — Add `account_owner_id` scope to contributor INSERT policies
+For `properties`, `property_files`, `items`, and `receipts` — require that when a contributor inserts, the `user_id` on the new row matches the `account_owner_id` of their contributor record.
+
+```sql
+-- Pattern for each affected table:
+DROP POLICY IF EXISTS "Users can create their own [TABLE]" ON public.[TABLE];
+CREATE POLICY "Users can create their own [TABLE]"
+  ON public.[TABLE] FOR INSERT
+  WITH CHECK (
+    auth.uid() = user_id
+    OR (
+      has_contributor_access(auth.uid(), 'contributor'::contributor_role)
+      AND EXISTS (
+        SELECT 1 FROM public.contributors c
+        WHERE c.contributor_user_id = auth.uid()
+          AND c.account_owner_id = [TABLE].user_id
+          AND c.status = 'accepted'
+      )
+    )
   );
-$$;
 ```
 
-The correct fix is to remove the last `OR` block entirely. The ownership check (`auth.uid() = user_id`) is already the first operand in every policy that uses this function (e.g., `USING condition: ((auth.uid() = user_id) OR has_contributor_access(...))`). The function itself should only check the contributor relationship.
-
----
-
-### RISK-02 · `storage_usage` SELECT policy checks the WRONG uid — **High**
-
-**Location:** `storage_usage` table, policy `"Users and contributors can view storage usage"`
-
+### Fix 2 (HIGH) — Harden contributor invitation UPDATE policy
+Replace the email-based UPDATE with a token-based edge function and restrict direct client UPDATE:
 ```sql
-USING condition: has_contributor_access(user_id, 'viewer'::contributor_role)
+DROP POLICY IF EXISTS "Contributors update own acceptance" ON public.contributors;
+CREATE POLICY "Contributors update own acceptance"
+  ON public.contributors FOR UPDATE
+  USING (auth.uid() = contributor_user_id)
+  WITH CHECK (auth.uid() = contributor_user_id);
 ```
+The invitation acceptance flow should use the `accept-contributor-invitation` edge function (service_role) to bind the `contributor_user_id` by token, not direct client UPDATE by email match.
 
-This passes `user_id` (the **row owner's** ID) instead of `auth.uid()` (the **requesting user's** ID) to `has_contributor_access`. This means:
-- The check is being evaluated from the perspective of the account owner, not the person making the request.
-- If RISK-01 is fixed, this policy will break entirely and block all users from reading storage.
-
-**Fix:**
+### Fix 3 (MEDIUM) — Enforce `allow_admin_access` in Legacy Locker admin policy
+The admin SELECT policy on `legacy_locker` should honor the `allow_admin_access` flag:
 ```sql
-USING (auth.uid() = user_id OR has_contributor_access(auth.uid(), 'viewer'::contributor_role))
+-- Current (ignores flag):
+USING (has_app_role(auth.uid(), 'admin'))
+-- Fixed:
+USING (has_app_role(auth.uid(), 'admin') AND allow_admin_access = true)
 ```
 
----
-
-### RISK-03 · `subscribers` UPDATE policy allows users to self-upgrade subscriptions — **High**
-
-**Location:** `subscribers` table, policy `"Users update own subscription"`
-
+### Fix 4 (MEDIUM) — Restrict `actor_user_id` in activity log INSERT
+Add a `WITH CHECK` that enforces `actor_user_id IS NULL OR actor_user_id = auth.uid()`:
 ```sql
-USING condition: (auth.uid() = user_id)
-WITH CHECK condition: (auth.uid() = user_id)
+DROP POLICY IF EXISTS "Authenticated users can insert activity logs" ON public.user_activity_logs;
+CREATE POLICY "Authenticated users can insert activity logs"
+  ON public.user_activity_logs FOR INSERT
+  WITH CHECK (
+    auth.uid() = user_id
+    AND (actor_user_id IS NULL OR actor_user_id = auth.uid())
+  );
 ```
 
-A user can call `supabase.from('subscribers').update({ subscribed: true, subscription_tier: 'premium' })` and grant themselves an active subscription for free. The policy places **no column-level restriction** on what can be updated.
-
-**Fix:** Remove the client-side UPDATE policy entirely. All subscription state changes should only happen via service role (via the Stripe webhook edge function). The edge function already uses `service_role`. The client-facing policy should be dropped, not narrowed.
-
----
-
-### RISK-04 · `user_consents` INSERT is completely open to anonymous users — **Medium**
-
-**Location:** `user_consents`, policy `"Anyone can log consent"`
-
+### Fix 5 (MEDIUM) — Add delegate self-assignment constraint
 ```sql
-WITH CHECK condition: true
+ALTER TABLE public.legacy_locker
+ADD CONSTRAINT chk_delegate_not_self
+CHECK (delegate_user_id IS NULL OR delegate_user_id != user_id);
 ```
-
-Anyone (including unauthenticated/anonymous requests) can insert consent records with any `user_email`, including other users' email addresses. An attacker could forge consent records for any email, claiming they agreed to ToS.
-
-**Fix:** Restrict to authenticated users and enforce that `user_email` matches `auth.email()`:
-```sql
-WITH CHECK (auth.uid() IS NOT NULL AND user_email = auth.email())
-```
-
----
-
-### RISK-05 · `recovery_requests` has duplicate INSERT policies with conflicting scopes — **Medium**
-
-**Location:** `recovery_requests` table
-
-Two INSERT policies exist:
-1. `"Delegates can submit recovery requests"` — requires the user to be the legacy_locker's assigned delegate (correct, tight)
-2. `"Delegates create recovery requests"` — only checks `auth.uid() = delegate_user_id` (loose, no cross-check against legacy_locker assignment)
-
-Since policies are combined with `OR`, the looser policy (Policy 2) wins. **Any authenticated user can insert a recovery_request claiming to be a delegate for any legacy_locker_id they guess.** The tight check from Policy 1 is bypassed.
-
-**Fix:** Delete the loose policy `"Delegates create recovery requests"` — keep only `"Delegates can submit recovery requests"` which validates against `legacy_locker.delegate_user_id`.
-
----
-
-## SECTION 2 — Potential Risks (Needs Verification)
-
-### POTENTIAL-01 · `backup_codes` exposes `code_hash` via SELECT
-
-The `backup_codes` table stores `code_hash`. If this is a hash of a short numeric code (e.g., 8-digit), it may be brute-forceable offline once an attacker's own session reads their own rows. Consider using a high-entropy hash (bcrypt/argon2) or storing only a HMAC.
-
-### POTENTIAL-02 · `password_catalog` stores passwords in plaintext when vault encryption is off
-
-The `password` column on `password_catalog` has no `is_encrypted` flag (unlike `legacy_locker`). If a user has not enabled vault encryption, raw passwords are stored in plaintext in the database. Needs a column-level check to verify whether encryption is enforced consistently.
-
-### POTENTIAL-03 · `financial_accounts` stores raw `account_number` and `routing_number`
-
-These are stored as plaintext `text` columns with no encryption flag. Client-side AES-256-GCM encryption must be verified to be consistently applied before insert. RLS is correct (owner-only), but a database breach would expose all financial account numbers.
-
-### POTENTIAL-04 · `entitlements` UPDATE policy is missing
-
-The `entitlements` table has SELECT policies for users and admins, but no explicit UPDATE policy for the service role or users. This means all UPDATE operations (from the Stripe webhook using service_role) bypass RLS (service role ignores RLS — this is fine), but also means **there is no policy blocking an authenticated client from attempting to UPDATE their own entitlement row** if they construct the right query. This needs verification.
-
-### POTENTIAL-05 · `stripe_events` payload column exposes full Stripe event JSON
-
-`stripe_events.payload` is JSONB and likely contains full Stripe webhook payloads including customer PII, amounts, and email addresses. Only admins can SELECT this table (policy is correctly admin-only), but the breadth of data in a single admin SELECT is very high.
-
-### POTENTIAL-06 · `account_verification` has no INSERT policy for the service role
-
-The `account_verification` table has a SELECT policy (owner only) but the INSERT appears to be done server-side (via `check-verification` edge function using service_role). Needs confirmation that no client-side INSERT path exists.
-
-### POTENTIAL-07 · `deleted_accounts` exposes email column to admins
-
-The `deleted_accounts` table stores the deleted user's email. Admin SELECT policy grants access to this. While admin access is correct, the table may be accessible via the `admin-get-user-emails` edge function which already fetches auth.users emails, creating a redundant exposure surface.
-
-### POTENTIAL-08 · `gifts` table policies vs. `gift_subscriptions` table — two gift flows
-
-Both `gifts` and `gift_subscriptions` tables exist with different schemas and separate policies. The `gifts` table SELECT policy uses `auth.email()` — but `auth.email()` is only reliable when JWT `email_verified = true`. Unverified email hijacking could allow access to another user's gift row if their email address was later claimed.
-
-### POTENTIAL-09 · `events` (analytics) table allows `user_id = NULL` inserts
-
-Policy: `WITH CHECK ((user_id IS NULL) OR (user_id = auth.uid()))`. Anonymous/unauthenticated clients can insert arbitrary events with `user_id = NULL` and any `event`, `path`, or `props` JSONB payload. This can pollute analytics or be used for DoS against the analytics table.
-
----
-
-## SECTION 3 — Tables Requiring Manual Review
-
-The following tables need human eyes to verify their full security posture:
-
-| Table | Why Review |
-|-------|-----------|
-| `backup_codes` | Verify hash algorithm strength (bcrypt vs. SHA-256 of short code) |
-| `password_catalog` | Verify encryption is always applied before insert (no plaintext bypass) |
-| `financial_accounts` | Verify account_number/routing_number encrypted client-side before storage |
-| `legacy_locker` | Verify `allow_admin_access=true` is not exploitable; verify delegate access cannot be self-assigned |
-| `entitlements` | Verify no UPDATE path exists from client-side that doesn't go through service_role |
-| `profiles` | `stripe_customer_id` column is visible to contributors — verify this is intentional |
-| `storage.objects` | All 6 storage buckets are private — verify signed URL expiry is short (< 1 hour) |
-| `contacts` (CRM) | Has `deny_contacts_select USING(false)` — verify INSERT/UPDATE/DELETE policies also exist or table is entirely locked |
-| `audit_logs` | `old_values` and `new_values` JSONB columns may store sensitive field data — admin-only SELECT is correct but confirm no edge function exposes this to non-admins |
-| `gift_claim_attempts` | Service-role-only ALL policy — confirm the `check_gift_claim_rate_limit` function is only called from edge functions, not directly from client |
-
----
-
-## SECTION 4 — Recommendations by Severity
-
-### CRITICAL
-
-**C-1. Fix `has_contributor_access` — remove the broken OR clause**
-This is the most important fix. The current function allows any registered user to pass contributor checks and read/write data belonging to any other user's properties, items, and files.
-
-```sql
--- Migration required:
-CREATE OR REPLACE FUNCTION public.has_contributor_access(_user_id uuid, _required_role contributor_role)
-RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
-  SELECT EXISTS (
-    SELECT 1 FROM public.contributors c
-    WHERE c.contributor_user_id = _user_id
-      AND c.status = 'accepted'
-      AND CASE _required_role
-            WHEN 'viewer'        THEN c.role IN ('viewer','contributor','administrator')
-            WHEN 'contributor'   THEN c.role IN ('contributor','administrator')
-            WHEN 'administrator' THEN c.role = 'administrator'
-          END
-  )
-$$;
-```
-
----
-
-### HIGH
-
-**H-1. Remove the client-side `subscribers` UPDATE policy**
-Drop `"Users update own subscription"`. Subscription state should only be writable by the Stripe webhook (service_role). Add a comment in the migration explaining why.
-
-**H-2. Fix `storage_usage` SELECT policy argument order**
-Change `has_contributor_access(user_id, ...)` to `has_contributor_access(auth.uid(), ...)`.
-
-**H-3. Remove the loose recovery_requests INSERT policy**
-Delete `"Delegates create recovery requests"` (the one that only checks `auth.uid() = delegate_user_id`). Keep only `"Delegates can submit recovery requests"` which validates against the actual legacy_locker assignment.
-
----
-
-### MEDIUM
-
-**M-1. Restrict `user_consents` INSERT to authenticated users with email match**
-Replace `WITH CHECK (true)` with `WITH CHECK (auth.uid() IS NOT NULL AND user_email = auth.email())`.
-
-**M-2. Audit `password_catalog` for plaintext entries**
-Query the table with service_role to determine if any rows have unencrypted passwords stored. Add a migration to add an `is_encrypted` boolean column if not present, to make encryption status auditable.
-
-**M-3. Verify signed URL expiry across all storage buckets**
-Check the `useSignedUrl` hook and `StorageService` to ensure signed URLs are not set to an excessively long expiry (e.g., 1 week). Recommended max is 1 hour for sensitive files, 24 hours for photos.
-
----
-
-### LOW
-
-**L-1. Restrict `events` analytics INSERT**
-Consider restricting to authenticated users only, or at minimum add server-side rate limiting per IP to prevent pollution of analytics data.
-
-**L-2. Restrict `photographer_interest` INSERT with a rate limit**
-The public INSERT policy is intentional but no rate limiting exists at the RLS layer. Consider calling the `rate-limit-check` edge function before allowing submissions.
-
-**L-3. Add audit trail for `user_roles` mutations**
-Currently the `audit_trigger_function` may not be attached to `user_roles`. Role escalation (e.g., granting someone the `admin` role) should be immutably logged.
-
-**L-4. Consider column-level security on `profiles.stripe_customer_id`**
-Contributors can read the `profiles` table of the account owner. The `stripe_customer_id` column is included in that view. While not directly exploitable, it is unnecessary for contributors to see this Stripe identifier.
-
----
-
-## Summary Count
-
-| Severity | Count | Status |
-|----------|-------|--------|
-| Critical | 1 | Fix immediately before launch |
-| High | 3 | Fix before launch |
-| Medium | 3 | Fix within 2 weeks |
-| Low | 4 | Fix within 30 days |
-
-The good news: RLS is enabled on all 80 tables, the roles table is correctly separated, admin functions use proper SECURITY DEFINER patterns, storage buckets are all private, and the Stripe webhook is service-role protected. The foundation is solid — the issues above are surgical fixes, not architectural rework.
