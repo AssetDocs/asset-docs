@@ -46,7 +46,7 @@ const Pricing: React.FC = () => {
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
-      productSchema("Asset Safe Plan", "12.99", "One simple plan. Everything included. Secure asset documentation, cloud storage, legacy tools, and trusted access."),
+      productSchema("Asset Safe Plan", "18.99", "One simple plan. Everything included. Secure asset documentation, cloud storage, legacy tools, and trusted access."),
       faqSchema(faqData),
       breadcrumbSchema([
         { name: 'Home', url: 'https://www.getassetsafe.com/' },
@@ -117,7 +117,7 @@ const Pricing: React.FC = () => {
 
   const giftPlan = {
     title: "Gift – Asset Safe Plan",
-    price: "$129 / 1 year",
+    price: "$189 / 1 year",
     description: "Give a full year of protection. Everything included.",
     features: [
       "Unlimited properties",
@@ -141,7 +141,7 @@ const Pricing: React.FC = () => {
     <div className="flex flex-col min-h-screen">
       <SEOHead
         title="Asset Safe Plan — Everything Included | Asset Safe"
-        description="One simple plan starting at $12.99/mo. Secure asset documentation, cloud storage, legacy tools, and trusted access — with flexible storage that grows with you."
+        description="One simple plan starting at $18.99/mo. Secure asset documentation, cloud storage, legacy tools, and trusted access — with flexible storage that grows with you."
         keywords="home inventory pricing, property documentation cost, digital asset management pricing, insurance inventory app cost, estate planning tools pricing"
         canonicalUrl="https://www.getassetsafe.com/pricing"
         structuredData={structuredData}
@@ -213,7 +213,7 @@ const Pricing: React.FC = () => {
                   )}
                   <SubscriptionPlan
                     title="Asset Safe Plan"
-                    price={billingCycle === 'monthly' ? '$12.99' : '$129'}
+                    price={billingCycle === 'monthly' ? '$18.99' : '$189'}
                     description={billingCycle === 'yearly' ? 'One simple plan. Everything included. — Save when you pay yearly' : 'One simple plan. Everything included.'}
                     features={unifiedFeatures}
                     billingInterval={billingCycle === 'yearly' ? 'year' : 'month'}
