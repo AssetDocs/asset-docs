@@ -1,151 +1,233 @@
 
-## Single-Plan Migration: Asset Safe Plan
+## Gift Subscription Overhaul + Pre-Checkout Consent Gate
 
-This is a significant structural change across multiple files. The goal is to replace all two-tier (Standard/Premium) logic with a single "Asset Safe Plan" that includes everything, with storage governed only by add-on blocks.
-
----
-
-### Architecture Decisions
-
-**Backend / Entitlements (No DB migration needed)**
-The `entitlements` table already stores `plan` as free text and `status`. The existing `standard`/`premium` values in the DB can remain — they just won't be user-facing. The `check-subscription` edge function returns `subscription_tier`; we'll display "Asset Safe Plan" regardless of its value.
-
-**Feature Gating (Simplify)**
-`subscriptionFeatures.ts` currently gates Legacy Locker, Authorized Users, and Emergency Access behind `premium`. Per the brief, all subscribers get everything. We'll collapse the tier system: all `SUBSCRIPTION_FEATURES` map to `'standard'` (i.e., any active subscriber), and the `SubscriptionTier` type will remain for backward compatibility but effectively becomes a single tier.
-
-**`SubscriptionContext`**
-`isPremium` will always return `true` for any active subscriber, since all features are now included. `mapTierToEnum` will map both `standard` and `premium` → `'premium'` so existing Premium feature guards still pass.
+This is a large, multi-layer implementation. Here is the full breakdown of every change, new file, and database migration required.
 
 ---
 
-### Files to Change
+### Overview of What's Changing
 
-#### 1. `src/config/subscriptionFeatures.ts`
-- Move all `premium`-only features to `requiredTier: 'standard'` (Legacy Locker, Authorized Users, Emergency Access, Executor Tools, etc.)
-- Update fallback messages to remove upgrade references
-- `STORAGE_LIMITS` — remove the two-tier structure; storage is now governed exclusively by `total_storage_gb` from entitlements (add-ons). Keep `standard` as 25GB default (entitlements handles this server-side).
+The current gift flow uses the existing `gift_subscriptions` table, `create-gift-checkout` edge function, and `GiftCheckout.tsx` form. Per the brief, we are:
 
-#### 2. `src/contexts/SubscriptionContext.tsx`
-- Update `mapTierToEnum`: map both `standard` and `premium` → `'premium'` so `isPremium` is always `true` for active subscribers
-- This ensures all existing `PremiumFeatureGate` checks pass without needing to touch every gating component
-
-#### 3. `src/pages/Pricing.tsx`
-- **Remove** the two `plans` array and the billing cycle toggle (or keep cycle toggle for the single plan)
-- **Replace** with a single plan card titled "Asset Safe Plan"
-- Single plan pricing: $12.99/mo or $129/yr (starting price; storage add-ons on top)
-- Remove `Standard` vs `Premium` comparison logic
-- Remove `premiumOnlyIndicators` section
-- Rename "Included in Both Plans" → "What's Included"
-- **Add** "Why one plan?" section (the approved copy from the brief)
-- Update `SEOHead` metadata to single-plan messaging
-- Update `structuredData` to single product
-
-#### 4. `src/components/PricingHero.tsx`
-- Update headline: "One Simple Plan. Everything Included."
-- Update subtext to match approved brand messaging
-
-#### 5. `src/components/PricingPlans.tsx`
-- Replace two-plan grid with a single plan card
-- Remove "Business" tab (or keep it — the brief doesn't mention business plans, but this is a separate concern; we'll leave the business tab as-is since it's enterprise/B2B, not the consumer tier)
-- Remove `premiumOnlyFeatures` section
-- Rename "Included in Both Plans" → "What's Included"
-
-#### 6. `src/components/SubscriptionTab.tsx`
-- **Not-subscribed view**: Remove plan selector (`planConfigs` with Standard/Premium). Replace with a single plan card showing "Asset Safe Plan" at $12.99/mo
-- **Subscribed view**: Replace `planConfigs[activeTier].title` display with "Asset Safe Plan"
-- Remove "Compare Plans" collapsible section (it compares Standard vs Premium — no longer relevant)
-- Remove the `planConfigs` object and replace with a single `planConfig` object
-- Keep billing interval toggle (Monthly/Yearly still applies)
-- Keep storage add-on section as-is (it's positioning storage as growth)
-- Price display: "$12.99/mo or $129/yr"
-
-#### 7. `src/pages/Gift.tsx`
-- Replace two gift plans with a single "Gift – Asset Safe Plan"
-- Price: $129/yr (gift is yearly only)
-- Features: unified feature list
-- Remove the two-plan grid; single centered card layout
-- Update `SEOHead` structured data
-
-#### 8. Pricing page `giftPlans` in `src/pages/Pricing.tsx` (As a Gift tab)
-- Same single-plan approach in the Gift tab
-
-#### 9. `src/components/WelcomeBanner.tsx` / other UI components referencing Standard/Premium
-- Quick search/replace of any "Standard" or "Premium" plan name references in UI copy
+1. **Replacing** the `gift_subscriptions` table with a new canonical `gifts` table (with token-based redemption)
+2. **Replacing** the `create-gift-checkout` edge function with a new webhook-driven flow
+3. **Adding** a `user_consents` table for legal consent logging
+4. **Adding** consent gates (checkbox + DB record) to both the gift checkout and the core subscription checkout
+5. **Rewriting** `GiftCheckout.tsx` to use the new single-plan gift model with consent
+6. **Creating** a new `/redeem` page (`src/pages/GiftRedeem.tsx`)
+7. **Updating** the Stripe webhook to handle the new gift flow (create `gifts` record, cancel auto-renew, send emails)
+8. **Adding** `Pricing.tsx` consent gate before regular subscription checkout
+9. **Adding** `/redeem` route in `App.tsx`
 
 ---
 
-### Single Plan Configuration (Canonical)
+### Part 1: Database Migrations (2 migrations)
 
-```
-Title: Asset Safe Plan
-Tagline: "One simple plan. Everything included."
-Monthly: $12.99/mo
-Yearly: $129/yr
-Checkout lookup key: standard_monthly / standard_yearly (unchanged in Stripe — just displayed differently)
-Features (unified):
-  - Unlimited properties
-  - 25GB secure cloud storage (+ add-ons available)
-  - Photo, video & document uploads
-  - Room-by-room inventory organization
-  - Secure Vault & Password Catalog
-  - Legacy Locker (family continuity & instructions)
-  - Authorized Users
-  - Emergency Access Sharing
-  - Voice notes, damage reports, exports
-  - Memory Safe & Quick Notes
-  - MFA, full web platform access
-  - Service Pros Directory
+**Migration A: `gifts` table + `user_consents` table**
+
+```sql
+-- New gifts table (replaces gift_subscriptions for the new flow)
+CREATE TABLE IF NOT EXISTS public.gifts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  token UUID UNIQUE NOT NULL DEFAULT gen_random_uuid(),
+  recipient_email TEXT NOT NULL,
+  from_name TEXT NOT NULL,
+  gift_message TEXT,
+  term TEXT NOT NULL CHECK (term IN ('monthly', 'yearly')),
+  expires_at TIMESTAMPTZ,
+  redeemed BOOLEAN NOT NULL DEFAULT false,
+  redeemed_by_user_id UUID,
+  stripe_checkout_session_id TEXT,
+  stripe_subscription_id TEXT,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'paid', 'redeemed', 'expired')),
+  amount INTEGER,
+  currency TEXT DEFAULT 'usd',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.gifts ENABLE ROW LEVEL SECURITY;
+
+-- Users can read their own redeemed gift
+CREATE POLICY "Users can read their own redeemed gift"
+  ON public.gifts FOR SELECT
+  USING (redeemed_by_user_id = auth.uid() OR recipient_email = auth.email());
+
+-- Service role manages all (webhook writes via service role)
+
+-- user_consents table for audit trail
+CREATE TABLE IF NOT EXISTS public.user_consents (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_email TEXT NOT NULL,
+  consent_type TEXT NOT NULL,
+  terms_version TEXT NOT NULL DEFAULT 'v1.0',
+  ip_address TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.user_consents ENABLE ROW LEVEL SECURITY;
+
+-- Public insert allowed (pre-auth checkout flow)
+CREATE POLICY "Anyone can log consent"
+  ON public.user_consents FOR INSERT
+  WITH CHECK (true);
 ```
 
-**Storage add-on:** +25GB for $4.99/mo (unchanged)
+---
+
+### Part 2: New / Updated Edge Functions
+
+**A. `supabase/functions/create-gift-checkout/index.ts` — Full Rewrite**
+
+The current function creates a `gift_subscriptions` row before payment. The new pattern:
+
+- Accepts: `{ recipientEmail, fromName, giftMessage, term }` (no plan type selector — always core)
+- Validates: checks `user_consents` table for a recent consent record for this email
+- Creates Stripe Checkout Session with:
+  - Price: `standard_yearly` (gifts are always yearly at $189)
+  - Mode: `subscription` (needed for Stripe to create subscription, then we cancel auto-renew in webhook)
+  - Metadata: `{ gift: "true", gift_term: "yearly", recipient_email, from_name, gift_message }`
+  - `cancel_url` and `success_url`
+- Does NOT insert into `gifts` yet — that happens in the webhook after payment
+- Returns: `{ url }`
+
+**B. `supabase/functions/stripe-webhook/index.ts` — Add gift handling block**
+
+After `checkout.session.completed`, check `metadata.gift === "true"`:
+1. Generate a `token` (UUID)
+2. Calculate `expires_at` = now + 1 year (for yearly gifts)
+3. Insert into `public.gifts` table
+4. Immediately cancel the Stripe subscription auto-renew: `stripe.subscriptions.update(subscriptionId, { cancel_at_period_end: true })`
+5. Send two emails via Resend:
+   - Recipient email: "You've been gifted full access to Asset Safe" with CTA link `https://www.getassetsafe.com/redeem?token=<token>`
+   - Gifter email: "Your Asset Safe gift was delivered" with recipient name + message
+
+**C. `supabase/functions/log-consent/index.ts` — New lightweight function**
+
+- Accepts: `{ userEmail, consentType, termsVersion, ipAddress }`
+- Inserts into `user_consents`
+- Returns: `{ success: true, id }`
+- Used by both the gift form and the regular subscription button
 
 ---
 
-### Checkout Flow Changes
+### Part 3: Frontend Changes
 
-`handleSubscribe` / `handleStartSubscription` in `Pricing.tsx` and `SubscriptionTab.tsx`:
-- Remove plan type selector
-- Always use `standard_monthly` or `standard_yearly` lookup key depending on billing interval
-- The Stripe product itself doesn't change — just the presentation
+**A. `src/pages/GiftCheckout.tsx` — Major Rewrite**
+
+Remove the old dual-plan logic (`planConfigs` with `standard`/`premium`). Replace with:
+
+- Single plan: "Gift – Asset Safe Plan | $189 / 1 year"
+- Form fields:
+  - Your name (from_name)
+  - Your email (for consent logging + Stripe customer)
+  - Recipient email
+  - Gift message (optional)
+  - Delivery: immediately or scheduled date
+- Consent checkbox (required before submit):
+  > "I agree to the [Terms of Service](/terms) and [Subscription Agreement](/legal)."
+- Submit button disabled until consent checked
+- On submit:
+  1. Call `log-consent` edge function to record consent
+  2. If consent logged successfully, call `create-gift-checkout`
+  3. Redirect to Stripe
+- Plan summary card on the right: shows "Gift – Asset Safe Plan", $189/yr, full feature list, "No auto-renew. Recipient opts in after gift expires."
+
+**B. `src/pages/Pricing.tsx` — Add consent gate for regular subscription**
+
+Before calling `create-checkout` in `handleSubscribe`:
+- Show a modal or inline consent section with the same checkbox
+- The "Get Started" button only becomes active after consent is checked
+- On click, log consent then create checkout session
+- Implementation: a small `ConsentModal` component or inline consent below the plan card
+
+**C. `src/pages/GiftRedeem.tsx` — New page**
+
+Route: `/redeem?token=<uuid>`
+
+Logic:
+1. Read `token` from URL query param
+2. Query `public.gifts` where `token = ?` and `status = 'paid'` and `redeemed = false`
+3. Check `expires_at > now()`
+4. If invalid/expired: show error state with CTA to `/pricing`
+5. If user not logged in: show "Create your account or log in to redeem your gift" → link to `/signup` with `?redirect=/redeem?token=<token>`
+6. If logged in + valid: show gift details (from_name, message, expires_at)
+7. "Redeem Gift" button:
+   - Update `gifts` record: `redeemed = true`, `redeemed_by_user_id = auth.uid()`, `status = 'redeemed'`
+   - Upsert into `entitlements`: `plan = 'core'` (or `standard`), `status = 'active'`, `expires_at = gift.expires_at`, `billing_status = 'gifted'`
+   - Redirect to `/dashboard`
+
+**D. `src/App.tsx` — Add `/redeem` route**
+
+Add `import GiftRedeem from "./pages/GiftRedeem"` and `<Route path="/redeem" element={<GiftRedeem />} />`.
+
+**E. `src/pages/Gift.tsx` — Minor update**
+
+Update `handleGiftPurchase` to navigate to `/gift-checkout` directly (already does this, just ensure no plan type selection required since there's only one plan). Remove the old `planType` param.
 
 ---
 
-### "Why One Plan?" Section
+### Part 4: Email Templates
 
-Add to `Pricing.tsx` below the plan card and add-on section:
+The webhook will call the existing `send-gift-email` edge function (already deployed) for the gifter confirmation. For the recipient email ("You've been gifted"), we'll add logic to call the existing `send-welcome-email` or create a new direct Resend call inside the webhook. Both use `RESEND_API_KEY` (already set as a secret).
 
-> **Why one plan?**
-> Most services make you choose between "good" and "better." We don't think that makes sense when it comes to protecting what matters most.
-> Asset Safe is built as a complete system, not a set of gated features. That's why there's only one plan — everything included — with flexible storage you can adjust anytime as your needs evolve.
-> Simple. Transparent. Built for the long term.
+Recipient email content:
+- Subject: "You've been gifted full access to Asset Safe"
+- Body: From name, gift message, CTA button → `https://www.getassetsafe.com/redeem?token=<token>`
 
----
-
-### SEO Updates
-
-- `Pricing.tsx` SEOHead title: `"Asset Safe Plan — Everything Included | Asset Safe"`
-- Description: `"One simple plan starting at $12.99/mo. Secure asset documentation, cloud storage, legacy tools, and trusted access — with flexible storage that grows with you."`
-- `structuredData`: single `productSchema` for "Asset Safe Plan"
+Gifter confirmation email:
+- Subject: "Your Asset Safe gift was delivered"
+- Body: Recipient email, copy of message, Stripe receipt link
 
 ---
 
-### What We Are NOT Changing
+### Part 5: Entitlements for Gifted Users
 
-- Stripe product/price IDs and lookup keys (backend stays `standard_monthly`, `standard_yearly`)
-- The `entitlements` DB table structure
-- Edge functions (`check-subscription`, `create-checkout`, `stripe-webhook`)
-- All non-pricing UI (dashboard features, uploads, vault, etc.)
-- Business enterprise plans in `PricingPlans.tsx` (separate B2B track)
-- The `PremiumFeatureGate` component (becomes a no-op for active subscribers via context fix)
+The `entitlements` table already has a `plan`, `status`, and `expires_at` column. Redemption upserts:
+```sql
+plan = 'standard'  (for backend compat)
+status = 'active'
+expires_at = gift.expires_at
+billing_status = 'gifted'  (new field needed)
+```
+
+We need to check if `billing_status` column exists — if not, add it in the migration. This allows the UI to display "Gifted access expires on [date]" and block storage add-ons during gift period.
+
+**Migration B addendum: add `billing_status` to entitlements if not present:**
+```sql
+ALTER TABLE public.entitlements
+  ADD COLUMN IF NOT EXISTS billing_status TEXT DEFAULT 'active';
+```
 
 ---
 
-### Files to Edit (Summary)
+### Files To Create / Edit (Summary)
 
-1. `src/config/subscriptionFeatures.ts` — collapse all features to standard tier
-2. `src/contexts/SubscriptionContext.tsx` — map all tiers → premium for active subscribers
-3. `src/pages/Pricing.tsx` — single plan card + "Why one plan?" section + SEO update
-4. `src/components/PricingHero.tsx` — updated headline
-5. `src/components/PricingPlans.tsx` — single plan display, remove tier comparison
-6. `src/components/SubscriptionTab.tsx` — remove plan selector, single plan display, remove Compare Plans
-7. `src/pages/Gift.tsx` — single gift plan
+| File | Action |
+|------|--------|
+| `supabase/migrations/XXXX_gifts_and_consents.sql` | New — creates `gifts`, `user_consents`, adds `billing_status` to `entitlements` |
+| `supabase/functions/create-gift-checkout/index.ts` | Rewrite — single plan, metadata-only, no pre-insert |
+| `supabase/functions/stripe-webhook/index.ts` | Update — handle gift metadata, create `gifts` record, cancel auto-renew, send emails |
+| `supabase/functions/log-consent/index.ts` | New — logs consent record |
+| `src/pages/GiftCheckout.tsx` | Rewrite — single plan, consent checkbox, calls `log-consent` then `create-gift-checkout` |
+| `src/pages/GiftRedeem.tsx` | New — token validation, login gate, redemption logic |
+| `src/pages/Pricing.tsx` | Update — add consent gate (inline checkbox + `log-consent` call) before `create-checkout` |
+| `src/App.tsx` | Update — add `/redeem` route |
+| `src/pages/Gift.tsx` | Minor — remove plan type param from navigate |
+
+---
+
+### What Is NOT Changed
+
+- The `gift_subscriptions` table remains intact (legacy data)
+- `GiftSuccess.tsx` and `GiftClaim.tsx` remain (legacy redemption still works for old codes)
+- `SubscriptionTab.tsx`, `PricingPlans.tsx`, `PricingHero.tsx` — no changes needed
+- `create-checkout` edge function — no changes (already correct for subscriptions)
+- The `standard_yearly` Stripe price ID is reused for gift checkout (same product, one plan)
+
+---
+
+### Stripe Behavior Note
+
+Gifts use `mode: "subscription"` in Stripe Checkout so that Stripe creates a proper subscription object (which we immediately mark `cancel_at_period_end = true` in the webhook). This means the gift period is tracked by Stripe but will never auto-renew. The recipient is not charged — the subscription cancels at period end and `billing_status = 'gifted'` gates the UI.
+
+The alternative — `mode: "payment"` — is simpler but loses Stripe's subscription period tracking. Using subscription mode is the correct pattern per the brief ("Cancel Stripe subscription auto-renew immediately after purchase").
