@@ -115,6 +115,7 @@ serve(async (req) => {
       cancel_at_period_end: entitlement?.cancel_at_period_end || false,
       stripe_subscription_id: entitlement?.stripe_subscription_id || null,
       entitlement_source: entitlement?.entitlement_source || 'stripe',
+      billing_status: entitlement?.billing_status || null,
     };
 
     logStep("Returning subscription status", response);

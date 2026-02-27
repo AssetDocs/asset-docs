@@ -19,6 +19,7 @@ interface SubscriptionStatus {
   storage_addon_blocks_qty?: number;
   total_storage_gb?: number;
   cancel_at_period_end?: boolean;
+  billing_status?: string; // 'active' | 'gifted' | 'expired'
 }
 
 interface SubscriptionContextType {
@@ -29,6 +30,7 @@ interface SubscriptionContextType {
   isPremium: boolean;
   propertyLimit: number;
   storageQuotaGb: number;
+  billingStatus: string;
   hasFeature: (featureKey: string) => boolean;
   checkFeatureAccess: (featureKey: string) => { hasAccess: boolean; feature: any };
   refreshSubscription: () => Promise<void>;
@@ -67,6 +69,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const isInTrial = false;
   const isPremium = subscriptionTier === 'premium';
   const propertyLimit = subscriptionStatus.property_limit || 999999;
+  const billingStatus = subscriptionStatus.billing_status || 'active';
   // Use total_storage_gb from entitlements as authoritative quota
   const storageQuotaGb = subscriptionStatus.total_storage_gb || subscriptionStatus.storage_quota_gb || 0;
 
@@ -126,6 +129,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     isPremium,
     propertyLimit,
     storageQuotaGb,
+    billingStatus,
     hasFeature,
     checkFeatureAccess,
     refreshSubscription,

@@ -9,7 +9,7 @@ import { getStorageLimit, formatStorageSize } from '@/config/subscriptionFeature
 import { FeatureGuard } from './FeatureGuard';
 
 const StorageTab: React.FC = () => {
-  const { subscriptionTier, hasFeature } = useSubscription();
+  const { subscriptionTier, hasFeature, billingStatus } = useSubscription();
   const [showUpgradeOptions, setShowUpgradeOptions] = useState(false);
 
   const storageLimit = getStorageLimit(subscriptionTier);
@@ -67,7 +67,7 @@ const StorageTab: React.FC = () => {
             </Badge>
           </div>
 
-          {!isUnlimited && upgradeOption && (
+          {!isUnlimited && upgradeOption && billingStatus !== 'gifted' && (
             <div className="border rounded-lg p-4 bg-muted/50">
               <div className="flex items-start justify-between mb-3">
                 <div>

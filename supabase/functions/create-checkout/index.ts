@@ -12,12 +12,10 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
 };
 
-// Map legacy planType + billingInterval to lookup key
-function toLookupKey(planType: string, billingInterval: string): string {
-  const plan = planType.toLowerCase();
-  const interval = billingInterval === 'year' ? 'yearly' : 'monthly';
-  if (plan === 'premium' || plan === 'professional') return `premium_${interval}`;
-  return `standard_${interval}`;
+// Map billingInterval to new lookup key
+function toLookupKey(_planType: string, billingInterval: string): string {
+  const interval = billingInterval === 'year' ? 'annual' : 'monthly';
+  return `asset_safe_${interval}`;
 }
 
 serve(async (req) => {
@@ -68,6 +66,24 @@ serve(async (req) => {
 
     if (!userEmail) {
       throw new Error("Email is required - either through authentication or in request body");
+    }
+
+    // Storage add-on guard: requires an active base entitlement
+    if (lookupKey === 'storage_25gb_monthly') {
+      if (!user) throw new Error("Authentication required for storage add-ons");
+      const supabaseService = createClient(
+        Deno.env.get("SUPABASE_URL") ?? "",
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+        { auth: { persistSession: false } }
+      );
+      const { data: entitlement } = await supabaseService
+        .from('entitlements')
+        .select('status')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (!entitlement || !['active', 'trialing'].includes(entitlement.status)) {
+        throw new Error("An active Asset Safe Plan is required before adding storage.");
+      }
     }
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
