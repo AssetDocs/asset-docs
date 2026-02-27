@@ -41,6 +41,9 @@ const SubscriptionPlan: React.FC<SubscriptionPlanProps> = ({
           {price !== 'Custom' && !price.includes('year') && (
             <span className="text-gray-600 ml-2">/{billingInterval === 'year' ? 'year' : 'month'}</span>
           )}
+          {price !== 'Custom' && (
+            <span className="text-xs text-muted-foreground ml-1">+ tax</span>
+          )}
         </div>
         <p className="text-gray-600 mt-2">{description}</p>
       </CardHeader>
