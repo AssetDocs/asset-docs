@@ -128,13 +128,21 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           <DocumentationChecklist />
         </div>
 
+        {/* Secure Vault Banner */}
+        <div className="md:col-span-2 bg-amber-50 border border-amber-200 rounded-lg px-5 py-4 flex items-center gap-3">
+          <div className="flex-1">
+            <p className="text-sm font-bold text-amber-900">🔒 Secure Vault</p>
+            <p className="text-xs text-amber-700 mt-0.5">Your most sensitive information — protected with advanced encryption.</p>
+          </div>
+        </div>
+
         {/* Row 2: Yellow */}
         <DashboardGridCard
           icon={<Shield className="h-6 w-6" />}
           title="Legacy Locker"
           description="Guidance and access when you can't be there."
           tags={['Instructions', 'Access', 'Recovery']}
-          actionLabel="Manage Legacy"
+          actionLabel="Open Legacy Locker"
           actionIcon={<Shield className="h-4 w-4" />}
           onClick={() => onTabChange('legacy-locker')}
           color="yellow"
@@ -144,10 +152,10 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
 
         <DashboardGridCard
           icon={<Key className="h-6 w-6" />}
-          title="Password Catalog"
+          title="Digital Access"
           description="Your most private information, fully encrypted."
-          tags={['Websites', 'Passwords', 'Sensitive Data']}
-          actionLabel="Open Catalog"
+          tags={['Websites', 'Logins', 'Sensitive Data']}
+          actionLabel="Open Digital Access"
           actionIcon={<Key className="h-4 w-4" />}
           onClick={() => onTabChange('password-catalog')}
           color="yellow"
