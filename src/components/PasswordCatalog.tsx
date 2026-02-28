@@ -580,14 +580,8 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
                 <SelectItem value="utilities-home">Utilities & Home Services</SelectItem>
                 <SelectItem value="personal-services">Personal Services & Memberships</SelectItem>
                 <SelectItem value="other-digital">Other Digital Accounts</SelectItem>
-                <SelectItem value="financial-institution">Financial Institution</SelectItem>
               </SelectContent>
             </Select>
-            {formData.accountTypeDisplay === 'financial-institution' && (
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Financial institutions typically require in-person or documented verification. Passwords are often unnecessary or invalid after death. Consider using Legacy Locker to document the institution and next steps instead.
-              </p>
-            )}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -907,14 +901,8 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
                   <SelectItem value="utilities-home">Utilities & Home Services</SelectItem>
                   <SelectItem value="personal-services">Personal Services & Memberships</SelectItem>
                   <SelectItem value="other-digital">Other Digital Accounts</SelectItem>
-                  <SelectItem value="financial-institution">Financial Institution</SelectItem>
                 </SelectContent>
               </Select>
-              {formData.accountTypeDisplay === 'financial-institution' && (
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Financial institutions typically require in-person or documented verification. Passwords are often unnecessary or invalid after death. Consider using Legacy Locker to document the institution and next steps instead.
-                </p>
-              )}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
