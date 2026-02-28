@@ -369,9 +369,9 @@ const FAQAccordion: React.FC = () => {
         <h3 className="text-xl font-semibold text-brand-green mb-4 border-b border-brand-green/30 pb-2">Password & Account Security</h3>
         <Accordion type="single" collapsible>
           <AccordionItem value="password-1">
-            <AccordionTrigger className="text-lg font-medium">What is the Password & Accounts Catalog?</AccordionTrigger>
+            <AccordionTrigger className="text-lg font-medium">What is the Password & Digital Access Catalog?</AccordionTrigger>
             <AccordionContent>
-              The Password & Accounts Catalog is a secure, encrypted section of Asset Safe where you can record login credentials, account numbers, PINs, subscriptions, and other access information that trusted individuals may need during an emergency or transition.
+              The Password & Digital Access Catalog is a secure, encrypted section of Asset Safe where you can record login credentials for everyday online accounts like subscriptions, utilities, and personal services. And, other access information that trusted individuals may need during an emergency or transition.
             </AccordionContent>
           </AccordionItem>
           
@@ -394,8 +394,6 @@ const FAQAccordion: React.FC = () => {
             <AccordionContent>
               <p className="mb-3">You can store access details for virtually any account you want trusted individuals or an executor to locate easily, including:</p>
               <ul className="list-disc list-inside space-y-1 ml-4">
-                <li>Banking and investment accounts</li>
-                <li>Mortgage and insurance portals</li>
                 <li>Email and social media accounts</li>
                 <li>Utilities and subscription services</li>
                 <li>Medical and healthcare portals</li>
