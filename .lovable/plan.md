@@ -1,119 +1,60 @@
 
-## Fix the Gift Code (ASL2025) Bypass Flow
+## Fix: "Upload Your First Photos or Videos" Milestone in Security Progress
 
-### Problem Summary
+### Root Cause
 
-The gift code field on the signup form ("Secure Your Account") is wired up correctly in `SignupLegacy.tsx` — it carries the code to `/welcome?giftCode=ASL2025`. However, **the full flow breaks when users click the email verification link**, which is the normal path. Here is exactly what happens:
+There are **two different upload thresholds** in the codebase that are conflated in `SecurityProgress.tsx`:
 
-**Current broken path:**
-1. User enters `ASL2025` in the Gift Code field and submits signup
-2. They are sent to `/welcome?giftCode=ASL2025` ✓
-3. They receive a verification email and click the link
-4. Email link goes to `/auth/callback?type=signup&redirect_to=/welcome` — **gift code is NOT in the redirect_to because `AuthContext.signUp` hardcodes it without the code**
-5. `AuthCallback.tsx` sees `type=signup` and immediately redirects to `/pricing` — **ignoring `redirect_to` entirely for signup types**
-6. User lands on the pricing page instead of the dashboard — **code never gets validated, payment is required**
+- `upload_count_met` (SQL field) — requires **≥ 10 files** total across `items` + `property_files`. This is the "power user" verification scoring gate.
+- `upload_count` (SQL field) — the raw count. A user with even 1 photo has `upload_count >= 1`.
 
-**The only scenario where it works:** If the user stays on the `/welcome` page with the URL intact and the polling loop (`checkEmailStatus`) fires after email confirmation — but this is fragile and unusual behavior since most users will click the verification link.
+`SecurityProgress.tsx` line 38 uses `criteria?.upload_count_met` for the label **"Upload Your First Photos or Videos"** — but `upload_count_met` is the 10-file gate, not a "first upload" check. So a user with 5 photos (a perfectly active user) still sees this unchecked.
+
+`OnboardingProgress.tsx` already solves this correctly on line 103 — it reads `upload_count > 0` directly, not `upload_count_met`.
 
 ---
 
-### Root Cause — Two Bugs
+### Scope
 
-**Bug 1 — `src/contexts/AuthContext.tsx` (line 169)**
+**One file, one line change.**
 
-`signUp()` hardcodes the email redirect URL without the gift code:
+**File: `src/components/SecurityProgress.tsx` — line 38**
 
-```ts
-// CURRENT (broken):
-const redirectUrl = `${window.location.origin}/auth/callback?type=signup&redirect_to=/welcome`;
-```
-
-This function doesn't receive the gift code so it cannot embed it. The fix is to make `signUp` accept an optional `giftCode` parameter and include it in `redirect_to` when present.
-
-**Bug 2 — `src/pages/AuthCallback.tsx` (line 91)**
-
-For `type=signup`, the callback ignores `redirect_to` and always sends the user to `/pricing`:
+Change the completed condition for the upload milestone from:
 
 ```ts
-// CURRENT (broken):
-navigate(isContributor ? '/account' : '/pricing', { replace: true });
+{ label: 'Upload Your First Photos or Videos', completed: criteria?.upload_count_met ?? false, phase: 1 },
 ```
 
-The fix is to check if `redirect_to` is set and use it instead of hardcoding `/pricing`.
+To:
+
+```ts
+{ label: 'Upload Your First Photos or Videos', completed: (criteria?.upload_count ?? 0) >= 1, phase: 1 },
+```
+
+This aligns the label intent ("first upload") with the actual check (at least 1 file exists), matching how `OnboardingProgress.tsx` already handles it.
 
 ---
 
-### Files to Change
+### Why This Is the Right Fix
 
-**File 1 — `src/contexts/AuthContext.tsx`**
+The 9-milestone scoring system (which uses `upload_count_met` as the ≥10 gate) is **separate** from the dashboard progress display. The verification score itself doesn't change — `milestone_count` and `is_verified` are computed by the edge function. The Security Progress panel is a **display-only motivator** meant to guide users through onboarding steps. "Upload your first photo" is a getting-started action, not a "have 10 files" advanced milestone.
 
-Update the `signUp` function signature to accept an optional `giftCode` string, and embed it into the `emailRedirectTo` URL when present:
-
-```ts
-// BEFORE:
-const signUp = async (email: string, password: string, firstName?: string, lastName?: string) => {
-  const redirectUrl = `${window.location.origin}/auth/callback?type=signup&redirect_to=/welcome`;
-
-// AFTER:
-const signUp = async (email: string, password: string, firstName?: string, lastName?: string, giftCode?: string) => {
-  const welcomePath = giftCode?.trim() 
-    ? `/welcome?giftCode=${encodeURIComponent(giftCode.trim())}` 
-    : '/welcome';
-  const redirectUrl = `${window.location.origin}/auth/callback?type=signup&redirect_to=${encodeURIComponent(welcomePath)}`;
-```
-
-Also update the `AuthContextType` interface to include the new optional parameter on `signUp`.
-
-**File 2 — `src/pages/SignupLegacy.tsx`**
-
-Pass the gift code to `signUp()` when calling it:
-
-```ts
-// BEFORE:
-const { error, data: signUpData } = await signUp(data.email, data.password, data.firstName, data.lastName);
-
-// AFTER:
-const { error, data: signUpData } = await signUp(data.email, data.password, data.firstName, data.lastName, data.giftCode?.trim() || undefined);
-```
-
-**File 3 — `src/pages/AuthCallback.tsx`**
-
-For `type=signup`, use `redirect_to` when present rather than always sending to `/pricing`:
-
-```ts
-// BEFORE:
-navigate(isContributor ? '/account' : '/pricing', { replace: true });
-
-// AFTER:
-if (isContributor) {
-  navigate('/account', { replace: true });
-} else if (redirect_to) {
-  // redirect_to may be '/welcome?giftCode=ASL2025' — honor it
-  navigate(redirect_to, { replace: true });
-} else {
-  navigate('/pricing', { replace: true });
-}
-```
-
----
-
-### End-to-End Flow After Fix
-
-1. User enters `ASL2025` and submits signup
-2. `signUp()` is called with `giftCode = 'ASL2025'`
-3. Email verification link is built as: `/auth/callback?type=signup&redirect_to=%2Fwelcome%3FgiftCode%3DASL2025`
-4. User clicks verification email → lands on `/auth/callback`
-5. Auth callback verifies the OTP, then redirects to `/welcome?giftCode=ASL2025` (from `redirect_to`)
-6. Welcome page polls, sees email is confirmed, calls `validate-lifetime-code` with `ASL2025`
-7. Edge function validates code, activates lifetime premium subscription, redirects user to `/account`
-8. User lands on dashboard — no payment screen, full access granted ✓
+If we want to preserve the 10-file gate in the milestone score for verification purposes while showing a "first upload" check in the panel, we just need `SecurityProgress` to use the raw count.
 
 ---
 
 ### What Is NOT Changing
-- The `lifetime_codes` table and `ASL2025` seed data — already exists and is active
-- The `validate-lifetime-code` edge function — already correct
-- The welcome page polling logic — already correct
-- The contributor signup path — unchanged (still goes to `/contributor-welcome`)
-- The regular (non-gift) signup path — unchanged (no `giftCode` → no `redirect_to` override → still goes to `/pricing`)
-- Any database, RLS, or storage changes
+
+- The SQL `compute_user_verification` function — no migration needed
+- The `upload_count_met` field definition — still means ≥ 10, still used in `AccountStatusCard` and `VerificationProgress` where the "10/10" framing is intentional
+- The edge function `check-verification` — untouched
+- `OnboardingProgress.tsx` — already correct, no change needed
+- All other milestone items in `SecurityProgress.tsx` — untouched
+- The verification score itself — a user's `is_verified` / `is_verified_plus` status is unaffected
+
+---
+
+### Secondary Note (No Code Change Required)
+
+The `VerificationProgress.tsx` component (used on the Account page) intentionally shows `0/10 files uploaded` with `upload_count_met` as the gate — that framing is deliberate for the formal verification progress card. No change needed there; the two components serve different purposes.
