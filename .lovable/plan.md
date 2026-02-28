@@ -1,44 +1,49 @@
 
-## Secure Vault Banner — Text Update + Encryption Badge Migration
+## Fix: Supabase Site URL Configuration
 
-### Changes to `src/components/DashboardGrid.tsx`
+### Root Cause
 
-**1. Update banner subtitle text (line 135)**
+The 404 URL pattern `https://getassetsafe.com/auth/callback/https://getassetsafe.com/auth/callback` is a Supabase dashboard configuration issue, not a code bug.
 
-From:
-`Your most sensitive information — protected with advanced encryption.`
+The auth logs confirm the signup POST came from the referer `https://getassetsafe.com/auth/callback`. This means **Supabase's `site_url` is misconfigured** — it is currently set to `https://getassetsafe.com/auth/callback` instead of `https://getassetsafe.com`.
 
-To:
-`A single encrypted space for digital access and legacy planning.`
-
-**2. Move the encryption badge into the banner**
-
-Add the `vaultBadge` / `vaultBadgeIcon` display directly inside the banner `div`, to the right of the text. This renders once, representing the shared encryption state for both vault sections.
-
-The badge in the banner will reuse the same inline-flex pill style already used in `DashboardGridCard`:
-```tsx
-<span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-semibold uppercase tracking-wide border border-amber-200">
-  {vaultBadgeIcon}
-  {vaultBadge}
-</span>
-```
-
-**3. Remove `badge` and `badgeIcon` props from both vault cards (lines 149–150 and 162–163)**
-
-Since the encryption status is now shown once in the shared banner, it no longer needs to appear on each individual card.
-
-### Result
+When Supabase generates the verification email link, it takes the `site_url` and appends the `emailRedirectTo` path (`/auth/callback`), producing:
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│  🔒 Secure Vault                              [🔒 Encrypted]     │
-│  A single encrypted space for digital access and legacy planning.│
-└──────────────────────────────────────────────────────────────────┘
-┌──────────────────────┐  ┌───────────────────────────────────────┐
-│  Legacy Locker       │  │  Digital Access                       │
-│  (no badge)          │  │  (no badge)                           │
-└──────────────────────┘  └───────────────────────────────────────┘
+[site_url][emailRedirectTo]
+= https://getassetsafe.com/auth/callback + /auth/callback
+= https://getassetsafe.com/auth/callback/https://getassetsafe.com/auth/callback  ← 404
 ```
 
-### Files Changed
-- `src/components/DashboardGrid.tsx` — 3 targeted edits (banner text, banner badge, remove per-card badges)
+The code in `AuthContext.tsx` is already correct (clean `redirectUrl`). No code changes are needed.
+
+### Required Fix — Manual Step in Supabase Dashboard
+
+1. Go to **Supabase Dashboard → Authentication → URL Configuration**
+2. Set **Site URL** to:
+   ```
+   https://www.getassetsafe.com
+   ```
+   (or `https://getassetsafe.com` without www, matching your canonical domain)
+3. Ensure **Redirect URLs** (allowed list) includes:
+   ```
+   https://getassetsafe.com/auth/callback
+   https://www.getassetsafe.com/auth/callback
+   ```
+4. Save changes
+
+### No Code Changes Required
+
+The frontend code is already correct. This is a one-time Supabase dashboard configuration fix.
+
+### Expected Flow After Fix
+
+```
+User signs up
+  → Supabase sends email with link:
+    https://getassetsafe.com/auth/callback?token_hash=xxx&type=signup
+  → User clicks link
+  → AuthCallback.tsx handles it
+  → Redirects to /pricing
+  → User selects plan → Stripe → /account dashboard
+```
