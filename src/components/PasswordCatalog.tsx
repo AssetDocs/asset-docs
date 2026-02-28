@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Trash2, Plus, ExternalLink, Lock, Shield, Pencil, Check, X } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { z } from 'zod';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import MasterPasswordModal from './MasterPasswordModal';
@@ -104,6 +105,7 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
     username: '',
     password: '',
     notes: '',
+    accountTypeDisplay: '',
   });
 
   const [accountFormData, setAccountFormData] = useState({
@@ -296,6 +298,7 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
         websiteName: '',
         websiteUrl: '',
         username: '',
+        accountTypeDisplay: '',
         password: '',
         notes: '',
       });
@@ -501,22 +504,22 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Lock className="h-5 w-5" />
-              Password and Accounts Catalog (Locked)
+              Digital Access (Locked)
             </CardTitle>
             <CardDescription>
-              Your password and accounts catalog is protected with end-to-end encryption
+              Your Digital Access vault is protected with end-to-end encryption
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="text-center py-8">
               <Lock className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-semibold mb-2">Password and Accounts Catalog Locked</h3>
+              <h3 className="text-lg font-semibold mb-2">Digital Access Locked</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Enter your master password to access your encrypted passwords and Account Summary
+                Enter your master password to access your encrypted digital accounts
               </p>
               <Button onClick={handleUnlockClick}>
                 <Lock className="h-4 w-4 mr-2" />
-                Unlock Password and Accounts Catalog
+                Unlock Digital Access
               </Button>
             </div>
           </CardContent>
@@ -535,12 +538,57 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
   if (isControlledByParent) {
     return (
       <div className="space-y-6">
+        {/* Section intro */}
+        <div className="space-y-1">
+          <p className="text-sm text-muted-foreground">
+            Store access details for everyday digital accounts. Best for websites, subscriptions, utilities, and personal services.
+          </p>
+          <p className="text-xs text-muted-foreground">
+            For banks and investment accounts, we recommend documenting the institution and next steps in the Legacy Locker instead of storing passwords.{' '}
+            <button
+              type="button"
+              className="text-primary underline underline-offset-2 hover:no-underline text-xs"
+              onClick={() => {
+                // Navigate to legacy locker — handled by parent context if needed
+                const event = new CustomEvent('navigate-to-legacy-locker');
+                window.dispatchEvent(event);
+              }}
+            >
+              → Open Legacy Locker
+            </button>
+          </p>
+        </div>
         {/* Add Password Form */}
         <form onSubmit={handleSubmit} className="space-y-4 p-4 border rounded-lg bg-muted/30">
           <h4 className="font-semibold flex items-center gap-2">
             <Plus className="h-4 w-4" />
-            Add New Website Password
+            Add New Digital Account
           </h4>
+          {/* Account Type */}
+          <div className="space-y-2">
+            <Label>Account Type (Optional)</Label>
+            <Select
+              value={formData.accountTypeDisplay || ''}
+              onValueChange={(val) => setFormData({ ...formData, accountTypeDisplay: val })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Website / Subscription (default)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="website-subscription">Website / Subscription</SelectItem>
+                <SelectItem value="subscriptions-streaming">Subscriptions & Streaming</SelectItem>
+                <SelectItem value="utilities-home">Utilities & Home Services</SelectItem>
+                <SelectItem value="personal-services">Personal Services & Memberships</SelectItem>
+                <SelectItem value="other-digital">Other Digital Accounts</SelectItem>
+                <SelectItem value="financial-institution">Financial Institution</SelectItem>
+              </SelectContent>
+            </Select>
+            {formData.accountTypeDisplay === 'financial-institution' && (
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Financial institutions typically require in-person or documented verification. Passwords are often unnecessary or invalid after death. Consider using Legacy Locker to document the institution and next steps instead.
+              </p>
+            )}
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="websiteName">Website Name</Label>
@@ -590,19 +638,20 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
               id="notes"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Any additional notes..."
+            placeholder="Security questions, hints, or anything helpful"
               rows={2}
             />
           </div>
           <Button type="submit" className="w-full bg-yellow-500 hover:bg-yellow-600 text-black">
             <Lock className="h-4 w-4 mr-2" />
-            Save Password
+            Save Entry
           </Button>
+          <p className="text-xs text-muted-foreground text-center">Designed for everyday digital access — not regulated financial systems.</p>
         </form>
 
         {/* Password List */}
         <div className="space-y-2">
-          <h4 className="font-semibold">Saved Passwords ({passwords.length})</h4>
+          <h4 className="font-semibold">Saved Entries ({passwords.length})</h4>
           {loading ? (
             <div className="text-center py-8 text-muted-foreground">Loading...</div>
           ) : passwords.length === 0 ? (
@@ -823,19 +872,50 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-green-600" />
-            Password and Accounts Catalog (Unlocked)
+            Password and Accounts Catalog (Unlocked) — Digital Access
           </CardTitle>
           <CardDescription>
-            Securely store and manage your website passwords with client-side encryption
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
+              Store access details for everyday digital accounts. Best for websites, subscriptions, utilities, and personal services.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Section intro */}
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">
+                For banks and investment accounts, we recommend documenting the institution and next steps in the Legacy Locker instead of storing passwords.
+              </p>
+            </div>
           {/* Add Password Form */}
           <form onSubmit={handleSubmit} className="space-y-4 p-4 border rounded-lg bg-muted/30">
             <h3 className="font-semibold flex items-center gap-2">
               <Plus className="h-4 w-4" />
-              Add New Password
+              Add New Digital Account
             </h3>
+            {/* Account Type */}
+            <div className="space-y-2">
+              <Label>Account Type (Optional)</Label>
+              <Select
+                value={formData.accountTypeDisplay || ''}
+                onValueChange={(val) => setFormData({ ...formData, accountTypeDisplay: val })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Website / Subscription (default)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="website-subscription">Website / Subscription</SelectItem>
+                  <SelectItem value="subscriptions-streaming">Subscriptions & Streaming</SelectItem>
+                  <SelectItem value="utilities-home">Utilities & Home Services</SelectItem>
+                  <SelectItem value="personal-services">Personal Services & Memberships</SelectItem>
+                  <SelectItem value="other-digital">Other Digital Accounts</SelectItem>
+                  <SelectItem value="financial-institution">Financial Institution</SelectItem>
+                </SelectContent>
+              </Select>
+              {formData.accountTypeDisplay === 'financial-institution' && (
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Financial institutions typically require in-person or documented verification. Passwords are often unnecessary or invalid after death. Consider using Legacy Locker to document the institution and next steps instead.
+                </p>
+              )}
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="websiteNameStandalone">Website Name</Label>
@@ -885,19 +965,20 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
                 id="notesStandalone"
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                placeholder="Any additional notes..."
+                placeholder="Security questions, hints, or anything helpful"
                 rows={2}
               />
             </div>
             <Button type="submit" className="w-full">
               <Lock className="h-4 w-4 mr-2" />
-              Encrypt & Save Password
+              Encrypt & Save Entry
             </Button>
+            <p className="text-xs text-muted-foreground text-center">Designed for everyday digital access — not regulated financial systems.</p>
           </form>
 
           {/* Password List */}
           <div className="space-y-2">
-            <h3 className="font-semibold">Saved Passwords ({passwords.length})</h3>
+            <h3 className="font-semibold">Saved Entries ({passwords.length})</h3>
             {loading ? (
               <div className="text-center py-8 text-muted-foreground">Loading...</div>
             ) : passwords.length === 0 ? (
