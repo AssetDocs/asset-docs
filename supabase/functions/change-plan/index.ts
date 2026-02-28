@@ -100,20 +100,39 @@ Deno.serve(async (req) => {
     // Get the target price config
     const priceConfig = PLAN_PRICES[targetPlan][currentInterval];
 
-    // Step 1: Create a new Stripe product
-    const product = await stripe.products.create({
-      name: priceConfig.product_name,
-    });
+    // Step 1: Look up existing price by lookup_key to avoid creating duplicates
+    const lookupKey = `${targetPlan}_${currentInterval}`;
+    let targetPrice: Stripe.Price | null = null;
 
-    // Step 2: Create a new price linked to that product
-    const newPrice = await stripe.prices.create({
-      currency: "usd",
-      product: product.id,
-      unit_amount: priceConfig.amount,
-      recurring: { interval: currentInterval as "month" | "year" },
-    });
+    const existingPrices = await stripe.prices.list({ lookup_keys: [lookupKey], limit: 1 });
+    if (existingPrices.data.length > 0) {
+      targetPrice = existingPrices.data[0];
+      console.log(`[CHANGE-PLAN] Found existing price via lookup_key: ${lookupKey}`, targetPrice.id);
+    } else {
+      // Fallback: find by unit_amount match among active prices
+      const allPrices = await stripe.prices.list({ active: true, limit: 100 });
+      targetPrice = allPrices.data.find(
+        (p) => p.unit_amount === priceConfig.amount && p.recurring?.interval === currentInterval
+      ) ?? null;
+    }
 
-    // Step 3: Update the subscription with the new price ID
+    if (!targetPrice) {
+      // Last resort: create a new price with a lookup_key so future calls reuse it
+      const product = await stripe.products.create({ name: priceConfig.product_name });
+      targetPrice = await stripe.prices.create({
+        currency: "usd",
+        product: product.id,
+        unit_amount: priceConfig.amount,
+        recurring: { interval: currentInterval as "month" | "year" },
+        lookup_key: lookupKey,
+        transfer_lookup_key: true,
+      });
+      console.log(`[CHANGE-PLAN] Created new price with lookup_key: ${lookupKey}`, targetPrice.id);
+    }
+
+    const newPrice = targetPrice;
+
+    // Step 2: Update the subscription with the target price ID
     const updatedSubscription = await stripe.subscriptions.update(subscription.id, {
       items: [{ id: mainItem.id, price: newPrice.id }],
       proration_behavior: "create_prorations",

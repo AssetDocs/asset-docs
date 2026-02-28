@@ -17,6 +17,17 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Guard: only allow calls from Supabase scheduler (x-internal-secret header)
+  const internalSecret = req.headers.get("x-internal-secret");
+  const expectedSecret = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!internalSecret || internalSecret !== expectedSecret) {
+    logStep("ERROR: Unauthorized call — missing or invalid x-internal-secret");
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");

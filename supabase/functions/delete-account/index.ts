@@ -74,6 +74,14 @@ Deno.serve(async (req) => {
     try {
       const body = await req.json();
       if (body.target_account_id && body.target_account_id !== user.id) {
+        // Validate UUID format before trusting client-supplied value
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (!uuidRegex.test(body.target_account_id)) {
+          return new Response(
+            JSON.stringify({ error: 'Invalid target_account_id format' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
         targetAccountId = body.target_account_id;
         isAdminDeletion = true;
       }
