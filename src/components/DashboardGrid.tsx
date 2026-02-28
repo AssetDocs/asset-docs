@@ -132,8 +132,12 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
         <div className="md:col-span-2 bg-amber-50 border border-amber-200 rounded-lg px-5 py-4 flex items-center gap-3">
           <div className="flex-1">
             <p className="text-sm font-bold text-amber-900">🔒 Secure Vault</p>
-            <p className="text-xs text-amber-700 mt-0.5">Your most sensitive information — protected with advanced encryption.</p>
+            <p className="text-xs text-amber-700 mt-0.5">A single encrypted space for digital access and legacy planning.</p>
           </div>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-semibold uppercase tracking-wide border border-amber-200 flex-shrink-0">
+            {vaultBadgeIcon}
+            {vaultBadge}
+          </span>
         </div>
 
         {/* Row 2: Yellow */}
@@ -146,8 +150,6 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           actionIcon={<Shield className="h-4 w-4" />}
           onClick={() => onTabChange('legacy-locker')}
           color="yellow"
-          badge={vaultBadge}
-          badgeIcon={vaultBadgeIcon}
         />
 
         <DashboardGridCard
@@ -159,8 +161,6 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           actionIcon={<Key className="h-4 w-4" />}
           onClick={() => onTabChange('password-catalog')}
           color="yellow"
-          badge={vaultBadge}
-          badgeIcon={vaultBadgeIcon}
         />
 
         {/* MFA Dropdown - security control near restricted sections */}
