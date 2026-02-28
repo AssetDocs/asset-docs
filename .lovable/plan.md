@@ -1,60 +1,49 @@
 
-## Fix: "Upload Your First Photos or Videos" Milestone in Security Progress
+## Dashboard Updates: Secure Vault Banner + Label Changes
 
-### Root Cause
+### Changes Required
 
-There are **two different upload thresholds** in the codebase that are conflated in `SecurityProgress.tsx`:
-
-- `upload_count_met` (SQL field) — requires **≥ 10 files** total across `items` + `property_files`. This is the "power user" verification scoring gate.
-- `upload_count` (SQL field) — the raw count. A user with even 1 photo has `upload_count >= 1`.
-
-`SecurityProgress.tsx` line 38 uses `criteria?.upload_count_met` for the label **"Upload Your First Photos or Videos"** — but `upload_count_met` is the 10-file gate, not a "first upload" check. So a user with 5 photos (a perfectly active user) still sees this unchecked.
-
-`OnboardingProgress.tsx` already solves this correctly on line 103 — it reads `upload_count > 0` directly, not `upload_count_met`.
+All changes are in a single file: `src/components/DashboardGrid.tsx`
 
 ---
 
-### Scope
+### 1. Rename "Password Catalog" card title to "Digital Access"
+Line 147: `title="Password Catalog"` → `title="Digital Access"`
 
-**One file, one line change.**
+### 2. Update CTA labels
+- Line 137: `actionLabel="Manage Legacy"` → `actionLabel="Open Legacy Locker"`
+- Line 150: `actionLabel="Open Catalog"` → `actionLabel="Open Digital Access"`
 
-**File: `src/components/SecurityProgress.tsx` — line 38**
+### 3. Wrap both cards in a Secure Vault banner section
 
-Change the completed condition for the upload milestone from:
+Replace the two separate `DashboardGridCard` entries (lines 132–156) with a grouped layout: a full-width banner above the two cards, then the cards side by side below it.
 
-```ts
-{ label: 'Upload Your First Photos or Videos', completed: criteria?.upload_count_met ?? false, phase: 1 },
+The banner will span the full 2-column width (using `md:col-span-2`) and display:
+- 🔒 **Secure Vault** (bold title)
+- "Your most sensitive information — protected with advanced encryption." (subtext)
+- Yellow/amber styling to match the existing card color theme
+
+The two cards remain in the same row beneath the banner, visually grouped by proximity and background.
+
+### Visual Structure
+
+```text
+┌─────────────────────────────────────────────────────────┐
+│  🔒 Secure Vault                                        │
+│  Your most sensitive information — protected with       │
+│  advanced encryption.                                   │
+└─────────────────────────────────────────────────────────┘
+┌──────────────────────┐  ┌──────────────────────────────┐
+│  Legacy Locker       │  │  Digital Access              │
+│  [Open Legacy Locker]│  │  [Open Digital Access]       │
+└──────────────────────┘  └──────────────────────────────┘
 ```
 
-To:
+The banner uses `md:col-span-2`, amber/yellow background (`bg-amber-50 border border-amber-200`), rounded corners, and the lock emoji inline with the title text.
 
-```ts
-{ label: 'Upload Your First Photos or Videos', completed: (criteria?.upload_count ?? 0) >= 1, phase: 1 },
-```
+### Technical Details
 
-This aligns the label intent ("first upload") with the actual check (at least 1 file exists), matching how `OnboardingProgress.tsx` already handles it.
-
----
-
-### Why This Is the Right Fix
-
-The 9-milestone scoring system (which uses `upload_count_met` as the ≥10 gate) is **separate** from the dashboard progress display. The verification score itself doesn't change — `milestone_count` and `is_verified` are computed by the edge function. The Security Progress panel is a **display-only motivator** meant to guide users through onboarding steps. "Upload your first photo" is a getting-started action, not a "have 10 files" advanced milestone.
-
-If we want to preserve the 10-file gate in the milestone score for verification purposes while showing a "first upload" check in the panel, we just need `SecurityProgress` to use the raw count.
-
----
-
-### What Is NOT Changing
-
-- The SQL `compute_user_verification` function — no migration needed
-- The `upload_count_met` field definition — still means ≥ 10, still used in `AccountStatusCard` and `VerificationProgress` where the "10/10" framing is intentional
-- The edge function `check-verification` — untouched
-- `OnboardingProgress.tsx` — already correct, no change needed
-- All other milestone items in `SecurityProgress.tsx` — untouched
-- The verification score itself — a user's `is_verified` / `is_verified_plus` status is unaffected
-
----
-
-### Secondary Note (No Code Change Required)
-
-The `VerificationProgress.tsx` component (used on the Account page) intentionally shows `0/10 files uploaded` with `upload_count_met` as the gate — that framing is deliberate for the formal verification progress card. No change needed there; the two components serve different purposes.
+- No new components needed — purely layout/text changes in `DashboardGrid.tsx`
+- The existing `vaultBadge` and `vaultBadgeIcon` props on both cards remain unchanged
+- The MFA dropdown below the cards is unaffected
+- Tags on the Digital Access card will be updated from `['Websites', 'Passwords', 'Sensitive Data']` to `['Websites', 'Logins', 'Sensitive Data']` to drop the word "Passwords" since we're renaming the section (optional — can keep as-is if preferred)
