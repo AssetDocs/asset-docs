@@ -27,8 +27,6 @@ import TrustInformation from './TrustInformation';
 import { RecoveryDelegateSelector } from './RecoveryDelegateSelector';
 import { RecoveryRequestDialog } from './RecoveryRequestDialog';
 import { RecoveryRequestAlert } from './RecoveryRequestAlert';
-import { PremiumFeatureGate } from './PremiumFeatureGate';
-import { useSubscription } from '@/contexts/SubscriptionContext';
 
 interface LegacyLockerData {
   id?: string;
@@ -89,7 +87,6 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
   hideEncryptionControls = false
 }) => {
   const { toast } = useToast();
-  const { isPremium, loading: subscriptionLoading } = useSubscription();
   const [isEncrypted, setIsEncrypted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showMasterPasswordModal, setShowMasterPasswordModal] = useState(false);
@@ -111,9 +108,6 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
   const sessionMasterPassword = sessionMasterPasswordFromParent ?? localSessionMasterPassword;
   const isUnlocked = isUnlockedFromParent ?? localIsUnlocked;
   const isControlledByParent = isUnlockedFromParent !== undefined;
-
-  // Determine if user has access to Legacy Locker
-  const hasLegacyLockerAccess = isPremium || isContributor || subscriptionLoading || !contributorCheckDone;
 
 
   
@@ -706,19 +700,6 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
           onCancel={() => setShowMasterPasswordModal(false)}
         />
       </>
-    );
-  }
-
-  // Premium gate - show upgrade prompt for non-premium users who aren't contributors
-  if (!hasLegacyLockerAccess) {
-    return (
-      <PremiumFeatureGate 
-        featureKey="legacy_locker"
-        title="Legacy Locker"
-        description="Secure your family's future with Legacy Locker. Store important documents, executor information, and estate planning details for trusted family access."
-      >
-        <div />
-      </PremiumFeatureGate>
     );
   }
 
