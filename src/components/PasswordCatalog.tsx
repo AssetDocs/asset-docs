@@ -704,10 +704,13 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
 
         {/* Financial Accounts Section */}
         <div className="space-y-4 mt-8 pt-6 border-t">
-          <h4 className="text-lg font-semibold flex items-center gap-2">
-            <Shield className="h-5 w-5" />
-            Financial Accounts
-          </h4>
+          <div>
+            <h4 className="text-lg font-semibold flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              Financial Accounts Reference
+            </h4>
+            <p className="text-sm text-muted-foreground mt-1">A secure reference to important financial accounts and where to find full details.</p>
+          </div>
           
           <form onSubmit={handleAccountSubmit} className="space-y-4 p-4 border rounded-lg bg-muted/30">
             <h4 className="font-semibold flex items-center gap-2">
@@ -746,47 +749,13 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
                 required
               />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="accountNumber">Account Number</Label>
-                <Input
-                  id="accountNumber"
-                  type="text"
-                  value={accountFormData.accountNumber}
-                  onChange={(e) => setAccountFormData({ ...accountFormData, accountNumber: e.target.value })}
-                  placeholder="Will be encrypted"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="routingNumber">Routing Number (Optional)</Label>
-                <Input
-                  id="routingNumber"
-                  type="text"
-                  value={accountFormData.routingNumber}
-                  onChange={(e) => setAccountFormData({ ...accountFormData, routingNumber: e.target.value })}
-                  placeholder="Will be encrypted"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="currentBalance">Current Balance (Optional)</Label>
-              <Input
-                id="currentBalance"
-                type="number"
-                step="0.01"
-                value={accountFormData.currentBalance}
-                onChange={(e) => setAccountFormData({ ...accountFormData, currentBalance: e.target.value })}
-                placeholder="e.g., 10000.00"
-              />
-            </div>
             <div className="space-y-2">
               <Label htmlFor="accountNotes">Notes (Optional)</Label>
               <Textarea
                 id="accountNotes"
                 value={accountFormData.notes}
                 onChange={(e) => setAccountFormData({ ...accountFormData, notes: e.target.value })}
-                placeholder="Will be encrypted..."
+                placeholder="Instructions, contact details, or where to find full statements"
                 rows={2}
               />
             </div>
@@ -831,24 +800,6 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
                       </AlertDialogContent>
                     </AlertDialog>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">Account Number</Label>
-                      <code className="text-sm font-mono">{decryptedAccountNumbers[account.id] || 'Loading...'}</code>
-                    </div>
-                    {account.routing_number && (
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Routing Number</Label>
-                        <code className="text-sm font-mono">{decryptedRoutingNumbers[account.id] || 'Loading...'}</code>
-                      </div>
-                    )}
-                  </div>
-                  {account.current_balance !== null && (
-                    <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">Current Balance</Label>
-                      <p className="text-sm font-semibold">${account.current_balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
-                    </div>
-                  )}
                   {account.notes && decryptedAccountNotes[account.id] && (
                     <div className="space-y-1">
                       <Label className="text-xs text-muted-foreground">Notes</Label>
