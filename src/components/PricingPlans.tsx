@@ -11,7 +11,7 @@ const PricingPlans: React.FC = () => {
     "25GB secure cloud storage (+ add-ons available)",
     "Photo, video & document uploads",
     "Room-by-room inventory organization",
-    "Secure Vault & Password Catalog",
+    "Secure Vault & Digital Access Catalog",
     "Legacy Locker (family continuity & instructions)",
     "Authorized Users",
     "Emergency Access Sharing",
