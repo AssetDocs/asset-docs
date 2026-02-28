@@ -91,11 +91,11 @@ serve(async (req: Request) => {
       throw dbError;
     }
 
-    // 2. Check if user already exists
-    const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
-    const existingUser = existingUsers?.users?.find(
-      (u: any) => u.email?.toLowerCase() === validated.contributor_email.toLowerCase()
+    // 2. Check if user already exists — use getUserByEmail instead of listUsers() to avoid 1000-user pagination cap
+    const { data: existingUserData } = await supabaseAdmin.auth.admin.getUserByEmail(
+      validated.contributor_email
     );
+    const existingUser = existingUserData?.user ?? null;
 
     let inviteLink: string;
 

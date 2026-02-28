@@ -115,6 +115,23 @@ serve(async (req) => {
         currentPeriodEnd = new Date(activeSub.current_period_end * 1000).toISOString();
       }
 
+      // Cross-validate: verify the Stripe customer email matches the target user's auth email
+      const { data: targetUserData, error: targetUserError } = await supabase.auth.admin.getUserById(userId);
+      if (targetUserError || !targetUserData?.user) {
+        throw new Error(`Target user not found: ${userId}`);
+      }
+      const targetUserEmail = targetUserData.user.email?.toLowerCase();
+      const stripeCustomerEmail = (customer as Stripe.Customer).email?.toLowerCase();
+      if (targetUserEmail && stripeCustomerEmail && targetUserEmail !== stripeCustomerEmail) {
+        logStep("Email mismatch — refusing to link", { targetUserEmail, stripeCustomerEmail });
+        return new Response(
+          JSON.stringify({
+            error: `Cannot link: Stripe customer email (${stripeCustomerEmail}) does not match user email (${targetUserEmail})`,
+          }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       // Update the user's profile
       const { error: updateError } = await supabase
         .from("profiles")
