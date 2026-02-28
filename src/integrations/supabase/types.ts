@@ -4050,13 +4050,22 @@ export type Database = {
         }
         Returns: boolean
       }
-      has_contributor_access: {
-        Args: {
-          _required_role: Database["public"]["Enums"]["contributor_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
+      has_contributor_access:
+        | {
+            Args: {
+              _account_owner_id: string
+              _required_role: Database["public"]["Enums"]["contributor_role"]
+              _user_id: string
+            }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              _required_role: Database["public"]["Enums"]["contributor_role"]
+              _user_id: string
+            }
+            Returns: boolean
+          }
       has_dev_workspace_access: { Args: { _user_id: string }; Returns: boolean }
       has_owner_workspace_access: {
         Args: { _user_id: string }
