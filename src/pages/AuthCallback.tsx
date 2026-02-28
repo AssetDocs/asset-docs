@@ -88,7 +88,13 @@ const AuthCallback = () => {
               : "Email verified! Redirecting to choose your plan...",
           });
           // Contributors go to dashboard, new signups go to pricing
-          navigate(isContributor ? '/account' : '/pricing', { replace: true });
+          if (isContributor) {
+            navigate('/account', { replace: true });
+          } else if (redirect_to) {
+            navigate(redirect_to, { replace: true });
+          } else {
+            navigate('/pricing', { replace: true });
+          }
           return;
         } else {
           // For other types, show toast and redirect

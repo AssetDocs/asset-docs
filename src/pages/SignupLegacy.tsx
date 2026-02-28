@@ -95,7 +95,7 @@ const Signup: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const { error, data: signUpData } = await signUp(data.email, data.password, data.firstName, data.lastName);
+      const { error, data: signUpData } = await signUp(data.email, data.password, data.firstName, data.lastName, data.giftCode?.trim() || undefined);
 
       if (error) {
         // Check for various Supabase "user already exists" error variations
