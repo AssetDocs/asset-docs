@@ -1,60 +1,63 @@
 
-## UI Text Changes — Financial Accounts Section in PasswordCatalog.tsx
+## Remove Legacy Locker Premium Gate
 
-**File:** `src/components/PasswordCatalog.tsx`
+**File:** `src/components/LegacyLocker.tsx`
 
-**All changes are text/label edits only — no logic or data changes.**
-
----
-
-### Change 1 — Section heading (line 709)
-**From:** `Financial Accounts`
-**To:** `Financial Accounts Reference` with a subtitle beneath it:
-`A secure reference to important financial accounts and where to find full details.`
-
-The `<h4>` at line 707–710 becomes a `<div>` with heading + subtitle paragraph to match the pattern used elsewhere in the vault.
+**Context:** The Legacy Locker currently gates access behind a `isPremium` check. Since all users now have full access on the single Asset Safe Plan, this gate is obsolete and should be removed entirely.
 
 ---
 
-### Change 2 — Remove "Account Number" input field (lines 749–760)
-Remove the entire `<div className="space-y-2">` block containing the `accountNumber` Label and Input. The grid wrapping it (line 749) also becomes unnecessary — if Routing Number is the only remaining field in the grid it can remain as a single full-width field or the grid wrapper can be removed.
+### What needs to change
+
+**Three targeted edits, all in `src/components/LegacyLocker.tsx`:**
+
+**Edit 1 — Remove the `PremiumFeatureGate` import (line 30)**
+The `PremiumFeatureGate` component will no longer be referenced anywhere in this file so the import can be removed cleanly.
+
+**Edit 2 — Remove the `isPremium` / `subscriptionLoading` usage and `hasLegacyLockerAccess` variable (lines 92, 116)**
+
+Line 92:
+```tsx
+// REMOVE:
+const { isPremium, loading: subscriptionLoading } = useSubscription();
+```
+
+Line 116:
+```tsx
+// REMOVE entirely:
+const hasLegacyLockerAccess = isPremium || isContributor || subscriptionLoading || !contributorCheckDone;
+```
+
+The `useSubscription` import itself can also be removed from line 31 since it will no longer be used in this file.
+
+**Edit 3 — Remove the premium gate block (lines 712–723)**
+```tsx
+// REMOVE entirely:
+// Premium gate - show upgrade prompt for non-premium users who aren't contributors
+if (!hasLegacyLockerAccess) {
+  return (
+    <PremiumFeatureGate 
+      featureKey="legacy_locker"
+      title="Legacy Locker"
+      description="..."
+    >
+      <div />
+    </PremiumFeatureGate>
+  );
+}
+```
 
 ---
 
-### Change 3 — Remove "Routing Number" input field (lines 761–770)
-Remove the entire `<div className="space-y-2">` block containing the `routingNumber` Label and Input, along with the enclosing grid `<div>` if it only held these two fields.
+### What does NOT change
+
+- The contributor role checks (`isContributor`, `contributorRole`, `contributorCheckDone`) remain — these are used for determining editing vs. read-only access within the locker, not for gating entry to it.
+- The master password / encryption flow is unchanged.
+- The recovery delegate and `isDelegate` / `hasPendingRequest` logic is unchanged.
+- No database, RLS, or edge function changes required.
 
 ---
 
-### Change 4 — Remove "Current Balance" input field (lines 772–782)
-Remove the entire `<div className="space-y-2">` block containing the `currentBalance` Label and Input.
+### Result
 
----
-
-### Change 5 — Update "Notes" helper text (lines 783–791)
-**From placeholder:** `"Will be encrypted..."`
-**To placeholder:** `"Instructions, contact details, or where to find full statements"`
-
----
-
-### Change 6 — Remove displayed "Account Number" in saved cards (lines 834–838)
-Remove the `<div className="space-y-1">` block that shows the decrypted account number label and `<code>` value.
-
----
-
-### Change 7 — Remove displayed "Routing Number" in saved cards (lines 839–844)
-Remove the conditional block `{account.routing_number && (...)}` that renders the routing number label and value.
-
----
-
-### Change 8 — Remove displayed "Current Balance" in saved cards (lines 846–851)
-Remove the conditional block `{account.current_balance !== null && (...)}` that renders the balance label and formatted dollar value.
-
----
-
-### Change 9 — Remove surrounding grid wrapper (lines 834)
-After removing account number and routing number display blocks, the `<div className="grid grid-cols-1 md:grid-cols-2 gap-3">` wrapper at line 834 will be empty. Remove it entirely.
-
----
-
-**No state, no data model, no API, no database changes required.** The `accountNumber`, `routingNumber`, and `currentBalance` fields in `accountFormData` state can remain for now (they are simply unused inputs) — or their state entries can be cleaned up in the same pass. The saved card display simply no longer renders those three fields.
+All authenticated users with an active Asset Safe Plan subscription will see the Legacy Locker without any upgrade prompt. Contributors to an account will continue to see a read-only or edit view based on their assigned role. The gate is fully removed.
