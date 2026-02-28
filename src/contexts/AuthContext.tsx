@@ -166,10 +166,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signUp = async (email: string, password: string, firstName?: string, lastName?: string, giftCode?: string) => {
-    const welcomePath = giftCode?.trim()
-      ? `/welcome?giftCode=${encodeURIComponent(giftCode.trim())}`
-      : '/welcome';
-    const redirectUrl = `${window.location.origin}/auth/callback?type=signup&redirect_to=${encodeURIComponent(welcomePath)}`;
+    // Use a clean callback URL — Supabase appends ?token_hash=xxx&type=signup automatically.
+    // Including the full URL as a query param causes Supabase to append it as a path (double URL bug).
+    const redirectUrl = `${window.location.origin}/auth/callback`;
     
     const { data, error } = await supabase.auth.signUp({
       email,
