@@ -12,16 +12,21 @@ serve(async (req) => {
   }
 
   try {
+    // Use anon client + RLS instead of service_role for analytics inserts.
+    // The events table has an INSERT policy allowing: user_id IS NULL OR user_id = auth.uid()
+    const authHeader = req.headers.get("authorization");
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      anonKey,
+      authHeader ? { global: { headers: { Authorization: authHeader } } } : {}
     );
 
     const { event, props, path, referrer, utm, occurred_at } = await req.json();
 
-    // Try to resolve user from auth token if provided
+    // Resolve user_id only if a valid auth token is provided
     let user_id: string | null = null;
-    const authHeader = req.headers.get("authorization");
     if (authHeader?.startsWith("Bearer ")) {
       const token = authHeader.split(" ")[1];
       const { data } = await supabase.auth.getUser(token);

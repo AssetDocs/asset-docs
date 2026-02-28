@@ -6,9 +6,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Valid lifetime gift codes - ASL = Asset Safe Lifetime
-const LIFETIME_CODES = ["ASL2025"];
-
 interface ValidateCodeRequest {
   code: string;
 }
@@ -52,15 +49,65 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { code }: ValidateCodeRequest = await req.json();
 
-    console.log('Validating lifetime code:', code, 'for authenticated user:', user_id);
-
-    // Validate code
-    if (!code || !LIFETIME_CODES.includes(code.toUpperCase().trim())) {
-      return new Response(JSON.stringify({ 
-        success: false, 
-        error: 'Invalid gift code' 
-      }), {
+    if (!code || typeof code !== 'string') {
+      return new Response(JSON.stringify({ success: false, error: 'Code is required' }), {
         status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    const normalizedCode = code.toUpperCase().trim();
+    console.log('Validating lifetime code:', normalizedCode, 'for authenticated user:', user_id);
+
+    // Look up the code from the DB and atomically increment times_redeemed
+    const { data: codeRow, error: codeError } = await supabase
+      .from('lifetime_codes')
+      .select('id, code, max_uses, times_redeemed, expires_at, is_active')
+      .eq('code', normalizedCode)
+      .single();
+
+    if (codeError || !codeRow) {
+      return new Response(JSON.stringify({ success: false, error: 'Invalid gift code' }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    if (!codeRow.is_active) {
+      return new Response(JSON.stringify({ success: false, error: 'This gift code has been deactivated' }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    if (codeRow.expires_at && new Date(codeRow.expires_at) < new Date()) {
+      return new Response(JSON.stringify({ success: false, error: 'This gift code has expired' }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    if (codeRow.times_redeemed >= codeRow.max_uses) {
+      return new Response(JSON.stringify({ success: false, error: 'This gift code has reached its usage limit' }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    // Atomically increment times_redeemed using optimistic concurrency
+    const { error: incrementError } = await supabase
+      .from('lifetime_codes')
+      .update({
+        times_redeemed: codeRow.times_redeemed + 1,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', codeRow.id)
+      .eq('times_redeemed', codeRow.times_redeemed); // optimistic lock
+
+    if (incrementError) {
+      console.error('Concurrent redemption conflict or update error:', incrementError);
+      return new Response(JSON.stringify({ success: false, error: 'Code redemption failed — please try again' }), {
+        status: 409,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
@@ -70,10 +117,7 @@ const handler = async (req: Request): Promise<Response> => {
     
     if (userError || !userData?.user?.email) {
       console.error('Error getting user:', userError);
-      return new Response(JSON.stringify({ 
-        success: false, 
-        error: 'User not found' 
-      }), {
+      return new Response(JSON.stringify({ success: false, error: 'User not found' }), {
         status: 404,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
@@ -98,10 +142,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (upsertError) {
       console.error('Error updating subscriber:', upsertError);
-      return new Response(JSON.stringify({ 
-        success: false, 
-        error: 'Failed to activate subscription' 
-      }), {
+      return new Response(JSON.stringify({ success: false, error: 'Failed to activate subscription' }), {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
@@ -164,7 +205,7 @@ const handler = async (req: Request): Promise<Response> => {
       console.error('Error sending welcome email:', emailError);
     }
 
-    console.log('Successfully activated lifetime subscription for user:', user_id);
+    console.log('Successfully activated lifetime subscription for user:', user_id, 'code:', normalizedCode);
 
     return new Response(JSON.stringify({ 
       success: true, 
@@ -179,10 +220,7 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error("Error in validate-lifetime-code function:", error);
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: 'An unexpected error occurred' 
-      }),
+      JSON.stringify({ success: false, error: 'An unexpected error occurred' }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
