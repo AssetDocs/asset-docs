@@ -107,7 +107,7 @@ const Account: React.FC = () => {
   const getSectionConfig = () => {
     const configs: Record<string, { title: string; subtitle: string }> = {
       'asset-documentation': { title: 'Asset Documentation', subtitle: 'Claim-ready proof for your home and belongings.' },
-      'password-catalog': { title: 'Password Catalog', subtitle: 'Your most private information, fully encrypted.' },
+      'password-catalog': { title: 'Digital Access', subtitle: 'Encrypted storage for everyday online accounts.' },
       'legacy-locker': { title: 'Legacy Locker', subtitle: 'Guidance and access when you can\'t be there.' },
       'insights-tools': { title: 'Insights & Tools', subtitle: 'Track values, manage repairs, and organize property details.' },
       'life-hub': { title: 'Family Archive', subtitle: 'Everyday life, organized and protected.' },

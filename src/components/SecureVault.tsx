@@ -225,7 +225,7 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
       setShowMasterPasswordModal(false);
       toast({
         title: "Secure Vault Encrypted",
-        description: "Your Password Catalog and Legacy Locker are now protected with end-to-end encryption.",
+        description: "Your Digital Access and Legacy Locker are now protected with end-to-end encryption.",
       });
     } else {
       if (storedHash && await verifyMasterPassword(password, storedHash)) {
@@ -520,7 +520,7 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
                 Secure Vault (Advanced Protection) - Restricted
               </CardTitle>
               <CardDescription className="text-yellow-700 dark:text-yellow-300">
-                Password Catalog & Legacy Locker - Protected with End-to-End Encryption
+                Digital Access & Legacy Locker - Protected with End-to-End Encryption
               </CardDescription>
             </div>
           </div>
@@ -532,7 +532,7 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
             {isManualAdminRestriction ? (
               <>
                 <p className="text-muted-foreground mb-4 max-w-md mx-auto">
-                  The account owner has manually restricted access to the Password Catalog and Legacy Locker for all administrators.
+                  The account owner has manually restricted access to Digital Access and Legacy Locker for all administrators.
                 </p>
                 <p className="text-sm text-muted-foreground max-w-md mx-auto">
                   If you believe this to be an error, please contact the account owner directly to request access.
@@ -567,7 +567,7 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
                 Secure Vault (Advanced Protection) - Locked
                 </CardTitle>
                 <CardDescription className="text-yellow-700 dark:text-yellow-300">
-                  Password Catalog & Legacy Locker - Protected with End-to-End Encryption
+                  Digital Access & Legacy Locker - Protected with End-to-End Encryption
                 </CardDescription>
               </div>
             </div>
@@ -577,7 +577,7 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
               <Lock className="h-20 w-20 mx-auto mb-6 text-yellow-500" />
               <h3 className="text-xl font-semibold mb-3">Secure Vault Locked</h3>
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Your Password Catalog and Legacy Locker are encrypted with the same master password.
+                Your Digital Access and Legacy Locker are encrypted with the same master password.
                 Enter your master password to access both sections.
               </p>
               <Button onClick={handleUnlockClick} size="lg" className="bg-yellow-500 hover:bg-yellow-600 text-black">
@@ -614,7 +614,7 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
                 Secure Vault (Advanced Protection) {isUnlocked ? '- Unlocked' : ''}
               </CardTitle>
               <CardDescription className="text-yellow-700 dark:text-yellow-300 text-base mt-1">
-                Password Catalog & Legacy Locker — Your Most Sensitive Information
+                Digital Access & Legacy Locker — Your Most Sensitive Information
               </CardDescription>
             </div>
             
@@ -641,7 +641,7 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
           <Alert className="mt-4 bg-yellow-100/50 border-yellow-400">
             <Info className="h-4 w-4 text-yellow-600" />
             <AlertDescription className="text-sm text-yellow-800 dark:text-yellow-200">
-              <strong>Both sections share the same encryption:</strong> Your Password Catalog and Legacy Locker are protected with the same master password. 
+              <strong>Both sections share the same encryption:</strong> Your Digital Access and Legacy Locker are protected with the same master password. 
               Your designated Recovery Delegate can request access to both sections in case of emergency.
             </AlertDescription>
           </Alert>
@@ -722,7 +722,7 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
                         <Lock className="h-3 w-3 text-destructive absolute -top-1 -right-1 drop-shadow-sm" />
                       )}
                     </span>
-                    Password Catalog
+                    Digital Access
                   </h3>
                   {passwordCatalogOpen ? (
                     <ChevronDown className="h-5 w-5 text-yellow-600" />

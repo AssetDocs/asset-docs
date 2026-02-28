@@ -128,7 +128,14 @@ const FAQAccordion: React.FC = () => {
           <AccordionItem value="security-4">
             <AccordionTrigger className="text-lg font-medium">Is my password information encrypted?</AccordionTrigger>
             <AccordionContent>
-              Yes. All information stored in the Password & Accounts Catalog is encrypted both at rest and in transit. Asset Safe cannot view this information—only you, and anyone you explicitly grant access to, can see it.
+              Yes. All information stored in Digital Access is encrypted both at rest and in transit. Asset Safe cannot view this information—only you, and anyone you explicitly grant access to, can see it.
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="security-4b">
+            <AccordionTrigger className="text-lg font-medium">What types of passwords should I store in Digital Access?</AccordionTrigger>
+            <AccordionContent>
+              Use Digital Access for everyday online accounts like subscriptions, streaming services, utilities, and personal services. For banks and investment accounts, we recommend documenting the institution and next steps in the Legacy Locker instead of storing login credentials. Digital Access is designed for accounts that are easy to transfer or close — not regulated financial systems.
             </AccordionContent>
           </AccordionItem>
           
