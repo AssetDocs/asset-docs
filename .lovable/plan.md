@@ -1,49 +1,44 @@
 
-## Dashboard Updates: Secure Vault Banner + Label Changes
+## Secure Vault Banner — Text Update + Encryption Badge Migration
 
-### Changes Required
+### Changes to `src/components/DashboardGrid.tsx`
 
-All changes are in a single file: `src/components/DashboardGrid.tsx`
+**1. Update banner subtitle text (line 135)**
 
----
+From:
+`Your most sensitive information — protected with advanced encryption.`
 
-### 1. Rename "Password Catalog" card title to "Digital Access"
-Line 147: `title="Password Catalog"` → `title="Digital Access"`
+To:
+`A single encrypted space for digital access and legacy planning.`
 
-### 2. Update CTA labels
-- Line 137: `actionLabel="Manage Legacy"` → `actionLabel="Open Legacy Locker"`
-- Line 150: `actionLabel="Open Catalog"` → `actionLabel="Open Digital Access"`
+**2. Move the encryption badge into the banner**
 
-### 3. Wrap both cards in a Secure Vault banner section
+Add the `vaultBadge` / `vaultBadgeIcon` display directly inside the banner `div`, to the right of the text. This renders once, representing the shared encryption state for both vault sections.
 
-Replace the two separate `DashboardGridCard` entries (lines 132–156) with a grouped layout: a full-width banner above the two cards, then the cards side by side below it.
-
-The banner will span the full 2-column width (using `md:col-span-2`) and display:
-- 🔒 **Secure Vault** (bold title)
-- "Your most sensitive information — protected with advanced encryption." (subtext)
-- Yellow/amber styling to match the existing card color theme
-
-The two cards remain in the same row beneath the banner, visually grouped by proximity and background.
-
-### Visual Structure
-
-```text
-┌─────────────────────────────────────────────────────────┐
-│  🔒 Secure Vault                                        │
-│  Your most sensitive information — protected with       │
-│  advanced encryption.                                   │
-└─────────────────────────────────────────────────────────┘
-┌──────────────────────┐  ┌──────────────────────────────┐
-│  Legacy Locker       │  │  Digital Access              │
-│  [Open Legacy Locker]│  │  [Open Digital Access]       │
-└──────────────────────┘  └──────────────────────────────┘
+The badge in the banner will reuse the same inline-flex pill style already used in `DashboardGridCard`:
+```tsx
+<span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-semibold uppercase tracking-wide border border-amber-200">
+  {vaultBadgeIcon}
+  {vaultBadge}
+</span>
 ```
 
-The banner uses `md:col-span-2`, amber/yellow background (`bg-amber-50 border border-amber-200`), rounded corners, and the lock emoji inline with the title text.
+**3. Remove `badge` and `badgeIcon` props from both vault cards (lines 149–150 and 162–163)**
 
-### Technical Details
+Since the encryption status is now shown once in the shared banner, it no longer needs to appear on each individual card.
 
-- No new components needed — purely layout/text changes in `DashboardGrid.tsx`
-- The existing `vaultBadge` and `vaultBadgeIcon` props on both cards remain unchanged
-- The MFA dropdown below the cards is unaffected
-- Tags on the Digital Access card will be updated from `['Websites', 'Passwords', 'Sensitive Data']` to `['Websites', 'Logins', 'Sensitive Data']` to drop the word "Passwords" since we're renaming the section (optional — can keep as-is if preferred)
+### Result
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  🔒 Secure Vault                              [🔒 Encrypted]     │
+│  A single encrypted space for digital access and legacy planning.│
+└──────────────────────────────────────────────────────────────────┘
+┌──────────────────────┐  ┌───────────────────────────────────────┐
+│  Legacy Locker       │  │  Digital Access                       │
+│  (no badge)          │  │  (no badge)                           │
+└──────────────────────┘  └───────────────────────────────────────┘
+```
+
+### Files Changed
+- `src/components/DashboardGrid.tsx` — 3 targeted edits (banner text, banner badge, remove per-card badges)
