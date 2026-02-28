@@ -2036,6 +2036,42 @@ export type Database = {
         }
         Relationships: []
       }
+      lifetime_codes: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          max_uses: number
+          times_redeemed: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number
+          times_redeemed?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number
+          times_redeemed?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       manual_damage_entries: {
         Row: {
           claim_number: string | null
