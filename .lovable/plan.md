@@ -1,220 +1,289 @@
 
-# Service Role Key — Full Usage Audit
+# Adversarial Threat Model — Asset Safe
 
-**Scope:** 43 edge functions, all frontend files, all `src/` TypeScript
-**Key finding upfront:** The `SUPABASE_SERVICE_ROLE_KEY` is **never referenced in any frontend file**. All 43 usages are exclusively inside `supabase/functions/`. This is correct.
-
----
-
-## PART 1 — Frontend Exposure
-
-**Status: CLEAN**
-
-The only appearances of `SUPABASE_SERVICE_ROLE_KEY` in `src/` are:
-- `src/components/admin/SystemInfrastructure.tsx` — displays the *name* of the secret as a documentation string (not the value)
-- `src/integrations/supabase/types.ts` — references the function signature of `validate_service_role_context` (a DB function name)
-
-Neither file reads, imports, or uses the actual key. The frontend Supabase client uses only `VITE_SUPABASE_PUBLISHABLE_KEY` (the anon key). **No leakage risk from the frontend layer.**
+**Attacker profile:** A real, authenticated user. Valid JWT. Valid anon key. Can intercept their own network traffic, craft arbitrary Supabase API requests, and modify query parameters. Cannot forge another user's JWT.
 
 ---
 
-## PART 2 — Edge Function Inventory (All 43 usages)
+## ATTACK 1 — Read Another User's Assets (CRITICAL — EXPLOITABLE TODAY)
 
-### Group A — Scheduled / System Functions (No auth required by design)
+**Target:** `items`, `property_files`, `properties`, `receipts` tables
 
-These functions are intended to be triggered by cron jobs, not user-initiated requests. They use `service_role` directly without JWT validation.
-
-| Function | Purpose | Auth Check |
-|----------|---------|------------|
-| `check-payment-failures` | Scans all subscribers for expired cards | None |
-| `check-gift-reminders` | Sends gift subscription renewal reminders | None |
-| `check-grace-period-expiry` | Auto-escalates recovery requests when grace period expires | None |
-
-**Finding GS-1 — No authentication on scheduled functions — Medium**
-
-These functions call `service_role` and perform cross-user scans (all subscribers, all legacy lockers) without any authentication check. If an attacker discovers the function URL, they can call them at will:
-- `check-payment-failures` iterates all subscribers with `subscribed = true`, reads their `stripe_customer_id`, and calls Stripe's API for each.
-- `check-gift-reminders` iterates all gift subscriptions and sends emails.
-- `check-grace-period-expiry` reads all `legacy_locker` rows with active grace periods and calls `auth.admin.getUserById()` for both the owner and delegate.
-
-These functions don't modify sensitive data, but they expose existence of certain records via invocation timing (side channels) and could trigger unwanted email sends.
-
-**Recommended pattern:**
-```typescript
-// At top of each scheduled function, verify it's called from Supabase's scheduler
-// (passes a known secret header) or limit to POST with a shared secret:
-const internalSecret = req.headers.get('x-internal-secret');
-const expectedSecret = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-if (internalSecret !== expectedSecret) {
-  return new Response('Unauthorized', { status: 401 });
-}
-```
-Note: `check-grace-period-expiry` already passes `x-internal-secret: supabaseServiceKey` when calling `send-delegate-access-email`. The same guard should be applied to itself and the other two scheduled functions.
-
----
-
-### Group B — User-Authenticated Functions (JWT validated, then service_role used)
-
-These are the correct pattern: validate JWT first with anon client, then use service_role for privileged operations.
-
-| Function | Auth Pattern | service_role Operations |
-|----------|-------------|------------------------|
-| `check-subscription` | JWT via service_role.auth.getUser | Reads own entitlements + contributor's owner entitlements |
-| `sync-subscription` | JWT via service_role.auth.getUser | Upserts entitlements, profiles, subscribers for `user.id` only |
-| `delete-account` | JWT via anon client | Deletes all data for `targetAccountId` |
-| `accept-contributor-invitation` | JWT via anon client | Updates contributors table for `user.email` |
-| `respond-deletion-request` | JWT via anon client | Updates `account_deletion_requests` for verified owner |
-| `validate-lifetime-code` | JWT claims via anon client | Upserts subscribers, entitlements, profiles for `user_id` |
-| `manage-backup-codes` | JWT via anon client | Reads/writes backup codes for verified user |
-| `check-verification` | JWT via anon client | Calls `compute_user_verification` for verified user |
-| `invite-contributor` | JWT via service_role.auth.getUser | Inserts contributor for `callerUser.id`, sends invite |
-| `customer-portal` | JWT via service_role.auth.getUser | Reads subscriber for `user.id`, creates Stripe portal |
-| `cancel-subscription` | JWT verification | Cancels Stripe subscription for verified user |
-| `change-plan` | JWT claims via anon client | Updates entitlements/profiles/subscribers for `userId` |
-| `payment-history` | JWT via service_role.auth.getUser | Reads payment_events for `user.id` only |
-
-**Finding B-1 — `delete-account` accepts an arbitrary `target_account_id` from the request body — Medium**
-
-```typescript
-// delete-account/index.ts lines 75-82
-const body = await req.json();
-if (body.target_account_id && body.target_account_id !== user.id) {
-  targetAccountId = body.target_account_id;
-  isAdminDeletion = true;
-}
+**The policy (items SELECT):**
+```sql
+USING (auth.uid() = user_id OR has_contributor_access(auth.uid(), 'viewer'))
 ```
 
-A client can pass any `target_account_id` UUID in the request body. The function then checks if the caller is an `administrator` contributor to that account, which is correct. However, the `targetAccountId` is accepted from client input and used directly in 15+ `supabase.admin.delete()` and table-level `.delete().eq('user_id', targetAccountId)` calls. If the contributor check logic has any flaw, the attacker controls which account gets fully wiped.
-
-**Recommendation:** Validate `target_account_id` is a valid UUID before use, and verify the contributor record's `account_owner_id` matches the client-supplied `target_account_id` before proceeding — which it does at line 99-123. This is functionally safe but relies on the contributor lookup being correct. Consider adding an explicit UUID format check to fail early.
-
-**Finding B-2 — `validate-lifetime-code` uses a static hardcoded list — Medium**
-
-```typescript
-const LIFETIME_CODES = ["ASL2025"];
+**The `has_contributor_access` function:**
+```sql
+SELECT EXISTS (
+  SELECT 1 FROM public.contributors c
+  WHERE c.contributor_user_id = _user_id   -- the attacker's uid
+    AND c.status = 'accepted'
+    AND CASE _required_role
+          WHEN 'viewer' THEN c.role IN ('viewer', 'contributor', 'administrator')
+        END
+)
 ```
 
-The code list is hardcoded in the edge function. There is no rate limiting or per-user tracking: a valid authenticated user can apply the same code as many times as they want (each call just upserts the same data). More critically, if `ASL2025` is ever shared publicly, any authenticated user can activate a free lifetime premium subscription. The code cannot be revoked without redeploying the function.
+**The bug:** The function checks whether the attacker is a contributor of *any* account owner — it does **not check that the row being accessed belongs to that specific account owner**. It only verifies the attacker has *some* accepted contributor relationship somewhere.
 
-**Recommendation:** Store lifetime codes in a `lifetime_codes` table with `code`, `max_uses`, `times_redeemed`, and `expires_at` columns. Use service_role to atomically check-and-decrement. This also allows revocation.
+**The exploit:**
+1. Attacker (uid: `A`) creates their own account.
+2. Attacker creates a second "dummy" account (uid: `D`), then invites `A` as a contributor of `D` and accepts the invitation (they control both accounts).
+3. Now `has_contributor_access(A, 'viewer')` returns `true` for all time.
+4. Attacker queries: `SELECT * FROM items` — the USING clause is evaluated per-row. For every row where `auth.uid() = user_id` → false. For the `OR has_contributor_access(...)` branch → **TRUE** because `A` is an accepted contributor (of `D`). The function returns true regardless of *whose* items the row belongs to.
+5. **Result:** The attacker reads every item, property, property_file, and receipt for every user on the platform in a single query.
 
-**Finding B-3 — `change-plan` creates new Stripe products/prices on every call — Medium**
+**Which policy fails first:**
 
-```typescript
-const product = await stripe.products.create({ name: priceConfig.product_name });
-const newPrice = await stripe.prices.create({ ... });
+The `items` SELECT policy fails first because it is the broadest contributor-accessible table with the most records. Every asset table that uses the same pattern is equally vulnerable:
+- `items` — estimated value, brand, description of all inventory
+- `properties` — every user's property addresses
+- `property_files` — metadata (descriptions, tags, item values) for all uploaded files
+- `receipts` — purchase amounts, dates, merchants for all receipts
+- `storage_usage` — storage metrics for all users
+
+**The fix required:**
+The `has_contributor_access` function must accept and check the `account_owner_id` from the row, not just confirm the caller is *any* contributor somewhere. The SELECT policies on `items`, `properties`, `property_files`, and `receipts` must be changed to:
+
+```sql
+-- items SELECT fix:
+USING (
+  auth.uid() = user_id
+  OR EXISTS (
+    SELECT 1 FROM public.contributors c
+    WHERE c.contributor_user_id = auth.uid()
+      AND c.account_owner_id = items.user_id  -- MUST scope to this row's owner
+      AND c.status = 'accepted'
+      AND c.role IN ('viewer', 'contributor', 'administrator')
+  )
+)
 ```
 
-Every plan change call creates a new Stripe product and price object rather than using existing lookup keys. Over time this pollutes the Stripe product catalog with duplicate entries. More critically: if the function is called twice rapidly (e.g., double-click), it would create two Stripe product/price pairs and update the subscription twice. There's no idempotency key.
+This means the `has_contributor_access` function signature must change to accept a `target_owner_id` parameter, OR the policies must inline the EXISTS check with explicit `account_owner_id = <table>.user_id` binding. The function as written is structurally unsafe for multi-row SELECT contexts.
 
-**Recommendation:** Use `stripe.prices.list({ lookup_key: targetLookupKey })` to find the existing price, or set `lookup_key` on prices at creation time and retrieve by it. This also aligns with how `stripe-webhook` and `sync-subscription` identify plans.
+---
 
-**Finding B-4 — `invite-contributor` calls `auth.admin.listUsers()` with no pagination — Low**
+## ATTACK 2 — Upload Files into Unauthorized Paths (BLOCKED — But Verify)
 
-```typescript
-const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
-const existingUser = existingUsers?.users?.find(u => u.email?.toLowerCase() === validated.contributor_email.toLowerCase());
+**Target:** Supabase Storage
+
+**What the attacker tries:**
+```
+POST /storage/v1/object/photos/{victim_user_id}/malicious.jpg
+Authorization: Bearer <attacker_JWT>
 ```
 
-`auth.admin.listUsers()` with no parameters defaults to the first 1,000 users. If the platform grows beyond 1,000 users, invitations to emails of users created after position 1,000 will always generate a new auth invite rather than detecting the existing account. This is the same pattern found in `admin-stripe-subscriptions`. Both should use `listUsers({ perPage: 1000 })` with pagination, or better: look up by email directly via `admin.getUserByEmail()`.
+**What happens:** Storage RLS INSERT policy:
+```sql
+WITH CHECK (bucket_id = 'photos' AND auth.uid()::text = storage.foldername(name)[1])
+```
+`foldername(name)[1]` = first path segment = `victim_user_id`. `auth.uid()` = attacker's uid. They differ → **DENIED**.
 
-**Recommendation:**
-```typescript
-// Instead of listing all users:
-const { data: existingUserData } = await supabaseAdmin.auth.admin.getUserByEmail(
-  validated.contributor_email
-);
-const existingUser = existingUserData?.user;
+**Status: Correctly blocked.** The storage layer enforces path-based namespace isolation. An attacker cannot write to any path where the first path segment is not their own user ID.
+
+**One edge case — contributor INSERT to property_files:** The `property_files` INSERT policy for contributors:
+```sql
+WITH CHECK (
+  has_contributor_access(auth.uid(), 'contributor')       -- same bug as Attack 1
+  AND EXISTS (SELECT 1 FROM contributors c WHERE c.contributor_user_id = auth.uid() 
+              AND c.account_owner_id = property_files.user_id AND c.status = 'accepted')
+  AND (property_id IS NULL OR EXISTS (...))
+)
+```
+The INSERT policy includes an explicit `account_owner_id = property_files.user_id` check in the EXISTS clause. However, the `user_id` column being written to the new row is set by the attacker in the request body — there is no `WITH CHECK (user_id = <owner>)` enforcing whose user_id is stored. A contributor could write a `property_file` row with `user_id` set to any arbitrary UUID. The `has_contributor_access` check passes (because of Attack 1's bug), and the `account_owner_id = property_files.user_id` check also passes because the attacker controls `property_files.user_id` in the INSERT. This means a contributor INSERT can write rows with arbitrary `user_id` values.
+
+---
+
+## ATTACK 3 — Modify Records They Don't Own (PARTIALLY EXPLOITABLE)
+
+**Target:** `items`, `properties`, `property_files` UPDATE
+
+**The policies:**
+```sql
+-- items UPDATE
+USING (auth.uid() = user_id OR has_contributor_access(auth.uid(), 'contributor'))
+
+-- property_files UPDATE  
+USING (auth.uid() = user_id OR has_contributor_access(auth.uid(), 'contributor'))
+WITH CHECK (auth.uid() = user_id OR has_contributor_access(auth.uid(), 'contributor'))
 ```
 
+**The exploit:** Same mechanism as Attack 1. Once the attacker has any accepted contributor relationship (with a dummy account they control), `has_contributor_access(uid, 'contributor')` returns true globally. The USING clause evaluates to true for every row in the `items` and `property_files` tables. The attacker can UPDATE any user's items and property_file records. For `properties`, the UPDATE policy has the same flaw.
+
+**Severity:** An attacker could change item descriptions, estimated values, tags, file names, or property addresses for every user on the platform.
+
+**The `receipts` DELETE and UPDATE** have the same flaw — `has_contributor_access(auth.uid(), 'contributor')` and `has_contributor_access(auth.uid(), 'administrator')` with no owner binding.
+
 ---
 
-### Group C — Admin-Only Functions (service_role + admin role check)
+## ATTACK 4 — Access Shared Documents Without Authorization
 
-These functions verify `user_roles.role = 'admin'` before proceeding.
+**Target:** `user_documents` (personal documents, not property_files)
 
-| Function | Admin Check | Cross-User Operations |
-|----------|------------|----------------------|
-| `admin-stripe-subscriptions` | user_roles 'admin' | Lists ALL Stripe subscriptions + ALL profiles |
-| `admin-link-stripe-customer` | user_roles 'admin' | Updates any user's profile + subscribers by client-supplied `userId` |
-| `admin-get-user-emails` | has_owner_workspace_access RPC | Lists all auth.users emails |
-
-**Finding C-1 — `admin-link-stripe-customer` accepts arbitrary `userId` from request body — Medium**
-
-```typescript
-const { action, stripeCustomerId, userId, subscriptionId } = await req.json();
-// ...
-.update({ stripe_customer_id: stripeCustomerId, plan_id: planId, ... })
-.eq("user_id", userId);
+**The SELECT policy:**
+```sql
+USING (auth.uid() = user_id)
 ```
 
-An admin user can pass any `userId` in the request body and the function will update that user's `profile` and `subscriber` records with any `stripeCustomerId`. While this requires admin role, the admin can modify any user's billing state with arbitrary Stripe IDs. There is no check that the supplied `stripeCustomerId` actually belongs to the `userId` or is a valid Stripe customer.
+**Status: Correctly scoped.** `user_documents` only checks `auth.uid() = user_id` — no contributor access granted here. A malicious user cannot access another user's documents even with a dummy contributor relationship. This table is correctly isolated.
 
-**Recommendation:** After fetching the Stripe customer, verify `customer.email` matches the target user's email from `auth.admin.getUserById(userId)` before applying the link. This prevents an admin from maliciously or accidentally linking wrong billing data.
-
----
-
-### Group D — Stripe Webhook (No user auth by design — cryptographic source verification)
-
-`stripe-webhook` uses `service_role` with no JWT check. This is correct: webhook events come from Stripe, not from users. Authentication is via `stripe.webhooks.constructEvent(body, signature, webhookSecret)` — cryptographic HMAC verification of the Stripe-Signature header. **This is the correct pattern for Stripe webhooks.**
+However, the `storage_usage` SELECT policy has the same flaw:
+```sql
+USING (auth.uid() = user_id OR has_contributor_access(auth.uid(), 'viewer'))
+```
+An attacker with a dummy contributor relationship can read storage metrics (bucket names, file counts, total bytes) for every user on the platform — a full enumeration of all account sizes.
 
 ---
 
-### Group E — Background Email Functions (service_role, no user auth)
+## ATTACK 5 — Enumerate Profiles and PII
 
-Functions like `send-cancellation-notice`, `send-subscription-welcome-email`, `send-property-update`, etc. all use `service_role` to fetch data needed to compose emails (user profile, property details). These are invoked by other edge functions or the webhook, not directly by users. They use service_role only to read the data needed for the email — no writes are made to sensitive tables.
+**Target:** `profiles` table
 
-**Finding E-1 — `send-property-update` does not validate caller identity — Low**
+**The policy (Contributors view account owner profiles):**
+```sql
+USING (
+  auth.uid() = user_id
+  OR EXISTS (
+    SELECT 1 FROM contributors c
+    WHERE c.contributor_user_id = auth.uid()
+      AND c.account_owner_id = profiles.user_id  -- this one IS correctly scoped
+      AND c.status = 'accepted'
+  )
+)
+```
 
-This function reads property data and sends email notifications. It accepts `property_id` from the request body without verifying the caller is the property owner. It's called internally from property update flows, but if the URL is known, any authenticated user could trigger a notification email for any property.
+**Status: This specific policy is correctly scoped.** The `profiles` contributor SELECT policy does the right thing — it uses `account_owner_id = profiles.user_id` binding. This blocks the Attack 1 technique for profiles.
 
----
-
-## PART 3 — Full Risk Matrix
-
-| Function | Finding | Severity | Type |
-|----------|---------|----------|------|
-| `check-payment-failures` | No auth check — callable by anyone | **Medium** | Missing auth guard |
-| `check-gift-reminders` | No auth check — callable by anyone | **Medium** | Missing auth guard |
-| `check-grace-period-expiry` | No auth check — callable by anyone | **Medium** | Missing auth guard |
-| `delete-account` | Accepts `target_account_id` from body; relies on contributor check being correct | **Medium** | Client-controlled scope |
-| `validate-lifetime-code` | Hardcoded codes, no usage cap, no revocation mechanism | **Medium** | Static secret |
-| `change-plan` | Creates new Stripe products/prices per call; no idempotency | **Medium** | Resource pollution |
-| `admin-link-stripe-customer` | No cross-validation that Stripe customer email matches target user | **Medium** | Input trust |
-| `invite-contributor` | `listUsers()` with 1000-cap; misses users beyond position 1000 | **Low** | Pagination gap |
-| `admin-stripe-subscriptions` | Same `listUsers()` pagination gap | **Low** | Pagination gap |
-| `send-property-update` | No caller validation for property ownership | **Low** | Missing ownership check |
-| `track` | `service_role` used for an anonymous-compatible operation; could use anon + RLS | **Low** | Over-privileged client |
+However, the `profiles` table contains `stripe_customer_id`, `household_income`, `phone`, `plan_id`, `plan_status`, `account_number`. A contributor with legitimate access to one owner's account reads all these fields for that owner — which is intended — but the `stripe_customer_id` being readable by a viewer-role contributor is a potential concern if a contributor account is compromised.
 
 ---
 
-## PART 4 — Functions Where service_role Could Be Downgraded to anon + RLS
+## ATTACK 6 — Modify `subscribers` or `entitlements` to Upgrade Own Plan
 
-These functions use `service_role` for operations that RLS could handle:
+**Target:** `subscribers`, `entitlements`
 
-| Function | Current | Safer Alternative |
-|----------|---------|------------------|
-| `track` | service_role INSERT into `events` | anon client + INSERT policy `WITH CHECK (auth.uid() = user_id OR user_id IS NULL)` |
-| `send-property-update` | service_role SELECT on `properties` | anon client with the caller's JWT — they already own the property |
-| `sync-subscription` | service_role UPSERT into entitlements/profiles/subscribers | service_role is correct here because subscriber data must bypass RLS to sync from Stripe |
+**The `subscribers` policies:**
+- INSERT: `WITH CHECK (auth.uid() = user_id)` — users can create their own row
+- UPDATE: **No UPDATE policy exists for the client** — confirmed from the policy list: only `Users view own subscription`, `Users insert own subscription`, `Only service role can delete subscribers` are present. There is no client-accessible UPDATE policy.
+- `entitlements` — no INSERT or UPDATE client policy; read-only for the authenticated user.
 
-The `track` function is the clearest case: it's a write-only analytics insert that accepts unauthenticated calls (user_id may be null for anonymous visitors). Using service_role for this means a single compromised JWT or SSRF could fill the `events` table with arbitrary data. The anon client with a permissive INSERT policy would accomplish the same without exposing service-level privileges.
+**Status: Correctly locked.** The client cannot modify subscription/billing data. Only the service role (via Stripe webhook) can write to these tables. The `validate_subscription_update` trigger adds an additional guard that blocks past-dated subscription ends.
 
 ---
 
-## Summary Recommendations (Prioritized)
+## ATTACK 7 — Inject Spoofed Activity Logs
 
-### P0 — Add caller authentication to all scheduled functions
-Add `x-internal-secret` header validation to `check-payment-failures`, `check-gift-reminders`, and `check-grace-period-expiry`. This prevents arbitrary external callers from triggering mass email sends or Stripe API calls.
+**Target:** `user_activity_logs`
 
-### P1 — Move lifetime codes to a database table
-Replace the hardcoded `LIFETIME_CODES` array with a `lifetime_codes` table that tracks `max_uses` and `times_redeemed`. Add a usage check with an atomic update to prevent replay.
+**The INSERT policy:**
+```sql
+WITH CHECK (
+  auth.uid() = user_id
+  AND (actor_user_id IS NULL OR actor_user_id = auth.uid())
+)
+```
 
-### P2 — Fix `invite-contributor` and `admin-stripe-subscriptions` to use `getUserByEmail`
-Replace `listUsers()` + `.find()` with `auth.admin.getUserByEmail(email)` to avoid the 1,000-user pagination gap.
+**Status: Correctly hardened.** The actor_user_id cannot be spoofed — it must match `auth.uid()` or be null. An attacker cannot write log entries under another user's `user_id`.
 
-### P3 — Add Stripe customer email cross-validation in `admin-link-stripe-customer`
-Before updating a user's billing profile, verify `stripe_customer.email === auth_user.email`.
+---
 
-### P4 — Downgrade `track` function to anon + RLS
-Remove service_role from the analytics tracking function; add a permissive INSERT RLS policy on the `events` table instead.
+## Summary — Vulnerability Priority Matrix
+
+| Attack | Table(s) | Severity | Status |
+|--------|---------|----------|--------|
+| A1: Read all assets via contributor bypass | `items`, `properties`, `property_files`, `receipts`, `storage_usage` | **CRITICAL** | **Exploitable now** |
+| A3: Update any user's assets via contributor bypass | `items`, `properties`, `property_files`, `receipts` | **HIGH** | **Exploitable now** |
+| A2b: contributor INSERT with arbitrary `user_id` in body | `property_files` | **Medium** | **Exploitable now** |
+| A5: Stripe customer ID readable by contributors | `profiles` | **Low** | Functioning but over-permissive |
+| A2: Upload to another user's storage path | `storage.objects` | None | **Correctly blocked** |
+| A4: Read another user's documents | `user_documents` | None | **Correctly blocked** |
+| A6: Modify subscription tier | `subscribers`, `entitlements` | None | **Correctly blocked** |
+| A7: Spoof activity logs | `user_activity_logs` | None | **Correctly blocked** |
+
+---
+
+## Root Cause
+
+The `has_contributor_access(_user_id, _required_role)` function has no knowledge of which account owner's data is being accessed. It only answers "is this user a contributor somewhere?" When used in a multi-row SELECT/UPDATE USING clause, this becomes a global pass once the condition is true for any row in `contributors`.
+
+The safe pattern — used correctly in `profiles`, `account_deletion_requests`, `legacy_locker` — uses an explicit inline `EXISTS` with `c.account_owner_id = <table>.user_id`. The unsafe pattern — used in `items`, `properties`, `property_files`, `receipts`, `storage_usage` — delegates to `has_contributor_access` without the owner binding.
+
+---
+
+## Required Fixes
+
+### Fix 1 — Redesign `has_contributor_access` to require `account_owner_id`
+
+Change the function signature to:
+```sql
+CREATE OR REPLACE FUNCTION public.has_contributor_access(
+  _user_id uuid,
+  _account_owner_id uuid,   -- NEW: must pass the row's owner
+  _required_role contributor_role
+) RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.contributors c
+    WHERE c.contributor_user_id = _user_id
+      AND c.account_owner_id = _account_owner_id    -- scoped to specific owner
+      AND c.status = 'accepted'
+      AND CASE _required_role
+            WHEN 'viewer'        THEN c.role IN ('viewer', 'contributor', 'administrator')
+            WHEN 'contributor'   THEN c.role IN ('contributor', 'administrator')
+            WHEN 'administrator' THEN c.role = 'administrator'
+          END
+  )
+$$;
+```
+
+Then update every policy that calls it to pass `<table>.user_id` as the `_account_owner_id`. Example:
+```sql
+-- items SELECT
+USING (
+  auth.uid() = user_id
+  OR has_contributor_access(auth.uid(), items.user_id, 'viewer')
+)
+
+-- properties SELECT
+USING (
+  auth.uid() = user_id
+  OR has_contributor_access(auth.uid(), properties.user_id, 'viewer')
+)
+```
+
+This is a **single function change + policy updates** that closes Attack 1 and Attack 3 across all affected tables.
+
+### Fix 2 — Harden `property_files` INSERT to enforce owner's `user_id`
+
+Add an explicit `WITH CHECK` that the `user_id` being inserted belongs to a user the contributor is actually authorized for:
+```sql
+WITH CHECK (
+  auth.uid() = user_id
+  OR (
+    has_contributor_access(auth.uid(), property_files.user_id, 'contributor')
+    AND (property_id IS NULL OR EXISTS (
+      SELECT 1 FROM properties p
+      WHERE p.id = property_files.property_id
+        AND p.user_id = property_files.user_id  -- also bind property to same owner
+    ))
+  )
+)
+```
+
+### Fix 3 — Limit `profiles` contributor view to non-sensitive columns
+
+The `profiles` table exposes `stripe_customer_id`, `household_income`, and `account_number` to contributors. If contributors genuinely need to see profile information (e.g., name for display), consider creating a view that exposes only `first_name`, `last_name`, `avatar_url` for contributor access and restricts the direct table to owner-only reads.
+
+---
+
+## The First Place a Leak Would Actually Occur
+
+In a real attack, the attacker would:
+1. Sign up → invite a second account as contributor → accept in second account (takes ~2 minutes)
+2. Run: `supabase.from('items').select('*')` in the browser console
+3. Receive every item record from every user on the platform
+
+The first query that leaks would be `items` because it has no ordering constraints and is the broadest table. The first policy that fails is the `items` SELECT: `USING (...OR has_contributor_access(auth.uid(), 'viewer'))` — because `has_contributor_access` has no owner scoping.
