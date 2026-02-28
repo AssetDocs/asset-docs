@@ -49,7 +49,7 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
-  signUp: (email: string, password: string, firstName?: string, lastName?: string) => Promise<{ error: any; data?: any }>;
+  signUp: (email: string, password: string, firstName?: string, lastName?: string, giftCode?: string) => Promise<{ error: any; data?: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   isAuthenticated: boolean;
@@ -165,8 +165,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, firstName?: string, lastName?: string) => {
-    const redirectUrl = `${window.location.origin}/auth/callback?type=signup&redirect_to=/welcome`;
+  const signUp = async (email: string, password: string, firstName?: string, lastName?: string, giftCode?: string) => {
+    const welcomePath = giftCode?.trim()
+      ? `/welcome?giftCode=${encodeURIComponent(giftCode.trim())}`
+      : '/welcome';
+    const redirectUrl = `${window.location.origin}/auth/callback?type=signup&redirect_to=${encodeURIComponent(welcomePath)}`;
     
     const { data, error } = await supabase.auth.signUp({
       email,
