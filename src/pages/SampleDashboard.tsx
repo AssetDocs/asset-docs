@@ -97,7 +97,7 @@ const SampleDashboard: React.FC = () => {
       { label: 'Create Your First Property', completed: true, phase: 1 },
       { label: 'Upload Your First Photos or Videos', completed: true, phase: 1 },
       { label: 'Add an Authorized User', completed: true, phase: 2 },
-      { label: 'Enable Multi-Factor Authentication', completed: false, phase: 2 },
+      { label: 'Enable Multi-Factor Authentication', completed: true, phase: 2 },
       { label: 'Upload Important Documents & Records', completed: false, phase: 2 },
       { label: 'Enable Secure Vault Protection', completed: false, phase: 3 },
       { label: 'Add Legacy Locker & Password Catalog Details', completed: false, phase: 3 },
@@ -123,10 +123,10 @@ const SampleDashboard: React.FC = () => {
               <Shield className="h-4 w-4 text-primary" />
             </div>
             <span className="text-sm font-semibold text-foreground whitespace-nowrap">Security Progress</span>
-            {/* Static "User" badge matching UserStatusBadge */}
-            <div className="inline-flex items-center gap-1 rounded-full border bg-blue-50 border-blue-200 px-2 py-0.5">
-              <Shield className="h-4 w-4 text-blue-600" />
-              <span className="text-xs text-blue-700 font-medium">User</span>
+            {/* Verified badge matching UserStatusBadge */}
+            <div className="inline-flex items-center gap-1 rounded-full border bg-green-50 border-green-200 px-2 py-0.5">
+              <ShieldCheck className="h-4 w-4 text-green-500" />
+              <span className="text-xs text-green-700 font-medium">Verified</span>
             </div>
             <Progress value={progressPercent} className="h-1.5 flex-1 min-w-0" />
           </div>
