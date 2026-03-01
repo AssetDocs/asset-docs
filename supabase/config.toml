@@ -205,3 +205,9 @@ verify_jwt = false
 
 [functions.change-plan]
 verify_jwt = false
+
+[functions.finalize-checkout]
+verify_jwt = false
+
+[functions.log-consent]
+verify_jwt = false

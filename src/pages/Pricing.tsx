@@ -20,6 +20,8 @@ import { productSchema, faqSchema, breadcrumbSchema } from '@/utils/structuredDa
 const Pricing: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const searchParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+  const wasCanceled = searchParams.get('canceled') === '1';
   const [subscriptionStatus, setSubscriptionStatus] = useState<{
     subscribed: boolean;
     subscription_tier?: string;
@@ -80,11 +82,12 @@ const Pricing: React.FC = () => {
   const handleSubscribe = async (yearly: boolean = false) => {
     if (!consentChecked) return;
 
-    if (user) {
-      setIsLoading(true);
-      setConsentLogging(true);
-      try {
-        // Log consent before checkout
+    setIsLoading(true);
+    setConsentLogging(true);
+
+    try {
+      // For authenticated users, log consent before checkout
+      if (user) {
         const { data: consentData, error: consentErr } = await supabase.functions.invoke('log-consent', {
           body: {
             userEmail: user.email,
@@ -95,30 +98,29 @@ const Pricing: React.FC = () => {
         if (consentErr || !consentData?.success) {
           throw new Error('Failed to record consent. Please try again.');
         }
-        setConsentLogging(false);
-
-        const lookupKey = yearly ? 'asset_safe_annual' : 'asset_safe_monthly';
-        const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-checkout', {
-          body: { planLookupKey: lookupKey },
-        });
-        
-        if (checkoutError) throw checkoutError;
-        window.location.href = checkoutData.url;
-      } catch (error: any) {
-        console.error('Error creating checkout:', error);
-        toast({
-          title: "Error",
-          description: error.message || "Failed to create checkout session. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-        setConsentLogging(false);
       }
-      return;
+      // For unauthenticated users, consent is logged post-payment by finalize-checkout
+
+      setConsentLogging(false);
+
+      const lookupKey = yearly ? 'asset_safe_annual' : 'asset_safe_monthly';
+      const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-checkout', {
+        body: { planLookupKey: lookupKey },
+      });
+
+      if (checkoutError) throw checkoutError;
+      window.location.href = checkoutData.url;
+    } catch (error: any) {
+      console.error('Error creating checkout:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create checkout session. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+      setConsentLogging(false);
     }
-    
-    window.location.href = `/signup?billing=${yearly ? 'yearly' : 'monthly'}`;
   };
 
   const unifiedFeatures = [
@@ -160,6 +162,11 @@ const Pricing: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
+      {wasCanceled && (
+        <div className="bg-yellow-50 border-b border-yellow-200 text-yellow-800 text-center py-3 px-4 text-sm">
+          Your checkout was canceled — choose a plan below to try again.
+        </div>
+      )}
       <SEOHead
         title="Asset Safe Plan — Everything Included | Asset Safe"
         description="One simple plan starting at $18.99/mo. Secure asset documentation, cloud storage, legacy tools, and trusted access — with flexible storage that grows with you."
@@ -239,7 +246,7 @@ const Pricing: React.FC = () => {
                     features={unifiedFeatures}
                     billingInterval={billingCycle === 'yearly' ? 'year' : 'month'}
                     recommended={true}
-                    buttonText={subscriptionStatus.subscribed ? 'Current Plan' : isLoading || consentLogging ? 'Processing...' : consentChecked ? 'Get Started' : 'Agree to Continue'}
+                    buttonText={subscriptionStatus.subscribed ? 'Current Plan' : isLoading || consentLogging ? 'Processing...' : consentChecked ? 'Start Asset Safe' : 'Agree to Continue'}
                     onClick={() => handleSubscribe(billingCycle === 'yearly')}
                   />
 
