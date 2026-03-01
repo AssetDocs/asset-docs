@@ -69,7 +69,7 @@ const LegacyLockerSection: React.FC = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button asChild size="lg" className="bg-white text-brand-blue hover:bg-gray-100">
-                <Link to="/signup">Get Started Today</Link>
+                <Link to="/pricing">Get Started Today</Link>
               </Button>
               <Button asChild size="lg" className="bg-white text-brand-blue hover:bg-gray-100">
                 <Link to="/legacy-locker-info">Learn More</Link>

@@ -157,8 +157,8 @@ const Navbar: React.FC = () => {
                    </Link>
                  </Button>
                    <Button asChild className="bg-brand-orange hover:bg-brand-orange/90">
-                      <Link to="/signup">{translate('nav.getStarted')}</Link>
-                   </Button>
+                       <Link to="/pricing">{translate('nav.getStarted')}</Link>
+                    </Button>
               </>
             )}
             </div>
@@ -181,8 +181,8 @@ const Navbar: React.FC = () => {
                   </Link>
                 </Button>
                 <Button asChild size="sm" className="bg-brand-orange hover:bg-brand-orange/90 text-xs px-2 py-1 h-8">
-                  <Link to="/signup">{translate('nav.getStarted')}</Link>
-                </Button>
+                   <Link to="/pricing">{translate('nav.getStarted')}</Link>
+                 </Button>
               </div>
             )}
             <button
