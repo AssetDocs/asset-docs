@@ -29,11 +29,6 @@ const SubscriptionPlan: React.FC<SubscriptionPlanProps> = ({
 }) => {
   return (
     <Card className={`flex flex-col h-full ${recommended ? 'border-2 border-brand-orange relative' : ''}`}>
-      {recommended && (
-        <div className="absolute top-0 right-0 bg-brand-orange text-white px-4 py-1 rounded-bl-lg text-sm font-medium">
-          Recommended
-        </div>
-      )}
       <CardHeader className="pb-4">
         <h3 className="text-xl font-bold">{title}</h3>
         <div className="mt-2">

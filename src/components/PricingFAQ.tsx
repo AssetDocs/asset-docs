@@ -12,13 +12,13 @@ const PricingFAQ: React.FC = () => {
         <div className="max-w-4xl mx-auto">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="w-full flex items-center justify-between p-6 bg-white rounded-lg shadow-sm border border-border hover:bg-muted/30 transition-colors"
+            className="w-full flex items-center justify-between p-6 bg-brand-green text-white rounded-lg shadow-sm hover:bg-brand-green/90 transition-colors"
           >
-            <h2 className="text-2xl font-bold text-foreground">Frequently Asked Questions</h2>
+            <h2 className="text-2xl font-bold text-white">Frequently Asked Questions</h2>
             {isExpanded ? (
-              <ChevronUp className="h-6 w-6 text-muted-foreground" />
+              <ChevronUp className="h-6 w-6 text-white" />
             ) : (
-              <ChevronDown className="h-6 w-6 text-muted-foreground" />
+              <ChevronDown className="h-6 w-6 text-white" />
             )}
           </button>
           
