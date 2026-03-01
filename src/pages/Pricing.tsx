@@ -144,7 +144,7 @@ const Pricing: React.FC = () => {
     description: "Give a full year of protection. Everything included.",
     features: [
       "Unlimited properties",
-      "25GB secure cloud storage",
+      "50GB secure cloud storage",
       "Legacy Locker + Authorized Users",
       "Emergency Access Sharing",
       "Full platform access — everything included",

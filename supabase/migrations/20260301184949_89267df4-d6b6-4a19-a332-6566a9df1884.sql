@@ -1,0 +1,1 @@
+UPDATE public.entitlements SET base_storage_gb = 50 WHERE base_storage_gb = 25;
