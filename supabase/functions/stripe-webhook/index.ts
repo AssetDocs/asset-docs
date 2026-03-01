@@ -455,9 +455,14 @@ async function handleCheckoutCompleted(
 
   // ── GIFT FLOW ──────────────────────────────────────────────────────────────
   if (session.metadata?.gift === "true" && (session.mode === 'payment' || session.mode === 'subscription')) {
-    logStep('Gift checkout completed, processing gift flow', { mode: session.mode });
+    logStep('Gift checkout completed, processing unified gift flow', { mode: session.mode });
     try {
-      const token = crypto.randomUUID();
+      // Generate GIFT-XXXXXXXXXX code
+      const randomPart = Array.from(crypto.getRandomValues(new Uint8Array(5)))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('')
+        .toUpperCase();
+      const giftCode = `GIFT-${randomPart}`;
       const giftTerm = session.metadata.gift_term || 'yearly';
       const now = new Date();
       const expiresAt = new Date(now);
@@ -467,39 +472,66 @@ async function handleCheckoutCompleted(
         expiresAt.setFullYear(expiresAt.getFullYear() + 1);
       }
 
-      // For subscription mode: immediately cancel auto-renew (legacy gift flow)
+      // For subscription mode: immediately cancel auto-renew
       if (session.mode === 'subscription' && session.subscription) {
-        await stripe.subscriptions.update(session.subscription as string, {
-          cancel_at_period_end: true,
-        });
-        logStep('Subscription set to cancel_at_period_end', { subscriptionId: session.subscription });
+        try {
+          await stripe.subscriptions.update(session.subscription as string, {
+            cancel_at_period_end: true,
+          });
+          logStep('Subscription set to cancel_at_period_end', { subscriptionId: session.subscription });
+        } catch (subErr) {
+          logStep('Warning: could not set cancel_at_period_end', subErr);
+        }
       }
-      // For payment mode (asset_safe_gift_annual): no subscription to cancel
 
-      // Insert into gifts table
-      const { error: giftInsertError } = await supabase.from('gifts').insert({
-        token,
+      // Insert into gift_subscriptions (unified system)
+      const recipientName = session.metadata.recipient_name || null;
+      const purchaserName = session.metadata.from_name;
+      const { error: giftInsertError } = await supabase.from('gift_subscriptions').insert({
+        gift_code: giftCode,
         recipient_email: session.metadata.recipient_email,
-        from_name: session.metadata.from_name,
+        recipient_name: recipientName,
+        purchaser_name: purchaserName,
+        purchaser_email: session.metadata.purchaser_email || session.customer_details?.email || null,
         gift_message: session.metadata.gift_message || null,
+        plan_type: 'standard',
         term: giftTerm,
+        delivery_date: new Date().toISOString(),
         expires_at: expiresAt.toISOString(),
         stripe_checkout_session_id: session.id,
         stripe_subscription_id: session.mode === 'subscription' ? session.subscription as string : null,
         status: 'paid',
         amount: session.amount_total || 18900,
         currency: session.currency || 'usd',
+        redeemed: false,
       });
 
       if (giftInsertError) {
-        logStep('Error inserting gift record', giftInsertError);
+        logStep('Error inserting gift_subscriptions record', giftInsertError);
+        // Fallback: also write to legacy gifts table so redemption still works
+        await supabase.from('gifts').insert({
+          token: crypto.randomUUID(),
+          recipient_email: session.metadata.recipient_email,
+          from_name: purchaserName,
+          gift_message: session.metadata.gift_message || null,
+          term: giftTerm,
+          expires_at: expiresAt.toISOString(),
+          stripe_checkout_session_id: session.id,
+          stripe_subscription_id: session.mode === 'subscription' ? session.subscription as string : null,
+          status: 'paid',
+          amount: session.amount_total || 18900,
+          currency: session.currency || 'usd',
+        }).catch(() => {});
       } else {
-        logStep('Gift record created', { token, expiresAt: expiresAt.toISOString() });
+        logStep('Gift record created in gift_subscriptions', { giftCode, expiresAt: expiresAt.toISOString() });
       }
 
-      // Send recipient email
-      const redeemUrl = `https://www.getassetsafe.com/redeem?token=${token}`;
+      // Send recipient email with claim link + code
+      const claimUrl = `https://www.getassetsafe.com/gift-claim?code=${giftCode}`;
       const resendKey = Deno.env.get('RESEND_API_KEY');
+      const greeting = session.metadata.recipient_name
+        ? `Hi ${session.metadata.recipient_name},`
+        : "Hello,";
       if (resendKey) {
         try {
           await fetch('https://api.resend.com/emails', {
@@ -511,23 +543,24 @@ async function handleCheckoutCompleted(
             body: JSON.stringify({
               from: 'Asset Safe <no-reply@getassetsafe.com>',
               to: [session.metadata.recipient_email],
-              subject: "You've been gifted full access to Asset Safe",
+              subject: "You've been gifted full access to Asset Safe 🎁",
               html: `
-                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-                  <h2 style="color: #1a1a1a;">You've received a gift! 🎁</h2>
+                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #fff;">
+                  <h2 style="color: #1a1a1a;">${greeting} You've received a gift! 🎁</h2>
                   <p><strong>${session.metadata.from_name}</strong> has gifted you a full year of access to Asset Safe — the secure home documentation platform.</p>
-                  ${session.metadata.gift_message ? `<blockquote style="border-left: 3px solid #f97316; padding-left: 16px; color: #555;">${session.metadata.gift_message}</blockquote>` : ''}
+                  ${session.metadata.gift_message ? `<blockquote style="border-left: 3px solid #f97316; padding-left: 16px; color: #555; margin: 16px 0;">${session.metadata.gift_message}</blockquote>` : ''}
                   <p>Your access includes everything: unlimited properties, 25GB storage, Legacy Locker, Vault, and more.</p>
-                  <p><strong>Your access expires:</strong> ${expiresAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                  <p><strong>Access expires:</strong> ${expiresAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
                   <div style="text-align: center; margin: 32px 0;">
-                    <a href="${redeemUrl}" style="background: #f97316; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold;">Redeem Your Gift</a>
+                    <a href="${claimUrl}" style="background: #f97316; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">Claim Your Gift Now</a>
                   </div>
+                  <p style="color: #555; font-size: 14px;">Or use your gift code manually: <strong>${giftCode}</strong></p>
                   <p style="color: #888; font-size: 12px;">No auto-renew. After your gift expires, you can choose to subscribe monthly or yearly.</p>
                 </div>
               `,
             }),
           });
-          logStep('Recipient gift email sent');
+          logStep('Recipient gift email sent with claim link');
         } catch (emailError) {
           logStep('Failed to send recipient email', emailError);
         }

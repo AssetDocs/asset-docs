@@ -1,18 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Gift, CheckIcon, AlertCircle, Loader2, Lock } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 
-type GiftRecord = {
+type LegacyGift = {
   id: string;
   from_name: string;
   gift_message: string | null;
@@ -22,8 +23,14 @@ type GiftRecord = {
   redeemed: boolean;
 };
 
-type PageState = 'loading' | 'valid' | 'invalid' | 'expired' | 'already_redeemed' | 'success';
+type PageState = 'loading' | 'redirecting' | 'legacy_valid' | 'invalid' | 'expired' | 'already_redeemed' | 'success';
 
+/**
+ * Legacy /redeem?token= route.
+ * Attempts to resolve the token to a gift_subscriptions gift_code and redirects
+ * to /gift-claim?code=<gift_code>. Falls back to inline legacy redemption if
+ * no gift_subscriptions record exists (purely old data).
+ */
 const GiftRedeem: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
@@ -32,7 +39,7 @@ const GiftRedeem: React.FC = () => {
 
   const token = searchParams.get('token');
   const [pageState, setPageState] = useState<PageState>('loading');
-  const [gift, setGift] = useState<GiftRecord | null>(null);
+  const [legacyGift, setLegacyGift] = useState<LegacyGift | null>(null);
   const [isRedeeming, setIsRedeeming] = useState(false);
 
   useEffect(() => {
@@ -40,64 +47,82 @@ const GiftRedeem: React.FC = () => {
       setPageState('invalid');
       return;
     }
-    fetchGift();
+    resolveToken();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
-  const fetchGift = async () => {
+  const resolveToken = async () => {
     try {
-      const { data, error } = await supabase
+      // 1. Look up legacy gifts table
+      const { data: giftData, error } = await (supabase as any)
         .from('gifts')
-        .select('id, from_name, gift_message, expires_at, term, status, redeemed')
+        .select('id, from_name, gift_message, expires_at, term, status, redeemed, stripe_checkout_session_id')
         .eq('token', token)
         .maybeSingle();
 
-      if (error || !data) {
+      if (error || !giftData) {
         setPageState('invalid');
         return;
       }
 
-      if (data.redeemed || data.status === 'redeemed') {
+      if (giftData.redeemed || giftData.status === 'redeemed') {
         setPageState('already_redeemed');
         return;
       }
 
-      if (data.status !== 'paid') {
+      if (giftData.status !== 'paid') {
         setPageState('invalid');
         return;
       }
 
-      if (data.expires_at && new Date(data.expires_at) < new Date()) {
+      if (giftData.expires_at && new Date(giftData.expires_at) < new Date()) {
         setPageState('expired');
         return;
       }
 
-      setGift(data);
-      setPageState('valid');
+      // 2. Try to find a corresponding gift_subscriptions record
+      if (giftData.stripe_checkout_session_id) {
+        const { data: gsSub } = await (supabase as any)
+          .from('gift_subscriptions')
+          .select('gift_code')
+          .eq('stripe_checkout_session_id', giftData.stripe_checkout_session_id)
+          .eq('redeemed', false)
+          .maybeSingle();
+
+        if (gsSub?.gift_code) {
+          // Redirect to unified claim route
+          setPageState('redirecting');
+          navigate(`/gift-claim?code=${gsSub.gift_code}`, { replace: true });
+          return;
+        }
+      }
+
+      // 3. No gift_subscriptions record — handle inline (pure legacy path)
+      setLegacyGift(giftData);
+      setPageState('legacy_valid');
     } catch (err) {
-      console.error('Error fetching gift:', err);
+      console.error('Error resolving gift token:', err);
       setPageState('invalid');
     }
   };
 
-  const handleRedeem = async () => {
-    if (!user || !gift) return;
+  const handleLegacyRedeem = async () => {
+    if (!user || !legacyGift) return;
     setIsRedeeming(true);
 
     try {
-      // Mark gift as redeemed
-      const { error: giftError } = await supabase
+      const { error: giftError } = await (supabase as any)
         .from('gifts')
         .update({
           redeemed: true,
           redeemed_by_user_id: user.id,
           status: 'redeemed',
         })
-        .eq('id', gift.id)
-        .eq('redeemed', false); // safety check
+        .eq('id', legacyGift.id)
+        .eq('redeemed', false);
 
       if (giftError) throw giftError;
 
-      // Upsert entitlement as gifted
       const { error: entitlementError } = await supabase
         .from('entitlements')
         .upsert({
@@ -106,7 +131,7 @@ const GiftRedeem: React.FC = () => {
           status: 'active',
           billing_status: 'gifted',
           entitlement_source: 'admin',
-          expires_at: gift.expires_at,
+          expires_at: legacyGift.expires_at,
           base_storage_gb: 25,
           updated_at: new Date().toISOString(),
         }, { onConflict: 'user_id' });
@@ -118,10 +143,9 @@ const GiftRedeem: React.FC = () => {
         title: "Gift Redeemed! 🎉",
         description: "Welcome to Asset Safe. Your full access is now active.",
       });
-
       setTimeout(() => navigate('/account'), 2500);
     } catch (error: any) {
-      console.error('Redemption error:', error);
+      console.error('Legacy redemption error:', error);
       toast({
         title: "Redemption Failed",
         description: "Something went wrong. Please try again or contact support.",
@@ -149,15 +173,15 @@ const GiftRedeem: React.FC = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-md mx-auto">
 
-            {/* Loading */}
-            {pageState === 'loading' && (
+            {(pageState === 'loading' || pageState === 'redirecting') && (
               <Card className="text-center p-8">
                 <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
-                <p className="text-muted-foreground">Verifying your gift...</p>
+                <p className="text-muted-foreground">
+                  {pageState === 'redirecting' ? 'Redirecting to claim page…' : 'Verifying your gift…'}
+                </p>
               </Card>
             )}
 
-            {/* Invalid */}
             {pageState === 'invalid' && (
               <Card>
                 <CardHeader className="text-center">
@@ -168,14 +192,11 @@ const GiftRedeem: React.FC = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="text-center">
-                  <Button asChild>
-                    <Link to="/pricing">View Plans</Link>
-                  </Button>
+                  <Button asChild><Link to="/pricing">View Plans</Link></Button>
                 </CardContent>
               </Card>
             )}
 
-            {/* Expired */}
             {pageState === 'expired' && (
               <Card>
                 <CardHeader className="text-center">
@@ -186,14 +207,11 @@ const GiftRedeem: React.FC = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="text-center">
-                  <Button asChild>
-                    <Link to="/pricing">See Pricing</Link>
-                  </Button>
+                  <Button asChild><Link to="/pricing">See Pricing</Link></Button>
                 </CardContent>
               </Card>
             )}
 
-            {/* Already Redeemed */}
             {pageState === 'already_redeemed' && (
               <Card>
                 <CardHeader className="text-center">
@@ -204,15 +222,13 @@ const GiftRedeem: React.FC = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="text-center">
-                  <Button asChild>
-                    <Link to="/auth">Log In</Link>
-                  </Button>
+                  <Button asChild><Link to="/auth">Log In</Link></Button>
                 </CardContent>
               </Card>
             )}
 
-            {/* Valid — Not Logged In */}
-            {pageState === 'valid' && !user && gift && (
+            {/* Legacy valid — not logged in */}
+            {pageState === 'legacy_valid' && !user && legacyGift && (
               <Card>
                 <CardHeader className="text-center">
                   <div className="inline-flex items-center justify-center w-14 h-14 bg-primary/10 rounded-full mx-auto mb-2">
@@ -220,36 +236,30 @@ const GiftRedeem: React.FC = () => {
                   </div>
                   <CardTitle>You've Received a Gift!</CardTitle>
                   <CardDescription>
-                    <strong className="text-foreground">{gift.from_name}</strong> has gifted you full access to Asset Safe
-                    {gift.expires_at && ` through ${format(new Date(gift.expires_at), 'MMMM d, yyyy')}`}.
+                    <strong className="text-foreground">{legacyGift.from_name}</strong> has gifted you full access to Asset Safe
+                    {legacyGift.expires_at && ` through ${format(new Date(legacyGift.expires_at), 'MMMM d, yyyy')}`}.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {gift.gift_message && (
+                  {legacyGift.gift_message && (
                     <div className="bg-muted/50 rounded-lg p-4 italic text-muted-foreground text-sm">
-                      "{gift.gift_message}"
+                      "{legacyGift.gift_message}"
                     </div>
                   )}
                   <Alert>
                     <Lock className="h-4 w-4" />
-                    <AlertDescription>
-                      Create a free account or log in to redeem your gift.
-                    </AlertDescription>
+                    <AlertDescription>Create a free account or log in to redeem your gift.</AlertDescription>
                   </Alert>
                   <div className="flex flex-col gap-2">
-                    <Button asChild size="lg">
-                      <Link to={signupUrl}>Create Account & Redeem</Link>
-                    </Button>
-                    <Button asChild variant="outline">
-                      <Link to={loginUrl}>Log In to Redeem</Link>
-                    </Button>
+                    <Button asChild size="lg"><Link to={signupUrl}>Create Account & Redeem</Link></Button>
+                    <Button asChild variant="outline"><Link to={loginUrl}>Log In to Redeem</Link></Button>
                   </div>
                 </CardContent>
               </Card>
             )}
 
-            {/* Valid — Logged In */}
-            {pageState === 'valid' && user && gift && (
+            {/* Legacy valid — logged in */}
+            {pageState === 'legacy_valid' && user && legacyGift && (
               <Card>
                 <CardHeader className="text-center">
                   <div className="inline-flex items-center justify-center w-14 h-14 bg-primary/10 rounded-full mx-auto mb-2">
@@ -257,25 +267,24 @@ const GiftRedeem: React.FC = () => {
                   </div>
                   <CardTitle>You've Received a Gift!</CardTitle>
                   <CardDescription>
-                    <strong className="text-foreground">{gift.from_name}</strong> gifted you a full year of Asset Safe access.
+                    <strong className="text-foreground">{legacyGift.from_name}</strong> gifted you a full year of Asset Safe access.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {gift.gift_message && (
+                  {legacyGift.gift_message && (
                     <div className="bg-muted/50 rounded-lg p-4 italic text-muted-foreground text-sm">
-                      "{gift.gift_message}"
+                      "{legacyGift.gift_message}"
                     </div>
                   )}
-
                   <div className="bg-primary/5 rounded-lg p-4 space-y-1 text-sm">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Plan</span>
                       <span className="font-medium text-foreground">Asset Safe Plan (Full Access)</span>
                     </div>
-                    {gift.expires_at && (
+                    {legacyGift.expires_at && (
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Access Until</span>
-                        <span className="font-medium text-foreground">{format(new Date(gift.expires_at), 'MMMM d, yyyy')}</span>
+                        <span className="font-medium text-foreground">{format(new Date(legacyGift.expires_at), 'MMMM d, yyyy')}</span>
                       </div>
                     )}
                     <div className="flex justify-between">
@@ -283,18 +292,10 @@ const GiftRedeem: React.FC = () => {
                       <span className="font-medium text-green-600">No — one-time gift</span>
                     </div>
                   </div>
-
-                  <Button
-                    onClick={handleRedeem}
-                    disabled={isRedeeming}
-                    size="lg"
-                    className="w-full"
-                  >
+                  <Button onClick={handleLegacyRedeem} disabled={isRedeeming} size="lg" className="w-full">
                     {isRedeeming ? (
-                      <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Redeeming...</>
-                    ) : (
-                      'Redeem Gift'
-                    )}
+                      <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Redeeming…</>
+                    ) : 'Redeem Gift'}
                   </Button>
                   <p className="text-xs text-muted-foreground text-center">
                     After redemption you'll be redirected to your dashboard.
@@ -303,13 +304,12 @@ const GiftRedeem: React.FC = () => {
               </Card>
             )}
 
-            {/* Success */}
             {pageState === 'success' && (
               <Card>
                 <CardHeader className="text-center">
                   <CheckIcon className="h-14 w-14 text-green-500 mx-auto mb-2" />
                   <CardTitle>Gift Redeemed! 🎉</CardTitle>
-                  <CardDescription>Your full access is now active. Redirecting to your dashboard...</CardDescription>
+                  <CardDescription>Your full access is now active. Redirecting to your dashboard…</CardDescription>
                 </CardHeader>
               </Card>
             )}
