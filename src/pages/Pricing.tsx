@@ -202,15 +202,6 @@ const Pricing: React.FC = () => {
 
               {/* For You Tab Content */}
               <TabsContent value="for-you" className="mt-0">
-                <div className="mb-8">
-                  <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-4">
-                    One simple plan. Everything included.
-                  </p>
-                  <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 max-w-md mx-auto space-y-1">
-                    <p className="text-sm text-muted-foreground">No long-term contract. Cancel anytime</p>
-                    <p className="text-xs text-muted-foreground">🇺🇸 Paid subscriptions are currently available to U.S. billing addresses only.</p>
-                  </div>
-                </div>
 
                 {/* Billing Cycle Toggle */}
                 <div className="flex items-center justify-center mb-8">
@@ -242,11 +233,11 @@ const Pricing: React.FC = () => {
                   <SubscriptionPlan
                     title="Asset Safe Plan"
                     price={billingCycle === 'monthly' ? '$18.99' : '$189'}
-                    description={billingCycle === 'yearly' ? 'One simple plan. Everything included. — Save when you pay yearly' : 'One simple plan. Everything included.'}
+                    description={billingCycle === 'yearly' ? 'Save when you pay yearly' : ''}
                     features={unifiedFeatures}
                     billingInterval={billingCycle === 'yearly' ? 'year' : 'month'}
                     recommended={true}
-                    buttonText={subscriptionStatus.subscribed ? 'Current Plan' : isLoading || consentLogging ? 'Processing...' : consentChecked ? 'Start Asset Safe' : 'Agree to Continue'}
+                    buttonText={subscriptionStatus.subscribed ? 'Current Plan' : isLoading || consentLogging ? 'Processing...' : 'Continue'}
                     onClick={() => handleSubscribe(billingCycle === 'yearly')}
                   />
 
@@ -259,39 +250,30 @@ const Pricing: React.FC = () => {
                         onCheckedChange={(v) => setConsentChecked(v === true)}
                         className="mt-0.5"
                       />
-                      <Label htmlFor="pricing-consent" className="text-sm font-normal cursor-pointer leading-snug">
-                        I agree to the{' '}
-                        <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary underline">
-                          Terms of Service
-                        </a>
-                        {' '}and{' '}
-                        <a href="/legal" target="_blank" rel="noopener noreferrer" className="text-primary underline">
-                          Privacy Policy
-                        </a>.
-                        <span className="block text-xs text-muted-foreground mt-1">
-                          Required before proceeding to payment.
-                        </span>
-                      </Label>
-                    </div>
-                  )}
-                </div>
+                       <Label htmlFor="pricing-consent" className="text-sm font-normal cursor-pointer leading-snug">
+                         I agree to the{' '}
+                         <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                           Terms of Service
+                         </a>
+                         {' '}and{' '}
+                         <a href="/legal" target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                           Privacy Policy
+                         </a>.
+                       </Label>
+                     </div>
+                   )}
+                   {!subscriptionStatus.subscribed && (
+                     <p className="text-xs text-muted-foreground text-center mt-2">🇺🇸 Paid subscriptions are currently available to U.S. billing addresses only.</p>
+                   )}
+                 </div>
 
-                {/* Storage Notation */}
-                <StorageNotation />
-
-                {/* What's Included */}
-                <div className="mt-12 max-w-4xl mx-auto">
-                  <div className="bg-muted/30 rounded-lg p-8">
-                    <h3 className="text-xl font-semibold text-center mb-4">What's Included</h3>
-                    <p className="text-sm text-muted-foreground text-center mb-4">
-                      Billed monthly or yearly. No long-term contract. Cancel anytime.
-                    </p>
-                    <p className="text-sm text-muted-foreground text-center mb-6">
-                      Full access to your data and complete exports anytime.
-                    </p>
-                    <p className="text-sm font-medium text-center mb-6">
-                      Everything you need to fully document and protect your home:
-                    </p>
+                 {/* What's Included */}
+                 <div className="mt-12 max-w-4xl mx-auto">
+                   <div className="bg-muted/30 rounded-lg p-8">
+                     <h3 className="text-xl font-semibold text-center mb-2">Everything you need to fully document and protect your home</h3>
+                     <p className="text-sm text-muted-foreground text-center mb-6">
+                       Billed monthly or yearly. No long-term contract. Cancel anytime.
+                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
                       {unifiedFeatures.map((feature, index) => (
                         <div key={index} className="flex items-center gap-2">
