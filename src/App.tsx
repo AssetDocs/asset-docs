@@ -30,6 +30,8 @@ import GiftRedeem from "./pages/GiftRedeem";
 
 import Auth from "./pages/AuthLegacy";
 import Signup from "./pages/SignupLegacy";
+import CreatePassword from "./pages/CreatePassword";
+import Onboarding from "./pages/Onboarding";
 import EmailVerification from "./pages/EmailVerification";
 import AuthCallback from "./pages/AuthCallback";
 import VerifyEmail from "./pages/VerifyEmail";
@@ -126,7 +128,7 @@ const ScrollToTopWrapper = () => {
 // Protected Route Component with Subscription Guard
 // NOTE: TOTP-based 2FA is used for sensitive actions (Secure Vault, billing, etc.) - not on every login
 const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children: React.ReactNode; skipSubscriptionCheck?: boolean }) => {
-  const { isAuthenticated, loading, user } = useAuth();
+  const { isAuthenticated, loading, user, profile } = useAuth();
   const [checkingSubscription, setCheckingSubscription] = useState(!skipSubscriptionCheck);
   const [hasSubscription, setHasSubscription] = useState(false);
   
@@ -228,6 +230,15 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
     return <Auth />;
   }
 
+  // Enforce password setup for new users
+  if (profile && profile.password_set === false) {
+    return <Navigate to="/welcome/create-password" replace />;
+  }
+
+  // Enforce onboarding for users who haven't completed it
+  if (profile && profile.password_set === true && profile.onboarding_complete === false) {
+    return <Navigate to="/onboarding" replace />;
+  }
 
   // Check if email is verified (unless on the welcome or subscription pages)
   if (!skipSubscriptionCheck && user && !user.email_confirmed_at) {
@@ -288,6 +299,8 @@ const AppContent = () => {
         
         {/* Welcome page - public to allow unverified users to see it */}
         <Route path="/welcome" element={<Welcome />} />
+        <Route path="/welcome/create-password" element={<CreatePassword />} />
+        <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/contributor-welcome" element={<ContributorWelcome />} />
         
         {/* Protected routes */}
