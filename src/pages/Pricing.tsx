@@ -258,8 +258,8 @@ const Pricing: React.FC = () => {
                           Terms of Service
                         </a>
                         {' '}and{' '}
-                        <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary underline">
-                          Terms of Service
+                        <a href="/legal" target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                          Privacy Policy
                         </a>.
                         <span className="block text-xs text-muted-foreground mt-1">
                           Required before proceeding to payment.
