@@ -1,63 +1,50 @@
 
-# Fix & Simplify Gift Subscription Flow
+# Harden Gift Subscription Safety: Two Targeted Fixes
 
-## Current State Summary
+## Issue 1: Fallback Price Key Creates Renewal Risk
 
-**Two competing systems exist:**
-1. **Legacy (`/redeem?token=`)** — Uses the `gifts` table. The `stripe-webhook` populates this on checkout completion, sends emails with `/redeem?token=` links, and redemption directly upserts entitlements. This is actually what runs today because `create-gift-checkout` uses `mode: "subscription"` which hits the legacy path in the webhook.
-2. **New (`/gift-claim?code=`)** — Uses the `gift_subscriptions` table with `claim_gift_subscription` RPC. Relies on email matching. Currently orphaned — the webhook never writes to `gift_subscriptions` for new gift checkouts (only for an old `gift_code` metadata path that no longer exists).
+### Current behavior
+`create-gift-checkout` tries `asset_safe_gift_annual`, then falls back to `asset_safe_annual` if not found. The webhook sets `cancel_at_period_end: true` inside a try/catch that swallows errors — so if that Stripe API call fails, the gift subscription silently becomes auto-renewing with no alert.
 
-**Stripe key bug:** `create-gift-checkout` calls `stripe.prices.list({ lookup_keys: ["standard_yearly"] })` — wrong key. The correct key per project memory is `asset_safe_gift_annual` (or `asset_safe_annual`).
+### The two-part fix
 
-**Mode bug:** `create-gift-checkout` uses `mode: "subscription"`. For a non-renewing gift, this should be `mode: "payment"` with a one-time price, OR `mode: "subscription"` with `cancel_at_period_end: true` set immediately after session creation. The webhook already handles `cancel_at_period_end` for subscription mode.
+**Part A — Remove the unsafe fallback in `create-gift-checkout`**
+
+The fallback to `asset_safe_annual` should be removed entirely. If the gift price key doesn't exist in Stripe, the checkout should fail loudly with a clear error rather than silently create a potentially-renewing subscription. The error message should be actionable.
+
+```
+// Before
+const fallbackPrices = prices.data.length
+  ? prices
+  : await stripe.prices.list({ lookup_keys: ["asset_safe_annual"], active: true, limit: 1 });
+
+// After — fail hard, no fallback
+if (!prices.data.length) {
+  throw new Error("Gift price 'asset_safe_gift_annual' not found in Stripe. Please configure this price key.");
+}
+```
+
+**Part B — Make `cancel_at_period_end` failure non-silent in the webhook**
+
+Currently the webhook catches the Stripe subscription update error and logs a warning, then continues. This means a gift subscription could become auto-renewing with no observable signal. The fix: log the error with a structured `ERROR`-level tag AND still proceed with writing the gift record (so the recipient gets their gift), but mark the `gift_subscriptions` row with a `needs_cancel_review: true` flag or equivalent so it can be audited. Since there's no such column, the simplest approach is to include the warning in the structured log at a higher severity so it surfaces in edge function logs.
+
+Additionally, add `asset_safe_gift_annual` to `parseSubscriptionItems` so that if the subscription syncs later via `customer.subscription.updated`, it's recognized as a standard plan (not falling through to `plan = 'free'`).
 
 ---
 
-## Plan
+## Issue 2: Legacy Fallback Swallows Real Insert Errors
 
-### A — Fix Stripe price lookup key in `create-gift-checkout`
+### Current behavior
+Lines 509–524: any insert failure into `gift_subscriptions` triggers a fallback to `gifts`, with the secondary insert itself wrapped in `.catch(() => {})`. Real errors (schema mismatch, missing required fields, RLS policy) are silently routed into legacy instead of surfacing.
 
-- Change lookup key from `standard_yearly` to `asset_safe_gift_annual`
-- Keep `mode: "subscription"` (webhook already handles `cancel_at_period_end: true` for gift subscriptions)
-- Add `recipient_name` field to checkout form (optional) and pass it in metadata
+### The fix: classify errors before falling back
 
-### B — Unify webhook to write ONLY to `gift_subscriptions`
+Replace the blanket fallback with structured error classification:
 
-Replace the current `handleCheckoutCompleted` gift flow in `stripe-webhook/index.ts` to:
-- On `checkout.session.completed` with `metadata.gift === "true"`:
-  - Generate a `gift_code` (format: `GIFT-XXXXXXXXXX`)
-  - Write to `gift_subscriptions` table (not `gifts`)
-  - Set `cancel_at_period_end: true` on the subscription
-  - Send recipient email with BOTH the gift code AND a claim link (`/gift-claim?code=<gift_code>`)
-  - Send purchaser confirmation email
-- Stop writing to the `gifts` table for new purchases
+- **Duplicate key (23505)** — a true idempotency case. Log it as a warning, do not insert into legacy, treat as success (the record already exists).
+- **All other errors** — do NOT fall back to legacy. Log them at `ERROR` level with full details and re-throw so the webhook returns a non-200 status to Stripe. Stripe will then retry delivery, giving the system a chance to recover.
 
-### C — Legacy redirect: `/redeem?token=` → `/gift-claim`
-
-Update `GiftRedeem.tsx` to:
-- Look up the token in the `gifts` table
-- Find the corresponding `gift_subscriptions` record (or create a bridge lookup by `stripe_checkout_session_id`)
-- Redirect to `/gift-claim?code=<gift_code>` if found
-- If no corresponding `gift_subscriptions` record exists (pure legacy), process redemption inline as it does today
-
-This preserves existing unredeemed legacy links without breaking them.
-
-### D — Click-to-claim on `/gift-claim`
-
-Update `GiftClaim.tsx` to:
-- Read `?code=` from URL params (already reads `?gift_code=` — update to also accept `?code=`)
-- If user is logged in and code is in URL: auto-trigger claim on mount (no button click needed)
-- If user is NOT logged in and code is in URL: show login/signup prompt with a message "Sign in to claim your gift", and set redirect back to `/gift-claim?code=<gift_code>` after auth
-- Keep manual code entry as fallback
-
-### E — Gift checkout form: add optional recipient name
-
-Add an optional "Recipient's First Name" field to `GiftCheckout.tsx`:
-- Added to form schema as optional
-- Passed to `create-gift-checkout` function as `recipientName`
-- Edge function passes it as `recipient_name` in Stripe metadata
-- Webhook stores it in `gift_subscriptions.recipient_name`
-- Email personalizes greeting: "Hi [Name]," or "Congratulations [Name]!"
+Remove the legacy fallback insert entirely. The `gifts` table should only be read (for the redirect wrapper on `/redeem`), never written to by new purchases.
 
 ---
 
@@ -65,21 +52,17 @@ Add an optional "Recipient's First Name" field to `GiftCheckout.tsx`:
 
 | File | Change |
 |---|---|
-| `src/pages/GiftCheckout.tsx` | Add optional `recipientName` field |
-| `src/pages/GiftClaim.tsx` | Accept `?code=` param, auto-claim if logged in, auth redirect if not |
-| `src/pages/GiftRedeem.tsx` | Convert to redirect wrapper → `/gift-claim?code=` |
-| `supabase/functions/create-gift-checkout/index.ts` | Fix lookup key to `asset_safe_gift_annual`, add `recipient_name` to metadata |
-| `supabase/functions/stripe-webhook/index.ts` | Rewrite gift path in `handleCheckoutCompleted`: write to `gift_subscriptions`, send new email with claim link |
+| `supabase/functions/create-gift-checkout/index.ts` | Remove `asset_safe_annual` fallback; fail fast with clear error if `asset_safe_gift_annual` not found |
+| `supabase/functions/stripe-webhook/index.ts` | (1) Classify insert errors — remove legacy fallback, only log duplicate as idempotent; (2) Elevate `cancel_at_period_end` failure log to ERROR level; (3) Add `asset_safe_gift_annual` to `parseSubscriptionItems` recognized keys |
 
-## Database
+## No database changes required
 
-The `gift_subscriptions` table already exists with all needed columns (`gift_code`, `recipient_email`, `purchaser_name`, `recipient_name`, `gift_message`, `status`, `redeemed`, etc.) based on the `get_claimable_gift` and `claim_gift_subscription` RPC functions already present.
+The `gift_subscriptions` table schema is unchanged. The `gifts` table remains intact for legacy token reads on `/redeem`.
 
-The `gifts` table is kept as-is (read-only for legacy tokens) — no migration needed. New purchases will only write to `gift_subscriptions`.
+## Acceptance checks
 
-## Constraints Preserved
-
-- Consent logging behavior unchanged
-- No new competing redemption routes (legacy `/redeem` becomes a redirect wrapper)
-- All new gifts use `gift_subscriptions` exclusively
-- `claim_gift_subscription` RPC email-matching logic is preserved
+- If `asset_safe_gift_annual` is missing from Stripe → checkout returns a clear error, no Stripe session is created
+- If `gift_subscriptions` insert fails due to duplicate → logged as idempotent, webhook returns 200
+- If `gift_subscriptions` insert fails for any other reason → webhook returns non-200, Stripe retries, error is visible in edge function logs
+- If `cancel_at_period_end` Stripe update fails → logged at ERROR level with subscription ID, still visible in dashboard logs
+- `asset_safe_gift_annual` subscriptions sync correctly if a `customer.subscription.updated` event fires later
