@@ -69,6 +69,11 @@ serve(async (req) => {
     let userId: string;
     let userCreated = false;
 
+    const customerName = session.customer_details?.name ?? null;
+    const nameParts = customerName ? customerName.split(' ') : [];
+    const firstName = nameParts[0] ?? null;
+    const lastName = nameParts.slice(1).join(' ') || null;
+
     const { data: existingUser, error: lookupError } = await supabaseAdmin.auth.admin.getUserByEmail(customerEmail);
 
     if (lookupError || !existingUser?.user) {
@@ -76,6 +81,10 @@ serve(async (req) => {
       const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
         email: customerEmail,
         email_confirm: true,
+        user_metadata: {
+          first_name: firstName,
+          last_name: lastName,
+        },
       });
       if (createError || !newUser?.user) {
         throw new Error(`Failed to create user: ${createError?.message}`);
@@ -132,7 +141,7 @@ serve(async (req) => {
       type: "magiclink",
       email: customerEmail,
       options: {
-        redirectTo: `${origin}/account`,
+        redirectTo: `${origin}/welcome/create-password`,
       },
     });
 

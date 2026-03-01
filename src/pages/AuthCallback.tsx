@@ -103,23 +103,28 @@ const AuthCallback = () => {
                 description: "You can now set a new password for your account.",
               });
               break;
-            case 'magiclink':
+        case 'magiclink': {
               toast({
                 title: "Signed In!",
                 description: "You've been successfully signed in.",
               });
-              // Check if user has an active entitlement
-              if (data.session?.access_token) {
+              // Check profiles for onboarding state
+              if (data.session?.user?.id) {
                 try {
-                  const { data: subData } = await supabase.functions.invoke('check-subscription', {
-                    headers: { Authorization: `Bearer ${data.session.access_token}` },
-                  });
-                  if (redirect_to) {
+                  const { data: profileData } = await supabase
+                    .from('profiles')
+                    .select('password_set, onboarding_complete')
+                    .eq('user_id', data.session.user.id)
+                    .single();
+
+                  if (!profileData?.password_set) {
+                    navigate('/welcome/create-password', { replace: true });
+                  } else if (!profileData?.onboarding_complete) {
+                    navigate('/onboarding', { replace: true });
+                  } else if (redirect_to) {
                     window.location.href = redirect_to;
-                  } else if (subData?.subscribed) {
-                    navigate('/account', { replace: true });
                   } else {
-                    navigate('/pricing', { replace: true });
+                    navigate('/account', { replace: true });
                   }
                 } catch {
                   navigate('/account', { replace: true });
@@ -127,6 +132,7 @@ const AuthCallback = () => {
                 return;
               }
               break;
+            }
           }
 
           // Redirect for non-signup types

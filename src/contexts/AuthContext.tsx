@@ -42,6 +42,8 @@ interface Profile {
   avatar_url?: string;
   created_at: string;
   updated_at: string;
+  password_set?: boolean;
+  onboarding_complete?: boolean;
 }
 
 interface AuthContextType {

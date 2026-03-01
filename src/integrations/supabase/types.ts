@@ -2537,6 +2537,8 @@ export type Database = {
           household_income: string | null
           id: string
           last_name: string | null
+          onboarding_complete: boolean
+          password_set: boolean
           phone: string | null
           phone_verified: boolean | null
           phone_verified_at: string | null
@@ -2558,6 +2560,8 @@ export type Database = {
           household_income?: string | null
           id?: string
           last_name?: string | null
+          onboarding_complete?: boolean
+          password_set?: boolean
           phone?: string | null
           phone_verified?: boolean | null
           phone_verified_at?: string | null
@@ -2579,6 +2583,8 @@ export type Database = {
           household_income?: string | null
           id?: string
           last_name?: string | null
+          onboarding_complete?: boolean
+          password_set?: boolean
           phone?: string | null
           phone_verified?: boolean | null
           phone_verified_at?: string | null
