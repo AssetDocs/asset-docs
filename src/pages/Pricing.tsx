@@ -243,7 +243,7 @@ const Pricing: React.FC = () => {
 
                   {/* Consent Gate */}
                   {!subscriptionStatus.subscribed && (
-                    <div className="mt-4 flex items-start gap-3 bg-muted/30 rounded-lg p-4">
+                    <div className="mt-4 flex items-center justify-center gap-3 bg-muted/30 rounded-lg p-4">
                       <Checkbox
                         id="pricing-consent"
                         checked={consentChecked}
@@ -263,7 +263,7 @@ const Pricing: React.FC = () => {
                      </div>
                    )}
                    {!subscriptionStatus.subscribed && (
-                     <p className="text-xs text-muted-foreground text-center mt-2">🇺🇸 Paid subscriptions are currently available to U.S. billing addresses only.</p>
+                     <p className="text-xs text-muted-foreground text-center mt-2">Paid subscriptions are currently available to U.S. billing addresses only.</p>
                    )}
                  </div>
 
@@ -478,7 +478,6 @@ const Pricing: React.FC = () => {
       </section>
 
       <PricingFAQ />
-      <PricingContactCTA />
       <Footer />
     </div>
   );
