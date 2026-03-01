@@ -138,39 +138,6 @@ const Gift: React.FC = () => {
               />
             </div>
 
-            {/* Storage Notation */}
-            <div className="text-center text-sm text-gray-500 mt-6 space-y-1">
-              <p>25GB ≈ ~1,500 photos + documents</p>
-              <p>100GB ≈ ~6,000 photos or extensive video</p>
-            </div>
-
-            {/* Common Features Section */}
-            <div className="mt-12 bg-blue-50 rounded-lg p-8 max-w-4xl mx-auto">
-              <h3 className="text-xl font-semibold text-gray-900 mb-6 text-center">
-                Everything they need to document, protect, and share their assets—securely and professionally.
-              </h3>
-              <details className="group">
-                <summary className="flex items-center justify-center gap-2 cursor-pointer text-brand-blue font-medium hover:text-brand-blue/80 transition-colors list-none">
-                  <span>View full feature list</span>
-                  <svg className="h-4 w-4 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </summary>
-                <div className="grid md:grid-cols-2 gap-x-8 gap-y-3 mt-6">
-                  {commonFeatures.map((feature, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <div className="h-5 w-5 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                        <svg className="h-3 w-3 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                      <span className="text-gray-700">{feature}</span>
-                    </div>
-                  ))}
-                </div>
-              </details>
-            </div>
-
             <div className="text-center mt-12">
               <div className="bg-blue-50 rounded-lg p-8 max-w-4xl mx-auto">
                 <h3 className="text-2xl font-bold text-gray-900 mb-4">How Gift Subscriptions Work</h3>
