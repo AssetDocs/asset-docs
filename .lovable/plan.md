@@ -1,128 +1,178 @@
 
-## Payment-First Onboarding Flow — Full Implementation Plan
+## Payment-First + Password-Required Onboarding Flow
 
-### Current Problem
+### What Changes and Why
 
-Two competing entry points create loops and confusion:
-
-1. `/signup` → collects name/email → sends verification email → redirects to `/pricing` → selects plan → needs account → loop
-2. `/pricing` → unauthenticated user selects plan → redirected to `/signup?billing=...` → same loop
-
-Additionally, `/subscription-success` is behind `ProtectedRoute`, so unauthenticated users who just paid cannot reach it.
+The current flow creates a Supabase user immediately at checkout and sends a magic link that drops the user directly into `/account`. The new flow **defers full account setup until after email verification**, adds a mandatory **password creation step**, and enforces routing guards so no user can reach the dashboard without completing both steps.
 
 ---
 
-### New Flow (Single Path)
+### Complete New Flow
 
 ```text
-Any CTA (Get Started, etc.)
+/pricing → Stripe Checkout
     ↓
-/pricing  — select plan, check consent box
-    ↓
-create-checkout (auth optional — Stripe collects email)
-    ↓
-Stripe Checkout hosted page
-    ↓
-/subscription-success?session_id=xxx  (PUBLIC — no auth required)
-    ↓
-finalize-checkout edge function:
-  • verify session paid
-  • lookup/create user by email (admin API)
-  • upsert entitlement in DB
-  • send magic link to Stripe customer email
-    ↓
-[If logged in]  → redirect to /account
-[If not logged in] → show "Payment confirmed — check email" screen
-    ↓ (user clicks magic link in email)
-/auth/callback?type=magiclink
-    ↓
-Check entitlement → active? → /account
-               → inactive? → /pricing
+/subscription-success?session_id=xxx
+    ↓  (calls finalize-checkout)
+finalize-checkout creates user + entitlement + sends magic link to /welcome/create-password
+    ↓  (user clicks email link)
+/auth/callback (type=magiclink)
+    ↓  checks: entitlement active? → redirect to /welcome/create-password
+/welcome/create-password  (cannot skip, no nav, no logout)
+    ↓  sets password, sets profiles.password_set = true
+/onboarding  (collect name, phone, first property)
+    ↓  sets profiles.onboarding_complete = true
+/account  (dashboard)
+```
+
+Returning users: email + password login → routing guard checks → `/account` directly (password_set = true, onboarding_complete = true).
+
+---
+
+### Database Changes
+
+**Migration: add two columns to `profiles`**
+
+```sql
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS password_set boolean NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS onboarding_complete boolean NOT NULL DEFAULT false;
+```
+
+- Existing users: both columns default to `false`, but the routing guard must **not** redirect existing active users backwards. The guard checks `password_set` only for newly created accounts. To handle this, existing authenticated users with no `password_set` record will have it back-filled to `true` via the migration (since they already have passwords set).
+
+```sql
+-- Back-fill existing users: they already have passwords, so mark them done
+UPDATE public.profiles SET password_set = true, onboarding_complete = true
+WHERE user_id IN (
+  SELECT id FROM auth.users WHERE created_at < now() - interval '1 hour'
+);
+```
+
+This prevents all existing users from being forced through the new flow.
+
+---
+
+### Files to Create
+
+#### 1. `src/pages/CreatePassword.tsx` (NEW)
+- Route: `/welcome/create-password`
+- Public route (no ProtectedRoute wrapper — user is authenticated via magic link but has no password yet)
+- UI:
+  - Headline: "Secure your account"
+  - Subtext: "For security, Asset Safe requires a password in addition to email verification."
+  - Fields: Password + Confirm Password (min 8 chars, must match)
+  - No navbar, no footer, no navigation links
+  - Submit button: "Set My Password"
+- On submit:
+  - Call `supabase.auth.updateUser({ password })`
+  - On success: update `profiles.password_set = true` for the current user
+  - Redirect to `/onboarding`
+- Guard: if `profiles.password_set = true` already, redirect to `/account`
+
+#### 2. `src/pages/Onboarding.tsx` (NEW)
+- Route: `/onboarding`
+- Requires authentication (ProtectedRoute variant that skips subscription check but requires `password_set = true`)
+- Steps:
+  1. Full name (pre-filled from Stripe customer name if available via profile `first_name`/`last_name`)
+  2. Optional phone number
+  3. First property or workspace: address field using existing `GoogleMapsAutocomplete` component
+- Progress indicator (3 steps)
+- On complete: update `profiles.onboarding_complete = true`, redirect to `/account`
+- Guard: if `onboarding_complete = true` already, redirect to `/account`
+
+---
+
+### Files to Edit
+
+#### 3. `supabase/functions/finalize-checkout/index.ts`
+**Key change**: the magic link `redirectTo` must point to `/welcome/create-password`, not `/account`.
+
+```typescript
+// BEFORE
+redirectTo: `${origin}/account`
+
+// AFTER  
+redirectTo: `${origin}/welcome/create-password`
+```
+
+Also: when creating the Supabase user, pass the Stripe customer name into `user_metadata` so it pre-fills the onboarding form:
+```typescript
+const customerName = session.customer_details?.name ?? null;
+// pass in createUser call:
+user_metadata: { first_name: firstName, last_name: lastName }
+```
+
+#### 4. `src/pages/AuthCallback.tsx`
+For `type=magiclink`:
+- After verifying OTP and getting session, check `profiles.password_set`
+- If `password_set = false` → navigate to `/welcome/create-password`
+- If `password_set = true` and `onboarding_complete = false` → navigate to `/onboarding`
+- If `password_set = true` and `onboarding_complete = true` → navigate to `/account`
+- Remove the old `check-subscription` call in the magiclink branch (entitlement is already set by `finalize-checkout`)
+
+For `type=signup` (legacy path — existing users who signed up the old way):
+- Keep routing to `/account` (back-filled users will have `password_set = true`)
+
+#### 5. `src/App.tsx` — ProtectedRoute + new routes
+
+**Update `ProtectedRoute` component** to enforce the new routing guard:
+
+```typescript
+// After authentication confirmed:
+if (profile?.password_set === false) {
+  return <Navigate to="/welcome/create-password" replace />;
+}
+if (profile?.password_set === true && profile?.onboarding_complete === false) {
+  return <Navigate to="/onboarding" replace />;
+}
+// Then check subscription...
+```
+
+Note: `ProtectedRoute` already fetches the profile via `AuthContext`. The `password_set`/`onboarding_complete` fields will be available from the profile query once the migration adds the columns.
+
+**Add new routes:**
+```tsx
+<Route path="/welcome/create-password" element={<CreatePassword />} />
+<Route path="/onboarding" element={<Onboarding />} />
+```
+
+Both are public-accessible (user is authenticated but has no password set yet, so they can't be behind standard `ProtectedRoute`).
+
+#### 6. `src/contexts/AuthContext.tsx`
+Add `password_set` and `onboarding_complete` to the `Profile` interface so `ProtectedRoute` can read them:
+
+```typescript
+interface Profile {
+  // ... existing fields
+  password_set: boolean;
+  onboarding_complete: boolean;
+}
 ```
 
 ---
 
-### Files to Create / Edit
+### Routing Guard Summary (inside ProtectedRoute)
 
-#### 1. NEW: `supabase/functions/finalize-checkout/index.ts`
-This is the core new backend function. It will:
-- Accept `{ session_id }` in the request body (no auth required — `verify_jwt = false`)
-- Use Stripe SDK to retrieve the checkout session
-- Confirm `payment_status === 'paid'`
-- Extract `customer_email` and `subscription` ID from the session
-- Use Supabase admin client to look up user by email via `auth.admin.getUserByEmail()`
-- If user not found: create via `auth.admin.createUser({ email, email_confirm: true })`
-- Upsert the `entitlements` table row with `status='active'`, `stripe_subscription_id`, `stripe_customer_id`, `stripe_plan_price_id`, and `plan_lookup_key`
-- Send a magic link via `auth.admin.generateLink({ type: 'magiclink', email, options: { redirectTo: '/account' } })`
-- Return `{ success: true, email, user_created: boolean }`
+```
+authenticated = false       → show <Auth /> (existing behavior)
+password_set = false        → <Navigate to="/welcome/create-password" />
+onboarding_complete = false → <Navigate to="/onboarding" />
+entitlement inactive        → <Navigate to="/pricing" />
+all checks pass             → render children (dashboard)
+```
 
-Note: The `validate_entitlement_source` DB trigger requires `stripe_subscription_id`, `stripe_customer_id`, `stripe_plan_price_id`, and `plan_lookup_key` to all be non-null for active Stripe entitlements. The function will retrieve all of these from the Stripe session before upserting.
-
-#### 2. EDIT: `supabase/functions/create-checkout/index.ts`
-- Update `success_url` from `/subscription-success?session_id=...` to keep as-is (already correct path, just needs to remain `/subscription-success`)
-- Update `cancel_url` to `/pricing?canceled=1`
-- Remove the requirement for auth — the function already supports optional auth. No change needed here beyond confirming the anon flow works.
-
-#### 3. EDIT: `src/pages/Pricing.tsx`
-- In `handleSubscribe`, replace the unauthenticated fallback:
-  ```ts
-  // REMOVE:
-  window.location.href = `/signup?billing=${yearly ? 'yearly' : 'monthly'}`;
-  
-  // REPLACE WITH:
-  // Same create-checkout call, but without forcing auth
-  // For unauthenticated users, skip the log-consent call (no email yet)
-  // Stripe will collect email at checkout
-  ```
-- For unauthenticated users: call `create-checkout` directly (Supabase client will have no auth header — this is fine since `create-checkout` already handles optional auth)
-- Change button text from "Get Started" / "Subscribe" to **"Start Asset Safe"**
-- Handle the `?canceled=1` query param to show a subtle notice ("Your checkout was canceled — choose a plan to try again")
-
-#### 4. EDIT: `src/pages/SubscriptionSuccess.tsx` → Rename/repurpose as post-checkout page
-- Remove `ProtectedRoute` wrapper in `App.tsx` (make it public)
-- On load: call `finalize-checkout` with `session_id` from URL
-- Show loading state while calling
-- If user is already logged in after `finalize-checkout` returns → redirect to `/account`
-- If not logged in → show: **"Payment confirmed — finish setup via your email link."** with a note that the magic link email was sent to their Stripe email address
-
-#### 5. EDIT: `src/App.tsx`
-- Change line 294:
-  ```tsx
-  // FROM:
-  <Route path="/subscription-success" element={<ProtectedRoute skipSubscriptionCheck={true}><SubscriptionSuccess /></ProtectedRoute>} />
-  
-  // TO:
-  <Route path="/subscription-success" element={<SubscriptionSuccess />} />
-  ```
-
-#### 6. EDIT: `src/pages/AuthCallback.tsx`
-- For `type=magiclink` (currently routes to `/account`): add entitlement check
-  - If active entitlement → `/account` (no change)
-  - If no active entitlement → `/pricing`
-- For `type=signup`: **remove** the redirect to `/pricing`. This path is now deprecated for the primary flow. Route to `/account` directly (if the user signed up via magic link post-payment, they'll already have an entitlement)
-- Remove any automatic redirect that would push a freshly-verified user into a pricing loop
-
-#### 7. EDIT: `supabase/config.toml`
-- Add entry for new function:
-  ```toml
-  [functions.finalize-checkout]
-  verify_jwt = false
-  ```
+The `/welcome/create-password` and `/onboarding` pages themselves also guard against already-complete users, preventing backward navigation.
 
 ---
 
-### Consent Gate for Unauthenticated Users
+### Back-Filling Existing Users
 
-Currently `log-consent` requires `userEmail`. For unauthenticated checkout:
-- Skip the `log-consent` API call before checkout
-- Instead, `finalize-checkout` will log consent **after** payment is confirmed (we then have the Stripe customer email)
-- This is legally equivalent — the user agreed to terms before proceeding, and we record it with their confirmed email post-payment
+The SQL migration will:
+1. Add `password_set` and `onboarding_complete` columns (default `false`)
+2. Immediately back-fill all users created more than 1 hour ago to `password_set = true, onboarding_complete = true`
 
----
-
-### Cancel URL Handling
-
-When a user cancels out of Stripe and lands on `/pricing?canceled=1`, a subtle banner will appear: "Your checkout was canceled — you can try again below."
+This prevents every existing user from being forced through the new setup flow.
 
 ---
 
@@ -130,10 +180,10 @@ When a user cancels out of Stripe and lands on `/pricing?canceled=1`, a subtle b
 
 | File | Action | Key Change |
 |---|---|---|
-| `supabase/functions/finalize-checkout/index.ts` | CREATE | Verify payment, link entitlement, send magic link |
-| `supabase/functions/create-checkout/index.ts` | EDIT | Update cancel_url to `/pricing?canceled=1` |
-| `supabase/config.toml` | EDIT | Add `verify_jwt = false` for finalize-checkout |
-| `src/pages/Pricing.tsx` | EDIT | Remove signup redirect, allow unauthed checkout, "Start Asset Safe" button, canceled banner |
-| `src/pages/SubscriptionSuccess.tsx` | EDIT | Make public, call finalize-checkout, show magic link confirmation screen |
-| `src/App.tsx` | EDIT | Remove ProtectedRoute from /subscription-success |
-| `src/pages/AuthCallback.tsx` | EDIT | Magic link → check entitlement → route correctly, remove signup→pricing loop |
+| DB migration | CREATE | Add `password_set`, `onboarding_complete` to `profiles`; back-fill existing users |
+| `src/pages/CreatePassword.tsx` | NEW | Mandatory password setup page, no navigation escape |
+| `src/pages/Onboarding.tsx` | NEW | Name/phone/first property collection, 3-step |
+| `supabase/functions/finalize-checkout/index.ts` | EDIT | Magic link redirects to `/welcome/create-password`; pass Stripe name into user_metadata |
+| `src/pages/AuthCallback.tsx` | EDIT | Magic link → check `password_set` → route correctly |
+| `src/contexts/AuthContext.tsx` | EDIT | Add `password_set`, `onboarding_complete` to Profile interface |
+| `src/App.tsx` | EDIT | Add new routes; update ProtectedRoute to enforce password + onboarding guards |
