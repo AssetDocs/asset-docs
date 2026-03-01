@@ -1,49 +1,39 @@
 
-## Fix: Supabase Site URL Configuration
+## Fix: Duplicate "Terms of Service" Link in Pricing Consent Checkbox
 
-### Root Cause
+### Problem
 
-The 404 URL pattern `https://getassetsafe.com/auth/callback/https://getassetsafe.com/auth/callback` is a Supabase dashboard configuration issue, not a code bug.
+On the Pricing page, the consent checkbox reads:
 
-The auth logs confirm the signup POST came from the referer `https://getassetsafe.com/auth/callback`. This means **Supabase's `site_url` is misconfigured** — it is currently set to `https://getassetsafe.com/auth/callback` instead of `https://getassetsafe.com`.
+> "I agree to the Terms of Service and Terms of Service."
 
-When Supabase generates the verification email link, it takes the `site_url` and appends the `emailRedirectTo` path (`/auth/callback`), producing:
+Both links point to `/terms`. The second link should be **Privacy Policy** linking to `/legal`.
 
+### Change Required
+
+**File**: `src/pages/Pricing.tsx`, lines 261–263
+
+Current:
 ```
-[site_url][emailRedirectTo]
-= https://getassetsafe.com/auth/callback + /auth/callback
-= https://getassetsafe.com/auth/callback/https://getassetsafe.com/auth/callback  ← 404
+<a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary underline">
+  Terms of Service
+</a>.
 ```
 
-The code in `AuthContext.tsx` is already correct (clean `redirectUrl`). No code changes are needed.
-
-### Required Fix — Manual Step in Supabase Dashboard
-
-1. Go to **Supabase Dashboard → Authentication → URL Configuration**
-2. Set **Site URL** to:
-   ```
-   https://www.getassetsafe.com
-   ```
-   (or `https://getassetsafe.com` without www, matching your canonical domain)
-3. Ensure **Redirect URLs** (allowed list) includes:
-   ```
-   https://getassetsafe.com/auth/callback
-   https://www.getassetsafe.com/auth/callback
-   ```
-4. Save changes
-
-### No Code Changes Required
-
-The frontend code is already correct. This is a one-time Supabase dashboard configuration fix.
-
-### Expected Flow After Fix
-
+Replace with:
 ```
-User signs up
-  → Supabase sends email with link:
-    https://getassetsafe.com/auth/callback?token_hash=xxx&type=signup
-  → User clicks link
-  → AuthCallback.tsx handles it
-  → Redirects to /pricing
-  → User selects plan → Stripe → /account dashboard
+<a href="/legal" target="_blank" rel="noopener noreferrer" className="text-primary underline">
+  Privacy Policy
+</a>.
 ```
+
+### Result
+
+The consent checkbox will read:
+
+> "I agree to the **Terms of Service** and **Privacy Policy**."
+
+- Terms of Service → `https://getassetsafe.com/terms`
+- Privacy Policy → `https://getassetsafe.com/legal`
+
+This is a single-line text and href change in one file.
