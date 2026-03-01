@@ -68,15 +68,13 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
-    // Look up the gift price
+    // Look up the gift price — no fallback: must be configured explicitly
     const prices = await stripe.prices.list({ lookup_keys: ["asset_safe_gift_annual"], active: true, limit: 1 });
-    // Fallback to asset_safe_annual if dedicated gift price not found
-    const fallbackPrices = prices.data.length ? prices : await stripe.prices.list({ lookup_keys: ["asset_safe_annual"], active: true, limit: 1 });
-    if (!fallbackPrices.data.length) {
-      throw new Error("Gift price not found in Stripe (tried asset_safe_gift_annual and asset_safe_annual)");
+    if (!prices.data.length) {
+      throw new Error("Gift price 'asset_safe_gift_annual' not found in Stripe. Please configure this price key before processing gift purchases.");
     }
-    const priceId = fallbackPrices.data[0].id;
-    logStep("Price found", { priceId, lookupKey: fallbackPrices.data[0].lookup_key });
+    const priceId = prices.data[0].id;
+    logStep("Price found", { priceId, lookupKey: prices.data[0].lookup_key });
 
     // Check for existing Stripe customer
     const customers = await stripe.customers.list({ email: purchaserEmail, limit: 1 });

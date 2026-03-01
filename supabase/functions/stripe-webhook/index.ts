@@ -26,8 +26,9 @@ function parseSubscriptionItems(items: Stripe.SubscriptionItem[]) {
     if (
       lookupKey.startsWith('standard_') ||
       lookupKey.startsWith('premium_') ||
-      lookupKey === 'asset_safe_monthly' ||
-      lookupKey === 'asset_safe_annual'
+    lookupKey === 'asset_safe_monthly' ||
+      lookupKey === 'asset_safe_annual' ||
+      lookupKey === 'asset_safe_gift_annual'
     ) {
       // Base plan item
       planLookupKey = lookupKey;
@@ -480,7 +481,7 @@ async function handleCheckoutCompleted(
           });
           logStep('Subscription set to cancel_at_period_end', { subscriptionId: session.subscription });
         } catch (subErr) {
-          logStep('Warning: could not set cancel_at_period_end', subErr);
+          logStep('ERROR: CRITICAL — could not set cancel_at_period_end on gift subscription. This subscription may auto-renew. Manual review required.', { subscriptionId: session.subscription, error: (subErr as Error).message });
         }
       }
 
@@ -507,21 +508,15 @@ async function handleCheckoutCompleted(
       });
 
       if (giftInsertError) {
-        logStep('Error inserting gift_subscriptions record', giftInsertError);
-        // Fallback: also write to legacy gifts table so redemption still works
-        await supabase.from('gifts').insert({
-          token: crypto.randomUUID(),
-          recipient_email: session.metadata.recipient_email,
-          from_name: purchaserName,
-          gift_message: session.metadata.gift_message || null,
-          term: giftTerm,
-          expires_at: expiresAt.toISOString(),
-          stripe_checkout_session_id: session.id,
-          stripe_subscription_id: session.mode === 'subscription' ? session.subscription as string : null,
-          status: 'paid',
-          amount: session.amount_total || 18900,
-          currency: session.currency || 'usd',
-        }).catch(() => {});
+        // Classify errors: duplicate key (23505) is idempotent — treat as success
+        const pgCode = (giftInsertError as any)?.code;
+        if (pgCode === '23505') {
+          logStep('Warning: gift_subscriptions insert skipped — duplicate record already exists (idempotent)', { sessionId: session.id });
+        } else {
+          // All other errors: log at ERROR level and re-throw so Stripe retries
+          logStep('ERROR: gift_subscriptions insert failed — will NOT fall back to legacy table. Stripe will retry.', { sessionId: session.id, error: giftInsertError.message, code: pgCode });
+          throw new Error(`gift_subscriptions insert failed: ${giftInsertError.message}`);
+        }
       } else {
         logStep('Gift record created in gift_subscriptions', { giftCode, expiresAt: expiresAt.toISOString() });
       }
