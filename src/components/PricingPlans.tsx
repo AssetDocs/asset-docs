@@ -8,11 +8,11 @@ import { Link } from 'react-router-dom';
 const PricingPlans: React.FC = () => {
   const assetSafeFeatures = [
     "Unlimited properties",
-    "25GB secure cloud storage (+ add-ons available)",
+    "25GB secure cloud storage",
     "Photo, video & document uploads",
     "Room-by-room inventory organization",
     "Secure Vault & Digital Access Catalog",
-    "Legacy Locker (family continuity & instructions)",
+    "Legacy Locker",
     "Authorized Users",
     "Emergency Access Sharing",
     "Voice notes, damage reports, exports",
