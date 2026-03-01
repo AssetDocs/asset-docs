@@ -22,7 +22,7 @@ const HeroSection: React.FC = () => {
             
             <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 animate-slide-up">
               <Button asChild size="lg" className="bg-white text-orange-500 hover:bg-gray-100">
-                <Link to="/signup">Start Documenting</Link>
+                <Link to="/pricing">Start Documenting</Link>
               </Button>
               <Button asChild size="lg" className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 hover:from-yellow-500 hover:to-yellow-600 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold border-2 border-white/30">
                 <Link to="/sample-dashboard">View Sample Dashboard</Link>
