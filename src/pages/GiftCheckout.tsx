@@ -27,6 +27,7 @@ const formSchema = z.object({
   fromName: z.string().trim().min(2, 'Name must be at least 2 characters').max(100),
   purchaserEmail: z.string().email('Invalid email address').max(255),
   recipientEmail: z.string().email('Invalid recipient email address').max(255),
+  recipientName: z.string().max(100).optional(),
   giftMessage: z.string().max(1000).optional(),
   deliveryDate: z.string().min(1, 'Please select a delivery option'),
   agreeToTerms: z.boolean().refine(val => val === true, {
@@ -59,6 +60,7 @@ const GiftCheckout: React.FC = () => {
       fromName: '',
       purchaserEmail: '',
       recipientEmail: '',
+      recipientName: '',
       giftMessage: '',
       deliveryDate: '',
       agreeToTerms: false,
@@ -91,6 +93,7 @@ const GiftCheckout: React.FC = () => {
       const { data, error } = await supabase.functions.invoke('create-gift-checkout', {
         body: {
           recipientEmail: values.recipientEmail,
+          recipientName: values.recipientName || '',
           fromName: values.fromName,
           giftMessage: values.giftMessage || '',
           purchaserEmail: values.purchaserEmail,
@@ -190,6 +193,19 @@ const GiftCheckout: React.FC = () => {
                                 <FormLabel>Recipient Email</FormLabel>
                                 <FormControl>
                                   <Input type="email" placeholder="recipient@example.com" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="recipientName"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Recipient First Name <span className="text-muted-foreground font-normal">(Optional)</span></FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Alex" {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>

@@ -30,7 +30,7 @@ serve(async (req) => {
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
 
     const body = await req.json();
-    const { recipientEmail, fromName, giftMessage, purchaserEmail } = body;
+    const { recipientEmail, fromName, giftMessage, purchaserEmail, recipientName } = body;
 
     if (!recipientEmail || !fromName || !purchaserEmail) {
       throw new Error("recipientEmail, fromName, and purchaserEmail are required");
@@ -68,13 +68,15 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
-    // Look up the standard_yearly price
-    const prices = await stripe.prices.list({ lookup_keys: ["standard_yearly"], active: true, limit: 1 });
-    if (!prices.data.length) {
-      throw new Error("standard_yearly price not found in Stripe");
+    // Look up the gift price
+    const prices = await stripe.prices.list({ lookup_keys: ["asset_safe_gift_annual"], active: true, limit: 1 });
+    // Fallback to asset_safe_annual if dedicated gift price not found
+    const fallbackPrices = prices.data.length ? prices : await stripe.prices.list({ lookup_keys: ["asset_safe_annual"], active: true, limit: 1 });
+    if (!fallbackPrices.data.length) {
+      throw new Error("Gift price not found in Stripe (tried asset_safe_gift_annual and asset_safe_annual)");
     }
-    const priceId = prices.data[0].id;
-    logStep("Price found", { priceId });
+    const priceId = fallbackPrices.data[0].id;
+    logStep("Price found", { priceId, lookupKey: fallbackPrices.data[0].lookup_key });
 
     // Check for existing Stripe customer
     const customers = await stripe.customers.list({ email: purchaserEmail, limit: 1 });
@@ -93,6 +95,7 @@ serve(async (req) => {
         gift: "true",
         gift_term: "yearly",
         recipient_email: recipientEmail,
+        recipient_name: recipientName || "",
         from_name: fromName,
         gift_message: giftMessage || "",
         purchaser_email: purchaserEmail,
@@ -105,8 +108,10 @@ serve(async (req) => {
         metadata: {
           gift: "true",
           recipient_email: recipientEmail,
+          recipient_name: recipientName || "",
           from_name: fromName,
-        }
+        },
+        cancel_at_period_end: true,
       }
     });
 
