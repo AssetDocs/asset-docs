@@ -162,8 +162,8 @@ export const SUBSCRIPTION_FEATURES: Record<string, FeatureConfig> = {
     fallbackMessage: 'Subscribe for full platform access'
   },
   unlimited_storage: {
-    name: '25GB Storage',
-    description: '25GB secure cloud storage (+ add-ons available)',
+    name: '50GB Storage',
+    description: '50GB secure cloud storage (+ add-ons available)',
     requiredTier: 'standard',
     fallbackMessage: 'Subscribe for cloud storage'
   },
@@ -203,10 +203,10 @@ export const getFeaturesByTier = (tier: SubscriptionTier): FeatureConfig[] => {
   );
 };
 
-// Storage limits — base 25GB; total governed by entitlements total_storage_gb
+// Storage limits — base 50GB; total governed by entitlements total_storage_gb
 export const STORAGE_LIMITS: Record<SubscriptionTier, number> = {
-  standard: 25 * 1024 * 1024 * 1024,
-  premium: 25 * 1024 * 1024 * 1024
+  standard: 50 * 1024 * 1024 * 1024,
+  premium: 50 * 1024 * 1024 * 1024
 };
 
 export const FREE_STORAGE_LIMIT_BYTES = 5 * 1024 * 1024 * 1024; // 5GB

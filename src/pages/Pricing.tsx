@@ -125,7 +125,7 @@ const Pricing: React.FC = () => {
 
   const unifiedFeatures = [
     "Unlimited properties",
-    "25GB secure cloud storage (+ add-ons available)",
+    "50GB secure cloud storage (+ add-ons available)",
     "Photo, video & document uploads",
     "Room-by-room inventory organization",
     "Secure Vault & Password Catalog",
@@ -218,7 +218,7 @@ const Pricing: React.FC = () => {
                         className="rounded-full px-6 py-2 font-medium data-[state=active]:bg-brand-orange data-[state=active]:text-white"
                       >
                         Yearly
-                        <Badge className="ml-2 bg-brand-green/10 text-brand-green border-0 text-xs">Save</Badge>
+                        <Badge className="ml-2 bg-green-500 text-white border-0 text-xs">Save</Badge>
                       </TabsTrigger>
                     </TabsList>
                   </Tabs>
@@ -233,7 +233,7 @@ const Pricing: React.FC = () => {
                   <SubscriptionPlan
                     title="Asset Safe Plan"
                     price={billingCycle === 'monthly' ? '$18.99' : '$189'}
-                    description={billingCycle === 'yearly' ? 'Save when you pay yearly' : ''}
+                    description="No long-term contract. Cancel anytime."
                     features={unifiedFeatures}
                     billingInterval={billingCycle === 'yearly' ? 'year' : 'month'}
                     recommended={true}
@@ -267,27 +267,6 @@ const Pricing: React.FC = () => {
                    )}
                  </div>
 
-                 {/* What's Included */}
-                 <div className="mt-12 max-w-4xl mx-auto">
-                   <div className="bg-muted/30 rounded-lg p-8">
-                     <h3 className="text-xl font-semibold text-center mb-2">Everything you need to fully document and protect your home</h3>
-                     <p className="text-sm text-muted-foreground text-center mb-6">
-                       Billed monthly or yearly. No long-term contract. Cancel anytime.
-                     </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
-                      {unifiedFeatures.map((feature, index) => (
-                        <div key={index} className="flex items-center gap-2">
-                          <div className="h-5 w-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                            <svg className="h-3 w-3 text-primary" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                              <path d="M5 13l4 4L19 7"></path>
-                            </svg>
-                          </div>
-                          <span className="text-foreground">{feature}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
 
                 {/* Storage Add-on */}
                 <div className="mt-8 max-w-2xl mx-auto">
