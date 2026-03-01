@@ -85,15 +85,13 @@ const AuthCallback = () => {
             title: "Email Verified Successfully!",
             description: isContributor 
               ? "Your contributor account is ready. Redirecting to dashboard..."
-              : "Email verified! Redirecting to choose your plan...",
+              : "Welcome! Redirecting to your dashboard...",
           });
-          // Contributors go to dashboard, new signups go to pricing
-          if (isContributor) {
-            navigate('/account', { replace: true });
-          } else if (redirect_to) {
+          // Route all verified users to dashboard — payment-first flow means they're already subscribed
+          if (redirect_to) {
             navigate(redirect_to, { replace: true });
           } else {
-            navigate('/pricing', { replace: true });
+            navigate('/account', { replace: true });
           }
           return;
         } else {
@@ -108,8 +106,26 @@ const AuthCallback = () => {
             case 'magiclink':
               toast({
                 title: "Signed In!",
-                description: "You've been successfully signed in with your magic link.",
+                description: "You've been successfully signed in.",
               });
+              // Check if user has an active entitlement
+              if (data.session?.access_token) {
+                try {
+                  const { data: subData } = await supabase.functions.invoke('check-subscription', {
+                    headers: { Authorization: `Bearer ${data.session.access_token}` },
+                  });
+                  if (redirect_to) {
+                    window.location.href = redirect_to;
+                  } else if (subData?.subscribed) {
+                    navigate('/account', { replace: true });
+                  } else {
+                    navigate('/pricing', { replace: true });
+                  }
+                } catch {
+                  navigate('/account', { replace: true });
+                }
+                return;
+              }
               break;
           }
 

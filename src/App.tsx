@@ -291,7 +291,7 @@ const AppContent = () => {
         <Route path="/contributor-welcome" element={<ContributorWelcome />} />
         
         {/* Protected routes */}
-        <Route path="/subscription-success" element={<ProtectedRoute skipSubscriptionCheck={true}><SubscriptionSuccess /></ProtectedRoute>} />
+        <Route path="/subscription-success" element={<SubscriptionSuccess />} />
         <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
         <Route path="/account/properties" element={<ProtectedRoute><Properties /></ProtectedRoute>} />
         <Route path="/account/properties/new" element={<ProtectedRoute><PropertyForm /></ProtectedRoute>} />

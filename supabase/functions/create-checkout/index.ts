@@ -112,7 +112,7 @@ serve(async (req) => {
       line_items: [{ price: price.id, quantity: 1 }],
       mode: "subscription",
       success_url: `${origin}/subscription-success?session_id={CHECKOUT_SESSION_ID}&plan=${lookupKey}`,
-      cancel_url: `${origin}/pricing`,
+      cancel_url: `${origin}/pricing?canceled=1`,
       payment_method_collection: 'always',
       automatic_tax: { enabled: true },
       tax_id_collection: { enabled: true },

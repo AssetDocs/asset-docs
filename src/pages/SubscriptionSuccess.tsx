@@ -1,27 +1,20 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle, Mail, Loader2 } from 'lucide-react';
+import { CheckCircle, Mail, Loader2, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
-
-const MAX_POLL_ATTEMPTS = 10;
-const POLL_INTERVAL_MS = 2000; // 2s between attempts → up to ~20s total
 
 const SubscriptionSuccess: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { toast } = useToast();
-  const [syncComplete, setSyncComplete] = useState(false);
-  const [pollTimedOut, setPollTimedOut] = useState(false);
-  const [isCreatingCheckout, setIsCreatingCheckout] = useState(false);
-  
-  const planType = searchParams.get('plan') || 'standard';
   const sessionId = searchParams.get('session_id');
+
+  const [status, setStatus] = useState<'loading' | 'confirmed' | 'already_active' | 'error'>('loading');
+  const [customerEmail, setCustomerEmail] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Prevent back navigation
   useEffect(() => {
@@ -34,180 +27,134 @@ const SubscriptionSuccess: React.FC = () => {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // Poll check-subscription until active, then redirect
   useEffect(() => {
-    if (!user || !sessionId || syncComplete || pollTimedOut) return;
+    if (!sessionId) {
+      navigate('/pricing', { replace: true });
+      return;
+    }
 
-    let attempt = 0;
-    let cancelled = false;
+    const finalize = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('finalize-checkout', {
+          body: { session_id: sessionId },
+        });
 
-    const poll = async () => {
-      while (attempt < MAX_POLL_ATTEMPTS && !cancelled) {
-        attempt++;
-        console.log(`[SubscriptionSuccess] Poll attempt ${attempt}/${MAX_POLL_ATTEMPTS}`);
+        if (error) throw error;
 
-        try {
-          const { data, error } = await supabase.functions.invoke('check-subscription');
-          if (!error && data?.subscribed) {
-            if (cancelled) return;
-            setSyncComplete(true);
-            toast({
-              title: "Subscription Activated!",
-              description: `Your ${data.subscription_tier || planType} plan is now active.`,
-            });
-            navigate('/account');
-            return;
+        if (data?.success) {
+          setCustomerEmail(data.email ?? null);
+
+          // If user is already logged in, route to dashboard
+          if (user) {
+            setStatus('already_active');
+            setTimeout(() => navigate('/account', { replace: true }), 2000);
+          } else {
+            setStatus('confirmed');
           }
-        } catch (err) {
-          console.error('[SubscriptionSuccess] Poll error:', err);
+        } else {
+          throw new Error(data?.error || 'Unknown error from finalize-checkout');
         }
-
-        // If not last attempt, try sync-subscription once halfway through
-        if (attempt === Math.ceil(MAX_POLL_ATTEMPTS / 2)) {
-          try {
-            console.log('[SubscriptionSuccess] Triggering sync-subscription fallback');
-            await supabase.functions.invoke('sync-subscription');
-          } catch {}
-        }
-
-        if (!cancelled && attempt < MAX_POLL_ATTEMPTS) {
-          await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
-        }
-      }
-
-      if (!cancelled) {
-        console.log('[SubscriptionSuccess] Polling timed out');
-        setPollTimedOut(true);
+      } catch (err: any) {
+        console.error('[SubscriptionSuccess] finalize-checkout error:', err);
+        setErrorMessage(err.message || 'Something went wrong. Please contact support.');
+        setStatus('error');
       }
     };
 
-    poll();
-    return () => { cancelled = true; };
-  }, [user, sessionId, syncComplete, pollTimedOut, navigate, toast, planType]);
+    finalize();
+  }, [sessionId, user, navigate]);
 
-  // Initiate Stripe checkout for users who haven't paid yet
-  useEffect(() => {
-    if (sessionId) return;
-    if (user && user.email_confirmed_at && !isCreatingCheckout) {
-      setIsCreatingCheckout(true);
-      const lookupKey = `${planType}_monthly`;
-      supabase.functions.invoke('create-checkout', { body: { planLookupKey: lookupKey } })
-        .then(({ data, error }) => {
-          if (error || !data?.url) {
-            toast({ title: "Error", description: "Failed to create checkout session.", variant: "destructive" });
-            navigate('/account/settings?tab=subscription');
-          } else {
-            window.location.href = data.url;
-          }
-        });
-    }
-  }, [user, planType, isCreatingCheckout, navigate, toast, sessionId]);
-
-  // Returning from Stripe - show sync status
-  if (sessionId) {
+  if (status === 'loading') {
     return (
-      <div className="fixed inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5 overflow-y-auto">
-        <div className="flex items-center justify-center min-h-screen py-12 px-4">
-          <div className="max-w-2xl w-full">
-            <Card className="text-center">
-              <CardHeader>
-                <div className="flex justify-center mb-4">
-                  {syncComplete ? (
-                    <CheckCircle className="h-16 w-16 text-green-500" />
-                  ) : (
-                    <Loader2 className="h-16 w-16 text-primary animate-spin" />
-                  )}
-                </div>
-                <CardTitle className="text-2xl text-green-700">
-                  {syncComplete ? "Payment Successful!" : "Activating Your Subscription..."}
-                </CardTitle>
-                <CardDescription className="text-lg">
-                  {syncComplete 
-                    ? "Your subscription is now active. Redirecting to your dashboard..." 
-                    : pollTimedOut
-                      ? "Activation is taking longer than expected."
-                      : "Please wait while we set up your account."}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {!syncComplete && !pollTimedOut && (
-                  <p className="text-muted-foreground">This usually takes just a moment.</p>
-                )}
-                {pollTimedOut && (
-                  <div className="space-y-4">
-                    <p className="text-muted-foreground">
-                      Your payment was received. It may take a moment for your account to update.
-                    </p>
-                    <Button onClick={() => navigate('/account')} size="lg">
-                      Go to Dashboard
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+      <div className="fixed inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5 flex items-center justify-center px-4">
+        <Card className="text-center max-w-md w-full">
+          <CardHeader>
+            <div className="flex justify-center mb-4">
+              <Loader2 className="h-16 w-16 text-primary animate-spin" />
+            </div>
+            <CardTitle className="text-2xl">Activating Your Subscription…</CardTitle>
+            <CardDescription className="text-base">Please wait just a moment.</CardDescription>
+          </CardHeader>
+        </Card>
       </div>
     );
   }
 
-  return (
-    <div className="fixed inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen py-12 px-4">
-        <div className="max-w-2xl w-full">
-          {isCreatingCheckout ? (
-            <Card className="text-center">
-              <CardContent className="py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                <h2 className="text-xl font-semibold mb-2">Setting Up Your Subscription</h2>
-                <p className="text-muted-foreground">Redirecting you to secure payment...</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card className="text-center">
-              <CardHeader>
-                <div className="flex justify-center mb-4">
-                  <CheckCircle className="h-16 w-16 text-green-500" />
-                </div>
-                <CardTitle className="text-2xl text-green-700">Email Verified!</CardTitle>
-                <CardDescription className="text-lg">
-                  Please complete your payment to activate your subscription
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <p className="text-muted-foreground">
-                    Your email has been verified. You will be redirected to complete your subscription payment shortly.
-                  </p>
-                  {user && !user.email_confirmed_at && (
-                    <Alert className="border-blue-200 bg-blue-50">
-                      <Mail className="h-4 w-4" />
-                      <AlertDescription className="text-left">
-                        <div className="space-y-3">
-                          <div>
-                            <strong className="text-blue-800">Important: Check Your Email</strong>
-                            <p className="text-blue-700 mt-1">
-                              We've sent a verification email to <strong>{user.email}</strong>. 
-                              Please check your inbox and click the verification link.
-                            </p>
-                          </div>
-                          <div className="text-sm text-blue-600">
-                            <p>• Check your spam/junk folder if you don't see the email</p>
-                            <p>• The verification link will activate your subscription checkout</p>
-                          </div>
-                          <Button variant="outline" size="sm" onClick={() => window.location.reload()} className="mt-2">
-                            I've Verified My Email
-                          </Button>
-                        </div>
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+  if (status === 'already_active') {
+    return (
+      <div className="fixed inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5 flex items-center justify-center px-4">
+        <Card className="text-center max-w-md w-full">
+          <CardHeader>
+            <div className="flex justify-center mb-4">
+              <CheckCircle className="h-16 w-16 text-green-500" />
+            </div>
+            <CardTitle className="text-2xl text-green-700">Subscription Active!</CardTitle>
+            <CardDescription className="text-base">Redirecting to your dashboard…</CardDescription>
+          </CardHeader>
+        </Card>
       </div>
+    );
+  }
+
+  if (status === 'error') {
+    return (
+      <div className="fixed inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5 flex items-center justify-center px-4">
+        <Card className="text-center max-w-md w-full">
+          <CardHeader>
+            <div className="flex justify-center mb-4">
+              <AlertCircle className="h-16 w-16 text-destructive" />
+            </div>
+            <CardTitle className="text-2xl">Something Went Wrong</CardTitle>
+            <CardDescription className="text-base">
+              {errorMessage}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Your payment may still have been processed. Please contact support at{' '}
+              <a href="mailto:support@getassetsafe.com" className="text-primary underline">
+                support@getassetsafe.com
+              </a>{' '}
+              if you need help.
+            </p>
+            <Button variant="outline" onClick={() => navigate('/pricing')}>Back to Pricing</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // status === 'confirmed' — user not logged in, magic link sent
+  return (
+    <div className="fixed inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5 flex items-center justify-center px-4">
+      <Card className="text-center max-w-lg w-full">
+        <CardHeader>
+          <div className="flex justify-center mb-4">
+            <CheckCircle className="h-16 w-16 text-green-500" />
+          </div>
+          <CardTitle className="text-2xl text-green-700">Payment Confirmed!</CardTitle>
+          <CardDescription className="text-lg">
+            Finish setup via your email link.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3 text-left">
+            <Mail className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-semibold text-blue-800 text-sm">Check your inbox</p>
+              <p className="text-blue-700 text-sm mt-1">
+                We sent a sign-in link to{' '}
+                <strong>{customerEmail || 'the email you used at checkout'}</strong>.
+                Click it to access your dashboard.
+              </p>
+            </div>
+          </div>
+          <div className="space-y-1 text-sm text-muted-foreground">
+            <p>• Check your spam / junk folder if you don't see the email</p>
+            <p>• The link is valid for 1 hour</p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
