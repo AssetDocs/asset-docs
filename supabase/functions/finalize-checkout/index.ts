@@ -83,7 +83,7 @@ serve(async (req) => {
       }
     }
 
-    // Lookup or create the Supabase user
+    // Lookup or create the Supabase user via try-create, fallback-fetch
     let userId: string;
     let userCreated = false;
 
@@ -92,39 +92,43 @@ serve(async (req) => {
     const firstName = nameParts[0] ?? null;
     const lastName = nameParts.slice(1).join(' ') || null;
 
-    const adminUsersRes = await fetch(
-      `${Deno.env.get("SUPABASE_URL")}/auth/v1/admin/users?filter=${encodeURIComponent(customerEmail)}`,
-      {
-        headers: {
-          apikey: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-          Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
-        },
-      }
-    );
-    const adminUsersData = await adminUsersRes.json();
-    const existingUser = adminUsersData?.users?.find(
-      (u: any) => u.email?.toLowerCase() === customerEmail.toLowerCase()
-    ) ?? null;
+    // Step 1: Try to create the user
+    const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+      email: customerEmail,
+      email_confirm: true,
+      user_metadata: {
+        first_name: firstName,
+        last_name: lastName,
+      },
+    });
 
-    if (!existingUser) {
-      logStep("User not found, creating new user", { customerEmail });
-      const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-        email: customerEmail,
-        email_confirm: true,
-        user_metadata: {
-          first_name: firstName,
-          last_name: lastName,
-        },
-      });
-      if (createError || !newUser?.user) {
-        throw new Error(`Failed to create user: ${createError?.message}`);
-      }
+    if (!createError && newUser?.user) {
       userId = newUser.user.id;
       userCreated = true;
       logStep("New user created", { userId });
+    } else if (createError?.message?.includes('already been registered') || (createError as any)?.status === 422) {
+      // Step 2: User exists — recover by fetching with large page size
+      logStep("User already exists, recovering", { customerEmail, error: createError.message });
+      const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+      const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+      const listRes = await fetch(
+        `${supabaseUrl}/auth/v1/admin/users?per_page=1000&page=1`,
+        {
+          headers: {
+            apikey: serviceRoleKey,
+            Authorization: `Bearer ${serviceRoleKey}`,
+          },
+        }
+      );
+      const listData = await listRes.json();
+      const found = listData?.users?.find(
+        (u: any) => u.email?.toLowerCase() === customerEmail.toLowerCase()
+      );
+      if (!found) throw new Error(`User exists but could not be located: ${customerEmail}`);
+      userId = found.id;
+      logStep("Recovered existing user after 422", { userId });
     } else {
-      userId = existingUser.id;
-      logStep("Existing user found", { userId });
+      throw new Error(`Failed to create user: ${createError?.message}`);
     }
 
     // Upsert entitlement — all Stripe IDs required by DB trigger
