@@ -1,76 +1,97 @@
 
-# Root Cause: finalize-checkout Blocked by JWT Verification
+# Fix: `getUserByEmail` Not a Function in supabase-js v2.45.0
 
-## What's Happening
+## Root Cause Confirmed
 
-The `SubscriptionSuccess` page calls `finalize-checkout` immediately after Stripe redirects the user back. At that moment, **the user has no Supabase session** — they just came from Stripe's hosted checkout page as an anonymous visitor.
+The edge function logs show the function is now executing (JWT fix worked), but crashing at this line:
 
-`supabase.functions.invoke()` without an active session sends **no Authorization header**. Supabase's edge function gateway enforces JWT verification by default, so it **rejects the request before the function code ever runs** — returning a non-2xx response. The function logs are empty because the function never executed.
-
-This is confirmed by:
-- Zero `finalize-checkout` logs (function never ran)
-- The `config.toml` only has `project_id` — no `verify_jwt = false` for this function
-- The function is designed to be called publicly (it validates via Stripe session retrieval, not JWT)
-
----
-
-## The Fix — Two Files
-
-### 1. `supabase/config.toml`
-Add a `[functions.finalize-checkout]` section disabling JWT verification:
-
-```toml
-[functions.finalize-checkout]
-verify_jwt = false
+```
+supabaseAdmin.auth.admin.getUserByEmail is not a function
 ```
 
-This is safe because the function validates legitimacy by calling Stripe directly with the `session_id`. A random caller cannot forge a valid Stripe `session_id` to get a fake entitlement — Stripe will simply return a non-paid session and the function returns 402.
+In `@supabase/supabase-js@2.45.0`, the Admin Auth API does **not** expose `getUserByEmail()`. The available lookup methods are:
+- `supabaseAdmin.auth.admin.getUserById(id)`
+- `supabaseAdmin.auth.admin.listUsers({ page, perPage })`
 
-### 2. `supabase/functions/finalize-checkout/index.ts` — Add Idempotency Guard
+There is no direct `getUserByEmail`. The correct pattern is to use `listUsers` with a filter, or to query the `profiles` table by email indirectly, or use the newer `supabaseAdmin.auth.admin.listUsers()` and search within results.
 
-Since the function will now be publicly callable without a token, add a guard to prevent replay abuse: if the `session_id` has already been processed (i.e., an entitlement with that `stripe_subscription_id` already exists and is active), return success immediately without re-processing.
+The most reliable and performant fix is to use the Supabase Admin REST API directly via fetch, which supports `getUserByEmail`-style filtering — OR to use `listUsers` with the `filter` parameter that some versions support.
+
+Actually, the cleanest approach supported in v2.45.0 is:
 
 ```typescript
-// Check idempotency — already processed?
-const { data: existingEntitlement } = await supabaseAdmin
-  .from('entitlements')
-  .select('user_id')
-  .eq('stripe_subscription_id', subscriptionId)
-  .eq('status', 'active')
-  .maybeSingle();
+const { data: { users }, error } = await supabaseAdmin.auth.admin.listUsers({
+  // no filter param — fetch and find by email
+});
+const existingUser = users.find(u => u.email?.toLowerCase() === customerEmail.toLowerCase());
+```
 
-if (existingEntitlement) {
-  logStep("Already processed — returning cached success");
-  return new Response(
-    JSON.stringify({ success: true, email: customerEmail, already_processed: true }),
-    { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
-  );
+But `listUsers` is paginated and this won't scale. The better, correct approach for this version is to use the **Supabase Admin REST API directly**:
+
+```typescript
+const response = await fetch(
+  `${Deno.env.get("SUPABASE_URL")}/auth/v1/admin/users?filter=${encodeURIComponent(customerEmail)}`,
+  {
+    headers: {
+      apikey: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+    },
+  }
+);
+```
+
+However the simplest and most maintainable fix that works with v2.45.0 is to replace `getUserByEmail` with `listUsers` filtered properly. Looking at the supabase-js v2 docs, `listUsers` accepts a `filter` string parameter in some builds — but to be safe, the cleanest approach is using the raw fetch to the admin users endpoint with an email query parameter.
+
+## The Fix
+
+**File: `supabase/functions/finalize-checkout/index.ts`**
+
+Replace line 95:
+```typescript
+const { data: existingUser, error: lookupError } = await supabaseAdmin.auth.admin.getUserByEmail(customerEmail);
+```
+
+With a direct REST API call using fetch:
+```typescript
+const adminUsersRes = await fetch(
+  `${Deno.env.get("SUPABASE_URL")}/auth/v1/admin/users?filter=${encodeURIComponent(customerEmail)}`,
+  {
+    headers: {
+      apikey: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+    },
+  }
+);
+const adminUsersData = await adminUsersRes.json();
+const existingUser = adminUsersData?.users?.find(
+  (u: any) => u.email?.toLowerCase() === customerEmail.toLowerCase()
+) ?? null;
+```
+
+Then update the conditional branch:
+```typescript
+if (!existingUser) {
+  // create new user (same as before)
+  ...
+} else {
+  userId = existingUser.id;  // note: .id not .user.id
+  ...
 }
 ```
 
-This idempotency check happens **after** Stripe confirms `payment_status === 'paid'`, so it can't be used to probe real subscription IDs.
-
----
-
-## Files to Change
+## Only One File Changes
 
 | File | Change |
 |---|---|
-| `supabase/config.toml` | Add `[functions.finalize-checkout]` with `verify_jwt = false` |
-| `supabase/functions/finalize-checkout/index.ts` | Add idempotency guard after subscription is extracted |
+| `supabase/functions/finalize-checkout/index.ts` | Replace `getUserByEmail` with a direct REST fetch to `/auth/v1/admin/users?filter=email` |
 
----
+## Why This Works
 
-## No Frontend Changes Needed
+- The Supabase Admin REST API at `/auth/v1/admin/users` accepts a `filter` query param for email lookups
+- It works with any version of the JS SDK since it bypasses the SDK entirely
+- The service role key authenticates it
+- This is the same underlying call the SDK's `getUserByEmail` was supposed to make
 
-`SubscriptionSuccess.tsx` already calls `supabase.functions.invoke('finalize-checkout', ...)` correctly. Once the JWT gate is removed, the call will reach the function and the full post-payment flow (user creation → entitlement upsert → magic link email) will execute as designed.
+## No Other Changes Needed
 
----
-
-## Security Posture
-
-| Risk | Mitigation |
-|---|---|
-| Anyone calls finalize-checkout with a fake session_id | Stripe API call fails — no `paid` status returned |
-| Replay of a valid session_id | Idempotency guard returns early — no duplicate user/entitlement created |
-| Someone guesses a subscription_id | Still requires a valid Stripe checkout `session_id` to pass the payment_status check |
+The rest of the function (user creation, entitlement upsert, magic link generation) is correct and will work once this lookup is fixed.
