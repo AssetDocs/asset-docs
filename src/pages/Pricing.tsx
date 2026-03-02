@@ -95,8 +95,8 @@ const Pricing: React.FC = () => {
             termsVersion: 'v1.0',
           },
         });
-        if (consentErr || !consentData?.success) {
-          throw new Error('Failed to record consent. Please try again.');
+        if (consentErr) {
+          console.warn('[Pricing] Consent logging failed (non-blocking):', consentErr.message);
         }
       }
       // For unauthenticated users, consent is logged post-payment by finalize-checkout
