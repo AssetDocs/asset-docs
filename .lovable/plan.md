@@ -1,85 +1,76 @@
 
-# Pricing Page UX Restructure — Email, Consent & US-Only Notice
+# Root Cause: finalize-checkout Blocked by JWT Verification
 
-## Context: Name Collection (Answered)
+## What's Happening
 
-Name is collected **after** payment in the onboarding wizard (`/onboarding`), not on the pricing page. The flow is:
-Pricing → Stripe Checkout → Email Magic Link → Create Password → Onboarding (Name / Phone / First Property) → Dashboard.
-No name field is needed here.
+The `SubscriptionSuccess` page calls `finalize-checkout` immediately after Stripe redirects the user back. At that moment, **the user has no Supabase session** — they just came from Stripe's hosted checkout page as an anonymous visitor.
 
-## What's Changing
+`supabase.functions.invoke()` without an active session sends **no Authorization header**. Supabase's edge function gateway enforces JWT verification by default, so it **rejects the request before the function code ever runs** — returning a non-2xx response. The function logs are empty because the function never executed.
 
-All three elements (email input, consent checkbox, Continue button) currently live in three separate blocks **below** the `SubscriptionPlan` card. The plan is to reorganize them so they sit **inside** the features card itself, in the correct order, with the US-only notice appearing just below the card.
-
-### Desired order inside the card:
-1. Features list (existing — unchanged)
-2. Email input field (guest-only, with helper text)
-3. Agreement checkbox
-4. Continue button
-
-### Below the card:
-- "Paid subscriptions are currently available to U.S. billing addresses only."
+This is confirmed by:
+- Zero `finalize-checkout` logs (function never ran)
+- The `config.toml` only has `project_id` — no `verify_jwt = false` for this function
+- The function is designed to be called publicly (it validates via Stripe session retrieval, not JWT)
 
 ---
 
-## Technical Approach
+## The Fix — Two Files
 
-The `SubscriptionPlan` component renders the Continue button in its own `<CardFooter>`. To place the email field and checkbox **inside** the card above the button, the cleanest approach is to extend `SubscriptionPlan` to accept optional `children` rendered between the feature list and the footer button — or, since this only applies to `Pricing.tsx`, pass the email/consent JSX as a `footerSlot` prop.
+### 1. `supabase/config.toml`
+Add a `[functions.finalize-checkout]` section disabling JWT verification:
 
-However, the simplest approach that requires the fewest changes and follows the existing pattern is to **pass the email input, checkbox, and button entirely from `Pricing.tsx`** by removing the `onClick` / `buttonText` from `SubscriptionPlan` and instead rendering the full footer block from the parent. This keeps `SubscriptionPlan` generic and avoids over-engineering.
+```toml
+[functions.finalize-checkout]
+verify_jwt = false
+```
 
-**Chosen approach**: Add an optional `footer` prop (type `React.ReactNode`) to `SubscriptionPlan`. When provided, it replaces the default `<Button>` in `CardFooter`. `Pricing.tsx` passes the assembled email + checkbox + button block as this prop.
+This is safe because the function validates legitimacy by calling Stripe directly with the `session_id`. A random caller cannot forge a valid Stripe `session_id` to get a fake entitlement — Stripe will simply return a non-paid session and the function returns 402.
+
+### 2. `supabase/functions/finalize-checkout/index.ts` — Add Idempotency Guard
+
+Since the function will now be publicly callable without a token, add a guard to prevent replay abuse: if the `session_id` has already been processed (i.e., an entitlement with that `stripe_subscription_id` already exists and is active), return success immediately without re-processing.
+
+```typescript
+// Check idempotency — already processed?
+const { data: existingEntitlement } = await supabaseAdmin
+  .from('entitlements')
+  .select('user_id')
+  .eq('stripe_subscription_id', subscriptionId)
+  .eq('status', 'active')
+  .maybeSingle();
+
+if (existingEntitlement) {
+  logStep("Already processed — returning cached success");
+  return new Response(
+    JSON.stringify({ success: true, email: customerEmail, already_processed: true }),
+    { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+  );
+}
+```
+
+This idempotency check happens **after** Stripe confirms `payment_status === 'paid'`, so it can't be used to probe real subscription IDs.
 
 ---
 
 ## Files to Change
 
-### `src/components/SubscriptionPlan.tsx`
-- Add optional `footer?: React.ReactNode` prop to the interface.
-- In `CardFooter`, render `footer` if provided, otherwise render the existing `<Button>`.
-
-### `src/pages/Pricing.tsx`
-- Build a `footerBlock` JSX variable containing, in order:
-  1. **Email input** (guest-only, `!user && !subscriptionStatus.subscribed`):
-     - Label: "Your email address"
-     - Helper text below the input: *"We'll use this to create your account and send access after payment."*
-     - Same `Mail` icon in the input
-  2. **Consent checkbox** with Terms / Privacy links (all users, when not subscribed)
-  3. **Continue button** (`w-full`, brand-orange)
-- Pass `footerBlock` as the `footer` prop to `SubscriptionPlan`.
-- Remove the three separate blocks that currently appear below `SubscriptionPlan` (the standalone guest email div, consent gate div, and US-only `<p>`).
-- Add the US-only notice as a `<p>` directly **below** the `<SubscriptionPlan ... />` call, outside the card.
+| File | Change |
+|---|---|
+| `supabase/config.toml` | Add `[functions.finalize-checkout]` with `verify_jwt = false` |
+| `supabase/functions/finalize-checkout/index.ts` | Add idempotency guard after subscription is extracted |
 
 ---
 
-## Visual Result (For You tab, guest user)
+## No Frontend Changes Needed
 
-```text
-┌─────────────────────────────────────────┐
-│  Asset Safe Plan                        │
-│  $18.99 / month + tax                   │
-│  No long-term contract. Cancel anytime. │
-│                                         │
-│  ✓ Feature 1                            │
-│  ✓ Feature 2  ... (existing list)       │
-│                                         │
-│  ─────────────────────────────────────  │
-│  Your email address                     │
-│  [✉  you@example.com               ]   │
-│  We'll use this to create your account  │
-│  and send access after payment.         │
-│                                         │
-│  ☐ I agree to the Terms of Service     │
-│    and Privacy Policy.                  │
-│                                         │
-│  [         Continue          ]          │
-└─────────────────────────────────────────┘
-  Paid subscriptions are currently
-  available to U.S. billing addresses only.
-```
-
-For logged-in users, the email input is hidden and the card shows only checkbox + button.
+`SubscriptionSuccess.tsx` already calls `supabase.functions.invoke('finalize-checkout', ...)` correctly. Once the JWT gate is removed, the call will reach the function and the full post-payment flow (user creation → entitlement upsert → magic link email) will execute as designed.
 
 ---
 
-## No other files need to change
+## Security Posture
+
+| Risk | Mitigation |
+|---|---|
+| Anyone calls finalize-checkout with a fake session_id | Stripe API call fails — no `paid` status returned |
+| Replay of a valid session_id | Idempotency guard returns early — no duplicate user/entitlement created |
+| Someone guesses a subscription_id | Still requires a valid Stripe checkout `session_id` to pass the payment_status check |
