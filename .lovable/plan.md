@@ -1,97 +1,43 @@
 
-# Fix: `getUserByEmail` Not a Function in supabase-js v2.45.0
+# Fix: Magic Link Email Not Delivered — Wrong Sender Domain
 
-## Root Cause Confirmed
+## Root Cause
 
-The edge function logs show the function is now executing (JWT fix worked), but crashing at this line:
-
+The `finalize-checkout` function sends the magic link email from:
 ```
-supabaseAdmin.auth.admin.getUserByEmail is not a function
+Asset Safe <noreply@getassetsafe.com>
 ```
 
-In `@supabase/supabase-js@2.45.0`, the Admin Auth API does **not** expose `getUserByEmail()`. The available lookup methods are:
-- `supabaseAdmin.auth.admin.getUserById(id)`
-- `supabaseAdmin.auth.admin.listUsers({ page, perPage })`
+But `getassetsafe.com` is **not verified in Resend**. Every other email-sending edge function in the project correctly uses `noreply@assetsafe.net`, which is the verified Resend domain.
 
-There is no direct `getUserByEmail`. The correct pattern is to use `listUsers` with a filter, or to query the `profiles` table by email indirectly, or use the newer `supabaseAdmin.auth.admin.listUsers()` and search within results.
+The Resend API returns a `403 validation_error` and the email is silently swallowed because the error is marked as `non-fatal` in the function code — meaning the success page still shows "check your inbox," but no email arrives.
 
-The most reliable and performant fix is to use the Supabase Admin REST API directly via fetch, which supports `getUserByEmail`-style filtering — OR to use `listUsers` with the `filter` parameter that some versions support.
+## The Fix — One Line
 
-Actually, the cleanest approach supported in v2.45.0 is:
+**File: `supabase/functions/finalize-checkout/index.ts` (line 194)**
 
+Change:
 ```typescript
-const { data: { users }, error } = await supabaseAdmin.auth.admin.listUsers({
-  // no filter param — fetch and find by email
-});
-const existingUser = users.find(u => u.email?.toLowerCase() === customerEmail.toLowerCase());
+from: "Asset Safe <noreply@getassetsafe.com>",
 ```
 
-But `listUsers` is paginated and this won't scale. The better, correct approach for this version is to use the **Supabase Admin REST API directly**:
-
+To:
 ```typescript
-const response = await fetch(
-  `${Deno.env.get("SUPABASE_URL")}/auth/v1/admin/users?filter=${encodeURIComponent(customerEmail)}`,
-  {
-    headers: {
-      apikey: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-      Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
-    },
-  }
-);
+from: "Asset Safe <noreply@assetsafe.net>",
 ```
-
-However the simplest and most maintainable fix that works with v2.45.0 is to replace `getUserByEmail` with `listUsers` filtered properly. Looking at the supabase-js v2 docs, `listUsers` accepts a `filter` string parameter in some builds — but to be safe, the cleanest approach is using the raw fetch to the admin users endpoint with an email query parameter.
-
-## The Fix
-
-**File: `supabase/functions/finalize-checkout/index.ts`**
-
-Replace line 95:
-```typescript
-const { data: existingUser, error: lookupError } = await supabaseAdmin.auth.admin.getUserByEmail(customerEmail);
-```
-
-With a direct REST API call using fetch:
-```typescript
-const adminUsersRes = await fetch(
-  `${Deno.env.get("SUPABASE_URL")}/auth/v1/admin/users?filter=${encodeURIComponent(customerEmail)}`,
-  {
-    headers: {
-      apikey: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
-    },
-  }
-);
-const adminUsersData = await adminUsersRes.json();
-const existingUser = adminUsersData?.users?.find(
-  (u: any) => u.email?.toLowerCase() === customerEmail.toLowerCase()
-) ?? null;
-```
-
-Then update the conditional branch:
-```typescript
-if (!existingUser) {
-  // create new user (same as before)
-  ...
-} else {
-  userId = existingUser.id;  // note: .id not .user.id
-  ...
-}
-```
-
-## Only One File Changes
-
-| File | Change |
-|---|---|
-| `supabase/functions/finalize-checkout/index.ts` | Replace `getUserByEmail` with a direct REST fetch to `/auth/v1/admin/users?filter=email` |
 
 ## Why This Works
 
-- The Supabase Admin REST API at `/auth/v1/admin/users` accepts a `filter` query param for email lookups
-- It works with any version of the JS SDK since it bypasses the SDK entirely
-- The service role key authenticates it
-- This is the same underlying call the SDK's `getUserByEmail` was supposed to make
+- `assetsafe.net` is the verified Resend domain used by all other edge functions (send-security-alert, send-auth-email, send-gift-email, send-payment-reminder, invite-dev-team-member)
+- Resend requires the `from` address domain to match a verified domain on the account
+- This single change aligns `finalize-checkout` with every other function in the project
+
+## Files to Change
+
+| File | Change |
+|---|---|
+| `supabase/functions/finalize-checkout/index.ts` | Change `from` address domain from `getassetsafe.com` → `assetsafe.net` |
 
 ## No Other Changes Needed
 
-The rest of the function (user creation, entitlement upsert, magic link generation) is correct and will work once this lookup is fixed.
+The rest of the magic link flow (generation, URL construction, email body) is correct. The only failure point was the mismatched sender domain.
