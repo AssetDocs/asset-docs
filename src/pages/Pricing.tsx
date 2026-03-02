@@ -255,55 +255,70 @@ const Pricing: React.FC = () => {
                     features={unifiedFeatures}
                     billingInterval={billingCycle === 'yearly' ? 'year' : 'month'}
                     recommended={true}
-                    buttonText={subscriptionStatus.subscribed ? 'Current Plan' : isLoading || consentLogging ? 'Processing...' : 'Continue'}
-                    onClick={() => handleSubscribe(billingCycle === 'yearly')}
-                  />
-
-                  {/* Guest Email Input */}
-                  {!user && !subscriptionStatus.subscribed && (
-                    <div className="mt-4 bg-muted/30 rounded-lg p-4">
-                      <Label htmlFor="guest-email" className="text-sm font-medium mb-1.5 block">
-                        Your email address
-                      </Label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="guest-email"
-                          type="email"
-                          placeholder="you@example.com"
-                          value={guestEmail}
-                          onChange={(e) => setGuestEmail(e.target.value)}
-                          className="pl-9"
-                        />
+                    footer={!subscriptionStatus.subscribed ? (
+                      <div className="w-full space-y-4 pt-4 border-t border-border">
+                        {/* Guest Email Input */}
+                        {!user && (
+                          <div>
+                            <Label htmlFor="guest-email" className="text-sm font-medium mb-1.5 block">
+                              Your email address
+                            </Label>
+                            <div className="relative">
+                              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                              <Input
+                                id="guest-email"
+                                type="email"
+                                placeholder="you@example.com"
+                                value={guestEmail}
+                                onChange={(e) => setGuestEmail(e.target.value)}
+                                className="pl-9"
+                              />
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1.5">
+                              We'll use this to create your account and send access after payment.
+                            </p>
+                          </div>
+                        )}
+                        {/* Consent Checkbox */}
+                        <div className="flex items-start gap-3">
+                          <Checkbox
+                            id="pricing-consent"
+                            checked={consentChecked}
+                            onCheckedChange={(v) => setConsentChecked(v === true)}
+                            className="mt-0.5"
+                          />
+                          <Label htmlFor="pricing-consent" className="text-sm font-normal cursor-pointer leading-snug">
+                            I agree to the{' '}
+                            <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                              Terms of Service
+                            </a>
+                            {' '}and{' '}
+                            <a href="/legal" target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                              Privacy Policy
+                            </a>.
+                          </Label>
+                        </div>
+                        {/* Continue Button */}
+                        <Button
+                          className="w-full bg-brand-orange hover:bg-brand-orange/90 text-white"
+                          disabled={!consentChecked || isLoading || consentLogging}
+                          onClick={() => handleSubscribe(billingCycle === 'yearly')}
+                        >
+                          {isLoading || consentLogging ? 'Processing...' : 'Continue'}
+                        </Button>
                       </div>
-                    </div>
-                  )}
-
-                  {/* Consent Gate */}
+                    ) : (
+                      <Button className="w-full bg-brand-orange hover:bg-brand-orange/90 text-white" disabled>
+                        Current Plan
+                      </Button>
+                    )}
+                  />
                   {!subscriptionStatus.subscribed && (
-                    <div className="mt-4 flex items-center justify-center gap-3 bg-muted/30 rounded-lg p-4">
-                      <Checkbox
-                        id="pricing-consent"
-                        checked={consentChecked}
-                        onCheckedChange={(v) => setConsentChecked(v === true)}
-                        className="mt-0.5"
-                      />
-                       <Label htmlFor="pricing-consent" className="text-sm font-normal cursor-pointer leading-snug">
-                         I agree to the{' '}
-                         <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary underline">
-                           Terms of Service
-                         </a>
-                         {' '}and{' '}
-                         <a href="/legal" target="_blank" rel="noopener noreferrer" className="text-primary underline">
-                           Privacy Policy
-                         </a>.
-                       </Label>
-                     </div>
-                   )}
-                   {!subscriptionStatus.subscribed && (
-                     <p className="text-xs text-muted-foreground text-center mt-2">Paid subscriptions are currently available to U.S. billing addresses only.</p>
-                   )}
-                 </div>
+                    <p className="text-xs text-muted-foreground text-center mt-3">
+                      Paid subscriptions are currently available to U.S. billing addresses only.
+                    </p>
+                  )}
+                </div>
 
 
                 {/* Storage Add-on */}
