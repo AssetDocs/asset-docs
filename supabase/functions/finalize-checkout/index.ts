@@ -92,9 +92,21 @@ serve(async (req) => {
     const firstName = nameParts[0] ?? null;
     const lastName = nameParts.slice(1).join(' ') || null;
 
-    const { data: existingUser, error: lookupError } = await supabaseAdmin.auth.admin.getUserByEmail(customerEmail);
+    const adminUsersRes = await fetch(
+      `${Deno.env.get("SUPABASE_URL")}/auth/v1/admin/users?filter=${encodeURIComponent(customerEmail)}`,
+      {
+        headers: {
+          apikey: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+          Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+        },
+      }
+    );
+    const adminUsersData = await adminUsersRes.json();
+    const existingUser = adminUsersData?.users?.find(
+      (u: any) => u.email?.toLowerCase() === customerEmail.toLowerCase()
+    ) ?? null;
 
-    if (lookupError || !existingUser?.user) {
+    if (!existingUser) {
       logStep("User not found, creating new user", { customerEmail });
       const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
         email: customerEmail,
@@ -111,7 +123,7 @@ serve(async (req) => {
       userCreated = true;
       logStep("New user created", { userId });
     } else {
-      userId = existingUser.user.id;
+      userId = existingUser.id;
       logStep("Existing user found", { userId });
     }
 
