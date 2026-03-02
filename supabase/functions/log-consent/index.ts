@@ -27,20 +27,18 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("user_consents")
       .insert({
         user_email: userEmail.toLowerCase().trim(),
         consent_type: consentType,
         terms_version: termsVersion || "v1.0",
         ip_address: ipAddress || null,
-      })
-      .select("id")
-      .single();
+      });
 
     if (error) throw error;
 
-    return new Response(JSON.stringify({ success: true, id: data.id }), {
+    return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
