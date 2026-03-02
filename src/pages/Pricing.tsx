@@ -275,7 +275,7 @@ const Pricing: React.FC = () => {
                               />
                             </div>
                             <p className="text-xs text-muted-foreground mt-1.5">
-                              We'll use this to create your account and send access after payment.
+                              Used to create your account and send secure access
                             </p>
                           </div>
                         )}
