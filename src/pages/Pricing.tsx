@@ -14,7 +14,8 @@ import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { CheckIcon, Shield, Gift } from 'lucide-react';
+import { CheckIcon, Shield, Gift, Mail } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { productSchema, faqSchema, breadcrumbSchema } from '@/utils/structuredData';
 
 const Pricing: React.FC = () => {
@@ -78,6 +79,7 @@ const Pricing: React.FC = () => {
 
   const [consentChecked, setConsentChecked] = useState(false);
   const [consentLogging, setConsentLogging] = useState(false);
+  const [guestEmail, setGuestEmail] = useState('');
 
   const handleSubscribe = async (yearly: boolean = false) => {
     if (!consentChecked) return;
@@ -104,8 +106,24 @@ const Pricing: React.FC = () => {
       setConsentLogging(false);
 
       const lookupKey = yearly ? 'asset_safe_annual' : 'asset_safe_monthly';
+
+      // Guard: unauthenticated users must provide an email
+      if (!user && !guestEmail.trim()) {
+        toast({
+          title: "Email required",
+          description: "Please enter your email address to continue.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        setConsentLogging(false);
+        return;
+      }
+
       const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-checkout', {
-        body: { planLookupKey: lookupKey },
+        body: {
+          planLookupKey: lookupKey,
+          ...(user ? {} : { email: guestEmail.trim() }),
+        },
       });
 
       if (checkoutError) throw checkoutError;
@@ -240,6 +258,26 @@ const Pricing: React.FC = () => {
                     buttonText={subscriptionStatus.subscribed ? 'Current Plan' : isLoading || consentLogging ? 'Processing...' : 'Continue'}
                     onClick={() => handleSubscribe(billingCycle === 'yearly')}
                   />
+
+                  {/* Guest Email Input */}
+                  {!user && !subscriptionStatus.subscribed && (
+                    <div className="mt-4 bg-muted/30 rounded-lg p-4">
+                      <Label htmlFor="guest-email" className="text-sm font-medium mb-1.5 block">
+                        Your email address
+                      </Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="guest-email"
+                          type="email"
+                          placeholder="you@example.com"
+                          value={guestEmail}
+                          onChange={(e) => setGuestEmail(e.target.value)}
+                          className="pl-9"
+                        />
+                      </div>
+                    </div>
+                  )}
 
                   {/* Consent Gate */}
                   {!subscriptionStatus.subscribed && (
