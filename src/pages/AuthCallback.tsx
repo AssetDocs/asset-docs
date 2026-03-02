@@ -13,7 +13,61 @@ const AuthCallback = () => {
   const [showWelcome, setShowWelcome] = useState(false);
 
   useEffect(() => {
-    const handleAuthCallback = async () => {
+    const hash = window.location.hash;
+    const hasHashSession = hash.includes('access_token=');
+
+    if (hasHashSession) {
+      // Flow A: session set by Supabase client auto-parsing the hash fragment
+      // Clear the hash from the URL immediately to prevent token leaking in history
+      window.history.replaceState(null, '', window.location.pathname);
+      handleHashSessionFlow();
+    } else {
+      // Flow B: token_hash query param — existing OTP verification logic
+      handleAuthCallback();
+    }
+
+    async function handleHashSessionFlow() {
+      try {
+        // Supabase JS client already parsed the hash and set the session.
+        // Poll briefly to ensure the session is available.
+        let session = null;
+        for (let i = 0; i < 10; i++) {
+          const { data } = await supabase.auth.getSession();
+          if (data.session) { session = data.session; break; }
+          await new Promise(r => setTimeout(r, 200));
+        }
+
+        if (!session) {
+          throw new Error('Session could not be established. The link may have expired.');
+        }
+
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('password_set, onboarding_complete')
+          .eq('user_id', session.user.id)
+          .single();
+
+        if (!profileData?.password_set) {
+          navigate('/welcome/create-password', { replace: true });
+        } else if (!profileData?.onboarding_complete) {
+          navigate('/onboarding', { replace: true });
+        } else {
+          navigate('/account', { replace: true });
+        }
+      } catch (error: any) {
+        console.error('Hash session flow error:', error);
+        toast({
+          title: 'Authentication Error',
+          description: error.message || 'There was an error signing you in.',
+          variant: 'destructive',
+        });
+        navigate('/auth', { replace: true });
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    async function handleAuthCallback() {
       try {
         const token_hash = searchParams.get('token_hash');
         const type = searchParams.get('type');
@@ -159,8 +213,7 @@ const AuthCallback = () => {
       }
     };
 
-    handleAuthCallback();
-  }, [searchParams, navigate, toast]);
+  }, []);
 
   const handleContinue = () => {
     // Redirect to dashboard after email verification
