@@ -175,7 +175,7 @@ serve(async (req) => {
       type: "magiclink",
       email: customerEmail,
       options: {
-        redirectTo: `${origin}/welcome/create-password`,
+        redirectTo: `${origin}/auth/callback`,
       },
     });
 
