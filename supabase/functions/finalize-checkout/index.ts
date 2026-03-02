@@ -191,7 +191,7 @@ serve(async (req) => {
             Authorization: `Bearer ${resendKey}`,
           },
           body: JSON.stringify({
-            from: "Asset Safe <noreply@getassetsafe.com>",
+            from: "Asset Safe <noreply@assetsafe.net>",
             to: [customerEmail],
             subject: "Your payment is confirmed — sign in to Asset Safe",
             html: `
