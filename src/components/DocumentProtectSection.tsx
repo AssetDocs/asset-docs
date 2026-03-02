@@ -22,7 +22,7 @@ const DocumentProtectSection: React.FC = () => {
     },
     {
       icon: <Lock className="w-5 h-5" />,
-      title: 'Legacy Locker & Secure Vault',
+      title: 'Secure Vault - Legacy Locker & Digital Access',
       description: 'Encrypted storage for life\'s most important details and instructions.',
     },
     {
