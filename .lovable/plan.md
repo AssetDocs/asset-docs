@@ -1,58 +1,85 @@
 
-# Fix: "Continue" Button Fails for Unauthenticated Users
+# Pricing Page UX Restructure — Email, Consent & US-Only Notice
 
-## Root Cause (Confirmed from Edge Function Logs)
+## Context: Name Collection (Answered)
 
-Every failed request in the logs shows the exact same error:
+Name is collected **after** payment in the onboarding wizard (`/onboarding`), not on the pricing page. The flow is:
+Pricing → Stripe Checkout → Email Magic Link → Create Password → Onboarding (Name / Phone / First Property) → Dashboard.
+No name field is needed here.
 
-```
-"Email is required - either through authentication or in request body"
-```
+## What's Changing
 
-This is thrown by `create-checkout` at this line:
-```typescript
-if (!userEmail) {
-  throw new Error("Email is required - either through authentication or in request body");
-}
-```
+All three elements (email input, consent checkbox, Continue button) currently live in three separate blocks **below** the `SubscriptionPlan` card. The plan is to reorganize them so they sit **inside** the features card itself, in the correct order, with the US-only notice appearing just below the card.
 
-For **authenticated users**, `userEmail` comes from the JWT. For **unauthenticated users**, it must come from `body.email`. Currently, `handleSubscribe` only sends:
+### Desired order inside the card:
+1. Features list (existing — unchanged)
+2. Email input field (guest-only, with helper text)
+3. Agreement checkbox
+4. Continue button
 
-```typescript
-body: { planLookupKey: lookupKey }
-// No email — so unauthenticated users always fail
-```
+### Below the card:
+- "Paid subscriptions are currently available to U.S. billing addresses only."
 
-There is no email input on the pricing page for guests, so there is nothing to pass. This is the only remaining issue.
+---
 
-## The Fix
+## Technical Approach
 
-**File: `src/pages/Pricing.tsx`**
+The `SubscriptionPlan` component renders the Continue button in its own `<CardFooter>`. To place the email field and checkbox **inside** the card above the button, the cleanest approach is to extend `SubscriptionPlan` to accept optional `children` rendered between the feature list and the footer button — or, since this only applies to `Pricing.tsx`, pass the email/consent JSX as a `footerSlot` prop.
 
-1. Add a `guestEmail` state variable (`useState('')`).
+However, the simplest approach that requires the fewest changes and follows the existing pattern is to **pass the email input, checkbox, and button entirely from `Pricing.tsx`** by removing the `onClick` / `buttonText` from `SubscriptionPlan` and instead rendering the full footer block from the parent. This keeps `SubscriptionPlan` generic and avoids over-engineering.
 
-2. Render an email input field **below the consent checkbox**, visible only when the user is **not** logged in and not already subscribed. It sits naturally in the existing consent gate area.
+**Chosen approach**: Add an optional `footer` prop (type `React.ReactNode`) to `SubscriptionPlan`. When provided, it replaces the default `<Button>` in `CardFooter`. `Pricing.tsx` passes the assembled email + checkbox + button block as this prop.
 
-3. In `handleSubscribe`, pass `email: guestEmail` in the `create-checkout` body when the user is not authenticated:
-   ```typescript
-   body: { 
-     planLookupKey: lookupKey,
-     ...(user ? {} : { email: guestEmail })
-   }
-   ```
-
-4. Add a guard: if the user is not logged in and `guestEmail` is empty, show a toast and return early.
-
-## UI Placement
-
-The email input will appear between the billing cycle toggle and the consent checkbox, only for unauthenticated users. Styled to match the existing muted card design already used for the consent gate.
+---
 
 ## Files to Change
 
-| File | Change |
-|---|---|
-| `src/pages/Pricing.tsx` | Add `guestEmail` state, email input UI for unauthenticated users, pass email to `create-checkout` |
+### `src/components/SubscriptionPlan.tsx`
+- Add optional `footer?: React.ReactNode` prop to the interface.
+- In `CardFooter`, render `footer` if provided, otherwise render the existing `<Button>`.
+
+### `src/pages/Pricing.tsx`
+- Build a `footerBlock` JSX variable containing, in order:
+  1. **Email input** (guest-only, `!user && !subscriptionStatus.subscribed`):
+     - Label: "Your email address"
+     - Helper text below the input: *"We'll use this to create your account and send access after payment."*
+     - Same `Mail` icon in the input
+  2. **Consent checkbox** with Terms / Privacy links (all users, when not subscribed)
+  3. **Continue button** (`w-full`, brand-orange)
+- Pass `footerBlock` as the `footer` prop to `SubscriptionPlan`.
+- Remove the three separate blocks that currently appear below `SubscriptionPlan` (the standalone guest email div, consent gate div, and US-only `<p>`).
+- Add the US-only notice as a `<p>` directly **below** the `<SubscriptionPlan ... />` call, outside the card.
+
+---
+
+## Visual Result (For You tab, guest user)
+
+```text
+┌─────────────────────────────────────────┐
+│  Asset Safe Plan                        │
+│  $18.99 / month + tax                   │
+│  No long-term contract. Cancel anytime. │
+│                                         │
+│  ✓ Feature 1                            │
+│  ✓ Feature 2  ... (existing list)       │
+│                                         │
+│  ─────────────────────────────────────  │
+│  Your email address                     │
+│  [✉  you@example.com               ]   │
+│  We'll use this to create your account  │
+│  and send access after payment.         │
+│                                         │
+│  ☐ I agree to the Terms of Service     │
+│    and Privacy Policy.                  │
+│                                         │
+│  [         Continue          ]          │
+└─────────────────────────────────────────┘
+  Paid subscriptions are currently
+  available to U.S. billing addresses only.
+```
+
+For logged-in users, the email input is hidden and the card shows only checkbox + button.
+
+---
 
 ## No other files need to change
-
-The `create-checkout` edge function already supports `email` in the request body — this is purely a missing UI/data wiring issue on the frontend.
