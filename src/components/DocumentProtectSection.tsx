@@ -153,7 +153,7 @@ const DocumentProtectSection: React.FC = () => {
               <Link to="/scenarios">Solutions</Link>
             </Button>
           </div>
-          <p className="mt-6 text-primary text-lg md:text-xl font-medium mx-auto max-w-md text-center">
+          <p className="mt-6 text-primary text-lg md:text-xl font-medium mx-auto max-w-md text-center md:whitespace-nowrap md:max-w-none">
             Not just storage — a guided path to being fully prepared.
           </p>
         </div>
