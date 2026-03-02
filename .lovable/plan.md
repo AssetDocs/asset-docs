@@ -1,60 +1,83 @@
 
+# Fix: "Invalid Callback Parameters" — Magic Link Hash Fragment Not Being Handled
 
-# Fix: Magic Link Expired + "Auth session missing!" on Create Password Page
+## Root Cause (Precise)
 
-## Root Cause
+When `finalize-checkout` calls `supabase.auth.admin.generateLink({ type: "magiclink" })`, it gets back a **Supabase-hosted verification URL** (e.g. `https://leotcbfpqiekgkgumecn.supabase.co/auth/v1/verify?token=...&redirect_to=.../auth/callback`).
 
-There are **two compounding issues**:
+When the user clicks the "Sign In to Asset Safe" button, Supabase's auth server verifies the token server-side and performs a **browser redirect** to:
 
-1. **The magic link expires before the user clicks it.** The `finalize-checkout` function uses `generateLink({ type: "magiclink" })` and sends the raw `action_link` via Resend. Auth logs confirm the OTP expires in ~71 seconds (well before the 1-hour claim in the email). This is likely caused by how Supabase's `generateLink` admin API handles short-lived server-side tokens, or by Supabase's configured OTP expiry being very low.
-
-2. **The `CreatePassword` page has no error handling.** When the expired link redirects to `/welcome/create-password#error=access_denied&error_code=otp_expired...`, the page ignores the error hash, finds no authenticated user, and crashes with "Auth session missing!" when the form is submitted.
-
-## The Fix (Two Parts)
-
-### Part 1: Route the magic link through `/auth/callback` instead of directly to `/welcome/create-password`
-
-**File: `supabase/functions/finalize-checkout/index.ts`**
-
-Change the `redirectTo` in the `generateLink` call from:
 ```
-redirectTo: `${origin}/welcome/create-password`
-```
-to:
-```
-redirectTo: `${origin}/auth/callback`
+https://getassetsafe.com/auth/callback#access_token=eyJ...&refresh_token=...&type=magiclink
 ```
 
-The `AuthCallback` page already handles `magiclink` type tokens correctly -- it verifies the OTP via `supabase.auth.verifyOtp()`, establishes the session, checks `password_set`, and routes to `/welcome/create-password` with an active session. This is more reliable than relying on the Supabase client auto-detecting tokens from the URL hash on a page that wasn't designed for it.
+The session arrives as a **URL hash fragment** (`#`), not as query parameters (`?`).
 
-### Part 2: Add expired-link error handling to `CreatePassword`
+`AuthCallback.tsx` currently only reads `searchParams` (query params). It finds no `token_hash` and no `type` query param, immediately throws `'Invalid callback parameters'`, and redirects the user to `/auth` — which shows the "Authentication Error" toast.
 
-**File: `src/pages/CreatePassword.tsx`**
+The Supabase JS client is built to auto-detect and process hash fragments automatically, but only when it initialises and `onAuthStateChange` fires. `AuthCallback` bypasses this entirely.
 
-- On mount, parse the URL hash for `error_code=otp_expired`
-- If detected, show a friendly "Your sign-in link has expired" message with:
-  - An email input field (pre-filled if available)
-  - A "Resend Sign-In Link" button
-- The resend button calls `supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin + '/auth/callback' } })` -- this sends a fresh magic link through Supabase's built-in email system with the proper configured expiry
-- This gives the user a self-service recovery path instead of a dead-end error
+## The Two Callback Flows in This App
 
-### Part 3: Also handle the error in `SubscriptionSuccess`
+```text
+Flow A — generateLink (from finalize-checkout email):
+  Supabase server verifies OTP → redirects to /auth/callback#access_token=...&type=magiclink
+  Session is SET by Supabase client auto-parsing the hash
+  AuthCallback just needs to WAIT for onAuthStateChange, then route
 
-**File: `src/pages/SubscriptionSuccess.tsx`**
+Flow B — Custom OTP emails (signup verification, etc.):
+  Redirects to /auth/callback?token_hash=...&type=signup
+  AuthCallback manually calls verifyOtp() — this is working correctly
+```
 
-No changes needed here -- the success page works correctly. The issue is downstream when clicking the email link.
+Currently `AuthCallback` only handles Flow B and crashes on Flow A.
+
+## The Fix — Two Changes
+
+### Change 1: `src/pages/AuthCallback.tsx`
+
+Add a **second detection path** for the hash fragment flow:
+
+- On mount, check `window.location.hash` for `access_token`
+- If found, do NOT call `verifyOtp` (the client has already processed the hash and the session is established or being established)
+- Instead, listen for the session via `supabase.auth.getSession()` (it should already be set since Supabase processes the hash synchronously on import)
+- Then apply the same routing logic: if `password_set` is false → `/welcome/create-password`, if `onboarding_complete` is false → `/onboarding`, else → `/account`
+- Keep the existing `token_hash` query param flow (Flow B) untouched
+
+The updated logic structure:
+
+```typescript
+useEffect(() => {
+  const hash = window.location.hash;
+  const hasHashSession = hash.includes('access_token=');
+
+  if (hasHashSession) {
+    // Flow A: session already set by Supabase client from hash fragment
+    // Clear hash from URL immediately
+    window.history.replaceState(null, '', window.location.pathname);
+    handleHashSessionFlow();
+  } else {
+    // Flow B: token_hash query param — existing logic unchanged
+    handleAuthCallback();
+  }
+}, []);
+```
+
+`handleHashSessionFlow` calls `supabase.auth.getSession()`, then checks `password_set` / `onboarding_complete` and routes accordingly — identical to the existing magiclink routing inside `handleAuthCallback`.
+
+### Change 2: `src/pages/CreatePassword.tsx` (minor)
+
+No changes needed here — the expired link recovery added in the previous session is already correct and handles the edge case of the link expiring.
 
 ## Files to Change
 
 | File | Change |
 |---|---|
-| `supabase/functions/finalize-checkout/index.ts` | Change `redirectTo` from `/welcome/create-password` to `/auth/callback` |
-| `src/pages/CreatePassword.tsx` | Add URL hash error detection and "Resend Link" fallback UI |
+| `src/pages/AuthCallback.tsx` | Add hash fragment (`#access_token`) detection branch; route based on profile state without calling verifyOtp |
 
-## Why This Works
+## Why This Is Safe
 
-- Routing through `/auth/callback` uses the existing, battle-tested OTP verification logic that properly establishes a session before redirecting
-- The resend fallback uses `signInWithOtp` which goes through Supabase's standard email flow with proper OTP expiry configuration
-- Users who encounter an expired link get a clear, actionable path forward instead of a cryptic error
-- No backend infrastructure changes needed for the resend -- it's a client-side Supabase auth call
-
+- Flow B (query param `token_hash`) is completely untouched
+- The Supabase client automatically parses `#access_token=...` on page load and sets the session — we just need to read it, not re-verify it
+- Clearing the hash from the URL immediately after processing prevents tokens leaking in browser history
+- The routing logic (`password_set` → create-password, `onboarding_complete` → onboarding, else → account) is identical to the working magiclink branch already in the file
