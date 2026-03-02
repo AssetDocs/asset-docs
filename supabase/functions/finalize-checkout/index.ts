@@ -65,6 +65,24 @@ serve(async (req) => {
 
     logStep("Extracted billing details", { customerEmail, customerId, subscriptionId, planPriceId, planLookupKey });
 
+    // Idempotency guard — if already processed, return early
+    if (subscriptionId) {
+      const { data: existingEntitlement } = await supabaseAdmin
+        .from("entitlements")
+        .select("user_id")
+        .eq("stripe_subscription_id", subscriptionId)
+        .eq("status", "active")
+        .maybeSingle();
+
+      if (existingEntitlement) {
+        logStep("Already processed — returning cached success");
+        return new Response(
+          JSON.stringify({ success: true, email: customerEmail, already_processed: true }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+        );
+      }
+    }
+
     // Lookup or create the Supabase user
     let userId: string;
     let userCreated = false;
