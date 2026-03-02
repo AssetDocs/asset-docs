@@ -261,7 +261,7 @@ const Pricing: React.FC = () => {
                         {!user && (
                           <div>
                             <Label htmlFor="guest-email" className="text-sm font-medium mb-1.5 block">
-                              Your email address
+                              Enter your email to get started
                             </Label>
                             <div className="relative">
                               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
