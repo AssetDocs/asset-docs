@@ -146,7 +146,7 @@ const Pricing: React.FC = () => {
     "50GB secure cloud storage (+ add-ons available)",
     "Photo, video & document uploads",
     "Room-by-room inventory organization",
-    "Secure Vault & Password Catalog",
+    "Secure Vault (Legacy & Digital Access)",
     "Legacy Locker (family continuity & instructions)",
     "Authorized Users",
     "Emergency Access Sharing",
@@ -306,6 +306,9 @@ const Pricing: React.FC = () => {
                         >
                           {isLoading || consentLogging ? 'Processing...' : 'Continue'}
                         </Button>
+                        <p className="text-xs text-muted-foreground text-center">
+                          Next step: secure checkout via Stripe
+                        </p>
                       </div>
                     ) : (
                       <Button className="w-full bg-brand-orange hover:bg-brand-orange/90 text-white" disabled>
