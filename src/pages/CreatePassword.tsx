@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Shield, Eye, EyeOff } from 'lucide-react';
+import { Shield, Eye, EyeOff, MailOpen } from 'lucide-react';
 
 const CreatePassword = () => {
   const { user, profile, loading } = useAuth();
@@ -19,12 +19,51 @@ const CreatePassword = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  // Expired link state
+  const [linkExpired, setLinkExpired] = useState(false);
+  const [resendEmail, setResendEmail] = useState('');
+  const [resendSent, setResendSent] = useState(false);
+  const [resending, setResending] = useState(false);
+
+  // Detect expired OTP from URL hash
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash.includes('error_code=otp_expired') || hash.includes('error=access_denied')) {
+      setLinkExpired(true);
+      // Clear the hash from the URL
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  }, []);
+
   // Guard: if already done, skip forward
   useEffect(() => {
     if (!loading && profile?.password_set) {
       navigate('/account', { replace: true });
     }
   }, [loading, profile, navigate]);
+
+  const handleResend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resendEmail) {
+      toast({ title: 'Email required', description: 'Please enter your email address.', variant: 'destructive' });
+      return;
+    }
+    setResending(true);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: resendEmail,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      if (error) throw error;
+      setResendSent(true);
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message || 'Failed to send link. Please try again.', variant: 'destructive' });
+    } finally {
+      setResending(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,6 +102,57 @@ const CreatePassword = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary" />
+      </div>
+    );
+  }
+
+  // Expired link UI
+  if (linkExpired) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <div className="w-full max-w-md space-y-8">
+          <div className="flex flex-col items-center text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
+              <MailOpen className="w-8 h-8 text-destructive" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">Link Expired</h1>
+              <p className="mt-2 text-muted-foreground">
+                Your sign-in link has expired. Enter your email below and we'll send you a fresh one.
+              </p>
+            </div>
+          </div>
+
+          {resendSent ? (
+            <div className="rounded-lg bg-primary/10 border border-primary/20 p-6 text-center space-y-2">
+              <p className="font-semibold text-foreground">Check your inbox!</p>
+              <p className="text-sm text-muted-foreground">
+                A new sign-in link has been sent. Click it to continue setting up your account.
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={handleResend} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="resend-email">Email address</Label>
+                <Input
+                  id="resend-email"
+                  type="email"
+                  value={resendEmail}
+                  onChange={(e) => setResendEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full" size="lg" disabled={resending}>
+                {resending ? 'Sending...' : 'Resend Sign-In Link'}
+              </Button>
+            </form>
+          )}
+
+          <p className="text-center text-xs text-muted-foreground">
+            Need help? Contact us at support@getassetsafe.com
+          </p>
+        </div>
       </div>
     );
   }
