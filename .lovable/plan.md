@@ -1,51 +1,58 @@
 
-# Fix: "Continue" Button Error on Pricing Page
+# Fix: "Continue" Button Fails for Unauthenticated Users
 
-## Root Cause
+## Root Cause (Confirmed from Edge Function Logs)
 
-The Pricing page `handleSubscribe` function calls `log-consent` before creating the Stripe checkout session, and treats any failure from that function as a **hard blocker**:
+Every failed request in the logs shows the exact same error:
 
-```js
-if (consentErr || !consentData?.success) {
-  throw new Error('Failed to record consent. Please try again.');
+```
+"Email is required - either through authentication or in request body"
+```
+
+This is thrown by `create-checkout` at this line:
+```typescript
+if (!userEmail) {
+  throw new Error("Email is required - either through authentication or in request body");
 }
 ```
 
-If the `log-consent` edge function returns a non-2xx status (e.g. the service role key insert fails due to any transient DB issue, or the RLS policy interfering), the user sees the "edge function returned a non-2xx status code" error and **cannot proceed to checkout at all**.
+For **authenticated users**, `userEmail` comes from the JWT. For **unauthenticated users**, it must come from `body.email`. Currently, `handleSubscribe` only sends:
 
-There is also a secondary issue: the `log-consent` function uses `.single()` after an insert, which throws if the insert returns anything unexpected.
+```typescript
+body: { planLookupKey: lookupKey }
+// No email — so unauthenticated users always fail
+```
+
+There is no email input on the pricing page for guests, so there is nothing to pass. This is the only remaining issue.
 
 ## The Fix
 
 **File: `src/pages/Pricing.tsx`**
 
-Make the consent logging **non-blocking**. If it fails, log it to the console but do NOT prevent the user from proceeding to checkout. Consent for unauthenticated users is already logged post-payment by `finalize-checkout` anyway — this is belt-and-suspenders for authenticated users and should not gate access.
+1. Add a `guestEmail` state variable (`useState('')`).
 
-```js
-// Before (blocks checkout on consent failure)
-if (consentErr || !consentData?.success) {
-  throw new Error('Failed to record consent...');
-}
+2. Render an email input field **below the consent checkbox**, visible only when the user is **not** logged in and not already subscribed. It sits naturally in the existing consent gate area.
 
-// After (gracefully continues)
-if (consentErr) {
-  console.warn('[Pricing] Consent logging failed (non-blocking):', consentErr.message);
-}
-```
+3. In `handleSubscribe`, pass `email: guestEmail` in the `create-checkout` body when the user is not authenticated:
+   ```typescript
+   body: { 
+     planLookupKey: lookupKey,
+     ...(user ? {} : { email: guestEmail })
+   }
+   ```
 
-**File: `supabase/functions/log-consent/index.ts`**
+4. Add a guard: if the user is not logged in and `guestEmail` is empty, show a toast and return early.
 
-Remove the `.single()` call after the insert — `.single()` throws if zero or multiple rows are returned, making the function unnecessarily fragile. Use a plain insert without requiring a single row back.
+## UI Placement
+
+The email input will appear between the billing cycle toggle and the consent checkbox, only for unauthenticated users. Styled to match the existing muted card design already used for the consent gate.
 
 ## Files to Change
 
 | File | Change |
 |---|---|
-| `src/pages/Pricing.tsx` | Make consent logging non-blocking — catch failure but continue to checkout |
-| `supabase/functions/log-consent/index.ts` | Remove `.single()` from the insert to avoid unnecessary throws |
+| `src/pages/Pricing.tsx` | Add `guestEmail` state, email input UI for unauthenticated users, pass email to `create-checkout` |
 
-## Why This Is Safe
+## No other files need to change
 
-- Consent for unauthenticated users is already captured post-payment in `finalize-checkout`
-- Consent for authenticated users is a best-effort audit trail — a missed log entry is far less harmful than blocking a paying customer from subscribing
-- The actual consent checkbox is enforced client-side (`if (!consentChecked) return`) before this code even runs
+The `create-checkout` edge function already supports `email` in the request body — this is purely a missing UI/data wiring issue on the frontend.
