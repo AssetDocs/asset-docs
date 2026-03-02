@@ -1,74 +1,60 @@
 
-# Root Cause: Email Lookup Pagination Miss → Create Fails → 500 Error
 
-## What the Logs Confirm
+# Fix: Magic Link Expired + "Auth session missing!" on Create Password Page
 
+## Root Cause
+
+There are **two compounding issues**:
+
+1. **The magic link expires before the user clicks it.** The `finalize-checkout` function uses `generateLink({ type: "magiclink" })` and sends the raw `action_link` via Resend. Auth logs confirm the OTP expires in ~71 seconds (well before the 1-hour claim in the email). This is likely caused by how Supabase's `generateLink` admin API handles short-lived server-side tokens, or by Supabase's configured OTP expiry being very low.
+
+2. **The `CreatePassword` page has no error handling.** When the expired link redirects to `/welcome/create-password#error=access_denied&error_code=otp_expired...`, the page ignores the error hash, finds no authenticated user, and crashes with "Auth session missing!" when the form is submitted.
+
+## The Fix (Two Parts)
+
+### Part 1: Route the magic link through `/auth/callback` instead of directly to `/welcome/create-password`
+
+**File: `supabase/functions/finalize-checkout/index.ts`**
+
+Change the `redirectTo` in the `generateLink` call from:
 ```
-[FINALIZE-CHECKOUT] User not found, creating new user — MICHAELJLEWIS2@GMAIL.COM
-[FINALIZE-CHECKOUT] ERROR: Failed to create user: A user with this email address has already been registered
+redirectTo: `${origin}/welcome/create-password`
 ```
-
-The user **does exist** in Supabase, but the REST API lookup misses them. The function then tries to create a duplicate, hits a 422, throws, and returns a 500 — which is what the user sees as "Something Went Wrong."
-
-## Why the Lookup Fails
-
-The `/auth/v1/admin/users?filter=` endpoint:
-- Returns users **paginated** — default page size is 50
-- The `filter` parameter searches **across multiple metadata fields**, not just email
-- If the project has more than 50 users, or the filter doesn't match correctly, the target user is simply absent from the response
-
-The current code does a `.find()` on whatever users come back in that first page. If `MICHAELJLEWIS2@GMAIL.COM` isn't in those 50 results, it returns `null` and tries to create a duplicate.
-
-## The Fix — Resilient "Try-Create, Fallback-Fetch" Pattern
-
-Instead of relying on a paginated list, use a **two-step approach**:
-
-**Step 1:** Attempt to create the user. This works for genuinely new users.
-
-**Step 2:** If create fails with `email_exists` (422), fetch the user by email using the correct endpoint `/auth/v1/admin/users` with a page size of 1000 and find by email — or better, use the `profiles` table which is indexed on `user_id` and can be cross-referenced via `contacts` or `profiles` directly.
-
-The most reliable pattern is:
-
-```typescript
-// Try to create
-const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({ ... });
-
-if (!createError) {
-  userId = newUser.user.id;
-  userCreated = true;
-} else if (createError.message.includes('already been registered') || createError.status === 422) {
-  // User exists — fetch them from profiles table by email (via auth admin with large page)
-  const listRes = await fetch(
-    `${supabaseUrl}/auth/v1/admin/users?per_page=1000&page=1`,
-    { headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` } }
-  );
-  const listData = await listRes.json();
-  const found = listData?.users?.find(
-    (u: any) => u.email?.toLowerCase() === customerEmail.toLowerCase()
-  );
-  if (!found) throw new Error(`User exists but could not be located: ${customerEmail}`);
-  userId = found.id;
-  logStep("Recovered existing user after 422", { userId });
-} else {
-  throw new Error(`Failed to create user: ${createError.message}`);
-}
+to:
+```
+redirectTo: `${origin}/auth/callback`
 ```
 
-This eliminates the pre-flight lookup entirely. The create either succeeds (new user) or fails with a known "already registered" error, at which point we fetch with a much larger page size to guarantee finding the user.
+The `AuthCallback` page already handles `magiclink` type tokens correctly -- it verifies the OTP via `supabase.auth.verifyOtp()`, establishes the session, checks `password_set`, and routes to `/welcome/create-password` with an active session. This is more reliable than relying on the Supabase client auto-detecting tokens from the URL hash on a page that wasn't designed for it.
 
-## Also: Email Validation Trigger Issue
+### Part 2: Add expired-link error handling to `CreatePassword`
 
-The `validate_email_format` trigger rejects emails that don't match `^[A-Za-z0-9._%+-]+@...`. Stripe is sending the email as `MICHAELJLEWIS2@GMAIL.COM` (uppercase). The `user_consents` insert uses `.toLowerCase().trim()` which handles this, but worth noting the function already normalises it.
+**File: `src/pages/CreatePassword.tsx`**
+
+- On mount, parse the URL hash for `error_code=otp_expired`
+- If detected, show a friendly "Your sign-in link has expired" message with:
+  - An email input field (pre-filled if available)
+  - A "Resend Sign-In Link" button
+- The resend button calls `supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin + '/auth/callback' } })` -- this sends a fresh magic link through Supabase's built-in email system with the proper configured expiry
+- This gives the user a self-service recovery path instead of a dead-end error
+
+### Part 3: Also handle the error in `SubscriptionSuccess`
+
+**File: `src/pages/SubscriptionSuccess.tsx`**
+
+No changes needed here -- the success page works correctly. The issue is downstream when clicking the email link.
 
 ## Files to Change
 
 | File | Change |
 |---|---|
-| `supabase/functions/finalize-checkout/index.ts` | Remove pre-flight user lookup; replace with try-create + catch-and-recover pattern |
+| `supabase/functions/finalize-checkout/index.ts` | Change `redirectTo` from `/welcome/create-password` to `/auth/callback` |
+| `src/pages/CreatePassword.tsx` | Add URL hash error detection and "Resend Link" fallback UI |
 
-## What This Fixes
+## Why This Works
 
-- Eliminates the pagination miss that causes "user not found" false negatives
-- Eliminates the 422 crash — it becomes a handled, recoverable condition
-- New users are created correctly; existing users are found correctly
-- The function completes → entitlement upserted → magic link generated → email sent
+- Routing through `/auth/callback` uses the existing, battle-tested OTP verification logic that properly establishes a session before redirecting
+- The resend fallback uses `signInWithOtp` which goes through Supabase's standard email flow with proper OTP expiry configuration
+- Users who encounter an expired link get a clear, actionable path forward instead of a cryptic error
+- No backend infrastructure changes needed for the resend -- it's a client-side Supabase auth call
+
