@@ -1,32 +1,51 @@
 
-# Add Expandable "More Ways" List to "What You Get" Box
+# Fix: "Continue" Button Error on Pricing Page
 
-## What's changing
+## Root Cause
 
-A collapsible section will be added at the bottom of the "What You Get" box. It will show a "More ways Asset Safe supports your life ↓" toggle link, and when clicked, reveal a secondary list of 9 items in a visually lighter style (smaller text, muted color, subtle left-border or dot indicators).
+The Pricing page `handleSubscribe` function calls `log-consent` before creating the Stripe checkout session, and treats any failure from that function as a **hard blocker**:
 
-The two boxes ("How It Works" and "What You Get") are currently in a CSS grid with `items-start`. To keep them visually balanced at the same height regardless of the expanded state, the grid will use `items-stretch` and each card will be `h-full`, so both cards always fill the same row height. The expandable content grows inside the right card only.
+```js
+if (consentErr || !consentData?.success) {
+  throw new Error('Failed to record consent. Please try again.');
+}
+```
 
-## Technical details
+If the `log-consent` edge function returns a non-2xx status (e.g. the service role key insert fails due to any transient DB issue, or the RLS policy interfering), the user sees the "edge function returned a non-2xx status code" error and **cannot proceed to checkout at all**.
 
-**File: `src/components/DocumentProtectSection.tsx`**
+There is also a secondary issue: the `log-consent` function uses `.single()` after an insert, which throws if the insert returns anything unexpected.
 
-1. Add a new `useState` for `moreOpen` (default `false`).
-2. At the bottom of the "What You Get" card, add:
-   - A `<button>` styled as a subtle text link: `"More ways Asset Safe supports your life ↓"` — small, muted-foreground color, with chevron rotation on open.
-   - A collapsible `<div>` using `max-h-0 / max-h-96 + overflow-hidden + transition-all` (same pattern already used in this file for the Security dropdown).
-   - Inside: a `<ul>` with 9 list items, each with a small bullet or dash, `text-sm text-muted-foreground`, slightly lighter than the top 3 features.
-3. Change the grid wrapper from `items-start` (implicit) to `items-stretch` and add `flex flex-col` + `h-full` to each card so both boxes maintain the same height.
+## The Fix
 
-## Items in the expanded list
-- Guided documentation checklists
-- Room-by-room inventory tools
-- Insurance & claim-ready exports
-- Emergency instructions
-- Password & digital access catalog
-- Family archive (memories, notes, history)
-- Property profiles (homes, rentals, vacation properties)
-- Secure sharing with authorized users
-- Post-damage documentation tools
+**File: `src/pages/Pricing.tsx`**
 
-## No other files need to change
+Make the consent logging **non-blocking**. If it fails, log it to the console but do NOT prevent the user from proceeding to checkout. Consent for unauthenticated users is already logged post-payment by `finalize-checkout` anyway — this is belt-and-suspenders for authenticated users and should not gate access.
+
+```js
+// Before (blocks checkout on consent failure)
+if (consentErr || !consentData?.success) {
+  throw new Error('Failed to record consent...');
+}
+
+// After (gracefully continues)
+if (consentErr) {
+  console.warn('[Pricing] Consent logging failed (non-blocking):', consentErr.message);
+}
+```
+
+**File: `supabase/functions/log-consent/index.ts`**
+
+Remove the `.single()` call after the insert — `.single()` throws if zero or multiple rows are returned, making the function unnecessarily fragile. Use a plain insert without requiring a single row back.
+
+## Files to Change
+
+| File | Change |
+|---|---|
+| `src/pages/Pricing.tsx` | Make consent logging non-blocking — catch failure but continue to checkout |
+| `supabase/functions/log-consent/index.ts` | Remove `.single()` from the insert to avoid unnecessary throws |
+
+## Why This Is Safe
+
+- Consent for unauthenticated users is already captured post-payment in `finalize-checkout`
+- Consent for authenticated users is a best-effort audit trail — a missed log entry is far less harmful than blocking a paying customer from subscribing
+- The actual consent checkbox is enforced client-side (`if (!consentChecked) return`) before this code even runs
