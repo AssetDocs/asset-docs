@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { User, Phone, Home, CheckCircle2 } from 'lucide-react';
+import { Loader } from '@googlemaps/js-api-loader';
 
 const STEPS = [
   { id: 1, label: 'Your name', icon: User },
@@ -25,6 +26,28 @@ const Onboarding = () => {
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const addressInputRef = useRef<HTMLInputElement>(null);
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+
+  // Initialize Google Places autocomplete when step 3 is shown
+  useEffect(() => {
+    if (step !== 3 || !addressInputRef.current) return;
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    if (!apiKey) return;
+    const loader = new Loader({ apiKey, version: 'weekly', libraries: ['places'] });
+    loader.load().then(() => {
+      if (!addressInputRef.current || autocompleteRef.current) return;
+      autocompleteRef.current = new google.maps.places.Autocomplete(addressInputRef.current, {
+        types: ['address'],
+        componentRestrictions: { country: 'us' },
+        fields: ['formatted_address'],
+      });
+      autocompleteRef.current.addListener('place_changed', () => {
+        const place = autocompleteRef.current?.getPlace();
+        if (place?.formatted_address) setAddress(place.formatted_address);
+      });
+    }).catch(() => {/* graceful fallback to plain input */});
+  }, [step]);
 
   // Pre-fill from profile if available
   useEffect(() => {
@@ -165,6 +188,7 @@ const Onboarding = () => {
                 <Label htmlFor="address">Property address</Label>
                 <Input
                   id="address"
+                  ref={addressInputRef}
                   value={address}
                   onChange={e => setAddress(e.target.value)}
                   placeholder="123 Main St, City, State"
