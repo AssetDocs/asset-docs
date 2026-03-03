@@ -18,8 +18,7 @@ const AuthCallback = () => {
 
     if (hasHashSession) {
       // Flow A: session set by Supabase client auto-parsing the hash fragment
-      // Clear the hash from the URL immediately to prevent token leaking in history
-      window.history.replaceState(null, '', window.location.pathname);
+      // DO NOT clear hash yet — Supabase needs it to establish the session asynchronously
       handleHashSessionFlow();
     } else {
       // Flow B: token_hash query param — existing OTP verification logic
@@ -27,44 +26,52 @@ const AuthCallback = () => {
     }
 
     async function handleHashSessionFlow() {
-      try {
-        // Supabase JS client already parsed the hash and set the session.
-        // Poll briefly to ensure the session is available.
-        let session = null;
-        for (let i = 0; i < 10; i++) {
-          const { data } = await supabase.auth.getSession();
-          if (data.session) { session = data.session; break; }
-          await new Promise(r => setTimeout(r, 200));
-        }
+      return new Promise<void>((resolve) => {
+        const timeout = setTimeout(() => {
+          subscription.unsubscribe();
+          setLoading(false);
+          toast({
+            title: 'Authentication Error',
+            description: 'Session could not be established. Please try signing in again.',
+            variant: 'destructive',
+          });
+          navigate('/auth', { replace: true });
+          resolve();
+        }, 10000);
 
-        if (!session) {
-          throw new Error('Session could not be established. The link may have expired.');
-        }
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            if (event === 'SIGNED_IN' && session) {
+              clearTimeout(timeout);
+              subscription.unsubscribe();
+              // NOW safe to clear the hash — session is fully established
+              window.history.replaceState(null, '', window.location.pathname);
 
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('password_set, onboarding_complete')
-          .eq('user_id', session.user.id)
-          .single();
+              try {
+                const { data: profileData } = await supabase
+                  .from('profiles')
+                  .select('password_set, onboarding_complete')
+                  .eq('user_id', session.user.id)
+                  .single();
 
-        if (!profileData?.password_set) {
-          navigate('/welcome/create-password', { replace: true });
-        } else if (!profileData?.onboarding_complete) {
-          navigate('/onboarding', { replace: true });
-        } else {
-          navigate('/account', { replace: true });
-        }
-      } catch (error: any) {
-        console.error('Hash session flow error:', error);
-        toast({
-          title: 'Authentication Error',
-          description: error.message || 'There was an error signing you in.',
-          variant: 'destructive',
-        });
-        navigate('/auth', { replace: true });
-      } finally {
-        setLoading(false);
-      }
+                if (!profileData?.password_set) {
+                  navigate('/welcome/create-password', { replace: true });
+                } else if (!profileData?.onboarding_complete) {
+                  navigate('/onboarding', { replace: true });
+                } else {
+                  navigate('/account', { replace: true });
+                }
+              } catch (error: any) {
+                console.error('Hash session profile fetch error:', error);
+                navigate('/account', { replace: true });
+              } finally {
+                setLoading(false);
+                resolve();
+              }
+            }
+          }
+        );
+      });
     }
 
     async function handleAuthCallback() {
