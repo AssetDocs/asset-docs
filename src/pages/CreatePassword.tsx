@@ -35,10 +35,14 @@ const CreatePassword = () => {
     }
   }, []);
 
-  // Guard: if already done, skip forward
+  // Guard: if password already set, route correctly
   useEffect(() => {
     if (!loading && profile?.password_set) {
-      navigate('/account', { replace: true });
+      if (!profile?.onboarding_complete) {
+        navigate('/onboarding', { replace: true });
+      } else {
+        navigate('/account', { replace: true });
+      }
     }
   }, [loading, profile, navigate]);
 
@@ -90,7 +94,7 @@ const CreatePassword = () => {
       if (profileError) throw profileError;
 
       toast({ title: 'Password set!', description: 'Your account is secured. Setting up your profile...' });
-      navigate('/onboarding', { replace: true });
+      // Let the profile guard useEffect handle the redirect once USER_UPDATED re-fetches the profile
     } catch (err: any) {
       toast({ title: 'Error', description: err.message || 'Something went wrong. Please try again.', variant: 'destructive' });
     } finally {
