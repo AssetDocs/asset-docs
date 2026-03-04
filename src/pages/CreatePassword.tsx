@@ -94,7 +94,7 @@ const CreatePassword = () => {
       if (profileError) throw profileError;
 
       toast({ title: 'Password set!', description: 'Your account is secured. Setting up your profile...' });
-      // Let the profile guard useEffect handle the redirect once USER_UPDATED re-fetches the profile
+      navigate('/onboarding', { replace: true });
     } catch (err: any) {
       toast({ title: 'Error', description: err.message || 'Something went wrong. Please try again.', variant: 'destructive' });
     } finally {
