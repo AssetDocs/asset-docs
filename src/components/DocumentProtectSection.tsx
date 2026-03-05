@@ -67,6 +67,31 @@ const DocumentProtectSection: React.FC = () => {
                 </div>
               ))}
             </div>
+
+            {/* Security & Privacy expandable */}
+            <div
+              className="mt-5 -mx-6 -mb-6 px-6 pb-6 pt-4 border-t border-border rounded-b-lg"
+              style={{ background: 'linear-gradient(to bottom, transparent, rgba(42,157,143,0.08))' }}
+            >
+              <button
+                onClick={() => setSecurityOpen(!securityOpen)}
+                className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <span>🔒 Security & Privacy</span>
+                <ChevronDown className={cn("w-4 h-4 transition-transform duration-200", securityOpen && "rotate-180")} />
+              </button>
+              <div
+                className={cn(
+                  "overflow-hidden transition-all duration-300 ease-in-out",
+                  securityOpen ? "max-h-96 opacity-100 mt-3" : "max-h-0 opacity-0"
+                )}
+              >
+                <p className="text-sm text-muted-foreground text-center mb-3">
+                  Built for: Homeowners • Renters • Families • Property owners • Small businesses
+                </p>
+                <SecurityBadges variant="compact" />
+              </div>
+            </div>
           </div>
           
           {/* Right: Features in Single Box */}
@@ -87,7 +112,10 @@ const DocumentProtectSection: React.FC = () => {
             </div>
 
             {/* Expandable more items */}
-            <div className="mt-5 pt-4 border-t border-border">
+            <div
+              className="mt-5 -mx-6 -mb-6 px-6 pb-6 pt-4 border-t border-border rounded-b-lg"
+              style={{ background: 'linear-gradient(to bottom, transparent, rgba(42,157,143,0.08))' }}
+            >
               <button
                 onClick={() => setMoreOpen(!moreOpen)}
                 className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -110,35 +138,6 @@ const DocumentProtectSection: React.FC = () => {
                   ))}
                 </ul>
               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Security Info Dropdown */}
-        <div className="max-w-5xl mx-auto mt-8">
-          <button
-            onClick={() => setSecurityOpen(!securityOpen)}
-            className="w-full bg-brand-green text-white py-3 px-4 rounded-lg flex items-center justify-center gap-2 font-medium hover:bg-brand-green/90 transition-colors"
-          >
-            <span>🔒 Security & Privacy</span>
-            {securityOpen ? (
-              <ChevronUp className="w-5 h-5" />
-            ) : (
-              <ChevronDown className="w-5 h-5" />
-            )}
-          </button>
-          
-          <div
-            className={cn(
-              "overflow-hidden transition-all duration-300 ease-in-out",
-              securityOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-            )}
-          >
-            <div className="bg-card border border-t-0 border-border rounded-b-lg p-6 space-y-4">
-              <p className="text-sm text-muted-foreground text-center">
-                Built for: Homeowners • Renters • Families • Property owners • Small businesses
-              </p>
-              <SecurityBadges variant="compact" />
             </div>
           </div>
         </div>
