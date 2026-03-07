@@ -51,6 +51,7 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
+  profileLoading: boolean;
   signUp: (email: string, password: string, firstName?: string, lastName?: string, giftCode?: string) => Promise<{ error: any; data?: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -72,6 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(false);
   const previousEmailRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -83,6 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (session?.user) {
           // Fetch user profile and check subscription status
+          setProfileLoading(true);
           setTimeout(async () => {
             try {
               const { data: profileData } = await supabase
@@ -138,6 +141,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             } catch (error) {
               console.error('Error fetching profile or checking subscription:', error);
+            } finally {
+              setProfileLoading(false);
             }
           }, 0);
         } else {
@@ -208,7 +213,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       user, 
       session, 
       profile, 
-      loading, 
+      loading,
+      profileLoading,
       signUp, 
       signIn, 
       signOut, 

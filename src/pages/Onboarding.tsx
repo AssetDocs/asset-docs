@@ -16,7 +16,7 @@ const STEPS = [
 ];
 
 const Onboarding = () => {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, profileLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -65,11 +65,12 @@ const Onboarding = () => {
   }, [loading, profile, navigate]);
 
   // Guard: must have password set to be here
+  // Wait for profileLoading to finish so we don't bounce on stale profile after password set
   useEffect(() => {
-    if (!loading && user && profile && !profile.password_set) {
+    if (!loading && !profileLoading && user && profile && !profile.password_set) {
       navigate('/welcome/create-password', { replace: true });
     }
-  }, [loading, user, profile, navigate]);
+  }, [loading, profileLoading, user, profile, navigate]);
 
   const handleFinish = async () => {
     setSubmitting(true);
