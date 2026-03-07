@@ -1,66 +1,93 @@
 
-## Root Cause: Two Conflicting Redirects Fighting Each Other
+## Problem Analysis
 
-### Issue 1 — `handleSubmit` vs. the Profile Guard
-After `supabase.auth.updateUser({ password })` succeeds and `profiles.password_set` is set to `true`, two things happen simultaneously:
+The `passwordJustSet` fix in `CreatePassword.tsx` is logically correct but has a critical gap: it depends on `profileLoading` becoming `false` after the `USER_UPDATED` event fires. Looking at `AuthContext.tsx` closely:
 
-1. `handleSubmit` calls `navigate('/onboarding', { replace: true })`
-2. The `AuthContext` `onAuthStateChange` listener fires `USER_UPDATED`, re-fetches the profile, sets `profile.password_set = true`
-3. The guard in `CreatePassword` (lines 39-43) sees `password_set === true` and calls `navigate('/account', { replace: true })` — overriding the form's redirect to `/onboarding`
-
-The user ends up on `/account`, not `/onboarding`. But the timing is also inconsistent — sometimes `USER_UPDATED` fires and re-triggers the `loading` spinner, leaving the navigate from `handleSubmit` effectively cancelled.
-
-### Issue 2 — Guard Redirects to Wrong Page
-```typescript
-// Lines 39-43 in CreatePassword.tsx
-useEffect(() => {
-  if (!loading && profile?.password_set) {
-    navigate('/account', { replace: true }); // ← sends to dashboard, skipping onboarding
-  }
-}, [loading, profile, navigate]);
+```ts
+// Line 88-89 in AuthContext.tsx
+setProfileLoading(true);
+setTimeout(async () => {
+  // fetches profile...
+  // sets profileLoading(false) in finally
+}, 0);
 ```
-This guard exists to prevent already-setup users from re-visiting this page — correct intent, wrong destination. A user who just set their password still needs to complete onboarding. It should redirect to `/onboarding` when `password_set` is true AND `onboarding_complete` is false.
 
-## Fixes
+The `setTimeout(..., 0)` is **deferred**. But `setLoading(false)` fires **synchronously** at line 158 (outside the setTimeout). This means the sequence is:
 
-### Fix 1: `src/pages/CreatePassword.tsx` — Correct the guard destination
-Change the guard from routing to `/account` to checking `onboarding_complete`:
-```typescript
-useEffect(() => {
-  if (!loading && profile?.password_set) {
-    if (!profile?.onboarding_complete) {
-      navigate('/onboarding', { replace: true });
-    } else {
-      navigate('/account', { replace: true });
-    }
-  }
-}, [loading, profile, navigate]);
-```
-This means both the explicit form redirect AND the guard both point to `/onboarding` for new users — no more conflict.
+1. `USER_UPDATED` fires → `setProfileLoading(true)` queued in timeout → `setLoading(false)` fires immediately
+2. `CreatePassword`'s `useEffect` fires with `passwordJustSet=true`, `loading=false`, `profileLoading=false` (still false, timeout hasn't run yet)
+3. But `profile?.password_set` is still the **old stale value** (false) → navigate condition never triggers
+4. Eventually setTimeout runs, profile re-fetches, `profile.password_set` = true → but `passwordJustSet` condition now works... **or does it?**
 
-### Fix 2: `src/pages/CreatePassword.tsx` — Remove redundant explicit navigate
-Since the guard now handles routing after `password_set` flips to `true`, we can let the profile update (triggered by `USER_UPDATED`) drive the navigation naturally. The `handleSubmit` should update Supabase and the profile record, then let the guard's `useEffect` handle the redirect — this eliminates the race condition entirely.
+Actually there's an even deeper problem: `USER_UPDATED` triggers the `setTimeout` but inside AuthContext at line 102, there's also `accept-contributor-invitation` being called which adds latency. And the profile DB write in `handleSubmit` (line 97-100 of CreatePassword) may not be committed before the `USER_UPDATED` event fires the re-fetch in the timeout.
 
-Remove `navigate('/onboarding', { replace: true })` from `handleSubmit` and let the `useEffect` guard detect the profile change and redirect.
+**The real root issue**: `supabase.auth.updateUser({ password })` fires `USER_UPDATED` which triggers a profile re-fetch — but the profile re-fetch reads `password_set` from DB, which was just set moments earlier in the same function. There's a tiny window where the DB write hasn't replicated yet when the re-fetch runs.
 
-### Fix 3: Address form — Google Places autocomplete (second issue)
-For the property address field in the onboarding/property form, add Google Places autocomplete. The project already has `@googlemaps/js-api-loader` and `@types/google.maps` installed. We need to find the address input in the onboarding flow and wire up the Places Autocomplete API.
+## The User's Suggestion is Actually the Right Answer
 
-## Files to Change
+The user is asking: **should we consolidate everything into one page?** — yes, this is the clean architectural fix.
+
+Instead of the `create-password → /onboarding` two-page flow with its fragile inter-page navigation dependency, we consolidate into **a single "Welcome & Setup" page** at `/welcome/create-password` that handles all onboarding steps in sequence:
+
+- Step 1: Set password (password + confirm)
+- Step 2: Your name (first + last)
+- Step 3: Phone (optional)
+- Step 4: Add first property (optional)
+
+**All on one page, in-memory state, single final DB write at the end.** No inter-page navigation until everything is done. This eliminates the race condition entirely because we never navigate mid-flow — we only navigate once at the very end when all data has been saved.
+
+## Plan
+
+### What changes
+
+**1. Consolidate `CreatePassword.tsx` into a 4-step setup wizard**
+
+Replace the current single-purpose password form with a full setup wizard. Steps:
+- Step 0: "Secure your account" — password + confirm (same UI as now)
+- Step 1: "What's your name?" — first + last name (pre-filled from profile metadata)
+- Step 2: "Phone number (optional)"
+- Step 3: "Add your first property (optional)" — address with Google Places
+
+The wizard only calls Supabase **once at the very end**:
+1. `supabase.auth.updateUser({ password })` — sets the password
+2. `supabase.from('profiles').update({ password_set: true, first_name, last_name, onboarding_complete: true })`
+3. If address provided: `supabase.from('properties').insert(...)`
+4. Then `navigate('/account', { replace: true })` — direct, no guard dependency
+
+**2. Retire `Onboarding.tsx`**
+
+The `/onboarding` route will redirect to `/account` for anyone who has `onboarding_complete: true`, or to `/welcome/create-password` for anyone who doesn't. The separate onboarding page is no longer needed as an active destination for new users.
+
+**3. Simplify `AuthCallback.tsx`** 
+
+The hash session flow (lines 57-63) already routes to `/welcome/create-password` for `!password_set` users. No change needed there — it lands users on the new consolidated wizard correctly.
+
+**4. Keep `Onboarding.tsx` as a stub redirect**
+
+Leave the route in `App.tsx` but redirect straight to `/account` (or `/welcome/create-password` depending on state). This prevents broken links for any users mid-flow.
+
+### Files to change
 
 | File | Change |
 |---|---|
-| `src/pages/CreatePassword.tsx` | Fix guard to route to `/onboarding` when `onboarding_complete` is false; remove the explicit `navigate` from `handleSubmit` to eliminate race condition |
-| `src/pages/Onboarding.tsx` | Add Google Places autocomplete to the property address input field |
+| `src/pages/CreatePassword.tsx` | Replace with 4-step all-in-one setup wizard |
+| `src/pages/Onboarding.tsx` | Convert to redirect stub (no longer an active onboarding destination) |
 
-## Summary of the Redirect Flow After Fix
+### Why this definitively fixes the problem
+
+- No inter-page navigation mid-flow = no race condition
+- Profile is only written once (final step) = no partial state
+- `navigate('/account')` fires after confirmed DB writes = no stale data issue
+- Single page = simpler mental model, fewer moving parts, no `passwordJustSet` flag needed
+
+### Visual flow after fix
 
 ```text
-User sets password → handleSubmit updates Supabase + profile
-→ USER_UPDATED fires → AuthContext re-fetches profile
-→ profile.password_set = true, onboarding_complete = false
-→ CreatePassword guard useEffect fires
-→ navigate('/onboarding') ✓
-```
+Magic link → /auth/callback → /welcome/create-password
 
-Clean, single redirect path, no race condition.
+[Step 1: Password]  →  [Step 2: Name]  →  [Step 3: Phone]  →  [Step 4: Property]
+                                                                       ↓
+                                                              Single DB write
+                                                                       ↓
+                                                              navigate('/account')
+```
