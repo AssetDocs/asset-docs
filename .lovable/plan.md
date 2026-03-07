@@ -1,66 +1,96 @@
 
-## Root Cause: Two Conflicting Redirects Fighting Each Other
+## What Needs Updating in `SystemArchitectureFlowcharts.tsx`
 
-### Issue 1 — `handleSubmit` vs. the Profile Guard
-After `supabase.auth.updateUser({ password })` succeeds and `profiles.password_set` is set to `true`, two things happen simultaneously:
+Based on a full read of the current architecture page vs. the actual codebase + memory notes, here are all the inaccuracies to fix:
 
-1. `handleSubmit` calls `navigate('/onboarding', { replace: true })`
-2. The `AuthContext` `onAuthStateChange` listener fires `USER_UPDATED`, re-fetches the profile, sets `profile.password_set = true`
-3. The guard in `CreatePassword` (lines 39-43) sees `password_set === true` and calls `navigate('/account', { replace: true })` — overriding the form's redirect to `/onboarding`
+---
 
-The user ends up on `/account`, not `/onboarding`. But the timing is also inconsistent — sometimes `USER_UPDATED` fires and re-triggers the `loading` spinner, leaving the navigate from `handleSubmit` effectively cancelled.
+### 1. Account Creation Flow (lines 206–286) — Major rework needed
 
-### Issue 2 — Guard Redirects to Wrong Page
-```typescript
-// Lines 39-43 in CreatePassword.tsx
-useEffect(() => {
-  if (!loading && profile?.password_set) {
-    navigate('/account', { replace: true }); // ← sends to dashboard, skipping onboarding
-  }
-}, [loading, profile, navigate]);
+The current diagram shows the OLD free signup flow:
+- Signup Form → email/password/name → Email Verification → AuthCallback → choose plan → Stripe
+
+The **actual current flow** is payment-first:
 ```
-This guard exists to prevent already-setup users from re-visiting this page — correct intent, wrong destination. A user who just set their password still needs to complete onboarding. It should redirect to `/onboarding` when `password_set` is true AND `onboarding_complete` is false.
-
-## Fixes
-
-### Fix 1: `src/pages/CreatePassword.tsx` — Correct the guard destination
-Change the guard from routing to `/account` to checking `onboarding_complete`:
-```typescript
-useEffect(() => {
-  if (!loading && profile?.password_set) {
-    if (!profile?.onboarding_complete) {
-      navigate('/onboarding', { replace: true });
-    } else {
-      navigate('/account', { replace: true });
-    }
-  }
-}, [loading, profile, navigate]);
+Pricing → Stripe Checkout → /subscription-success → finalize-checkout (edge fn)
+→ Magic Link email → /auth/callback (waits for SIGNED_IN event)
+→ /welcome/create-password → /onboarding (3 steps) → /account
 ```
-This means both the explicit form redirect AND the guard both point to `/onboarding` for new users — no more conflict.
 
-### Fix 2: `src/pages/CreatePassword.tsx` — Remove redundant explicit navigate
-Since the guard now handles routing after `password_set` flips to `true`, we can let the profile update (triggered by `USER_UPDATED`) drive the navigation naturally. The `handleSubmit` should update Supabase and the profile record, then let the guard's `useEffect` handle the redirect — this eliminates the race condition entirely.
+Specific wrong items to fix:
+- `FlowNode` "Signup Form" shows "Email, Password, Name + Optional Gift Code" — wrong, new users don't pick a password at signup. Password is set at `/welcome/create-password`
+- The two-branch "Gift Code?" decision after AuthCallback is wrong. Gift flow is separate from the main subscription flow
+- Plan nodes show `Standard ($12.99/mo) or Premium ($18.99/mo)` — wrong. Per memory: single "Asset Safe Plan" at **$18.99/mo or $189/yr**
+- Key Functions list at bottom still includes `supabase.auth.signUp` and old functions
 
-Remove `navigate('/onboarding', { replace: true })` from `handleSubmit` and let the `useEffect` guard detect the profile change and redirect.
+New Account Creation Flow to document:
+1. User visits Pricing page → selects Monthly ($18.99) or Annual ($189/yr)
+2. `create-checkout` edge function → Stripe Checkout
+3. `stripe-webhook` → `finalize-checkout` edge function creates the user via Supabase Admin API + sends magic link email
+4. User clicks magic link → `/auth/callback` (waits for `SIGNED_IN` event before clearing hash)
+5. → `/welcome/create-password` (sets password via `supabase.auth.updateUser`, marks `profiles.password_set = true`, then `navigate('/onboarding')`)
+6. → `/onboarding` (3-step wizard: name, phone, first property with Google Places autocomplete)
+7. → `/account` dashboard
 
-### Fix 3: Address form — Google Places autocomplete (second issue)
-For the property address field in the onboarding/property form, add Google Places autocomplete. The project already has `@googlemaps/js-api-loader` and `@types/google.maps` installed. We need to find the address input in the onboarding flow and wire up the Places Autocomplete API.
+### 2. Subscription & Billing Flow (lines 656–754) — Pricing nodes wrong
+
+Lines 667–693 show three plan tiers:
+- **Standard Plan** at `$129/year`
+- **Premium Plan** at `$189/year`  
+- **Lifetime (ASL2025)**
+
+Per memory: Asset Safe now has a **single "Asset Safe Plan"** at `$18.99/mo` or `$189/yr`. No Standard vs Premium split. Remove the Standard/Premium comparison grid and replace with single plan + two billing options.
+
+Also: Key functions summary should note deprecated functions (`add-storage`, `add-storage-25gb`, `change-plan`, `cancel-subscription`) are deprecated — Stripe Customer Portal handles changes now.
+
+### 3. Photo Upload Flow (lines 363–453) — Minor: deprecated function reference
+
+Line 385 still shows `add-storage / add-storage-25gb` as the storage upgrade path. Per memory these are deprecated. Should say "Stripe Customer Portal" instead.
+
+### 4. System Architecture Overview (lines 122–204) — Minor updates
+
+The Auth Pages box (line 142) currently lists "Login, Signup, Verify Email, Password Reset". Should reflect actual auth pages: "Login, Magic Link, Create Password, Onboarding".
+
+Storage buckets grid (lines 194–200) lists only 4 buckets but there are 6 in Supabase: `photos`, `videos`, `documents`, `floor-plans`, `memory-safe`, `contact-attachments`. Add the missing two.
+
+### 5. Contributor Flow (lines 455–566) — Minor update
+
+Line 467 says `Contributors Tab` at `/account/settings`. The actual route per memory is `/account/access-activity`. Update the sublabel.
+
+---
 
 ## Files to Change
 
-| File | Change |
+| File | Changes |
 |---|---|
-| `src/pages/CreatePassword.tsx` | Fix guard to route to `/onboarding` when `onboarding_complete` is false; remove the explicit `navigate` from `handleSubmit` to eliminate race condition |
-| `src/pages/Onboarding.tsx` | Add Google Places autocomplete to the property address input field |
+| `src/components/admin/SystemArchitectureFlowcharts.tsx` | 5 targeted updates across the existing flowcharts |
 
-## Summary of the Redirect Flow After Fix
+---
+
+## Summary of All Changes
 
 ```text
-User sets password → handleSubmit updates Supabase + profile
-→ USER_UPDATED fires → AuthContext re-fetches profile
-→ profile.password_set = true, onboarding_complete = false
-→ CreatePassword guard useEffect fires
-→ navigate('/onboarding') ✓
+FlowChart 1 - System Overview:
+  Auth Pages box: update text to reflect actual pages
+  Storage buckets: add floor-plans + memory-safe
+
+FlowChart 2 - Account Creation:
+  Full rewrite of the flow to show payment-first architecture:
+  Pricing → Stripe → finalize-checkout → Magic Link
+  → /auth/callback → /welcome/create-password → /onboarding → /account
+  Fix pricing: single plan, $18.99/mo or $189/yr
+  Update Key Functions list
+
+FlowChart 4 - Photo Upload:
+  Storage upgrade path: remove deprecated edge fns, replace with Stripe Customer Portal
+
+FlowChart 5 - Contributors:
+  Route sublabel: /account/settings → /account/access-activity
+
+FlowChart 6 - Subscription & Billing:
+  Replace Standard/Premium/Lifetime grid with single-plan + billing options
+  Note deprecated billing edge functions
+  Update pricing figures
 ```
 
-Clean, single redirect path, no race condition.
+Single file: `src/components/admin/SystemArchitectureFlowcharts.tsx`
