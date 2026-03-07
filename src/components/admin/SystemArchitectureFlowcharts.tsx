@@ -139,7 +139,7 @@ const SystemArchitectureFlowcharts: React.FC = () => {
               </div>
               <div className="bg-green-50 p-3 rounded-lg border border-green-200 text-center">
                 <span className="font-semibold text-green-800 text-sm">Auth Pages</span>
-                <p className="text-xs text-green-600 mt-1">Login, Signup, Verify Email, Password Reset</p>
+                <p className="text-xs text-green-600 mt-1">Login, Magic Link, Create Password, Onboarding</p>
               </div>
               <div className="bg-purple-50 p-3 rounded-lg border border-purple-200 text-center">
                 <span className="font-semibold text-purple-800 text-sm">Dashboard</span>
@@ -190,15 +190,15 @@ const SystemArchitectureFlowcharts: React.FC = () => {
             <Arrow />
 
             {/* Bottom Layer - Data Storage */}
-            <div className="grid grid-cols-4 gap-3">
-              {['photos', 'videos', 'documents', 'contact-attachments'].map((bucket) => (
+            <div className="grid grid-cols-6 gap-3">
+              {['photos', 'videos', 'documents', 'floor-plans', 'memory-safe', 'contact-attachments'].map((bucket) => (
                 <div key={bucket} className="bg-slate-100 p-2 rounded border border-slate-300 text-center">
                   <Database className="h-4 w-4 mx-auto text-slate-600" />
                   <span className="text-xs font-mono text-slate-700">{bucket}</span>
                 </div>
               ))}
             </div>
-            <p className="text-center text-xs text-muted-foreground mt-2">Private Storage Buckets (Signed URLs)</p>
+            <p className="text-center text-xs text-muted-foreground mt-2">6 Private Storage Buckets (Signed URLs, 1hr expiry)</p>
           </div>
         </div>
       </FlowChart>
@@ -206,79 +206,57 @@ const SystemArchitectureFlowcharts: React.FC = () => {
       {/* Account Creation Flow */}
       <FlowChart
         title="Account Creation Flow"
-        description="New user signup process from landing to dashboard"
+        description="Payment-first onboarding: Pricing → Stripe → Magic Link → Password → Onboarding → Dashboard"
         icon={<UserPlus className="h-5 w-5 text-green-600" />}
       >
         <div className="p-4 bg-muted/30 rounded-lg overflow-x-auto">
           <div className="flex flex-col items-center min-w-[600px]">
-            <FlowNode type="start" label="User Visits Site" />
+            <FlowNode type="start" label="User Visits Pricing" sublabel="/pricing" />
             <Arrow />
-            <FlowNode type="process" label="Clicks 'Get Started'" sublabel="assetsafe.net/signup" />
+            <FlowNode type="process" label="Select Billing Option" sublabel="Monthly ($18.99/mo) or Annual ($189/yr)" />
             <Arrow />
-            <FlowNode type="process" label="Signup Form" sublabel="Email, Password, Name + Optional Gift Code" />
+            <FlowNode type="process" label="Enter Email to Get Started" sublabel="Guest email input + terms consent" />
             <Arrow />
-            
-            <div className="flex items-center gap-4">
+            <FlowNode type="api" label="create-checkout" sublabel="Edge Function → Stripe Checkout Session" />
+            <Arrow />
+            <FlowNode type="process" label="Stripe Checkout" sublabel="Payment collected (U.S. billing only)" />
+            <Arrow />
+
+            <div className="flex items-center gap-6">
               <div className="flex flex-col items-center">
-                <FlowNode type="api" label="supabase.auth.signUp()" />
-                <Arrow />
-                <FlowNode type="database" label="auth.users" sublabel="User created" />
-              </div>
-              <Arrow direction="right" />
-              <div className="flex flex-col items-center">
-                <FlowNode type="api" label="handle_new_user()" sublabel="DB Trigger" />
-                <Arrow />
-                <FlowNode type="database" label="profiles" sublabel="Account# generated (AS######)" />
-              </div>
-            </div>
-            
-            <Arrow />
-            <FlowNode type="email" label="send-welcome-email" sublabel="Via Resend" />
-            <Arrow />
-            <FlowNode type="process" label="Email Verification" sublabel="User clicks link in email" />
-            <Arrow />
-            <FlowNode type="api" label="AuthCallback" sublabel="/auth/callback" />
-            <Arrow />
-            
-            <div className="bg-amber-50 p-3 rounded-lg border border-amber-300 text-center my-2">
-              <span className="text-sm font-semibold text-amber-800">Decision: Gift Code Entered?</span>
-            </div>
-            
-            <div className="flex items-center gap-8 mt-2">
-              <div className="flex flex-col items-center">
-                <Badge variant="outline" className="mb-2">No Gift Code</Badge>
-                <FlowNode type="process" label="Redirect to Pricing" sublabel="/pricing" />
-                <Arrow />
-                <FlowNode type="process" label="Select Plan" sublabel="Standard ($12.99/mo) or Premium ($18.99/mo)" />
-                <Arrow />
-                <FlowNode type="api" label="create-checkout" />
-                <Arrow />
-                <FlowNode type="process" label="Stripe Checkout" />
-                <Arrow />
                 <FlowNode type="api" label="stripe-webhook" sublabel="checkout.session.completed" />
                 <Arrow />
-                <FlowNode type="database" label="entitlements" sublabel="status: 'active'" />
-                <Arrow />
-                <FlowNode type="api" label="send-subscription-welcome-email" />
-                <Arrow />
-                <FlowNode type="end" label="Dashboard Access" sublabel="/account" />
+                <FlowNode type="api" label="finalize-checkout" sublabel="Edge Function (verify_jwt=false)" />
               </div>
-              <div className="flex flex-col items-center">
-                <Badge variant="outline" className="mb-2">Gift/Lifetime Code</Badge>
-                <FlowNode type="api" label="validate-lifetime-code" sublabel="ASL2025 or gift code" />
+              <Arrow direction="right" />
+              <div className="flex flex-col items-center gap-2">
+                <FlowNode type="database" label="auth.users" sublabel="Admin API create (or fetch if exists)" />
                 <Arrow />
-                <FlowNode type="database" label="entitlements" sublabel="plan: 'premium', status: 'active'" />
-                <Arrow />
-                <FlowNode type="end" label="Direct to Dashboard" sublabel="/account" />
+                <FlowNode type="database" label="entitlements" sublabel="plan: 'standard', status: 'active', 50GB" />
               </div>
             </div>
+
+            <Arrow />
+            <FlowNode type="email" label="Magic Link Email" sublabel="finalize-checkout → Resend → user inbox" />
+            <Arrow />
+            <FlowNode type="process" label="User clicks magic link" sublabel="Redirects to /auth/callback" />
+            <Arrow />
+            <FlowNode type="api" label="AuthCallback" sublabel="Waits for SIGNED_IN event before clearing hash" />
+            <Arrow />
+            <FlowNode type="process" label="Create Password" sublabel="/welcome/create-password — supabase.auth.updateUser()" />
+            <Arrow />
+            <FlowNode type="database" label="profiles" sublabel="password_set: true — DB trigger updates profile" />
+            <Arrow />
+            <FlowNode type="process" label="Onboarding Wizard" sublabel="/onboarding — 3 steps: Name, Phone, First Property (Google Places)" />
+            <Arrow />
+            <FlowNode type="end" label="Dashboard" sublabel="/account" />
           </div>
         </div>
-        
+
         <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
           <span className="font-semibold text-blue-800 text-sm">Key Functions Called:</span>
           <div className="flex flex-wrap gap-2 mt-2">
-            {['supabase.auth.signUp', 'handle_new_user (trigger)', 'send-welcome-email', 'create-checkout', 'stripe-webhook', 'sync-subscription', 'check-subscription', 'validate-lifetime-code'].map(fn => (
+            {['create-checkout', 'stripe-webhook', 'finalize-checkout', 'handle_new_user (trigger)', 'supabase.auth.admin.createUser', 'supabase.auth.admin.generateLink', 'supabase.auth.updateUser', 'check-subscription'].map(fn => (
               <Badge key={fn} variant="outline" className="text-xs font-mono">{fn}</Badge>
             ))}
           </div>
@@ -382,7 +360,7 @@ const SystemArchitectureFlowcharts: React.FC = () => {
                 <Badge variant="outline" className="mb-2 text-red-600">Over Limit</Badge>
                 <FlowNode type="process" label="Show Storage Warning" />
                 <Arrow />
-                <FlowNode type="api" label="add-storage / add-storage-25gb" />
+                <FlowNode type="process" label="Stripe Customer Portal" sublabel="Add 25GB block ($X/mo) — portal handles billing" />
               </div>
               <div className="flex flex-col items-center">
                 <Badge variant="outline" className="mb-2 text-green-600">OK</Badge>
@@ -464,7 +442,7 @@ const SystemArchitectureFlowcharts: React.FC = () => {
             <div className="flex items-start gap-6">
               <div className="flex flex-col items-center flex-1">
                 <Badge className="bg-blue-100 text-blue-800 mb-4">Account Owner Actions</Badge>
-                <FlowNode type="start" label="Owner opens Contributors Tab" sublabel="/account/settings" />
+                <FlowNode type="start" label="Owner opens Contributors Tab" sublabel="/account/access-activity" />
                 <Arrow />
                 <FlowNode type="process" label="Add Contributor Form" sublabel="Email, Name, Role" />
                 <Arrow />
@@ -661,37 +639,40 @@ const SystemArchitectureFlowcharts: React.FC = () => {
       >
         <div className="p-4 bg-muted/30 rounded-lg overflow-x-auto">
           <div className="min-w-[800px]">
-            {/* Initial Subscription */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <span className="font-semibold text-blue-800 text-sm block mb-2">Standard Plan</span>
-                <ul className="text-xs text-blue-600 space-y-1">
-                  <li>• $129/year</li>
-                  <li>• All core features</li>
-                  <li>• 5GB storage (base)</li>
-                  <li>• Unlimited properties</li>
+            {/* Single Plan */}
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
+                <span className="font-semibold text-emerald-800 text-sm block mb-2">Asset Safe Plan — Monthly</span>
+                <ul className="text-xs text-emerald-600 space-y-1">
+                  <li>• $18.99/mo + tax</li>
+                  <li>• Full feature suite (no tiers)</li>
+                  <li>• 50GB base storage</li>
+                  <li>• Cancel anytime via portal</li>
+                  <li>• Lookup key: asset_safe_monthly</li>
                 </ul>
               </div>
-              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                <span className="font-semibold text-purple-800 text-sm block mb-2">Premium Plan</span>
-                <ul className="text-xs text-purple-600 space-y-1">
-                  <li>• $189/year</li>
-                  <li>• All Standard features</li>
-                  <li>• Legacy Locker access</li>
-                  <li>• Priority support</li>
-                </ul>
-              </div>
-              <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
-                <span className="font-semibold text-amber-800 text-sm block mb-2">Lifetime (ASL2025)</span>
-                <ul className="text-xs text-amber-600 space-y-1">
-                  <li>• One-time code</li>
-                  <li>• Premium forever</li>
-                  <li>• No Stripe involved</li>
-                  <li>• Direct entitlement</li>
+              <div className="bg-teal-50 p-4 rounded-lg border border-teal-200">
+                <span className="font-semibold text-teal-800 text-sm block mb-2">Asset Safe Plan — Annual</span>
+                <ul className="text-xs text-teal-600 space-y-1">
+                  <li>• $189/yr + tax (~$15.75/mo)</li>
+                  <li>• Full feature suite (no tiers)</li>
+                  <li>• 50GB base storage</li>
+                  <li>• Billed yearly via portal</li>
+                  <li>• Lookup key: asset_safe_annual</li>
                 </ul>
               </div>
             </div>
-            
+
+            <div className="mb-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
+              <span className="font-semibold text-amber-800 text-sm">Deprecated Edge Functions (do not call from UI):</span>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {['change-plan', 'cancel-subscription', 'add-storage', 'add-storage-25gb'].map(fn => (
+                  <Badge key={fn} variant="outline" className="text-xs font-mono line-through text-muted-foreground">{fn}</Badge>
+                ))}
+              </div>
+              <p className="text-xs text-amber-700 mt-1">All subscription management is handled exclusively via the Stripe Customer Portal.</p>
+            </div>
+
             {/* Webhook Flow */}
             <div className="flex flex-col items-center">
               <FlowNode type="start" label="User completes Stripe Checkout" />
@@ -710,7 +691,7 @@ const SystemArchitectureFlowcharts: React.FC = () => {
                 <div className="flex flex-col items-center">
                   <FlowNode type="database" label="entitlements" sublabel="Source of truth" />
                   <Arrow />
-                  <span className="text-xs text-muted-foreground">plan, status, current_period_end</span>
+                  <span className="text-xs text-muted-foreground">plan, status, current_period_end, 50GB</span>
                 </div>
               </div>
               
@@ -725,14 +706,14 @@ const SystemArchitectureFlowcharts: React.FC = () => {
               <p className="text-center text-sm font-semibold mb-4">Handled Webhook Events</p>
               <div className="grid grid-cols-4 gap-3">
                 {[
-                  { event: 'checkout.session.completed', action: 'Activate subscription' },
+                  { event: 'checkout.session.completed', action: 'Activate subscription via finalize-checkout' },
                   { event: 'invoice.paid', action: 'Record payment, extend period' },
                   { event: 'invoice.payment_failed', action: 'Send reminder, grace period' },
-                  { event: 'customer.subscription.updated', action: 'Sync plan changes' },
+                  { event: 'customer.subscription.updated', action: 'Sync plan/cycle changes' },
                   { event: 'customer.subscription.deleted', action: 'Deactivate, send notice' },
                   { event: 'charge.succeeded', action: 'Log payment event' },
                   { event: 'charge.refunded', action: 'Update payment status' },
-                  { event: 'payment_intent.succeeded', action: 'Storage add-on processing' },
+                  { event: 'payment_intent.succeeded', action: 'Storage add-on (via portal)' },
                 ].map(({ event, action }) => (
                   <div key={event} className="bg-slate-50 p-2 rounded border border-slate-200">
                     <code className="text-xs font-mono text-slate-700">{event}</code>
@@ -748,7 +729,8 @@ const SystemArchitectureFlowcharts: React.FC = () => {
           <span className="font-semibold text-emerald-800 text-sm">Entitlements Architecture:</span>
           <p className="text-xs text-emerald-700 mt-1">
             The <code className="bg-white px-1 rounded">entitlements</code> table is the <strong>single source of truth</strong> for access control.
-            All RLS policies and feature gates read from entitlements, not Stripe directly. This prevents race conditions and ensures immediate access after payment.
+            All RLS policies and feature gates read from entitlements, not Stripe directly. Access is binary — active subscription = full feature suite.
+            The <code className="bg-white px-1 rounded">validate_entitlement_source</code> trigger enforces required Stripe billing identifiers on all stripe-backed entitlements.
           </p>
         </div>
       </FlowChart>
