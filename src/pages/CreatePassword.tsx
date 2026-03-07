@@ -102,7 +102,7 @@ const CreatePassword = () => {
       if (profileError) throw profileError;
 
       toast({ title: 'Password set!', description: 'Your account is secured. Setting up your profile...' });
-      navigate('/onboarding', { replace: true });
+      setPasswordJustSet(true);
     } catch (err: any) {
       toast({ title: 'Error', description: err.message || 'Something went wrong. Please try again.', variant: 'destructive' });
     } finally {
