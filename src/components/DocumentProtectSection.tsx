@@ -113,7 +113,7 @@ const DocumentProtectSection: React.FC = () => {
 
             {/* Expandable more items */}
             <div
-              className="mt-5 -mx-6 -mb-6 px-6 pb-6 pt-4 border-t border-border rounded-b-lg"
+              className="mt-auto -mx-6 -mb-6 px-6 pb-6 pt-4 border-t border-border rounded-b-lg"
               style={{ background: 'linear-gradient(to bottom, transparent, rgba(42,157,143,0.18))' }}
             >
               <button
