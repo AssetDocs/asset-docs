@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Shield, Eye, EyeOff, MailOpen } from 'lucide-react';
 
 const CreatePassword = () => {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, profileLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
