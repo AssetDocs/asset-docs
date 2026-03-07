@@ -85,66 +85,66 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (session?.user) {
           // Fetch user profile and check subscription status
+          // NOTE: No setTimeout — must be synchronous so profileLoading=true is visible
+          // to ProtectedRoute before it evaluates stale profile guards.
           setProfileLoading(true);
-          setTimeout(async () => {
-            try {
-              const { data: profileData } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('user_id', session.user.id)
-                .single();
-              setProfile(profileData);
-              
-              // Check subscription status on login
-              await supabase.functions.invoke('check-subscription');
+          try {
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('user_id', session.user.id)
+              .single();
+            setProfile(profileData);
+            
+            // Check subscription status on login
+            await supabase.functions.invoke('check-subscription');
 
-              // Check for pending contributor invitations on login/signup
-              if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
-                try {
-                  await supabase.functions.invoke('accept-contributor-invitation', {
-                    headers: {
-                      Authorization: `Bearer ${session.access_token}`
-                    }
-                  });
-                } catch (inviteError) {
-                  console.error('Error checking contributor invitations:', inviteError);
-                }
+            // Check for pending contributor invitations on login/signup
+            if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+              try {
+                await supabase.functions.invoke('accept-contributor-invitation', {
+                  headers: {
+                    Authorization: `Bearer ${session.access_token}`
+                  }
+                });
+              } catch (inviteError) {
+                console.error('Error checking contributor invitations:', inviteError);
               }
-
-              // Send security alert for new login (only once per unique session)
-              if (event === 'SIGNED_IN' && session.access_token) {
-                // Use a hash of user ID + access token end as unique session key
-                // Persisted in localStorage to survive page reloads
-                const sessionKey = `${session.user.id}-${session.access_token.slice(-20)}`;
-                if (!hasAlertedSession(sessionKey)) {
-                  addAlertedSession(sessionKey);
-                  SecurityAlertService.notifyNewLogin(
-                    session.user.id,
-                    session.user.email || ''
-                  ).catch(console.error);
-                }
-              }
-
-              // Detect email change
-              if (event === 'USER_UPDATED' && previousEmailRef.current && session.user.email) {
-                if (previousEmailRef.current !== session.user.email) {
-                  SecurityAlertService.notifyEmailChanged(
-                    session.user.id,
-                    previousEmailRef.current,
-                    session.user.email
-                  ).catch(console.error);
-                }
-              }
-
-              // Track current email for change detection
-              previousEmailRef.current = session.user.email || null;
-
-            } catch (error) {
-              console.error('Error fetching profile or checking subscription:', error);
-            } finally {
-              setProfileLoading(false);
             }
-          }, 0);
+
+            // Send security alert for new login (only once per unique session)
+            if (event === 'SIGNED_IN' && session.access_token) {
+              // Use a hash of user ID + access token end as unique session key
+              // Persisted in localStorage to survive page reloads
+              const sessionKey = `${session.user.id}-${session.access_token.slice(-20)}`;
+              if (!hasAlertedSession(sessionKey)) {
+                addAlertedSession(sessionKey);
+                SecurityAlertService.notifyNewLogin(
+                  session.user.id,
+                  session.user.email || ''
+                ).catch(console.error);
+              }
+            }
+
+            // Detect email change
+            if (event === 'USER_UPDATED' && previousEmailRef.current && session.user.email) {
+              if (previousEmailRef.current !== session.user.email) {
+                SecurityAlertService.notifyEmailChanged(
+                  session.user.id,
+                  previousEmailRef.current,
+                  session.user.email
+                ).catch(console.error);
+              }
+            }
+
+            // Track current email for change detection
+            previousEmailRef.current = session.user.email || null;
+
+          } catch (error) {
+            console.error('Error fetching profile or checking subscription:', error);
+          } finally {
+            setProfileLoading(false);
+          }
         } else {
           setProfile(null);
           previousEmailRef.current = null;
