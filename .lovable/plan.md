@@ -1,20 +1,66 @@
 
-## What's Different Between the Two Dropdowns
+## Root Cause: Two Conflicting Redirects Fighting Each Other
 
-The button labels are different lengths:
-- "🔒 Security & Privacy" — short
-- "More ways Asset Safe supports your life" — long
+### Issue 1 — `handleSubmit` vs. the Profile Guard
+After `supabase.auth.updateUser({ password })` succeeds and `profiles.password_set` is set to `true`, two things happen simultaneously:
 
-The buttons use `flex items-center gap-1` which means they're inline/auto-width. The visual "size mismatch" is just the text length difference — the containers themselves are structurally identical. To make them feel visually matched, we make both buttons `w-full` with `justify-between` so the chevron is always pinned to the right edge, giving both a consistent full-width appearance regardless of label length.
+1. `handleSubmit` calls `navigate('/onboarding', { replace: true })`
+2. The `AuthContext` `onAuthStateChange` listener fires `USER_UPDATED`, re-fetches the profile, sets `profile.password_set = true`
+3. The guard in `CreatePassword` (lines 39-43) sees `password_set === true` and calls `navigate('/account', { replace: true })` — overriding the form's redirect to `/onboarding`
 
-Also need to darken both gradients from `rgba(42,157,143,0.08)` to something more visible — `rgba(42,157,143,0.18)` is a noticeable but still subtle step up.
+The user ends up on `/account`, not `/onboarding`. But the timing is also inconsistent — sometimes `USER_UPDATED` fires and re-triggers the `loading` spinner, leaving the navigate from `handleSubmit` effectively cancelled.
 
-## Changes — `src/components/DocumentProtectSection.tsx`
+### Issue 2 — Guard Redirects to Wrong Page
+```typescript
+// Lines 39-43 in CreatePassword.tsx
+useEffect(() => {
+  if (!loading && profile?.password_set) {
+    navigate('/account', { replace: true }); // ← sends to dashboard, skipping onboarding
+  }
+}, [loading, profile, navigate]);
+```
+This guard exists to prevent already-setup users from re-visiting this page — correct intent, wrong destination. A user who just set their password still needs to complete onboarding. It should redirect to `/onboarding` when `password_set` is true AND `onboarding_complete` is false.
 
-**1. Both `<button>` elements** (lines 76–82 and 119–125):
-- Change `className` from `"flex items-center gap-1 text-sm ..."` to `"flex w-full items-center justify-between gap-2 text-sm ..."` so both buttons stretch full width with the chevron right-aligned.
+## Fixes
 
-**2. Both gradient `style` props** (lines 74 and 117):
-- Change `rgba(42,157,143,0.08)` → `rgba(42,157,143,0.18)` on both wrappers.
+### Fix 1: `src/pages/CreatePassword.tsx` — Correct the guard destination
+Change the guard from routing to `/account` to checking `onboarding_complete`:
+```typescript
+useEffect(() => {
+  if (!loading && profile?.password_set) {
+    if (!profile?.onboarding_complete) {
+      navigate('/onboarding', { replace: true });
+    } else {
+      navigate('/account', { replace: true });
+    }
+  }
+}, [loading, profile, navigate]);
+```
+This means both the explicit form redirect AND the guard both point to `/onboarding` for new users — no more conflict.
 
-That's it — 4 line changes, single file.
+### Fix 2: `src/pages/CreatePassword.tsx` — Remove redundant explicit navigate
+Since the guard now handles routing after `password_set` flips to `true`, we can let the profile update (triggered by `USER_UPDATED`) drive the navigation naturally. The `handleSubmit` should update Supabase and the profile record, then let the guard's `useEffect` handle the redirect — this eliminates the race condition entirely.
+
+Remove `navigate('/onboarding', { replace: true })` from `handleSubmit` and let the `useEffect` guard detect the profile change and redirect.
+
+### Fix 3: Address form — Google Places autocomplete (second issue)
+For the property address field in the onboarding/property form, add Google Places autocomplete. The project already has `@googlemaps/js-api-loader` and `@types/google.maps` installed. We need to find the address input in the onboarding flow and wire up the Places Autocomplete API.
+
+## Files to Change
+
+| File | Change |
+|---|---|
+| `src/pages/CreatePassword.tsx` | Fix guard to route to `/onboarding` when `onboarding_complete` is false; remove the explicit `navigate` from `handleSubmit` to eliminate race condition |
+| `src/pages/Onboarding.tsx` | Add Google Places autocomplete to the property address input field |
+
+## Summary of the Redirect Flow After Fix
+
+```text
+User sets password → handleSubmit updates Supabase + profile
+→ USER_UPDATED fires → AuthContext re-fetches profile
+→ profile.password_set = true, onboarding_complete = false
+→ CreatePassword guard useEffect fires
+→ navigate('/onboarding') ✓
+```
+
+Clean, single redirect path, no race condition.
