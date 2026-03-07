@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Shield, Eye, EyeOff, MailOpen } from 'lucide-react';
 
 const CreatePassword = () => {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, profileLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -18,6 +18,7 @@ const CreatePassword = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [passwordJustSet, setPasswordJustSet] = useState(false);
 
   // Expired link state
   const [linkExpired, setLinkExpired] = useState(false);
@@ -45,6 +46,13 @@ const CreatePassword = () => {
       }
     }
   }, [loading, profile, navigate]);
+
+  // Wait for profile to reflect password_set before navigating to onboarding
+  useEffect(() => {
+    if (passwordJustSet && !loading && !profileLoading && profile?.password_set) {
+      navigate('/onboarding', { replace: true });
+    }
+  }, [passwordJustSet, loading, profileLoading, profile, navigate]);
 
   const handleResend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,7 +102,7 @@ const CreatePassword = () => {
       if (profileError) throw profileError;
 
       toast({ title: 'Password set!', description: 'Your account is secured. Setting up your profile...' });
-      navigate('/onboarding', { replace: true });
+      setPasswordJustSet(true);
     } catch (err: any) {
       toast({ title: 'Error', description: err.message || 'Something went wrong. Please try again.', variant: 'destructive' });
     } finally {

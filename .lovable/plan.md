@@ -1,43 +1,66 @@
 
-## Root Cause: Race Condition After Password Update
+## Root Cause: Two Conflicting Redirects Fighting Each Other
 
-### What happens when the user clicks "Set My Password"
+### Issue 1 — `handleSubmit` vs. the Profile Guard
+After `supabase.auth.updateUser({ password })` succeeds and `profiles.password_set` is set to `true`, two things happen simultaneously:
 
-1. `handleSubmit` in `CreatePassword.tsx` calls `supabase.auth.updateUser({ password })` (line 86)
-2. This triggers a `USER_UPDATED` event in `AuthContext.onAuthStateChange`
-3. The auth context immediately runs the profile re-fetch inside a `setTimeout(..., 0)` — but critically, it sets `profileLoading = true` asynchronously
-4. Meanwhile, `navigate('/onboarding')` fires **synchronously** at line 97 of `CreatePassword.tsx` — before `profileLoading` has been set to true in the context
-5. `Onboarding.tsx` mounts and immediately reads the **stale profile** from context — where `password_set` is still `false` (the DB update hasn't propagated back yet and the profile hasn't been re-fetched)
-6. The guard at lines 69–73 of `Onboarding.tsx` sees `password_set = false` and fires `navigate('/welcome/create-password', { replace: true })` — bouncing the user back
+1. `handleSubmit` calls `navigate('/onboarding', { replace: true })`
+2. The `AuthContext` `onAuthStateChange` listener fires `USER_UPDATED`, re-fetches the profile, sets `profile.password_set = true`
+3. The guard in `CreatePassword` (lines 39-43) sees `password_set === true` and calls `navigate('/account', { replace: true })` — overriding the form's redirect to `/onboarding`
 
-The `profileLoading` guard in `Onboarding.tsx` is meant to prevent this, but it only works if `profileLoading` is already `true` when the component mounts. Since the `setTimeout` in AuthContext means `profileLoading` starts as `false`, the onboarding guard fires first.
+The user ends up on `/account`, not `/onboarding`. But the timing is also inconsistent — sometimes `USER_UPDATED` fires and re-triggers the `loading` spinner, leaving the navigate from `handleSubmit` effectively cancelled.
 
-### The Fix
-
-In `CreatePassword.tsx`, after successfully updating the password and the profile:
-
-**Instead of immediately navigating**, wait for the `AuthContext` profile state to reflect `password_set: true` before calling `navigate`. We do this by:
-
-1. Setting a local `passwordJustSet` flag after a successful submit
-2. Adding a `useEffect` that watches `profile?.password_set` — when it becomes `true`, **then** navigate to `/onboarding`
-3. While waiting, keep showing the "Setting password..." spinner so the user has no jarring flash
-
-This eliminates the race: we don't navigate until the context's profile has actually been updated to `password_set: true`, so the Onboarding guard will not bounce back.
-
----
-
-### Changes — `src/pages/CreatePassword.tsx`
-
-**1.** Add `passwordJustSet` state (boolean, starts false)  
-**2.** In `handleSubmit`: after the successful DB update, set `passwordJustSet = true` — **remove the `navigate` call** from here  
-**3.** Add a `useEffect` watching `[passwordJustSet, profile, loading, profileLoading]`:
-```ts
+### Issue 2 — Guard Redirects to Wrong Page
+```typescript
+// Lines 39-43 in CreatePassword.tsx
 useEffect(() => {
-  if (passwordJustSet && !loading && !profileLoading && profile?.password_set) {
-    navigate('/onboarding', { replace: true });
+  if (!loading && profile?.password_set) {
+    navigate('/account', { replace: true }); // ← sends to dashboard, skipping onboarding
   }
-}, [passwordJustSet, loading, profileLoading, profile, navigate]);
+}, [loading, profile, navigate]);
 ```
-**4.** Keep the existing guard `useEffect` (lines 39–47) unchanged — it stays for when a user lands here with a pre-set password
+This guard exists to prevent already-setup users from re-visiting this page — correct intent, wrong destination. A user who just set their password still needs to complete onboarding. It should redirect to `/onboarding` when `password_set` is true AND `onboarding_complete` is false.
 
-Single file, ~5 line changes.
+## Fixes
+
+### Fix 1: `src/pages/CreatePassword.tsx` — Correct the guard destination
+Change the guard from routing to `/account` to checking `onboarding_complete`:
+```typescript
+useEffect(() => {
+  if (!loading && profile?.password_set) {
+    if (!profile?.onboarding_complete) {
+      navigate('/onboarding', { replace: true });
+    } else {
+      navigate('/account', { replace: true });
+    }
+  }
+}, [loading, profile, navigate]);
+```
+This means both the explicit form redirect AND the guard both point to `/onboarding` for new users — no more conflict.
+
+### Fix 2: `src/pages/CreatePassword.tsx` — Remove redundant explicit navigate
+Since the guard now handles routing after `password_set` flips to `true`, we can let the profile update (triggered by `USER_UPDATED`) drive the navigation naturally. The `handleSubmit` should update Supabase and the profile record, then let the guard's `useEffect` handle the redirect — this eliminates the race condition entirely.
+
+Remove `navigate('/onboarding', { replace: true })` from `handleSubmit` and let the `useEffect` guard detect the profile change and redirect.
+
+### Fix 3: Address form — Google Places autocomplete (second issue)
+For the property address field in the onboarding/property form, add Google Places autocomplete. The project already has `@googlemaps/js-api-loader` and `@types/google.maps` installed. We need to find the address input in the onboarding flow and wire up the Places Autocomplete API.
+
+## Files to Change
+
+| File | Change |
+|---|---|
+| `src/pages/CreatePassword.tsx` | Fix guard to route to `/onboarding` when `onboarding_complete` is false; remove the explicit `navigate` from `handleSubmit` to eliminate race condition |
+| `src/pages/Onboarding.tsx` | Add Google Places autocomplete to the property address input field |
+
+## Summary of the Redirect Flow After Fix
+
+```text
+User sets password → handleSubmit updates Supabase + profile
+→ USER_UPDATED fires → AuthContext re-fetches profile
+→ profile.password_set = true, onboarding_complete = false
+→ CreatePassword guard useEffect fires
+→ navigate('/onboarding') ✓
+```
+
+Clean, single redirect path, no race condition.
