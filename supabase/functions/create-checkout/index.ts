@@ -111,6 +111,7 @@ serve(async (req) => {
       customer_email: customerId ? undefined : userEmail,
       line_items: [{ price: price.id, quantity: 1 }],
       mode: "subscription",
+      payment_method_types: ['card', 'link', 'amazon_pay'],
       success_url: `${origin}/subscription-success?session_id={CHECKOUT_SESSION_ID}&plan=${lookupKey}`,
       cancel_url: `${origin}/pricing?canceled=1`,
       payment_method_collection: 'always',
