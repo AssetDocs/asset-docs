@@ -71,11 +71,11 @@ const DocumentProtectSection: React.FC = () => {
             {/* Security & Privacy expandable */}
             <div
               className="mt-5 -mx-6 -mb-6 px-6 pb-6 pt-4 border-t border-border rounded-b-lg"
-              style={{ background: 'linear-gradient(to bottom, transparent, rgba(42,157,143,0.08))' }}
+              style={{ background: 'linear-gradient(to bottom, transparent, rgba(42,157,143,0.18))' }}
             >
               <button
                 onClick={() => setSecurityOpen(!securityOpen)}
-                className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="flex w-full items-center justify-between gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 <span>🔒 Security & Privacy</span>
                 <ChevronDown className={cn("w-4 h-4 transition-transform duration-200", securityOpen && "rotate-180")} />
