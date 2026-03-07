@@ -16,7 +16,7 @@ const STEPS = [
 ];
 
 const Onboarding = () => {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, profileLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
