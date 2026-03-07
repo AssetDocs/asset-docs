@@ -18,6 +18,7 @@ const CreatePassword = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [passwordJustSet, setPasswordJustSet] = useState(false);
 
   // Expired link state
   const [linkExpired, setLinkExpired] = useState(false);
