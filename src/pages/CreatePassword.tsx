@@ -47,6 +47,13 @@ const CreatePassword = () => {
     }
   }, [loading, profile, navigate]);
 
+  // Wait for profile to reflect password_set before navigating to onboarding
+  useEffect(() => {
+    if (passwordJustSet && !loading && !profileLoading && profile?.password_set) {
+      navigate('/onboarding', { replace: true });
+    }
+  }, [passwordJustSet, loading, profileLoading, profile, navigate]);
+
   const handleResend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!resendEmail) {
