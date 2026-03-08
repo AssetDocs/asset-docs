@@ -737,13 +737,6 @@ export class ExportService {
       }
     });
 
-    // Download floor plans
-    assets.floorPlans.forEach((plan) => {
-      if (floorPlansFolder) {
-        downloadPromises.push(downloadFile(plan.url, floorPlansFolder, plan.name));
-      }
-    });
-
     // Download voice notes
     assets.voiceNotes.forEach((note) => {
       if (voiceNotesFolder && note.audioUrl) {
