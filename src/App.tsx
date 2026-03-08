@@ -165,8 +165,9 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
           return;
         }
 
-        // Check if user has active subscription OR free tier access
-        if (data?.subscribed || data?.subscription_tier === 'free' || data?.subscription_tier === 'premium') {
+        // Check if user has active subscription OR any recognized tier
+        // 'standard' is the plan set by finalize-checkout; 'premium' for future plans; 'free' for trial/legacy
+        if (data?.subscribed || data?.subscription_tier === 'free' || data?.subscription_tier === 'premium' || data?.subscription_tier === 'standard') {
           setHasSubscription(true);
           setCheckingSubscription(false);
           return;
