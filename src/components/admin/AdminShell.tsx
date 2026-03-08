@@ -253,9 +253,9 @@ const AdminShell: React.FC = () => {
 
       {/* Dev Mode Banner */}
       {currentWorkspace === 'dev' && !hasOwnerAccess && (
-        <Alert className="rounded-none border-x-0 border-t-0 bg-blue-50 border-blue-200">
-          <AlertTriangle className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-blue-800">
+      <Alert className="rounded-none border-x-0 border-t-0 bg-muted border-border">
+          <AlertTriangle className="h-4 w-4 text-primary" />
+          <AlertDescription className="text-foreground">
             You are viewing the <strong>Development Workspace</strong> — Owner settings are restricted.
           </AlertDescription>
         </Alert>
