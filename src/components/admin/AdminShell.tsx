@@ -33,11 +33,28 @@ const AdminShell: React.FC = () => {
   useEffect(() => {
     const checkAccess = async () => {
       const adminAccess = await SecureStorage.getItem('admin_access');
-      setHasAccess(adminAccess === 'granted');
+      if (adminAccess === 'granted') {
+        setHasAccess(true);
+        setIsChecking(false);
+        return;
+      }
+      // Fallback: if the user already has an admin/owner role in the DB (confirmed by
+      // Supabase auth), auto-grant access without requiring the password again.
+      // We wait for the role query to finish before deciding.
+      if (!loading && (hasOwnerAccess || hasDevAccess)) {
+        await SecureStorage.setItem('admin_access', 'granted', 72);
+        setHasAccess(true);
+        setIsChecking(false);
+        return;
+      }
+      setHasAccess(false);
       setIsChecking(false);
     };
-    checkAccess();
-  }, []);
+    // Only run once role loading is done to avoid a flash
+    if (!loading) {
+      checkAccess();
+    }
+  }, [loading, hasOwnerAccess, hasDevAccess]);
 
   // Redirect based on role when loading completes
   useEffect(() => {

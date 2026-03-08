@@ -132,10 +132,18 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
   const { isAuthenticated, loading, profileLoading, user, profile } = useAuth();
   const [checkingSubscription, setCheckingSubscription] = useState(!skipSubscriptionCheck);
   const [hasSubscription, setHasSubscription] = useState(false);
-  
+  // Abort flag: set to true when the component unmounts or user changes, so in-flight
+  // setTimeout retries don't update state on a stale/unmounted component.
+  const abortRef = useRef(false);
 
   useEffect(() => {
+    // Reset abort flag for this effect run
+    abortRef.current = false;
+
     const checkSubscription = async (retryCount = 0) => {
+      // Bail out if component unmounted or user changed
+      if (abortRef.current) return;
+
       if (!user || skipSubscriptionCheck) {
         setCheckingSubscription(false);
         return;
@@ -154,7 +162,11 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
           }
         }
 
+        if (abortRef.current) return;
+
         const { data, error } = await supabase.functions.invoke('check-subscription');
+
+        if (abortRef.current) return;
         
         // If the invoke itself failed (network error, CORS, etc.), data will be null.
         // For an authenticated user we fail open rather than bouncing them to /pricing.
@@ -184,6 +196,8 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
             .eq('status' as any, 'accepted')
             .limit(1);
           const { data: contributorData } = await contribQuery as { data: any[] | null };
+
+          if (abortRef.current) return;
           
           if (contributorData && contributorData.length > 0) {
             // Must verify the owner has an active subscription before granting access
@@ -194,6 +208,8 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
               .eq('user_id' as any, contributorData[0].account_owner_id)
               .single();
             const { data: ownerProfile } = await ownerQuery as { data: any };
+
+            if (abortRef.current) return;
             
             const ownerIsActive = ownerProfile?.plan_status === 'active' || ownerProfile?.plan_status === 'trialing';
             
@@ -210,12 +226,16 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
         
         if (retryCount < 3) {
           // Retry after a short delay to allow invitation acceptance to complete
-          setTimeout(() => checkSubscription(retryCount + 1), 1500);
+          const timerId = setTimeout(() => checkSubscription(retryCount + 1), 1500);
+          // If aborted during the wait, cancel the timer
+          const originalAbort = abortRef.current;
+          if (originalAbort) clearTimeout(timerId);
           return;
         }
         
         setCheckingSubscription(false);
       } catch (error) {
+        if (abortRef.current) return;
         console.error('Error checking subscription:', error);
         // On network/invoke error for an authenticated user, fail open
         setHasSubscription(true);
@@ -230,6 +250,11 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
       // user is definitively null (not just loading) — stop spinning
       setCheckingSubscription(false);
     }
+
+    // Cleanup: signal any in-flight retries to abort
+    return () => {
+      abortRef.current = true;
+    };
   }, [user, skipSubscriptionCheck, loading]);
   
   if (loading || profileLoading || checkingSubscription) {
