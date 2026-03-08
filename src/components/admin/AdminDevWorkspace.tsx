@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import SystemInfrastructure from './SystemInfrastructure';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -186,9 +187,9 @@ const AdminDevWorkspace: React.FC = () => {
               <Tag className="w-4 h-4" />
               <span className="hidden sm:inline">DoD</span>
             </TabsTrigger>
-            <TabsTrigger value="infrastructure" className="flex items-center gap-2 opacity-50 cursor-not-allowed" disabled>
+            <TabsTrigger value="infrastructure" className="flex items-center gap-2">
               <Server className="w-4 h-4" />
-              <span className="hidden sm:inline">Infra 🔒</span>
+              <span className="hidden sm:inline">Infrastructure</span>
             </TabsTrigger>
             <TabsTrigger value="docs" className="flex items-center gap-2">
               <FileText className="w-4 h-4" />
@@ -729,17 +730,9 @@ const AdminDevWorkspace: React.FC = () => {
           </Card>
         </TabsContent>
 
-        {/* Infrastructure Tab - Locked for dev workspace */}
+        {/* Infrastructure Tab */}
         <TabsContent value="infrastructure" className="space-y-6">
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-              <Server className="w-12 h-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Infrastructure — Restricted</h3>
-              <p className="text-muted-foreground text-sm max-w-md">
-                System infrastructure documentation is available in the Owner workspace only.
-              </p>
-            </CardContent>
-          </Card>
+          <SystemInfrastructure />
         </TabsContent>
 
         {/* Docs Tab */}
