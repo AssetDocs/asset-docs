@@ -245,7 +245,7 @@ const BlogPost = () => {
         <p>Many of us don't just own things — we build lives, memories, and family stories around them. Asset Safe helps capture that — making it simpler to pass on value, memories, and responsibility to the next generation. This is especially important with our Legacy Locker feature, which helps preserve family stories and important information beyond traditional documentation.</p>
 
         <h3>Trust & Professionalism</h3>
-        <p>Because you come to us for protection and peace of mind, we treat every record seriously. Your documentation — whether photos, floorplans, asset lists — is stored securely and built to stand up when it counts.</p>
+        <p>Because you come to us for protection and peace of mind, we treat every record seriously. Your documentation — whether photos, asset lists, or records — is stored securely and built to stand up when it counts.</p>
 
         <h2>Who Asset Safe Is For</h2>
         
