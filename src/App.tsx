@@ -15,6 +15,7 @@ import CookieConsent from "@/components/CookieConsent";
 import MobileCTA from "@/components/MobileCTA";
 import AskAssetSafe from "@/components/AskAssetSafe";
 import { supabase } from "@/integrations/supabase/client";
+import { useAdminRole } from "@/hooks/useAdminRole";
 
 import WelcomePage from "@/components/WelcomePage";
 
