@@ -424,25 +424,6 @@ export class ExportService {
       });
     }
 
-    // Floor Plans section
-    if (assets.floorPlans.length > 0) {
-      checkPageSpace(30);
-      pdf.setFontSize(16);
-      pdf.setFont(undefined, 'bold');
-      pdf.text('Floor Plans', 20, yPosition);
-      yPosition += 10;
-
-      assets.floorPlans.forEach((plan, index) => {
-        checkPageSpace(10);
-        pdf.setFontSize(10);
-        pdf.setFont(undefined, 'normal');
-        pdf.text(`${index + 1}. ${plan.name}`, 30, yPosition);
-        yPosition += lineHeight;
-        pdf.text(`   Upload Date: ${new Date(plan.uploadDate).toLocaleDateString()}`, 30, yPosition);
-        yPosition += lineHeight + 2;
-      });
-    }
-
     // VIP Contacts section
     if (assets.vipContacts.length > 0) {
       checkPageSpace(30);
