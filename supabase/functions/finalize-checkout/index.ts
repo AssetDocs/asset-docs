@@ -61,7 +61,8 @@ serve(async (req) => {
     const subscriptionId = subscription?.id ?? null;
     const planPriceId = subscription?.items?.data?.[0]?.price?.id ?? null;
     const planLookupKey = subscription?.items?.data?.[0]?.price?.lookup_key ?? 
-      (session.metadata?.plan_lookup_key ?? null);
+      (session.metadata?.plan_lookup_key ?? null) ??
+      'asset_safe_monthly';
 
     logStep("Extracted billing details", { customerEmail, customerId, subscriptionId, planPriceId, planLookupKey });
 

@@ -235,8 +235,8 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
     return <Auth />;
   }
 
-  // Enforce password setup for new users
-  if (profile && profile.password_set === false) {
+  // Enforce password setup for new users (catches both null and false)
+  if (profile && !profile.password_set) {
     return <Navigate to="/welcome/create-password" replace />;
   }
 

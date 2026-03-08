@@ -17,7 +17,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     // when updateUser and onAuthStateChange both try to acquire the Web Lock
     // simultaneously during the onboarding finish step.
     lock: (name: string, acquireTimeout: number, fn: () => Promise<any>) => {
-      return navigator.locks.request(name, { steal: false }, fn);
+      return navigator.locks.request(name, fn);
     },
   }
 });
