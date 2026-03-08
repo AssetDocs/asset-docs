@@ -166,7 +166,8 @@ const CreatePassword = () => {
 
       toast({ title: 'Welcome to Asset Safe!', description: 'Your account is ready.' });
 
-      // Navigate directly — no dependency on profile re-fetch
+      // Sync in-memory profile before navigating so ProtectedRoute sees the updated state
+      await refreshProfile();
       navigate('/account', { replace: true });
     } catch (err: any) {
       // "lock broken by steal" is a client-side Web Locks race — the server writes already
