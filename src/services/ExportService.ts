@@ -681,7 +681,7 @@ export class ExportService {
     const zip = new JSZip();
     let downloadedCount = 0;
     const recipeFiles = assets.familyRecipes.filter(r => r.fileUrl);
-    const totalFiles = assets.photos.length + assets.videos.length + assets.documents.length + assets.floorPlans.length + assets.voiceNotes.filter(n => n.audioUrl).length + recipeFiles.length;
+    const totalFiles = assets.photos.length + assets.videos.length + assets.documents.length + assets.voiceNotes.filter(n => n.audioUrl).length + recipeFiles.length;
 
     if (totalFiles === 0) {
       toast({
