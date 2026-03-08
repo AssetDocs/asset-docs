@@ -186,9 +186,9 @@ const AdminDevWorkspace: React.FC = () => {
               <Tag className="w-4 h-4" />
               <span className="hidden sm:inline">DoD</span>
             </TabsTrigger>
-            <TabsTrigger value="infrastructure" className="flex items-center gap-2 opacity-50 cursor-not-allowed" disabled>
+            <TabsTrigger value="infrastructure" className="flex items-center gap-2">
               <Server className="w-4 h-4" />
-              <span className="hidden sm:inline">Infra 🔒</span>
+              <span className="hidden sm:inline">Infrastructure</span>
             </TabsTrigger>
             <TabsTrigger value="docs" className="flex items-center gap-2">
               <FileText className="w-4 h-4" />
