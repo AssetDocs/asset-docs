@@ -1,12 +1,11 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Camera, Video, FileText, FileImage } from 'lucide-react';
+import { Camera, Video, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import PropertyPhotos from './PropertyPhotos';
 import PropertyVideos from './PropertyVideos';
 import PropertyDocuments from './PropertyDocuments';
-import PropertyFloorPlans from './PropertyFloorPlans';
 
 interface PropertyTabsProps {
   propertyId: string;
@@ -21,7 +20,7 @@ const PropertyTabs: React.FC<PropertyTabsProps> = ({ propertyId }) => {
 
   return (
     <Tabs defaultValue="photos" className="w-full">
-      <TabsList className="grid w-full grid-cols-4">
+      <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="photos" className="flex items-center">
           <Camera className="h-4 w-4 mr-1" />
           Photos
@@ -33,10 +32,6 @@ const PropertyTabs: React.FC<PropertyTabsProps> = ({ propertyId }) => {
         <TabsTrigger value="documents" className="flex items-center">
           <FileText className="h-4 w-4 mr-1" />
           Documents
-        </TabsTrigger>
-        <TabsTrigger value="floorplans" className="flex items-center">
-          <FileImage className="h-4 w-4 mr-1" />
-          Floor Plans
         </TabsTrigger>
       </TabsList>
 
@@ -50,10 +45,6 @@ const PropertyTabs: React.FC<PropertyTabsProps> = ({ propertyId }) => {
 
       <TabsContent value="documents">
         <PropertyDocuments propertyId={propertyId} />
-      </TabsContent>
-
-      <TabsContent value="floorplans">
-        <PropertyFloorPlans propertyId={propertyId} />
       </TabsContent>
     </Tabs>
   );
