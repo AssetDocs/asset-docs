@@ -2,3 +2,6 @@ project_id = "leotcbfpqiekgkgumecn"
 
 [functions.finalize-checkout]
 verify_jwt = false
+
+[functions.force-signout]
+verify_jwt = false
