@@ -876,9 +876,6 @@ export class ExportService {
                 type: file.file_type || 'Document'
               });
               break;
-            case 'floor-plans':
-              assets.floorPlans.push(fileData);
-              break;
             case 'memory-safe':
               assets.documents.push({
                 ...fileData,

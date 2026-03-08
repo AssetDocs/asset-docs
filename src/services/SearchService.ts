@@ -314,7 +314,6 @@ export class SearchService {
       'add property',
       'insurance claims',
       'video help',
-      'floor plans',
       'pricing'
     ];
   }

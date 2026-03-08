@@ -109,7 +109,6 @@ export const usePropertyFiles = (propertyId: string | null, fileType?: 'photo' |
         'photo': 'photos' as const,
         'video': 'videos' as const,
         'document': 'documents' as const,
-        'floor-plan': 'floor-plans' as const,
       };
       const bucket = fileType ? bucketMap[fileType] : 'documents' as const;
 
