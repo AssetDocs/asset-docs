@@ -148,6 +148,7 @@ const CreatePassword = () => {
           password_set: true,
           first_name: firstName.trim() || null,
           last_name: lastName.trim() || null,
+          ...(phone.trim() ? { phone: phone.trim() } : {}),
           onboarding_complete: true,
         })
         .eq('user_id', user!.id);
