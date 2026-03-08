@@ -74,7 +74,7 @@ const CompassPartnership = () => {
                 </div>
                 <div className="p-3 bg-muted rounded-lg">
                   <CheckCircle2 className="w-4 h-4 text-primary mb-1" />
-                  <p className="text-sm">Floorplans and room-by-room photo records</p>
+                  <p className="text-sm">Room-by-room photo records and visual documentation</p>
                 </div>
                 <div className="p-3 bg-muted rounded-lg">
                   <CheckCircle2 className="w-4 h-4 text-primary mb-1" />
