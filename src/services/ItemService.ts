@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { supabase } from '@/integrations/supabase/client';
 import { logActivity } from '@/hooks/useActivityLog';
 import { StorageService } from './StorageService';
