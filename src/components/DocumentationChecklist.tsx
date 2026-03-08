@@ -242,8 +242,7 @@ const DocumentationChecklist: React.FC<DocumentationChecklistProps> = ({ embedde
         title: "Business Property",
         items: [
           { id: "bc1", text: "Lease or ownership docs" },
-          { id: "bc2", text: "Floor plans" },
-          { id: "bc3", text: "Permits" },
+          { id: "bc2", text: "Permits" },
         ]
       },
       {
