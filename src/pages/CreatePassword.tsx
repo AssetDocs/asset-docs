@@ -168,6 +168,12 @@ const CreatePassword = () => {
       // Navigate directly — no dependency on profile re-fetch
       navigate('/account', { replace: true });
     } catch (err: any) {
+      // "lock broken by steal" is a client-side Web Locks race — the server writes already
+      // succeeded. Redirect silently rather than showing a confusing error to the user.
+      if (err?.message?.includes('lock broken') || err?.message?.includes('steal')) {
+        navigate('/account', { replace: true });
+        return;
+      }
       toast({ title: 'Error', description: err.message || 'Something went wrong. Please try again.', variant: 'destructive' });
     } finally {
       setSubmitting(false);

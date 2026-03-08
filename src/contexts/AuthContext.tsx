@@ -96,11 +96,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               .single();
             setProfile(profileData);
             
-            // Check subscription status on login
-            await supabase.functions.invoke('check-subscription');
+            // Only run heavy auth-lock-acquiring operations on SIGNED_IN.
+            // USER_UPDATED fires during password set (handleFinish in CreatePassword)
+            // and competing lock acquisitions cause "lock broken by steal" errors.
+            if (event === 'SIGNED_IN') {
+              await supabase.functions.invoke('check-subscription');
 
-            // Check for pending contributor invitations on login/signup
-            if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+              // Check for pending contributor invitations on login/signup
               try {
                 await supabase.functions.invoke('accept-contributor-invitation', {
                   headers: {
