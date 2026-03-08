@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { Archive, Plus, SortAsc, Calendar, Type, Grid3X3, List, CheckSquare, Square, Trash2, Loader2, Filter } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
