@@ -226,7 +226,7 @@ const BlogPost = () => {
 
         <p>Asset Safe transforms that approach. We make the process of documenting property intuitive, comprehensive, and useful when you actually need it: for insurance, resale, estate planning, or simply peace of mind. On our home page, we describe the platform as turning "the traditional, tedious process of property documentation into a modern, intuitive experience that actually works when you need it most."</p>
 
-        <p>For a business owner like you (with roots in real-estate photography, detailed floorplans, and visual documentation), this is more than just a nice-to-have — it's a new standard for how we treat our homes, belongings, and legacies.</p>
+        <p>For a business owner like you (with roots in real-estate photography, detailed visual documentation), this is more than just a nice-to-have — it's a new standard for how we treat our homes, belongings, and legacies.</p>
 
         <h2>✨ Our Core Values & What They Mean for You</h2>
         
@@ -245,7 +245,7 @@ const BlogPost = () => {
         <p>Many of us don't just own things — we build lives, memories, and family stories around them. Asset Safe helps capture that — making it simpler to pass on value, memories, and responsibility to the next generation. This is especially important with our Legacy Locker feature, which helps preserve family stories and important information beyond traditional documentation.</p>
 
         <h3>Trust & Professionalism</h3>
-        <p>Because you come to us for protection and peace of mind, we treat every record seriously. Your documentation — whether photos, floorplans, asset lists — is stored securely and built to stand up when it counts.</p>
+        <p>Because you come to us for protection and peace of mind, we treat every record seriously. Your documentation — whether photos, asset lists, or records — is stored securely and built to stand up when it counts.</p>
 
         <h2>Who Asset Safe Is For</h2>
         
@@ -265,7 +265,7 @@ const BlogPost = () => {
         <p>This first blog post isn't just a welcome — it's the start of a conversation. Going forward, we'll publish content to help you get the most out of Asset Safe:</p>
 
         <ul>
-          <li><strong>Tips for documenting your home the right way</strong> (what photos to take, how to organize floorplans, how to catalog heirlooms)</li>
+          <li><strong>Tips for documenting your home the right way</strong> (what photos to take, how to organize records, how to catalog heirlooms)</li>
           <li><strong>How-to guides for using Asset Safe</strong> — from easy setups to advanced documentation (ideal for insurance or estate-planning use cases)</li>
           <li><strong>Real stories and case studies</strong> (how other homeowners used asset documentation to recover from loss, simplify sales, or preserve family legacy)</li>
           <li><strong>Advice around home ownership, maintenance, and long-term planning</strong> to help you build not just a house — but a legacy that lasts</li>

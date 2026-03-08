@@ -235,7 +235,7 @@ const HabitatPartnership = () => {
                     <h4 className="font-semibold mb-2">🔨 During Home Build Phase</h4>
                     <ul className="text-sm text-muted-foreground list-disc list-inside">
                       <li>Create the digital home record</li>
-                      <li>Store floorplans, warranties, appliance docs</li>
+                      <li>Store warranties and appliance docs</li>
                       <li>Capture baseline photos</li>
                     </ul>
                   </div>

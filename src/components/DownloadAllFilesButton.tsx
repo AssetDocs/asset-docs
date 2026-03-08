@@ -38,7 +38,7 @@ const DownloadAllFilesButton: React.FC = () => {
       // Get real user assets from database
       const assets = await ExportService.getUserAssets(user.id);
       
-      const totalFiles = assets.photos.length + assets.videos.length + assets.documents.length + assets.floorPlans.length;
+      const totalFiles = assets.photos.length + assets.videos.length + assets.documents.length;
       
       if (totalFiles === 0) {
         toast({

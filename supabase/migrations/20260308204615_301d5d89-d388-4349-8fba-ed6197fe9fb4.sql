@@ -1,0 +1,3 @@
+-- Remove 'floor-plan' from property_files file_type check constraint
+ALTER TABLE public.property_files DROP CONSTRAINT IF EXISTS property_files_file_type_check;
+ALTER TABLE public.property_files ADD CONSTRAINT property_files_file_type_check CHECK (file_type IN ('photo', 'video', 'document', 'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'application/pdf', 'pdf', 'Memory Safe'));

@@ -109,14 +109,12 @@ const handler = async (req: Request): Promise<Response> => {
                 <li>200GB secure cloud storage</li>
                 <li>Photo and video uploads</li>
                 <li>AI-powered item identification & valuation</li>
-                <li>Floor plan scanning</li>
                 <li>Priority email support</li>
               ` : `
                 <li>Up to 10 properties</li>
                 <li>750GB secure cloud storage</li>
                 <li>Unlimited photo and video uploads</li>
                 <li>AI-powered item identification & valuation</li>
-                <li>Floor plan scanning</li>
                 <li>Priority email and phone support</li>
               `}
               <li><strong>12 months of full access</strong></li>

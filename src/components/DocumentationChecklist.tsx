@@ -242,8 +242,7 @@ const DocumentationChecklist: React.FC<DocumentationChecklistProps> = ({ embedde
         title: "Business Property",
         items: [
           { id: "bc1", text: "Lease or ownership docs" },
-          { id: "bc2", text: "Floor plans" },
-          { id: "bc3", text: "Permits" },
+          { id: "bc2", text: "Permits" },
         ]
       },
       {
@@ -332,8 +331,7 @@ const DocumentationChecklist: React.FC<DocumentationChecklistProps> = ({ embedde
         title: "Property & Units",
         items: [
           { id: "mc1", text: "Unit inventory" },
-          { id: "mc2", text: "Floor plans" },
-          { id: "mc3", text: "Square footage" },
+          { id: "mc2", text: "Square footage" },
         ]
       },
       {
@@ -421,8 +419,7 @@ const DocumentationChecklist: React.FC<DocumentationChecklistProps> = ({ embedde
         title: "Facilities",
         items: [
           { id: "ic1", text: "Building documentation" },
-          { id: "ic2", text: "Floor plans" },
-          { id: "ic3", text: "Permits" },
+          { id: "ic2", text: "Permits" },
         ]
       },
       {

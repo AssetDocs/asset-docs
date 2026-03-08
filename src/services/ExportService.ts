@@ -27,12 +27,6 @@ export interface AssetSummary {
     type: string;
     uploadDate: string;
   }>;
-  floorPlans: Array<{
-    id: string;
-    name: string;
-    url: string;
-    uploadDate: string;
-  }>;
   properties: Array<{
     id: string;
     name: string;
@@ -213,8 +207,6 @@ export class ExportService {
     pdf.text(`Videos: ${assets.videos.length}`, 30, yPosition);
     yPosition += lineHeight;
     pdf.text(`Documents: ${assets.documents.length}`, 30, yPosition);
-    yPosition += lineHeight;
-    pdf.text(`Floor Plans: ${assets.floorPlans.length}`, 30, yPosition);
     yPosition += lineHeight;
     pdf.text(`Inventory Items: ${assets.items.length}`, 30, yPosition);
     yPosition += lineHeight;
@@ -423,25 +415,6 @@ export class ExportService {
           yPosition += lineHeight;
         }
         yPosition += 2;
-      });
-    }
-
-    // Floor Plans section
-    if (assets.floorPlans.length > 0) {
-      checkPageSpace(30);
-      pdf.setFontSize(16);
-      pdf.setFont(undefined, 'bold');
-      pdf.text('Floor Plans', 20, yPosition);
-      yPosition += 10;
-
-      assets.floorPlans.forEach((plan, index) => {
-        checkPageSpace(10);
-        pdf.setFontSize(10);
-        pdf.setFont(undefined, 'normal');
-        pdf.text(`${index + 1}. ${plan.name}`, 30, yPosition);
-        yPosition += lineHeight;
-        pdf.text(`   Upload Date: ${new Date(plan.uploadDate).toLocaleDateString()}`, 30, yPosition);
-        yPosition += lineHeight + 2;
       });
     }
 
@@ -702,7 +675,7 @@ export class ExportService {
     const zip = new JSZip();
     let downloadedCount = 0;
     const recipeFiles = assets.familyRecipes.filter(r => r.fileUrl);
-    const totalFiles = assets.photos.length + assets.videos.length + assets.documents.length + assets.floorPlans.length + assets.voiceNotes.filter(n => n.audioUrl).length + recipeFiles.length;
+    const totalFiles = assets.photos.length + assets.videos.length + assets.documents.length + assets.voiceNotes.filter(n => n.audioUrl).length + recipeFiles.length;
 
     if (totalFiles === 0) {
       toast({
@@ -732,7 +705,6 @@ export class ExportService {
     const photosFolder = zip.folder('photos');
     const videosFolder = zip.folder('videos');
     const documentsFolder = zip.folder('documents');
-    const floorPlansFolder = zip.folder('floor-plans');
     const voiceNotesFolder = zip.folder('voice-notes');
     const recipesFolder = zip.folder('family-recipes');
 
@@ -756,13 +728,6 @@ export class ExportService {
     assets.documents.forEach((doc) => {
       if (documentsFolder) {
         downloadPromises.push(downloadFile(doc.url, documentsFolder, doc.name));
-      }
-    });
-
-    // Download floor plans
-    assets.floorPlans.forEach((plan) => {
-      if (floorPlansFolder) {
-        downloadPromises.push(downloadFile(plan.url, floorPlansFolder, plan.name));
       }
     });
 
@@ -813,7 +778,6 @@ export class ExportService {
       photos: [],
       videos: [],
       documents: [],
-      floorPlans: [],
       properties: [],
       voiceNotes: [],
       paintCodes: [],
@@ -905,9 +869,6 @@ export class ExportService {
                 ...fileData,
                 type: file.file_type || 'Document'
               });
-              break;
-            case 'floor-plans':
-              assets.floorPlans.push(fileData);
               break;
             case 'memory-safe':
               assets.documents.push({

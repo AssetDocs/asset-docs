@@ -92,11 +92,10 @@ const FeaturesList: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <ul className="text-sm space-y-1">
-                    <li>• Property creation and management</li>
-                    <li>• Address autocomplete (Google Maps)</li>
-                    <li>• Property-specific asset organization</li>
-                    <li>• Floor plan integration</li>
-                    <li>• Property sharing with others</li>
+                     <li>• Property creation and management</li>
+                     <li>• Address autocomplete (Google Maps)</li>
+                     <li>• Property-specific asset organization</li>
+                     <li>• Property sharing with others</li>
                   </ul>
                 </CardContent>
               </Card>

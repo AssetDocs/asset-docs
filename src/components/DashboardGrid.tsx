@@ -82,7 +82,7 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
     try {
       toast({ title: 'Preparing Download', description: 'Collecting all your files and creating ZIP archive...' });
       const assets = await ExportService.getUserAssets(user.id);
-      const totalFiles = assets.photos.length + assets.videos.length + assets.documents.length + assets.floorPlans.length;
+      const totalFiles = assets.photos.length + assets.videos.length + assets.documents.length;
       if (totalFiles === 0) {
         toast({ title: 'No Files Found', description: "You haven't uploaded any files yet.", variant: 'destructive' });
         return;

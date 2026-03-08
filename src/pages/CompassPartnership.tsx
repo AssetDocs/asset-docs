@@ -44,7 +44,7 @@ const CompassPartnership = () => {
             <div>
               <h3 className="font-semibold text-lg mb-2">Vision</h3>
               <p className="text-foreground">
-                Every Compass-represented homebuyer or seller receives a personalized <span className="font-bold text-primary">"Digital Home Record"</span> — powered by Asset Safe — that stores 3D documentation, floorplans, AI-generated valuations, and photo verification. This becomes a Compass-branded lifetime resource for homeowners, reinforcing Compass as the trusted partner in property ownership, protection, and resale readiness.
+                Every Compass-represented homebuyer or seller receives a personalized <span className="font-bold text-primary">"Digital Home Record"</span> — powered by Asset Safe — that stores 3D documentation, AI-generated valuations, and photo verification. This becomes a Compass-branded lifetime resource for homeowners, reinforcing Compass as the trusted partner in property ownership, protection, and resale readiness.
               </p>
             </div>
           </CardContent>
@@ -74,7 +74,7 @@ const CompassPartnership = () => {
                 </div>
                 <div className="p-3 bg-muted rounded-lg">
                   <CheckCircle2 className="w-4 h-4 text-primary mb-1" />
-                  <p className="text-sm">Floorplans and room-by-room photo records</p>
+                  <p className="text-sm">Room-by-room photo records and visual documentation</p>
                 </div>
                 <div className="p-3 bg-muted rounded-lg">
                   <CheckCircle2 className="w-4 h-4 text-primary mb-1" />
@@ -171,7 +171,7 @@ const CompassPartnership = () => {
                     <p className="font-medium">Asset Safe auto-creates a Digital Home Record</p>
                     <ul className="text-sm text-muted-foreground list-disc list-inside mt-1">
                       <li>MLS listing data (via Compass IDX/API)</li>
-                      <li>Property photos and floorplans</li>
+                      <li>Property photos and visual documentation</li>
                       <li>Initial AI valuation + comp data</li>
                     </ul>
                   </div>

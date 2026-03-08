@@ -190,15 +190,15 @@ const SystemArchitectureFlowcharts: React.FC = () => {
             <Arrow />
 
             {/* Bottom Layer - Data Storage */}
-            <div className="grid grid-cols-6 gap-3">
-              {['photos', 'videos', 'documents', 'floor-plans', 'memory-safe', 'contact-attachments'].map((bucket) => (
+            <div className="grid grid-cols-5 gap-3">
+              {['photos', 'videos', 'documents', 'memory-safe', 'contact-attachments'].map((bucket) => (
                 <div key={bucket} className="bg-slate-100 p-2 rounded border border-slate-300 text-center">
                   <Database className="h-4 w-4 mx-auto text-slate-600" />
                   <span className="text-xs font-mono text-slate-700">{bucket}</span>
                 </div>
               ))}
             </div>
-            <p className="text-center text-xs text-muted-foreground mt-2">6 Private Storage Buckets (Signed URLs, 1hr expiry)</p>
+            <p className="text-center text-xs text-muted-foreground mt-2">5 Private Storage Buckets (Signed URLs, 1hr expiry)</p>
           </div>
         </div>
       </FlowChart>

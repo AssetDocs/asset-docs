@@ -31,11 +31,6 @@ interface Property {
     type: string;
     uploadDate: string;
   }>;
-  floorPlans: Array<{
-    id: number;
-    name: string;
-    uploadDate: string;
-  }>;
 }
 
 interface PropertyListProps {

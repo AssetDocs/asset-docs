@@ -182,14 +182,6 @@ const searchableContent: SearchResult[] = [
     keywords: ['documents', 'files', 'storage', 'paperwork']
   },
   {
-    id: 'floorplans',
-    title: 'Floor Plans',
-    description: 'Floor plan uploads and management',
-    path: '/account/floorplans',
-    category: 'account',
-    keywords: ['floor plans', 'blueprints', 'layout', 'architecture']
-  },
-  {
     id: 'insurance',
     title: 'Insurance',
     description: 'Insurance information and claims',
@@ -322,7 +314,6 @@ export class SearchService {
       'add property',
       'insurance claims',
       'video help',
-      'floor plans',
       'pricing'
     ];
   }
