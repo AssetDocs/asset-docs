@@ -730,17 +730,9 @@ const AdminDevWorkspace: React.FC = () => {
           </Card>
         </TabsContent>
 
-        {/* Infrastructure Tab - Locked for dev workspace */}
+        {/* Infrastructure Tab */}
         <TabsContent value="infrastructure" className="space-y-6">
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-              <Server className="w-12 h-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Infrastructure — Restricted</h3>
-              <p className="text-muted-foreground text-sm max-w-md">
-                System infrastructure documentation is available in the Owner workspace only.
-              </p>
-            </CardContent>
-          </Card>
+          <SystemInfrastructure />
         </TabsContent>
 
         {/* Docs Tab */}
