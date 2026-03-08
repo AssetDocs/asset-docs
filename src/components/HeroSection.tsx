@@ -28,6 +28,7 @@ const HeroSection: React.FC = () => {
                 <Link to="/sample-dashboard">Explore the Sample Dashboard</Link>
               </Button>
             </div>
+            <p className="text-sm text-white/60 mt-2">Private • Secure • Cancel anytime</p>
             
           </div>
           
