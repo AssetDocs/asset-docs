@@ -7,7 +7,7 @@ const ScrollProgressCue: React.FC = () => {
         <div className="flex items-center justify-center gap-4">
           <div className="h-px flex-1 max-w-24 bg-gradient-to-r from-transparent to-gray-300" />
           <p className="text-center text-gray-500 italic text-sm md:text-base">
-            You're halfway through — here's why Asset Safe is different.
+            What makes Asset Safe different
           </p>
           <div className="h-px flex-1 max-w-24 bg-gradient-to-l from-transparent to-gray-300" />
         </div>
