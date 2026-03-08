@@ -93,24 +93,19 @@ const AdminShell: React.FC = () => {
     navigate(`/admin/${workspace}`);
   };
 
-  if (isChecking) {
+  // Wait for BOTH the SecureStorage check AND the role query to finish before
+  // deciding whether to show the password gate — prevents a flash of the gate
+  // when the encrypted admin_access key is still being decrypted async.
+  if (isChecking || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p>Loading...</p>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   if (!hasAccess) {
     return <AdminPasswordGate onPasswordCorrect={() => setHasAccess(true)} />;
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
   }
 
   const getRoleBadgeColor = () => {

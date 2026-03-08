@@ -210,6 +210,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch {
       // Ignore errors (e.g. stale/invalid refresh token) — always clear local state
     }
+    // Nuclear fallback: manually purge all Supabase auth tokens from localStorage
+    // so that even if signOut() failed silently, the session is gone on reload.
+    try {
+      const keysToRemove = Object.keys(localStorage).filter(
+        key => key.startsWith('sb-') && (key.includes('-auth-token') || key.includes('-refresh-token') || key.includes('-provider-token'))
+      );
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      // Also clear the full project-scoped token key
+      localStorage.removeItem(`sb-leotcbfpqiekgkgumecn-auth-token`);
+    } catch {
+      // Ignore storage errors
+    }
     window.location.href = '/';
   };
 

@@ -154,17 +154,24 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
           }
         }
 
-        const { data } = await supabase.functions.invoke('check-subscription');
+        const { data, error } = await supabase.functions.invoke('check-subscription');
         
-        // Check if user has active subscription OR free tier access
-        if (data?.subscribed || data?.subscription_tier === 'free') {
+        // If the invoke itself failed (network error, CORS, etc.), data will be null.
+        // For an authenticated user we fail open rather than bouncing them to /pricing.
+        if (!data && error) {
+          console.warn('check-subscription invoke error, failing open for authenticated user:', error);
           setHasSubscription(true);
           setCheckingSubscription(false);
           return;
         }
-        
 
-        
+        // Check if user has active subscription OR free tier access
+        if (data?.subscribed || data?.subscription_tier === 'free' || data?.subscription_tier === 'premium') {
+          setHasSubscription(true);
+          setCheckingSubscription(false);
+          return;
+        }
+
         // Fallback: Check contributor status directly if subscription check fails
         // IMPORTANT: Must also verify owner's subscription is active
         if (retryCount >= 2) {
@@ -209,19 +216,20 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
         setCheckingSubscription(false);
       } catch (error) {
         console.error('Error checking subscription:', error);
-        // On error, retry
-        if (retryCount < 3) {
-          setTimeout(() => checkSubscription(retryCount + 1), 1500);
-          return;
-        }
+        // On network/invoke error for an authenticated user, fail open
+        setHasSubscription(true);
         setCheckingSubscription(false);
       }
     };
 
     if (user) {
+      setCheckingSubscription(!skipSubscriptionCheck);
       checkSubscription();
+    } else if (!loading) {
+      // user is definitively null (not just loading) — stop spinning
+      setCheckingSubscription(false);
     }
-  }, [user, skipSubscriptionCheck]);
+  }, [user, skipSubscriptionCheck, loading]);
   
   if (loading || profileLoading || checkingSubscription) {
     return (
