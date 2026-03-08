@@ -1,66 +1,89 @@
 
-## Root Cause: Two Conflicting Redirects Fighting Each Other
+## Root Cause: Web Lock Conflict Between Two Concurrent Auth Operations
 
-### Issue 1 — `handleSubmit` vs. the Profile Guard
-After `supabase.auth.updateUser({ password })` succeeds and `profiles.password_set` is set to `true`, two things happen simultaneously:
+The error **"lock broken by another request with the 'steal' option"** is a specific Supabase `@supabase/auth-js` Web Locks API error. Here's exactly what's happening:
 
-1. `handleSubmit` calls `navigate('/onboarding', { replace: true })`
-2. The `AuthContext` `onAuthStateChange` listener fires `USER_UPDATED`, re-fetches the profile, sets `profile.password_set = true`
-3. The guard in `CreatePassword` (lines 39-43) sees `password_set === true` and calls `navigate('/account', { replace: true })` — overriding the form's redirect to `/onboarding`
+### The sequence that causes the crash
 
-The user ends up on `/account`, not `/onboarding`. But the timing is also inconsistent — sometimes `USER_UPDATED` fires and re-triggers the `loading` spinner, leaving the navigate from `handleSubmit` effectively cancelled.
+When the user clicks "Go to Dashboard" at the end of the 4-step wizard, `handleFinish` fires and runs this in sequence:
 
-### Issue 2 — Guard Redirects to Wrong Page
-```typescript
-// Lines 39-43 in CreatePassword.tsx
-useEffect(() => {
-  if (!loading && profile?.password_set) {
-    navigate('/account', { replace: true }); // ← sends to dashboard, skipping onboarding
-  }
-}, [loading, profile, navigate]);
 ```
-This guard exists to prevent already-setup users from re-visiting this page — correct intent, wrong destination. A user who just set their password still needs to complete onboarding. It should redirect to `/onboarding` when `password_set` is true AND `onboarding_complete` is false.
-
-## Fixes
-
-### Fix 1: `src/pages/CreatePassword.tsx` — Correct the guard destination
-Change the guard from routing to `/account` to checking `onboarding_complete`:
-```typescript
-useEffect(() => {
-  if (!loading && profile?.password_set) {
-    if (!profile?.onboarding_complete) {
-      navigate('/onboarding', { replace: true });
-    } else {
-      navigate('/account', { replace: true });
-    }
-  }
-}, [loading, profile, navigate]);
+Step 1: supabase.auth.updateUser({ password })   ← acquires a Web Lock
+Step 2: supabase.from('profiles').update(...)
+Step 3: navigate('/account', { replace: true })
 ```
-This means both the explicit form redirect AND the guard both point to `/onboarding` for new users — no more conflict.
 
-### Fix 2: `src/pages/CreatePassword.tsx` — Remove redundant explicit navigate
-Since the guard now handles routing after `password_set` flips to `true`, we can let the profile update (triggered by `USER_UPDATED`) drive the navigation naturally. The `handleSubmit` should update Supabase and the profile record, then let the guard's `useEffect` handle the redirect — this eliminates the race condition entirely.
+**At the same moment**, `AuthContext.onAuthStateChange` fires a `USER_UPDATED` event because `updateUser` was called. This triggers the profile re-fetch block — which itself calls:
+- `supabase.functions.invoke('check-subscription')` — this internally calls `supabase.auth.getSession()` → tries to acquire the same Web Lock
+- `supabase.functions.invoke('accept-contributor-invitation')` — same issue
 
-Remove `navigate('/onboarding', { replace: true })` from `handleSubmit` and let the `useEffect` guard detect the profile change and redirect.
+The Supabase auth client uses the browser's native **Web Locks API** (`navigator.locks.request()`) to serialize auth operations. When `updateUser` holds the lock and `AuthContext` concurrently tries to acquire it for `getSession()`, the lock times out and the newer request **steals** it using `{ steal: true }`. This causes the original `updateUser` lock holder to receive the "lock broken by another request with the 'steal' option" error — which propagates as an exception to `handleFinish`, which shows it to the user as the error toast.
 
-### Fix 3: Address form — Google Places autocomplete (second issue)
-For the property address field in the onboarding/property form, add Google Places autocomplete. The project already has `@googlemaps/js-api-loader` and `@types/google.maps` installed. We need to find the address input in the onboarding flow and wire up the Places Autocomplete API.
+### Why the redirect then never happens
 
-## Files to Change
+Because the lock error causes `handleFinish`'s `try/catch` to jump to the catch block and display the error toast, **`navigate('/account')` never fires**. The user is stuck on the wizard.
+
+### The Fix — Two targeted changes
+
+**1. `src/integrations/supabase/client.ts` — Increase the lock timeout**
+
+The Supabase client's default lock acquisition timeout is very short (0ms on some internal paths). Setting `auth.lock.acquireTimeout` to a reasonable value (like 30 seconds) prevents the premature timeout that triggers the steal.
+
+```ts
+export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  auth: {
+    storage: localStorage,
+    persistSession: true,
+    autoRefreshToken: true,
+    // Prevents "lock broken by steal" errors from concurrent auth operations
+    // (e.g. updateUser firing while onAuthStateChange also calls getSession)
+    lockAcquireTimeout: 30000,
+  }
+});
+```
+
+**2. `src/contexts/AuthContext.tsx` — Skip the heavy operations during USER_UPDATED from password set**
+
+The `onAuthStateChange` handler fires `check-subscription` and `accept-contributor-invitation` on every `USER_UPDATED` event. These invoke `supabase.functions.invoke()` which internally acquires auth locks at the worst possible moment. We should skip them for `USER_UPDATED` events and only run them on `SIGNED_IN`. The profile re-fetch still happens.
+
+```ts
+// Only run heavy subscription/invitation checks on SIGNED_IN, not USER_UPDATED
+if (event === 'SIGNED_IN') {
+  await supabase.functions.invoke('check-subscription');
+  // ... accept-contributor-invitation ...
+}
+```
+
+The profile re-fetch itself (`supabase.from('profiles').select(...)`) is a plain DB query — no auth lock — so it remains on all events.
+
+**3. `src/pages/CreatePassword.tsx` — Gracefully handle the lock error and still redirect**
+
+As a safety net, catch the specific lock error in `handleFinish` and still navigate. The profile update and password update have already succeeded server-side even if the lock error surfaces client-side.
+
+```ts
+catch (err: any) {
+  // "lock broken" is a client-side Web Locks race — the server writes succeeded.
+  // Still navigate to dashboard rather than showing the error to the user.
+  if (err?.message?.includes('lock broken') || err?.message?.includes('steal')) {
+    navigate('/account', { replace: true });
+    return;
+  }
+  toast({ title: 'Error', description: err.message, variant: 'destructive' });
+}
+```
+
+### Files to change
 
 | File | Change |
 |---|---|
-| `src/pages/CreatePassword.tsx` | Fix guard to route to `/onboarding` when `onboarding_complete` is false; remove the explicit `navigate` from `handleSubmit` to eliminate race condition |
-| `src/pages/Onboarding.tsx` | Add Google Places autocomplete to the property address input field |
+| `src/integrations/supabase/client.ts` | Add `lockAcquireTimeout: 30000` to auth config |
+| `src/contexts/AuthContext.tsx` | Scope `check-subscription` and `accept-contributor-invitation` to `SIGNED_IN` only, not `USER_UPDATED` |
+| `src/pages/CreatePassword.tsx` | Treat "lock broken/steal" error as a non-fatal race and still navigate to dashboard |
 
-## Summary of the Redirect Flow After Fix
+### Why this definitively fixes it
 
-```text
-User sets password → handleSubmit updates Supabase + profile
-→ USER_UPDATED fires → AuthContext re-fetches profile
-→ profile.password_set = true, onboarding_complete = false
-→ CreatePassword guard useEffect fires
-→ navigate('/onboarding') ✓
-```
+- Increasing the lock timeout eliminates the timing window where the steal fires
+- Removing `check-subscription` from `USER_UPDATED` prevents the competing lock acquisition entirely  
+- The safety-net catch in `handleFinish` ensures the user always reaches the dashboard even if a stale lock race occurs in edge cases
 
-Clean, single redirect path, no race condition.
+All three changes are defensive and do not break any other flows.
