@@ -38,10 +38,10 @@ const AccountStats: React.FC = () => {
       const { data: videoPropertyFiles } = await supabase
         .from('property_files')
         .select('property_id')
-        .eq('user_id', user.id)
-        .eq('file_type', 'video');
+        .eq('user_id', user.id as any)
+        .eq('file_type', 'video' as any) as any;
       
-      const videoPropertyIds = videoPropertyFiles?.map(f => f.property_id) || [];
+      const videoPropertyIds = (videoPropertyFiles as any[])?.map((f: any) => f.property_id) || [];
       const videoItemValue = items
         .filter(item => item.property_id && videoPropertyIds.includes(item.property_id))
         .reduce((sum, item) => sum + (Number(item.estimated_value) || 0), 0);
@@ -50,16 +50,16 @@ const AccountStats: React.FC = () => {
       const { data: receipts } = await supabase
         .from('receipts')
         .select('purchase_amount')
-        .eq('user_id', user.id);
-      const documentValue = receipts?.reduce((sum, receipt) => sum + (Number(receipt.purchase_amount) || 0), 0) || 0;
+        .eq('user_id', user.id as any) as any;
+      const documentValue = (receipts as any[])?.reduce((sum: number, receipt: any) => sum + (Number(receipt.purchase_amount) || 0), 0) || 0;
 
       // Get properties count and value
       const { data: properties } = await supabase
         .from('properties')
         .select('estimated_value')
-        .eq('user_id', user.id);
-      const propertyCount = properties?.length || 0;
-      const totalPropertyValue = properties?.reduce((sum, prop) => sum + (Number(prop.estimated_value) || 0), 0) || 0;
+        .eq('user_id', user.id as any) as any;
+      const propertyCount = (properties as any[])?.length || 0;
+      const totalPropertyValue = (properties as any[])?.reduce((sum: number, prop: any) => sum + (Number(prop.estimated_value) || 0), 0) || 0;
 
       // Get photo count
       const { data: photoFiles } = await supabase.storage

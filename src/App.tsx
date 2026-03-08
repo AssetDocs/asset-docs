@@ -167,22 +167,22 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
         // Fallback: Check contributor status directly if subscription check fails
         // IMPORTANT: Must also verify owner's subscription is active
         if (retryCount >= 2) {
-          const { data: contributorData } = await supabase
+          const { data: contributorData } = await (supabase
             .from('contributors')
             .select('id, account_owner_id, role, status')
-            .eq('contributor_user_id', user.id)
-            .eq('status', 'accepted')
-            .limit(1);
+            .eq('contributor_user_id', user.id as any)
+            .eq('status', 'accepted' as any)
+            .limit(1) as any) as Promise<{ data: any[] | null }>;
           
           if (contributorData && contributorData.length > 0) {
             // Must verify the owner has an active subscription before granting access
-            const { data: ownerProfile } = await supabase
+            const { data: ownerProfile } = await (supabase
               .from('profiles')
               .select('plan_status')
               .eq('user_id', contributorData[0].account_owner_id)
-              .single();
+              .single() as any) as Promise<{ data: any }>;
             
-            const ownerIsActive = ownerProfile?.plan_status === 'active' || ownerProfile?.plan_status === 'trialing';
+            const ownerIsActive = (ownerProfile as any)?.plan_status === 'active' || (ownerProfile as any)?.plan_status === 'trialing';
             
             if (ownerIsActive) {
               console.log('Found accepted contributor relationship with active owner, granting access');
