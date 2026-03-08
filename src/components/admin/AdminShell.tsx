@@ -3,6 +3,7 @@ import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Input } from '@/components/ui/input';
 import { 
   Select,
   SelectContent,
@@ -12,9 +13,11 @@ import {
 } from '@/components/ui/select';
 import { useAdminRole } from '@/hooks/useAdminRole';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import SecureStorage from '@/utils/secureStorage';
 import AdminPasswordGate from '@/components/AdminPasswordGate';
-import { LogOut, Building2, Code2, AlertTriangle, Shield, ArrowLeft } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { LogOut, Building2, Code2, AlertTriangle, ArrowLeft, UserX } from 'lucide-react';
 
 type Workspace = 'owner' | 'dev';
 
@@ -22,10 +25,13 @@ const AdminShell: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const { session } = useAuth();
   const { role, loading, hasOwnerAccess, hasDevAccess, canSwitchWorkspace } = useAdminRole();
   
   const [hasAccess, setHasAccess] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
+  const [forceSignOutUserId, setForceSignOutUserId] = useState('');
+  const [forceSignOutLoading, setForceSignOutLoading] = useState(false);
 
   // Determine current workspace from URL
   const currentWorkspace: Workspace = location.pathname.includes('/admin/owner') ? 'owner' : 'dev';
@@ -40,7 +46,6 @@ const AdminShell: React.FC = () => {
       }
       // Fallback: if the user already has an admin/owner role in the DB (confirmed by
       // Supabase auth), auto-grant access without requiring the password again.
-      // We wait for the role query to finish before deciding.
       if (!loading && (hasOwnerAccess || hasDevAccess)) {
         await SecureStorage.setItem('admin_access', 'granted', 72);
         setHasAccess(true);
@@ -50,7 +55,6 @@ const AdminShell: React.FC = () => {
       setHasAccess(false);
       setIsChecking(false);
     };
-    // Only run once role loading is done to avoid a flash
     if (!loading) {
       checkAccess();
     }
@@ -60,7 +64,6 @@ const AdminShell: React.FC = () => {
   useEffect(() => {
     if (loading || isChecking || !hasAccess) return;
 
-    // If user has no admin role at all, they shouldn't be here
     if (!hasDevAccess && !hasOwnerAccess) {
       toast({
         title: "Access Denied",
@@ -71,7 +74,6 @@ const AdminShell: React.FC = () => {
       return;
     }
 
-    // If trying to access owner workspace without owner access
     if (currentWorkspace === 'owner' && !hasOwnerAccess) {
       toast({
         title: "Access Restricted",
@@ -82,7 +84,6 @@ const AdminShell: React.FC = () => {
       return;
     }
 
-    // Default routing based on role
     if (location.pathname === '/admin') {
       if (hasOwnerAccess) {
         navigate('/admin/owner');
@@ -110,9 +111,34 @@ const AdminShell: React.FC = () => {
     navigate(`/admin/${workspace}`);
   };
 
-  // Wait for BOTH the SecureStorage check AND the role query to finish before
-  // deciding whether to show the password gate — prevents a flash of the gate
-  // when the encrypted admin_access key is still being decrypted async.
+  const handleForceSignOut = async () => {
+    if (!forceSignOutUserId.trim()) {
+      toast({ title: "Error", description: "Please enter a user ID.", variant: "destructive" });
+      return;
+    }
+    setForceSignOutLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('force-signout', {
+        body: { userId: forceSignOutUserId.trim() },
+        headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
+      });
+      if (error) throw error;
+      toast({
+        title: "Success",
+        description: data?.message || `All sessions revoked for user ${forceSignOutUserId.trim()}`,
+      });
+      setForceSignOutUserId('');
+    } catch (err: any) {
+      toast({
+        title: "Force Sign-Out Failed",
+        description: err?.message || 'Unknown error',
+        variant: "destructive",
+      });
+    } finally {
+      setForceSignOutLoading(false);
+    }
+  };
+
   if (isChecking || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -141,7 +167,7 @@ const AdminShell: React.FC = () => {
       {/* Header */}
       <header className="border-b bg-card">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center flex-wrap gap-3">
             <div className="flex items-center gap-4">
               <div>
                 <h1 className="text-2xl font-bold">Admin Dashboard</h1>
@@ -166,7 +192,29 @@ const AdminShell: React.FC = () => {
               </div>
             </div>
             
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 flex-wrap">
+              {/* Force Sign-Out — Owner only */}
+              {hasOwnerAccess && (
+                <div className="flex items-center gap-2">
+                  <Input
+                    className="w-64 h-9 text-sm"
+                    placeholder="User ID to force sign-out..."
+                    value={forceSignOutUserId}
+                    onChange={(e) => setForceSignOutUserId(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleForceSignOut()}
+                  />
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleForceSignOut}
+                    disabled={forceSignOutLoading}
+                  >
+                    <UserX className="w-4 h-4 mr-1" />
+                    {forceSignOutLoading ? 'Revoking...' : 'Force Sign-Out'}
+                  </Button>
+                </div>
+              )}
+
               {/* Workspace Switcher - Only for owners */}
               {canSwitchWorkspace && (
                 <Select value={currentWorkspace} onValueChange={(v) => handleWorkspaceChange(v as Workspace)}>
