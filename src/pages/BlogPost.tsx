@@ -226,7 +226,7 @@ const BlogPost = () => {
 
         <p>Asset Safe transforms that approach. We make the process of documenting property intuitive, comprehensive, and useful when you actually need it: for insurance, resale, estate planning, or simply peace of mind. On our home page, we describe the platform as turning "the traditional, tedious process of property documentation into a modern, intuitive experience that actually works when you need it most."</p>
 
-        <p>For a business owner like you (with roots in real-estate photography, detailed floorplans, and visual documentation), this is more than just a nice-to-have — it's a new standard for how we treat our homes, belongings, and legacies.</p>
+        <p>For a business owner like you (with roots in real-estate photography, detailed visual documentation), this is more than just a nice-to-have — it's a new standard for how we treat our homes, belongings, and legacies.</p>
 
         <h2>✨ Our Core Values & What They Mean for You</h2>
         
