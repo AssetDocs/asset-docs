@@ -13,5 +13,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
+    // Prevents "lock broken by steal" errors when updateUser and onAuthStateChange
+    // both try to acquire the Web Lock simultaneously during the onboarding finish step.
+    lockAcquireTimeout: 30000,
   }
 });
