@@ -27,12 +27,6 @@ export interface AssetSummary {
     type: string;
     uploadDate: string;
   }>;
-  floorPlans: Array<{
-    id: string;
-    name: string;
-    url: string;
-    uploadDate: string;
-  }>;
   properties: Array<{
     id: string;
     name: string;
