@@ -167,22 +167,26 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
         // Fallback: Check contributor status directly if subscription check fails
         // IMPORTANT: Must also verify owner's subscription is active
         if (retryCount >= 2) {
-          const { data: contributorData } = await (supabase
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const contribQuery: any = supabase
             .from('contributors')
             .select('id, account_owner_id, role, status')
-            .eq('contributor_user_id', user.id as any)
-            .eq('status', 'accepted' as any)
-            .limit(1) as any) as Promise<{ data: any[] | null }>;
+            .eq('contributor_user_id' as any, user.id)
+            .eq('status' as any, 'accepted')
+            .limit(1);
+          const { data: contributorData } = await contribQuery as { data: any[] | null };
           
           if (contributorData && contributorData.length > 0) {
             // Must verify the owner has an active subscription before granting access
-            const { data: ownerProfile } = await (supabase
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const ownerQuery: any = supabase
               .from('profiles')
               .select('plan_status')
-              .eq('user_id', contributorData[0].account_owner_id)
-              .single() as any) as Promise<{ data: any }>;
+              .eq('user_id' as any, contributorData[0].account_owner_id)
+              .single();
+            const { data: ownerProfile } = await ownerQuery as { data: any };
             
-            const ownerIsActive = (ownerProfile as any)?.plan_status === 'active' || (ownerProfile as any)?.plan_status === 'trialing';
+            const ownerIsActive = ownerProfile?.plan_status === 'active' || ownerProfile?.plan_status === 'trialing';
             
             if (ownerIsActive) {
               console.log('Found accepted contributor relationship with active owner, granting access');
