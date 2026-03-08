@@ -711,7 +711,6 @@ export class ExportService {
     const photosFolder = zip.folder('photos');
     const videosFolder = zip.folder('videos');
     const documentsFolder = zip.folder('documents');
-    const floorPlansFolder = zip.folder('floor-plans');
     const voiceNotesFolder = zip.folder('voice-notes');
     const recipesFolder = zip.folder('family-recipes');
 
