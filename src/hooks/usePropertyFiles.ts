@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { supabase } from '@/integrations/supabase/client';
 
-export const usePropertyFiles = (propertyId: string | null, fileType?: 'photo' | 'video' | 'document' | 'floor-plan') => {
+export const usePropertyFiles = (propertyId: string | null, fileType?: 'photo' | 'video' | 'document') => {
   const [files, setFiles] = useState<PropertyFile[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
