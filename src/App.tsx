@@ -131,6 +131,7 @@ const ScrollToTopWrapper = () => {
 // NOTE: TOTP-based 2FA is used for sensitive actions (Secure Vault, billing, etc.) - not on every login
 const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children: React.ReactNode; skipSubscriptionCheck?: boolean }) => {
   const { isAuthenticated, loading, profileLoading, user, profile } = useAuth();
+  const adminRole = useAdminRole();
   const [checkingSubscription, setCheckingSubscription] = useState(!skipSubscriptionCheck);
   const [hasSubscription, setHasSubscription] = useState(false);
   // Abort flag: set to true when the component unmounts or user changes, so in-flight
