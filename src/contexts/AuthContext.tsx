@@ -20,11 +20,8 @@ const addAlertedSession = (sessionKey: string) => {
   try {
     const sessions = getAlertedSessions();
     sessions.add(sessionKey);
-    // Keep only last 20 sessions to prevent localStorage bloat
     const arr = Array.from(sessions);
-    if (arr.length > 20) {
-      arr.splice(0, arr.length - 20);
-    }
+    if (arr.length > 20) arr.splice(0, arr.length - 20);
     localStorage.setItem(ALERTED_SESSIONS_KEY, JSON.stringify(arr));
   } catch {
     // Ignore storage errors
@@ -76,89 +73,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
   const previousEmailRef = useRef<string | null>(null);
+  // Track the last SIGNED_IN session so we can fire side-effects once
+  const lastSignedInTokenRef = useRef<string | null>(null);
 
+  // ─── Step 1: onAuthStateChange — SYNCHRONOUS ONLY, no awaits ───────────────
   useEffect(() => {
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
+        // Only synchronous state updates here — no await, no Supabase calls.
+        // Awaiting inside onAuthStateChange holds the auth lock and causes
+        // profile fetches (which also need the client) to deadlock forever.
         setSession(session);
         setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          // Fetch user profile — set profileLoading so ProtectedRoute waits for profile data.
-          setProfileLoading(true);
-          try {
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('user_id', session.user.id)
-              .single();
-            setProfile(profileData);
+        setLoading(false);
 
-            // Track current email for change detection
-            previousEmailRef.current = session.user.email || null;
-
-          } catch (error) {
-            console.error('Error fetching profile:', error);
-          } finally {
-            // Release the loading gate immediately after profile fetch —
-            // do NOT await edge functions inside onAuthStateChange as that can
-            // deadlock the Supabase auth lock (see: auth-concurrency-management).
-            setProfileLoading(false);
-          }
-
-          // Fire-and-forget side effects — run OUTSIDE the profileLoading block
-          // so they never block the dashboard from rendering.
-          if (event === 'SIGNED_IN') {
-            // Sync subscription state in the background
-            supabase.functions.invoke('check-subscription').catch(console.error);
-
-            // Check for pending contributor invitations
-            supabase.functions.invoke('accept-contributor-invitation', {
-              headers: { Authorization: `Bearer ${session.access_token}` }
-            }).catch((inviteError) => {
-              console.error('Error checking contributor invitations:', inviteError);
-            });
-
-            // Send security alert for new login (only once per unique session)
-            if (session.access_token) {
-              const sessionKey = `${session.user.id}-${session.access_token.slice(-20)}`;
-              if (!hasAlertedSession(sessionKey)) {
-                addAlertedSession(sessionKey);
-                SecurityAlertService.notifyNewLogin(
-                  session.user.id,
-                  session.user.email || ''
-                ).catch(console.error);
-              }
-            }
-          }
-
-          // Detect email change (USER_UPDATED event)
-          if (event === 'USER_UPDATED' && previousEmailRef.current && session.user.email) {
-            if (previousEmailRef.current !== session.user.email) {
-              SecurityAlertService.notifyEmailChanged(
-                session.user.id,
-                previousEmailRef.current,
-                session.user.email
-              ).catch(console.error);
-            }
-          }
-
-        } else {
+        if (!session?.user) {
           setProfile(null);
           previousEmailRef.current = null;
         }
-        
-        // Detect password recovery completion
-        if (event === 'PASSWORD_RECOVERY') {
-          // User clicked password reset link - alert will be sent after they set new password
+
+        // Store the event type and access token for the profile useEffect to react to
+        if (event === 'SIGNED_IN' && session?.access_token) {
+          lastSignedInTokenRef.current = session.access_token;
         }
-        
-        setLoading(false);
+
+        // Detect email change (USER_UPDATED event) — only needs previousEmailRef, no await
+        if (event === 'USER_UPDATED' && previousEmailRef.current && session?.user?.email) {
+          if (previousEmailRef.current !== session.user.email) {
+            SecurityAlertService.notifyEmailChanged(
+              session.user.id,
+              previousEmailRef.current,
+              session.user.email
+            ).catch(console.error);
+          }
+        }
       }
     );
 
-    // Check for existing session
+    // Bootstrap: read existing session without waiting for the event
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -171,32 +123,79 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
+  // ─── Step 2: Profile fetch — separate effect, runs after auth lock releases ─
+  useEffect(() => {
+    if (!user) {
+      setProfileLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setProfileLoading(true);
+
+    const fetchProfile = async () => {
+      try {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (!cancelled) {
+          setProfile(profileData);
+          previousEmailRef.current = user.email || null;
+        }
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      } finally {
+        if (!cancelled) setProfileLoading(false);
+      }
+
+      if (cancelled) return;
+
+      // Fire-and-forget side effects — run after profile fetch so they never
+      // block the UI, and outside the auth lock window.
+      const currentSession = (await supabase.auth.getSession()).data.session;
+      if (!currentSession) return;
+
+      const sessionKey = `${user.id}-${currentSession.access_token.slice(-20)}`;
+
+      // Only run SIGNED_IN side-effects once per unique token
+      if (lastSignedInTokenRef.current === currentSession.access_token) {
+        lastSignedInTokenRef.current = null; // consume
+
+        supabase.functions.invoke('check-subscription').catch(console.error);
+
+        supabase.functions.invoke('accept-contributor-invitation', {
+          headers: { Authorization: `Bearer ${currentSession.access_token}` }
+        }).catch((e) => console.error('Error checking contributor invitations:', e));
+
+        if (!hasAlertedSession(sessionKey)) {
+          addAlertedSession(sessionKey);
+          SecurityAlertService.notifyNewLogin(user.id, user.email || '').catch(console.error);
+        }
+      }
+    };
+
+    fetchProfile();
+    return () => { cancelled = true; };
+  }, [user?.id]); // re-run only when the user ID changes
+
   const signUp = async (email: string, password: string, firstName?: string, lastName?: string, giftCode?: string) => {
-    // Use a clean callback URL — Supabase appends ?token_hash=xxx&type=signup automatically.
-    // Including the full URL as a query param causes Supabase to append it as a path (double URL bug).
     const redirectUrl = `${window.location.origin}/auth/callback`;
-    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: redirectUrl,
-        data: {
-          first_name: firstName || '',
-          last_name: lastName || ''
-        }
+        data: { first_name: firstName || '', last_name: lastName || '' }
       }
     });
-    
     return { error, data };
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-    
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     return { error };
   };
 
@@ -204,23 +203,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await supabase.auth.signOut({ scope: 'local' });
     } catch {
-      // Ignore errors (e.g. stale/invalid refresh token) — always clear local state
+      // Ignore errors — always clear local state
     }
-    // Nuclear fallback: manually purge all Supabase auth tokens from localStorage
-    // so that even if signOut() failed silently, the session is gone on reload.
+    // Nuclear fallback: purge all Supabase auth tokens from localStorage
     try {
       const keysToRemove = Object.keys(localStorage).filter(
         key => key.startsWith('sb-') && (key.includes('-auth-token') || key.includes('-refresh-token') || key.includes('-provider-token'))
       );
       keysToRemove.forEach(key => localStorage.removeItem(key));
-      // Also clear the full project-scoped token key
       localStorage.removeItem(`sb-leotcbfpqiekgkgumecn-auth-token`);
     } catch {
       // Ignore storage errors
     }
     // Force a full page reload regardless of current path.
-    // window.location.href = '/' is a no-op when already on '/', so we
-    // explicitly call reload() in that case to ensure the auth state clears.
     if (window.location.pathname === '/') {
       window.location.reload();
     } else {
@@ -231,16 +226,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isAuthenticated = !!user;
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      session, 
-      profile, 
+    <AuthContext.Provider value={{
+      user,
+      session,
+      profile,
       loading,
       profileLoading,
-      signUp, 
-      signIn, 
-      signOut, 
-      isAuthenticated 
+      signUp,
+      signIn,
+      signOut,
+      isAuthenticated
     }}>
       {children}
     </AuthContext.Provider>
