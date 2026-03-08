@@ -53,6 +53,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, firstName?: string, lastName?: string, giftCode?: string) => Promise<{ error: any; data?: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
   isAuthenticated: boolean;
 }
 
@@ -199,6 +200,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error };
   };
 
+  const refreshProfile = async () => {
+    if (!user) return;
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      if (data) setProfile(data);
+    } catch (error) {
+      console.error('Error refreshing profile:', error);
+    }
+  };
+
   const signOut = async () => {
     try {
       await supabase.auth.signOut({ scope: 'local' });
@@ -235,6 +250,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       signUp,
       signIn,
       signOut,
+      refreshProfile,
       isAuthenticated
     }}>
       {children}
