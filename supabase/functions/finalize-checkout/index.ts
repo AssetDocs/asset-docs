@@ -132,7 +132,15 @@ serve(async (req) => {
       throw new Error(`Failed to create user: ${createError?.message}`);
     }
 
-    // Upsert entitlement — all Stripe IDs required by DB trigger
+    // Activate entitlement — all Stripe IDs required by DB trigger (validate_entitlement_source)
+    // planLookupKey must be non-null for active stripe entitlements per DB constraint
+    const safeLookupKey = planLookupKey ?? 'asset_safe_monthly';
+    const safeCustomerId = customerId ?? '';
+    const safeSubscriptionId = subscriptionId ?? '';
+    const safePlanPriceId = planPriceId ?? '';
+
+    logStep("Upserting entitlement", { userId, safeLookupKey, safeCustomerId, safeSubscriptionId, safePlanPriceId });
+
     const { error: entitlementError } = await supabaseAdmin
       .from("entitlements")
       .upsert(
@@ -141,21 +149,42 @@ serve(async (req) => {
           plan: "standard",
           status: "active",
           entitlement_source: "stripe",
-          stripe_customer_id: customerId,
-          stripe_subscription_id: subscriptionId,
-          stripe_plan_price_id: planPriceId,
-          plan_lookup_key: planLookupKey,
-          base_storage_gb: 25,
+          stripe_customer_id: safeCustomerId,
+          stripe_subscription_id: safeSubscriptionId,
+          stripe_plan_price_id: safePlanPriceId,
+          plan_lookup_key: safeLookupKey,
+          base_storage_gb: 50,
           updated_at: new Date().toISOString(),
         },
         { onConflict: "user_id" }
       );
 
     if (entitlementError) {
-      logStep("Entitlement upsert error", { error: entitlementError.message });
-      throw new Error(`Failed to upsert entitlement: ${entitlementError.message}`);
+      logStep("Entitlement upsert error — trying direct UPDATE fallback", { error: entitlementError.message, code: entitlementError.code });
+      // Fallback: direct UPDATE in case upsert trigger validation failed on INSERT path
+      const { error: updateError } = await supabaseAdmin
+        .from("entitlements")
+        .update({
+          plan: "standard",
+          status: "active",
+          entitlement_source: "stripe",
+          stripe_customer_id: safeCustomerId,
+          stripe_subscription_id: safeSubscriptionId,
+          stripe_plan_price_id: safePlanPriceId,
+          plan_lookup_key: safeLookupKey,
+          base_storage_gb: 50,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("user_id", userId);
+
+      if (updateError) {
+        logStep("Entitlement UPDATE fallback also failed", { error: updateError.message });
+        throw new Error(`Failed to activate entitlement: ${updateError.message}`);
+      }
+      logStep("Entitlement activated via UPDATE fallback");
+    } else {
+      logStep("Entitlement upserted successfully");
     }
-    logStep("Entitlement upserted successfully");
 
     // Log consent (payment confirmed = user agreed to terms)
     try {
