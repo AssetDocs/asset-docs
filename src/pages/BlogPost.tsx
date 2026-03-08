@@ -265,7 +265,7 @@ const BlogPost = () => {
         <p>This first blog post isn't just a welcome — it's the start of a conversation. Going forward, we'll publish content to help you get the most out of Asset Safe:</p>
 
         <ul>
-          <li><strong>Tips for documenting your home the right way</strong> (what photos to take, how to organize floorplans, how to catalog heirlooms)</li>
+          <li><strong>Tips for documenting your home the right way</strong> (what photos to take, how to organize records, how to catalog heirlooms)</li>
           <li><strong>How-to guides for using Asset Safe</strong> — from easy setups to advanced documentation (ideal for insurance or estate-planning use cases)</li>
           <li><strong>Real stories and case studies</strong> (how other homeowners used asset documentation to recover from loss, simplify sales, or preserve family legacy)</li>
           <li><strong>Advice around home ownership, maintenance, and long-term planning</strong> to help you build not just a house — but a legacy that lasts</li>

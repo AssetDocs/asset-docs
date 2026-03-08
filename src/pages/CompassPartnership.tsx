@@ -171,7 +171,7 @@ const CompassPartnership = () => {
                     <p className="font-medium">Asset Safe auto-creates a Digital Home Record</p>
                     <ul className="text-sm text-muted-foreground list-disc list-inside mt-1">
                       <li>MLS listing data (via Compass IDX/API)</li>
-                      <li>Property photos and floorplans</li>
+                      <li>Property photos and visual documentation</li>
                       <li>Initial AI valuation + comp data</li>
                     </ul>
                   </div>
