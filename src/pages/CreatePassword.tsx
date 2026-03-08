@@ -17,7 +17,7 @@ const STEPS = [
 ];
 
 const CreatePassword = () => {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
