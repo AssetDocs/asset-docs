@@ -214,8 +214,6 @@ export class ExportService {
     yPosition += lineHeight;
     pdf.text(`Documents: ${assets.documents.length}`, 30, yPosition);
     yPosition += lineHeight;
-    pdf.text(`Floor Plans: ${assets.floorPlans.length}`, 30, yPosition);
-    yPosition += lineHeight;
     pdf.text(`Inventory Items: ${assets.items.length}`, 30, yPosition);
     yPosition += lineHeight;
     pdf.text(`Voice Notes: ${assets.voiceNotes.length}`, 30, yPosition);
