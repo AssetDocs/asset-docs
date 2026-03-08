@@ -784,7 +784,6 @@ export class ExportService {
       photos: [],
       videos: [],
       documents: [],
-      floorPlans: [],
       properties: [],
       voiceNotes: [],
       paintCodes: [],
