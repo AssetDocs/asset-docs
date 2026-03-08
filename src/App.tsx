@@ -138,7 +138,17 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
   // setTimeout retries don't update state on a stale/unmounted component.
   const abortRef = useRef(false);
 
+  // Admin users bypass the subscription gate entirely — they always have full access
+  const isAdminUser = !adminRole.loading && adminRole.hasDevAccess;
+
   useEffect(() => {
+    // Skip subscription check for admin users
+    if (isAdminUser) {
+      setHasSubscription(true);
+      setCheckingSubscription(false);
+      return;
+    }
+
     // Reset abort flag for this effect run
     abortRef.current = false;
 
@@ -180,7 +190,6 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
         }
 
         // Check if user has active subscription OR any recognized tier
-        // 'standard' is the plan set by finalize-checkout; 'premium' for future plans; 'free' for trial/legacy
         if (data?.subscribed || data?.subscription_tier === 'free' || data?.subscription_tier === 'premium' || data?.subscription_tier === 'standard') {
           setHasSubscription(true);
           setCheckingSubscription(false);
@@ -188,7 +197,6 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
         }
 
         // Fallback: Check contributor status directly if subscription check fails
-        // IMPORTANT: Must also verify owner's subscription is active
         if (retryCount >= 2) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const contribQuery: any = supabase
@@ -202,7 +210,6 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
           if (abortRef.current) return;
           
           if (contributorData && contributorData.length > 0) {
-            // Must verify the owner has an active subscription before granting access
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const ownerQuery: any = supabase
               .from('profiles')
@@ -216,22 +223,16 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
             const ownerIsActive = ownerProfile?.plan_status === 'active' || ownerProfile?.plan_status === 'trialing';
             
             if (ownerIsActive) {
-              console.log('Found accepted contributor relationship with active owner, granting access');
               setHasSubscription(true);
               setCheckingSubscription(false);
               return;
-            } else {
-              console.log('Contributor owner subscription is inactive, denying access');
             }
           }
         }
         
         if (retryCount < 3) {
-          // Retry after a short delay to allow invitation acceptance to complete
           const timerId = setTimeout(() => checkSubscription(retryCount + 1), 1500);
-          // If aborted during the wait, cancel the timer
-          const originalAbort = abortRef.current;
-          if (originalAbort) clearTimeout(timerId);
+          if (abortRef.current) clearTimeout(timerId);
           return;
         }
         
@@ -239,7 +240,6 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
       } catch (error) {
         if (abortRef.current) return;
         console.error('Error checking subscription:', error);
-        // On network/invoke error for an authenticated user, fail open
         setHasSubscription(true);
         setCheckingSubscription(false);
       }
@@ -249,17 +249,16 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
       setCheckingSubscription(!skipSubscriptionCheck);
       checkSubscription();
     } else if (!loading) {
-      // user is definitively null (not just loading) — stop spinning
       setCheckingSubscription(false);
     }
 
-    // Cleanup: signal any in-flight retries to abort
     return () => {
       abortRef.current = true;
     };
-  }, [user, skipSubscriptionCheck, loading]);
+  }, [user, skipSubscriptionCheck, loading, isAdminUser]);
   
-  if (loading || profileLoading || checkingSubscription) {
+  // Wait for auth + admin role loading + subscription check
+  if (loading || profileLoading || adminRole.loading || checkingSubscription) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
@@ -269,6 +268,11 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
   
   if (!isAuthenticated) {
     return <Auth />;
+  }
+
+  // Admin users: skip all subscription and email-verification gates
+  if (isAdminUser) {
+    return <>{children}</>;
   }
 
   // Enforce password setup for new users (catches both null and false)
@@ -281,12 +285,12 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
     return <Navigate to="/onboarding" replace />;
   }
 
-  // Check if email is verified (unless on the welcome or subscription pages)
+  // Check if email is verified
   if (!skipSubscriptionCheck && user && !user.email_confirmed_at) {
     return <Navigate to="/welcome" replace />;
   }
 
-  // Check if user has subscription (unless skipping the check)
+  // Check if user has subscription
   if (!skipSubscriptionCheck && !hasSubscription) {
     return <Navigate to="/pricing" replace />;
   }
