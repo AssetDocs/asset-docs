@@ -222,7 +222,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch {
       // Ignore storage errors
     }
-    window.location.href = '/';
+    // Force a full page reload regardless of current path.
+    // window.location.href = '/' is a no-op when already on '/', so we
+    // explicitly call reload() in that case to ensure the auth state clears.
+    if (window.location.pathname === '/') {
+      window.location.reload();
+    } else {
+      window.location.href = '/';
+    }
   };
 
   const isAuthenticated = !!user;

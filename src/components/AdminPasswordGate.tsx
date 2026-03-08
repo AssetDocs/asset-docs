@@ -46,7 +46,7 @@ const AdminPasswordGate: React.FC<AdminPasswordGateProps> = ({ onPasswordCorrect
         RateLimiter.clearRateLimit(rateLimitKey, 'verify');
         
         // Set temporary admin access (expires in 24 hours)
-        await SecureStorage.setItem('admin_access', 'granted', 24);
+        await SecureStorage.setItem('admin_access', 'granted', 72);
         
         toast({
           title: "Access granted",
