@@ -48,6 +48,7 @@ const DocumentProtectSection: React.FC = () => {
   return (
     <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
+        <p className="text-center text-base md:text-lg text-muted-foreground mb-4">Perfect for homeowners, families, landlords, and small business owners.</p>
         <h2 className="section-title mb-10">Most people don't realize how unprepared they are—until it's too late.</h2>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto items-stretch">
