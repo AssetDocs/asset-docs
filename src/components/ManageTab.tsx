@@ -13,8 +13,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import {
   CheckIcon, ExternalLink, CreditCard, Shield, Trash2, Clock,
-  AlertTriangle, X, Check, HardDrive
+  AlertTriangle, X, Check, HardDrive, ChevronDown, Receipt
 } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import AccountDeletedDialog from '@/components/AccountDeletedDialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -59,6 +60,33 @@ interface ContributorInfo {
   role: string;
   status: string;
 }
+
+const CollapsiblePaymentHistory: React.FC = () => {
+  const [open, setOpen] = useState(false);
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <Card>
+        <CollapsibleTrigger asChild>
+          <CardHeader className="cursor-pointer select-none hover:bg-muted/40 transition-colors rounded-t-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Receipt className="h-5 w-5" />
+                <CardTitle>Payment History</CardTitle>
+              </div>
+              <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+            </div>
+            <CardDescription>View your recent subscription payments and billing details</CardDescription>
+          </CardHeader>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <CardContent className="pt-0">
+            <PaymentHistory embedded />
+          </CardContent>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
+  );
+};
 
 const ManageTab: React.FC = () => {
   const { toast } = useToast();
@@ -471,8 +499,8 @@ const ManageTab: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* 3 — Payment History */}
-      <PaymentHistory />
+      {/* 3 — Payment History (collapsible) */}
+      <CollapsiblePaymentHistory />
 
       {/* 4 — Add or Adjust Storage */}
       <Card>
