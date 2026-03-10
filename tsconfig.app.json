@@ -8,12 +8,6 @@
       "DOM",
       "DOM.Iterable"
     ],
-    "typeRoots": [
-      "node_modules/@types"
-    ],
-    "types": [
-      "google.maps"
-    ],
     "module": "ESNext",
     "moduleDetection": "force",
     "moduleResolution": "bundler",
@@ -36,6 +30,7 @@
     "useDefineForClassFields": true
   },
   "include": [
-    "src"
+    "src",
+    "node_modules/@types/google.maps/index.d.ts"
   ]
 }
