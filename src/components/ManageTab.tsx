@@ -471,8 +471,8 @@ const ManageTab: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* 3 — Payment History */}
-      <PaymentHistory />
+      {/* 3 — Payment History (collapsible) */}
+      <CollapsiblePaymentHistory />
 
       {/* 4 — Add or Adjust Storage */}
       <Card>
