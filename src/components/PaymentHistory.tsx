@@ -100,29 +100,72 @@ const PaymentHistory: React.FC<PaymentHistoryProps> = ({ embedded = false }) => 
     }
   };
 
-  if (loading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Receipt className="h-5 w-5" />
-            Payment History
-          </CardTitle>
-          <CardDescription>
-            Loading payment history...
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="animate-pulse">
-                <div className="h-16 bg-gray-200 rounded-lg"></div>
+  const content = (
+    <>
+      {loading ? (
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="animate-pulse">
+              <div className="h-16 bg-muted rounded-lg"></div>
+            </div>
+          ))}
+        </div>
+      ) : payments.length === 0 ? (
+        <div className="text-center py-8 text-muted-foreground">
+          <Receipt className="h-12 w-12 mx-auto mb-4 opacity-50" />
+          <p>No payment history found</p>
+          <p className="text-sm mb-4">Payments will appear here once you subscribe</p>
+          <Button variant="outline" onClick={handleViewFullHistory} disabled={isPortalLoading}>
+            <ExternalLink className="h-4 w-4 mr-2" />
+            {isPortalLoading ? 'Loading...' : 'View Full Billing History in Stripe'}
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {payments.map((payment) => (
+            <div
+              key={payment.id}
+              className="flex items-center justify-between p-4 border rounded-lg bg-card hover:bg-accent/50 transition-colors"
+            >
+              <div className="flex items-center gap-4">
+                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10">
+                  <CreditCard className="h-5 w-5 text-primary" />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold">
+                      ${payment.amount.toFixed(2)} {payment.currency}
+                    </span>
+                    <Badge variant={getSubscriptionBadgeVariant(payment.subscriptionType)}>
+                      {payment.subscriptionType.charAt(0).toUpperCase() + payment.subscriptionType.slice(1)}
+                    </Badge>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {formatPaymentMethod(payment.paymentMethod)}
+                  </div>
+                </div>
               </div>
-            ))}
+              <div className="text-right">
+                <div className="text-sm font-medium">{formatDate(payment.created)}</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  {payment.status === 'succeeded' ? 'Completed' : payment.status}
+                </div>
+              </div>
+            </div>
+          ))}
+          <div className="mt-4 pt-4 border-t">
+            <Button variant="outline" onClick={handleViewFullHistory} disabled={isPortalLoading} className="w-full">
+              <ExternalLink className="h-4 w-4 mr-2" />
+              {isPortalLoading ? 'Loading...' : 'View Full Billing History in Stripe'}
+            </Button>
           </div>
-        </CardContent>
-      </Card>
-    );
+        </div>
+      )}
+    </>
+  );
+
+  if (embedded) {
+    return content;
   }
 
   return (
@@ -132,76 +175,9 @@ const PaymentHistory: React.FC<PaymentHistoryProps> = ({ embedded = false }) => 
           <Receipt className="h-5 w-5" />
           Payment History
         </CardTitle>
-        <CardDescription>
-          View your recent subscription payments and billing details
-        </CardDescription>
+        <CardDescription>View your recent subscription payments and billing details</CardDescription>
       </CardHeader>
-      <CardContent>
-        {payments.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <Receipt className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>No payment history found</p>
-            <p className="text-sm mb-4">Payments will appear here once you subscribe</p>
-            <Button
-              variant="outline"
-              onClick={handleViewFullHistory}
-              disabled={isPortalLoading}
-            >
-              <ExternalLink className="h-4 w-4 mr-2" />
-              {isPortalLoading ? 'Loading...' : 'View Full Billing History in Stripe'}
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {payments.map((payment) => (
-              <div
-                key={payment.id}
-                className="flex items-center justify-between p-4 border rounded-lg bg-card hover:bg-accent/50 transition-colors"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10">
-                    <CreditCard className="h-5 w-5 text-primary" />
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold">
-                        ${payment.amount.toFixed(2)} {payment.currency}
-                      </span>
-                      <Badge variant={getSubscriptionBadgeVariant(payment.subscriptionType)}>
-                        {payment.subscriptionType.charAt(0).toUpperCase() + payment.subscriptionType.slice(1)}
-                      </Badge>
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {formatPaymentMethod(payment.paymentMethod)}
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-sm font-medium">
-                    {formatDate(payment.created)}
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {payment.status === 'succeeded' ? 'Completed' : payment.status}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-        {payments.length > 0 && (
-          <div className="mt-4 pt-4 border-t">
-            <Button
-              variant="outline"
-              onClick={handleViewFullHistory}
-              disabled={isPortalLoading}
-              className="w-full"
-            >
-              <ExternalLink className="h-4 w-4 mr-2" />
-              {isPortalLoading ? 'Loading...' : 'View Full Billing History in Stripe'}
-            </Button>
-          </div>
-        )}
-      </CardContent>
+      <CardContent>{content}</CardContent>
     </Card>
   );
 };
