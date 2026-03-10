@@ -58,7 +58,7 @@ serve(async (req) => {
     const origin = req.headers.get("origin") || "https://www.getassetsafe.com";
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `${origin}/account/settings?tab=subscription`,
+      return_url: `${origin}/account/settings?tab=manage`,
     });
     logStep("Customer portal session created", { url: portalSession.url });
 
