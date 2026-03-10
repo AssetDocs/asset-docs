@@ -21,7 +21,11 @@ interface Payment {
   status: string;
 }
 
-const PaymentHistory: React.FC = () => {
+interface PaymentHistoryProps {
+  embedded?: boolean;
+}
+
+const PaymentHistory: React.FC<PaymentHistoryProps> = ({ embedded = false }) => {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [isPortalLoading, setIsPortalLoading] = useState(false);
