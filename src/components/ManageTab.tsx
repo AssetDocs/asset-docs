@@ -477,30 +477,10 @@ const ManageTab: React.FC = () => {
               <ExternalLink className="h-4 w-4 mr-2" />
               {isLoading ? 'Opening...' : 'Manage Your Subscription'}
             </Button>
-            <p className="text-xs text-muted-foreground mt-2">Plan changes, cancellations, and billing updates all through Stripe.</p>
+            <p className="text-xs text-muted-foreground mt-2">Plan changes, cancellations, billing and payment updates, and payment history all through Stripe.</p>
           </div>
         </CardContent>
       </Card>
-
-      {/* 2 — Payment Methods */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5" />
-            Payment Methods
-          </CardTitle>
-          <CardDescription>Manage your saved payment methods for your subscription</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button onClick={handleManageBilling} disabled={isLoading} className="w-full">
-            <ExternalLink className="h-4 w-4 mr-2" />
-            {isLoading ? 'Opening...' : 'Manage Payment Methods'}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* 3 — Payment History (collapsible) */}
-      <CollapsiblePaymentHistory />
 
       {/* 4 — Add or Adjust Storage */}
       <Card>
