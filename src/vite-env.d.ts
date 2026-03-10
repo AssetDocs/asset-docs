@@ -1,2 +1,4 @@
 /// <reference types="vite/client" />
-/// <reference path="../node_modules/@types/google.maps/index.d.ts" />
+// Ensure google.maps global namespace types are available project-wide
+// @types/google.maps uses ambient declare namespace, which needs explicit inclusion
+import '@types/google.maps';
