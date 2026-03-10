@@ -1,0 +1,697 @@
+// @ts-nocheck
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import {
+  CheckIcon, ExternalLink, CreditCard, Shield, Trash2, Clock,
+  AlertTriangle, X, Check, HardDrive
+} from 'lucide-react';
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
+import AccountDeletedDialog from '@/components/AccountDeletedDialog';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import PaymentHistory from '@/components/PaymentHistory';
+
+const planConfig = {
+  title: "Asset Safe Plan",
+  monthlyPrice: "$18.99",
+  yearlyPrice: "$189",
+  yearlySavings: "Save when you pay yearly",
+  description: "One simple plan. Everything included.",
+  features: [
+    "Unlimited properties",
+    "25GB secure cloud storage (+ add-ons available)",
+    "Photo, video & document uploads",
+    "Room-by-room inventory organization",
+    "Secure Vault & Password Catalog",
+    "Legacy Locker (family continuity & instructions)",
+    "Authorized Users",
+    "Emergency Access Sharing",
+    "Voice notes, damage reports, exports",
+    "Memory Safe & Quick Notes",
+    "MFA, full web platform access",
+    "Service Pros Directory"
+  ],
+  icon: <Shield className="h-6 w-6 text-primary" />,
+};
+
+interface DeletionRequest {
+  id: string;
+  account_owner_id: string;
+  requester_user_id: string;
+  reason: string | null;
+  grace_period_days: number;
+  grace_period_ends_at: string;
+  status: string;
+  requested_at: string;
+}
+
+interface ContributorInfo {
+  account_owner_id: string;
+  role: string;
+  status: string;
+}
+
+const ManageTab: React.FC = () => {
+  const { toast } = useToast();
+  const { user, profile, signOut } = useAuth();
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('month');
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showAccountDeletedDialog, setShowAccountDeletedDialog] = useState(false);
+  const [showDeletionRequestDialog, setShowDeletionRequestDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
+  const [deletionReason, setDeletionReason] = useState('');
+  const [isContributor, setIsContributor] = useState(false);
+  const [contributorInfo, setContributorInfo] = useState<ContributorInfo | null>(null);
+  const [pendingDeletionRequest, setPendingDeletionRequest] = useState<DeletionRequest | null>(null);
+  const [incomingDeletionRequests, setIncomingDeletionRequests] = useState<DeletionRequest[]>([]);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<{
+    subscribed: boolean;
+    subscription_tier?: string;
+    subscription_end?: string;
+    plan_status?: string;
+    property_limit?: number;
+    storage_quota_gb?: number;
+    plan_lookup_key?: string;
+    base_storage_gb?: number;
+    storage_addon_blocks_qty?: number;
+    total_storage_gb?: number;
+    cancel_at_period_end?: boolean;
+  }>({ subscribed: false });
+
+  const checkIfContributor = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('contributors')
+        .select('account_owner_id, role, status')
+        .eq('contributor_user_id', user.id)
+        .eq('status', 'accepted')
+        .neq('account_owner_id', user.id);
+      if (error) return;
+      if (data && data.length > 0) {
+        setIsContributor(true);
+        setContributorInfo(data[0] as ContributorInfo);
+        if (data[0].role === 'administrator') {
+          const { data: requestData } = await supabase
+            .from('account_deletion_requests')
+            .select('*')
+            .eq('account_owner_id', data[0].account_owner_id)
+            .eq('requester_user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(1);
+          if (requestData && requestData.length > 0) {
+            setPendingDeletionRequest(requestData[0] as DeletionRequest);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error checking contributor status:', error);
+    }
+  };
+
+  const checkIncomingDeletionRequests = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('account_deletion_requests')
+        .select('*')
+        .eq('account_owner_id', user.id)
+        .eq('status', 'pending');
+      if (!error) setIncomingDeletionRequests((data || []) as DeletionRequest[]);
+    } catch (error) {
+      console.error('Error checking deletion requests:', error);
+    }
+  };
+
+  const checkSubscription = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase.functions.invoke('check-subscription');
+      if (error) throw error;
+      setSubscriptionStatus(data);
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      checkSubscription();
+      checkIfContributor();
+      checkIncomingDeletionRequests();
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('storage_added') === 'true' || urlParams.get('payment_success') === 'true') {
+        toast({ title: "Billing Updated", description: "Your subscription changes have been applied." });
+        window.history.replaceState({}, '', window.location.pathname + '?tab=manage');
+      }
+    }
+  }, [user]);
+
+  const handleManageBilling = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('customer-portal');
+      if (error) throw error;
+      window.location.href = data.url;
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to open billing management. Please try again.", variant: "destructive" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleStartSubscription = async () => {
+    if (!user) return;
+    setIsLoading(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const lookupKey = billingInterval === 'year' ? 'asset_safe_annual' : 'asset_safe_monthly';
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { planLookupKey: lookupKey },
+        headers: { Authorization: `Bearer ${sessionData.session?.access_token}` }
+      });
+      if (error) throw error;
+      if (data.url) window.location.href = data.url;
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to start subscription. Please try again.", variant: "destructive" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase.functions.invoke('delete-account');
+      if (error) throw error;
+      await signOut();
+      setShowDeleteDialog(false);
+      setShowAccountDeletedDialog(true);
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to delete account. Please contact support.", variant: "destructive" });
+      setShowDeleteDialog(false);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleAdminDeleteAccount = async () => {
+    if (!user || !contributorInfo) return;
+    setIsDeleting(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const { error } = await supabase.functions.invoke('delete-account', {
+        body: { target_account_id: contributorInfo.account_owner_id },
+        headers: { Authorization: `Bearer ${sessionData.session?.access_token}` }
+      });
+      if (error) throw error;
+      toast({ title: "Account Deleted", description: "The account has been permanently deleted." });
+      await signOut();
+      navigate('/');
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message || "Failed to delete account.", variant: "destructive" });
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+    }
+  };
+
+  const handleSubmitDeletionRequest = async () => {
+    if (!user || !contributorInfo) return;
+    setIsSubmittingRequest(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const { data, error } = await supabase.functions.invoke('submit-deletion-request', {
+        body: { account_owner_id: contributorInfo.account_owner_id, reason: deletionReason, grace_period_days: 14 },
+        headers: { Authorization: `Bearer ${sessionData.session?.access_token}` }
+      });
+      if (error) throw error;
+      toast({ title: "Deletion Request Submitted", description: "The account owner has been notified and has 14 days to respond." });
+      setPendingDeletionRequest(data.request);
+      setShowDeletionRequestDialog(false);
+      setDeletionReason('');
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message || "Failed to submit deletion request.", variant: "destructive" });
+    } finally {
+      setIsSubmittingRequest(false);
+    }
+  };
+
+  const handleRespondDeletionRequest = async (requestId: string, action: 'approve' | 'reject') => {
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const { error } = await supabase.functions.invoke('respond-deletion-request', {
+        body: { request_id: requestId, action },
+        headers: { Authorization: `Bearer ${sessionData.session?.access_token}` }
+      });
+      if (error) throw error;
+      toast({
+        title: action === 'approve' ? "Request Approved" : "Request Rejected",
+        description: action === 'approve' ? "The administrator can now proceed." : "The deletion request has been rejected.",
+      });
+      checkIncomingDeletionRequests();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message || "Failed to respond to request.", variant: "destructive" });
+    }
+  };
+
+  const hasActivePlan = subscriptionStatus.plan_status === 'active' || subscriptionStatus.plan_status === 'canceling' || subscriptionStatus.subscribed;
+  const totalStorageGb = subscriptionStatus.total_storage_gb || subscriptionStatus.storage_quota_gb || 0;
+  const baseStorageGb = subscriptionStatus.base_storage_gb || 25;
+  const addOnBlocks = subscriptionStatus.storage_addon_blocks_qty || 0;
+  const addOnStorageGb = addOnBlocks * 25;
+  const hasStorageAddOn = addOnStorageGb > 0;
+  const isCancelAtPeriodEnd = subscriptionStatus.cancel_at_period_end || false;
+
+  // ===== NOT SUBSCRIBED VIEW =====
+  if (!hasActivePlan) {
+    const displayPrice = billingInterval === 'year' ? planConfig.yearlyPrice : planConfig.monthlyPrice;
+    const priceLabel = billingInterval === 'year' ? '/year' : '/month';
+
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Complete Your Subscription</CardTitle>
+            <CardDescription>Start your Asset Safe membership and get full access to everything.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Billing Toggle */}
+            <div className="flex justify-center">
+              <Tabs value={billingInterval} onValueChange={(v) => setBillingInterval(v as 'month' | 'year')}>
+                <TabsList className="bg-muted rounded-full p-1">
+                  <TabsTrigger value="month" className="rounded-full px-6 py-2 font-medium data-[state=active]:bg-brand-orange data-[state=active]:text-white">Monthly</TabsTrigger>
+                  <TabsTrigger value="year" className="rounded-full px-6 py-2 font-medium data-[state=active]:bg-brand-orange data-[state=active]:text-white">
+                    Yearly
+                    <Badge className="ml-2 text-xs bg-brand-green/10 text-brand-green border-0 font-semibold">Save</Badge>
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+
+            {/* Plan Card */}
+            <div className="border-2 border-primary rounded-lg p-6 bg-primary/5">
+              <div className="flex items-center gap-2 mb-3">
+                {planConfig.icon}
+                <h3 className="font-semibold text-lg">{planConfig.title}</h3>
+              </div>
+              <div className="text-3xl font-bold mb-1">
+                {displayPrice}
+                <span className="text-base font-normal text-muted-foreground">{priceLabel}</span>
+              </div>
+              {billingInterval === 'year' && <p className="text-sm text-green-600 font-medium mb-2">{planConfig.yearlySavings}</p>}
+              <p className="text-sm text-muted-foreground mb-4">{planConfig.description}</p>
+              <ul className="space-y-1">
+                {planConfig.features.map((feature, index) => (
+                  <li key={index} className="flex items-center gap-2 text-sm">
+                    <CheckIcon className="h-4 w-4 text-green-500 flex-shrink-0" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Summary & CTA */}
+            <Card className="border-primary/20 bg-primary/5">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-3 mb-4">
+                  {planConfig.icon}
+                  <div>
+                    <h4 className="font-semibold">{planConfig.title}</h4>
+                    <p className="text-sm text-muted-foreground">{planConfig.description}</p>
+                  </div>
+                </div>
+                <div className="text-3xl font-bold mb-2">
+                  {billingInterval === 'year' ? planConfig.yearlyPrice : planConfig.monthlyPrice}
+                  <span className="text-lg font-normal text-muted-foreground">{billingInterval === 'year' ? '/year' : '/month'}</span>
+                </div>
+                {billingInterval === 'year' && <p className="text-sm text-green-600 font-medium mb-2">{planConfig.yearlySavings}</p>}
+                <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 mb-4">
+                  <p className="text-xs text-muted-foreground">No long-term contract. Cancel anytime.</p>
+                </div>
+                <Button onClick={handleStartSubscription} disabled={isLoading} className="w-full" size="lg">
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  {isLoading ? 'Processing...' : 'Subscribe Now'}
+                </Button>
+              </CardContent>
+            </Card>
+          </CardContent>
+        </Card>
+
+        {/* Account Deletion */}
+        {!isContributor && (
+          <Card className="border-destructive/20">
+            <CardHeader>
+              <CardTitle className="text-destructive">Danger Zone</CardTitle>
+              <CardDescription>Permanently delete your account and all associated data</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">
+                If you wish to delete your account, make sure you securely back up or export your dashboard files. This action cannot be undone.
+              </p>
+              <Button variant="destructive" onClick={() => setShowDeleteDialog(true)} disabled={isDeleting} className="w-full">
+                <Trash2 className="h-4 w-4 mr-2" />
+                {isDeleting ? 'Deleting Account...' : 'Delete Account'}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        <DeleteConfirmationDialog
+          isOpen={showDeleteDialog}
+          onClose={() => setShowDeleteDialog(false)}
+          onConfirm={handleDeleteAccount}
+          title="Delete Account"
+          description="Are you sure you want to delete your account? All your data will be permanently removed and this action cannot be undone."
+        />
+      </div>
+    );
+  }
+
+  // ===== SUBSCRIBED VIEW =====
+  return (
+    <div className="space-y-6">
+
+      {/* 1 — Manage Your Subscription */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Manage Your Subscription</CardTitle>
+          <CardDescription>View your current plan and manage billing through Stripe</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-500 rounded-lg p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-green-600 flex items-center justify-center">
+                  <CheckIcon className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Current Plan</p>
+                  <h3 className="text-2xl font-bold text-green-900">Asset Safe Plan</h3>
+                </div>
+              </div>
+              <Badge variant="secondary" className={`px-4 py-2 text-sm ${isCancelAtPeriodEnd ? 'bg-orange-500 text-white border-orange-600' : 'bg-green-600 text-white border-green-700'}`}>
+                {isCancelAtPeriodEnd ? 'Canceling' : 'Active'}
+              </Badge>
+            </div>
+
+            {isCancelAtPeriodEnd && subscriptionStatus.subscription_end && (
+              <Alert className="border-orange-400 bg-orange-100 mb-4">
+                <AlertTriangle className="h-4 w-4 text-orange-600" />
+                <AlertTitle className="text-orange-700">Subscription Ending</AlertTitle>
+                <AlertDescription className="text-orange-600">
+                  Your subscription will end on {new Date(subscriptionStatus.subscription_end).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}.
+                  You can reactivate from the billing portal before then.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+              <div>
+                <Label className="text-sm text-muted-foreground">Billing</Label>
+                <p className="text-base font-bold text-gray-900">
+                  {subscriptionStatus.plan_lookup_key?.includes('annual') || subscriptionStatus.plan_lookup_key?.includes('yearly')
+                    ? 'Billed yearly · $189/yr + tax'
+                    : subscriptionStatus.plan_lookup_key?.includes('monthly')
+                    ? 'Billed monthly · $18.99/mo + tax'
+                    : '$18.99/mo or $189/yr + tax'}
+                </p>
+              </div>
+              <div>
+                <Label className="text-sm text-muted-foreground">Total Storage</Label>
+                <p className="text-xl font-bold text-gray-900">{totalStorageGb} GB</p>
+                {hasStorageAddOn && (
+                  <p className="text-xs text-muted-foreground">({baseStorageGb} GB base + {addOnStorageGb} GB add-on)</p>
+                )}
+              </div>
+              {subscriptionStatus.subscription_end && (
+                <div>
+                  <Label className="text-sm text-muted-foreground">Next Billing Date</Label>
+                  <p className="text-xl font-bold text-gray-900">{new Date(subscriptionStatus.subscription_end).toLocaleDateString()}</p>
+                </div>
+              )}
+            </div>
+
+            <Button onClick={handleManageBilling} disabled={isLoading} variant="outline" className="mt-4">
+              <ExternalLink className="h-4 w-4 mr-2" />
+              {isLoading ? 'Opening...' : 'Manage Your Subscription'}
+            </Button>
+            <p className="text-xs text-muted-foreground mt-2">Plan changes, cancellations, and billing updates all through Stripe.</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 2 — Payment Methods */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CreditCard className="h-5 w-5" />
+            Payment Methods
+          </CardTitle>
+          <CardDescription>Manage your saved payment methods for your subscription</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button onClick={handleManageBilling} disabled={isLoading} className="w-full">
+            <ExternalLink className="h-4 w-4 mr-2" />
+            {isLoading ? 'Opening...' : 'Manage Payment Methods'}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* 3 — Payment History */}
+      <PaymentHistory />
+
+      {/* 4 — Add or Adjust Storage */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <HardDrive className="h-5 w-5" />
+            Add or Adjust Storage
+          </CardTitle>
+          <CardDescription>Expand your cloud storage with flexible 25GB add-on blocks</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {hasStorageAddOn && (
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                <HardDrive className="h-4 w-4" /> Active Add-ons
+              </h4>
+              <div className="flex items-center justify-between bg-white/60 rounded-lg p-3">
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
+                    <HardDrive className="h-4 w-4 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-blue-900">Storage Add-on — {addOnStorageGb} GB ({addOnBlocks}×25GB)</p>
+                    <p className="text-sm text-blue-700">Additional cloud storage</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold text-blue-900">${(addOnBlocks * 4.99).toFixed(2)}/mo</p>
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200">Active</Badge>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg p-4">
+            <p className="text-base font-semibold text-foreground mb-1">Need more room to grow?</p>
+            <p className="text-sm text-muted-foreground mb-3">Flexible storage you can adjust anytime.</p>
+            <div className="bg-background/60 rounded-lg p-3 mb-3">
+              <p className="font-medium text-center">
+                <span className="font-bold">+25GB</span> for <span className="text-brand-orange font-bold">$4.99 / month</span>
+              </p>
+            </div>
+            <ul className="text-sm text-muted-foreground space-y-1 mb-3">
+              <li className="flex items-center gap-2">
+                <CheckIcon className="h-4 w-4 text-green-500 flex-shrink-0" />
+                Add multiple increments as needed
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckIcon className="h-4 w-4 text-green-500 flex-shrink-0" />
+                Upgrade or remove storage anytime
+              </li>
+            </ul>
+            <Button onClick={handleManageBilling} disabled={isLoading} variant="outline" className="w-full">
+              <HardDrive className="h-4 w-4 mr-2" />
+              {isLoading ? 'Opening...' : 'Add or Adjust Storage'}
+            </Button>
+            <p className="text-xs text-muted-foreground text-center mt-3">25GB ≈ ~1,500 photos + documents</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Incoming Deletion Requests Alert */}
+      {!isContributor && incomingDeletionRequests.length > 0 && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Account Deletion Request</AlertTitle>
+          <AlertDescription className="space-y-4">
+            {incomingDeletionRequests.map((request) => {
+              const gracePeriodEnds = new Date(request.grace_period_ends_at);
+              const daysRemaining = Math.max(0, Math.ceil((gracePeriodEnds.getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+              return (
+                <div key={request.id} className="space-y-3">
+                  <p>
+                    An administrator has requested to delete your account.
+                    {request.reason && <><br /><strong>Reason:</strong> {request.reason}</>}
+                  </p>
+                  <p className="text-sm">
+                    <Clock className="inline h-4 w-4 mr-1" />
+                    {daysRemaining > 0
+                      ? `You have ${daysRemaining} day(s) to respond before the administrator can proceed.`
+                      : 'The grace period has expired. The administrator can now proceed.'}
+                  </p>
+                  <div className="flex gap-2">
+                    <Button variant="destructive" size="sm" onClick={() => handleRespondDeletionRequest(request.id, 'reject')}>
+                      <X className="h-4 w-4 mr-1" /> Reject
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => handleRespondDeletionRequest(request.id, 'approve')}>
+                      <Check className="h-4 w-4 mr-1" /> Approve
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* 5 — Account Deletion */}
+      {!isContributor && (
+        <Card className="border-destructive/20">
+          <CardHeader>
+            <CardTitle className="text-destructive">Danger Zone</CardTitle>
+            <CardDescription>Permanently delete your account and all associated data</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              If you wish to delete your account, make sure you securely back up or export your dashboard files. Once deleted, this action cannot be undone.
+            </p>
+            <Button variant="destructive" onClick={() => setShowDeleteDialog(true)} disabled={isDeleting} className="w-full">
+              <Trash2 className="h-4 w-4 mr-2" />
+              {isDeleting ? 'Deleting Account...' : 'Delete Account'}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Admin Contributor Deletion */}
+      {isContributor && contributorInfo?.role === 'administrator' && (
+        <Card className="border-destructive/20">
+          <CardHeader>
+            <CardTitle className="text-destructive">Account Deletion</CardTitle>
+            <CardDescription>Request deletion of the account you manage</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {pendingDeletionRequest ? (
+                <>
+                  {pendingDeletionRequest.status === 'pending' && (
+                    <Alert>
+                      <Clock className="h-4 w-4" />
+                      <AlertTitle>Deletion Request Pending</AlertTitle>
+                      <AlertDescription>
+                        {(() => {
+                          const gracePeriodEnds = new Date(pendingDeletionRequest.grace_period_ends_at);
+                          const daysRemaining = Math.max(0, Math.ceil((gracePeriodEnds.getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+                          return daysRemaining > 0
+                            ? `Waiting for account owner response. ${daysRemaining} day(s) remaining.`
+                            : 'The grace period has expired. You can now proceed with deletion.';
+                        })()}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                  {pendingDeletionRequest.status === 'approved' && (
+                    <Alert className="border-green-500 bg-green-50">
+                      <Check className="h-4 w-4 text-green-600" />
+                      <AlertTitle className="text-green-700">Request Approved</AlertTitle>
+                      <AlertDescription className="text-green-600">The account owner has approved your deletion request.</AlertDescription>
+                    </Alert>
+                  )}
+                  {pendingDeletionRequest.status === 'rejected' && (
+                    <Alert variant="destructive">
+                      <X className="h-4 w-4" />
+                      <AlertTitle>Request Rejected</AlertTitle>
+                      <AlertDescription>The account owner has rejected your deletion request.</AlertDescription>
+                    </Alert>
+                  )}
+                  {(pendingDeletionRequest.status === 'approved' ||
+                    (pendingDeletionRequest.status === 'pending' && new Date(pendingDeletionRequest.grace_period_ends_at) <= new Date())) && (
+                    <Button variant="destructive" onClick={() => setShowDeleteDialog(true)} disabled={isDeleting} className="w-full">
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      {isDeleting ? 'Deleting...' : 'Proceed with Account Deletion'}
+                    </Button>
+                  )}
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    As an administrator, you can request to delete the account you manage. The account owner will be notified and given a grace period to respond.
+                  </p>
+                  <Button variant="destructive" onClick={() => setShowDeletionRequestDialog(true)} className="w-full">
+                    <Trash2 className="h-4 w-4 mr-2" /> Request Account Deletion
+                  </Button>
+                </>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Dialogs */}
+      <DeleteConfirmationDialog
+        isOpen={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        onConfirm={isContributor ? handleAdminDeleteAccount : handleDeleteAccount}
+        title={isContributor ? "Delete Managed Account" : "Delete Account"}
+        description="Are you sure? This action cannot be undone. All data will be permanently removed."
+      />
+
+      <AccountDeletedDialog
+        isOpen={showAccountDeletedDialog}
+        onClose={() => { setShowAccountDeletedDialog(false); navigate('/'); }}
+      />
+
+      <Dialog open={showDeletionRequestDialog} onOpenChange={setShowDeletionRequestDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Request Account Deletion</DialogTitle>
+            <DialogDescription>Submit a request to delete the account you manage. The account owner will be notified.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Reason for Deletion (Optional)</Label>
+              <Textarea value={deletionReason} onChange={(e) => setDeletionReason(e.target.value)} placeholder="Please provide a reason..." />
+            </div>
+            <Alert>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>The account owner will have 14 days to respond before you can proceed.</AlertDescription>
+            </Alert>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeletionRequestDialog(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleSubmitDeletionRequest} disabled={isSubmittingRequest}>
+              {isSubmittingRequest ? 'Submitting...' : 'Submit Request'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default ManageTab;
