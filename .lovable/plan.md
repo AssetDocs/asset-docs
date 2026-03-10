@@ -1,66 +1,40 @@
 
-## Root Cause: Two Conflicting Redirects Fighting Each Other
+## Three Issues — One Coherent Plan
 
-### Issue 1 — `handleSubmit` vs. the Profile Guard
-After `supabase.auth.updateUser({ password })` succeeds and `profiles.password_set` is set to `true`, two things happen simultaneously:
+### Issue 1: Stripe Customer Portal not showing cancel/storage options
+The `customer-portal` edge function creates a session using Stripe's **default** portal configuration (`stripe.billingPortal.sessions.create` with no `configuration` parameter). This means whatever is toggled on/off in the Stripe Dashboard's portal settings controls what users see. The fix is to pass an explicit `configuration` object directly in the API call so cancel subscription and subscription update (quantity adjustments for storage) are always enabled — independent of dashboard defaults.
 
-1. `handleSubmit` calls `navigate('/onboarding', { replace: true })`
-2. The `AuthContext` `onAuthStateChange` listener fires `USER_UPDATED`, re-fetches the profile, sets `profile.password_set = true`
-3. The guard in `CreatePassword` (lines 39-43) sees `password_set === true` and calls `navigate('/account', { replace: true })` — overriding the form's redirect to `/onboarding`
+**Fix:** Update `supabase/functions/customer-portal/index.ts` to create a portal session with an inline `configuration` that explicitly enables:
+- `cancel_subscription: { mode: 'at_period_end' }`  
+- `subscription_update: { default_allowed_updates: ['quantity'] }`  
+- `subscription_pause: { enabled: false }`  
+- `invoice_history: { enabled: true }`
 
-The user ends up on `/account`, not `/onboarding`. But the timing is also inconsistent — sometimes `USER_UPDATED` fires and re-triggers the `loading` spinner, leaving the navigate from `handleSubmit` effectively cancelled.
+### Issue 2: Merge Billing + Plan tabs into a single "Manage" tab
+**Files changed:**
+- `src/pages/AccountSettings.tsx` — rename tab value `billing`→`manage`, remove `subscription` tab trigger/content, update tab grid to `grid-cols-5`, update `restrictedTabs`, update `getDefaultTab` valid tabs list
+- `src/components/BillingTab.tsx` — repurpose/rename into `ManageTab.tsx` (new file) — a single combined component with these sections in order:
+  1. **Manage Your Subscription** — Current plan card (pulled from SubscriptionTab's subscribed view: green plan box with status, billing, storage, next date, + "Manage Your Subscription" CTA → Stripe portal)
+  2. **Payment Methods** — Single "Manage Payment Methods" button → Stripe portal
+  3. **Payment History** — `<PaymentHistory />` component (already exists)
+  4. **Add or Adjust Storage** — Storage add-on card (pulled from SubscriptionTab: +25GB/$4.99/mo, "Add or Adjust Storage" → Stripe portal)
+  5. **Account Deletion** — Danger zone card (pulled from SubscriptionTab: delete account button + contributor admin deletion logic)
+- Remove the "What's included with your plan" section from SubscriptionTab's subscribed view entirely
+- The **not-subscribed view** of SubscriptionTab becomes the content of the `manage` tab when user has no active plan (the checkout flow stays intact)
 
-### Issue 2 — Guard Redirects to Wrong Page
-```typescript
-// Lines 39-43 in CreatePassword.tsx
-useEffect(() => {
-  if (!loading && profile?.password_set) {
-    navigate('/account', { replace: true }); // ← sends to dashboard, skipping onboarding
-  }
-}, [loading, profile, navigate]);
-```
-This guard exists to prevent already-setup users from re-visiting this page — correct intent, wrong destination. A user who just set their password still needs to complete onboarding. It should redirect to `/onboarding` when `password_set` is true AND `onboarding_complete` is false.
+### Issue 3: Tab state resets to Profile when switching browser tabs
+**Root cause:** `AccountSettings` uses `<Tabs defaultValue={getDefaultTab()}>`. `defaultValue` is only read once on mount. When the user switches away and returns, React re-renders but does NOT remount — the tab state is in memory and should persist. However, the actual bug is that the URL `?tab=X` param is not being updated when the user clicks a tab, so if the page happens to remount (e.g. visibility change causing Supabase session refresh + auth redirect), it re-evaluates `getDefaultTab()` from the URL which still says nothing = defaults to `profile`.
 
-## Fixes
+**Fix:** Make the tab state URL-driven (controlled):
+- In `AccountSettings.tsx`, track the active tab with `useState` initialized from the URL
+- Add `onValueChange` to `<Tabs>` that calls `navigate` (with `replace: true`) to update `?tab=X` whenever user clicks a tab
+- This way if the page remounts, `getDefaultTab()` reads the correct `?tab=manage` from the URL and restores the right tab
 
-### Fix 1: `src/pages/CreatePassword.tsx` — Correct the guard destination
-Change the guard from routing to `/account` to checking `onboarding_complete`:
-```typescript
-useEffect(() => {
-  if (!loading && profile?.password_set) {
-    if (!profile?.onboarding_complete) {
-      navigate('/onboarding', { replace: true });
-    } else {
-      navigate('/account', { replace: true });
-    }
-  }
-}, [loading, profile, navigate]);
-```
-This means both the explicit form redirect AND the guard both point to `/onboarding` for new users — no more conflict.
+### Files to change
 
-### Fix 2: `src/pages/CreatePassword.tsx` — Remove redundant explicit navigate
-Since the guard now handles routing after `password_set` flips to `true`, we can let the profile update (triggered by `USER_UPDATED`) drive the navigation naturally. The `handleSubmit` should update Supabase and the profile record, then let the guard's `useEffect` handle the redirect — this eliminates the race condition entirely.
-
-Remove `navigate('/onboarding', { replace: true })` from `handleSubmit` and let the `useEffect` guard detect the profile change and redirect.
-
-### Fix 3: Address form — Google Places autocomplete (second issue)
-For the property address field in the onboarding/property form, add Google Places autocomplete. The project already has `@googlemaps/js-api-loader` and `@types/google.maps` installed. We need to find the address input in the onboarding flow and wire up the Places Autocomplete API.
-
-## Files to Change
-
-| File | Change |
+| File | Action |
 |---|---|
-| `src/pages/CreatePassword.tsx` | Fix guard to route to `/onboarding` when `onboarding_complete` is false; remove the explicit `navigate` from `handleSubmit` to eliminate race condition |
-| `src/pages/Onboarding.tsx` | Add Google Places autocomplete to the property address input field |
-
-## Summary of the Redirect Flow After Fix
-
-```text
-User sets password → handleSubmit updates Supabase + profile
-→ USER_UPDATED fires → AuthContext re-fetches profile
-→ profile.password_set = true, onboarding_complete = false
-→ CreatePassword guard useEffect fires
-→ navigate('/onboarding') ✓
-```
-
-Clean, single redirect path, no race condition.
+| `supabase/functions/customer-portal/index.ts` | Add inline portal configuration enabling cancel + storage quantity updates |
+| `src/components/ManageTab.tsx` | New file — merged billing+subscription tab with 5 sections |
+| `src/pages/AccountSettings.tsx` | Replace billing+subscription with single `manage` tab; add URL-sync via `onValueChange` + `navigate` |
+| `src/components/BillingTab.tsx` | Can be removed or left unused (ManageTab replaces it) |
