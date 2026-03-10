@@ -13,8 +13,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import {
   CheckIcon, ExternalLink, CreditCard, Shield, Trash2, Clock,
-  AlertTriangle, X, Check, HardDrive
+  AlertTriangle, X, Check, HardDrive, ChevronDown, Receipt
 } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import AccountDeletedDialog from '@/components/AccountDeletedDialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
