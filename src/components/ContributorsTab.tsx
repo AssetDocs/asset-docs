@@ -143,10 +143,11 @@ const ContributorsTab: React.FC = () => {
     } catch (error: any) {
       console.error('Error inviting contributor:', error);
       toast({
-        title: "Error",
-        description: "Failed to invite contributor. Please try again.",
+        title: "Invitation Recorded",
+        description: "Invitation recorded but the email could not be sent. The user has been added to your Authorized Users list. You can resend the invitation using the Resend button.",
         variant: "destructive",
       });
+      fetchContributors();
     } finally {
       setLoading(false);
     }
@@ -414,9 +415,9 @@ const ContributorsTab: React.FC = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Current Contributors</CardTitle>
+          <CardTitle>Authorized Users</CardTitle>
           <CardDescription>
-            Manage access levels and remove contributors
+            Manage access levels and remove authorized users
           </CardDescription>
         </CardHeader>
         <CardContent>

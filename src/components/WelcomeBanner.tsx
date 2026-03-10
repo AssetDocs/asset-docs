@@ -188,7 +188,7 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange }) => {
                 title="Access & Activity"
               >
                 <Users className="h-4 w-4" />
-                <span className="text-[10px] font-medium leading-tight">Access</span>
+                <span className="text-[10px] font-medium leading-tight">Users</span>
               </button>
             </div>
           </div>

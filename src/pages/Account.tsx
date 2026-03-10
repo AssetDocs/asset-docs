@@ -61,6 +61,15 @@ const Account: React.FC = () => {
     window.scrollTo(0, 0);
   }, [activeTab]);
 
+  // Sync activeTab → URL so browser tab switches don't reset the view
+  useEffect(() => {
+    if (activeTab === 'overview') {
+      navigate('/account', { replace: true });
+    } else {
+      navigate(`/account?tab=${activeTab}`, { replace: true });
+    }
+  }, [activeTab, navigate]);
+
   // Sync subscription and show success message if redirected from successful payment
   useEffect(() => {
     const syncAndNotify = async () => {
