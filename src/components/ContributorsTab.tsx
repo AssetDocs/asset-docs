@@ -415,9 +415,9 @@ const ContributorsTab: React.FC = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Current Contributors</CardTitle>
+          <CardTitle>Authorized Users</CardTitle>
           <CardDescription>
-            Manage access levels and remove contributors
+            Manage access levels and remove authorized users
           </CardDescription>
         </CardHeader>
         <CardContent>
