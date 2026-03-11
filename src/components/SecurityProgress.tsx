@@ -116,17 +116,20 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
 
       {/* Next step guided prompt — always visible below the progress bar */}
       {nextTask && (
-        <div className="px-4 py-2.5 border-t border-border bg-muted/20 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-[11px] text-muted-foreground whitespace-nowrap">Next step to reach {statusGoal} status:</span>
-            <span className="text-[11px] font-medium text-foreground truncate">✔ {nextTask.label}</span>
+      <div className="px-4 py-2.5 border-t border-border bg-muted/20">
+          {/* Mobile: 2 lines. Desktop: single row */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-3">
+            <span className="text-[11px] text-muted-foreground">Next step to reach {statusGoal} status:</span>
+            <div className="flex items-center gap-1">
+              <span className="text-[11px] font-medium text-foreground">✔ {nextTask.label}</span>
+              <button
+                onClick={() => navigate(getNextTaskRoute(nextTask.label))}
+                className="flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors whitespace-nowrap ml-1"
+              >
+                Go <ArrowRight className="h-3 w-3" />
+              </button>
+            </div>
           </div>
-          <button
-            onClick={() => navigate(getNextTaskRoute(nextTask.label))}
-            className="flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors whitespace-nowrap flex-shrink-0"
-          >
-            Go <ArrowRight className="h-3 w-3" />
-          </button>
         </div>
       )}
 
