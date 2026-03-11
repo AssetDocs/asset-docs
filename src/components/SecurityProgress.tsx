@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useVerification } from '@/hooks/useVerification';
 import { useAuth } from '@/contexts/AuthContext';
-import { Check, ChevronDown, Shield, ClipboardList } from 'lucide-react';
+import { Check, ChevronDown, Shield, ClipboardList, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import UserStatusBadge from '@/components/UserStatusBadge';
 import { Progress } from '@/components/ui/progress';
 import DocumentationChecklist from '@/components/DocumentationChecklist';
+import { useNavigate } from 'react-router-dom';
 
 interface SecurityProgressProps {
   hideChecklist?: boolean;
@@ -14,6 +15,7 @@ interface SecurityProgressProps {
 const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = false }) => {
   const { status, loading, refreshVerification } = useVerification();
   const { profile } = useAuth();
+  const navigate = useNavigate();
   const [isProgressOpen, setIsProgressOpen] = useState(false);
   const [isChecklistOpen, setIsChecklistOpen] = useState(false);
 
@@ -78,6 +80,21 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
     ? ' · Account must be 14+ days old to qualify'
     : '';
 
+  // Determine the next incomplete task and its CTA destination
+  const nextTask = status?.is_verified_plus ? null : allTasks.find(t => !t.completed);
+  const getNextTaskRoute = (label: string): string => {
+    if (label === 'Complete Your Profile') return '/account/settings';
+    if (label === 'Create Your First Property') return '/account/properties';
+    if (label === 'Upload Your First Photos or Videos') return '/account/photos';
+    if (label === 'Add an Authorized User') return '/account?tab=access-activity';
+    if (label === 'Enable Multi-Factor Authentication') return '/account/settings?tab=security';
+    if (label === 'Upload Important Documents & Records') return '/account/documents';
+    if (label === 'Enable Secure Vault Protection') return '/account?tab=vault';
+    if (label === 'Add Legacy Locker & Password Catalog Details') return '/account?tab=vault';
+    if (label === 'Assign a Recovery Delegate (inside the Secure Vault)') return '/account?tab=vault';
+    return '/account';
+  };
+
   return (
     <div className="w-full bg-card border border-border rounded-lg overflow-hidden">
       <button
@@ -94,6 +111,22 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
         </div>
         <ChevronDown className={`h-5 w-5 text-muted-foreground flex-shrink-0 transition-transform ${isProgressOpen ? '' : '-rotate-90'}`} />
       </button>
+
+      {/* Next step guided prompt — always visible below the progress bar */}
+      {nextTask && (
+        <div className="px-4 py-2.5 border-t border-border bg-muted/20 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-[11px] text-muted-foreground whitespace-nowrap">Next step to reach {statusLabel === 'Verified' ? 'Verified+' : 'Verified'} status:</span>
+            <span className="text-[11px] font-medium text-foreground truncate">✔ {nextTask.label}</span>
+          </div>
+          <button
+            onClick={() => navigate(getNextTaskRoute(nextTask.label))}
+            className="flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors whitespace-nowrap flex-shrink-0"
+          >
+            Go <ArrowRight className="h-3 w-3" />
+          </button>
+        </div>
+      )}
 
       {isProgressOpen && (
         <div className="px-4 pb-4 pt-1 border-t border-border">
