@@ -42,8 +42,23 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
     { label: 'Enable Multi-Factor Authentication', completed: criteria?.has_2fa ?? false, phase: 2 },
     { label: 'Upload Important Documents & Records', completed: criteria?.has_documents ?? false, phase: 2 },
     { label: 'Enable Secure Vault Protection', completed: criteria?.has_vault_encryption ?? false, phase: 3 },
-    { label: 'Add Legacy Locker & Password Catalog Details', completed: criteria?.has_vault_data_and_passwords ?? false, phase: 3 },
-    { label: 'Assign a Recovery Delegate (inside the Secure Vault)', completed: criteria?.has_recovery_delegate ?? false, phase: 3 },
+    { label: 'Add Legacy Locker Details', completed: criteria?.has_vault_data_and_passwords ?? false, phase: 3 },
+    { label: 'Assign a Recovery Delegate', completed: criteria?.has_recovery_delegate ?? false, phase: 3 },
+  ];
+
+  const groups = [
+    {
+      label: 'Getting Started',
+      tasks: allTasks.filter(t => t.phase === 1),
+    },
+    {
+      label: 'Security Protection',
+      tasks: allTasks.filter(t => t.phase === 2),
+    },
+    {
+      label: 'Legacy Protection',
+      tasks: allTasks.filter(t => t.phase === 3),
+    },
   ];
 
   const completedCount = allTasks.filter(t => t.completed).length;
@@ -57,12 +72,6 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
   };
 
   const statusLabel = getStatusLabel();
-
-  const getPhaseLabel = (phase: number) => {
-    if (phase === 1) return 'Getting Started';
-    if (phase === 2) return 'Next Steps';
-    return 'Advanced';
-  };
 
   const handleToggleProgress = () => {
     const newState = !isProgressOpen;
@@ -80,8 +89,17 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
     ? ' · Account must be 14+ days old to qualify'
     : '';
 
-  // Determine the next incomplete task and its CTA destination
-  const nextTask = status?.is_verified_plus ? null : allTasks.find(t => !t.completed);
+  // Smart next task: Verified users only need MFA for Verified+
+  const nextTask = (() => {
+    if (status?.is_verified_plus) return null;
+    if (status?.is_verified) {
+      return allTasks.find(t => t.label === 'Enable Multi-Factor Authentication' && !t.completed) ?? null;
+    }
+    return allTasks.find(t => !t.completed) ?? null;
+  })();
+
+  const statusGoal = status?.is_verified ? 'Verified+' : 'Verified';
+
   const getNextTaskRoute = (label: string): string => {
     if (label === 'Complete Your Profile') return '/account/settings';
     if (label === 'Create Your First Property') return '/account/properties';
@@ -90,8 +108,8 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
     if (label === 'Enable Multi-Factor Authentication') return '/account/settings?tab=security';
     if (label === 'Upload Important Documents & Records') return '/account/documents';
     if (label === 'Enable Secure Vault Protection') return '/account?tab=vault';
-    if (label === 'Add Legacy Locker & Password Catalog Details') return '/account?tab=vault';
-    if (label === 'Assign a Recovery Delegate (inside the Secure Vault)') return '/account?tab=vault';
+    if (label === 'Add Legacy Locker Details') return '/account?tab=vault';
+    if (label === 'Assign a Recovery Delegate') return '/account?tab=vault';
     return '/account';
   };
 
