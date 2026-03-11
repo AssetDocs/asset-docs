@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useVerification } from '@/hooks/useVerification';
 import { useAuth } from '@/contexts/AuthContext';
-import { Check, ChevronDown, Shield, ClipboardList } from 'lucide-react';
+import { Check, ChevronDown, Shield, ClipboardList, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import UserStatusBadge from '@/components/UserStatusBadge';
 import { Progress } from '@/components/ui/progress';
 import DocumentationChecklist from '@/components/DocumentationChecklist';
+import { useNavigate } from 'react-router-dom';
 
 interface SecurityProgressProps {
   hideChecklist?: boolean;
