@@ -134,7 +134,7 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
       {nextTask && (
         <div className="px-4 py-2.5 border-t border-border bg-muted/20 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="text-[11px] text-muted-foreground whitespace-nowrap">Next step to reach {statusLabel === 'Verified' ? 'Verified+' : 'Verified'} status:</span>
+            <span className="text-[11px] text-muted-foreground whitespace-nowrap">Next step to reach {statusGoal} status:</span>
             <span className="text-[11px] font-medium text-foreground truncate">✔ {nextTask.label}</span>
           </div>
           <button
@@ -148,47 +148,52 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
 
       {isProgressOpen && (
         <div className="px-4 pb-4 pt-1 border-t border-border">
-          <p className="text-[11px] text-muted-foreground mb-2">Overall account protection status</p>
-          <p className="text-xs text-muted-foreground mb-3">
-            Complete any 5 of the following steps to reach Verified status:
-          </p>
-          <div className="space-y-2">
-            {allTasks.map((task, index) => (
-              <div key={index} className="flex items-start gap-2.5">
-                <div className={cn(
-                  "flex items-center justify-center w-5 h-5 rounded mt-0.5 flex-shrink-0 relative",
-                  task.completed
-                    ? "bg-primary text-primary-foreground"
-                    : "border border-muted-foreground/40 text-muted-foreground"
-                )}>
-                  {task.completed ? (
-                    <Check className="h-3 w-3" />
-                  ) : (
-                    <span className="text-[10px] font-semibold">{index + 1}</span>
-                  )}
+          <p className="text-[11px] text-muted-foreground mb-3">Overall account protection status</p>
+          <div className="space-y-4">
+            {groups.map((group) => {
+              let taskIndex = 0;
+              return (
+                <div key={group.label}>
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
+                    {group.label}
+                  </p>
+                  <div className="space-y-1.5">
+                    {group.tasks.map((task) => {
+                      const globalIndex = allTasks.findIndex(t => t.label === task.label);
+                      return (
+                        <div key={task.label} className="flex items-center gap-2.5">
+                          <div className={cn(
+                            "flex items-center justify-center w-5 h-5 rounded flex-shrink-0",
+                            task.completed
+                              ? "bg-primary text-primary-foreground"
+                              : "border border-muted-foreground/40 text-muted-foreground"
+                          )}>
+                            {task.completed ? (
+                              <Check className="h-3 w-3" />
+                            ) : (
+                              <span className="text-[10px] font-semibold">{globalIndex + 1}</span>
+                            )}
+                          </div>
+                          <span className={cn(
+                            "text-sm",
+                            task.completed ? "line-through text-muted-foreground" : "text-foreground"
+                          )}>
+                            {task.label}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <span className={cn(
-                    "text-sm",
-                    task.completed
-                      ? "line-through text-muted-foreground"
-                      : "text-foreground"
-                  )}>
-                    {task.label}
-                  </span>
-                  <span className="text-[10px] text-muted-foreground ml-2">
-                    {getPhaseLabel(task.phase)}
-                  </span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <p className="text-[10px] text-muted-foreground mt-3 pt-2 border-t border-border">
-            {completedCount} of {totalCount} completed · {statusLabel === 'User' 
-              ? `Complete any 5 milestones to reach Verified status${accountAgeNote}` 
-              : statusLabel === 'Verified' 
-              ? 'Enable MFA to reach Verified+ status' 
+            {completedCount} of {totalCount} completed · {statusLabel === 'User'
+              ? `Complete any 5 milestones to reach Verified status${accountAgeNote}`
+              : statusLabel === 'Verified'
+              ? 'Enable MFA to reach Verified+ status'
               : 'Maximum protection enabled'}
           </p>
         </div>
