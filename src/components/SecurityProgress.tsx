@@ -66,17 +66,8 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
 
   const statusLabel = getStatusLabel();
 
-  const handleToggleProgress = () => {
-    const newState = !isProgressOpen;
-    setIsProgressOpen(newState);
-    localStorage.setItem('securityProgressOpen', String(newState));
-  };
-
-  const handleToggleChecklist = () => {
-    const newState = !isChecklistOpen;
-    setIsChecklistOpen(newState);
-    localStorage.setItem('securityChecklistOpen', String(newState));
-  };
+  const handleToggleProgress = () => setIsProgressOpen(prev => !prev);
+  const handleToggleChecklist = () => setIsChecklistOpen(prev => !prev);
 
   const accountAgeNote = criteria?.account_age_met === false
     ? ' · Account must be 14+ days old to qualify'
