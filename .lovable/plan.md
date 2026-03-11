@@ -1,53 +1,66 @@
 
-## Two changes to SecurityProgress.tsx
+## Root Cause: Two Conflicting Redirects Fighting Each Other
 
-### Change 1 — Fix "next step" prompt target status label
+### Issue 1 — `handleSubmit` vs. the Profile Guard
+After `supabase.auth.updateUser({ password })` succeeds and `profiles.password_set` is set to `true`, two things happen simultaneously:
 
-**Current behavior (line 119):**
-```tsx
-Next step to reach {statusLabel === 'Verified' ? 'Verified+' : 'Verified'} status:
-```
+1. `handleSubmit` calls `navigate('/onboarding', { replace: true })`
+2. The `AuthContext` `onAuthStateChange` listener fires `USER_UPDATED`, re-fetches the profile, sets `profile.password_set = true`
+3. The guard in `CreatePassword` (lines 39-43) sees `password_set === true` and calls `navigate('/account', { replace: true })` — overriding the form's redirect to `/onboarding`
 
-This is already correct when `statusLabel === 'Verified'` (shows "Verified+"), but there's a subtle issue: `nextTask` is only null when `status?.is_verified_plus` is true. So when the user is plain `'Verified'`, the prompt correctly says "Verified+". When the user is `'User'`, it correctly says "Verified". No bug here — but the user wants to confirm this is working. The logic is correct as-is.
+The user ends up on `/account`, not `/onboarding`. But the timing is also inconsistent — sometimes `USER_UPDATED` fires and re-triggers the `loading` spinner, leaving the navigate from `handleSubmit` effectively cancelled.
 
-**However**, the `nextTask` selection needs to be smarter when status is `'Verified'`. A verified user only needs MFA for Verified+. So the `nextTask` should skip to the MFA task specifically when `statusLabel === 'Verified'`, rather than just showing the first incomplete task (which might be "Add an Authorized User" — not required for Verified+).
-
-**Fix:** When `statusLabel === 'Verified'`, show the MFA task specifically as the next step if not completed, since that's the only thing needed for Verified+. The general "first incomplete task" logic only applies for `'User'` → `'Verified'` progression.
-
-```tsx
-const nextTask = (() => {
-  if (status?.is_verified_plus) return null;
-  if (status?.is_verified) {
-    // Only MFA needed for Verified+
-    return allTasks.find(t => t.label === 'Enable Multi-Factor Authentication' && !t.completed) ?? null;
+### Issue 2 — Guard Redirects to Wrong Page
+```typescript
+// Lines 39-43 in CreatePassword.tsx
+useEffect(() => {
+  if (!loading && profile?.password_set) {
+    navigate('/account', { replace: true }); // ← sends to dashboard, skipping onboarding
   }
-  // For regular users, show first incomplete task
-  return allTasks.find(t => !t.completed) ?? null;
-})();
+}, [loading, profile, navigate]);
+```
+This guard exists to prevent already-setup users from re-visiting this page — correct intent, wrong destination. A user who just set their password still needs to complete onboarding. It should redirect to `/onboarding` when `password_set` is true AND `onboarding_complete` is false.
+
+## Fixes
+
+### Fix 1: `src/pages/CreatePassword.tsx` — Correct the guard destination
+Change the guard from routing to `/account` to checking `onboarding_complete`:
+```typescript
+useEffect(() => {
+  if (!loading && profile?.password_set) {
+    if (!profile?.onboarding_complete) {
+      navigate('/onboarding', { replace: true });
+    } else {
+      navigate('/account', { replace: true });
+    }
+  }
+}, [loading, profile, navigate]);
+```
+This means both the explicit form redirect AND the guard both point to `/onboarding` for new users — no more conflict.
+
+### Fix 2: `src/pages/CreatePassword.tsx` — Remove redundant explicit navigate
+Since the guard now handles routing after `password_set` flips to `true`, we can let the profile update (triggered by `USER_UPDATED`) drive the navigation naturally. The `handleSubmit` should update Supabase and the profile record, then let the guard's `useEffect` handle the redirect — this eliminates the race condition entirely.
+
+Remove `navigate('/onboarding', { replace: true })` from `handleSubmit` and let the `useEffect` guard detect the profile change and redirect.
+
+### Fix 3: Address form — Google Places autocomplete (second issue)
+For the property address field in the onboarding/property form, add Google Places autocomplete. The project already has `@googlemaps/js-api-loader` and `@types/google.maps` installed. We need to find the address input in the onboarding flow and wire up the Places Autocomplete API.
+
+## Files to Change
+
+| File | Change |
+|---|---|
+| `src/pages/CreatePassword.tsx` | Fix guard to route to `/onboarding` when `onboarding_complete` is false; remove the explicit `navigate` from `handleSubmit` to eliminate race condition |
+| `src/pages/Onboarding.tsx` | Add Google Places autocomplete to the property address input field |
+
+## Summary of the Redirect Flow After Fix
+
+```text
+User sets password → handleSubmit updates Supabase + profile
+→ USER_UPDATED fires → AuthContext re-fetches profile
+→ profile.password_set = true, onboarding_complete = false
+→ CreatePassword guard useEffect fires
+→ navigate('/onboarding') ✓
 ```
 
-### Change 2 — Subcategory grouping inside the expanded dropdown
-
-Replace the flat `allTasks.map()` list with three named groups. Each group has a small bold label header, then the tasks beneath it.
-
-**Groups:**
-| Group label | Tasks (phase) |
-|---|---|
-| Getting Started | Complete profile, Create first property, Upload first photos |
-| Security Protection | Add authorized user, Enable MFA, Upload important documents |
-| Legacy Protection | Enable Secure Vault, Add Legacy Locker details, Assign recovery delegate |
-
-**Implementation:** Define a `groups` array instead of flat `allTasks.map()`. Each group has a `label` and `tasks[]`. Render a section header `<p>` for each group with `text-[10px] font-semibold uppercase tracking-wide text-muted-foreground` styling, followed by its tasks.
-
-Also update the phase labels in `getPhaseLabel` to match the new names:
-- Phase 1 → "Getting Started"
-- Phase 2 → "Security Protection"  
-- Phase 3 → "Legacy Protection"
-
-(The `getPhaseLabel` function is currently used in the flat list inline badge — it will be replaced by the group header approach so that function can be removed or kept for reference.)
-
-Also shorten the task label for "Assign a Recovery Delegate (inside the Secure Vault)" → "Assign a Recovery Delegate" for cleanliness in the list (the subcategory "Legacy Protection" provides enough context).
-
-### Single file change
-
-Only `src/components/SecurityProgress.tsx` needs to be edited.
+Clean, single redirect path, no race condition.

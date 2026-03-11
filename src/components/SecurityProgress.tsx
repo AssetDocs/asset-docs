@@ -42,8 +42,23 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
     { label: 'Enable Multi-Factor Authentication', completed: criteria?.has_2fa ?? false, phase: 2 },
     { label: 'Upload Important Documents & Records', completed: criteria?.has_documents ?? false, phase: 2 },
     { label: 'Enable Secure Vault Protection', completed: criteria?.has_vault_encryption ?? false, phase: 3 },
-    { label: 'Add Legacy Locker & Password Catalog Details', completed: criteria?.has_vault_data_and_passwords ?? false, phase: 3 },
-    { label: 'Assign a Recovery Delegate (inside the Secure Vault)', completed: criteria?.has_recovery_delegate ?? false, phase: 3 },
+    { label: 'Add Legacy Locker Details', completed: criteria?.has_vault_data_and_passwords ?? false, phase: 3 },
+    { label: 'Assign a Recovery Delegate', completed: criteria?.has_recovery_delegate ?? false, phase: 3 },
+  ];
+
+  const groups = [
+    {
+      label: 'Getting Started',
+      tasks: allTasks.filter(t => t.phase === 1),
+    },
+    {
+      label: 'Security Protection',
+      tasks: allTasks.filter(t => t.phase === 2),
+    },
+    {
+      label: 'Legacy Protection',
+      tasks: allTasks.filter(t => t.phase === 3),
+    },
   ];
 
   const completedCount = allTasks.filter(t => t.completed).length;
@@ -57,12 +72,6 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
   };
 
   const statusLabel = getStatusLabel();
-
-  const getPhaseLabel = (phase: number) => {
-    if (phase === 1) return 'Getting Started';
-    if (phase === 2) return 'Next Steps';
-    return 'Advanced';
-  };
 
   const handleToggleProgress = () => {
     const newState = !isProgressOpen;
@@ -80,8 +89,17 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
     ? ' · Account must be 14+ days old to qualify'
     : '';
 
-  // Determine the next incomplete task and its CTA destination
-  const nextTask = status?.is_verified_plus ? null : allTasks.find(t => !t.completed);
+  // Smart next task: Verified users only need MFA for Verified+
+  const nextTask = (() => {
+    if (status?.is_verified_plus) return null;
+    if (status?.is_verified) {
+      return allTasks.find(t => t.label === 'Enable Multi-Factor Authentication' && !t.completed) ?? null;
+    }
+    return allTasks.find(t => !t.completed) ?? null;
+  })();
+
+  const statusGoal = status?.is_verified ? 'Verified+' : 'Verified';
+
   const getNextTaskRoute = (label: string): string => {
     if (label === 'Complete Your Profile') return '/account/settings';
     if (label === 'Create Your First Property') return '/account/properties';
@@ -90,8 +108,8 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
     if (label === 'Enable Multi-Factor Authentication') return '/account/settings?tab=security';
     if (label === 'Upload Important Documents & Records') return '/account/documents';
     if (label === 'Enable Secure Vault Protection') return '/account?tab=vault';
-    if (label === 'Add Legacy Locker & Password Catalog Details') return '/account?tab=vault';
-    if (label === 'Assign a Recovery Delegate (inside the Secure Vault)') return '/account?tab=vault';
+    if (label === 'Add Legacy Locker Details') return '/account?tab=vault';
+    if (label === 'Assign a Recovery Delegate') return '/account?tab=vault';
     return '/account';
   };
 
@@ -116,7 +134,7 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
       {nextTask && (
         <div className="px-4 py-2.5 border-t border-border bg-muted/20 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="text-[11px] text-muted-foreground whitespace-nowrap">Next step to reach {statusLabel === 'Verified' ? 'Verified+' : 'Verified'} status:</span>
+            <span className="text-[11px] text-muted-foreground whitespace-nowrap">Next step to reach {statusGoal} status:</span>
             <span className="text-[11px] font-medium text-foreground truncate">✔ {nextTask.label}</span>
           </div>
           <button
@@ -130,47 +148,52 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
 
       {isProgressOpen && (
         <div className="px-4 pb-4 pt-1 border-t border-border">
-          <p className="text-[11px] text-muted-foreground mb-2">Overall account protection status</p>
-          <p className="text-xs text-muted-foreground mb-3">
-            Complete any 5 of the following steps to reach Verified status:
-          </p>
-          <div className="space-y-2">
-            {allTasks.map((task, index) => (
-              <div key={index} className="flex items-start gap-2.5">
-                <div className={cn(
-                  "flex items-center justify-center w-5 h-5 rounded mt-0.5 flex-shrink-0 relative",
-                  task.completed
-                    ? "bg-primary text-primary-foreground"
-                    : "border border-muted-foreground/40 text-muted-foreground"
-                )}>
-                  {task.completed ? (
-                    <Check className="h-3 w-3" />
-                  ) : (
-                    <span className="text-[10px] font-semibold">{index + 1}</span>
-                  )}
+          <p className="text-[11px] text-muted-foreground mb-3">Overall account protection status</p>
+          <div className="space-y-4">
+            {groups.map((group) => {
+              let taskIndex = 0;
+              return (
+                <div key={group.label}>
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
+                    {group.label}
+                  </p>
+                  <div className="space-y-1.5">
+                    {group.tasks.map((task) => {
+                      const globalIndex = allTasks.findIndex(t => t.label === task.label);
+                      return (
+                        <div key={task.label} className="flex items-center gap-2.5">
+                          <div className={cn(
+                            "flex items-center justify-center w-5 h-5 rounded flex-shrink-0",
+                            task.completed
+                              ? "bg-primary text-primary-foreground"
+                              : "border border-muted-foreground/40 text-muted-foreground"
+                          )}>
+                            {task.completed ? (
+                              <Check className="h-3 w-3" />
+                            ) : (
+                              <span className="text-[10px] font-semibold">{globalIndex + 1}</span>
+                            )}
+                          </div>
+                          <span className={cn(
+                            "text-sm",
+                            task.completed ? "line-through text-muted-foreground" : "text-foreground"
+                          )}>
+                            {task.label}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <span className={cn(
-                    "text-sm",
-                    task.completed
-                      ? "line-through text-muted-foreground"
-                      : "text-foreground"
-                  )}>
-                    {task.label}
-                  </span>
-                  <span className="text-[10px] text-muted-foreground ml-2">
-                    {getPhaseLabel(task.phase)}
-                  </span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <p className="text-[10px] text-muted-foreground mt-3 pt-2 border-t border-border">
-            {completedCount} of {totalCount} completed · {statusLabel === 'User' 
-              ? `Complete any 5 milestones to reach Verified status${accountAgeNote}` 
-              : statusLabel === 'Verified' 
-              ? 'Enable MFA to reach Verified+ status' 
+            {completedCount} of {totalCount} completed · {statusLabel === 'User'
+              ? `Complete any 5 milestones to reach Verified status${accountAgeNote}`
+              : statusLabel === 'Verified'
+              ? 'Enable MFA to reach Verified+ status'
               : 'Maximum protection enabled'}
           </p>
         </div>
