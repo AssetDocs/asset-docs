@@ -15,6 +15,7 @@ interface SecurityProgressProps {
 const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = false }) => {
   const { status, loading, refreshVerification } = useVerification();
   const { profile } = useAuth();
+  const navigate = useNavigate();
   const [isProgressOpen, setIsProgressOpen] = useState(false);
   const [isChecklistOpen, setIsChecklistOpen] = useState(false);
 
