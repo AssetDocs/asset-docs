@@ -61,6 +61,14 @@ const Account: React.FC = () => {
     window.scrollTo(0, 0);
   }, [activeTab]);
 
+  // Sync URL → activeTab when navigating here with a ?tab= param (e.g. from SecurityProgress "Go" CTA)
+  useEffect(() => {
+    const queryTab = searchParams.get('tab');
+    if (queryTab && queryTab !== activeTab) {
+      setActiveTab(queryTab);
+    }
+  }, [searchParams]);
+
   // Sync activeTab → URL so browser tab switches don't reset the view
   useEffect(() => {
     if (activeTab === 'overview') {
