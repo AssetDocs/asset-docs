@@ -20,13 +20,6 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
   const [isChecklistOpen, setIsChecklistOpen] = useState(false);
 
   useEffect(() => {
-    const progressState = localStorage.getItem('securityProgressOpen');
-    const checklistState = localStorage.getItem('securityChecklistOpen');
-    if (progressState === 'true') setIsProgressOpen(true);
-    if (checklistState === 'true') setIsChecklistOpen(true);
-  }, []);
-
-  useEffect(() => {
     refreshVerification();
   }, []);
 
