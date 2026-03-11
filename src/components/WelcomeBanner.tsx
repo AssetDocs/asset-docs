@@ -154,7 +154,7 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange }) => {
               </div>
             )}
             <p className="text-white/70 text-sm mt-2">
-              Everything you use today — and what protects you for tomorrow.
+              Everything you document today — protects you for tomorrow.
             </p>
           </div>
 
