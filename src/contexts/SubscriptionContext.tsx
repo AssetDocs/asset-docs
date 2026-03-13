@@ -119,7 +119,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   useEffect(() => {
     checkSubscription();
-  }, [user]);
+  }, [user?.id]); // user?.id prevents re-running on token refresh (same user, new object reference)
 
   const value: SubscriptionContextType = {
     subscriptionStatus,
