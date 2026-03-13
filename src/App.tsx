@@ -137,6 +137,9 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
   // Abort flag: set to true when the component unmounts or user changes, so in-flight
   // setTimeout retries don't update state on a stale/unmounted component.
   const abortRef = useRef(false);
+  // Track which user ID we've already confirmed a subscription for — prevents
+  // re-running the full check on every token refresh (tab switch → TOKEN_REFRESHED).
+  const checkedUserIdRef = useRef<string | null>(null);
 
   // Admin users bypass the subscription gate entirely — they always have full access
   const isAdminUser = !adminRole.loading && adminRole.hasDevAccess;
@@ -145,6 +148,13 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
     // Skip subscription check for admin users
     if (isAdminUser) {
       setHasSubscription(true);
+      setCheckingSubscription(false);
+      return;
+    }
+
+    // If we've already confirmed a subscription for this user ID, don't re-run
+    // the check just because the token refreshed (new user object, same user.id).
+    if (user?.id && checkedUserIdRef.current === user.id && hasSubscription) {
       setCheckingSubscription(false);
       return;
     }
@@ -184,6 +194,7 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
         // For an authenticated user we fail open rather than bouncing them to /pricing.
         if (!data && error) {
           console.warn('check-subscription invoke error, failing open for authenticated user:', error);
+          checkedUserIdRef.current = user.id;
           setHasSubscription(true);
           setCheckingSubscription(false);
           return;
@@ -191,6 +202,7 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
 
         // Check if user has active subscription OR any recognized tier
         if (data?.subscribed || data?.subscription_tier === 'free' || data?.subscription_tier === 'premium' || data?.subscription_tier === 'standard') {
+          checkedUserIdRef.current = user.id;
           setHasSubscription(true);
           setCheckingSubscription(false);
           return;
@@ -223,6 +235,7 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
             const ownerIsActive = ownerProfile?.plan_status === 'active' || ownerProfile?.plan_status === 'trialing';
             
             if (ownerIsActive) {
+              checkedUserIdRef.current = user.id;
               setHasSubscription(true);
               setCheckingSubscription(false);
               return;
@@ -240,6 +253,7 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
       } catch (error) {
         if (abortRef.current) return;
         console.error('Error checking subscription:', error);
+        checkedUserIdRef.current = user?.id ?? null;
         setHasSubscription(true);
         setCheckingSubscription(false);
       }
@@ -249,13 +263,15 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
       setCheckingSubscription(!skipSubscriptionCheck);
       checkSubscription();
     } else if (!loading) {
+      // User logged out — clear the cached user ID so the next login re-checks
+      checkedUserIdRef.current = null;
       setCheckingSubscription(false);
     }
 
     return () => {
       abortRef.current = true;
     };
-  }, [user, skipSubscriptionCheck, loading, isAdminUser]);
+  }, [user?.id, skipSubscriptionCheck, loading, isAdminUser]);
   
   // Wait for auth + admin role loading + subscription check
   if (loading || profileLoading || adminRole.loading || checkingSubscription) {
