@@ -49,7 +49,7 @@ const SubscriptionPlan: React.FC<SubscriptionPlanProps> = ({
           {features.map((feature, index) => (
             <li key={index} className="flex items-start">
               <CheckIcon className="h-5 w-5 text-brand-orange flex-shrink-0 mr-2" />
-              <span className="text-muted-foreground">{feature}</span>
+              <span className="text-muted-foreground whitespace-pre-line">{feature}</span>
             </li>
           ))}
         </ul>
