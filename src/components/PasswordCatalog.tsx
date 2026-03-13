@@ -551,11 +551,7 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
             <button
               type="button"
               className="text-primary underline underline-offset-2 hover:no-underline text-xs"
-              onClick={() => {
-                // Navigate to legacy locker — handled by parent context if needed
-                const event = new CustomEvent('navigate-to-legacy-locker');
-                window.dispatchEvent(event);
-              }}
+              onClick={() => navigate('/account?tab=legacy-locker')}
             >
               → Open Legacy Locker
             </button>
