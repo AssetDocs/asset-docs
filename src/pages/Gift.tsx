@@ -145,19 +145,21 @@ const Gift: React.FC = () => {
                   <div>
                     <h4 className="font-semibold text-lg mb-2">For Gift Givers:</h4>
                     <ul className="space-y-2 text-gray-600">
-                      <li>• Purchase a 1-year subscription (no auto-renew)</li>
-                      <li>• Enter recipient information during checkout</li>
-                      <li>• Automatic gift certificate delivered to recipient</li>
-                      <li>• One-time payment only</li>
+                      <li>• Purchase a 1-year Asset Safe membership ($189 — one-time payment, no auto-renew)</li>
+                      <li>• Enter your name, email, recipient email, and an optional message</li>
+                      <li>• Choose to send the gift instantly or schedule delivery for a future date</li>
+                      <li>• The recipient receives a beautiful gift email with a "Claim Your Gift" button</li>
+                      <li>• You receive a confirmation email with the gift details</li>
                     </ul>
                   </div>
                   <div>
                     <h4 className="font-semibold text-lg mb-2">For Recipients:</h4>
                     <ul className="space-y-2 text-gray-600">
-                      <li>• Create an Asset Safe account</li>
-                      <li>• Enter the gift code during setup</li>
-                      <li>• Enjoy full access for 12 months</li>
-                      <li>• Choose to renew monthly or yearly when gift expires</li>
+                      <li>• Receive an email from Asset Safe announcing their gift</li>
+                      <li>• Click "Claim Your Gift" to activate their account</li>
+                      <li>• If they don't have an account yet, they simply create one and the gift activates automatically</li>
+                      <li>• Enjoy full Asset Safe access for 12 months</li>
+                      <li>• When the gift period ends, they can choose to continue monthly or yearly</li>
                     </ul>
                   </div>
                 </div>
