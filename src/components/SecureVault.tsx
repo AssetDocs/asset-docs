@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Lock, Shield, Unlock, Info, ChevronDown, ChevronRight, AlertTriangle, UserX, Loader2 } from 'lucide-react';
+import { Lock, Shield, Unlock, Info, ChevronDown, ChevronRight, AlertTriangle, UserX, Loader2, Key } from 'lucide-react';
+import { RecoveryRequestDialog } from './RecoveryRequestDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
 import {

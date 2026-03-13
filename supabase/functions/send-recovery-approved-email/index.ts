@@ -12,6 +12,8 @@ interface RecoveryApprovedEmailData {
   delegateEmail: string;
   delegateName: string;
   ownerName: string;
+  legacyLockerId?: string;
+  delegateUserId?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {

@@ -120,7 +120,9 @@ const handler = async (req: Request): Promise<Response> => {
       body: {
         delegateEmail: delegateUser?.email,
         delegateName: `${delegateProfile?.first_name || ''} ${delegateProfile?.last_name || ''}`.trim() || 'Recovery Delegate',
-        ownerName: `${ownerProfile?.first_name || ''} ${ownerProfile?.last_name || ''}`.trim() || 'User'
+        ownerName: `${ownerProfile?.first_name || ''} ${ownerProfile?.last_name || ''}`.trim() || 'User',
+        legacyLockerId: recoveryRequest.legacy_locker_id,
+        delegateUserId: recoveryRequest.delegate_user_id
       }
     });
 
