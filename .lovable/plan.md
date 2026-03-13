@@ -1,66 +1,89 @@
 
-## Root Cause: Two Conflicting Redirects Fighting Each Other
+## Root Cause Diagnosis
 
-### Issue 1 — `handleSubmit` vs. the Profile Guard
-After `supabase.auth.updateUser({ password })` succeeds and `profiles.password_set` is set to `true`, two things happen simultaneously:
+When a user returns to the browser tab, the browser fires a `visibilitychange` (or the token refresh timer fires) which causes Supabase to emit a `TOKEN_REFRESHED` event via `onAuthStateChange`. The current code treats **every** `SIGNED_IN` or refresh event as a fresh login. Here's the specific chain:
 
-1. `handleSubmit` calls `navigate('/onboarding', { replace: true })`
-2. The `AuthContext` `onAuthStateChange` listener fires `USER_UPDATED`, re-fetches the profile, sets `profile.password_set = true`
-3. The guard in `CreatePassword` (lines 39-43) sees `password_set === true` and calls `navigate('/account', { replace: true })` — overriding the form's redirect to `/onboarding`
+1. User leaves the tab → browser may freeze JS, the Supabase token refresh timer queues up
+2. User returns → browser resumes JS → Supabase refreshes the access token → fires `SIGNED_IN` event (Supabase uses `SIGNED_IN` for token refreshes too, not a dedicated event in older versions, though newer SDK fires `TOKEN_REFRESHED`)
+3. `onAuthStateChange` receives `SIGNED_IN` → sets `lastSignedInTokenRef.current = session.access_token` (new token)
+4. Profile `useEffect` runs because the ref changed → `fetchProfile()` runs → invokes `check-subscription` and `accept-contributor-invitation`
+5. **Most critically**: `ProtectedRoute` receives the new `user` object reference (React re-renders) → its `useEffect([user, ...])` re-runs → `checkingSubscription` goes back to `true` → the full-page spinner re-appears while subscription is re-verified → user sees a "loading" screen and loses scroll position
 
-The user ends up on `/account`, not `/onboarding`. But the timing is also inconsistent — sometimes `USER_UPDATED` fires and re-triggers the `loading` spinner, leaving the navigate from `handleSubmit` effectively cancelled.
+The "refresh knocking them out of where they were" is the `ProtectedRoute` spinning for 1–4.5 seconds (with retries) on every token refresh.
 
-### Issue 2 — Guard Redirects to Wrong Page
-```typescript
-// Lines 39-43 in CreatePassword.tsx
-useEffect(() => {
-  if (!loading && profile?.password_set) {
-    navigate('/account', { replace: true }); // ← sends to dashboard, skipping onboarding
-  }
-}, [loading, profile, navigate]);
+**Secondary issue**: The `SubscriptionContext.useEffect([user])` also re-runs on token refresh because `user` object reference changes even though the user ID is identical, triggering another `check-subscription` call.
+
+---
+
+## The Fix — Three Changes
+
+### Fix 1 — `ProtectedRoute` in `App.tsx`
+**The key change**: Track whether the subscription has *ever* been confirmed for the current user ID. If `hasSubscription` is already `true` and the user ID hasn't changed, don't re-run the subscription check and don't show the spinner. Use a `hasCheckedRef` per user ID.
+
+```tsx
+// Before: useEffect deps = [user, skipSubscriptionCheck, loading, isAdminUser]
+// Every time 'user' object reference changes (token refresh) → spinner reappears
+
+// After: only re-run the subscription check when the user *ID* changes, not the user object reference
+useEffect(() => { ... }, [user?.id, skipSubscriptionCheck, loading, isAdminUser]);
+//                ↑ user?.id instead of user
 ```
-This guard exists to prevent already-setup users from re-visiting this page — correct intent, wrong destination. A user who just set their password still needs to complete onboarding. It should redirect to `/onboarding` when `password_set` is true AND `onboarding_complete` is false.
 
-## Fixes
+Also initialize `hasSubscription` from a ref so it survives token refreshes within the same user session:
 
-### Fix 1: `src/pages/CreatePassword.tsx` — Correct the guard destination
-Change the guard from routing to `/account` to checking `onboarding_complete`:
-```typescript
-useEffect(() => {
-  if (!loading && profile?.password_set) {
-    if (!profile?.onboarding_complete) {
-      navigate('/onboarding', { replace: true });
-    } else {
-      navigate('/account', { replace: true });
-    }
-  }
-}, [loading, profile, navigate]);
+```tsx
+const checkedUserIdRef = useRef<string | null>(null);
+
+// At the start of the useEffect:
+if (user?.id && checkedUserIdRef.current === user.id && hasSubscription) {
+  // Already verified for this user — don't spin again
+  setCheckingSubscription(false);
+  return;
+}
 ```
-This means both the explicit form redirect AND the guard both point to `/onboarding` for new users — no more conflict.
 
-### Fix 2: `src/pages/CreatePassword.tsx` — Remove redundant explicit navigate
-Since the guard now handles routing after `password_set` flips to `true`, we can let the profile update (triggered by `USER_UPDATED`) drive the navigation naturally. The `handleSubmit` should update Supabase and the profile record, then let the guard's `useEffect` handle the redirect — this eliminates the race condition entirely.
+### Fix 2 — `AuthContext.tsx` — distinguish `TOKEN_REFRESHED` from fresh `SIGNED_IN`
+The Supabase JS SDK v2 does fire `TOKEN_REFRESHED` as a distinct event. Currently the code sets `lastSignedInTokenRef.current` on any `SIGNED_IN` event, which causes the profile effect to re-fire side-effects (check-subscription, contributor invitation check, security alert). Change the condition to only set the ref on true `SIGNED_IN` and ignore `TOKEN_REFRESHED`:
 
-Remove `navigate('/onboarding', { replace: true })` from `handleSubmit` and let the `useEffect` guard detect the profile change and redirect.
+```tsx
+// Only set for genuine new logins, not token refreshes
+if (event === 'SIGNED_IN' && session?.access_token) {
+  lastSignedInTokenRef.current = session.access_token;
+}
+// TOKEN_REFRESHED: update session/user state only, no side-effects
+```
 
-### Fix 3: Address form — Google Places autocomplete (second issue)
-For the property address field in the onboarding/property form, add Google Places autocomplete. The project already has `@googlemaps/js-api-loader` and `@types/google.maps` installed. We need to find the address input in the onboarding flow and wire up the Places Autocomplete API.
+This is already mostly correct, but the `user` state is being set to a *new object reference* on token refresh (same ID, new JWT), which causes `useEffect([user?.id])` to NOT re-fire — but `useEffect([user])` (without `.id`) DOES re-fire. Fix 1 addresses that at the ProtectedRoute level.
 
-## Files to Change
+### Fix 3 — `SubscriptionContext.tsx`
+Change the `useEffect` dependency from `[user]` to `[user?.id]` so a token refresh (new `user` object, same `user.id`) doesn't trigger another `check-subscription` call:
 
-| File | Change |
-|---|---|
-| `src/pages/CreatePassword.tsx` | Fix guard to route to `/onboarding` when `onboarding_complete` is false; remove the explicit `navigate` from `handleSubmit` to eliminate race condition |
-| `src/pages/Onboarding.tsx` | Add Google Places autocomplete to the property address input field |
+```tsx
+// Before
+useEffect(() => { checkSubscription(); }, [user]);
 
-## Summary of the Redirect Flow After Fix
+// After  
+useEffect(() => { checkSubscription(); }, [user?.id]);
+```
+
+---
+
+## Files to Edit
+
+| File | Line(s) | Change |
+|------|---------|--------|
+| `src/App.tsx` | ~135–258 | Change `useEffect` dep from `user` → `user?.id`; add `checkedUserIdRef` guard to skip re-checking if subscription already confirmed |
+| `src/contexts/SubscriptionContext.tsx` | ~120–122 | Change `useEffect` dep from `[user]` → `[user?.id]` |
+
+No changes needed to `AuthContext.tsx` — its `useEffect` already uses `[user?.id]` correctly. The two fixes above are sufficient to stop the tab-switch reload behavior.
 
 ```text
-User sets password → handleSubmit updates Supabase + profile
-→ USER_UPDATED fires → AuthContext re-fetches profile
-→ profile.password_set = true, onboarding_complete = false
-→ CreatePassword guard useEffect fires
-→ navigate('/onboarding') ✓
-```
+Before fix:
+  Tab switch → token refresh → new user object → useEffect([user]) fires
+  → checkingSubscription = true → full spinner shown → user loses place
 
-Clean, single redirect path, no race condition.
+After fix:
+  Tab switch → token refresh → new user object → useEffect([user?.id]) fires
+  → user.id unchanged → checkedUserIdRef guard short-circuits
+  → checkingSubscription stays false → no spinner → user stays put
+```
