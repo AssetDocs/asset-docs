@@ -646,7 +646,8 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
           </Card>
           {showRecoveryRequestDialog && (
             <RecoveryRequestDialog
-              legacyLockerId={delegateForLockerId}
+              legacyLockerId={delegateForLockerId!}
+              gracePeriodDays={gracePeriodDays}
               isOpen={showRecoveryRequestDialog}
               onClose={() => setShowRecoveryRequestDialog(false)}
               onRequestSubmitted={() => {
