@@ -1,5 +1,6 @@
 // @ts-nocheck
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -73,6 +74,7 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
   isUnlockedFromParent, 
   sessionMasterPasswordFromParent 
 }) => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
   const [passwords, setPasswords] = useState<PasswordEntry[]>([]);
@@ -549,11 +551,7 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
             <button
               type="button"
               className="text-primary underline underline-offset-2 hover:no-underline text-xs"
-              onClick={() => {
-                // Navigate to legacy locker — handled by parent context if needed
-                const event = new CustomEvent('navigate-to-legacy-locker');
-                window.dispatchEvent(event);
-              }}
+              onClick={() => navigate('/account?tab=legacy-locker')}
             >
               → Open Legacy Locker
             </button>
