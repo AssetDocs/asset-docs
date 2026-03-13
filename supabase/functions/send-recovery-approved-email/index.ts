@@ -74,8 +74,10 @@ const handler = async (req: Request): Promise<Response> => {
                 </ul>
                 
                 <center>
-                  <a href="https://www.getassetsafe.com/account" class="button">Access Legacy Locker</a>
+                  <a href="${acknowledgeUrl}" class="button">Activate Your Access Now</a>
                 </center>
+                
+                <p>Clicking the button above will take you to Asset Safe where you can acknowledge your responsibilities and gain immediate access to the vault.</p>
                 
                 <p><strong>Security reminder:</strong> This information is highly sensitive. Please handle it with the appropriate care and discretion.</p>
               </div>
