@@ -132,11 +132,19 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
       }
       
       // For account owners, fetch their own vault
-      const { data, error } = await supabase
-        .from('legacy_locker')
-        .select('id, is_encrypted, delegate_user_id, recovery_grace_period_days, recovery_status, allow_admin_access')
-        .eq('user_id', user.id)
-        .maybeSingle();
+      const [{ data, error }, { data: delegateRow }] = await Promise.all([
+        supabase
+          .from('legacy_locker')
+          .select('id, is_encrypted, delegate_user_id, recovery_grace_period_days, recovery_status, allow_admin_access')
+          .eq('user_id', user.id)
+          .maybeSingle(),
+        // Check if the current user is a designated delegate for someone else's vault
+        supabase
+          .from('legacy_locker')
+          .select('id, recovery_grace_period_days, recovery_status, is_encrypted')
+          .eq('delegate_user_id', user.id)
+          .maybeSingle(),
+      ]);
 
       if (error && error.code !== 'PGRST116') throw error;
 
@@ -149,8 +157,19 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
         setGracePeriodDays(data.recovery_grace_period_days || 14);
         setOriginalGracePeriodDays(data.recovery_grace_period_days || 14);
         setHasPendingRequest(data.recovery_status === 'pending');
-        setIsDelegate(data.delegate_user_id === user.id);
         setAllowAdminAccess(data.allow_admin_access ?? true);
+      }
+
+      // Detect if this user is a recovery delegate for another user's vault
+      if (delegateRow) {
+        setIsDelegate(true);
+        setDelegateForLockerId(delegateRow.id);
+        setDelegateRecoveryStatus(delegateRow.recovery_status);
+        // If we have no own vault but there is a delegate vault, show its encryption state
+        if (!data) {
+          setIsEncrypted(delegateRow.is_encrypted);
+          setExistingEncrypted(delegateRow.is_encrypted);
+        }
       }
     } catch (error) {
       console.error('Error fetching vault status:', error);
