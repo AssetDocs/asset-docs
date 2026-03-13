@@ -91,11 +91,18 @@ serve(async (req: Request) => {
       throw dbError;
     }
 
-    // 2. Check if user already exists — use getUserByEmail instead of listUsers() to avoid 1000-user pagination cap
-    const { data: existingUserData } = await supabaseAdmin.auth.admin.getUserByEmail(
-      validated.contributor_email
+    // 2. Check if user already exists — use direct REST API fetch to bypass SDK version limitations
+    const userLookupRes = await fetch(
+      `${Deno.env.get('SUPABASE_URL')}/auth/v1/admin/users?email=${encodeURIComponent(validated.contributor_email)}&page=1&per_page=1`,
+      {
+        headers: {
+          Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+          apikey: Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+        },
+      }
     );
-    const existingUser = existingUserData?.user ?? null;
+    const userLookupData = await userLookupRes.json();
+    const existingUser = userLookupData?.users?.[0] ?? null;
 
     let inviteLink: string;
 
