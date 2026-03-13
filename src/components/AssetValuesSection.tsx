@@ -153,7 +153,7 @@ const AssetValuesSection: React.FC = () => {
             ) : (
               <div className="space-y-3">
                 {summaryByCategory.map((cat) => (
-                  <div key={cat.category} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div key={cat.category} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border rounded-lg gap-2">
                     <div className="flex items-center space-x-3">
                       <div
                         className="w-4 h-4 rounded-full shrink-0"
@@ -164,7 +164,7 @@ const AssetValuesSection: React.FC = () => {
                         {cat.count} {cat.count === 1 ? 'entry' : 'entries'}
                       </Badge>
                     </div>
-                    <div className="text-right">
+                    <div className="text-left sm:text-right pl-7 sm:pl-0">
                       <p className="font-bold">${cat.totalValue.toLocaleString()}</p>
                       <p className="text-sm text-muted-foreground">
                         {totalValue > 0 ? ((cat.totalValue / totalValue) * 100).toFixed(1) : 0}% of total
