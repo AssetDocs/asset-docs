@@ -74,6 +74,7 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
   isUnlockedFromParent, 
   sessionMasterPasswordFromParent 
 }) => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
   const [passwords, setPasswords] = useState<PasswordEntry[]>([]);
