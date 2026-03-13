@@ -135,11 +135,22 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
 
       {isProgressOpen && (
         <div className="px-4 pb-4 pt-1 border-t border-border">
-          <p className="text-[11px] text-muted-foreground mb-3">Overall account protection status</p>
-          <div className="space-y-4">
-            {groups.map((group) => {
-              let taskIndex = 0;
-              return (
+          {/* ── Verified section ─────────────────────────────────── */}
+          <div className="mb-4">
+            <div className="flex items-center gap-2 mb-2">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-foreground">
+                Verified Status
+              </p>
+              <span className="text-[10px] text-muted-foreground">(complete any 5 of 9 milestones + 14-day account age)</span>
+              {status?.is_verified && (
+                <span className="ml-auto text-[10px] font-semibold text-primary flex items-center gap-1">
+                  <Check className="h-3 w-3" /> Achieved
+                </span>
+              )}
+            </div>
+
+            <div className="space-y-4">
+              {groups.map((group) => (
                 <div key={group.label}>
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
                     {group.label}
@@ -172,16 +183,74 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
                     })}
                   </div>
                 </div>
-              );
-            })}
+              ))}
+            </div>
+          </div>
+
+          {/* ── Verified+ section ────────────────────────────────── */}
+          <div className="border-t border-border pt-3">
+            <div className="flex items-center gap-2 mb-2">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-foreground">
+                Verified+ Status
+              </p>
+              <span className="text-[10px] text-muted-foreground">(requires Verified + one additional step)</span>
+              {status?.is_verified_plus && (
+                <span className="ml-auto text-[10px] font-semibold text-primary flex items-center gap-1">
+                  <Check className="h-3 w-3" /> Achieved
+                </span>
+              )}
+            </div>
+
+            {/* Prerequisite: Verified */}
+            <div className="space-y-1.5 mb-2">
+              <div className="flex items-center gap-2.5">
+                <div className={cn(
+                  "flex items-center justify-center w-5 h-5 rounded flex-shrink-0",
+                  status?.is_verified
+                    ? "bg-primary text-primary-foreground"
+                    : "border border-muted-foreground/40 text-muted-foreground"
+                )}>
+                  {status?.is_verified ? <Check className="h-3 w-3" /> : <span className="text-[10px] font-semibold">★</span>}
+                </div>
+                <span className={cn(
+                  "text-sm",
+                  status?.is_verified ? "line-through text-muted-foreground" : "text-foreground"
+                )}>
+                  Achieve Verified status first
+                </span>
+              </div>
+
+              {/* MFA requirement */}
+              <div className="flex items-center gap-2.5">
+                <div className={cn(
+                  "flex items-center justify-center w-5 h-5 rounded flex-shrink-0",
+                  criteria?.has_2fa
+                    ? "bg-primary text-primary-foreground"
+                    : "border border-muted-foreground/40 text-muted-foreground"
+                )}>
+                  {criteria?.has_2fa ? <Check className="h-3 w-3" /> : <span className="text-[10px] font-semibold">+</span>}
+                </div>
+                <span className={cn(
+                  "text-sm",
+                  criteria?.has_2fa ? "line-through text-muted-foreground" : "text-foreground font-medium"
+                )}>
+                  Enable Multi-Factor Authentication (MFA)
+                </span>
+                {!criteria?.has_2fa && (
+                  <button
+                    onClick={() => navigate('/account/settings?tab=security')}
+                    className="ml-auto flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors whitespace-nowrap"
+                  >
+                    Go <ArrowRight className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
 
           <p className="text-[10px] text-muted-foreground mt-3 pt-2 border-t border-border">
-            {completedCount} of {totalCount} completed · {statusLabel === 'User'
-              ? `Complete any 5 milestones to reach Verified status${accountAgeNote}`
-              : statusLabel === 'Verified'
-              ? 'Enable MFA to reach Verified+ status'
-              : 'Maximum protection enabled'}
+            {completedCount} of {totalCount} milestones completed{accountAgeNote}
+            {statusLabel === 'Verified+' && ' · Maximum protection enabled'}
           </p>
         </div>
       )}
