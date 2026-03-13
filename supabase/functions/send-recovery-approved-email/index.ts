@@ -22,9 +22,13 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { delegateEmail, delegateName, ownerName }: RecoveryApprovedEmailData = await req.json();
+    const { delegateEmail, delegateName, ownerName, legacyLockerId, delegateUserId }: RecoveryApprovedEmailData = await req.json();
 
     console.log("Sending recovery approved email to:", delegateEmail);
+
+    const acknowledgeUrl = legacyLockerId && delegateUserId
+      ? `https://www.getassetsafe.com/acknowledge-access?lockerId=${legacyLockerId}&delegateId=${delegateUserId}`
+      : `https://www.getassetsafe.com/account`;
 
     const emailResponse = await resend.emails.send({
       from: "Asset Safe <support@assetsafe.net>",
