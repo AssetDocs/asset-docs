@@ -1401,6 +1401,7 @@ export type Database = {
           created_at: string
           currency: string | null
           delivery_date: string
+          expires_at: string | null
           first_login_at: string | null
           gift_code: string
           gift_message: string | null
@@ -1419,7 +1420,9 @@ export type Database = {
           reminder_email_sent: boolean | null
           reminder_email_sent_at: string | null
           status: string
+          stripe_checkout_session_id: string | null
           stripe_session_id: string | null
+          term: string | null
           updated_at: string
         }
         Insert: {
@@ -1427,6 +1430,7 @@ export type Database = {
           created_at?: string
           currency?: string | null
           delivery_date: string
+          expires_at?: string | null
           first_login_at?: string | null
           gift_code: string
           gift_message?: string | null
@@ -1445,7 +1449,9 @@ export type Database = {
           reminder_email_sent?: boolean | null
           reminder_email_sent_at?: string | null
           status?: string
+          stripe_checkout_session_id?: string | null
           stripe_session_id?: string | null
+          term?: string | null
           updated_at?: string
         }
         Update: {
@@ -1453,6 +1459,7 @@ export type Database = {
           created_at?: string
           currency?: string | null
           delivery_date?: string
+          expires_at?: string | null
           first_login_at?: string | null
           gift_code?: string
           gift_message?: string | null
@@ -1471,7 +1478,9 @@ export type Database = {
           reminder_email_sent?: boolean | null
           reminder_email_sent_at?: string | null
           status?: string
+          stripe_checkout_session_id?: string | null
           stripe_session_id?: string | null
+          term?: string | null
           updated_at?: string
         }
         Relationships: []

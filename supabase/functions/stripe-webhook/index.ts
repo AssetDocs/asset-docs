@@ -500,6 +500,7 @@ async function handleCheckoutCompleted(
         delivery_date: new Date().toISOString(),
         expires_at: expiresAt.toISOString(),
         stripe_checkout_session_id: session.id,
+        stripe_session_id: session.id,
         stripe_subscription_id: session.mode === 'subscription' ? session.subscription as string : null,
         status: 'paid',
         amount: session.amount_total || 18900,
