@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Lock, Shield, Unlock, Info, ChevronDown, ChevronRight, AlertTriangle, UserX, Loader2 } from 'lucide-react';
+import { Lock, Shield, Unlock, Info, ChevronDown, ChevronRight, AlertTriangle, UserX, Loader2, Key, ShieldAlert } from 'lucide-react';
+import { RecoveryRequestDialog } from './RecoveryRequestDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
 import {
@@ -59,6 +60,9 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
   const [hasPendingRequest, setHasPendingRequest] = useState(false);
   const [legacyLockerId, setLegacyLockerId] = useState<string | null>(null);
   const [isDelegate, setIsDelegate] = useState(false);
+  const [delegateForLockerId, setDelegateForLockerId] = useState<string | null>(null);
+  const [delegateRecoveryStatus, setDelegateRecoveryStatus] = useState<string | null>(null);
+  const [showRecoveryRequestDialog, setShowRecoveryRequestDialog] = useState(false);
   const [existingEncrypted, setExistingEncrypted] = useState(false);
   const [passwordCatalogOpen, setPasswordCatalogOpen] = useState(initialTab === 'passwords' || false);
   const [legacyLockerOpen, setLegacyLockerOpen] = useState(initialTab === 'legacy' || false);
@@ -128,11 +132,19 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
       }
       
       // For account owners, fetch their own vault
-      const { data, error } = await supabase
-        .from('legacy_locker')
-        .select('id, is_encrypted, delegate_user_id, recovery_grace_period_days, recovery_status, allow_admin_access')
-        .eq('user_id', user.id)
-        .maybeSingle();
+      const [{ data, error }, { data: delegateRow }] = await Promise.all([
+        supabase
+          .from('legacy_locker')
+          .select('id, is_encrypted, delegate_user_id, recovery_grace_period_days, recovery_status, allow_admin_access')
+          .eq('user_id', user.id)
+          .maybeSingle(),
+        // Check if the current user is a designated delegate for someone else's vault
+        supabase
+          .from('legacy_locker')
+          .select('id, recovery_grace_period_days, recovery_status, is_encrypted')
+          .eq('delegate_user_id', user.id)
+          .maybeSingle(),
+      ]);
 
       if (error && error.code !== 'PGRST116') throw error;
 
@@ -145,8 +157,19 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
         setGracePeriodDays(data.recovery_grace_period_days || 14);
         setOriginalGracePeriodDays(data.recovery_grace_period_days || 14);
         setHasPendingRequest(data.recovery_status === 'pending');
-        setIsDelegate(data.delegate_user_id === user.id);
         setAllowAdminAccess(data.allow_admin_access ?? true);
+      }
+
+      // Detect if this user is a recovery delegate for another user's vault
+      if (delegateRow) {
+        setIsDelegate(true);
+        setDelegateForLockerId(delegateRow.id);
+        setDelegateRecoveryStatus(delegateRow.recovery_status);
+        // If we have no own vault but there is a delegate vault, show its encryption state
+        if (!data) {
+          setIsEncrypted(delegateRow.is_encrypted);
+          setExistingEncrypted(delegateRow.is_encrypted);
+        }
       }
     } catch (error) {
       console.error('Error fetching vault status:', error);
@@ -555,8 +578,100 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
     );
   }
 
-  // Locked state - show unlock prompt
+  // Locked state - show unlock prompt (or delegate panel if user is a recovery delegate)
   if (isEncrypted && !isUnlocked) {
+    // Delegate view: show appropriate panel based on recovery status
+    if (isDelegate && delegateForLockerId) {
+      const isPendingOrAwaiting = delegateRecoveryStatus === 'pending' || delegateRecoveryStatus === 'awaiting_acknowledgment';
+      const isAcknowledged = delegateRecoveryStatus === 'delegate_acknowledged';
+
+      return (
+        <>
+          <Card className="w-full border-4 border-blue-400 shadow-lg">
+            <CardHeader className="bg-blue-50 dark:bg-blue-900/20 border-b border-blue-400">
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <ShieldAlert className="h-6 w-6 text-blue-600" />
+                Secure Vault — Recovery Delegate Access
+              </CardTitle>
+              <CardDescription className="text-blue-700 dark:text-blue-300">
+                You have been designated as the Recovery Delegate for this Secure Vault.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="py-12">
+              <div className="text-center">
+                {isAcknowledged ? (
+                  <>
+                    <ShieldAlert className="h-20 w-20 mx-auto mb-6 text-blue-500" />
+                    <h3 className="text-xl font-semibold mb-3">Access Granted</h3>
+                    <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                      Your emergency access has been acknowledged. You may now unlock and view the vault contents.
+                    </p>
+                    <Button onClick={handleUnlockClick} size="lg" className="bg-blue-500 hover:bg-blue-600 text-white">
+                      <Unlock className="h-5 w-5 mr-2" />
+                      Unlock Vault as Delegate
+                    </Button>
+                  </>
+                ) : isPendingOrAwaiting ? (
+                  <>
+                    <Lock className="h-20 w-20 mx-auto mb-6 text-amber-500" />
+                    <h3 className="text-xl font-semibold mb-3">Access Request Pending</h3>
+                    <p className="text-muted-foreground mb-2 max-w-md mx-auto">
+                      {delegateRecoveryStatus === 'awaiting_acknowledgment'
+                        ? 'The grace period has elapsed. Check your email for an acknowledgment link to activate your access.'
+                        : 'Your emergency access request has been submitted and is awaiting approval from the vault owner.'}
+                    </p>
+                    <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                      You will receive an email notification once the owner responds.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <Key className="h-20 w-20 mx-auto mb-6 text-blue-500" />
+                    <h3 className="text-xl font-semibold mb-3">Emergency Access Request</h3>
+                    <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                      You are the designated Recovery Delegate for this vault. In case of emergency, you may submit an access request. The vault owner will be notified and can approve or deny your request.
+                    </p>
+                    <Button
+                      onClick={() => setShowRecoveryRequestDialog(true)}
+                      size="lg"
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      <ShieldAlert className="h-5 w-5 mr-2" />
+                      Request Emergency Access
+                    </Button>
+                  </>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+          {showRecoveryRequestDialog && (
+            <RecoveryRequestDialog
+              legacyLockerId={delegateForLockerId!}
+              gracePeriodDays={gracePeriodDays}
+              isOpen={showRecoveryRequestDialog}
+              onClose={() => setShowRecoveryRequestDialog(false)}
+              onRequestSubmitted={() => {
+                setShowRecoveryRequestDialog(false);
+                setDelegateRecoveryStatus('pending');
+              }}
+            />
+          )}
+          <MasterPasswordModal
+            isOpen={showMasterPasswordModal}
+            isSetup={isSetupMode}
+            onSubmit={handleMasterPasswordSubmit}
+            onCancel={() => setShowMasterPasswordModal(false)}
+          />
+          <TOTPChallenge
+            isOpen={showTOTPChallenge}
+            onClose={() => setShowTOTPChallenge(false)}
+            onVerified={handleTOTPVerified}
+            actionDescription="access the Secure Vault as Recovery Delegate"
+          />
+        </>
+      );
+    }
+
     return (
       <>
         <Card className="w-full border-4 border-yellow-400 shadow-lg">
