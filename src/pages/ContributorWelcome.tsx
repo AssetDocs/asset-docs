@@ -75,12 +75,18 @@ const ContributorWelcome: React.FC = () => {
   };
 
   useEffect(() => {
-    // Check immediately on mount
-    checkEmailStatus();
-    
-    // Then check every 3 seconds
-    const interval = setInterval(checkEmailStatus, 3000);
-    return () => clearInterval(interval);
+    const init = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      // Invited contributors are pre-verified via the magic link — skip the email verification gate
+      if (user?.email_confirmed_at) {
+        navigate('/account', { replace: true });
+        return;
+      }
+      // Not yet verified — fall back to polling (edge case for non-invite signups)
+      const interval = setInterval(checkEmailStatus, 3000);
+      return () => clearInterval(interval);
+    };
+    init();
   }, [navigate]);
 
   const handleResendEmail = async () => {

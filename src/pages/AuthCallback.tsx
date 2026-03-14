@@ -133,14 +133,23 @@ const AuthCallback = () => {
 
         // Show success message based on the type
         if (type === 'invite') {
-          // Contributor invite flow - redirect to set password page
-          console.log('Processing invite callback, redirecting to contributor setup');
+          // Contributor is pre-verified via the magic link — skip email verification entirely
+          console.log('Processing invite callback, routing directly to password setup or dashboard');
           toast({
             title: "Welcome to Asset Safe!",
             description: "Please set your password to complete account setup.",
           });
-          const email = searchParams.get('email') || '';
-          navigate(`/auth?mode=contributor&email=${encodeURIComponent(email)}`, { replace: true });
+          // Check profile state to route appropriately
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('password_set, onboarding_complete')
+            .eq('user_id', data.session?.user?.id ?? '')
+            .maybeSingle();
+          if (!profileData?.password_set) {
+            navigate('/welcome/create-password', { replace: true });
+          } else {
+            navigate('/account', { replace: true });
+          }
           return;
         } else if (type === 'signup' || type === 'email_change_confirm_new') {
           toast({
