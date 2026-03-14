@@ -1,66 +1,97 @@
 
-## Root Cause: Two Conflicting Redirects Fighting Each Other
+## The Problem — Full Trace
 
-### Issue 1 — `handleSubmit` vs. the Profile Guard
-After `supabase.auth.updateUser({ password })` succeeds and `profiles.password_set` is set to `true`, two things happen simultaneously:
+When a contributor is invited via the magic link (`admin.inviteUserByEmail`), Supabase creates a **pre-verified** account — `email_confirmed_at` is already set on the user object when the magic link is clicked. So by the time they land inside the app, `user.email_confirmed_at` IS populated.
 
-1. `handleSubmit` calls `navigate('/onboarding', { replace: true })`
-2. The `AuthContext` `onAuthStateChange` listener fires `USER_UPDATED`, re-fetches the profile, sets `profile.password_set = true`
-3. The guard in `CreatePassword` (lines 39-43) sees `password_set === true` and calls `navigate('/account', { replace: true })` — overriding the form's redirect to `/onboarding`
-
-The user ends up on `/account`, not `/onboarding`. But the timing is also inconsistent — sometimes `USER_UPDATED` fires and re-triggers the `loading` spinner, leaving the navigate from `handleSubmit` effectively cancelled.
-
-### Issue 2 — Guard Redirects to Wrong Page
-```typescript
-// Lines 39-43 in CreatePassword.tsx
-useEffect(() => {
-  if (!loading && profile?.password_set) {
-    navigate('/account', { replace: true }); // ← sends to dashboard, skipping onboarding
-  }
-}, [loading, profile, navigate]);
+However, the `ProtectedRoute` in `App.tsx` (line 305) still checks:
+```tsx
+if (!skipSubscriptionCheck && user && !user.email_confirmed_at) {
+  return <Navigate to="/welcome" replace />;
+}
 ```
-This guard exists to prevent already-setup users from re-visiting this page — correct intent, wrong destination. A user who just set their password still needs to complete onboarding. It should redirect to `/onboarding` when `password_set` is true AND `onboarding_complete` is false.
 
-## Fixes
+And the `AuthCallback` handler for `type=invite` (line 135–144) currently redirects to:
+```tsx
+navigate(`/auth?mode=contributor&email=...`, { replace: true });
+```
+...which drops the user at the login/auth page where they set their password. After `CreatePassword` saves, they navigate to `/account`. At this point the `ProtectedRoute` runs its subscription check — but since `Supabase.auth.admin.inviteUserByEmail` already marks emails as confirmed, the `/welcome` redirect should NOT fire.
 
-### Fix 1: `src/pages/CreatePassword.tsx` — Correct the guard destination
-Change the guard from routing to `/account` to checking `onboarding_complete`:
-```typescript
+**So where is the prompt coming from?**
+
+The `ContributorWelcome` page (`/contributor-welcome`) is a separate page that explicitly shows "Please Verify Your Email" and polls for `email_confirmed_at`. It's in the routing as a **public** route (no `ProtectedRoute`). The `AuthCallback` currently routes `type=invite` to `/auth?mode=contributor` (the sign-in page with a create-password form). There's no direct navigation to `/contributor-welcome`.
+
+**The real culprit**: Looking at the `invite-contributor` edge function (lines 113–139), when a new user is invited via `admin.inviteUserByEmail`, Supabase sends its own auth email (the invite magic link). When the user clicks that magic link it goes to `/auth/callback` which handles `type=invite` and redirects to `/auth?mode=contributor`. The `AuthLegacy` page (login page) in `mode=contributor` then likely routes the user through a path that ends at `/contributor-welcome` — which shows the secondary email verification prompt.
+
+**Root cause confirmed**: The `ContributorWelcome` page (`/contributor-welcome`) is the second prompt. It asks users to verify their email, but since `admin.inviteUserByEmail` already pre-verifies them, the verification has already been satisfied by clicking the invitation magic link. The page is unnecessary for invited contributors.
+
+The fix has two parts:
+1. **`AuthCallback.tsx`**: For `type=invite`, after accepting the contributor invitation, skip routing to `/auth?mode=contributor` and instead route directly to `/welcome/create-password` (so they just set a password and land on the dashboard — no email verification prompt).
+2. **`ContributorWelcome.tsx`**: Since invited contributors are already pre-verified (the invite link IS the verification), skip the email verification gate entirely — if `email_confirmed_at` is set, redirect immediately to `/account`; if for some reason it's not set (edge case), keep the existing polling behavior as a fallback.
+
+The `EmailVerificationNotice` component is not imported anywhere — it's orphaned code and not the source of this issue.
+
+---
+
+## Plan
+
+### File 1 — `src/pages/AuthCallback.tsx` (line 135–144)
+The `type=invite` branch currently redirects to `/auth?mode=contributor`. Change it to:
+- If profile has no password set → `/welcome/create-password` (direct to password creation, skipping any email-verify screen)
+- If profile already complete → `/account` (they're already set up — perhaps re-invited)
+
+```tsx
+// Before (lines 135–144):
+if (type === 'invite') {
+  navigate(`/auth?mode=contributor&email=...`, { replace: true });
+  return;
+}
+
+// After:
+if (type === 'invite') {
+  // Contributor is pre-verified via the magic link — skip email verification
+  // Route directly to password setup or dashboard
+  const profileData = await supabase.from('profiles')
+    .select('password_set, onboarding_complete')
+    .eq('user_id', data.session?.user?.id)
+    .single();
+  if (!profileData.data?.password_set) {
+    navigate('/welcome/create-password', { replace: true });
+  } else {
+    navigate('/account', { replace: true });
+  }
+  return;
+}
+```
+
+### File 2 — `src/pages/ContributorWelcome.tsx`
+Add an immediate check on mount: if `user.email_confirmed_at` is already set (which it always will be for users invited via `admin.inviteUserByEmail`), redirect straight to `/account` without showing the "Please Verify Your Email" screen.
+
+Change the `checkEmailStatus` function and its initial call to run once on mount synchronously — if already verified, immediately redirect:
+
+```tsx
 useEffect(() => {
-  if (!loading && profile?.password_set) {
-    if (!profile?.onboarding_complete) {
-      navigate('/onboarding', { replace: true });
-    } else {
+  const init = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    // Invited contributors are pre-verified — skip the email verification gate
+    if (user?.email_confirmed_at) {
       navigate('/account', { replace: true });
+      return;
     }
-  }
-}, [loading, profile, navigate]);
+    // Not yet verified — fall back to the polling loop (edge case)
+    const interval = setInterval(checkEmailStatus, 3000);
+    return () => clearInterval(interval);
+  };
+  init();
+}, [navigate]);
 ```
-This means both the explicit form redirect AND the guard both point to `/onboarding` for new users — no more conflict.
 
-### Fix 2: `src/pages/CreatePassword.tsx` — Remove redundant explicit navigate
-Since the guard now handles routing after `password_set` flips to `true`, we can let the profile update (triggered by `USER_UPDATED`) drive the navigation naturally. The `handleSubmit` should update Supabase and the profile record, then let the guard's `useEffect` handle the redirect — this eliminates the race condition entirely.
+---
 
-Remove `navigate('/onboarding', { replace: true })` from `handleSubmit` and let the `useEffect` guard detect the profile change and redirect.
-
-### Fix 3: Address form — Google Places autocomplete (second issue)
-For the property address field in the onboarding/property form, add Google Places autocomplete. The project already has `@googlemaps/js-api-loader` and `@types/google.maps` installed. We need to find the address input in the onboarding flow and wire up the Places Autocomplete API.
-
-## Files to Change
+## Summary of Changes
 
 | File | Change |
-|---|---|
-| `src/pages/CreatePassword.tsx` | Fix guard to route to `/onboarding` when `onboarding_complete` is false; remove the explicit `navigate` from `handleSubmit` to eliminate race condition |
-| `src/pages/Onboarding.tsx` | Add Google Places autocomplete to the property address input field |
+|------|--------|
+| `src/pages/AuthCallback.tsx` | For `type=invite`: skip routing to `/auth?mode=contributor`; route directly to `/welcome/create-password` or `/account` based on profile state |
+| `src/pages/ContributorWelcome.tsx` | On mount, if `email_confirmed_at` is already set, immediately redirect to `/account` — no email verification prompt shown |
 
-## Summary of the Redirect Flow After Fix
-
-```text
-User sets password → handleSubmit updates Supabase + profile
-→ USER_UPDATED fires → AuthContext re-fetches profile
-→ profile.password_set = true, onboarding_complete = false
-→ CreatePassword guard useEffect fires
-→ navigate('/onboarding') ✓
-```
-
-Clean, single redirect path, no race condition.
+This ensures the invitation magic link click = the one and only email verification step. No secondary prompt.
