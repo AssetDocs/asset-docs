@@ -23,8 +23,8 @@ const InsightsToolsGrid: React.FC<InsightsToolsGridProps> = ({ onTabChange }) =>
     <div className="space-y-4">
       <div>
         <h2 className="text-2xl font-bold text-foreground">Insights & Tools</h2>
-        <p className="text-muted-foreground text-sm mt-1">
-          Manage repairs and organize property details.
+      <p className="text-muted-foreground text-sm mt-1">
+          Set reminders, manage repairs, and organize property details.
         </p>
       </div>
 
