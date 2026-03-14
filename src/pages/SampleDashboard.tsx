@@ -299,7 +299,7 @@ const SampleDashboard: React.FC = () => {
                 <strong>Sample Dashboard</strong> — Hover over or click any tile to learn what it does. Features are disabled for demonstration.
               </span>
               <Button onClick={() => navigate('/pricing')} size="sm" className="bg-brand-green hover:bg-brand-green/90">
-                Start Your Free Trial
+                Get Started
               </Button>
             </AlertDescription>
           </Alert>
