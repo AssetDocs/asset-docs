@@ -55,13 +55,13 @@ const AccessActivitySection: React.FC = () => {
                 <h4 className="font-semibold text-foreground">Administrator</h4>
               </div>
               <ul className="text-sm text-muted-foreground space-y-1.5">
-                <li>• Full access to all account features</li>
-                <li>• Can view and manage the Legacy Locker</li>
-                <li>• Can manage other authorized users</li>
                 <li className="flex items-center gap-1 font-medium text-red-700">
                   <Lock className="h-3 w-3" />
                   Only role eligible as a Trusted Delegate for the Legacy Locker
                 </li>
+                <li>• Full access to all account features</li>
+                <li>• Can view and manage the Legacy Locker</li>
+                <li>• Can manage other authorized users</li>
                 <li>• Can upload, download, edit, and delete files</li>
                 <li>• Can access the Password Catalog</li>
               </ul>
