@@ -37,9 +37,12 @@ const About: React.FC = () => {
           <div className="prose prose-lg max-w-none">
             <section className="mb-12">
               <div className="bg-gradient-to-r from-blue-50 to-teal-50 p-8 rounded-lg mb-8">
-                <p className="text-xl text-gray-700 leading-relaxed text-center">
+              <p className="text-xl text-gray-700 leading-relaxed text-center">
                   Asset Safe was born from a simple yet powerful belief: protecting your most valuable 
                   possessions shouldn't be complicated, stressful, or uncertain.
+                </p>
+                <p className="text-base text-gray-500 leading-relaxed text-center mt-3 italic">
+                  Insurance pays for what you can prove.<br />Asset Safe helps you prove it.
                 </p>
               </div>
               
