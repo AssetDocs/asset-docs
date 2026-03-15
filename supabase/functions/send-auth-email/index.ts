@@ -90,10 +90,28 @@ serve(async (req: Request): Promise<Response> => {
 
     switch (email_data.email_action_type) {
       case "signup":
-      case "email_change_confirm_new":
+      case "email_change_confirm_new": {
+        // Invited contributors are pre-verified via the magic link.
+        // When updateUser({ password }) is called after an invite, Supabase fires a
+        // "signup" hook event even though email_confirmed_at is already set.
+        // Skip sending the verification email in that case.
+        const supabaseAdmin = createClient(
+          Deno.env.get("SUPABASE_URL")!,
+          Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+          { auth: { autoRefreshToken: false, persistSession: false } }
+        );
+        const { data: adminUserData } = await supabaseAdmin.auth.admin.getUserById(user.id);
+        if (adminUserData?.user?.email_confirmed_at) {
+          console.log("[send-auth-email] User already email-confirmed, skipping verification email for invited contributor:", user.email);
+          return new Response(JSON.stringify({}), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
         subject = "Verify Your Email - Asset Safe";
         html = createEmailVerificationTemplate(displayName, confirmationUrl, user.email);
         break;
+      }
       
       case "invite":
         subject = "You've Been Invited to Asset Safe";
