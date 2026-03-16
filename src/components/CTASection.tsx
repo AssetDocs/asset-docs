@@ -7,7 +7,7 @@ const CTASection: React.FC = () => {
   return (
     <section className="hero-gradient py-20 text-white">
       <div className="container mx-auto px-4 text-center">
-        <h2 className="text-3xl font-bold mb-6">After damage happens, you won't remember everything you owned — but Asset Safe will.</h2>
+        <h2 className="text-3xl font-bold mb-6">Ready to protect everything you've built?</h2>
         <p className="text-lg md:text-xl mb-8">
           Get started today and experience the peace of mind that comes with comprehensive asset protection.
         </p>

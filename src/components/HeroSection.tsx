@@ -20,7 +20,7 @@ const HeroSection: React.FC = () => {
               Document your home, belongings, and important records—so you're prepared for the unexpected.
             </p>
             <p className="text-lg mb-4 animate-slide-up text-white/70">
-              Secure inventory, insurance-ready documentation, and legacy planning tools.
+              Insurance-ready documentation, secure digital vaults, and legacy planning tools — all in one system.
             </p>
             
             <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 animate-slide-up">

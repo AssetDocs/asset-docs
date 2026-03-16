@@ -22,9 +22,9 @@ const DocumentProtectSection: React.FC = () => {
   const [moreOpen, setMoreOpen] = useState(false);
   
   const steps = [
-    { number: 1, title: 'Document', description: 'Capture photos, videos, and details of your property and possessions.' },
-    { number: 2, title: 'Store', description: 'Securely save everything in the cloud with encryption and privacy controls.' },
-    { number: 3, title: 'Protect', description: 'Access your records anytime for claims, planning, or property sales.' },
+    { number: 1, title: 'Capture', description: 'Photos, videos, and details that document what you own.' },
+    { number: 2, title: 'Secure', description: 'Store everything safely with encryption and private access.' },
+    { number: 3, title: 'Prove', description: 'Access verified records whenever insurance, legal, or estate needs arise.' },
   ];
 
   const features = [
@@ -144,7 +144,10 @@ const DocumentProtectSection: React.FC = () => {
         </div>
 
         {/* CTAs */}
-        <div className="mt-8 text-center">
+        <div className="mt-8 text-center space-y-3">
+          <p className="text-foreground text-xl md:text-2xl font-semibold mx-auto max-w-2xl">
+            After damage happens, you won't remember everything you owned — but Asset Safe will.
+          </p>
           <p className="text-primary text-lg md:text-xl font-medium mx-auto max-w-md text-center md:whitespace-nowrap md:max-w-none">
             Not just storage — a guided path to being fully prepared.
           </p>
