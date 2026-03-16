@@ -17,7 +17,7 @@ const badges = [
   {
     icon: Shield,
     title: 'SOC 2',
-    subtitle: 'Compliant',
+    subtitle: 'aligned practices',
     description: 'Enterprise-grade security controls and regular audits'
   },
   {
