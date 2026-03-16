@@ -284,8 +284,8 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
     };
   }, [user?.id, skipSubscriptionCheck, loading, isAdminUser, isContributor, contributorLoading]);
   
-  // Wait for auth + admin role loading + subscription check
-  if (loading || profileLoading || adminRole.loading || checkingSubscription) {
+  // Wait for auth + admin role loading + contributor status + subscription check
+  if (loading || profileLoading || adminRole.loading || contributorLoading || checkingSubscription) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
