@@ -1,66 +1,125 @@
 
-## Root Cause: Two Conflicting Redirects Fighting Each Other
+## Full Audit: Authorized User Invite Flow
 
-### Issue 1 — `handleSubmit` vs. the Profile Guard
-After `supabase.auth.updateUser({ password })` succeeds and `profiles.password_set` is set to `true`, two things happen simultaneously:
+### What Currently Works ✅
+- Invitation email is sent (one branded email + one Supabase magic link email)
+- Magic link click → `/auth/callback` → `/welcome/create-password` (no redundant email verify step)
+- `send-auth-email` hook skips re-sending verification if `email_confirmed_at` is already set
+- `WelcomeBanner` already shows contributor name, role, owner name, and owner account number
 
-1. `handleSubmit` calls `navigate('/onboarding', { replace: true })`
-2. The `AuthContext` `onAuthStateChange` listener fires `USER_UPDATED`, re-fetches the profile, sets `profile.password_set = true`
-3. The guard in `CreatePassword` (lines 39-43) sees `password_set === true` and calls `navigate('/account', { replace: true })` — overriding the form's redirect to `/onboarding`
+### Problems Found 🔴
 
-The user ends up on `/account`, not `/onboarding`. But the timing is also inconsistent — sometimes `USER_UPDATED` fires and re-triggers the `loading` spinner, leaving the navigate from `handleSubmit` effectively cancelled.
+**Problem 1 — Subscription wall blocks contributors**
+`ProtectedRoute` checks `hasSubscription`. Contributors have no subscription of their own, so after setting their password they get bounced to `/pricing`. This is the primary reason they can't access the dashboard.
 
-### Issue 2 — Guard Redirects to Wrong Page
-```typescript
-// Lines 39-43 in CreatePassword.tsx
-useEffect(() => {
-  if (!loading && profile?.password_set) {
-    navigate('/account', { replace: true }); // ← sends to dashboard, skipping onboarding
-  }
-}, [loading, profile, navigate]);
+Fix: In `ProtectedRoute`, check if the user is a contributor (via the `contributors` table) before running the subscription check. If they are, skip it — they inherit access via the account owner's subscription.
+
+**Problem 2 — Profile name not populated after account creation**
+`CreatePassword` only calls `updateUser({ password })` and sets `password_set: true`. The contributor's name (captured by the owner during invite) sits in the `contributors` table but never gets written to `profiles`. So `profiles.first_name` / `profiles.last_name` remain null, making the welcome greeting fall back to the email address.
+
+Fix: In `CreatePassword.handleFinish()`, after setting the password, also fetch the contributor record and copy `first_name` / `last_name` into the user's `profiles` row if they aren't already set.
+
+**Problem 3 — `ContributorWelcome` still has dead yellow verification banner**
+The page redirects instantly (via `useEffect`) but the yellow "Please Verify Your Email" banner JSX still renders for a brief flash before the redirect fires. Since this page is now only a redirect shim, replace it with a clean loading spinner — no verification messaging.
+
+**Problem 4 — `invite-contributor` sends 2 emails to new users**
+For new users, both the Supabase auth hook (`type=invite`) AND the branded Resend email are sent. The Supabase invite email is a generic "You've Been Invited to Asset Safe" (the `createInviteTemplate` in `send-auth-email`). The branded Resend email says "You've been invited to collaborate." This means new users get 2 nearly identical emails. 
+
+Fix: In `send-auth-email`, suppress the `invite` type email (return 200 silently) since `invite-contributor` already sends a superior branded email via Resend.
+
+---
+
+## Plan
+
+### File 1 — `src/App.tsx` (ProtectedRoute ~line 255–315)
+Add a contributor bypass: before the subscription check, query the `contributors` table to see if the current user is an accepted contributor. If yes, skip `hasSubscription` check and allow through.
+
+Since this check needs to be async but `ProtectedRoute` is currently synchronous, the cleanest approach is to use the existing `ContributorContext` (already loaded in the app tree). The `ContributorContext` is provided at the app root, so `ProtectedRoute` can simply call `useContributor()` and if `isContributor === true`, bypass the subscription gate.
+
+```tsx
+// In ProtectedRoute, after the admin bypass, before subscription check:
+const { isContributor, loading: contributorLoading } = useContributor();
+
+// Wait for contributor status to resolve
+if (contributorLoading) return <LoadingSpinner />;
+
+// Contributors inherit access — skip subscription check
+if (isContributor) return <>{children}</>;
 ```
-This guard exists to prevent already-setup users from re-visiting this page — correct intent, wrong destination. A user who just set their password still needs to complete onboarding. It should redirect to `/onboarding` when `password_set` is true AND `onboarding_complete` is false.
 
-## Fixes
+### File 2 — `src/pages/CreatePassword.tsx`
+After `updateUser({ password })` succeeds, copy the contributor's `first_name`/`last_name` from the `contributors` table into `profiles` if the profile fields are blank.
 
-### Fix 1: `src/pages/CreatePassword.tsx` — Correct the guard destination
-Change the guard from routing to `/account` to checking `onboarding_complete`:
-```typescript
-useEffect(() => {
-  if (!loading && profile?.password_set) {
-    if (!profile?.onboarding_complete) {
-      navigate('/onboarding', { replace: true });
-    } else {
-      navigate('/account', { replace: true });
-    }
-  }
-}, [loading, profile, navigate]);
+```tsx
+// After updateUser succeeds, inside handleFinish:
+const { data: contribRecord } = await supabase
+  .from('contributors')
+  .select('first_name, last_name')
+  .eq('contributor_email', user.email)
+  .eq('status', 'accepted')
+  .maybeSingle();
+
+if (contribRecord?.first_name || contribRecord?.last_name) {
+  await supabase
+    .from('profiles')
+    .update({
+      first_name: contribRecord.first_name || undefined,
+      last_name: contribRecord.last_name || undefined,
+      password_set: true,
+      onboarding_complete: true
+    })
+    .eq('user_id', user.id);
+} else {
+  // normal path — already updating password_set + onboarding_complete
+}
 ```
-This means both the explicit form redirect AND the guard both point to `/onboarding` for new users — no more conflict.
 
-### Fix 2: `src/pages/CreatePassword.tsx` — Remove redundant explicit navigate
-Since the guard now handles routing after `password_set` flips to `true`, we can let the profile update (triggered by `USER_UPDATED`) drive the navigation naturally. The `handleSubmit` should update Supabase and the profile record, then let the guard's `useEffect` handle the redirect — this eliminates the race condition entirely.
+### File 3 — `src/pages/ContributorWelcome.tsx`
+Strip the yellow verification banner and all resend logic. Replace the rendered JSX with a clean loading spinner while the redirect fires. The page is now purely a redirect shim.
 
-Remove `navigate('/onboarding', { replace: true })` from `handleSubmit` and let the `useEffect` guard detect the profile change and redirect.
+### File 4 — `supabase/functions/send-auth-email/index.ts`
+In the `invite` case of the switch statement, return 200 silently instead of sending the generic invite email. The branded invite email is already sent by `invite-contributor` via Resend.
 
-### Fix 3: Address form — Google Places autocomplete (second issue)
-For the property address field in the onboarding/property form, add Google Places autocomplete. The project already has `@googlemaps/js-api-loader` and `@types/google.maps` installed. We need to find the address input in the onboarding flow and wire up the Places Autocomplete API.
+```typescript
+case "invite":
+  // invite-contributor already sends a superior branded email via Resend.
+  // Suppress the generic Supabase invite email to avoid duplicates.
+  console.log('[send-auth-email] Suppressing generic invite email — branded invite already sent');
+  return new Response(JSON.stringify({}), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
+```
 
-## Files to Change
+---
 
-| File | Change |
-|---|---|
-| `src/pages/CreatePassword.tsx` | Fix guard to route to `/onboarding` when `onboarding_complete` is false; remove the explicit `navigate` from `handleSubmit` to eliminate race condition |
-| `src/pages/Onboarding.tsx` | Add Google Places autocomplete to the property address input field |
+## Summary Table
 
-## Summary of the Redirect Flow After Fix
+| # | File | Change | Fixes |
+|---|------|--------|-------|
+| 1 | `src/App.tsx` | Add `useContributor()` bypass in `ProtectedRoute` | Contributors no longer bounced to `/pricing` |
+| 2 | `src/pages/CreatePassword.tsx` | Copy contributor name into `profiles` after password set | Welcome greeting shows real name, not email |
+| 3 | `src/pages/ContributorWelcome.tsx` | Replace verification UI with clean loading spinner | No more flash of yellow verification banner |
+| 4 | `supabase/functions/send-auth-email/index.ts` | Suppress `invite` type email | New users receive only 1 invitation email, not 2 |
+
+---
+
+## The Clean Flow After Changes
 
 ```text
-User sets password → handleSubmit updates Supabase + profile
-→ USER_UPDATED fires → AuthContext re-fetches profile
-→ profile.password_set = true, onboarding_complete = false
-→ CreatePassword guard useEffect fires
-→ navigate('/onboarding') ✓
+1. Owner invites → 1 branded email sent to authorized user ✅
+2. User clicks link → /auth/callback → /welcome/create-password ✅
+3. User sets password → name auto-populated from contributor record ✅
+4. Submit → /account → ProtectedRoute sees isContributor=true → bypasses subscription check ✅
+5. Dashboard loads with: "Welcome, [Their Name]!" + role + owner name + owner account # ✅
+6. No second verification email ✅
 ```
 
-Clean, single redirect path, no race condition.
+### Dashboard Identity (No Changes Needed)
+`WelcomeBanner` already handles this correctly:
+- Shows contributor's own name (from `profiles`, now populated)
+- Shows "Contributor – Administrator/Contributor/Viewer"
+- Shows "Account Owner: [Owner Name]"
+- Shows owner's account number (e.g. AS123456)
+
+This is the cleanest approach — no account number suffix needed. The authorized user sees whose account they're managing, their name, and their role.
