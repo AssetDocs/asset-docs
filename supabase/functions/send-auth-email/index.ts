@@ -114,9 +114,13 @@ serve(async (req: Request): Promise<Response> => {
       }
       
       case "invite":
-        subject = "You've Been Invited to Asset Safe";
-        html = createInviteTemplate(displayName, confirmationUrl, user.email);
-        break;
+        // invite-contributor already sends a superior branded email via Resend.
+        // Suppress this generic Supabase invite email to avoid sending duplicates.
+        console.log("[send-auth-email] Suppressing generic Supabase invite email — branded invite already sent via Resend");
+        return new Response(JSON.stringify({}), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
       
       case "recovery":
         subject = "Reset Your Password - Asset Safe";

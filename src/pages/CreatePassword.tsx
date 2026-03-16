@@ -76,9 +76,21 @@ const CreatePassword = () => {
       const { error: pwError } = await supabase.auth.updateUser({ password });
       if (pwError) throw pwError;
 
+      // Check if this user is an invited contributor — if so, copy their name from the contributors table
+      const { data: contribRecord } = await supabase
+        .from('contributors')
+        .select('first_name, last_name')
+        .eq('contributor_email', user!.email as string)
+        .eq('status', 'accepted')
+        .maybeSingle();
+
+      const profileUpdate: Record<string, unknown> = { password_set: true, onboarding_complete: true };
+      if (contribRecord?.first_name) profileUpdate.first_name = contribRecord.first_name;
+      if (contribRecord?.last_name) profileUpdate.last_name = contribRecord.last_name;
+
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ password_set: true, onboarding_complete: true })
+        .update(profileUpdate)
         .eq('user_id', user!.id);
       if (profileError) throw profileError;
 

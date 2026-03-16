@@ -10,7 +10,7 @@ import useScrollToTop from "@/hooks/useScrollToTop";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { TranslationProvider } from "@/contexts/TranslationContext";
-import { ContributorProvider } from "@/contexts/ContributorContext";
+import { ContributorProvider, useContributor } from "@/contexts/ContributorContext";
 import CookieConsent from "@/components/CookieConsent";
 import MobileCTA from "@/components/MobileCTA";
 import AskAssetSafe from "@/components/AskAssetSafe";
@@ -144,9 +144,20 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
   // Admin users bypass the subscription gate entirely — they always have full access
   const isAdminUser = !adminRole.loading && adminRole.hasDevAccess;
 
+  // Check contributor status early so we can bypass the subscription gate
+  const { isContributor, loading: contributorLoading } = useContributor();
+
   useEffect(() => {
     // Skip subscription check for admin users
     if (isAdminUser) {
+      setHasSubscription(true);
+      setCheckingSubscription(false);
+      return;
+    }
+
+    // Contributors inherit access via account owner's subscription — bypass subscription gate
+    if (!contributorLoading && isContributor) {
+      checkedUserIdRef.current = user?.id ?? null;
       setHasSubscription(true);
       setCheckingSubscription(false);
       return;
@@ -271,10 +282,10 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
     return () => {
       abortRef.current = true;
     };
-  }, [user?.id, skipSubscriptionCheck, loading, isAdminUser]);
+  }, [user?.id, skipSubscriptionCheck, loading, isAdminUser, isContributor, contributorLoading]);
   
-  // Wait for auth + admin role loading + subscription check
-  if (loading || profileLoading || adminRole.loading || checkingSubscription) {
+  // Wait for auth + admin role loading + contributor status + subscription check
+  if (loading || profileLoading || adminRole.loading || contributorLoading || checkingSubscription) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
