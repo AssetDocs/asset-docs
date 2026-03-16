@@ -145,7 +145,7 @@ const DocumentProtectSection: React.FC = () => {
 
         {/* CTAs */}
         <div className="mt-8 text-center space-y-3">
-          <p className="text-foreground text-xl md:text-2xl font-semibold mx-auto max-w-2xl">
+          <p className="text-foreground text-xl md:text-2xl font-semibold md:whitespace-nowrap">
             After damage happens, you won't remember everything you owned — but Asset Safe will.
           </p>
           <p className="text-primary text-lg md:text-xl font-medium mx-auto max-w-md text-center md:whitespace-nowrap md:max-w-none">
