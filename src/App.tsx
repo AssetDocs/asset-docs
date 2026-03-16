@@ -144,9 +144,20 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
   // Admin users bypass the subscription gate entirely — they always have full access
   const isAdminUser = !adminRole.loading && adminRole.hasDevAccess;
 
+  // Check contributor status early so we can bypass the subscription gate
+  const { isContributor, loading: contributorLoading } = useContributor();
+
   useEffect(() => {
     // Skip subscription check for admin users
     if (isAdminUser) {
+      setHasSubscription(true);
+      setCheckingSubscription(false);
+      return;
+    }
+
+    // Contributors inherit access via account owner's subscription — bypass subscription gate
+    if (!contributorLoading && isContributor) {
+      checkedUserIdRef.current = user?.id ?? null;
       setHasSubscription(true);
       setCheckingSubscription(false);
       return;
