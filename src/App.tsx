@@ -10,7 +10,7 @@ import useScrollToTop from "@/hooks/useScrollToTop";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { TranslationProvider } from "@/contexts/TranslationContext";
-import { ContributorProvider } from "@/contexts/ContributorContext";
+import { ContributorProvider, useContributor } from "@/contexts/ContributorContext";
 import CookieConsent from "@/components/CookieConsent";
 import MobileCTA from "@/components/MobileCTA";
 import AskAssetSafe from "@/components/AskAssetSafe";
