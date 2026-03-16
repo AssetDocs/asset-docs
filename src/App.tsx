@@ -282,7 +282,7 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
     return () => {
       abortRef.current = true;
     };
-  }, [user?.id, skipSubscriptionCheck, loading, isAdminUser]);
+  }, [user?.id, skipSubscriptionCheck, loading, isAdminUser, isContributor, contributorLoading]);
   
   // Wait for auth + admin role loading + subscription check
   if (loading || profileLoading || adminRole.loading || checkingSubscription) {
