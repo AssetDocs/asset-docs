@@ -312,8 +312,9 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
     return <Navigate to="/onboarding" replace />;
   }
 
-  // Check if email is verified
-  if (!skipSubscriptionCheck && user && !user.email_confirmed_at) {
+  // Check if email is verified — contributors bypass this gate since their email
+  // is pre-confirmed via the magic link invite flow
+  if (!skipSubscriptionCheck && user && !user.email_confirmed_at && !isContributor) {
     return <Navigate to="/welcome" replace />;
   }
 

@@ -128,6 +128,15 @@ serve(async (req: Request): Promise<Response> => {
         break;
       
       case "magiclink":
+        // Suppress magic link email for contributor-invited users — the branded
+        // invitation email (sent by invite-contributor) already contains the magic link.
+        if (user.user_metadata?.invited_as_contributor) {
+          console.log('[send-auth-email] Suppressing magiclink for invited contributor:', user.email);
+          return new Response(JSON.stringify({}), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
         subject = "Your Magic Link - Asset Safe";
         html = createMagicLinkTemplate(displayName, confirmationUrl, user.email);
         break;
