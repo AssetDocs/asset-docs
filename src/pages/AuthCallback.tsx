@@ -56,6 +56,16 @@ const AuthCallback = () => {
                   .single();
 
                 if (!profileData?.password_set) {
+                  // Accept any pending contributor invitations before routing to
+                  // create-password so isContributor is true by the time they land on /account
+                  try {
+                    await supabase.functions.invoke('accept-contributor-invitation', {
+                      headers: { Authorization: `Bearer ${session.access_token}` },
+                    });
+                    console.log('[AuthCallback] accept-contributor-invitation called in hash session flow');
+                  } catch (inviteErr) {
+                    console.warn('[AuthCallback] accept-contributor-invitation error (non-fatal):', inviteErr);
+                  }
                   navigate('/welcome/create-password', { replace: true });
                 } else if (!profileData?.onboarding_complete) {
                   navigate('/onboarding', { replace: true });

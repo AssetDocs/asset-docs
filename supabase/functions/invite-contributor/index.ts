@@ -111,31 +111,42 @@ serve(async (req: Request) => {
       inviteLink = `https://www.getassetsafe.com/auth?mode=contributor&email=${encodeURIComponent(validated.contributor_email)}`;
       console.log('[INVITE-CONTRIBUTOR] Existing user, sending sign-in link');
     } else {
-      // New user: use admin.inviteUserByEmail() to create pre-verified account
-      const redirectTo = `https://www.getassetsafe.com/auth/callback?type=invite&redirect_to=${encodeURIComponent(`/auth?mode=contributor&email=${encodeURIComponent(validated.contributor_email)}`)}`;
-      
-      const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
-        validated.contributor_email,
-        {
-          data: {
-            first_name: validated.first_name,
-            last_name: validated.last_name,
-            invited_as_contributor: true,
-          },
-          redirectTo,
-        }
-      );
+      // New user: createUser with email_confirm: true so email_confirmed_at is stamped
+      // immediately — this prevents updateUser({ password }) from triggering a
+      // verification email later in the create-password flow.
+      const { data: newUserData, error: createError } = await supabaseAdmin.auth.admin.createUser({
+        email: validated.contributor_email,
+        email_confirm: true,
+        user_metadata: {
+          first_name: validated.first_name,
+          last_name: validated.last_name,
+          invited_as_contributor: true,
+        },
+      });
 
-      if (inviteError) {
-        console.error('[INVITE-CONTRIBUTOR] Invite error:', inviteError);
-        // If invite fails (e.g., user exists in a weird state), fall back to regular link
+      if (createError) {
+        console.error('[INVITE-CONTRIBUTOR] createUser error:', createError);
+        // Fall back to regular sign-in link if creation fails
         inviteLink = `https://www.getassetsafe.com/auth?mode=contributor&email=${encodeURIComponent(validated.contributor_email)}`;
       } else {
-        // The invite email is sent by Supabase with our auth hook (send-auth-email)
-        // But we also want our branded email. The user will click the Supabase magic link.
-        // We'll use the Supabase-generated confirmation URL if available, otherwise fallback.
-        inviteLink = `https://www.getassetsafe.com/auth?mode=contributor&email=${encodeURIComponent(validated.contributor_email)}`;
-        console.log('[INVITE-CONTRIBUTOR] User invited via admin API, Supabase will send auth email via hook');
+        console.log('[INVITE-CONTRIBUTOR] New user created with email_confirm:true, id:', newUserData?.user?.id);
+
+        // Generate a magic link so the contributor can sign in without a password
+        const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+          type: 'magiclink',
+          email: validated.contributor_email,
+          options: {
+            redirectTo: `https://www.getassetsafe.com/auth/callback?type=magiclink&redirect_to=${encodeURIComponent('/welcome/create-password')}`,
+          },
+        });
+
+        if (linkError || !linkData?.properties?.action_link) {
+          console.error('[INVITE-CONTRIBUTOR] generateLink error:', linkError);
+          inviteLink = `https://www.getassetsafe.com/auth?mode=contributor&email=${encodeURIComponent(validated.contributor_email)}`;
+        } else {
+          inviteLink = linkData.properties.action_link;
+          console.log('[INVITE-CONTRIBUTOR] Magic link generated successfully');
+        }
       }
     }
 
