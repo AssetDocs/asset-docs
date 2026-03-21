@@ -147,7 +147,10 @@ serve(async (req: Request) => {
         .maybeSingle();
 
       if (!profileData?.password_set) {
-        // No password yet — generate magic link pointing to create-password
+        // No password yet — generate magic link.
+        // redirectTo MUST be just the callback URL — Supabase appends the session
+        // as a hash fragment automatically. Do NOT include query params here or
+        // Supabase will concatenate them onto the site URL and produce a broken double-URL.
         const genRes = await fetch(`${supabaseUrl}/auth/v1/admin/generate_link`, {
           method: 'POST',
           headers: adminHeaders,
@@ -155,7 +158,7 @@ serve(async (req: Request) => {
             type: 'magiclink',
             email: validated.contributor_email,
             options: {
-              redirectTo: `https://www.getassetsafe.com/auth/callback?type=magiclink&redirect_to=${encodeURIComponent('/welcome/create-password')}`,
+              redirectTo: 'https://www.getassetsafe.com/auth/callback',
             },
           }),
         });
@@ -194,7 +197,10 @@ serve(async (req: Request) => {
       } else {
         console.log('[INVITE-CONTRIBUTOR] New user created with email_confirm:true, id:', newUserData?.id);
 
-        // Generate a magic link so the contributor can sign in without a password
+        // Generate a magic link so the contributor can sign in without a password.
+        // redirectTo MUST be just the callback URL — Supabase appends the session
+        // as a hash fragment automatically. AuthCallback routes to /welcome/create-password
+        // based on profile.password_set being false.
         const genRes = await fetch(`${supabaseUrl}/auth/v1/admin/generate_link`, {
           method: 'POST',
           headers: adminHeaders,
@@ -202,7 +208,7 @@ serve(async (req: Request) => {
             type: 'magiclink',
             email: validated.contributor_email,
             options: {
-              redirectTo: `https://www.getassetsafe.com/auth/callback?type=magiclink&redirect_to=${encodeURIComponent('/welcome/create-password')}`,
+              redirectTo: 'https://www.getassetsafe.com/auth/callback',
             },
           }),
         });
