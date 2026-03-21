@@ -1,66 +1,124 @@
 
-## Root Cause: Two Conflicting Redirects Fighting Each Other
+## Root Cause: Confirmed
 
-### Issue 1 — `handleSubmit` vs. the Profile Guard
-After `supabase.auth.updateUser({ password })` succeeds and `profiles.password_set` is set to `true`, two things happen simultaneously:
+The live `invite-contributor` logs reveal the exact failure:
 
-1. `handleSubmit` calls `navigate('/onboarding', { replace: true })`
-2. The `AuthContext` `onAuthStateChange` listener fires `USER_UPDATED`, re-fetches the profile, sets `profile.password_set = true`
-3. The guard in `CreatePassword` (lines 39-43) sees `password_set === true` and calls `navigate('/account', { replace: true })` — overriding the form's redirect to `/onboarding`
+```
+14:20:18 → invite sent → "Existing user, sending sign-in link"
+14:23:09 → invite sent again → "Existing user, sending sign-in link"
+14:23:33 → send-auth-email fires "signup" event for photography4mls@gmail.com
+```
 
-The user ends up on `/account`, not `/onboarding`. But the timing is also inconsistent — sometimes `USER_UPDATED` fires and re-triggers the `loading` spinner, leaving the navigate from `handleSubmit` effectively cancelled.
+The user record shows `invited_as_contributor: null` in metadata — meaning `createUser({ email_confirm: true })` was **never called**. Instead the user was created through the normal Supabase signup path (triggered by the magic link click), which fired the `signup` hook and sent a verification email.
 
-### Issue 2 — Guard Redirects to Wrong Page
+### Why "Existing User" path keeps firing
+
+The `invite-contributor` function does a user lookup first. If the email already exists in `auth.users` (even as an unconfirmed ghost record from a prior Supabase internal signup trigger), the function takes the `existingUser` branch — which just sends a plain sign-in link, never stamping `email_confirmed_at: true` or setting `invited_as_contributor` metadata.
+
+The problem: Supabase created an unconfirmed user the very first time the magic link was generated (before our fix was deployed), so every subsequent invite attempt saw them as "existing" and bypassed the new `createUser` path entirely.
+
+### The Real Fix: 3 Targeted Changes
+
+**Do not start over.** The architecture is sound. The issue is purely that the `existingUser` branch in `invite-contributor` is incomplete — it needs to handle the case where an existing user is unconfirmed or lacks the contributor metadata.
+
+---
+
+### Change 1 — `supabase/functions/invite-contributor/index.ts`
+
+The `existingUser` branch currently just sends a sign-in link and does nothing to the user record. Fix it to:
+
+1. If the existing user has **no** `email_confirmed_at`, call `admin.updateUser({ id, email_confirm: true, user_metadata: { invited_as_contributor: true } })` to stamp confirmation immediately.
+2. If the existing user already has `email_confirmed_at` but **no** `invited_as_contributor` metadata, still update the metadata so `send-auth-email` can suppress any future magiclink emails.
+3. In both cases, generate a proper magic link (same as the new-user path) instead of a bare sign-in URL, so the contributor lands on `/welcome/create-password` if they haven't set a password yet.
+
 ```typescript
-// Lines 39-43 in CreatePassword.tsx
-useEffect(() => {
-  if (!loading && profile?.password_set) {
-    navigate('/account', { replace: true }); // ← sends to dashboard, skipping onboarding
+if (existingUser) {
+  // Ensure the user is confirmed and has contributor metadata
+  const needsConfirmation = !existingUser.email_confirmed_at;
+  
+  await supabaseAdmin.auth.admin.updateUser(existingUser.id, {
+    email_confirm: true,  // idempotent — safe to call even if already confirmed
+    user_metadata: {
+      ...existingUser.user_metadata,
+      invited_as_contributor: true,
+    },
+  });
+
+  // If password not yet set, generate a magic link to create-password
+  const profileRes = await supabaseAdmin
+    .from('profiles')
+    .select('password_set')
+    .eq('user_id', existingUser.id)
+    .maybeSingle();
+
+  if (!profileRes.data?.password_set) {
+    const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
+      type: 'magiclink',
+      email: validated.contributor_email,
+      options: {
+        redirectTo: `https://www.getassetsafe.com/auth/callback?type=magiclink&redirect_to=${encodeURIComponent('/welcome/create-password')}`
+      }
+    });
+    inviteLink = linkData?.properties?.action_link ?? fallbackLink;
+  } else {
+    inviteLink = `https://www.getassetsafe.com/auth?mode=contributor&email=${encodeURIComponent(validated.contributor_email)}`;
   }
-}, [loading, profile, navigate]);
+}
 ```
-This guard exists to prevent already-setup users from re-visiting this page — correct intent, wrong destination. A user who just set their password still needs to complete onboarding. It should redirect to `/onboarding` when `password_set` is true AND `onboarding_complete` is false.
 
-## Fixes
+---
 
-### Fix 1: `src/pages/CreatePassword.tsx` — Correct the guard destination
-Change the guard from routing to `/account` to checking `onboarding_complete`:
+### Change 2 — `supabase/functions/send-auth-email/index.ts`
+
+The `signup` case currently checks `email_confirmed_at` via an admin lookup to suppress the email. But there's a **race condition**: the admin lookup runs while Supabase is mid-transaction confirming the user, so `email_confirmed_at` may appear null even though it's about to be set.
+
+Add a second suppression condition: also check `user_metadata.invited_as_contributor`. If that flag is set, suppress unconditionally — no admin lookup needed.
+
 ```typescript
-useEffect(() => {
-  if (!loading && profile?.password_set) {
-    if (!profile?.onboarding_complete) {
-      navigate('/onboarding', { replace: true });
-    } else {
-      navigate('/account', { replace: true });
-    }
+case "signup":
+case "email_change_confirm_new": {
+  // Fast path: if invited_as_contributor flag is set in metadata, suppress immediately
+  if (parsedPayload.user.user_metadata?.invited_as_contributor) {
+    console.log("[send-auth-email] Suppressing signup email — invited contributor");
+    return new Response(JSON.stringify({}), { status: 200, ... });
   }
-}, [loading, profile, navigate]);
-```
-This means both the explicit form redirect AND the guard both point to `/onboarding` for new users — no more conflict.
-
-### Fix 2: `src/pages/CreatePassword.tsx` — Remove redundant explicit navigate
-Since the guard now handles routing after `password_set` flips to `true`, we can let the profile update (triggered by `USER_UPDATED`) drive the navigation naturally. The `handleSubmit` should update Supabase and the profile record, then let the guard's `useEffect` handle the redirect — this eliminates the race condition entirely.
-
-Remove `navigate('/onboarding', { replace: true })` from `handleSubmit` and let the `useEffect` guard detect the profile change and redirect.
-
-### Fix 3: Address form — Google Places autocomplete (second issue)
-For the property address field in the onboarding/property form, add Google Places autocomplete. The project already has `@googlemaps/js-api-loader` and `@types/google.maps` installed. We need to find the address input in the onboarding flow and wire up the Places Autocomplete API.
-
-## Files to Change
-
-| File | Change |
-|---|---|
-| `src/pages/CreatePassword.tsx` | Fix guard to route to `/onboarding` when `onboarding_complete` is false; remove the explicit `navigate` from `handleSubmit` to eliminate race condition |
-| `src/pages/Onboarding.tsx` | Add Google Places autocomplete to the property address input field |
-
-## Summary of the Redirect Flow After Fix
-
-```text
-User sets password → handleSubmit updates Supabase + profile
-→ USER_UPDATED fires → AuthContext re-fetches profile
-→ profile.password_set = true, onboarding_complete = false
-→ CreatePassword guard useEffect fires
-→ navigate('/onboarding') ✓
+  
+  // Existing slow path: admin lookup for email_confirmed_at
+  const supabaseAdmin = createClient(...);
+  const { data: adminUserData } = await supabaseAdmin.auth.admin.getUserById(user.id);
+  if (adminUserData?.user?.email_confirmed_at) {
+    console.log("[send-auth-email] User already confirmed, suppressing verification email");
+    return new Response(JSON.stringify({}), { status: 200, ... });
+  }
+  // ... send verification email
+}
 ```
 
-Clean, single redirect path, no race condition.
+---
+
+### Change 3 — `src/pages/CreatePassword.tsx`
+
+The contributor lookup for name-syncing uses `.eq('status', 'accepted')` — but at the moment `handleFinish` runs, `accept-contributor-invitation` may not have been called yet (it runs in `AuthCallback`, but there's a timing window). Change the query to also check `status = 'pending'` as a fallback so the name is always populated.
+
+```tsx
+const { data: contribRecord } = await supabase
+  .from('contributors')
+  .select('first_name, last_name')
+  .eq('contributor_email', user!.email as string)
+  .in('status', ['accepted', 'pending'])  // ← also check pending
+  .maybeSingle();
+```
+
+---
+
+## Summary
+
+| # | File | Change | Effect |
+|---|------|--------|--------|
+| 1 | `invite-contributor/index.ts` | Update existing user: stamp `email_confirm: true` + `invited_as_contributor: true` metadata; generate magic link if password not yet set | Existing unconfirmed users get pre-confirmed; magic link leads to `/welcome/create-password` |
+| 2 | `send-auth-email/index.ts` | Add `invited_as_contributor` metadata check as fast-path suppression before admin DB lookup | Eliminates race condition; verification email never sent for invited contributors |
+| 3 | `CreatePassword.tsx` | Query `status IN ('accepted','pending')` when looking up contributor name | Name always populated even if `accept-contributor-invitation` hasn't run yet |
+
+### Why not start over?
+
+The architecture is correct. The `createUser({ email_confirm: true })` code path works — it just never executes because the user is always seen as "existing". Fixing the `existingUser` branch to apply the same pre-confirmation logic resolves the problem at its actual source. Starting over would re-introduce the same race condition unless this specific case is handled.
