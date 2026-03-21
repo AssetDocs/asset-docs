@@ -206,12 +206,9 @@ serve(async (req: Request) => {
 
     const roleDescription = getRoleDescription(validated.role);
 
-    // For existing users, the email says "sign in". For new users, Supabase already sent
-    // the magic link email via the auth hook. We still send branded email as a nice notification.
-    const actionText = existingUser ? 'Sign In to Accept' : 'Accept Invitation';
-    const instructionText = existingUser
-      ? 'You already have an Asset Safe account. Simply sign in to accept this invitation and start collaborating.'
-      : 'You\'ll receive a separate email with a secure link to set up your account. Click that link to get started, or use the button below.';
+    // Both new and existing users get a magic link in the branded email.
+    const actionText = 'Accept Invitation';
+    const instructionText = 'Click the secure button below to accept your invitation and set up your account. This link is single-use and expires shortly — use it promptly.';
 
     await resend.emails.send({
       from: "AssetSafe <invitations@assetsafe.net>",
