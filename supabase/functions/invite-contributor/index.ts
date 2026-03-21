@@ -107,20 +107,37 @@ serve(async (req: Request) => {
     let inviteLink: string;
     const fallbackLink = `https://www.getassetsafe.com/auth?mode=contributor&email=${encodeURIComponent(validated.contributor_email)}`;
 
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const adminHeaders = {
+      Authorization: `Bearer ${serviceRoleKey}`,
+      apikey: serviceRoleKey,
+      'Content-Type': 'application/json',
+    };
+
     if (existingUser) {
-      // Existing user path: stamp email_confirm + invited_as_contributor metadata
-      // This handles ghost unconfirmed records that were created before the fix was deployed.
+      // Existing user path: stamp email_confirm + invited_as_contributor via direct REST API
       console.log('[INVITE-CONTRIBUTOR] Existing user found, stamping confirmation + contributor metadata');
 
-      await supabaseAdmin.auth.admin.updateUser(existingUser.id, {
-        email_confirm: true, // idempotent — safe even if already confirmed
-        user_metadata: {
-          ...(existingUser.user_metadata ?? {}),
-          first_name: validated.first_name,
-          last_name: validated.last_name,
-          invited_as_contributor: true,
-        },
+      const updateRes = await fetch(`${supabaseUrl}/auth/v1/admin/users/${existingUser.id}`, {
+        method: 'PUT',
+        headers: adminHeaders,
+        body: JSON.stringify({
+          email_confirm: true,
+          user_metadata: {
+            ...(existingUser.user_metadata ?? {}),
+            first_name: validated.first_name,
+            last_name: validated.last_name,
+            invited_as_contributor: true,
+          },
+        }),
       });
+      if (!updateRes.ok) {
+        const errText = await updateRes.text();
+        console.error('[INVITE-CONTRIBUTOR] Admin updateUser failed:', errText);
+      } else {
+        console.log('[INVITE-CONTRIBUTOR] Existing user confirmed + metadata stamped');
+      }
 
       // Check if password has been set yet
       const { data: profileData } = await supabaseAdmin
@@ -131,59 +148,71 @@ serve(async (req: Request) => {
 
       if (!profileData?.password_set) {
         // No password yet — generate magic link pointing to create-password
-        const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
-          type: 'magiclink',
-          email: validated.contributor_email,
-          options: {
-            redirectTo: `https://www.getassetsafe.com/auth/callback?type=magiclink&redirect_to=${encodeURIComponent('/welcome/create-password')}`,
-          },
+        const genRes = await fetch(`${supabaseUrl}/auth/v1/admin/generate_link`, {
+          method: 'POST',
+          headers: adminHeaders,
+          body: JSON.stringify({
+            type: 'magiclink',
+            email: validated.contributor_email,
+            options: {
+              redirectTo: `https://www.getassetsafe.com/auth/callback?type=magiclink&redirect_to=${encodeURIComponent('/welcome/create-password')}`,
+            },
+          }),
         });
-        if (linkError || !linkData?.properties?.action_link) {
-          console.error('[INVITE-CONTRIBUTOR] generateLink error (existing user):', linkError);
+        const genData = await genRes.json();
+        if (!genRes.ok || !genData?.action_link) {
+          console.error('[INVITE-CONTRIBUTOR] generateLink error (existing user):', genData);
           inviteLink = fallbackLink;
         } else {
-          inviteLink = linkData.properties.action_link;
+          inviteLink = genData.action_link;
           console.log('[INVITE-CONTRIBUTOR] Magic link generated for existing unconfirmed user');
         }
       } else {
-        // Password already set — send to sign-in page
         inviteLink = fallbackLink;
         console.log('[INVITE-CONTRIBUTOR] Existing user already has password, sending sign-in link');
       }
     } else {
-      // New user: createUser with email_confirm: true so email_confirmed_at is stamped
-      // immediately — this prevents updateUser({ password }) from triggering a
-      // verification email later in the create-password flow.
-      const { data: newUserData, error: createError } = await supabaseAdmin.auth.admin.createUser({
-        email: validated.contributor_email,
-        email_confirm: true,
-        user_metadata: {
-          first_name: validated.first_name,
-          last_name: validated.last_name,
-          invited_as_contributor: true,
-        },
+      // New user: createUser with email_confirm: true via direct REST API
+      const createRes = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
+        method: 'POST',
+        headers: adminHeaders,
+        body: JSON.stringify({
+          email: validated.contributor_email,
+          email_confirm: true,
+          user_metadata: {
+            first_name: validated.first_name,
+            last_name: validated.last_name,
+            invited_as_contributor: true,
+          },
+        }),
       });
+      const newUserData = await createRes.json();
 
-      if (createError) {
-        console.error('[INVITE-CONTRIBUTOR] createUser error:', createError);
+      if (!createRes.ok) {
+        console.error('[INVITE-CONTRIBUTOR] createUser REST error:', newUserData);
         inviteLink = fallbackLink;
       } else {
-        console.log('[INVITE-CONTRIBUTOR] New user created with email_confirm:true, id:', newUserData?.user?.id);
+        console.log('[INVITE-CONTRIBUTOR] New user created with email_confirm:true, id:', newUserData?.id);
 
         // Generate a magic link so the contributor can sign in without a password
-        const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
-          type: 'magiclink',
-          email: validated.contributor_email,
-          options: {
-            redirectTo: `https://www.getassetsafe.com/auth/callback?type=magiclink&redirect_to=${encodeURIComponent('/welcome/create-password')}`,
-          },
+        const genRes = await fetch(`${supabaseUrl}/auth/v1/admin/generate_link`, {
+          method: 'POST',
+          headers: adminHeaders,
+          body: JSON.stringify({
+            type: 'magiclink',
+            email: validated.contributor_email,
+            options: {
+              redirectTo: `https://www.getassetsafe.com/auth/callback?type=magiclink&redirect_to=${encodeURIComponent('/welcome/create-password')}`,
+            },
+          }),
         });
+        const genData = await genRes.json();
 
-        if (linkError || !linkData?.properties?.action_link) {
-          console.error('[INVITE-CONTRIBUTOR] generateLink error:', linkError);
+        if (!genRes.ok || !genData?.action_link) {
+          console.error('[INVITE-CONTRIBUTOR] generateLink REST error:', genData);
           inviteLink = fallbackLink;
         } else {
-          inviteLink = linkData.properties.action_link;
+          inviteLink = genData.action_link;
           console.log('[INVITE-CONTRIBUTOR] Magic link generated successfully');
         }
       }
