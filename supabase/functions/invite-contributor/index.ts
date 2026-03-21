@@ -105,11 +105,51 @@ serve(async (req: Request) => {
     const existingUser = userLookupData?.users?.[0] ?? null;
 
     let inviteLink: string;
+    const fallbackLink = `https://www.getassetsafe.com/auth?mode=contributor&email=${encodeURIComponent(validated.contributor_email)}`;
 
     if (existingUser) {
-      // Existing user: just send branded email with sign-in link
-      inviteLink = `https://www.getassetsafe.com/auth?mode=contributor&email=${encodeURIComponent(validated.contributor_email)}`;
-      console.log('[INVITE-CONTRIBUTOR] Existing user, sending sign-in link');
+      // Existing user path: stamp email_confirm + invited_as_contributor metadata
+      // This handles ghost unconfirmed records that were created before the fix was deployed.
+      console.log('[INVITE-CONTRIBUTOR] Existing user found, stamping confirmation + contributor metadata');
+
+      await supabaseAdmin.auth.admin.updateUser(existingUser.id, {
+        email_confirm: true, // idempotent — safe even if already confirmed
+        user_metadata: {
+          ...(existingUser.user_metadata ?? {}),
+          first_name: validated.first_name,
+          last_name: validated.last_name,
+          invited_as_contributor: true,
+        },
+      });
+
+      // Check if password has been set yet
+      const { data: profileData } = await supabaseAdmin
+        .from('profiles')
+        .select('password_set')
+        .eq('user_id', existingUser.id)
+        .maybeSingle();
+
+      if (!profileData?.password_set) {
+        // No password yet — generate magic link pointing to create-password
+        const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+          type: 'magiclink',
+          email: validated.contributor_email,
+          options: {
+            redirectTo: `https://www.getassetsafe.com/auth/callback?type=magiclink&redirect_to=${encodeURIComponent('/welcome/create-password')}`,
+          },
+        });
+        if (linkError || !linkData?.properties?.action_link) {
+          console.error('[INVITE-CONTRIBUTOR] generateLink error (existing user):', linkError);
+          inviteLink = fallbackLink;
+        } else {
+          inviteLink = linkData.properties.action_link;
+          console.log('[INVITE-CONTRIBUTOR] Magic link generated for existing unconfirmed user');
+        }
+      } else {
+        // Password already set — send to sign-in page
+        inviteLink = fallbackLink;
+        console.log('[INVITE-CONTRIBUTOR] Existing user already has password, sending sign-in link');
+      }
     } else {
       // New user: createUser with email_confirm: true so email_confirmed_at is stamped
       // immediately — this prevents updateUser({ password }) from triggering a
@@ -126,8 +166,7 @@ serve(async (req: Request) => {
 
       if (createError) {
         console.error('[INVITE-CONTRIBUTOR] createUser error:', createError);
-        // Fall back to regular sign-in link if creation fails
-        inviteLink = `https://www.getassetsafe.com/auth?mode=contributor&email=${encodeURIComponent(validated.contributor_email)}`;
+        inviteLink = fallbackLink;
       } else {
         console.log('[INVITE-CONTRIBUTOR] New user created with email_confirm:true, id:', newUserData?.user?.id);
 
@@ -142,7 +181,7 @@ serve(async (req: Request) => {
 
         if (linkError || !linkData?.properties?.action_link) {
           console.error('[INVITE-CONTRIBUTOR] generateLink error:', linkError);
-          inviteLink = `https://www.getassetsafe.com/auth?mode=contributor&email=${encodeURIComponent(validated.contributor_email)}`;
+          inviteLink = fallbackLink;
         } else {
           inviteLink = linkData.properties.action_link;
           console.log('[INVITE-CONTRIBUTOR] Magic link generated successfully');
@@ -167,12 +206,9 @@ serve(async (req: Request) => {
 
     const roleDescription = getRoleDescription(validated.role);
 
-    // For existing users, the email says "sign in". For new users, Supabase already sent
-    // the magic link email via the auth hook. We still send branded email as a nice notification.
-    const actionText = existingUser ? 'Sign In to Accept' : 'Accept Invitation';
-    const instructionText = existingUser
-      ? 'You already have an Asset Safe account. Simply sign in to accept this invitation and start collaborating.'
-      : 'You\'ll receive a separate email with a secure link to set up your account. Click that link to get started, or use the button below.';
+    // Both new and existing users get a magic link in the branded email.
+    const actionText = 'Accept Invitation';
+    const instructionText = 'Click the secure button below to accept your invitation and set up your account. This link is single-use and expires shortly — use it promptly.';
 
     await resend.emails.send({
       from: "AssetSafe <invitations@assetsafe.net>",

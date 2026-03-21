@@ -76,12 +76,13 @@ const CreatePassword = () => {
       const { error: pwError } = await supabase.auth.updateUser({ password });
       if (pwError) throw pwError;
 
-      // Check if this user is an invited contributor — if so, copy their name from the contributors table
+      // Check if this user is an invited contributor — if so, copy their name from the contributors table.
+      // Also check 'pending' status because accept-contributor-invitation may not have run yet at this point.
       const { data: contribRecord } = await supabase
         .from('contributors')
         .select('first_name, last_name')
         .eq('contributor_email', user!.email as string)
-        .eq('status', 'accepted')
+        .in('status', ['accepted', 'pending'])
         .maybeSingle();
 
       const profileUpdate: Record<string, unknown> = { password_set: true, onboarding_complete: true };
