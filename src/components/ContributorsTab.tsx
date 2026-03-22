@@ -326,14 +326,6 @@ const ContributorsTab: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Legacy Locker Access Notice */}
-          <Alert className="border-amber-200 bg-amber-50">
-            <Lock className="h-4 w-4 text-amber-600" />
-            <AlertDescription className="text-sm text-amber-900">
-              <strong>Legacy Locker Access:</strong> Only users with the Administrator role can access the Legacy Locker section. 
-              Viewers and users with Contributor access will see the section but cannot view its contents.
-            </AlertDescription>
-          </Alert>
           
           {/* Show current usage */}
           <div className="bg-muted/30 rounded-lg p-3 mb-4">

@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Shield, Users, Eye, Lock, UserPlus, Clock } from 'lucide-react';
+import { Shield, Users, Eye, Lock, UserPlus, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useActivityLog, ActivityLogEntry } from '@/hooks/useActivityLog';
 import { formatDistanceToNow } from 'date-fns';
 import ContributorsTab from '@/components/ContributorsTab';
