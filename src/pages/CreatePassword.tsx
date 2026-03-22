@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, Eye, EyeOff, MailOpen } from 'lucide-react';
 
@@ -13,10 +14,13 @@ const CreatePassword = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const [linkExpired, setLinkExpired] = useState(false);
@@ -40,6 +44,21 @@ const CreatePassword = () => {
     }
   }, [loading, profile, navigate]);
 
+  // Pre-fill name from contributors table (invited user flow)
+  useEffect(() => {
+    if (!user?.email) return;
+    supabase
+      .from('contributors')
+      .select('first_name, last_name')
+      .eq('contributor_email', user.email)
+      .in('status', ['pending', 'accepted'])
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.first_name) setFirstName(data.first_name);
+        if (data?.last_name) setLastName(data.last_name);
+      });
+  }, [user]);
+
   const handleResend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!resendEmail) {
@@ -62,6 +81,10 @@ const CreatePassword = () => {
   };
 
   const handleFinish = async () => {
+    if (!firstName.trim() || !lastName.trim()) {
+      toast({ title: 'Name required', description: 'Please enter your first and last name.', variant: 'destructive' });
+      return;
+    }
     if (password.length < 8) {
       toast({ title: 'Password too short', description: 'Password must be at least 8 characters.', variant: 'destructive' });
       return;
@@ -70,24 +93,35 @@ const CreatePassword = () => {
       toast({ title: 'Passwords do not match', description: 'Please make sure both fields match.', variant: 'destructive' });
       return;
     }
+    if (!termsAccepted) {
+      toast({ title: 'Terms required', description: 'Please accept the Terms of Service to continue.', variant: 'destructive' });
+      return;
+    }
 
     setSubmitting(true);
     try {
       const { error: pwError } = await supabase.auth.updateUser({ password });
       if (pwError) throw pwError;
 
-      // Check if this user is an invited contributor — if so, copy their name from the contributors table.
-      // Also check 'pending' status because accept-contributor-invitation may not have run yet at this point.
-      const { data: contribRecord } = await supabase
-        .from('contributors')
-        .select('first_name, last_name')
-        .eq('contributor_email', user!.email as string)
-        .in('status', ['accepted', 'pending'])
-        .maybeSingle();
+      // Accept any pending contributor invitations (idempotent — safe to call again)
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          await supabase.functions.invoke('accept-contributor-invitation', {
+            headers: { Authorization: `Bearer ${session.access_token}` },
+          });
+        }
+      } catch (e) {
+        // Non-fatal — contributor acceptance also runs in AuthCallback
+        console.warn('[CreatePassword] accept-contributor-invitation error (non-fatal):', e);
+      }
 
-      const profileUpdate: Record<string, unknown> = { password_set: true, onboarding_complete: true };
-      if (contribRecord?.first_name) profileUpdate.first_name = contribRecord.first_name;
-      if (contribRecord?.last_name) profileUpdate.last_name = contribRecord.last_name;
+      const profileUpdate: Record<string, unknown> = {
+        password_set: true,
+        onboarding_complete: true,
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+      };
 
       const { error: profileError } = await supabase
         .from('profiles')
@@ -176,14 +210,49 @@ const CreatePassword = () => {
             <Shield className="w-7 h-7 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Secure your account</h1>
+            <h1 className="text-2xl font-bold text-foreground">Complete your account</h1>
             <p className="mt-1 text-muted-foreground text-sm">
-              Choose a password to protect your Asset Safe account.
+              Confirm your name, create a password, and accept the terms to get started.
             </p>
           </div>
         </div>
 
         <div className="space-y-4">
+          {/* Name fields */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="first-name">First name</Label>
+              <Input
+                id="first-name"
+                type="text"
+                value={firstName}
+                onChange={e => setFirstName(e.target.value)}
+                placeholder="Jane"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="last-name">Last name</Label>
+              <Input
+                id="last-name"
+                type="text"
+                value={lastName}
+                onChange={e => setLastName(e.target.value)}
+                placeholder="Smith"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Email (read-only) */}
+          {user?.email && (
+            <div className="space-y-2">
+              <Label>Email</Label>
+              <Input value={user.email} disabled className="opacity-60 cursor-not-allowed" />
+            </div>
+          )}
+
+          {/* Password */}
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <div className="relative">
@@ -233,7 +302,32 @@ const CreatePassword = () => {
             </div>
           </div>
 
-          <Button className="w-full" size="lg" onClick={handleFinish} disabled={submitting}>
+          {/* Terms acceptance */}
+          <div className="flex items-start gap-3 pt-1">
+            <Checkbox
+              id="terms"
+              checked={termsAccepted}
+              onCheckedChange={v => setTermsAccepted(v === true)}
+              className="mt-0.5"
+            />
+            <Label htmlFor="terms" className="text-sm leading-relaxed cursor-pointer">
+              I agree to the{' '}
+              <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:no-underline">
+                Terms of Service
+              </a>{' '}
+              and{' '}
+              <a href="/legal" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:no-underline">
+                Privacy Policy
+              </a>
+            </Label>
+          </div>
+
+          <Button
+            className="w-full"
+            size="lg"
+            onClick={handleFinish}
+            disabled={submitting || !termsAccepted}
+          >
             {submitting ? 'Setting up...' : 'Go to Dashboard'}
           </Button>
         </div>

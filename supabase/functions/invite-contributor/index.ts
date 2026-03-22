@@ -15,6 +15,8 @@ const inviteSchema = z.object({
   last_name: z.string().trim().min(1).max(100),
   role: z.enum(['administrator', 'contributor', 'viewer']),
   redirect_url: z.string().url().optional(),
+  // When true, skip the DB insert (used by resend flow to avoid duplicate constraint)
+  resend: z.boolean().optional().default(false),
 });
 
 const escapeHtml = (str: string): string => {
@@ -70,42 +72,28 @@ serve(async (req: Request) => {
       ? `${callerProfile.first_name || ''} ${callerProfile.last_name || ''}`.trim() || callerUser.email
       : callerUser.email;
 
-    // 1. Insert contributor record
-    const { error: dbError } = await supabaseAdmin
-      .from('contributors')
-      .insert({
-        account_owner_id: callerUser.id,
-        contributor_email: validated.contributor_email,
-        first_name: validated.first_name,
-        last_name: validated.last_name,
-        role: validated.role,
-        status: 'pending',
-      });
-
-    if (dbError) {
-      if (dbError.code === '23505') {
-        return new Response(JSON.stringify({ error: 'This email is already invited as a contributor', code: 'DUPLICATE' }), {
-          status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    // 1. Insert contributor record (skip on resend to avoid duplicate constraint)
+    if (!validated.resend) {
+      const { error: dbError } = await supabaseAdmin
+        .from('contributors')
+        .insert({
+          account_owner_id: callerUser.id,
+          contributor_email: validated.contributor_email,
+          first_name: validated.first_name,
+          last_name: validated.last_name,
+          role: validated.role,
+          status: 'pending',
         });
+
+      if (dbError) {
+        if (dbError.code === '23505') {
+          return new Response(JSON.stringify({ error: 'This email is already invited as a contributor', code: 'DUPLICATE' }), {
+            status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        throw dbError;
       }
-      throw dbError;
     }
-
-    // 2. Check if user already exists — use direct REST API fetch to bypass SDK version limitations
-    const userLookupRes = await fetch(
-      `${Deno.env.get('SUPABASE_URL')}/auth/v1/admin/users?email=${encodeURIComponent(validated.contributor_email)}&page=1&per_page=1`,
-      {
-        headers: {
-          Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
-          apikey: Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-        },
-      }
-    );
-    const userLookupData = await userLookupRes.json();
-    const existingUser = userLookupData?.users?.[0] ?? null;
-
-    let inviteLink: string;
-    const fallbackLink = `https://www.getassetsafe.com/auth?mode=contributor&email=${encodeURIComponent(validated.contributor_email)}`;
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -115,113 +103,100 @@ serve(async (req: Request) => {
       'Content-Type': 'application/json',
     };
 
-    if (existingUser) {
-      // Existing user path: stamp email_confirm + invited_as_contributor via direct REST API
-      console.log('[INVITE-CONTRIBUTOR] Existing user found, stamping confirmation + contributor metadata');
+    let inviteLink: string;
+    const fallbackLink = `https://www.getassetsafe.com/auth?mode=contributor&email=${encodeURIComponent(validated.contributor_email)}`;
 
-      const updateRes = await fetch(`${supabaseUrl}/auth/v1/admin/users/${existingUser.id}`, {
-        method: 'PUT',
-        headers: adminHeaders,
-        body: JSON.stringify({
-          email_confirm: true,
-          user_metadata: {
-            ...(existingUser.user_metadata ?? {}),
-            first_name: validated.first_name,
-            last_name: validated.last_name,
-            invited_as_contributor: true,
-          },
-        }),
-      });
-      if (!updateRes.ok) {
-        const errText = await updateRes.text();
-        console.error('[INVITE-CONTRIBUTOR] Admin updateUser failed:', errText);
-      } else {
-        console.log('[INVITE-CONTRIBUTOR] Existing user confirmed + metadata stamped');
-      }
+    // 2. Use Supabase native invite endpoint (POST /auth/v1/admin/invite)
+    //    - Creates or re-invites a user with email_confirmed_at already set
+    //    - Returns action_link (the real one-time invite URL)
+    //    - Supabase fires send-auth-email with type=invite → suppressed in send-auth-email hook
+    //    - We then send our own branded email with the action_link
+    //    - When user clicks, they land in an authenticated session via /auth/callback
+    //    - updateUser({ password }) in CreatePassword does NOT re-trigger signup hooks
+    //      because Supabase treats the user as having gone through the invite lifecycle
+    console.log('[INVITE-CONTRIBUTOR] Using native invite endpoint for:', validated.contributor_email);
 
-      // Check if password has been set yet
-      const { data: profileData } = await supabaseAdmin
-        .from('profiles')
-        .select('password_set')
-        .eq('user_id', existingUser.id)
-        .maybeSingle();
+    const inviteRes = await fetch(`${supabaseUrl}/auth/v1/admin/invite`, {
+      method: 'POST',
+      headers: adminHeaders,
+      body: JSON.stringify({
+        email: validated.contributor_email,
+        data: {
+          first_name: validated.first_name,
+          last_name: validated.last_name,
+          invited_as_contributor: true,
+        },
+        redirect_to: 'https://www.getassetsafe.com/auth/callback',
+      }),
+    });
 
-      if (!profileData?.password_set) {
-        // No password yet — generate magic link.
-        // redirectTo MUST be just the callback URL — Supabase appends the session
-        // as a hash fragment automatically. Do NOT include query params here or
-        // Supabase will concatenate them onto the site URL and produce a broken double-URL.
-        const genRes = await fetch(`${supabaseUrl}/auth/v1/admin/generate_link`, {
-          method: 'POST',
-          headers: adminHeaders,
-          body: JSON.stringify({
-            type: 'magiclink',
-            email: validated.contributor_email,
-            options: {
-              redirectTo: 'https://www.getassetsafe.com/auth/callback',
-            },
-          }),
-        });
-        const genData = await genRes.json();
-        if (!genRes.ok || !genData?.action_link) {
-          console.error('[INVITE-CONTRIBUTOR] generateLink error (existing user):', genData);
-          inviteLink = fallbackLink;
+    const inviteData = await inviteRes.json();
+
+    if (!inviteRes.ok) {
+      console.error('[INVITE-CONTRIBUTOR] Native invite endpoint error:', inviteData);
+      // If user already exists with a confirmed account, fall back to a magic link
+      // so they can sign in and access the shared workspace
+      const isAlreadyRegistered = inviteData?.msg?.includes('already registered') ||
+        inviteData?.error_description?.includes('already registered') ||
+        inviteData?.code === 'email_exists';
+
+      if (isAlreadyRegistered) {
+        console.log('[INVITE-CONTRIBUTOR] User already registered, checking if password set');
+        // Look up existing user to check password_set
+        const userLookupRes = await fetch(
+          `${supabaseUrl}/auth/v1/admin/users?email=${encodeURIComponent(validated.contributor_email)}&page=1&per_page=1`,
+          { headers: { Authorization: `Bearer ${serviceRoleKey}`, apikey: serviceRoleKey } }
+        );
+        const userLookupData = await userLookupRes.json();
+        const existingUser = userLookupData?.users?.[0] ?? null;
+
+        if (existingUser) {
+          // Update metadata to mark as contributor
+          await fetch(`${supabaseUrl}/auth/v1/admin/users/${existingUser.id}`, {
+            method: 'PUT',
+            headers: adminHeaders,
+            body: JSON.stringify({
+              email_confirm: true,
+              user_metadata: {
+                ...(existingUser.user_metadata ?? {}),
+                invited_as_contributor: true,
+              },
+            }),
+          });
+
+          const { data: profileData } = await supabaseAdmin
+            .from('profiles')
+            .select('password_set')
+            .eq('user_id', existingUser.id)
+            .maybeSingle();
+
+          if (!profileData?.password_set) {
+            // Generate magic link for existing unconfirmed user
+            const genRes = await fetch(`${supabaseUrl}/auth/v1/admin/generate_link`, {
+              method: 'POST',
+              headers: adminHeaders,
+              body: JSON.stringify({
+                type: 'magiclink',
+                email: validated.contributor_email,
+                options: { redirectTo: 'https://www.getassetsafe.com/auth/callback' },
+              }),
+            });
+            const genData = await genRes.json();
+            inviteLink = genData?.action_link ?? fallbackLink;
+            console.log('[INVITE-CONTRIBUTOR] Magic link generated for existing user without password');
+          } else {
+            inviteLink = fallbackLink;
+            console.log('[INVITE-CONTRIBUTOR] Existing confirmed user, sending sign-in link');
+          }
         } else {
-          inviteLink = genData.action_link;
-          console.log('[INVITE-CONTRIBUTOR] Magic link generated for existing unconfirmed user');
+          inviteLink = fallbackLink;
         }
       } else {
         inviteLink = fallbackLink;
-        console.log('[INVITE-CONTRIBUTOR] Existing user already has password, sending sign-in link');
       }
     } else {
-      // New user: createUser with email_confirm: true via direct REST API
-      const createRes = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
-        method: 'POST',
-        headers: adminHeaders,
-        body: JSON.stringify({
-          email: validated.contributor_email,
-          email_confirm: true,
-          user_metadata: {
-            first_name: validated.first_name,
-            last_name: validated.last_name,
-            invited_as_contributor: true,
-          },
-        }),
-      });
-      const newUserData = await createRes.json();
-
-      if (!createRes.ok) {
-        console.error('[INVITE-CONTRIBUTOR] createUser REST error:', newUserData);
-        inviteLink = fallbackLink;
-      } else {
-        console.log('[INVITE-CONTRIBUTOR] New user created with email_confirm:true, id:', newUserData?.id);
-
-        // Generate a magic link so the contributor can sign in without a password.
-        // redirectTo MUST be just the callback URL — Supabase appends the session
-        // as a hash fragment automatically. AuthCallback routes to /welcome/create-password
-        // based on profile.password_set being false.
-        const genRes = await fetch(`${supabaseUrl}/auth/v1/admin/generate_link`, {
-          method: 'POST',
-          headers: adminHeaders,
-          body: JSON.stringify({
-            type: 'magiclink',
-            email: validated.contributor_email,
-            options: {
-              redirectTo: 'https://www.getassetsafe.com/auth/callback',
-            },
-          }),
-        });
-        const genData = await genRes.json();
-
-        if (!genRes.ok || !genData?.action_link) {
-          console.error('[INVITE-CONTRIBUTOR] generateLink REST error:', genData);
-          inviteLink = fallbackLink;
-        } else {
-          inviteLink = genData.action_link;
-          console.log('[INVITE-CONTRIBUTOR] Magic link generated successfully');
-        }
-      }
+      inviteLink = inviteData?.action_link ?? fallbackLink;
+      console.log('[INVITE-CONTRIBUTOR] Native invite link obtained successfully');
     }
 
     // 3. Send branded invitation email via Resend
@@ -240,10 +215,6 @@ serve(async (req: Request) => {
     };
 
     const roleDescription = getRoleDescription(validated.role);
-
-    // Both new and existing users get a magic link in the branded email.
-    const actionText = 'Accept Invitation';
-    const instructionText = 'Click the secure button below to accept your invitation and set up your account. This link is single-use and expires shortly — use it promptly.';
 
     await resend.emails.send({
       from: "AssetSafe <invitations@assetsafe.net>",
@@ -268,13 +239,13 @@ serve(async (req: Request) => {
             </div>
             
             <p style="color: #374151; line-height: 1.6; margin-bottom: 30px;">
-              ${instructionText}
+              Click the secure button below to accept your invitation and set up your account. This link is single-use and expires shortly — use it promptly.
             </p>
             
             <div style="text-align: center; margin: 30px 0;">
               <a href="${inviteLink}" 
                  style="background-color: #1e40af; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">
-                ${actionText}
+                Accept Invitation
               </a>
             </div>
             
@@ -295,8 +266,8 @@ serve(async (req: Request) => {
 
     return new Response(JSON.stringify({
       success: true,
-      message: existingUser ? 'Invitation sent (existing user)' : 'Invitation sent (new user created)',
-      isExistingUser: !!existingUser,
+      message: validated.resend ? 'Invitation resent' : 'Invitation sent',
+      isResend: validated.resend,
     }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -320,4 +291,3 @@ serve(async (req: Request) => {
     });
   }
 });
-
