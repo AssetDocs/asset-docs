@@ -189,38 +189,26 @@ const ContributorsTab: React.FC = () => {
     }
   };
 
-  const resendInvitation = async (contributorId: string, email: string, role: 'administrator' | 'contributor' | 'viewer') => {
+  const resendInvitation = async (contributorId: string, contributorEmail: string, role: 'administrator' | 'contributor' | 'viewer') => {
     setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-
-    // Get user's profile information for the invitation email
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('first_name, last_name')
-      .eq('user_id', user.id)
-      .single();
-
-    const inviterName = profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : user.email;
-
     try {
-      const { error } = await supabase.functions.invoke('send-contributor-invitation', {
+      // Find the contributor record to get the name for the resend
+      const contributor = contributors.find(c => c.id === contributorId);
+      const { data, error } = await supabase.functions.invoke('invite-contributor', {
         body: {
-          contributor_email: email,
-          contributor_role: role,
-          inviter_name: inviterName,
-          inviter_email: user.email,
-        }
+          contributor_email: contributorEmail,
+          first_name: contributor?.first_name ?? '',
+          last_name: contributor?.last_name ?? '',
+          role,
+          resend: true, // skip DB insert — record already exists
+        },
       });
 
       if (error) throw error;
 
       toast({
         title: "Invitation Resent",
-        description: `Invitation email has been resent to ${email}`,
+        description: `A new invitation link has been sent to ${contributorEmail}`,
       });
     } catch (error) {
       console.error('Error resending invitation:', error);
