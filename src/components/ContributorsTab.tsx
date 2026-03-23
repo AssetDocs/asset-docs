@@ -500,42 +500,6 @@ const ContributorsTab: React.FC = () => {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Role Permissions</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 border rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <Shield className="h-5 w-5 text-red-600" />
-                <h4 className="font-semibold">Administrator</h4>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Full access to all account features, including Legacy Locker and managing other contributors
-              </p>
-            </div>
-            <div className="p-4 border rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <Users className="h-5 w-5 text-blue-600" />
-                <h4 className="font-semibold">Contributor</h4>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Can view, upload, and manage files but cannot access Legacy Locker, manage contributors, or change account settings
-              </p>
-            </div>
-            <div className="p-4 border rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <Eye className="h-5 w-5 text-green-600" />
-                <h4 className="font-semibold">Viewer</h4>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Read-only access for sharing account overviews. Cannot access Legacy Locker, upload, download, or delete files
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
     </PremiumFeatureGate>
   );
