@@ -68,7 +68,7 @@ const AccessActivitySection: React.FC = () => {
                   <ul className="text-sm text-muted-foreground space-y-1.5">
                     <li className="flex items-start gap-1 font-medium text-destructive">
                       <Lock className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                      Only role eligible as a Trusted Delegate for the Legacy Locker
+                        Only role eligible as a Trusted Delegate for secure vault — Legacy Locker &amp; Digital Access
                     </li>
                     <li>• Full access to all account features</li>
                     <li>• Can manage other authorized users</li>
@@ -76,7 +76,7 @@ const AccessActivitySection: React.FC = () => {
                     <li className="flex items-start gap-1 pt-1 border-t border-destructive/10 mt-1">
                       <KeyRound className="h-3 w-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
                       <span>
-                        <strong className="text-foreground">Secure Vault access</strong> (Password Catalog &amp; Legacy Locker) is granted only when the account owner enables it — and requires passing an MFA challenge and entering the Master Password. The owner can revoke this access at any time from their vault settings.
+                        <strong className="text-foreground">Secure Vault access</strong> (Digital Access &amp; Legacy Locker) is granted only when the account owner enables it — and requires passing an MFA challenge and entering the Master Password. The owner can revoke this access at any time from their vault settings.
                       </span>
                     </li>
                   </ul>
@@ -93,8 +93,8 @@ const AccessActivitySection: React.FC = () => {
                   <ul className="text-sm text-muted-foreground space-y-1.5">
                     <li>• Can view, upload, and manage files</li>
                     <li>• Can add inventory items and documents</li>
+                    <li>• Cannot access Digital Access</li>
                     <li>• Cannot access the Legacy Locker</li>
-                    <li>• Cannot access the Password Catalog</li>
                     <li>• Cannot manage other authorized users</li>
                     <li>• Cannot change account or billing settings</li>
                   </ul>
@@ -112,7 +112,7 @@ const AccessActivitySection: React.FC = () => {
                     <li>• Read-only access to the account</li>
                     <li>• Can browse asset documentation</li>
                     <li>• Cannot access the Legacy Locker</li>
-                    <li>• Cannot access the Password Catalog</li>
+                    <li>• Cannot access Digital Access</li>
                     <li>• Cannot upload, download, or delete files</li>
                     <li>• Cannot change any settings</li>
                   </ul>
