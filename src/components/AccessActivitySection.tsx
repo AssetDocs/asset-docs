@@ -68,7 +68,7 @@ const AccessActivitySection: React.FC = () => {
                   <ul className="text-sm text-muted-foreground space-y-1.5">
                     <li className="flex items-start gap-1 font-medium text-destructive">
                       <Lock className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                      Only role eligible as a Trusted Delegate for the Legacy Locker
+                        Only role eligible as a Trusted Delegate for secure vault — Legacy Locker &amp; Digital Access
                     </li>
                     <li>• Full access to all account features</li>
                     <li>• Can manage other authorized users</li>
