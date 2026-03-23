@@ -93,8 +93,8 @@ const AccessActivitySection: React.FC = () => {
                   <ul className="text-sm text-muted-foreground space-y-1.5">
                     <li>• Can view, upload, and manage files</li>
                     <li>• Can add inventory items and documents</li>
+                    <li>• Cannot access Digital Access</li>
                     <li>• Cannot access the Legacy Locker</li>
-                    <li>• Cannot access the Password Catalog</li>
                     <li>• Cannot manage other authorized users</li>
                     <li>• Cannot change account or billing settings</li>
                   </ul>
