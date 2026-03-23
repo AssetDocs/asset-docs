@@ -76,7 +76,7 @@ const AccessActivitySection: React.FC = () => {
                     <li className="flex items-start gap-1 pt-1 border-t border-destructive/10 mt-1">
                       <KeyRound className="h-3 w-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
                       <span>
-                        <strong className="text-foreground">Secure Vault access</strong> (Password Catalog &amp; Legacy Locker) is granted only when the account owner enables it — and requires passing an MFA challenge and entering the Master Password. The owner can revoke this access at any time from their vault settings.
+                        <strong className="text-foreground">Secure Vault access</strong> (Digital Access &amp; Legacy Locker) is granted only when the account owner enables it — and requires passing an MFA challenge and entering the Master Password. The owner can revoke this access at any time from their vault settings.
                       </span>
                     </li>
                   </ul>
