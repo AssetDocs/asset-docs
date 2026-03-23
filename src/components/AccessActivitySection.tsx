@@ -112,7 +112,7 @@ const AccessActivitySection: React.FC = () => {
                     <li>• Read-only access to the account</li>
                     <li>• Can browse asset documentation</li>
                     <li>• Cannot access the Legacy Locker</li>
-                    <li>• Cannot access the Password Catalog</li>
+                    <li>• Cannot access Digital Access</li>
                     <li>• Cannot upload, download, or delete files</li>
                     <li>• Cannot change any settings</li>
                   </ul>
