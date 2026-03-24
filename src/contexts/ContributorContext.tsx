@@ -45,8 +45,70 @@ export const ContributorProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [ownerName, setOwnerName] = useState('');
   const [loading, setLoading] = useState(true);
 
+  const fetchContributorStatus = async () => {
+      if (!user) {
+        setIsContributor(false);
+        setContributorRole(null);
+        setAccountOwnerId(null);
+        setContributorName('');
+        setOwnerName('');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const { data: contributorData, error } = await supabase
+          .from('contributors')
+          .select('account_owner_id, first_name, last_name, role')
+          .eq('contributor_user_id', user.id)
+          .eq('status', 'accepted')
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error fetching contributor status:', error);
+          setLoading(false);
+          return;
+        }
+
+        if (contributorData) {
+          setIsContributor(true);
+          setContributorRole(contributorData.role as ContributorRole);
+          setAccountOwnerId(contributorData.account_owner_id);
+          setContributorName(
+            `${contributorData.first_name || ''} ${contributorData.last_name || ''}`.trim()
+          );
+
+          const { data: ownerProfile } = await supabase
+            .from('profiles')
+            .select('first_name, last_name')
+            .eq('user_id', contributorData.account_owner_id)
+            .single();
+
+          if (ownerProfile) {
+            setOwnerName(
+              `${ownerProfile.first_name || ''} ${ownerProfile.last_name || ''}`.trim()
+            );
+          }
+        } else {
+          setIsContributor(false);
+          setContributorRole(null);
+          setAccountOwnerId(null);
+          setContributorName('');
+          setOwnerName('');
+        }
+      } catch (error) {
+        console.error('Error in contributor status check:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+  const refreshContributor = async () => {
+    await fetchContributorStatus();
+  };
+
   useEffect(() => {
-    const fetchContributorStatus = async () => {
+    const runFetch = async () => {
       if (!user) {
         setIsContributor(false);
         setContributorRole(null);
