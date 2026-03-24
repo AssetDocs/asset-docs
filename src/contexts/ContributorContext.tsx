@@ -160,6 +160,7 @@ export const ContributorProvider: React.FC<{ children: React.ReactNode }> = ({ c
         loading,
         showViewerRestriction,
         showContributorRestriction,
+        refreshContributor,
       }}
     >
       {children}
