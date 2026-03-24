@@ -22,6 +22,7 @@ interface ContributorContextType {
   loading: boolean;
   showViewerRestriction: () => void;
   showContributorRestriction: () => void;
+  refreshContributor: () => Promise<void>;
 }
 
 const ContributorContext = createContext<ContributorContextType | undefined>(undefined);
