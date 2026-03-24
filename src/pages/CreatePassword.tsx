@@ -12,6 +12,7 @@ import { Shield, Eye, EyeOff, MailOpen } from 'lucide-react';
 
 const CreatePassword = () => {
   const { user, profile, loading, refreshProfile } = useAuth();
+  const { refreshContributor } = useContributor();
   const navigate = useNavigate();
   const { toast } = useToast();
 
