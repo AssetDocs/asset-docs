@@ -22,6 +22,7 @@ interface ContributorContextType {
   loading: boolean;
   showViewerRestriction: () => void;
   showContributorRestriction: () => void;
+  refreshContributor: () => Promise<void>;
 }
 
 const ContributorContext = createContext<ContributorContextType | undefined>(undefined);
@@ -44,8 +45,7 @@ export const ContributorProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [ownerName, setOwnerName] = useState('');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchContributorStatus = async () => {
+  const fetchContributorStatus = async () => {
       if (!user) {
         setIsContributor(false);
         setContributorRole(null);
@@ -57,7 +57,6 @@ export const ContributorProvider: React.FC<{ children: React.ReactNode }> = ({ c
       }
 
       try {
-        // Check if user is a contributor to another account
         const { data: contributorData, error } = await supabase
           .from('contributors')
           .select('account_owner_id, first_name, last_name, role')
@@ -79,7 +78,6 @@ export const ContributorProvider: React.FC<{ children: React.ReactNode }> = ({ c
             `${contributorData.first_name || ''} ${contributorData.last_name || ''}`.trim()
           );
 
-          // Fetch owner's name
           const { data: ownerProfile } = await supabase
             .from('profiles')
             .select('first_name, last_name')
@@ -105,8 +103,14 @@ export const ContributorProvider: React.FC<{ children: React.ReactNode }> = ({ c
       }
     };
 
+  const refreshContributor = async () => {
+    await fetchContributorStatus();
+  };
+
+  useEffect(() => {
     fetchContributorStatus();
-  }, [user]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const isViewer = isContributor && contributorRole === 'viewer';
   const isContributorRole = isContributor && contributorRole === 'contributor';
@@ -156,6 +160,7 @@ export const ContributorProvider: React.FC<{ children: React.ReactNode }> = ({ c
         loading,
         showViewerRestriction,
         showContributorRestriction,
+        refreshContributor,
       }}
     >
       {children}

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useContributor } from '@/contexts/ContributorContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,6 +12,7 @@ import { Shield, Eye, EyeOff, MailOpen } from 'lucide-react';
 
 const CreatePassword = () => {
   const { user, profile, loading, refreshProfile } = useAuth();
+  const { refreshContributor } = useContributor();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -128,6 +130,13 @@ const CreatePassword = () => {
         .update(profileUpdate)
         .eq('user_id', user!.id);
       if (profileError) throw profileError;
+
+      // Refresh the session so the JWT contains email_confirmed_at — without this
+      // the stale token causes ProtectedRoute to block access after updateUser().
+      await supabase.auth.refreshSession();
+
+      // Re-fetch contributor status so isContributor = true before ProtectedRoute evaluates.
+      await refreshContributor();
 
       toast({ title: 'Welcome to Asset Safe!', description: 'Your account is ready.' });
       await refreshProfile();

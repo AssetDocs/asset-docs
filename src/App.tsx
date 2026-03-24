@@ -313,8 +313,11 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
   }
 
   // Check if email is verified — contributors bypass this gate since their email
-  // is pre-confirmed via the magic link invite flow
-  if (!skipSubscriptionCheck && user && !user.email_confirmed_at && !isContributor) {
+  // is pre-confirmed via the magic link invite flow.
+  // Also bypass if user_metadata marks them as an invited contributor — this handles
+  // the JWT-refresh race window where isContributor hasn't re-resolved yet.
+  const isInvitedContributor = !!user?.user_metadata?.invited_as_contributor;
+  if (!skipSubscriptionCheck && user && !user.email_confirmed_at && !isContributor && !isInvitedContributor) {
     return <Navigate to="/welcome" replace />;
   }
 
