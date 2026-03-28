@@ -1,3 +1,14 @@
+/**
+ * ╔══════════════════════════════════════════════════════════════════════╗
+ * ║  CANONICAL AUTHORIZED-USER INVITATION FLOW — DO NOT REVERT        ║
+ * ║                                                                    ║
+ * ║  This function uses a custom token-based invite system.            ║
+ * ║  DO NOT reintroduce Supabase magic links, generate_link, or OTP.  ║
+ * ║  The invite_token lives in the contributors table with no expiry.  ║
+ * ║  User lookup uses the direct Auth Admin REST API (not listUsers). ║
+ * ║  Paired with: complete-contributor-signup, AuthLegacy.tsx          ║
+ * ╚══════════════════════════════════════════════════════════════════════╝
+ */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.51.0';
 import { Resend } from "https://esm.sh/resend@2.0.0";
@@ -110,8 +121,22 @@ serve(async (req: Request) => {
     }
 
     // 2. Ensure user exists in auth (pre-confirmed, no password)
-    const { data: userList } = await supabaseAdmin.auth.admin.listUsers();
-    const existingUser = userList?.users?.find(u => u.email === validated.contributor_email) || null;
+    // Direct REST lookup — avoids listUsers() pagination limit
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    let existingUser: any = null;
+    try {
+      const lookupRes = await fetch(
+        `${supabaseUrl}/auth/v1/admin/users?email=${encodeURIComponent(validated.contributor_email)}`,
+        { headers: { Authorization: `Bearer ${serviceRoleKey}`, apikey: serviceRoleKey } }
+      );
+      if (lookupRes.ok) {
+        const lookupData = await lookupRes.json();
+        existingUser = lookupData?.users?.[0] || null;
+      }
+    } catch (lookupErr) {
+      console.error('[INVITE-CONTRIBUTOR] User lookup failed, will attempt create:', lookupErr);
+    }
 
     if (!existingUser) {
       // Create user via admin API — email_confirm: true so no verification needed

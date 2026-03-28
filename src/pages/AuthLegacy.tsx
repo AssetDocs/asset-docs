@@ -215,6 +215,11 @@ const Auth: React.FC = () => {
     }
   };
 
+  /**
+   * CANONICAL CONTRIBUTOR SIGNUP — Token-based flow via complete-contributor-signup edge function.
+   * DO NOT replace with Supabase magic links, generate_link, or OTP.
+   * Paired with: invite-contributor, complete-contributor-signup edge functions.
+   */
   const handleContributorSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     

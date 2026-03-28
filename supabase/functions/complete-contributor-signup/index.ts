@@ -1,3 +1,14 @@
+/**
+ * ╔══════════════════════════════════════════════════════════════════════╗
+ * ║  CANONICAL CONTRIBUTOR SIGNUP FLOW — DO NOT REVERT                ║
+ * ║                                                                    ║
+ * ║  Validates invite_token from contributors table, sets password,   ║
+ * ║  updates profile, and accepts the invitation atomically.          ║
+ * ║  DO NOT reintroduce Supabase magic links, generate_link, or OTP. ║
+ * ║  User lookup uses the direct Auth Admin REST API (not listUsers). ║
+ * ║  Paired with: invite-contributor, AuthLegacy.tsx                  ║
+ * ╚══════════════════════════════════════════════════════════════════════╝
+ */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.51.0';
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
@@ -58,9 +69,22 @@ serve(async (req: Request) => {
 
     console.log('[COMPLETE-CONTRIBUTOR-SIGNUP] Valid token found for:', validated.email, 'invitation:', invitation.id);
 
-    // 2. Get or create auth user
-    const { data: userList } = await supabaseAdmin.auth.admin.listUsers();
-    const existingUser = userList?.users?.find(u => u.email === validated.email) || null;
+    // 2. Get or create auth user — direct REST lookup (no listUsers pagination limit)
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    let existingUser: any = null;
+    try {
+      const lookupRes = await fetch(
+        `${supabaseUrl}/auth/v1/admin/users?email=${encodeURIComponent(validated.email)}`,
+        { headers: { Authorization: `Bearer ${serviceRoleKey}`, apikey: serviceRoleKey } }
+      );
+      if (lookupRes.ok) {
+        const lookupData = await lookupRes.json();
+        existingUser = lookupData?.users?.[0] || null;
+      }
+    } catch (lookupErr) {
+      console.error('[COMPLETE-CONTRIBUTOR-SIGNUP] User lookup failed:', lookupErr);
+    }
     
     let userId: string;
 

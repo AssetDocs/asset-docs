@@ -167,6 +167,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         supabase.functions.invoke('check-subscription').catch(console.error);
 
+        // Legacy fallback: accept-contributor-invitation handles edge cases where
+        // an existing user is invited to a second account. New invitees use the
+        // atomic complete-contributor-signup flow instead. DO NOT remove without
+        // replacing the existing-user-invited-again path.
         supabase.functions.invoke('accept-contributor-invitation', {
           headers: { Authorization: `Bearer ${currentSession.access_token}` }
         }).catch((e) => console.error('Error checking contributor invitations:', e));
