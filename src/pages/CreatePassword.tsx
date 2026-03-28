@@ -131,9 +131,14 @@ const CreatePassword = () => {
         .eq('user_id', user!.id);
       if (profileError) throw profileError;
 
-      // Refresh the session so the JWT contains email_confirmed_at — without this
-      // the stale token causes ProtectedRoute to block access after updateUser().
-      await supabase.auth.refreshSession();
+      // Re-authenticate with the new password to get a clean session.
+      // refreshSession() alone is unreliable because updateUser() triggers
+      // internal auth events that race with the refresh. signInWithPassword()
+      // establishes a brand-new session with email_confirmed_at populated.
+      const email = user?.email;
+      if (email) {
+        await supabase.auth.signInWithPassword({ email, password });
+      }
 
       // Re-fetch contributor status so isContributor = true before ProtectedRoute evaluates.
       await refreshContributor();
