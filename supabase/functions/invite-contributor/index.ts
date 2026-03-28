@@ -208,19 +208,20 @@ serve(async (req: Request) => {
         const createData = await safeJson(createRes);
         console.log('[INVITE-CONTRIBUTOR] create user result:', createRes.status, createData?.id ?? createData?.msg);
 
-        // Step 2: generate an invite-type link (works for both new and existing users)
+        // Step 2: generate a magiclink (works for confirmed users, unlike type:'invite' which returns 422)
         const genRes = await fetch(`${supabaseUrl}/auth/v1/admin/generate_link`, {
           method: 'POST',
           headers: adminHeaders,
           body: JSON.stringify({
-            type: 'invite',
+            type: 'magiclink',
             email: validated.contributor_email,
             options: { redirectTo: 'https://www.getassetsafe.com/auth/callback' },
           }),
         });
         const genData = await safeJson(genRes);
         inviteLink = genData?.action_link ?? fallbackLink;
-        console.log('[INVITE-CONTRIBUTOR] generate_link fallback result:', genRes.status, inviteLink ? 'link obtained' : 'using fallback');
+        const isRealLink = !!genData?.action_link;
+        console.log('[INVITE-CONTRIBUTOR] generate_link fallback result:', genRes.status, isRealLink ? 'action_link obtained' : 'using fallback URL');
       }
     }
 
