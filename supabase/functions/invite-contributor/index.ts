@@ -1,3 +1,14 @@
+/**
+ * ╔══════════════════════════════════════════════════════════════════════╗
+ * ║  CANONICAL AUTHORIZED-USER INVITATION FLOW — DO NOT REVERT        ║
+ * ║                                                                    ║
+ * ║  This function uses a custom token-based invite system.            ║
+ * ║  DO NOT reintroduce Supabase magic links, generate_link, or OTP.  ║
+ * ║  The invite_token lives in the contributors table with no expiry.  ║
+ * ║  User lookup uses the direct Auth Admin REST API (not listUsers). ║
+ * ║  Paired with: complete-contributor-signup, AuthLegacy.tsx          ║
+ * ╚══════════════════════════════════════════════════════════════════════╝
+ */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.51.0';
 import { Resend } from "https://esm.sh/resend@2.0.0";
