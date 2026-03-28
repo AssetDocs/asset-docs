@@ -455,6 +455,7 @@ export type Database = {
           created_at: string
           first_name: string | null
           id: string
+          invite_token: string | null
           invited_at: string
           last_name: string | null
           role: Database["public"]["Enums"]["contributor_role"]
@@ -469,6 +470,7 @@ export type Database = {
           created_at?: string
           first_name?: string | null
           id?: string
+          invite_token?: string | null
           invited_at?: string
           last_name?: string | null
           role?: Database["public"]["Enums"]["contributor_role"]
@@ -483,6 +485,7 @@ export type Database = {
           created_at?: string
           first_name?: string | null
           id?: string
+          invite_token?: string | null
           invited_at?: string
           last_name?: string | null
           role?: Database["public"]["Enums"]["contributor_role"]

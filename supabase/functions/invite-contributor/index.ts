@@ -15,7 +15,6 @@ const inviteSchema = z.object({
   last_name: z.string().trim().min(1).max(100),
   role: z.enum(['administrator', 'contributor', 'viewer']),
   redirect_url: z.string().url().optional(),
-  // When true, skip the DB insert (used by resend flow to avoid duplicate constraint)
   resend: z.boolean().optional().default(false),
 });
 
@@ -34,7 +33,6 @@ serve(async (req: Request) => {
   }
 
   try {
-    // Authenticate the caller (account owner)
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -48,7 +46,6 @@ serve(async (req: Request) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    // Verify caller
     const token = authHeader.replace('Bearer ', '');
     const { data: claimsData, error: claimsError } = await supabaseAdmin.auth.getUser(token);
     if (claimsError || !claimsData.user) {
@@ -72,6 +69,9 @@ serve(async (req: Request) => {
       ? `${callerProfile.first_name || ''} ${callerProfile.last_name || ''}`.trim() || callerUser.email
       : callerUser.email;
 
+    // Generate a secure invite token (no expiry — lives in DB)
+    const inviteToken = crypto.randomUUID();
+
     // 1. Insert contributor record (skip on resend to avoid duplicate constraint)
     if (!validated.resend) {
       const { error: dbError } = await supabaseAdmin
@@ -83,6 +83,7 @@ serve(async (req: Request) => {
           last_name: validated.last_name,
           role: validated.role,
           status: 'pending',
+          invite_token: inviteToken,
         });
 
       if (dbError) {
@@ -93,139 +94,58 @@ serve(async (req: Request) => {
         }
         throw dbError;
       }
+    } else {
+      // On resend, update the existing record with a fresh token
+      const { error: updateError } = await supabaseAdmin
+        .from('contributors')
+        .update({ invite_token: inviteToken })
+        .eq('account_owner_id', callerUser.id)
+        .eq('contributor_email', validated.contributor_email)
+        .eq('status', 'pending');
+
+      if (updateError) {
+        console.error('[INVITE-CONTRIBUTOR] Error updating invite_token on resend:', updateError);
+        throw updateError;
+      }
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const adminHeaders = {
-      Authorization: `Bearer ${serviceRoleKey}`,
-      apikey: serviceRoleKey,
-      'Content-Type': 'application/json',
-    };
+    // 2. Ensure user exists in auth (pre-confirmed, no password)
+    const { data: existingUser } = await supabaseAdmin.auth.admin.getUserByEmail(validated.contributor_email);
 
-    let inviteLink: string;
-    const fallbackLink = `https://www.getassetsafe.com/auth?mode=contributor&email=${encodeURIComponent(validated.contributor_email)}`;
-
-    // Helper: safely parse a fetch response as JSON without throwing on non-JSON bodies
-    const safeJson = async (res: Response): Promise<any> => {
-      const text = await res.text();
-      try { return JSON.parse(text); } catch { return null; }
-    };
-
-    // 2. Try Supabase native invite endpoint (POST /auth/v1/admin/invite)
-    //    If it returns 404 or a non-JSON body (plain-text "404 page not found"),
-    //    fall through to the generate_link fallback below.
-    console.log('[INVITE-CONTRIBUTOR] Trying native invite endpoint for:', validated.contributor_email);
-
-    const inviteRes = await fetch(`${supabaseUrl}/auth/v1/admin/invite`, {
-      method: 'POST',
-      headers: adminHeaders,
-      body: JSON.stringify({
+    if (!existingUser?.user) {
+      // Create user via admin API — email_confirm: true so no verification needed
+      const { error: createError } = await supabaseAdmin.auth.admin.createUser({
         email: validated.contributor_email,
-        data: {
+        email_confirm: true,
+        user_metadata: {
           first_name: validated.first_name,
           last_name: validated.last_name,
           invited_as_contributor: true,
         },
-        redirect_to: 'https://www.getassetsafe.com/auth/callback',
-      }),
-    });
-
-    // Safe parse — avoids SyntaxError crash when body is plain-text "404 page not found"
-    const inviteData = await safeJson(inviteRes);
-
-    if (inviteRes.ok && inviteData?.action_link) {
-      inviteLink = inviteData.action_link;
-      console.log('[INVITE-CONTRIBUTOR] Native invite link obtained successfully');
-    } else {
-      // Determine why it failed
-      const isAlreadyRegistered = inviteData?.msg?.includes('already registered') ||
-        inviteData?.error_description?.includes('already registered') ||
-        inviteData?.code === 'email_exists';
-
-      if (isAlreadyRegistered) {
-        // ── Existing account path ──────────────────────────────────────────────
-        console.log('[INVITE-CONTRIBUTOR] User already registered, checking if password set');
-
-        const { data: { user: existingAuthUser } } = await supabaseAdmin.auth.admin.getUserByEmail(
-          validated.contributor_email
-        );
-
-        if (existingAuthUser) {
-          // Mark as contributor in metadata
-          await supabaseAdmin.auth.admin.updateUserById(existingAuthUser.id, {
-            email_confirm: true,
-            user_metadata: {
-              ...(existingAuthUser.user_metadata ?? {}),
-              invited_as_contributor: true,
-            },
-          });
-
-          const { data: profileData } = await supabaseAdmin
-            .from('profiles')
-            .select('password_set')
-            .eq('user_id', existingAuthUser.id)
-            .maybeSingle();
-
-          if (!profileData?.password_set) {
-            const genRes = await fetch(`${supabaseUrl}/auth/v1/admin/generate_link`, {
-              method: 'POST',
-              headers: adminHeaders,
-              body: JSON.stringify({
-                type: 'magiclink',
-                email: validated.contributor_email,
-                options: { redirectTo: 'https://www.getassetsafe.com/auth/callback' },
-              }),
-            });
-            const genData = await safeJson(genRes);
-            inviteLink = genData?.action_link ?? fallbackLink;
-            console.log('[INVITE-CONTRIBUTOR] Magic link generated for existing user without password');
-          } else {
-            inviteLink = fallbackLink;
-            console.log('[INVITE-CONTRIBUTOR] Existing confirmed user, using sign-in link');
-          }
-        } else {
-          inviteLink = fallbackLink;
-        }
+      });
+      if (createError) {
+        console.error('[INVITE-CONTRIBUTOR] Error creating user:', createError);
+        // Not fatal — user may already exist via a different path
       } else {
-        // ── /admin/invite unavailable (e.g. 404) — use generate_link fallback ──
-        console.warn('[INVITE-CONTRIBUTOR] /admin/invite failed (status', inviteRes.status, '), falling back to generate_link');
-
-        // Step 1: create/confirm the user via admin API
-        const createRes = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
-          method: 'POST',
-          headers: adminHeaders,
-          body: JSON.stringify({
-            email: validated.contributor_email,
-            email_confirm: true,
-            user_metadata: {
-              first_name: validated.first_name,
-              last_name: validated.last_name,
-              invited_as_contributor: true,
-            },
-          }),
-        });
-        const createData = await safeJson(createRes);
-        console.log('[INVITE-CONTRIBUTOR] create user result:', createRes.status, createData?.id ?? createData?.msg);
-
-        // Step 2: generate a magiclink (works for confirmed users, unlike type:'invite' which returns 422)
-        const genRes = await fetch(`${supabaseUrl}/auth/v1/admin/generate_link`, {
-          method: 'POST',
-          headers: adminHeaders,
-          body: JSON.stringify({
-            type: 'magiclink',
-            email: validated.contributor_email,
-            options: { redirectTo: 'https://www.getassetsafe.com/auth/callback' },
-          }),
-        });
-        const genData = await safeJson(genRes);
-        inviteLink = genData?.action_link ?? fallbackLink;
-        const isRealLink = !!genData?.action_link;
-        console.log('[INVITE-CONTRIBUTOR] generate_link fallback result:', genRes.status, isRealLink ? 'action_link obtained' : 'using fallback URL');
+        console.log('[INVITE-CONTRIBUTOR] Created new auth user for:', validated.contributor_email);
       }
+    } else {
+      // Mark existing user as contributor in metadata
+      await supabaseAdmin.auth.admin.updateUserById(existingUser.user.id, {
+        email_confirm: true,
+        user_metadata: {
+          ...(existingUser.user.user_metadata ?? {}),
+          invited_as_contributor: true,
+        },
+      });
+      console.log('[INVITE-CONTRIBUTOR] Updated existing user metadata for:', validated.contributor_email);
     }
 
-    // 3. Send branded invitation email via Resend
+    // 3. Build direct invite link — NO Supabase magic link, NO OTP, NO expiry
+    const inviteLink = `https://www.getassetsafe.com/auth?mode=contributor&email=${encodeURIComponent(validated.contributor_email)}&token=${inviteToken}`;
+    console.log('[INVITE-CONTRIBUTOR] Using direct token-based invite link (no OTP/expiry)');
+
+    // 4. Send branded invitation email via Resend
     const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
     const safeInviterName = escapeHtml(inviterName || '');
     const safeContributorName = escapeHtml(`${validated.first_name} ${validated.last_name}`);
@@ -265,7 +185,7 @@ serve(async (req: Request) => {
             </div>
             
             <p style="color: #374151; line-height: 1.6; margin-bottom: 30px;">
-              Click the secure button below to accept your invitation and set up your account. This link is single-use and expires shortly — use it promptly.
+              Click the button below to accept your invitation and set up your account. This link does not expire.
             </p>
             
             <div style="text-align: center; margin: 30px 0;">
