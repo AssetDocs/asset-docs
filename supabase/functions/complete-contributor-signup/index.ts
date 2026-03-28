@@ -59,12 +59,13 @@ serve(async (req: Request) => {
     console.log('[COMPLETE-CONTRIBUTOR-SIGNUP] Valid token found for:', validated.email, 'invitation:', invitation.id);
 
     // 2. Get or create auth user
-    const { data: existingUser, error: lookupError } = await supabaseAdmin.auth.admin.getUserByEmail(validated.email);
+    const { data: userList } = await supabaseAdmin.auth.admin.listUsers();
+    const existingUser = userList?.users?.find(u => u.email === validated.email) || null;
     
     let userId: string;
 
-    if (existingUser?.user) {
-      userId = existingUser.user.id;
+    if (existingUser) {
+      userId = existingUser.id;
       console.log('[COMPLETE-CONTRIBUTOR-SIGNUP] Found existing auth user:', userId);
     } else {
       // Create user if somehow doesn't exist
