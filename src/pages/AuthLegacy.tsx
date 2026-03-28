@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -25,10 +26,12 @@ const Auth: React.FC = () => {
   const { user, signIn, signUp } = useAuth();
   const [isContributorMode, setIsContributorMode] = useState(false);
   const [contributorEmail, setContributorEmail] = useState('');
+  const [contributorToken, setContributorToken] = useState('');
   const [contributorFirstName, setContributorFirstName] = useState('');
   const [contributorLastName, setContributorLastName] = useState('');
   const [contributorPassword, setContributorPassword] = useState('');
   const [contributorConfirmPassword, setContributorConfirmPassword] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const signInForm = useForm<SignInFormData>({
     defaultValues: {
@@ -41,20 +44,17 @@ const Auth: React.FC = () => {
   // Handle hash-based auth tokens from Supabase email verification
   useEffect(() => {
     const handleHashAuth = async () => {
-      // Check for hash fragments from Supabase email verification
       const hash = window.location.hash;
       if (hash && hash.includes('access_token')) {
         console.log('Detected hash-based auth tokens, processing...');
         
         try {
-          // Parse the hash to extract tokens
           const hashParams = new URLSearchParams(hash.substring(1));
           const accessToken = hashParams.get('access_token');
           const refreshToken = hashParams.get('refresh_token');
           const type = hashParams.get('type');
           
           if (accessToken && refreshToken) {
-            // Set the session with the tokens from the hash
             const { data, error } = await supabase.auth.setSession({
               access_token: accessToken,
               refresh_token: refreshToken
@@ -67,7 +67,6 @@ const Auth: React.FC = () => {
                 description: error.message || "Email link is invalid or expired",
                 variant: "destructive",
               });
-              // Clear the hash
               window.history.replaceState(null, '', window.location.pathname);
               return;
             }
@@ -79,15 +78,11 @@ const Auth: React.FC = () => {
                 description: "Your email has been verified successfully.",
               });
               
-              // Clear the hash from URL
               window.history.replaceState(null, '', window.location.pathname);
               
-              // Check if user has a subscription, if not redirect to pricing
               if (type === 'signup' || type === 'email') {
-                // For new signups, redirect to pricing page
                 navigate('/pricing', { replace: true });
               } else {
-                // For other types (recovery, etc.), redirect to account
                 navigate('/account', { replace: true });
               }
             }
@@ -99,7 +94,6 @@ const Auth: React.FC = () => {
             description: error.message || "Failed to verify email",
             variant: "destructive",
           });
-          // Clear the hash
           window.history.replaceState(null, '', window.location.pathname);
         }
       }
@@ -108,42 +102,31 @@ const Auth: React.FC = () => {
     handleHashAuth();
   }, [navigate, toast]);
 
-  const [hasActiveSession, setHasActiveSession] = useState(false);
-
-  // Check for contributor mode
+  // Check for contributor mode from URL params
   useEffect(() => {
     const mode = searchParams.get('mode');
     const email = searchParams.get('email');
+    const token = searchParams.get('token');
     
     if (mode === 'contributor' && email) {
       setIsContributorMode(true);
       setContributorEmail(email);
+      if (token) {
+        setContributorToken(token);
+      }
     }
   }, [searchParams]);
 
-  // Check if contributor already has an active session (from invite magic link)
+  // If user is already logged in and NOT in contributor mode, redirect
   useEffect(() => {
-    if (isContributorMode && user && user.email?.toLowerCase() === contributorEmail.toLowerCase()) {
-      // Check if user was invited via admin API (has session but might need password)
-      const metadata = user.user_metadata;
-      if (metadata?.invited_as_contributor) {
-        setHasActiveSession(true);
-        // Pre-fill name from metadata
-        if (metadata.first_name) setContributorFirstName(metadata.first_name);
-        if (metadata.last_name) setContributorLastName(metadata.last_name);
-      } else {
-        // Existing user already has password, just accept invitation and redirect
-        navigate('/account');
-      }
-    } else if (user && !isContributorMode) {
+    if (user && !isContributorMode) {
       navigate('/account');
     }
-  }, [user, navigate, isContributorMode, contributorEmail]);
+  }, [user, navigate, isContributorMode]);
 
   const onSignIn = async (data: SignInFormData) => {
     setIsLoading(true);
     try {
-      // First, check if this email belongs to a deleted account
       const { data: deletedAccount } = await supabase
         .from('deleted_accounts')
         .select('email')
@@ -179,10 +162,8 @@ const Auth: React.FC = () => {
           throw error;
         }
       } else {
-        // Get current session for API calls
         const { data: session } = await supabase.auth.getSession();
         
-        // If this is a contributor login, accept pending invitations
         if (isContributorMode) {
           try {
             if (session?.session?.access_token) {
@@ -264,113 +245,72 @@ const Auth: React.FC = () => {
       return;
     }
 
+    if (!termsAccepted) {
+      toast({
+        title: "Terms Required",
+        description: "Please accept the Terms of Service and Privacy Policy to continue.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!contributorToken) {
+      toast({
+        title: "Invalid Invitation",
+        description: "This invitation link is missing a token. Please ask the account holder to resend your invitation.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
-      if (hasActiveSession && user) {
-        // User arrived via invite magic link - already has session, just set password + update profile
-        const { error: updateError } = await supabase.auth.updateUser({
-          password: contributorPassword,
-          data: {
+      // Call complete-contributor-signup edge function (no auth required)
+      const { data: signupResult, error: signupError } = await supabase.functions.invoke(
+        'complete-contributor-signup',
+        {
+          body: {
+            email: contributorEmail,
+            password: contributorPassword,
             first_name: contributorFirstName.trim(),
             last_name: contributorLastName.trim(),
+            invite_token: contributorToken,
           },
-        });
-
-        if (updateError) throw updateError;
-
-        // Update profile table
-        await supabase.from('profiles').update({
-          first_name: contributorFirstName.trim(),
-          last_name: contributorLastName.trim(),
-        }).eq('user_id', user.id);
-
-        // Accept pending invitations
-        const { data: session } = await supabase.auth.getSession();
-        if (session?.session?.access_token) {
-          const { data: invitationData } = await supabase.functions.invoke(
-            'accept-contributor-invitation',
-            {
-              headers: {
-                Authorization: `Bearer ${session.session.access_token}`
-              }
-            }
-          );
-
-          if (invitationData?.invitations?.length > 0) {
-            toast({
-              title: "Account Ready!",
-              description: `Welcome! You now have access to ${invitationData.invitations.length} account(s).`,
-            });
-          } else {
-            toast({
-              title: "Account Ready!",
-              description: "Your password has been set. Welcome to Asset Safe!",
-            });
-          }
         }
+      );
 
-        navigate('/account');
-        return;
+      if (signupError) {
+        throw new Error(signupError.message || 'Failed to complete account setup');
       }
 
-      // Legacy flow: full signup for contributors who arrived without magic link session
-      const { data: signUpData, error } = await supabase.auth.signUp({
-        email: contributorEmail,
-        password: contributorPassword,
-        options: {
-          data: {
-            first_name: contributorFirstName.trim(),
-            last_name: contributorLastName.trim()
-          }
-        }
-      });
-      
-      if (error) {
-        if (error.message?.includes('User already registered') || error.message?.includes('already exists')) {
-          toast({
-            title: "Account Already Exists",
-            description: "An account with this email already exists. Please sign in instead.",
-            variant: "destructive",
-          });
-          setIsContributorMode(false);
-          signInForm.setValue('email', contributorEmail);
-          return;
-        }
-        throw error;
+      if (!signupResult?.success) {
+        throw new Error(signupResult?.error || 'Failed to complete account setup');
       }
 
-      if (signUpData?.session?.access_token) {
-        const { data: invitationData } = await supabase.functions.invoke(
-          'accept-contributor-invitation',
-          {
-            headers: {
-              Authorization: `Bearer ${signUpData.session.access_token}`
-            }
-          }
-        );
-        
+      // Now sign in with the new password
+      const { error: signInError } = await signIn(contributorEmail, contributorPassword);
+
+      if (signInError) {
+        // Account was created but sign-in failed — tell user to sign in manually
         toast({
           title: "Account Created!",
-          description: invitationData?.invitations?.length > 0
-            ? `Your account has been created. You now have access to ${invitationData.invitations.length} account(s).`
-            : "Your account has been created. Welcome to Asset Safe!",
+          description: "Your account has been set up. Please sign in with your new password.",
         });
-        
-        navigate('/account');
+        setIsContributorMode(false);
+        signInForm.setValue('email', contributorEmail);
         return;
       }
-      
-      // Email confirmation required
+
       toast({
-        title: "Please Verify Your Email",
-        description: "A verification email has been sent. Please verify your email and then sign in.",
+        title: "Welcome to Asset Safe!",
+        description: "Your account is ready. You now have access to the dashboard.",
       });
-      setIsContributorMode(false);
-      signInForm.setValue('email', contributorEmail);
+      navigate('/account');
+
     } catch (error: any) {
       console.error('Contributor signup error:', error);
       toast({
-        title: "Signup Failed",
+        title: "Setup Failed",
         description: error.message || "Failed to create your account. Please try again.",
         variant: "destructive",
       });
@@ -379,7 +319,7 @@ const Auth: React.FC = () => {
     }
   };
 
-  // Contributor password creation form
+  // Contributor account creation form
   if (isContributorMode) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50 flex items-center justify-center p-4">
@@ -396,11 +336,9 @@ const Auth: React.FC = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>{hasActiveSession ? 'Set Your Password' : 'Create Your Account'}</CardTitle>
+              <CardTitle>Create Your Account</CardTitle>
               <CardDescription>
-                {hasActiveSession 
-                  ? 'Your email has been verified. Set a password to secure your account.'
-                  : "You've been invited as a contributor. Create your password to access the dashboard."}
+                You've been invited as an authorized user. Set up your account to access the dashboard.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -480,12 +418,30 @@ const Auth: React.FC = () => {
                   />
                 </div>
 
+                <div className="flex items-start space-x-2 pt-2">
+                  <Checkbox
+                    id="terms"
+                    checked={termsAccepted}
+                    onCheckedChange={(checked) => setTermsAccepted(checked === true)}
+                  />
+                  <label htmlFor="terms" className="text-sm text-muted-foreground leading-tight cursor-pointer">
+                    I agree to the{' '}
+                    <Link to="/terms" target="_blank" className="text-brand-blue hover:underline">
+                      Terms of Service
+                    </Link>{' '}
+                    and{' '}
+                    <Link to="/terms" target="_blank" className="text-brand-blue hover:underline">
+                      Privacy Policy
+                    </Link>
+                  </label>
+                </div>
+
                 <Button 
                   type="submit" 
                   className="w-full"
-                  disabled={isLoading}
+                  disabled={isLoading || !termsAccepted}
                 >
-                  {isLoading ? "Setting up..." : (hasActiveSession ? "Set Password & Continue" : "Create Account & Access Dashboard")}
+                  {isLoading ? "Setting up your account..." : "Create Account & Access Dashboard"}
                 </Button>
                 
                 <div className="text-center mt-4 pt-4 border-t">
@@ -511,7 +467,6 @@ const Auth: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative">
-      {/* Background image with blur and gradient overlay */}
       <div 
         className="fixed inset-0 z-0"
         style={{
@@ -522,7 +477,6 @@ const Auth: React.FC = () => {
           transform: 'scale(1.05)',
         }}
       />
-      {/* Blue gradient overlay similar to hero section */}
       <div className="fixed inset-0 z-0 bg-gradient-to-br from-brand-blue/80 via-brand-blue/60 to-brand-blue/40" />
       
       <div className="w-full max-w-md relative z-10">

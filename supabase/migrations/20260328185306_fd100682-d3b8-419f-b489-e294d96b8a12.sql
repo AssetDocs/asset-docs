@@ -1,0 +1,1 @@
+ALTER TABLE public.contributors ADD COLUMN IF NOT EXISTS invite_token TEXT;
