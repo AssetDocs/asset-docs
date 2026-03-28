@@ -121,8 +121,22 @@ serve(async (req: Request) => {
     }
 
     // 2. Ensure user exists in auth (pre-confirmed, no password)
-    const { data: userList } = await supabaseAdmin.auth.admin.listUsers();
-    const existingUser = userList?.users?.find(u => u.email === validated.contributor_email) || null;
+    // Direct REST lookup — avoids listUsers() pagination limit
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    let existingUser: any = null;
+    try {
+      const lookupRes = await fetch(
+        `${supabaseUrl}/auth/v1/admin/users?email=${encodeURIComponent(validated.contributor_email)}`,
+        { headers: { Authorization: `Bearer ${serviceRoleKey}`, apikey: serviceRoleKey } }
+      );
+      if (lookupRes.ok) {
+        const lookupData = await lookupRes.json();
+        existingUser = lookupData?.users?.[0] || null;
+      }
+    } catch (lookupErr) {
+      console.error('[INVITE-CONTRIBUTOR] User lookup failed, will attempt create:', lookupErr);
+    }
 
     if (!existingUser) {
       // Create user via admin API — email_confirm: true so no verification needed
