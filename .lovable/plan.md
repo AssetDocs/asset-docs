@@ -1,58 +1,55 @@
 
 
-## Fix: Authorized User Redirected to Email Verification After Account Creation
+## Fix: Authorized User Invite Link Goes to Wrong Page
 
-### Problem
+### Root Cause Found
 
-After the authorized user fills out the CreatePassword form (name, password, terms), `supabase.auth.updateUser({ password })` disrupts the current session. Even though `refreshSession()` is called afterward, the session state is unreliable — `email_confirmed_at` may still be null in the client-side JWT, and the `ProtectedRoute` redirects to `/welcome` (the email verification gate).
+The invite email contains the **wrong link**. Here's why:
 
-The previous fix (refreshSession + refreshContributor + metadata bypass) is not sufficient because `updateUser()` can trigger internal Supabase auth events that race with the session refresh.
+1. `invite-contributor` creates the user via `POST /admin/users` with `email_confirm: true` — user is created as **already confirmed**
+2. Then it calls `generate_link` with `type: 'invite'` — Supabase returns **HTTP 422** because you can't generate an invite link for an already-confirmed user
+3. Since the 422 response has no `action_link`, the code falls back to `fallbackLink`:
+   ```
+   https://www.getassetsafe.com/auth?mode=contributor&email=...
+   ```
+4. This fallback URL goes to the **old sign-in page** (AuthLegacy.tsx), not through `/auth/callback` → CreatePassword
 
-### Root Cause
+The log line `"generate_link fallback result: 422 link obtained"` is misleading — it prints "link obtained" because `inviteLink` is always truthy (it's either the action_link OR the fallback). It's actually using the fallback.
 
-`updateUser({ password })` causes Supabase to emit auth state change events internally. The refreshed session may still lack `email_confirmed_at` depending on timing. The belt-and-suspenders `user_metadata.invited_as_contributor` check in ProtectedRoute also fails if the JWT hasn't refreshed with the metadata yet.
+### The Fix — 1 file change
 
-### The Fix — Re-authenticate After Password Set
+**`supabase/functions/invite-contributor/index.ts`** — In the fallback path (lines 211-223), change `type: 'invite'` to `type: 'magiclink'`. Magic links work for confirmed users and generate a proper `action_link` that routes through `/auth/callback`.
 
-The reliable pattern (per Supabase best practices) is: after `updateUser({ password })`, immediately call `signInWithPassword({ email, password })`. This establishes a **fresh, clean session** with all fields populated — no race conditions.
+```
+Before: type: 'invite'    → 422 for confirmed users → fallback URL → wrong page
+After:  type: 'magiclink'  → 200 with action_link → /auth/callback → CreatePassword
+```
 
-### File Changes
-
-**1. `src/pages/CreatePassword.tsx` — `handleFinish()`**
-
-After `updateUser({ password })` succeeds, add:
+Also fix the log to distinguish real link vs fallback:
 ```typescript
-// Get the user's email before signing in
-const email = user?.email;
-if (!email) throw new Error('No email found');
-
-// Sign in with the new password to get a clean session
-await supabase.auth.signInWithPassword({ email, password });
+const isRealLink = !!genData?.action_link;
+console.log('...', isRealLink ? 'action_link obtained' : 'using fallback URL');
 ```
 
-This replaces the `refreshSession()` call. The full sequence becomes:
-1. `updateUser({ password })` — sets the password
-2. `accept-contributor-invitation` — marks contributor as accepted
-3. Update profile (password_set, onboarding_complete, name)
-4. `signInWithPassword({ email, password })` — establishes fresh session with `email_confirmed_at` populated
-5. `refreshContributor()` — ensures context knows user is a contributor
-6. `refreshProfile()` — syncs profile state
-7. `navigate('/account')` — clean redirect
+### Why CreatePassword Already Has the Terms Checkbox
 
-**2. No other file changes needed** — the ProtectedRoute bypass and ContributorContext changes from the previous fix remain as defense-in-depth.
+The terms checkbox exists (lines 320-337 of CreatePassword.tsx) — the reason the user isn't seeing it is because they never reach CreatePassword. They land on `/auth?mode=contributor` (AuthLegacy) instead.
 
-### Expected Result
+### Expected Flow After Fix
 
 ```
-User submits CreatePassword form
-  → updateUser({ password })            ✓
-  → accept-contributor-invitation        ✓
-  → profile update                       ✓
-  → signInWithPassword(email, password)  ← NEW: clean session with email_confirmed_at
-  → refreshContributor()                 ✓
-  → refreshProfile()                     ✓
-  → navigate('/account')                 ✓
-  → ProtectedRoute sees email_confirmed_at + isContributor → allows access
-  → NO second email prompt
+invite-contributor creates user (email_confirm: true)
+  → generate_link type: 'magiclink' → 200 with action_link ✓
+  → email contains proper Supabase magic link
+  → user clicks link → /auth/callback
+  → AuthCallback: profile.password_set = false → /welcome/create-password
+  → CreatePassword: name fields, password, terms checkbox ✓
+  → handleFinish: updateUser → accept-invitation → signInWithPassword → /account ✓
 ```
+
+### Files to Change
+
+| File | Change |
+|------|--------|
+| `supabase/functions/invite-contributor/index.ts` | Change `type: 'invite'` to `type: 'magiclink'` on line 216; fix logging on line 223 |
 
