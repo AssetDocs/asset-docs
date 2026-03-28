@@ -110,9 +110,10 @@ serve(async (req: Request) => {
     }
 
     // 2. Ensure user exists in auth (pre-confirmed, no password)
-    const { data: existingUser } = await supabaseAdmin.auth.admin.getUserByEmail(validated.contributor_email);
+    const { data: userList } = await supabaseAdmin.auth.admin.listUsers();
+    const existingUser = userList?.users?.find(u => u.email === validated.contributor_email) || null;
 
-    if (!existingUser?.user) {
+    if (!existingUser) {
       // Create user via admin API — email_confirm: true so no verification needed
       const { error: createError } = await supabaseAdmin.auth.admin.createUser({
         email: validated.contributor_email,
@@ -131,10 +132,10 @@ serve(async (req: Request) => {
       }
     } else {
       // Mark existing user as contributor in metadata
-      await supabaseAdmin.auth.admin.updateUserById(existingUser.user.id, {
+      await supabaseAdmin.auth.admin.updateUserById(existingUser.id, {
         email_confirm: true,
         user_metadata: {
-          ...(existingUser.user.user_metadata ?? {}),
+          ...(existingUser.user_metadata ?? {}),
           invited_as_contributor: true,
         },
       });
