@@ -1,3 +1,14 @@
+/**
+ * ╔══════════════════════════════════════════════════════════════════════╗
+ * ║  CANONICAL CONTRIBUTOR SIGNUP FLOW — DO NOT REVERT                ║
+ * ║                                                                    ║
+ * ║  Validates invite_token from contributors table, sets password,   ║
+ * ║  updates profile, and accepts the invitation atomically.          ║
+ * ║  DO NOT reintroduce Supabase magic links, generate_link, or OTP. ║
+ * ║  User lookup uses the direct Auth Admin REST API (not listUsers). ║
+ * ║  Paired with: invite-contributor, AuthLegacy.tsx                  ║
+ * ╚══════════════════════════════════════════════════════════════════════╝
+ */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.51.0';
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
