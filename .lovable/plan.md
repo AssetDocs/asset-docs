@@ -1,55 +1,86 @@
 
 
-## Fix: Authorized User Invite Link Goes to Wrong Page
+## Fix: Authorized User Invite Links Expire (OTP Expired Error)
 
-### Root Cause Found
+### Problem
 
-The invite email contains the **wrong link**. Here's why:
+The `invite-contributor` edge function generates a Supabase **magic link** for the invite email. Magic links use one-time OTPs that expire (default: 1 hour). When the invited user clicks the link after expiry, Supabase redirects to the homepage with `#error=access_denied&error_code=otp_expired`. The user never reaches the account creation form.
 
-1. `invite-contributor` creates the user via `POST /admin/users` with `email_confirm: true` — user is created as **already confirmed**
-2. Then it calls `generate_link` with `type: 'invite'` — Supabase returns **HTTP 422** because you can't generate an invite link for an already-confirmed user
-3. Since the 422 response has no `action_link`, the code falls back to `fallbackLink`:
-   ```
-   https://www.getassetsafe.com/auth?mode=contributor&email=...
-   ```
-4. This fallback URL goes to the **old sign-in page** (AuthLegacy.tsx), not through `/auth/callback` → CreatePassword
+This has been the recurring root cause across all previous fix attempts: every approach that depends on Supabase auth links (invite, magiclink, recovery) has the same expiry problem.
 
-The log line `"generate_link fallback result: 422 link obtained"` is misleading — it prints "link obtained" because `inviteLink` is always truthy (it's either the action_link OR the fallback). It's actually using the fallback.
+### Solution: Eliminate Supabase Auth Links Entirely
 
-### The Fix — 1 file change
+Stop using `generate_link` / magic links in the invite email. Instead:
 
-**`supabase/functions/invite-contributor/index.ts`** — In the fallback path (lines 211-223), change `type: 'invite'` to `type: 'magiclink'`. Magic links work for confirmed users and generate a proper `action_link` that routes through `/auth/callback`.
+1. Add an `invite_token` column to the `contributors` table
+2. Generate a secure random token when inviting, store it in the DB
+3. Email links directly to `/auth?mode=contributor&email=...&token=...` (no Supabase OTP link)
+4. New edge function `complete-contributor-signup` validates the token and sets the user's password via admin API
+5. Frontend signs in with the new password immediately after
 
-```
-Before: type: 'invite'    → 422 for confirmed users → fallback URL → wrong page
-After:  type: 'magiclink'  → 200 with action_link → /auth/callback → CreatePassword
-```
+This approach has **zero expiry issues** because the token lives in the database with no time limit (or a generous one we control).
 
-Also fix the log to distinguish real link vs fallback:
-```typescript
-const isRealLink = !!genData?.action_link;
-console.log('...', isRealLink ? 'action_link obtained' : 'using fallback URL');
-```
+### Detailed Flow After Fix
 
-### Why CreatePassword Already Has the Terms Checkbox
+```text
+Account holder invites AU
+  → contributors record created with invite_token + status=pending
+  → User created via admin API (email_confirm=true, no password)
+  → Email sent with link: /auth?mode=contributor&email=...&token=...
+  → NO Supabase magic link, NO OTP
 
-The terms checkbox exists (lines 320-337 of CreatePassword.tsx) — the reason the user isn't seeing it is because they never reach CreatePassword. They land on `/auth?mode=contributor` (AuthLegacy) instead.
+AU clicks link (hours, days, or weeks later — no expiry)
+  → Lands on AuthLegacy in contributor mode
+  → Sees "Create Your Account" form (name, password, terms checkbox)
+  → Submits form
 
-### Expected Flow After Fix
-
-```
-invite-contributor creates user (email_confirm: true)
-  → generate_link type: 'magiclink' → 200 with action_link ✓
-  → email contains proper Supabase magic link
-  → user clicks link → /auth/callback
-  → AuthCallback: profile.password_set = false → /welcome/create-password
-  → CreatePassword: name fields, password, terms checkbox ✓
-  → handleFinish: updateUser → accept-invitation → signInWithPassword → /account ✓
+Form submission:
+  → Calls complete-contributor-signup edge function
+     - Validates token against contributors table
+     - Sets password via admin.updateUserById
+     - Updates profile (name, password_set, onboarding_complete)
+     - Accepts invitation (status → accepted)
+     - Clears invite_token
+  → Frontend calls signInWithPassword(email, password)
+  → Navigates to /account
+  → ProtectedRoute: isContributor=true, email_confirmed_at set → access granted
 ```
 
 ### Files to Change
 
 | File | Change |
 |------|--------|
-| `supabase/functions/invite-contributor/index.ts` | Change `type: 'invite'` to `type: 'magiclink'` on line 216; fix logging on line 223 |
+| **New migration** | Add `invite_token TEXT` column to `contributors` table |
+| **`supabase/functions/invite-contributor/index.ts`** | Remove all `generate_link` / magic link logic. Generate random token, store in `contributors.invite_token`, use direct URL in email |
+| **New: `supabase/functions/complete-contributor-signup/index.ts`** | Validates token, sets password via admin API, updates profile, accepts invitation, clears token |
+| **`src/pages/AuthLegacy.tsx`** | Update `handleContributorSignup` to read `token` from URL params, call `complete-contributor-signup` edge function instead of `signUp`, then `signInWithPassword`. Add terms/policies checkbox. |
+
+### Edge Function: `complete-contributor-signup`
+
+Input (no auth required — user has no session yet):
+- `email`, `password`, `first_name`, `last_name`, `invite_token`
+
+Logic:
+1. Validate inputs with Zod
+2. Look up `contributors` record matching `email + invite_token + status=pending`
+3. If not found → 400 error (invalid or expired token)
+4. Get user by email via `admin.getUserByEmail`
+5. Set password + update metadata via `admin.updateUserById`
+6. Update `profiles` (first_name, last_name, password_set=true, onboarding_complete=true)
+7. Update `contributors` (status=accepted, contributor_user_id, accepted_at, clear invite_token)
+8. Return success
+
+### AuthLegacy Changes
+
+- Read `token` from search params alongside `mode` and `email`
+- Add terms/policies checkbox (required before submit)
+- In `handleContributorSignup`: call `complete-contributor-signup` with email, password, names, token → then `signInWithPassword` → navigate to `/account`
+- Remove the `hasActiveSession` branch (no longer needed since users won't arrive with a session)
+
+### Security
+
+- Token is a random UUID, stored server-side, validated server-side
+- Token is single-use (cleared after successful signup)
+- Only pending invitations with matching email + token are accepted
+- No sensitive data in the URL beyond email (already visible) and a random token
 
