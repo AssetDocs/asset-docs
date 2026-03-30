@@ -2,7 +2,7 @@
  * ╔══════════════════════════════════════════════════════════════════════╗
  * ║  CANONICAL CONTRIBUTOR SIGNUP FLOW — DO NOT REVERT                ║
  * ║                                                                    ║
- * ║  Validates invite_token from contributors table, sets password,   ║
+ * ║  Validates invite_token from contributors table, sets password,    ║
  * ║  updates profile, and accepts the invitation atomically.          ║
  * ║  DO NOT reintroduce Supabase magic links, generate_link, or OTP. ║
  * ║  User lookup uses the direct Auth Admin REST API (not listUsers). ║
