@@ -2,10 +2,10 @@
  * ╔══════════════════════════════════════════════════════════════════════╗
  * ║  CANONICAL CONTRIBUTOR SIGNUP FLOW — DO NOT REVERT                ║
  * ║                                                                    ║
- * ║  Validates invite_token from contributors table, sets password,   ║
+ * ║  Validates invite_token from contributors table, sets password,    ║
  * ║  updates profile, and accepts the invitation atomically.          ║
  * ║  DO NOT reintroduce Supabase magic links, generate_link, or OTP. ║
- * ║  User lookup uses the direct Auth Admin REST API (not listUsers). ║
+ * ║  User lookup uses create-first + listUsers email filter fallback. ║
  * ║  Paired with: invite-contributor, AuthLegacy.tsx                  ║
  * ╚══════════════════════════════════════════════════════════════════════╝
  */
@@ -69,46 +69,41 @@ serve(async (req: Request) => {
 
     console.log('[COMPLETE-CONTRIBUTOR-SIGNUP] Valid token found for:', validated.email, 'invitation:', invitation.id);
 
-    // 2. Get or create auth user — direct REST lookup (no listUsers pagination limit)
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    let existingUser: any = null;
-    try {
-      const lookupRes = await fetch(
-        `${supabaseUrl}/auth/v1/admin/users?email=${encodeURIComponent(validated.email)}`,
-        { headers: { Authorization: `Bearer ${serviceRoleKey}`, apikey: serviceRoleKey } }
-      );
-      if (lookupRes.ok) {
-        const lookupData = await lookupRes.json();
-        existingUser = lookupData?.users?.[0] || null;
-      }
-    } catch (lookupErr) {
-      console.error('[COMPLETE-CONTRIBUTOR-SIGNUP] User lookup failed:', lookupErr);
-    }
-    
+    // 2. Get or create auth user — create-first + listUsers email filter fallback
     let userId: string;
 
-    if (existingUser) {
-      userId = existingUser.id;
-      console.log('[COMPLETE-CONTRIBUTOR-SIGNUP] Found existing auth user:', userId);
-    } else {
-      // Create user if somehow doesn't exist
-      const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-        email: validated.email,
-        email_confirm: true,
-        password: validated.password,
-        user_metadata: {
-          first_name: validated.first_name,
-          last_name: validated.last_name,
-          invited_as_contributor: true,
-        },
-      });
-      if (createError || !newUser?.user) {
+    // Try to create user first with password
+    const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+      email: validated.email,
+      email_confirm: true,
+      password: validated.password,
+      user_metadata: {
+        first_name: validated.first_name,
+        last_name: validated.last_name,
+        invited_as_contributor: true,
+      },
+    });
+
+    if (createError) {
+      if (createError.message?.includes('already been registered') || (createError as any).status === 422) {
+        // User exists — find them via listUsers with strict email filter
+        console.log('[COMPLETE-CONTRIBUTOR-SIGNUP] User already exists, looking up:', validated.email);
+        const { data: userList } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
+        const found = userList?.users?.find(u => u.email === validated.email);
+        if (!found) {
+          throw new Error('User exists but could not be found. Please contact support.');
+        }
+        userId = found.id;
+        console.log('[COMPLETE-CONTRIBUTOR-SIGNUP] Found existing auth user:', userId);
+      } else {
         console.error('[COMPLETE-CONTRIBUTOR-SIGNUP] Error creating user:', createError);
-        throw createError || new Error('Failed to create user');
+        throw createError;
       }
+    } else if (newUser?.user) {
       userId = newUser.user.id;
       console.log('[COMPLETE-CONTRIBUTOR-SIGNUP] Created new auth user:', userId);
+    } else {
+      throw new Error('Failed to create user — no user returned');
     }
 
     // 3. Set password + update metadata via admin API

@@ -5,7 +5,7 @@
  * ║  This function uses a custom token-based invite system.            ║
  * ║  DO NOT reintroduce Supabase magic links, generate_link, or OTP.  ║
  * ║  The invite_token lives in the contributors table with no expiry.  ║
- * ║  User lookup uses the direct Auth Admin REST API (not listUsers). ║
+ * ║  User lookup uses create-first + listUsers email filter fallback. ║
  * ║  Paired with: complete-contributor-signup, AuthLegacy.tsx          ║
  * ╚══════════════════════════════════════════════════════════════════════╝
  */
@@ -121,50 +121,45 @@ serve(async (req: Request) => {
     }
 
     // 2. Ensure user exists in auth (pre-confirmed, no password)
-    // Direct REST lookup — avoids listUsers() pagination limit
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    let existingUser: any = null;
-    try {
-      const lookupRes = await fetch(
-        `${supabaseUrl}/auth/v1/admin/users?email=${encodeURIComponent(validated.contributor_email)}`,
-        { headers: { Authorization: `Bearer ${serviceRoleKey}`, apikey: serviceRoleKey } }
-      );
-      if (lookupRes.ok) {
-        const lookupData = await lookupRes.json();
-        existingUser = lookupData?.users?.[0] || null;
-      }
-    } catch (lookupErr) {
-      console.error('[INVITE-CONTRIBUTOR] User lookup failed, will attempt create:', lookupErr);
-    }
+    // Create-first approach: try createUser, fallback to listUsers + email filter if exists
+    let existingUserId: string | null = null;
 
-    if (!existingUser) {
-      // Create user via admin API — email_confirm: true so no verification needed
-      const { error: createError } = await supabaseAdmin.auth.admin.createUser({
-        email: validated.contributor_email,
-        email_confirm: true,
-        user_metadata: {
-          first_name: validated.first_name,
-          last_name: validated.last_name,
-          invited_as_contributor: true,
-        },
-      });
-      if (createError) {
-        console.error('[INVITE-CONTRIBUTOR] Error creating user:', createError);
-        // Not fatal — user may already exist via a different path
+    const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+      email: validated.contributor_email,
+      email_confirm: true,
+      user_metadata: {
+        first_name: validated.first_name,
+        last_name: validated.last_name,
+        invited_as_contributor: true,
+      },
+    });
+
+    if (createError) {
+      if (createError.message?.includes('already been registered') || (createError as any).status === 422) {
+        // User exists — find them via listUsers with strict email filter
+        console.log('[INVITE-CONTRIBUTOR] User already exists, looking up:', validated.contributor_email);
+        const { data: userList } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
+        const found = userList?.users?.find(u => u.email === validated.contributor_email);
+        existingUserId = found?.id || null;
+
+        if (existingUserId) {
+          // Mark existing user as contributor in metadata
+          await supabaseAdmin.auth.admin.updateUserById(existingUserId, {
+            email_confirm: true,
+            user_metadata: {
+              ...(found?.user_metadata ?? {}),
+              invited_as_contributor: true,
+            },
+          });
+          console.log('[INVITE-CONTRIBUTOR] Updated existing user metadata for:', validated.contributor_email);
+        }
       } else {
-        console.log('[INVITE-CONTRIBUTOR] Created new auth user for:', validated.contributor_email);
+        console.error('[INVITE-CONTRIBUTOR] Error creating user:', createError);
+        // Not fatal — user may exist via a different path
       }
-    } else {
-      // Mark existing user as contributor in metadata
-      await supabaseAdmin.auth.admin.updateUserById(existingUser.id, {
-        email_confirm: true,
-        user_metadata: {
-          ...(existingUser.user_metadata ?? {}),
-          invited_as_contributor: true,
-        },
-      });
-      console.log('[INVITE-CONTRIBUTOR] Updated existing user metadata for:', validated.contributor_email);
+    } else if (newUser?.user) {
+      existingUserId = newUser.user.id;
+      console.log('[INVITE-CONTRIBUTOR] Created new auth user for:', validated.contributor_email);
     }
 
     // 3. Build direct invite link — NO Supabase magic link, NO OTP, NO expiry

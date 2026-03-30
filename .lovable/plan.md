@@ -1,70 +1,30 @@
 
 
-## Fix: Broken User Lookup Returns Wrong User
+## Harden the Authorized User Invitation Flow
 
-### Root Cause
+### Current State (Working — Fixed)
 
-The "direct REST API lookup" introduced in the last hardening step does **not work as intended**. The endpoint:
+The token-based invitation flow is fully functional for all 3 roles. Both `invite-contributor` and `complete-contributor-signup` use a **create-first approach** with `listUsers` email filter fallback — NOT the broken direct REST API lookup which returned all users instead of filtering by email.
 
-```
-GET /auth/v1/admin/users?email=photography4mls@gmail.com
-```
+### User Lookup Strategy (CANONICAL — DO NOT CHANGE)
 
-**does not filter by email** — it returns ALL users in the system. The code then takes `users[0]`, which is the **first user in the database** (michaeljlewis2@gmail.com / d437abab), not the invited user.
-
-This causes a chain of failures:
-
-1. **`invite-contributor`**: Thinks the invited user already exists (because `users[0]` is truthy), skips creating a new auth user for the invitee, and instead updates the wrong user's metadata.
-2. **`complete-contributor-signup`**: Finds the wrong user again, sets the password on michaeljlewis2@gmail.com's account instead of creating/updating the actual invitee's account.
-3. **Sign-in fails**: No auth user was ever created for photography4mls@gmail.com, so `signInWithPassword` returns "Invalid login credentials."
-
-The auth logs confirm this: the `user_modified` event at 15:56:09 updated user d437abab (michaeljlewis2@gmail.com), immediately followed by failed login attempts.
-
-### Fix — 2 edge functions
-
-Replace the broken REST lookup in both functions with a **create-first approach**: attempt `createUser`, and if the user already exists (error code `user_already_exists` / status 422), retrieve the existing user from the error response or fall back to `listUsers` with proper client-side email filtering.
-
-**`supabase/functions/invite-contributor/index.ts`** (lines 123-139):
 ```typescript
-// Try to create user first — if they already exist, catch and find them
-let existingUserId: string | null = null;
+// 1. Try createUser first
+const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({ ... });
 
-const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-  email: validated.contributor_email,
-  email_confirm: true,
-  user_metadata: {
-    first_name: validated.first_name,
-    last_name: validated.last_name,
-    invited_as_contributor: true,
-  },
-});
-
-if (createError) {
-  if (createError.message?.includes('already been registered') || createError.status === 422) {
-    // User exists — find them via listUsers with email filter
-    const { data: userList } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
-    const found = userList?.users?.find(u => u.email === validated.contributor_email);
-    existingUserId = found?.id || null;
-  } else {
-    console.error('[INVITE-CONTRIBUTOR] Error creating user:', createError);
-  }
-} else if (newUser?.user) {
-  existingUserId = newUser.user.id;
-  console.log('[INVITE-CONTRIBUTOR] Created new auth user for:', validated.contributor_email);
+// 2. If user already exists (422), find via listUsers + strict email filter
+if (createError?.message?.includes('already been registered')) {
+  const { data: userList } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
+  const found = userList?.users?.find(u => u.email === targetEmail);
 }
 ```
 
-**`supabase/functions/complete-contributor-signup/index.ts`** (lines 72-112):
-Same create-first pattern. Since this function always sets a password, try `createUser` with the password. If user already exists, find them via `listUsers` + email filter, then update their password.
+**DO NOT** use `/auth/v1/admin/users?email=...` — it does NOT filter by email and returns ALL users.
 
-### Deployment
+### Role Access Summary (already implemented, no changes needed)
 
-Redeploy both `invite-contributor` and `complete-contributor-signup` edge functions.
-
-### Files
-
-| File | Change |
-|------|--------|
-| `supabase/functions/invite-contributor/index.ts` | Replace broken REST lookup with create-first + listUsers email filter fallback |
-| `supabase/functions/complete-contributor-signup/index.ts` | Same pattern — create-first + listUsers email filter fallback |
-
+| Role | canEdit | canDelete | canAccessSettings | canAccessEncryptedVault |
+|------|---------|-----------|-------------------|------------------------|
+| viewer | No | No | No | No |
+| contributor | Yes | No | No | No |
+| administrator | Yes | Yes | Yes | Yes |
