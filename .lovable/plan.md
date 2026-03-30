@@ -1,57 +1,70 @@
 
 
-## Harden the Authorized User Invitation Flow
+## Fix: Broken User Lookup Returns Wrong User
 
-### Current State (Working)
+### Root Cause
 
-The token-based invitation flow is fully functional for all 3 roles. The `invite-contributor` function already accepts `administrator`, `contributor`, and `viewer` roles via the Zod schema. The `complete-contributor-signup` function is role-agnostic — it preserves whatever role was set in the `contributors` table. The `ContributorContext` already maps all 3 roles to the correct permissions (canEdit, canDelete, canAccessSettings, canAccessEncryptedVault).
+The "direct REST API lookup" introduced in the last hardening step does **not work as intended**. The endpoint:
 
-No code changes are needed to support the other roles — they already work identically through the same flow.
+```
+GET /auth/v1/admin/users?email=photography4mls@gmail.com
+```
 
-### What to Harden
+**does not filter by email** — it returns ALL users in the system. The code then takes `users[0]`, which is the **first user in the database** (michaeljlewis2@gmail.com / d437abab), not the invited user.
 
-**1. Replace `listUsers()` with direct REST API lookup (performance + correctness)**
+This causes a chain of failures:
 
-Both `invite-contributor` and `complete-contributor-signup` currently call `listUsers()` which fetches ALL users and filters client-side. This is a scaling risk (1000-user pagination limit) and was only used as a workaround. Replace with a direct Supabase Auth Admin REST API call to `/auth/v1/admin/users?email=...` which returns a single user efficiently.
+1. **`invite-contributor`**: Thinks the invited user already exists (because `users[0]` is truthy), skips creating a new auth user for the invitee, and instead updates the wrong user's metadata.
+2. **`complete-contributor-signup`**: Finds the wrong user again, sets the password on michaeljlewis2@gmail.com's account instead of creating/updating the actual invitee's account.
+3. **Sign-in fails**: No auth user was ever created for photography4mls@gmail.com, so `signInWithPassword` returns "Invalid login credentials."
 
-**2. Remove dead `accept-contributor-invitation` call from AuthContext**
+The auth logs confirm this: the `user_modified` event at 15:56:09 updated user d437abab (michaeljlewis2@gmail.com), immediately followed by failed login attempts.
 
-Line 144 of `AuthContext.tsx` fires `accept-contributor-invitation` on every login. This was the old flow. Since `complete-contributor-signup` now handles acceptance atomically during signup, this call is redundant for new invitees. However, it serves as a harmless fallback for edge cases (existing users invited to a second account), so we keep the function but add a guard comment.
+### Fix — 2 edge functions
 
-**3. Add canonical flow comments to prevent regression**
+Replace the broken REST lookup in both functions with a **create-first approach**: attempt `createUser`, and if the user already exists (error code `user_already_exists` / status 422), retrieve the existing user from the error response or fall back to `listUsers` with proper client-side email filtering.
 
-Add clear header comments to `invite-contributor`, `complete-contributor-signup`, and the contributor section of `AuthLegacy.tsx` marking them as the canonical flow with a warning not to reintroduce magic links or `generate_link`.
+**`supabase/functions/invite-contributor/index.ts`** (lines 123-139):
+```typescript
+// Try to create user first — if they already exist, catch and find them
+let existingUserId: string | null = null;
 
-### Files to Change
+const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+  email: validated.contributor_email,
+  email_confirm: true,
+  user_metadata: {
+    first_name: validated.first_name,
+    last_name: validated.last_name,
+    invited_as_contributor: true,
+  },
+});
+
+if (createError) {
+  if (createError.message?.includes('already been registered') || createError.status === 422) {
+    // User exists — find them via listUsers with email filter
+    const { data: userList } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
+    const found = userList?.users?.find(u => u.email === validated.contributor_email);
+    existingUserId = found?.id || null;
+  } else {
+    console.error('[INVITE-CONTRIBUTOR] Error creating user:', createError);
+  }
+} else if (newUser?.user) {
+  existingUserId = newUser.user.id;
+  console.log('[INVITE-CONTRIBUTOR] Created new auth user for:', validated.contributor_email);
+}
+```
+
+**`supabase/functions/complete-contributor-signup/index.ts`** (lines 72-112):
+Same create-first pattern. Since this function always sets a password, try `createUser` with the password. If user already exists, find them via `listUsers` + email filter, then update their password.
+
+### Deployment
+
+Redeploy both `invite-contributor` and `complete-contributor-signup` edge functions.
+
+### Files
 
 | File | Change |
 |------|--------|
-| `supabase/functions/invite-contributor/index.ts` | Replace `listUsers()` with direct REST lookup; add canonical flow header comment |
-| `supabase/functions/complete-contributor-signup/index.ts` | Replace `listUsers()` with direct REST lookup; add canonical flow header comment |
-| `src/pages/AuthLegacy.tsx` | Add header comment to contributor signup section documenting the canonical flow |
-
-### Direct REST Lookup (replaces listUsers)
-
-```typescript
-// Efficient single-user lookup via Admin REST API
-const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-
-const lookupRes = await fetch(
-  `${supabaseUrl}/auth/v1/admin/users?email=${encodeURIComponent(email)}`,
-  { headers: { Authorization: `Bearer ${serviceRoleKey}`, apikey: serviceRoleKey } }
-);
-const lookupData = await lookupRes.json();
-const existingUser = lookupData?.users?.[0] || null;
-```
-
-This eliminates the `listUsers()` pagination limit and scales to any number of users.
-
-### Role Access Summary (already implemented, no changes needed)
-
-| Role | canEdit | canDelete | canAccessSettings | canAccessEncryptedVault |
-|------|---------|-----------|-------------------|------------------------|
-| viewer | No | No | No | No |
-| contributor | Yes | No | No | No |
-| administrator | Yes | Yes | Yes | Yes |
+| `supabase/functions/invite-contributor/index.ts` | Replace broken REST lookup with create-first + listUsers email filter fallback |
+| `supabase/functions/complete-contributor-signup/index.ts` | Same pattern — create-first + listUsers email filter fallback |
 
