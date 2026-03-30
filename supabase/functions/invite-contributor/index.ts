@@ -5,7 +5,7 @@
  * ║  This function uses a custom token-based invite system.            ║
  * ║  DO NOT reintroduce Supabase magic links, generate_link, or OTP.  ║
  * ║  The invite_token lives in the contributors table with no expiry.  ║
- * ║  User lookup uses the direct Auth Admin REST API (not listUsers). ║
+ * ║  User lookup uses create-first + listUsers email filter fallback. ║
  * ║  Paired with: complete-contributor-signup, AuthLegacy.tsx          ║
  * ╚══════════════════════════════════════════════════════════════════════╝
  */
