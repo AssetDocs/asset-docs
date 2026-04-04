@@ -114,15 +114,15 @@ const AdminUsers = () => {
         .order('created_at', { ascending: false });
 
       if (usersData) {
-        // Get subscriber info
+        // Get subscriber info (legacy, used only for email fallback)
         const { data: subscribersData } = await supabase
           .from('subscribers')
           .select('user_id, email, subscription_tier, subscribed');
 
-        // Get entitlement sources
+        // Get entitlements (authoritative source for subscription status)
         const { data: entitlementsData } = await supabase
           .from('entitlements')
-          .select('user_id, entitlement_source');
+          .select('user_id, entitlement_source, status, plan, plan_lookup_key, stripe_customer_id, billing_status, total_storage_gb');
 
         const entitlementSourceMap = new Map(
           entitlementsData?.map(e => [e.user_id, e.entitlement_source]) || []

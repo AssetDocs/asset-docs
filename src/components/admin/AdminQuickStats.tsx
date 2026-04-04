@@ -37,9 +37,9 @@ const AdminQuickStats = () => {
         .select('*', { count: 'exact', head: true });
 
       const { count: activeSubscriptions } = await supabase
-        .from('profiles')
+        .from('entitlements')
         .select('*', { count: 'exact', head: true })
-        .eq('plan_status', 'active');
+        .in('status', ['active', 'trialing']);
 
       // Get property and item counts
       const { count: totalProperties } = await supabase
