@@ -98,6 +98,19 @@ serve(async (req) => {
     }
     logStep(`Loaded ${profilesByUserId.size} profiles for lookup`);
 
+    // Fetch all entitlements upfront (authoritative source for subscription status)
+    const { data: allEntitlements } = await supabase
+      .from("entitlements")
+      .select("*");
+    
+    const entitlementsByUserId = new Map<string, any>();
+    if (allEntitlements) {
+      for (const e of allEntitlements) {
+        entitlementsByUserId.set(e.user_id, e);
+      }
+    }
+    logStep(`Loaded ${entitlementsByUserId.size} entitlements for lookup`);
+
     // Fetch all active subscriptions from Stripe
     logStep("Fetching subscriptions from Stripe");
     
