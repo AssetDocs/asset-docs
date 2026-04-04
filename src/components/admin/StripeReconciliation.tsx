@@ -70,6 +70,7 @@ interface StripeSubscription {
     lastName: string | null;
     planStatus: string | null;
     stripeCustomerId: string | null;
+    entitlementStatus: string | null;
   } | null;
   syncStatus: 'synced' | 'mismatch' | 'orphaned';
 }

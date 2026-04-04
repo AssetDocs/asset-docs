@@ -261,6 +261,7 @@ const AdminUsers = () => {
   });
 
   const getStatusBadge = (status: string | null, subscribed: boolean | null) => {
+    // subscribed is now derived from entitlements.status
     if (subscribed) {
       return <Badge className="bg-green-500">Active</Badge>;
     }
