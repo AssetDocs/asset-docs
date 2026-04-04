@@ -160,20 +160,27 @@ const AdminUsers = () => {
           const contributorRecord = contributorMap.get(user.user_id);
           const ownerProfile = contributorRecord ? ownerProfileMap.get(contributorRecord.account_owner_id) : null;
           const ownerEmail = ownerProfile ? (subscriberMap.get(ownerProfile.user_id)?.email || authEmails[ownerProfile.user_id]) : null;
+          const entitlement = entitlementMap.get(user.user_id);
+          
+          // Use entitlements as authoritative source, fall back to profiles/subscribers
+          const isActive = entitlement?.status === 'active' || entitlement?.status === 'trialing';
           
           return {
             ...user,
             phone: user.phone || null,
             account_number: user.account_number || null,
             email: subscriberMap.get(user.user_id)?.email || authEmails[user.user_id] || null,
-            subscription_tier: subscriberMap.get(user.user_id)?.subscription_tier || null,
-            subscribed: subscriberMap.get(user.user_id)?.subscribed || null,
+            subscription_tier: entitlement?.plan || subscriberMap.get(user.user_id)?.subscription_tier || null,
+            subscribed: isActive,
+            plan_status: entitlement?.status || user.plan_status || null,
             isContributor: !!contributorRecord,
             contributorRole: contributorRecord?.role || null,
             ownerEmail: ownerEmail || null,
             ownerName: ownerProfile ? `${ownerProfile.first_name || ''} ${ownerProfile.last_name || ''}`.trim() : null,
             ownerAccountNumber: ownerProfile?.account_number || null,
-            entitlement_source: entitlementSourceMap.get(user.user_id) || null
+            entitlement_source: entitlement?.entitlement_source || null,
+            billing_status: entitlement?.billing_status || null,
+            total_storage_gb: entitlement?.total_storage_gb || null,
           };
         });
 
