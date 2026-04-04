@@ -114,18 +114,18 @@ const AdminUsers = () => {
         .order('created_at', { ascending: false });
 
       if (usersData) {
-        // Get subscriber info
+        // Get subscriber info (legacy, used only for email fallback)
         const { data: subscribersData } = await supabase
           .from('subscribers')
           .select('user_id, email, subscription_tier, subscribed');
 
-        // Get entitlement sources
+        // Get entitlements (authoritative source for subscription status)
         const { data: entitlementsData } = await supabase
           .from('entitlements')
-          .select('user_id, entitlement_source');
+          .select('user_id, entitlement_source, status, plan, plan_lookup_key, stripe_customer_id, billing_status, total_storage_gb');
 
-        const entitlementSourceMap = new Map(
-          entitlementsData?.map(e => [e.user_id, e.entitlement_source]) || []
+        const entitlementMap = new Map(
+          entitlementsData?.map(e => [e.user_id, e]) || []
         );
 
         // Get user emails from auth.users via edge function
@@ -160,20 +160,27 @@ const AdminUsers = () => {
           const contributorRecord = contributorMap.get(user.user_id);
           const ownerProfile = contributorRecord ? ownerProfileMap.get(contributorRecord.account_owner_id) : null;
           const ownerEmail = ownerProfile ? (subscriberMap.get(ownerProfile.user_id)?.email || authEmails[ownerProfile.user_id]) : null;
+          const entitlement = entitlementMap.get(user.user_id);
+          
+          // Use entitlements as authoritative source, fall back to profiles/subscribers
+          const isActive = entitlement?.status === 'active' || entitlement?.status === 'trialing';
           
           return {
             ...user,
             phone: user.phone || null,
             account_number: user.account_number || null,
             email: subscriberMap.get(user.user_id)?.email || authEmails[user.user_id] || null,
-            subscription_tier: subscriberMap.get(user.user_id)?.subscription_tier || null,
-            subscribed: subscriberMap.get(user.user_id)?.subscribed || null,
+            subscription_tier: entitlement?.plan || subscriberMap.get(user.user_id)?.subscription_tier || null,
+            subscribed: isActive,
+            plan_status: entitlement?.status || user.plan_status || null,
             isContributor: !!contributorRecord,
             contributorRole: contributorRecord?.role || null,
             ownerEmail: ownerEmail || null,
             ownerName: ownerProfile ? `${ownerProfile.first_name || ''} ${ownerProfile.last_name || ''}`.trim() : null,
             ownerAccountNumber: ownerProfile?.account_number || null,
-            entitlement_source: entitlementSourceMap.get(user.user_id) || null
+            entitlement_source: entitlement?.entitlement_source || null,
+            billing_status: entitlement?.billing_status || null,
+            total_storage_gb: entitlement?.total_storage_gb || null,
           };
         });
 
@@ -254,6 +261,7 @@ const AdminUsers = () => {
   });
 
   const getStatusBadge = (status: string | null, subscribed: boolean | null) => {
+    // subscribed is now derived from entitlements.status
     if (subscribed) {
       return <Badge className="bg-green-500">Active</Badge>;
     }
@@ -281,7 +289,7 @@ const AdminUsers = () => {
     }).format(amount / 100);
   };
 
-  // Map Stripe price IDs and plan_ids to friendly plan info
+  // Map plan info using entitlements data (plan + plan_lookup_key)
   const getPlanInfo = (planId: string | null, subscriptionTier: string | null) => {
     if (!planId && !subscriptionTier) {
       return { name: 'None', price: '-' };
@@ -292,27 +300,16 @@ const AdminUsers = () => {
       return { name: 'Premium (Lifetime)', price: 'ASL2025' };
     }
     
-    // Check subscription_tier first
+    // Single-plan model: Asset Safe Plan
     const tier = subscriptionTier?.toLowerCase();
-    if (tier === 'premium') {
-      return { name: 'Premium', price: '$189/yr' };
-    }
-    if (tier === 'standard') {
-      return { name: 'Standard', price: '$129/yr' };
+    if (tier === 'standard' || tier === 'premium') {
+      return { name: 'Asset Safe Plan', price: '$18.99/mo or $189/yr' };
     }
     
-    // Map known Stripe price IDs (patterns)
+    // Map known Stripe price IDs
     if (planId) {
-      const lowerPlanId = planId.toLowerCase();
-      // Check for premium indicators
-      if (lowerPlanId.includes('premium') || lowerPlanId.includes('189')) {
-        return { name: 'Premium', price: '$189/yr' };
-      }
-      // Default Stripe price IDs - check based on amount pattern
-      // price_1SehXDEyVj2Ir7a8nRAVcXwh appears to be Standard based on $129
       if (planId.startsWith('price_')) {
-        // For Stripe price IDs, we can infer Standard is $129/yr
-        return { name: 'Standard', price: '$129/yr' };
+        return { name: 'Asset Safe Plan', price: 'Stripe' };
       }
     }
     

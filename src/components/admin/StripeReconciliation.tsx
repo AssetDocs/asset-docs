@@ -70,6 +70,7 @@ interface StripeSubscription {
     lastName: string | null;
     planStatus: string | null;
     stripeCustomerId: string | null;
+    entitlementStatus: string | null;
   } | null;
   syncStatus: 'synced' | 'mismatch' | 'orphaned';
 }
@@ -411,7 +412,7 @@ const StripeReconciliation = () => {
                             {sub.linkedProfile.firstName} {sub.linkedProfile.lastName}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            Status: {sub.linkedProfile.planStatus}
+                            Entitlement: {sub.linkedProfile.entitlementStatus || sub.linkedProfile.planStatus || 'unknown'}
                           </p>
                         </div>
                       ) : (

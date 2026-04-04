@@ -98,6 +98,19 @@ serve(async (req) => {
     }
     logStep(`Loaded ${profilesByUserId.size} profiles for lookup`);
 
+    // Fetch all entitlements upfront (authoritative source for subscription status)
+    const { data: allEntitlements } = await supabase
+      .from("entitlements")
+      .select("*");
+    
+    const entitlementsByUserId = new Map<string, any>();
+    if (allEntitlements) {
+      for (const e of allEntitlements) {
+        entitlementsByUserId.set(e.user_id, e);
+      }
+    }
+    logStep(`Loaded ${entitlementsByUserId.size} entitlements for lookup`);
+
     // Fetch all active subscriptions from Stripe
     logStep("Fetching subscriptions from Stripe");
     
@@ -118,6 +131,7 @@ serve(async (req) => {
       // Check if this customer email exists in our users (O(1) lookup)
       let linkedUserId = null;
       let linkedProfile = null;
+      let linkedEntitlement = null;
 
       if (customer?.email) {
         const matchingUser = usersByEmail.get(customer.email.toLowerCase());
@@ -125,8 +139,12 @@ serve(async (req) => {
         if (matchingUser) {
           linkedUserId = matchingUser.id;
           linkedProfile = profilesByUserId.get(matchingUser.id) || null;
+          linkedEntitlement = entitlementsByUserId.get(matchingUser.id) || null;
         }
       }
+
+      // Use entitlements.stripe_customer_id as authoritative sync check
+      const entitlementStripeId = linkedEntitlement?.stripe_customer_id;
 
       return {
         subscriptionId: sub.id,
@@ -152,10 +170,11 @@ serve(async (req) => {
         linkedProfile: linkedProfile ? {
           firstName: linkedProfile.first_name,
           lastName: linkedProfile.last_name,
-          planStatus: linkedProfile.plan_status,
-          stripeCustomerId: linkedProfile.stripe_customer_id,
+          planStatus: linkedEntitlement?.status || linkedProfile.plan_status,
+          stripeCustomerId: entitlementStripeId || linkedProfile.stripe_customer_id,
+          entitlementStatus: linkedEntitlement?.status || null,
         } : null,
-        syncStatus: linkedProfile?.stripe_customer_id === customer?.id 
+        syncStatus: entitlementStripeId === customer?.id 
           ? "synced" 
           : linkedUserId 
             ? "mismatch" 
