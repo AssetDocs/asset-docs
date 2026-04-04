@@ -124,8 +124,8 @@ const AdminUsers = () => {
           .from('entitlements')
           .select('user_id, entitlement_source, status, plan, plan_lookup_key, stripe_customer_id, billing_status, total_storage_gb');
 
-        const entitlementSourceMap = new Map(
-          entitlementsData?.map(e => [e.user_id, e.entitlement_source]) || []
+        const entitlementMap = new Map(
+          entitlementsData?.map(e => [e.user_id, e]) || []
         );
 
         // Get user emails from auth.users via edge function
