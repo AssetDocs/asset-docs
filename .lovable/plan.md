@@ -1,30 +1,28 @@
 
 
-## Harden the Authorized User Invitation Flow
+## Fix Admin Workspace: Stripe Billing Error + Lifetime Plan Display
 
-### Current State (Working — Fixed)
+### Issue 1: Stripe Billing Tab Crashes
 
-The token-based invitation flow is fully functional for all 3 roles. Both `invite-contributor` and `complete-contributor-signup` use a **create-first approach** with `listUsers` email filter fallback — NOT the broken direct REST API lookup which returned all users instead of filtering by email.
+**Root cause**: The `admin-stripe-subscriptions` edge function calls `stripe.subscriptions.list()` with `expand: ["data.customer", "data.items.data.price.product"]`. Stripe limits expansion to 4 levels, and `data.items.data.price.product` is 5 levels deep. This causes a 500 error every time.
 
-### User Lookup Strategy (CANONICAL — DO NOT CHANGE)
+**Fix**: Remove the deep expand and fetch product details separately. Change the Stripe call to only expand `["data.customer"]`, then for each subscription, make a separate `stripe.products.retrieve()` call using the product ID from the price object (which is already a string, not expanded).
 
-```typescript
-// 1. Try createUser first
-const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({ ... });
+| File | Change |
+|------|--------|
+| `supabase/functions/admin-stripe-subscriptions/index.ts` | Replace deep expand with shallow expand + separate product lookups |
 
-// 2. If user already exists (422), find via listUsers + strict email filter
-if (createError?.message?.includes('already been registered')) {
-  const { data: userList } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
-  const found = userList?.users?.find(u => u.email === targetEmail);
-}
-```
+### Issue 2: AS010118 Shows "Asset Safe Plan" Instead of Lifetime
 
-**DO NOT** use `/auth/v1/admin/users?email=...` — it does NOT filter by email and returns ALL users.
+**Root cause**: AS010118 (user `e71b4d2e`) has `entitlement_source: admin` and `plan: premium` but no `plan_lookup_key`. The `getPlanInfo` function checks for `planId === 'premium_lifetime'` but this user's plan is just `premium`. The function doesn't consider `entitlement_source` at all.
 
-### Role Access Summary (already implemented, no changes needed)
+**Fix**: Pass `entitlement_source` into `getPlanInfo` and check for `admin` or `lifetime` sources with no `stripe_subscription_id` to display as "Free Lifetime (ASL2025)".
 
-| Role | canEdit | canDelete | canAccessSettings | canAccessEncryptedVault |
-|------|---------|-----------|-------------------|------------------------|
-| viewer | No | No | No | No |
-| contributor | Yes | No | No | No |
-| administrator | Yes | Yes | Yes | Yes |
+| File | Change |
+|------|--------|
+| `src/components/admin/AdminUsers.tsx` | Update `getPlanInfo` to accept and check `entitlement_source`; pass it from user record |
+
+### Deployment
+
+Redeploy `admin-stripe-subscriptions` after the fix.
+
