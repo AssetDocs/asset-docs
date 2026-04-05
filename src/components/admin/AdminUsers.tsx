@@ -289,15 +289,20 @@ const AdminUsers = () => {
     }).format(amount / 100);
   };
 
-  // Map plan info using entitlements data (plan + plan_lookup_key)
-  const getPlanInfo = (planId: string | null, subscriptionTier: string | null) => {
+  // Map plan info using entitlements data (plan + plan_lookup_key + entitlement_source)
+  const getPlanInfo = (planId: string | null, subscriptionTier: string | null, entitlementSource?: string | null, stripeSubId?: string | null) => {
     if (!planId && !subscriptionTier) {
       return { name: 'None', price: '-' };
     }
     
-    // Lifetime plan
+    // Lifetime plan by explicit planId
     if (planId === 'premium_lifetime') {
-      return { name: 'Premium (Lifetime)', price: 'ASL2025' };
+      return { name: 'Free Lifetime (ASL2025)', price: 'Lifetime' };
+    }
+    
+    // Admin or lifetime entitlement source with no Stripe subscription = free lifetime
+    if ((entitlementSource === 'admin' || entitlementSource === 'lifetime') && !stripeSubId) {
+      return { name: 'Free Lifetime (ASL2025)', price: 'Lifetime' };
     }
     
     // Single-plan model: Asset Safe Plan
