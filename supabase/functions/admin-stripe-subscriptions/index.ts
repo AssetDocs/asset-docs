@@ -111,22 +111,39 @@ serve(async (req) => {
     }
     logStep(`Loaded ${entitlementsByUserId.size} entitlements for lookup`);
 
-    // Fetch all active subscriptions from Stripe
+    // Fetch all active subscriptions from Stripe (shallow expand only - Stripe limits to 4 levels)
     logStep("Fetching subscriptions from Stripe");
     
     const subscriptions = await stripe.subscriptions.list({
       status: "all",
       limit: 100,
-      expand: ["data.customer", "data.items.data.price.product"],
+      expand: ["data.customer"],
     });
 
     logStep(`Found ${subscriptions.data.length} subscriptions`);
 
-    // Process each subscription using pre-fetched data (no more N+1 queries)
-    const subscriptionDetails = subscriptions.data.map((sub) => {
+    // Fetch product details separately for each subscription
+    const productCache = new Map<string, Stripe.Product>();
+    
+    const subscriptionDetails = [];
+    for (const sub of subscriptions.data) {
       const customer = sub.customer as Stripe.Customer;
       const priceItem = sub.items.data[0];
-      const product = priceItem?.price?.product as Stripe.Product;
+      const productId = typeof priceItem?.price?.product === 'string' ? priceItem.price.product : null;
+      
+      let product: Stripe.Product | null = null;
+      if (productId) {
+        if (productCache.has(productId)) {
+          product = productCache.get(productId)!;
+        } else {
+          try {
+            product = await stripe.products.retrieve(productId);
+            productCache.set(productId, product);
+          } catch (e) {
+            logStep("Failed to fetch product", { productId, error: e.message });
+          }
+        }
+      }
 
       // Check if this customer email exists in our users (O(1) lookup)
       let linkedUserId = null;

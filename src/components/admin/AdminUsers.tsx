@@ -471,7 +471,7 @@ const AdminUsers = () => {
                         </TableCell>
                         <TableCell>
                           {(() => {
-                            const planInfo = getPlanInfo(user.plan_id, user.subscription_tier);
+                            const planInfo = getPlanInfo(user.plan_id, user.subscription_tier, user.entitlement_source, null);
                             return (
                               <div>
                                 <p className="font-medium">{planInfo.name}</p>
