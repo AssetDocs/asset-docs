@@ -163,7 +163,7 @@ serve(async (req) => {
       // Use entitlements.stripe_customer_id as authoritative sync check
       const entitlementStripeId = linkedEntitlement?.stripe_customer_id;
 
-      return {
+      subscriptionDetails.push({
         subscriptionId: sub.id,
         status: sub.status,
         currentPeriodEnd: new Date(sub.current_period_end * 1000).toISOString(),
@@ -196,8 +196,8 @@ serve(async (req) => {
           : linkedUserId 
             ? "mismatch" 
             : "orphaned",
-      };
-    });
+      });
+    }
 
     // Also get all profiles with stripe_customer_id set
     const profilesWithStripe = allProfiles?.filter(p => p.stripe_customer_id) || [];
