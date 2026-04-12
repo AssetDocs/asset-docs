@@ -341,13 +341,19 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user || !sessionMasterPassword) return;
+    if (!user) return;
+    if (isVaultEncrypted && !sessionMasterPassword) {
+      toast({ title: "Error", description: "Master password required for encrypted vault.", variant: "destructive" });
+      return;
+    }
 
     try {
       passwordSchema.parse(formData);
 
-      // Encrypt password on client-side before sending to database
-      const encryptedPassword = await encryptPassword(formData.password, sessionMasterPassword);
+      // Encrypt password only if vault is encrypted
+      const passwordToStore = isVaultEncrypted && sessionMasterPassword
+        ? await encryptPassword(formData.password, sessionMasterPassword)
+        : formData.password;
 
       const { error } = await supabase
         .from('password_catalog')
@@ -356,7 +362,7 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
           website_name: formData.websiteName,
           website_url: formData.websiteUrl || '',
           username: formData.username || null,
-          password: encryptedPassword,
+          password: passwordToStore,
           notes: formData.notes || null,
         });
 
@@ -364,7 +370,7 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
 
       toast({
         title: "Success",
-        description: "Password encrypted and saved securely",
+        description: isVaultEncrypted ? "Password encrypted and saved securely" : "Password saved successfully",
       });
 
       setFormData({
@@ -376,8 +382,11 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
         notes: '',
       });
 
-      if (sessionMasterPassword) {
+      // Refresh list
+      if (isVaultEncrypted && sessionMasterPassword) {
         fetchPasswords(sessionMasterPassword);
+      } else if (!isVaultEncrypted) {
+        fetchPasswordsPlaintext();
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -411,8 +420,10 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
         description: "Password deleted successfully",
       });
 
-      if (sessionMasterPassword) {
+      if (isVaultEncrypted && sessionMasterPassword) {
         fetchPasswords(sessionMasterPassword);
+      } else if (!isVaultEncrypted) {
+        fetchPasswordsPlaintext();
       }
     } catch (error) {
       console.error('Error deleting password:', error);
@@ -441,27 +452,37 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
   };
 
   const handleEditSave = async (id: string) => {
-    if (!user || !sessionMasterPassword) return;
+    if (!user) return;
+    if (isVaultEncrypted && !sessionMasterPassword) {
+      toast({ title: "Error", description: "Master password required for encrypted vault.", variant: "destructive" });
+      return;
+    }
     if (!editData.websiteName.trim() || !editData.password.trim()) {
       toast({ title: "Validation Error", description: "Website name and password are required.", variant: "destructive" });
       return;
     }
     try {
-      const encryptedPassword = await encryptPassword(editData.password, sessionMasterPassword);
+      const passwordToStore = isVaultEncrypted && sessionMasterPassword
+        ? await encryptPassword(editData.password, sessionMasterPassword)
+        : editData.password;
       const { error } = await supabase
         .from('password_catalog')
         .update({
           website_name: editData.websiteName.trim(),
-          website_url: editData.websiteUrl.trim() || null,
+          website_url: editData.websiteUrl.trim() || '',
           username: editData.username.trim() || null,
-          password: encryptedPassword,
+          password: passwordToStore,
           notes: editData.notes.trim() || null,
         })
         .eq('id', id);
       if (error) throw error;
       toast({ title: "Success", description: "Password updated successfully" });
       setEditingId(null);
-      fetchPasswords(sessionMasterPassword);
+      if (isVaultEncrypted && sessionMasterPassword) {
+        fetchPasswords(sessionMasterPassword);
+      } else if (!isVaultEncrypted) {
+        fetchPasswordsPlaintext();
+      }
     } catch (error) {
       console.error('Error updating password:', error);
       toast({ title: "Error", description: "Failed to update password", variant: "destructive" });
