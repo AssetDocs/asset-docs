@@ -191,6 +191,67 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
     }
   };
 
+  const fetchPasswordsPlaintext = async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('password_catalog')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setPasswords(data || []);
+      
+      // In plaintext mode, passwords are stored as-is
+      const decrypted: { [key: string]: string } = {};
+      if (data) {
+        for (const entry of data) {
+          decrypted[entry.id] = entry.password;
+        }
+      }
+      setDecryptedPasswords(decrypted);
+    } catch (error) {
+      console.error('Error fetching passwords:', error);
+      toast({ title: "Error", description: "Failed to load passwords", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchAccountsPlaintext = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('financial_accounts' as any)
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setAccounts((data as any) || []);
+      
+      const decryptedAcctNums: { [key: string]: string } = {};
+      const decryptedRouting: { [key: string]: string } = {};
+      const decryptedNotes: { [key: string]: string } = {};
+      if (data) {
+        for (const entry of data) {
+          const e = entry as any;
+          decryptedAcctNums[e.id] = e.account_number;
+          if (e.routing_number) decryptedRouting[e.id] = e.routing_number;
+          if (e.notes) decryptedNotes[e.id] = e.notes;
+        }
+      }
+      setDecryptedAccountNumbers(decryptedAcctNums);
+      setDecryptedRoutingNumbers(decryptedRouting);
+      setDecryptedAccountNotes(decryptedNotes);
+    } catch (error) {
+      console.error('Error fetching accounts:', error);
+      toast({ title: "Error", description: "Failed to load financial accounts", variant: "destructive" });
+    }
+  };
+
   const fetchPasswords = async (masterPassword: string) => {
     if (!user) return;
 
