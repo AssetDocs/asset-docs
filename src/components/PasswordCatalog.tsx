@@ -137,11 +137,18 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
 
   // Fetch data when unlocked from parent
   useEffect(() => {
-    if (isControlledByParent && isUnlocked && sessionMasterPassword) {
-      fetchPasswords(sessionMasterPassword);
-      fetchAccounts(sessionMasterPassword);
+    if (isControlledByParent && isUnlocked) {
+      if (!isVaultEncrypted) {
+        // Unencrypted vault: fetch without needing a master password
+        fetchPasswordsPlaintext();
+        fetchAccountsPlaintext();
+      } else if (sessionMasterPassword) {
+        // Encrypted vault: fetch and decrypt
+        fetchPasswords(sessionMasterPassword);
+        fetchAccounts(sessionMasterPassword);
+      }
     }
-  }, [isControlledByParent, isUnlocked, sessionMasterPassword]);
+  }, [isControlledByParent, isUnlocked, sessionMasterPassword, isVaultEncrypted]);
 
   const handleMasterPasswordSubmit = async (password: string) => {
     const storedHash = localStorage.getItem(MASTER_PASSWORD_HASH_KEY);
