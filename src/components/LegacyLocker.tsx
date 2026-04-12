@@ -1479,6 +1479,8 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                   <Label htmlFor="rental_property">Rental property instructions</Label>
                   <Textarea
                     id="rental_property"
+                    value={formData.rental_property}
+                    onChange={(e) => handleInputChange('rental_property', e.target.value)}
                     placeholder="Lease locations, key contacts, payout preferences."
                     rows={3}
                   />
@@ -1551,6 +1553,8 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                   <Label htmlFor="sentimental_distribution">How to distribute sentimental items</Label>
                   <Textarea
                     id="sentimental_distribution"
+                    value={formData.sentimental_distribution}
+                    onChange={(e) => handleInputChange('sentimental_distribution', e.target.value)}
                     placeholder="Often the #1 cause of family arguments."
                     rows={3}
                   />
@@ -1560,6 +1564,8 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                   <Label htmlFor="legacy_messages">Legacy messages</Label>
                   <Textarea
                     id="legacy_messages"
+                    value={formData.legacy_messages}
+                    onChange={(e) => handleInputChange('legacy_messages', e.target.value)}
                     placeholder="What you hope your children carry forward."
                     rows={3}
                   />
@@ -1569,6 +1575,8 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                   <Label htmlFor="charitable_giving">Charitable giving rationale</Label>
                   <Textarea
                     id="charitable_giving"
+                    value={formData.charitable_giving}
+                    onChange={(e) => handleInputChange('charitable_giving', e.target.value)}
                     placeholder="Why certain donations matter."
                     rows={3}
                   />
