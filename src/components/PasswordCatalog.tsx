@@ -68,11 +68,13 @@ export const MASTER_PASSWORD_HASH_KEY = 'assetsafe_master_password_hash';
 interface PasswordCatalogProps {
   isUnlockedFromParent?: boolean;
   sessionMasterPasswordFromParent?: string | null;
+  isVaultEncrypted?: boolean;
 }
 
 const PasswordCatalog: React.FC<PasswordCatalogProps> = ({ 
   isUnlockedFromParent, 
-  sessionMasterPasswordFromParent 
+  sessionMasterPasswordFromParent,
+  isVaultEncrypted = true,
 }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
