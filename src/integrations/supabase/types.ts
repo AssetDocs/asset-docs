@@ -1730,42 +1730,65 @@ export type Database = {
           business_partner_name: string | null
           business_succession_plan: string | null
           ceremony_preferences: string | null
+          charitable_giving: string | null
           created_at: string
+          crypto_passwords: string | null
           debts_expenses: string | null
           delegate_user_id: string | null
+          developmental_goals: string | null
           digital_assets: Json | null
+          digital_identity: string | null
+          emotional_behavioral: string | null
           encryption_key_encrypted_for_delegate: string | null
           encryption_key_encrypted_for_user: string | null
           ethical_will: string | null
           executor_contact: string | null
+          executor_instructions: string | null
           executor_name: string | null
           executor_relationship: string | null
           financial_advisor_contact: string | null
           financial_advisor_firm: string | null
           financial_advisor_name: string | null
+          financial_crypto: string | null
           full_legal_name: string | null
           funeral_wishes: string | null
           general_bequests: Json | null
           guardian_contact: string | null
           guardian_name: string | null
           guardian_relationship: string | null
+          home_maintenance: string | null
+          household_operations: string | null
           id: string
           investment_advisor_name: string | null
           investment_firm_contact: string | null
           investment_firm_name: string | null
           is_encrypted: boolean
+          legacy_messages: string | null
+          letters_to_children: string | null
           letters_to_loved_ones: string | null
+          life_overview: string | null
+          medical_preferences: string | null
+          neighborhood_contacts: string | null
           no_contest_clause: boolean | null
           organ_donation: boolean | null
+          parenting_preferences: string | null
+          personal_philosophies: string | null
           pet_care_instructions: string | null
+          photo_video_documentation: string | null
+          physical_documents: string | null
+          property_walkthrough: string | null
           real_estate_instructions: string | null
           recovery_grace_period_days: number | null
           recovery_requested_at: string | null
           recovery_status: string | null
+          rental_property: string | null
           residuary_estate: string | null
+          sentimental_distribution: string | null
+          sentimental_items: string | null
           specific_bequests: Json | null
           spouse_contact: string | null
           spouse_name: string | null
+          subscriptions: string | null
           updated_at: string
           user_id: string
         }
@@ -1785,42 +1808,65 @@ export type Database = {
           business_partner_name?: string | null
           business_succession_plan?: string | null
           ceremony_preferences?: string | null
+          charitable_giving?: string | null
           created_at?: string
+          crypto_passwords?: string | null
           debts_expenses?: string | null
           delegate_user_id?: string | null
+          developmental_goals?: string | null
           digital_assets?: Json | null
+          digital_identity?: string | null
+          emotional_behavioral?: string | null
           encryption_key_encrypted_for_delegate?: string | null
           encryption_key_encrypted_for_user?: string | null
           ethical_will?: string | null
           executor_contact?: string | null
+          executor_instructions?: string | null
           executor_name?: string | null
           executor_relationship?: string | null
           financial_advisor_contact?: string | null
           financial_advisor_firm?: string | null
           financial_advisor_name?: string | null
+          financial_crypto?: string | null
           full_legal_name?: string | null
           funeral_wishes?: string | null
           general_bequests?: Json | null
           guardian_contact?: string | null
           guardian_name?: string | null
           guardian_relationship?: string | null
+          home_maintenance?: string | null
+          household_operations?: string | null
           id?: string
           investment_advisor_name?: string | null
           investment_firm_contact?: string | null
           investment_firm_name?: string | null
           is_encrypted?: boolean
+          legacy_messages?: string | null
+          letters_to_children?: string | null
           letters_to_loved_ones?: string | null
+          life_overview?: string | null
+          medical_preferences?: string | null
+          neighborhood_contacts?: string | null
           no_contest_clause?: boolean | null
           organ_donation?: boolean | null
+          parenting_preferences?: string | null
+          personal_philosophies?: string | null
           pet_care_instructions?: string | null
+          photo_video_documentation?: string | null
+          physical_documents?: string | null
+          property_walkthrough?: string | null
           real_estate_instructions?: string | null
           recovery_grace_period_days?: number | null
           recovery_requested_at?: string | null
           recovery_status?: string | null
+          rental_property?: string | null
           residuary_estate?: string | null
+          sentimental_distribution?: string | null
+          sentimental_items?: string | null
           specific_bequests?: Json | null
           spouse_contact?: string | null
           spouse_name?: string | null
+          subscriptions?: string | null
           updated_at?: string
           user_id: string
         }
@@ -1840,42 +1886,65 @@ export type Database = {
           business_partner_name?: string | null
           business_succession_plan?: string | null
           ceremony_preferences?: string | null
+          charitable_giving?: string | null
           created_at?: string
+          crypto_passwords?: string | null
           debts_expenses?: string | null
           delegate_user_id?: string | null
+          developmental_goals?: string | null
           digital_assets?: Json | null
+          digital_identity?: string | null
+          emotional_behavioral?: string | null
           encryption_key_encrypted_for_delegate?: string | null
           encryption_key_encrypted_for_user?: string | null
           ethical_will?: string | null
           executor_contact?: string | null
+          executor_instructions?: string | null
           executor_name?: string | null
           executor_relationship?: string | null
           financial_advisor_contact?: string | null
           financial_advisor_firm?: string | null
           financial_advisor_name?: string | null
+          financial_crypto?: string | null
           full_legal_name?: string | null
           funeral_wishes?: string | null
           general_bequests?: Json | null
           guardian_contact?: string | null
           guardian_name?: string | null
           guardian_relationship?: string | null
+          home_maintenance?: string | null
+          household_operations?: string | null
           id?: string
           investment_advisor_name?: string | null
           investment_firm_contact?: string | null
           investment_firm_name?: string | null
           is_encrypted?: boolean
+          legacy_messages?: string | null
+          letters_to_children?: string | null
           letters_to_loved_ones?: string | null
+          life_overview?: string | null
+          medical_preferences?: string | null
+          neighborhood_contacts?: string | null
           no_contest_clause?: boolean | null
           organ_donation?: boolean | null
+          parenting_preferences?: string | null
+          personal_philosophies?: string | null
           pet_care_instructions?: string | null
+          photo_video_documentation?: string | null
+          physical_documents?: string | null
+          property_walkthrough?: string | null
           real_estate_instructions?: string | null
           recovery_grace_period_days?: number | null
           recovery_requested_at?: string | null
           recovery_status?: string | null
+          rental_property?: string | null
           residuary_estate?: string | null
+          sentimental_distribution?: string | null
+          sentimental_items?: string | null
           specific_bequests?: Json | null
           spouse_contact?: string | null
           spouse_name?: string | null
+          subscriptions?: string | null
           updated_at?: string
           user_id?: string
         }

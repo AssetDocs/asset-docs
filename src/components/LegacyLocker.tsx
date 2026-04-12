@@ -74,6 +74,30 @@ interface LegacyLockerData {
   delegate_user_id?: string | null;
   recovery_grace_period_days?: number;
   recovery_status?: string;
+  // New fields (previously decorative)
+  life_overview?: string;
+  digital_identity?: string;
+  personal_philosophies?: string;
+  medical_preferences?: string;
+  executor_instructions?: string;
+  subscriptions?: string;
+  household_operations?: string;
+  financial_crypto?: string;
+  parenting_preferences?: string;
+  emotional_behavioral?: string;
+  developmental_goals?: string;
+  letters_to_children?: string;
+  photo_video_documentation?: string;
+  physical_documents?: string;
+  sentimental_items?: string;
+  crypto_passwords?: string;
+  property_walkthrough?: string;
+  home_maintenance?: string;
+  neighborhood_contacts?: string;
+  rental_property?: string;
+  sentimental_distribution?: string;
+  legacy_messages?: string;
+  charitable_giving?: string;
 }
 
 interface LegacyLockerProps {
@@ -169,6 +193,30 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
     pet_care_instructions: '',
     business_succession_plan: '',
     ethical_will: '',
+    // New fields
+    life_overview: '',
+    digital_identity: '',
+    personal_philosophies: '',
+    medical_preferences: '',
+    executor_instructions: '',
+    subscriptions: '',
+    household_operations: '',
+    financial_crypto: '',
+    parenting_preferences: '',
+    emotional_behavioral: '',
+    developmental_goals: '',
+    letters_to_children: '',
+    photo_video_documentation: '',
+    physical_documents: '',
+    sentimental_items: '',
+    crypto_passwords: '',
+    property_walkthrough: '',
+    home_maintenance: '',
+    neighborhood_contacts: '',
+    rental_property: '',
+    sentimental_distribution: '',
+    legacy_messages: '',
+    charitable_giving: '',
   });
   
   // Save form data to localStorage as draft
@@ -430,6 +478,30 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
           delegate_user_id: data.delegate_user_id,
           recovery_grace_period_days: data.recovery_grace_period_days,
           recovery_status: data.recovery_status,
+          // New fields
+          life_overview: (data as any).life_overview || '',
+          digital_identity: (data as any).digital_identity || '',
+          personal_philosophies: (data as any).personal_philosophies || '',
+          medical_preferences: (data as any).medical_preferences || '',
+          executor_instructions: (data as any).executor_instructions || '',
+          subscriptions: (data as any).subscriptions || '',
+          household_operations: (data as any).household_operations || '',
+          financial_crypto: (data as any).financial_crypto || '',
+          parenting_preferences: (data as any).parenting_preferences || '',
+          emotional_behavioral: (data as any).emotional_behavioral || '',
+          developmental_goals: (data as any).developmental_goals || '',
+          letters_to_children: (data as any).letters_to_children || '',
+          photo_video_documentation: (data as any).photo_video_documentation || '',
+          physical_documents: (data as any).physical_documents || '',
+          sentimental_items: (data as any).sentimental_items || '',
+          crypto_passwords: (data as any).crypto_passwords || '',
+          property_walkthrough: (data as any).property_walkthrough || '',
+          home_maintenance: (data as any).home_maintenance || '',
+          neighborhood_contacts: (data as any).neighborhood_contacts || '',
+          rental_property: (data as any).rental_property || '',
+          sentimental_distribution: (data as any).sentimental_distribution || '',
+          legacy_messages: (data as any).legacy_messages || '',
+          charitable_giving: (data as any).charitable_giving || '',
         };
         
         setExistingData(convertedData);
@@ -480,7 +552,13 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
           'residuary_estate', 'digital_assets', 'real_estate_instructions', 'debts_expenses',
           'funeral_wishes', 'burial_or_cremation', 'ceremony_preferences',
           'letters_to_loved_ones', 'pet_care_instructions', 'business_succession_plan',
-          'ethical_will'
+          'ethical_will',
+          'life_overview', 'digital_identity', 'personal_philosophies', 'medical_preferences',
+          'executor_instructions', 'subscriptions', 'household_operations', 'financial_crypto',
+          'parenting_preferences', 'emotional_behavioral', 'developmental_goals', 'letters_to_children',
+          'photo_video_documentation', 'physical_documents', 'sentimental_items', 'crypto_passwords',
+          'property_walkthrough', 'home_maintenance', 'neighborhood_contacts', 'rental_property',
+          'sentimental_distribution', 'legacy_messages', 'charitable_giving'
         ];
 
         for (const field of textFields) {
@@ -542,7 +620,13 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
           'residuary_estate', 'digital_assets', 'real_estate_instructions', 'debts_expenses',
           'funeral_wishes', 'burial_or_cremation', 'ceremony_preferences',
           'letters_to_loved_ones', 'pet_care_instructions', 'business_succession_plan',
-          'ethical_will'
+          'ethical_will',
+          'life_overview', 'digital_identity', 'personal_philosophies', 'medical_preferences',
+          'executor_instructions', 'subscriptions', 'household_operations', 'financial_crypto',
+          'parenting_preferences', 'emotional_behavioral', 'developmental_goals', 'letters_to_children',
+          'photo_video_documentation', 'physical_documents', 'sentimental_items', 'crypto_passwords',
+          'property_walkthrough', 'home_maintenance', 'neighborhood_contacts', 'rental_property',
+          'sentimental_distribution', 'legacy_messages', 'charitable_giving'
         ];
 
         const encryptedData: any = { ...dataToSave };
@@ -912,6 +996,8 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                   <Label htmlFor="life_overview">Life overview / personal background</Label>
                   <Textarea
                     id="life_overview"
+                    value={formData.life_overview}
+                    onChange={(e) => handleInputChange('life_overview', e.target.value)}
                     placeholder="A short narrative for family: upbringing, values, principles."
                     rows={4}
                   />
@@ -921,6 +1007,8 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                   <Label htmlFor="digital_identity">Digital identity preferences</Label>
                   <Textarea
                     id="digital_identity"
+                    value={formData.digital_identity}
+                    onChange={(e) => handleInputChange('digital_identity', e.target.value)}
                     placeholder="How they want social media handled, memorialized, or deleted."
                     rows={3}
                   />
@@ -930,6 +1018,8 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                   <Label htmlFor="personal_philosophies">Personal philosophies or reminders for loved ones</Label>
                   <Textarea
                     id="personal_philosophies"
+                    value={formData.personal_philosophies}
+                    onChange={(e) => handleInputChange('personal_philosophies', e.target.value)}
                     placeholder="Example: Always take the family trip. Don't wait."
                     rows={3}
                   />
@@ -939,6 +1029,8 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                   <Label htmlFor="medical_preferences">Medical or ethical preferences not covered by legal docs</Label>
                   <Textarea
                     id="medical_preferences"
+                    value={formData.medical_preferences}
+                    onChange={(e) => handleInputChange('medical_preferences', e.target.value)}
                     placeholder="Example: organ donation rationale, cultural preferences, music they'd want at a memorial."
                     rows={4}
                   />
@@ -1095,6 +1187,8 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                   <Label htmlFor="executor_instructions">Step-by-step instructions for your specific situation</Label>
                   <Textarea
                     id="executor_instructions"
+                    value={formData.executor_instructions}
+                    onChange={(e) => handleInputChange('executor_instructions', e.target.value)}
                     placeholder='Ex: "Contact my financial advisor, then my CPA. Here are their numbers."'
                     rows={4}
                   />
@@ -1104,6 +1198,8 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                   <Label htmlFor="subscriptions">List of recurring subscriptions and services to cancel</Label>
                   <Textarea
                     id="subscriptions"
+                    value={formData.subscriptions}
+                    onChange={(e) => handleInputChange('subscriptions', e.target.value)}
                     placeholder="Netflix, Amazon, insurance policies, memberships."
                     rows={3}
                   />
@@ -1113,6 +1209,8 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                   <Label htmlFor="household_operations">Household operations guide</Label>
                   <Textarea
                     id="household_operations"
+                    value={formData.household_operations}
+                    onChange={(e) => handleInputChange('household_operations', e.target.value)}
                     placeholder="Alarm codes, how the sprinkler system works, who services the HVAC."
                     rows={4}
                   />
@@ -1122,6 +1220,8 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                   <Label htmlFor="financial_crypto">Financial/crypto explanation in plain English</Label>
                   <Textarea
                     id="financial_crypto"
+                    value={formData.financial_crypto}
+                    onChange={(e) => handleInputChange('financial_crypto', e.target.value)}
                     placeholder="Legal wills often state 'I have crypto,' but don't explain how to access it."
                     rows={4}
                   />
@@ -1194,6 +1294,8 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                   <Label htmlFor="parenting_preferences">Parenting preferences</Label>
                   <Textarea
                     id="parenting_preferences"
+                    value={formData.parenting_preferences}
+                    onChange={(e) => handleInputChange('parenting_preferences', e.target.value)}
                     placeholder="Routines, bedtimes, diets, schooling preferences."
                     rows={4}
                   />
@@ -1203,6 +1305,8 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                   <Label htmlFor="emotional_behavioral">Emotional/behavioral notes</Label>
                   <Textarea
                     id="emotional_behavioral"
+                    value={formData.emotional_behavioral}
+                    onChange={(e) => handleInputChange('emotional_behavioral', e.target.value)}
                     placeholder="Fears, allergies, quirks, triggers, strengths."
                     rows={3}
                   />
@@ -1212,6 +1316,8 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                   <Label htmlFor="developmental_goals">Developmental goals</Label>
                   <Textarea
                     id="developmental_goals"
+                    value={formData.developmental_goals}
+                    onChange={(e) => handleInputChange('developmental_goals', e.target.value)}
                     placeholder="Faith, character, education, extracurriculars."
                     rows={3}
                   />
@@ -1221,6 +1327,8 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                   <Label htmlFor="letters_to_children">Letters to children at key ages</Label>
                   <Textarea
                     id="letters_to_children"
+                    value={formData.letters_to_children}
+                    onChange={(e) => handleInputChange('letters_to_children', e.target.value)}
                     placeholder="10, 16, 18, wedding day, etc."
                     rows={4}
                   />
@@ -1273,6 +1381,8 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                   <Label htmlFor="photo_video_documentation">Photo/video documentation of every major item</Label>
                   <Textarea
                     id="photo_video_documentation"
+                    value={formData.photo_video_documentation}
+                    onChange={(e) => handleInputChange('photo_video_documentation', e.target.value)}
                     placeholder="This solves disputes, reduces fraud, accelerates probate."
                     rows={3}
                   />
@@ -1282,6 +1392,8 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                   <Label htmlFor="physical_documents">Where to find physical documents</Label>
                   <Textarea
                     id="physical_documents"
+                    value={formData.physical_documents}
+                    onChange={(e) => handleInputChange('physical_documents', e.target.value)}
                     placeholder="Deeds, titles, receipts, service histories."
                     rows={3}
                   />
@@ -1291,6 +1403,8 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                   <Label htmlFor="sentimental_items">Plain-language explanation of sentimental items</Label>
                   <Textarea
                     id="sentimental_items"
+                    value={formData.sentimental_items}
+                    onChange={(e) => handleInputChange('sentimental_items', e.target.value)}
                     placeholder="Why something matters (wills don't capture value beyond $$)."
                     rows={3}
                   />
@@ -1300,6 +1414,8 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                   <Label htmlFor="crypto_passwords">Crypto wallets, passwords, digital accounts</Label>
                   <Textarea
                     id="crypto_passwords"
+                    value={formData.crypto_passwords}
+                    onChange={(e) => handleInputChange('crypto_passwords', e.target.value)}
                     placeholder="Not included in normal wills."
                     rows={3}
                   />
@@ -1330,6 +1446,8 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                   <Label htmlFor="property_walkthrough">Property walk-through videos</Label>
                   <Textarea
                     id="property_walkthrough"
+                    value={formData.property_walkthrough}
+                    onChange={(e) => handleInputChange('property_walkthrough', e.target.value)}
                     placeholder="Explaining what's valuable, what to donate, what to toss."
                     rows={3}
                   />
@@ -1339,6 +1457,8 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                   <Label htmlFor="home_maintenance">Home maintenance list</Label>
                   <Textarea
                     id="home_maintenance"
+                    value={formData.home_maintenance}
+                    onChange={(e) => handleInputChange('home_maintenance', e.target.value)}
                     placeholder="Water shutoff, HVAC filters, annual tasks."
                     rows={3}
                   />
@@ -1348,6 +1468,8 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                   <Label htmlFor="neighborhood_contacts">Neighborhood or tenant contacts</Label>
                   <Textarea
                     id="neighborhood_contacts"
+                    value={formData.neighborhood_contacts}
+                    onChange={(e) => handleInputChange('neighborhood_contacts', e.target.value)}
                     placeholder="Important contacts for property management."
                     rows={2}
                   />
@@ -1357,6 +1479,8 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                   <Label htmlFor="rental_property">Rental property instructions</Label>
                   <Textarea
                     id="rental_property"
+                    value={formData.rental_property}
+                    onChange={(e) => handleInputChange('rental_property', e.target.value)}
                     placeholder="Lease locations, key contacts, payout preferences."
                     rows={3}
                   />
@@ -1429,6 +1553,8 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                   <Label htmlFor="sentimental_distribution">How to distribute sentimental items</Label>
                   <Textarea
                     id="sentimental_distribution"
+                    value={formData.sentimental_distribution}
+                    onChange={(e) => handleInputChange('sentimental_distribution', e.target.value)}
                     placeholder="Often the #1 cause of family arguments."
                     rows={3}
                   />
@@ -1438,6 +1564,8 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                   <Label htmlFor="legacy_messages">Legacy messages</Label>
                   <Textarea
                     id="legacy_messages"
+                    value={formData.legacy_messages}
+                    onChange={(e) => handleInputChange('legacy_messages', e.target.value)}
                     placeholder="What you hope your children carry forward."
                     rows={3}
                   />
@@ -1447,6 +1575,8 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
                   <Label htmlFor="charitable_giving">Charitable giving rationale</Label>
                   <Textarea
                     id="charitable_giving"
+                    value={formData.charitable_giving}
+                    onChange={(e) => handleInputChange('charitable_giving', e.target.value)}
                     placeholder="Why certain donations matter."
                     rows={3}
                   />
