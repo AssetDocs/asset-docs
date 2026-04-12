@@ -1,55 +1,42 @@
 
-Fix Digital Access save/load by aligning `PasswordCatalog` with the actual Secure Vault encryption state.
 
-What I found
-- This does not primarily look like an RLS issue. The `password_catalog` table already has SELECT/INSERT/UPDATE/DELETE policies scoped to `auth.uid() = user_id`.
-- The main bug is a frontend state mismatch:
-  - In `src/components/SecureVault.tsx`, the child is rendered as usable when the vault is unencrypted: `isUnlockedFromParent={!isEncrypted || isUnlocked}`.
-  - In `src/components/PasswordCatalog.tsx`, both loading and saving still require `sessionMasterPassword`.
-  - So in unencrypted mode, the form appears available, but:
-    - the fetch effect never loads “Saved Entries”
-    - `handleSubmit` / `handleEditSave` / `handleAccountSubmit` can return early
-    - this creates a silent no-op experience
-- There is also a second save bug still present:
-  - create was fixed to use `website_url: ''`
-  - edit still uses `website_url: editData.websiteUrl.trim() || null`
-  - that can still violate the table’s `website_url NOT NULL` rule on update
+## Fix All Decorative Legacy Locker Fields — Make Every Field Saveable
 
-Plan
-1. Fix the parent/child contract
-- Pass vault encryption state from `SecureVault` into `PasswordCatalog` explicitly.
-- Make `PasswordCatalog` branch on “encrypted vs unencrypted” instead of only “do I have a master password”.
+### Problem
+19 textarea fields across 6 sections look functional but have no `value` or `onChange` bindings and no corresponding database columns. Users can type into them, but the data is silently lost when they save.
 
-2. Fix Saved Entries loading
-- In unencrypted mode: fetch entries immediately and show stored values as-is.
-- In encrypted mode: keep the current decrypt-on-load behavior with the master password.
-- Add a real loading cycle so the UI does not look empty while data is being fetched.
+### Decorative Fields by Section
 
-3. Fix create/edit save behavior
-- In unencrypted mode: allow saves without a master password and store values consistently with the current “encryption removed” flow.
-- In encrypted mode: continue encrypting before insert/update.
-- Replace silent early returns with visible error toasts so blocked saves are obvious.
-- Apply the blank-URL fallback everywhere, including edit/update.
+| Section | Field IDs (19 total) |
+|---------|---------------------|
+| Personal (4) | `life_overview`, `digital_identity`, `personal_philosophies`, `medical_preferences` |
+| Executor (4) | `executor_instructions`, `subscriptions`, `household_operations`, `financial_crypto` |
+| Guardians (4) | `parenting_preferences`, `emotional_behavioral`, `developmental_goals`, `letters_to_children` |
+| Assets (4) | `photo_video_documentation`, `physical_documents`, `sentimental_items`, `crypto_passwords` |
+| Property (4) | `property_walkthrough`, `home_maintenance`, `neighborhood_contacts`, `rental_property` |
+| Wishes (3) | `sentimental_distribution`, `legacy_messages`, `charitable_giving` |
 
-4. Audit the other vault form in the same component
-- The Financial Accounts Reference form currently validates fields that are not shown in the UI.
-- I’ll align that form so it is actually submittable while I’m in the same file.
+### Solution
 
-5. Verify end-to-end
-- Test Digital Access in both states:
-  - unencrypted vault: create, refresh, edit, delete
-  - encrypted vault: unlock, create, refresh, edit, delete
-  - remove encryption and confirm entries still load correctly
-- Confirm the saved row count in Supabase matches the “Saved Entries” list.
+**Step 1 — Database migration**: Add all 19 text columns to the `legacy_locker` table. All nullable, no constraints.
 
-Files likely involved
-- `src/components/SecureVault.tsx`
-- `src/components/PasswordCatalog.tsx`
+**Step 2 — Wire up the component** (`src/components/LegacyLocker.tsx`):
+- Add all 19 fields to the `LegacyLockerData` interface
+- Add them to `formData` initial state (default `''`)
+- Add `value={formData.xxx}` and `onChange` to each textarea
+- Add them to the `textFields` array in `handleSave` (for encryption)
+- Add them to the `textFields` array in `handleMasterPasswordSubmit` (for decryption)
+- Map them in `fetchLegacyLocker` (for loading from DB)
 
-Technical details
-- Evidence in code:
-  - `PasswordCatalog` load effect only runs when `sessionMasterPassword` exists
-  - `handleSubmit`, `handleEditSave`, and `handleAccountSubmit` require `sessionMasterPassword`
-  - `SecureVault` treats unencrypted state as unlocked, but does not provide a master password in that state
-- Secondary bug to patch:
-  - update path still writes `null` to `website_url` when blank
+### What does NOT change
+- No layout or navigation changes
+- No new sections or restructuring
+- Existing wired fields remain untouched
+- Encryption, admin access, save button, voice notes, uploads, trust — all unchanged
+
+### Files Changed
+| File | Change |
+|------|--------|
+| New migration SQL | Add 19 text columns |
+| `src/components/LegacyLocker.tsx` | Wire all 19 fields to state, save, load, encrypt/decrypt |
+
