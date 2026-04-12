@@ -68,11 +68,13 @@ export const MASTER_PASSWORD_HASH_KEY = 'assetsafe_master_password_hash';
 interface PasswordCatalogProps {
   isUnlockedFromParent?: boolean;
   sessionMasterPasswordFromParent?: string | null;
+  isVaultEncrypted?: boolean;
 }
 
 const PasswordCatalog: React.FC<PasswordCatalogProps> = ({ 
   isUnlockedFromParent, 
-  sessionMasterPasswordFromParent 
+  sessionMasterPasswordFromParent,
+  isVaultEncrypted = true,
 }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -135,11 +137,18 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
 
   // Fetch data when unlocked from parent
   useEffect(() => {
-    if (isControlledByParent && isUnlocked && sessionMasterPassword) {
-      fetchPasswords(sessionMasterPassword);
-      fetchAccounts(sessionMasterPassword);
+    if (isControlledByParent && isUnlocked) {
+      if (!isVaultEncrypted) {
+        // Unencrypted vault: fetch without needing a master password
+        fetchPasswordsPlaintext();
+        fetchAccountsPlaintext();
+      } else if (sessionMasterPassword) {
+        // Encrypted vault: fetch and decrypt
+        fetchPasswords(sessionMasterPassword);
+        fetchAccounts(sessionMasterPassword);
+      }
     }
-  }, [isControlledByParent, isUnlocked, sessionMasterPassword]);
+  }, [isControlledByParent, isUnlocked, sessionMasterPassword, isVaultEncrypted]);
 
   const handleMasterPasswordSubmit = async (password: string) => {
     const storedHash = localStorage.getItem(MASTER_PASSWORD_HASH_KEY);
@@ -179,6 +188,67 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
         description: "You need to unlock your password and accounts catalog to continue.",
         variant: "destructive",
       });
+    }
+  };
+
+  const fetchPasswordsPlaintext = async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('password_catalog')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setPasswords(data || []);
+      
+      // In plaintext mode, passwords are stored as-is
+      const decrypted: { [key: string]: string } = {};
+      if (data) {
+        for (const entry of data) {
+          decrypted[entry.id] = entry.password;
+        }
+      }
+      setDecryptedPasswords(decrypted);
+    } catch (error) {
+      console.error('Error fetching passwords:', error);
+      toast({ title: "Error", description: "Failed to load passwords", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchAccountsPlaintext = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('financial_accounts' as any)
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setAccounts((data as any) || []);
+      
+      const decryptedAcctNums: { [key: string]: string } = {};
+      const decryptedRouting: { [key: string]: string } = {};
+      const decryptedNotes: { [key: string]: string } = {};
+      if (data) {
+        for (const entry of data) {
+          const e = entry as any;
+          decryptedAcctNums[e.id] = e.account_number;
+          if (e.routing_number) decryptedRouting[e.id] = e.routing_number;
+          if (e.notes) decryptedNotes[e.id] = e.notes;
+        }
+      }
+      setDecryptedAccountNumbers(decryptedAcctNums);
+      setDecryptedRoutingNumbers(decryptedRouting);
+      setDecryptedAccountNotes(decryptedNotes);
+    } catch (error) {
+      console.error('Error fetching accounts:', error);
+      toast({ title: "Error", description: "Failed to load financial accounts", variant: "destructive" });
     }
   };
 
@@ -271,13 +341,19 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user || !sessionMasterPassword) return;
+    if (!user) return;
+    if (isVaultEncrypted && !sessionMasterPassword) {
+      toast({ title: "Error", description: "Master password required for encrypted vault.", variant: "destructive" });
+      return;
+    }
 
     try {
       passwordSchema.parse(formData);
 
-      // Encrypt password on client-side before sending to database
-      const encryptedPassword = await encryptPassword(formData.password, sessionMasterPassword);
+      // Encrypt password only if vault is encrypted
+      const passwordToStore = isVaultEncrypted && sessionMasterPassword
+        ? await encryptPassword(formData.password, sessionMasterPassword)
+        : formData.password;
 
       const { error } = await supabase
         .from('password_catalog')
@@ -286,7 +362,7 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
           website_name: formData.websiteName,
           website_url: formData.websiteUrl || '',
           username: formData.username || null,
-          password: encryptedPassword,
+          password: passwordToStore,
           notes: formData.notes || null,
         });
 
@@ -294,7 +370,7 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
 
       toast({
         title: "Success",
-        description: "Password encrypted and saved securely",
+        description: isVaultEncrypted ? "Password encrypted and saved securely" : "Password saved successfully",
       });
 
       setFormData({
@@ -306,8 +382,11 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
         notes: '',
       });
 
-      if (sessionMasterPassword) {
+      // Refresh list
+      if (isVaultEncrypted && sessionMasterPassword) {
         fetchPasswords(sessionMasterPassword);
+      } else if (!isVaultEncrypted) {
+        fetchPasswordsPlaintext();
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -341,8 +420,10 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
         description: "Password deleted successfully",
       });
 
-      if (sessionMasterPassword) {
+      if (isVaultEncrypted && sessionMasterPassword) {
         fetchPasswords(sessionMasterPassword);
+      } else if (!isVaultEncrypted) {
+        fetchPasswordsPlaintext();
       }
     } catch (error) {
       console.error('Error deleting password:', error);
@@ -371,27 +452,37 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
   };
 
   const handleEditSave = async (id: string) => {
-    if (!user || !sessionMasterPassword) return;
+    if (!user) return;
+    if (isVaultEncrypted && !sessionMasterPassword) {
+      toast({ title: "Error", description: "Master password required for encrypted vault.", variant: "destructive" });
+      return;
+    }
     if (!editData.websiteName.trim() || !editData.password.trim()) {
       toast({ title: "Validation Error", description: "Website name and password are required.", variant: "destructive" });
       return;
     }
     try {
-      const encryptedPassword = await encryptPassword(editData.password, sessionMasterPassword);
+      const passwordToStore = isVaultEncrypted && sessionMasterPassword
+        ? await encryptPassword(editData.password, sessionMasterPassword)
+        : editData.password;
       const { error } = await supabase
         .from('password_catalog')
         .update({
           website_name: editData.websiteName.trim(),
-          website_url: editData.websiteUrl.trim() || null,
+          website_url: editData.websiteUrl.trim() || '',
           username: editData.username.trim() || null,
-          password: encryptedPassword,
+          password: passwordToStore,
           notes: editData.notes.trim() || null,
         })
         .eq('id', id);
       if (error) throw error;
       toast({ title: "Success", description: "Password updated successfully" });
       setEditingId(null);
-      fetchPasswords(sessionMasterPassword);
+      if (isVaultEncrypted && sessionMasterPassword) {
+        fetchPasswords(sessionMasterPassword);
+      } else if (!isVaultEncrypted) {
+        fetchPasswordsPlaintext();
+      }
     } catch (error) {
       console.error('Error updating password:', error);
       toast({ title: "Error", description: "Failed to update password", variant: "destructive" });
@@ -401,18 +492,23 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
   const handleAccountSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user || !sessionMasterPassword) return;
+    if (!user) return;
+    if (isVaultEncrypted && !sessionMasterPassword) {
+      toast({ title: "Error", description: "Master password required for encrypted vault.", variant: "destructive" });
+      return;
+    }
 
     try {
       accountSchema.parse(accountFormData);
 
-      // Encrypt sensitive data on client-side before sending to database
-      const encryptedAccountNumber = await encryptPassword(accountFormData.accountNumber, sessionMasterPassword);
-      const encryptedRoutingNumber = accountFormData.routingNumber 
-        ? await encryptPassword(accountFormData.routingNumber, sessionMasterPassword)
+      const accountNumberToStore = isVaultEncrypted && sessionMasterPassword
+        ? await encryptPassword(accountFormData.accountNumber, sessionMasterPassword)
+        : accountFormData.accountNumber;
+      const routingNumberToStore = accountFormData.routingNumber
+        ? (isVaultEncrypted && sessionMasterPassword ? await encryptPassword(accountFormData.routingNumber, sessionMasterPassword) : accountFormData.routingNumber)
         : null;
-      const encryptedNotes = accountFormData.notes 
-        ? await encryptPassword(accountFormData.notes, sessionMasterPassword)
+      const notesToStore = accountFormData.notes
+        ? (isVaultEncrypted && sessionMasterPassword ? await encryptPassword(accountFormData.notes, sessionMasterPassword) : accountFormData.notes)
         : null;
 
       const { error } = await supabase
@@ -422,17 +518,17 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
           account_type: accountFormData.accountType,
           account_name: accountFormData.accountName,
           institution_name: accountFormData.institutionName,
-          account_number: encryptedAccountNumber,
-          routing_number: encryptedRoutingNumber,
+          account_number: accountNumberToStore,
+          routing_number: routingNumberToStore,
           current_balance: accountFormData.currentBalance ? parseFloat(accountFormData.currentBalance) : null,
-          notes: encryptedNotes,
+          notes: notesToStore,
         });
 
       if (error) throw error;
 
       toast({
         title: "Success",
-        description: "Financial account encrypted and saved securely",
+        description: isVaultEncrypted ? "Financial account encrypted and saved securely" : "Financial account saved successfully",
       });
 
       setAccountFormData({
@@ -445,8 +541,10 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
         notes: '',
       });
 
-      if (sessionMasterPassword) {
+      if (isVaultEncrypted && sessionMasterPassword) {
         fetchAccounts(sessionMasterPassword);
+      } else if (!isVaultEncrypted) {
+        fetchAccountsPlaintext();
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -480,8 +578,10 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
         description: "Financial account deleted successfully",
       });
 
-      if (sessionMasterPassword) {
+      if (isVaultEncrypted && sessionMasterPassword) {
         fetchAccounts(sessionMasterPassword);
+      } else if (!isVaultEncrypted) {
+        fetchAccountsPlaintext();
       }
     } catch (error) {
       console.error('Error deleting account:', error);

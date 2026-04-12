@@ -852,6 +852,7 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
                   <PasswordCatalog 
                     isUnlockedFromParent={!isEncrypted || isUnlocked}
                     sessionMasterPasswordFromParent={sessionMasterPassword}
+                    isVaultEncrypted={isEncrypted && existingEncrypted}
                   />
                 </div>
               </CollapsibleContent>
