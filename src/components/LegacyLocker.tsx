@@ -552,7 +552,13 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
           'residuary_estate', 'digital_assets', 'real_estate_instructions', 'debts_expenses',
           'funeral_wishes', 'burial_or_cremation', 'ceremony_preferences',
           'letters_to_loved_ones', 'pet_care_instructions', 'business_succession_plan',
-          'ethical_will'
+          'ethical_will',
+          'life_overview', 'digital_identity', 'personal_philosophies', 'medical_preferences',
+          'executor_instructions', 'subscriptions', 'household_operations', 'financial_crypto',
+          'parenting_preferences', 'emotional_behavioral', 'developmental_goals', 'letters_to_children',
+          'photo_video_documentation', 'physical_documents', 'sentimental_items', 'crypto_passwords',
+          'property_walkthrough', 'home_maintenance', 'neighborhood_contacts', 'rental_property',
+          'sentimental_distribution', 'legacy_messages', 'charitable_giving'
         ];
 
         for (const field of textFields) {
@@ -614,7 +620,13 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
           'residuary_estate', 'digital_assets', 'real_estate_instructions', 'debts_expenses',
           'funeral_wishes', 'burial_or_cremation', 'ceremony_preferences',
           'letters_to_loved_ones', 'pet_care_instructions', 'business_succession_plan',
-          'ethical_will'
+          'ethical_will',
+          'life_overview', 'digital_identity', 'personal_philosophies', 'medical_preferences',
+          'executor_instructions', 'subscriptions', 'household_operations', 'financial_crypto',
+          'parenting_preferences', 'emotional_behavioral', 'developmental_goals', 'letters_to_children',
+          'photo_video_documentation', 'physical_documents', 'sentimental_items', 'crypto_passwords',
+          'property_walkthrough', 'home_maintenance', 'neighborhood_contacts', 'rental_property',
+          'sentimental_distribution', 'legacy_messages', 'charitable_giving'
         ];
 
         const encryptedData: any = { ...dataToSave };
