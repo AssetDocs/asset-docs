@@ -284,7 +284,7 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
         .insert({
           user_id: user.id,
           website_name: formData.websiteName,
-          website_url: formData.websiteUrl || null,
+          website_url: formData.websiteUrl || '',
           username: formData.username || null,
           password: encryptedPassword,
           notes: formData.notes || null,
