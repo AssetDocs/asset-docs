@@ -74,6 +74,30 @@ interface LegacyLockerData {
   delegate_user_id?: string | null;
   recovery_grace_period_days?: number;
   recovery_status?: string;
+  // New fields (previously decorative)
+  life_overview?: string;
+  digital_identity?: string;
+  personal_philosophies?: string;
+  medical_preferences?: string;
+  executor_instructions?: string;
+  subscriptions?: string;
+  household_operations?: string;
+  financial_crypto?: string;
+  parenting_preferences?: string;
+  emotional_behavioral?: string;
+  developmental_goals?: string;
+  letters_to_children?: string;
+  photo_video_documentation?: string;
+  physical_documents?: string;
+  sentimental_items?: string;
+  crypto_passwords?: string;
+  property_walkthrough?: string;
+  home_maintenance?: string;
+  neighborhood_contacts?: string;
+  rental_property?: string;
+  sentimental_distribution?: string;
+  legacy_messages?: string;
+  charitable_giving?: string;
 }
 
 interface LegacyLockerProps {
@@ -169,6 +193,30 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
     pet_care_instructions: '',
     business_succession_plan: '',
     ethical_will: '',
+    // New fields
+    life_overview: '',
+    digital_identity: '',
+    personal_philosophies: '',
+    medical_preferences: '',
+    executor_instructions: '',
+    subscriptions: '',
+    household_operations: '',
+    financial_crypto: '',
+    parenting_preferences: '',
+    emotional_behavioral: '',
+    developmental_goals: '',
+    letters_to_children: '',
+    photo_video_documentation: '',
+    physical_documents: '',
+    sentimental_items: '',
+    crypto_passwords: '',
+    property_walkthrough: '',
+    home_maintenance: '',
+    neighborhood_contacts: '',
+    rental_property: '',
+    sentimental_distribution: '',
+    legacy_messages: '',
+    charitable_giving: '',
   });
   
   // Save form data to localStorage as draft
