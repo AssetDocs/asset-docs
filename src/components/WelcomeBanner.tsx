@@ -4,9 +4,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp, X, Settings, Home, Users } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAccount } from '@/contexts/AccountContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from '@/hooks/use-mobile';
-
+import AccountSwitcher from '@/components/AccountSwitcher';
 
 interface WelcomeBannerProps {
   onTabChange?: (tab: string) => void;
@@ -14,84 +15,39 @@ interface WelcomeBannerProps {
 
 const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange }) => {
   const { profile, user } = useAuth();
+  const { accountName, ownerName, isOwner, accountRole, hasMultipleAccounts } = useAccount();
   const navigate = useNavigate();
-  const [contributorInfo, setContributorInfo] = useState<{
-    first_name: string | null;
-    last_name: string | null;
-    role: string;
-    ownerName: string;
-  } | null>(null);
   const [accountNumber, setAccountNumber] = useState<string>('');
 
   useEffect(() => {
-    const fetchContributorInfo = async () => {
+    const fetchAccountNumber = async () => {
       if (!user) return;
-
-      // Get user's profile for account number
       const { data: userProfile } = await supabase
         .from('profiles')
         .select('account_number')
         .eq('user_id', user.id)
         .single();
-
       if (userProfile?.account_number) {
         setAccountNumber(userProfile.account_number);
       }
-
-      // Check if user is a contributor
-      const { data: contributorData } = await supabase
-        .from('contributors')
-        .select('account_owner_id, first_name, last_name, role')
-        .eq('contributor_user_id', user.id)
-        .eq('status', 'accepted')
-        .maybeSingle();
-
-      if (contributorData) {
-        // Get owner's name and account number
-        const { data: ownerProfile } = await supabase
-          .from('profiles')
-          .select('first_name, last_name, account_number')
-          .eq('user_id', contributorData.account_owner_id)
-          .single();
-
-        if (ownerProfile?.account_number) {
-          setAccountNumber(ownerProfile.account_number);
-        }
-
-        setContributorInfo({
-          first_name: contributorData.first_name,
-          last_name: contributorData.last_name,
-          role: contributorData.role,
-          ownerName: ownerProfile ? `${ownerProfile.first_name || ''} ${ownerProfile.last_name || ''}`.trim() : ''
-        });
-      }
     };
-
-    fetchContributorInfo();
+    fetchAccountNumber();
   }, [user]);
 
-  
   const getDisplayName = () => {
-    // If contributor, show their name from contributor record
-    if (contributorInfo) {
-      const name = `${contributorInfo.first_name || ''} ${contributorInfo.last_name || ''}`.trim();
-      return name || user?.email?.split('@')[0] || 'Contributor';
-    }
-    // Owner - show their full name from profile
     const firstName = profile?.first_name || user?.user_metadata?.first_name || '';
     const lastName = profile?.last_name || user?.user_metadata?.last_name || '';
     const fullName = `${firstName} ${lastName}`.trim();
-    if (fullName) {
-      return fullName;
-    }
-    if (user?.email) {
-      return user.email.split('@')[0];
-    }
-    return 'User';
+    return fullName || user?.email?.split('@')[0] || 'User';
   };
 
-  const getRoleDisplay = (role: string) => {
-    return role.charAt(0).toUpperCase() + role.slice(1);
+  const getRoleLabel = (role: string | null) => {
+    switch (role) {
+      case 'full_access': return 'Full Access';
+      case 'read_only': return 'Read Only';
+      case 'owner': return 'Owner';
+      default: return '';
+    }
   };
 
   const isMobile = useIsMobile();
@@ -100,20 +56,13 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange }) => {
   const [isInstallPromptCollapsed, setIsInstallPromptCollapsed] = useState(false);
 
   useEffect(() => {
-    // Check if app is already installed (standalone mode)
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setIsAppInstalled(true);
     }
-    // Check if user dismissed the prompt before
     const dismissed = localStorage.getItem('installPromptDismissed');
-    if (dismissed) {
-      setHideInstallPrompt(true);
-    }
-    // Check if collapsed
+    if (dismissed) setHideInstallPrompt(true);
     const collapsed = localStorage.getItem('installPromptCollapsed');
-    if (collapsed === 'true') {
-      setIsInstallPromptCollapsed(true);
-    }
+    if (collapsed === 'true') setIsInstallPromptCollapsed(true);
   }, []);
 
   const handleDismissInstallPrompt = () => {
@@ -127,7 +76,6 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange }) => {
     localStorage.setItem('installPromptCollapsed', String(newState));
   };
 
-  // Show install prompt only on mobile, unless already installed or dismissed
   const showMobileInstallPrompt = isMobile && !isAppInstalled && !hideInstallPrompt;
 
   return (
@@ -138,17 +86,20 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange }) => {
             <p className="text-white/80 text-sm font-medium">
               Welcome, {getDisplayName()}!
             </p>
-            <h1 className="text-2xl font-bold mt-0.5">
-              Your Asset Safe Dashboard
-            </h1>
-            {contributorInfo && (
+            <div className="flex items-center gap-3 mt-0.5">
+              <h1 className="text-2xl font-bold">
+                {accountName || 'Your Asset Safe Dashboard'}
+              </h1>
+              {hasMultipleAccounts && <AccountSwitcher />}
+            </div>
+            {!isOwner && accountRole && (
               <div className="mt-1 space-y-1">
                 <p className="text-white/90 font-medium">
-                  Contributor - {getRoleDisplay(contributorInfo.role)}
+                  Authorized User — {getRoleLabel(accountRole)}
                 </p>
-                {contributorInfo.ownerName && (
+                {ownerName && (
                   <p className="text-white/70 text-sm">
-                    Account Owner: {contributorInfo.ownerName}
+                    Account Owner: {ownerName}
                   </p>
                 )}
               </div>
@@ -158,7 +109,6 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange }) => {
             </p>
           </div>
 
-          {/* Right side: Account # and shortcuts */}
           <div className="flex flex-col gap-2 sm:items-end">
             {accountNumber && (
               <span className="text-white/90 font-medium text-sm bg-white/20 px-3 py-1 rounded-md">
@@ -195,7 +145,6 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange }) => {
         </div>
       </div>
 
-      {/* Mobile Install Prompt - shows on mobile only */}
       {showMobileInstallPrompt && (
         <div className="bg-gradient-to-r from-brand-orange to-orange-500 p-4 rounded-lg text-white relative">
           <div className="flex items-center justify-between">
