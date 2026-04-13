@@ -32,25 +32,19 @@ interface AccountContextType {
   isFullAccess: boolean;
   isReadOnly: boolean;
   canEdit: boolean;
-  canManageBilling: boolean;
-  loading: boolean;
-
-  // Legacy compat aliases
-  isContributor: boolean;
-  isViewer: boolean;
-  isContributorRole: boolean;
-  isAdministrator: boolean;
   canDelete: boolean;
+  canManageBilling: boolean;
   canAccessSettings: boolean;
   canAccessEncryptedVault: boolean;
-  accountOwnerId: string | null;
-  contributorName: string;
-  contributorRole: string | null;
-  showViewerRestriction: () => void;
-  showContributorRestriction: () => void;
+  loading: boolean;
+
+  // Member status
+  isContributor: boolean; // true if user is a non-owner member on current account
+  isMember: boolean;
+
+  // Actions
   showReadOnlyRestriction: () => void;
   refreshAccount: () => Promise<void>;
-  refreshContributor: () => Promise<void>;
 }
 
 const AccountContext = createContext<AccountContextType | undefined>(undefined);
@@ -63,7 +57,7 @@ export const useAccount = () => {
   return context;
 };
 
-// Legacy alias
+// Legacy alias — kept for backward compat in App.tsx ProtectedRoute
 export const useContributor = useAccount;
 
 export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -82,7 +76,6 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
 
     try {
-      // Fetch all active memberships with account info
       const { data: memberships, error } = await supabase
         .from('account_memberships')
         .select('account_id, role, accounts!inner(owner_user_id, account_name)')
@@ -102,7 +95,6 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
         return;
       }
 
-      // Collect unique owner user IDs to fetch names
       const ownerIds = [...new Set(memberships.map((m: any) => m.accounts?.owner_user_id).filter(Boolean))];
       
       let ownerProfiles: Record<string, string> = {};
@@ -130,7 +122,6 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
         };
       });
 
-      // Sort: owned accounts first, then by name
       accountList.sort((a, b) => {
         if (a.role === 'owner' && b.role !== 'owner') return -1;
         if (a.role !== 'owner' && b.role === 'owner') return 1;
@@ -139,12 +130,9 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       setAccounts(accountList);
 
-      // Determine which account to activate
-      // 1. If we already have an active account that's still valid, keep it
       if (activeAccountId && accountList.some(a => a.accountId === activeAccountId)) {
         // keep current
       } else {
-        // 2. Check last_used_account_id from profile
         const { data: profileData } = await supabase
           .from('profiles')
           .select('last_used_account_id')
@@ -155,7 +143,6 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
         if (lastUsed && accountList.some(a => a.accountId === lastUsed)) {
           setActiveAccountId(lastUsed);
         } else {
-          // 3. Default to first account
           setActiveAccountId(accountList[0]?.accountId || null);
         }
       }
@@ -179,7 +166,6 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     setActiveAccountId(targetAccountId);
 
-    // Persist to profiles
     if (user) {
       await supabase
         .from('profiles')
@@ -207,10 +193,13 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const isFullAccess = accountRole === 'full_access';
   const isReadOnly = accountRole === 'read_only';
   const canEdit = isOwner || isFullAccess;
+  const canDelete = isOwner;
   const canManageBilling = isOwner;
+  const canAccessSettings = isOwner;
+  const canAccessEncryptedVault = isOwner || isFullAccess;
   const hasMultipleAccounts = accounts.length > 1;
-
   const isMember = !isOwner && accountRole !== null;
+  const isContributor = isMember; // legacy compat: true when non-owner member
 
   const showReadOnlyRestriction = () => {
     toast({
@@ -219,26 +208,6 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
       variant: "destructive",
     });
   };
-
-  const showContributorRestriction = () => {
-    toast({
-      title: "Access Restricted",
-      description: "Authorized users with limited access cannot modify account settings. Please contact the account owner.",
-      variant: "destructive",
-    });
-  };
-
-  // Legacy compat values
-  const isContributor = isMember;
-  const isViewer = isReadOnly;
-  const isContributorRole = isFullAccess;
-  const isAdministrator = isFullAccess;
-  const canDelete = isOwner;
-  const canAccessSettings = isOwner;
-  const canAccessEncryptedVault = isOwner || isFullAccess;
-  const accountOwnerId = activeAccountId;
-  const contributorName = '';
-  const contributorRole = accountRole;
 
   return (
     <AccountContext.Provider
@@ -254,24 +223,15 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
         isFullAccess,
         isReadOnly,
         canEdit,
-        canManageBilling,
-        loading,
-        // Legacy compat
-        isContributor,
-        isViewer,
-        isContributorRole,
-        isAdministrator,
         canDelete,
+        canManageBilling,
         canAccessSettings,
         canAccessEncryptedVault,
-        accountOwnerId,
-        contributorName,
-        contributorRole,
-        showViewerRestriction: showReadOnlyRestriction,
-        showContributorRestriction,
+        loading,
+        isContributor,
+        isMember,
         showReadOnlyRestriction,
         refreshAccount,
-        refreshContributor: refreshAccount,
       }}
     >
       {children}
