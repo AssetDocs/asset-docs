@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { CheckIcon, Star, Zap, Users, HardDrive, Calendar } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useContributor } from '@/contexts/ContributorContext';
+import { useAccount } from '@/contexts/AccountContext';
 
 interface SubscriptionInfo {
   subscribed: boolean;
@@ -26,7 +26,7 @@ interface Contributor {
 }
 
 const AdminContributorPlanInfo: React.FC = () => {
-  const { isAdministrator, accountOwnerId, ownerName } = useContributor();
+  const { isFullAccess: isAdministrator, accountId: accountOwnerId, ownerName } = useAccount();
   const [subscriptionInfo, setSubscriptionInfo] = useState<SubscriptionInfo | null>(null);
   const [contributors, setContributors] = useState<Contributor[]>([]);
   const [loading, setLoading] = useState(true);

@@ -4,7 +4,7 @@ import { Shield, Users, Eye, Lock, UserPlus, Clock, ChevronDown, ChevronUp, KeyR
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useActivityLog, ActivityLogEntry } from '@/hooks/useActivityLog';
 import { formatDistanceToNow } from 'date-fns';
-import ContributorsTab from '@/components/ContributorsTab';
+import AuthorizedUsersTab from '@/components/AuthorizedUsersTab';
 
 const formatActivityLabel = (log: ActivityLogEntry): string => {
   const resource = log.resource_name || log.resource_type || 'item';
@@ -56,65 +56,37 @@ const AccessActivitySection: React.FC = () => {
           </CollapsibleTrigger>
           <CollapsibleContent>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Administrator */}
-                <div className="p-4 border rounded-lg border-destructive/20 bg-destructive/5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-8 h-8 bg-destructive/10 rounded-lg flex items-center justify-center">
-                      <Shield className="h-4 w-4 text-destructive" />
-                    </div>
-                    <h4 className="font-semibold text-foreground">Administrator</h4>
-                  </div>
-                  <ul className="text-sm text-muted-foreground space-y-1.5">
-                    <li className="flex items-start gap-1 font-medium text-destructive">
-                      <Lock className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                        Only role eligible as a Trusted Delegate for secure vault — Legacy Locker &amp; Digital Access
-                    </li>
-                    <li>• Full access to all account features</li>
-                    <li>• Can manage other authorized users</li>
-                    <li>• Can upload, download, edit, and delete files</li>
-                    <li className="flex items-start gap-1 pt-1 border-t border-destructive/10 mt-1">
-                      <KeyRound className="h-3 w-3 mt-0.5 flex-shrink-0 text-muted-foreground" />
-                      <span>
-                        <strong className="text-foreground">Secure Vault access</strong> (Digital Access &amp; Legacy Locker) is granted only when the account owner enables it — and requires passing an MFA challenge and entering the Master Password. The owner can revoke this access at any time from their vault settings.
-                      </span>
-                    </li>
-                  </ul>
-                </div>
-
-                {/* Contributor */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Full Access */}
                 <div className="p-4 border rounded-lg border-primary/20 bg-primary/5">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                      <Users className="h-4 w-4 text-primary" />
+                      <Shield className="h-4 w-4 text-primary" />
                     </div>
-                    <h4 className="font-semibold text-foreground">Contributor</h4>
+                    <h4 className="font-semibold text-foreground">Full Access</h4>
                   </div>
                   <ul className="text-sm text-muted-foreground space-y-1.5">
-                    <li>• Can view, upload, and manage files</li>
+                    <li>• Can view, add, and manage shared account information</li>
+                    <li>• Can upload, download, edit, and delete files</li>
                     <li>• Can add inventory items and documents</li>
-                    <li>• Cannot access Digital Access</li>
-                    <li>• Cannot access the Legacy Locker</li>
+                    <li>• Cannot manage billing or account ownership</li>
                     <li>• Cannot manage other authorized users</li>
-                    <li>• Cannot change account or billing settings</li>
                   </ul>
                 </div>
 
-                {/* Viewer */}
+                {/* Read Only */}
                 <div className="p-4 border rounded-lg border-green-200 bg-green-50/30">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
                       <Eye className="h-4 w-4 text-green-600" />
                     </div>
-                    <h4 className="font-semibold text-foreground">Viewer</h4>
+                    <h4 className="font-semibold text-foreground">Read Only</h4>
                   </div>
                   <ul className="text-sm text-muted-foreground space-y-1.5">
-                    <li>• Read-only access to the account</li>
+                    <li>• Can view shared account information</li>
                     <li>• Can browse asset documentation</li>
-                    <li>• Cannot access the Legacy Locker</li>
-                    <li>• Cannot access Digital Access</li>
                     <li>• Cannot upload, download, or delete files</li>
-                    <li>• Cannot change any settings</li>
+                    <li>• Cannot make any changes to the account</li>
                   </ul>
                 </div>
               </div>
@@ -123,8 +95,8 @@ const AccessActivitySection: React.FC = () => {
         </Collapsible>
       </Card>
 
-      {/* Contributors Management (invite + list) */}
-      <ContributorsTab />
+      {/* Authorized Users Management (invite + list) */}
+      <AuthorizedUsersTab />
 
       {/* Recent Activity — collapsible, default closed */}
       <Card>

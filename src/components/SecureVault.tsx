@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { decryptPassword } from '@/utils/encryption';
 import { useAuth } from '@/contexts/AuthContext';
-import { useContributor } from '@/contexts/ContributorContext';
+import { useAccount } from '@/contexts/AccountContext';
 import { useToast } from '@/hooks/use-toast';
 import MasterPasswordModal from './MasterPasswordModal';
 import { createPasswordVerificationHash, verifyMasterPassword } from '@/utils/encryption';
@@ -40,7 +40,7 @@ interface SecureVaultProps {
 
 const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
   const { user } = useAuth();
-  const { isContributor, canAccessEncryptedVault, isViewer, isContributorRole, contributorRole, isAdministrator } = useContributor();
+  const { isContributor, canAccessEncryptedVault, isViewer, isContributorRole, contributorRole, isAdministrator } = useAccount();
   const { toast } = useToast();
   const [isEncrypted, setIsEncrypted] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);

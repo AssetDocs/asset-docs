@@ -1,5 +1,5 @@
 import React from 'react';
-import { useContributor } from '@/contexts/ContributorContext';
+import { useAccount } from '@/contexts/AccountContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Eye, Lock } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -13,10 +13,10 @@ interface ViewerRestrictionProps {
 // Full page/section restriction - shows a card with lock message
 export const ViewerRestriction: React.FC<ViewerRestrictionProps> = ({ 
   children, 
-  fallbackMessage = "Authorized users with a Viewer role are not allowed to make changes to this account.",
+  fallbackMessage = "Authorized users with Read Only access are not allowed to make changes to this account.",
   showCard = true
 }) => {
-  const { isViewer } = useContributor();
+  const { isReadOnly: isViewer } = useAccount();
 
   if (isViewer) {
     if (showCard) {
@@ -49,7 +49,7 @@ export const ViewerRestriction: React.FC<ViewerRestrictionProps> = ({
 
 // Inline restriction - shows alert banner above content
 export const ViewerRestrictionBanner: React.FC = () => {
-  const { isViewer, contributorName, ownerName } = useContributor();
+  const { isReadOnly: isViewer, ownerName } = useAccount();
 
   if (!isViewer) return null;
 
@@ -57,8 +57,8 @@ export const ViewerRestrictionBanner: React.FC = () => {
     <Alert className="border-amber-200 bg-amber-50 mb-4">
       <Eye className="h-4 w-4 text-amber-600" />
       <AlertDescription className="text-amber-800">
-        You are viewing <strong>{ownerName || 'this account'}</strong>'s dashboard as a <strong>Viewer</strong>. 
-        Viewers have read-only access and cannot make changes.
+        You are viewing <strong>{ownerName || 'this account'}</strong>'s dashboard with <strong>Read Only</strong> access. 
+        Read Only users cannot make changes.
       </AlertDescription>
     </Alert>
   );
@@ -66,7 +66,7 @@ export const ViewerRestrictionBanner: React.FC = () => {
 
 // Hook for checking viewer status in event handlers
 export const useViewerCheck = () => {
-  const { isViewer, showViewerRestriction, canEdit, canDelete } = useContributor();
+  const { isReadOnly: isViewer, showReadOnlyRestriction: showViewerRestriction, canEdit, canDelete } = useAccount();
   
   const checkCanEdit = (action?: () => void): boolean => {
     if (isViewer) {
