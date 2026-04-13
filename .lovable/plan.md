@@ -1,180 +1,96 @@
 
 
-## Rebuild Authorized Users System — From Scratch
+## Phase 2: AccountContext + Invite Landing Page + AuthorizedUsersTab
 
-This is a full replacement of the contributor system with a simplified accounts + memberships + invites architecture. Given the scope (~58 files reference "contributor", 4 edge functions, 30+ RLS policies), this will be implemented in phases.
+### Overview
+Create the new `AccountContext` provider (replacing `ContributorContext`), build the `/invite` landing page, and replace `ContributorsTab` with `AuthorizedUsersTab` — all using the new `accounts`, `account_memberships`, and `invites` tables from Phase 1.
 
-### Phase 1: Database Foundation
+### 1. New file: `src/contexts/AccountContext.tsx`
 
-Create 3 new tables and a new role enum. Keep the old `contributors` table temporarily for backward compatibility during migration.
-
-**New enum**: `membership_role` = `owner | full_access | read_only`
-
-**New tables**:
-
-```text
-accounts
-├── id (uuid, PK)
-├── owner_user_id (uuid, NOT NULL, references auth.users)
-└── created_at (timestamptz)
-
-account_memberships
-├── id (uuid, PK)
-├── account_id (uuid, FK → accounts)
-├── user_id (uuid, NOT NULL)
-├── role (membership_role)
-├── status (text: active | revoked)
-├── invited_by (uuid)
-├── created_at (timestamptz)
-└── accepted_at (timestamptz)
-
-invites
-├── id (uuid, PK)
-├── account_id (uuid, FK → accounts)
-├── email (text, NOT NULL)
-├── role (membership_role, NOT full owner)
-├── token_hash (text, NOT NULL)
-├── expires_at (timestamptz, default now()+7 days)
-├── status (text: pending | accepted | expired)
-├── invited_by (uuid)
-└── created_at (timestamptz)
-```
-
-**Trigger**: Auto-create an `accounts` row + `account_memberships(role=owner)` row when a new user signs up (via `handle_new_user` trigger extension).
-
-**RLS on new tables**: Membership-based access. Users see only accounts they belong to.
-
-**New DB function**: `get_user_account_id(_user_id uuid)` — returns the account_id for a user via account_memberships. Used in all RLS policies.
-
-**Add `account_id` column** to all account-scoped tables (properties, items, property_files, legacy_locker, password_catalog, user_documents, etc.) — nullable initially, backfilled from existing user_id → accounts mapping.
-
-### Phase 2: New Edge Functions
-
-**Replace `invite-contributor`** → **`send-invite`**
-- Owner enters email + role (full_access or read_only)
-- Generate crypto-random token, store SHA-256 hash in `invites`
-- Send branded email via Resend with link: `/invite?token=RAW_TOKEN`
-- Token expires in 7 days
-- One-time use
-
-**Replace `complete-contributor-signup`** → **`accept-invite`**
-- Receives raw token, hashes it, matches against `invites`
-- Validates: not expired, not already accepted
-- Creates `account_memberships` record
-- Marks invite as accepted
-- Returns account_id for redirect
-
-**Replace `accept-contributor-invitation`** → removed (merged into accept-invite)
-
-### Phase 3: New Context Provider
-
-**Replace `ContributorContext`** → **`AccountContext`**
+Queries `account_memberships` to determine the current user's role and active account. Exposes:
 
 ```typescript
 interface AccountContextType {
-  accountId: string | null;        // The active account
+  accountId: string | null;
   accountRole: 'owner' | 'full_access' | 'read_only' | null;
   isOwner: boolean;
   isFullAccess: boolean;
   isReadOnly: boolean;
-  canEdit: boolean;                // owner or full_access
-  canManageBilling: boolean;       // owner only
+  canEdit: boolean;           // owner or full_access
+  canManageBilling: boolean;  // owner only
   ownerName: string;
   loading: boolean;
   showReadOnlyRestriction: () => void;
+  refreshAccount: () => Promise<void>;
 }
 ```
 
-All data queries use `account_id` instead of `user_id` — this eliminates the "effective user ID" problem entirely.
+Fetches membership from `account_memberships` joined with `accounts` and owner's `profiles`. Replaces `ContributorContext` entirely.
 
-### Phase 4: Invite Landing Page
+### 2. New file: `src/pages/InviteLanding.tsx` (route: `/invite`)
 
-**New page**: `/invite` (replaces contributor mode in AuthLegacy)
-- Validates token via hash
-- Shows: "You've been invited to access [Owner]'s Asset Safe account" + role
-- If not logged in: shows Sign In / Create Account options
-- If invite email matches auth email: treat as pre-verified (no double verification email)
-- After auth + acceptance: redirect to `/account` (owner's dashboard)
+- Reads `?token=` from URL
+- Calls `accept-invite` edge function with the raw token
+- Shows invite details (inviter name, role) on success
+- If user is not logged in: shows Sign In / Create Account buttons
+- If user is logged in: auto-accepts and redirects to `/account`
+- Error states: expired, already accepted, invalid token
 
-### Phase 5: UI Updates
+### 3. New file: `src/components/AuthorizedUsersTab.tsx`
 
-**Replace `ContributorsTab`** → **`AuthorizedUsersTab`**
-- List members with role badges: "Full Access" / "Read Only"
-- Invite form: email + role selector (2 options only)
-- Change role, revoke access
-- Cannot remove owner
+Replaces `ContributorsTab`. Uses `account_memberships` and `invites` tables instead of `contributors`.
 
-**Update all role labels globally**:
-- "Contributor" → removed
-- "Viewer" → "Read Only"
-- "Admin"/"Administrator" (in shared user context) → "Full Access"
-- "Contributors" section → "Authorized Users"
+- Invite form: email + role selector (Full Access / Read Only only)
+- No first/last name fields (user creates their own profile)
+- Calls `send-invite` edge function
+- Lists current members from `account_memberships` with role badges
+- Lists pending invites from `invites` table
+- Owner can change roles and revoke access
+- Cannot remove or demote owner
 
-**Update `ViewerRestriction`** → **`ReadOnlyRestriction`**
+### 4. Update `src/components/AccessActivitySection.tsx`
 
-**Update `AdminContributorPlanInfo`** → **`MemberPlanInfo`**
+- Replace `ContributorsTab` import with `AuthorizedUsersTab`
+- Update role explanations section: remove 3-role grid, replace with 2-role grid (Full Access + Read Only)
+- Update terminology throughout
 
-### Phase 6: RLS Migration
+### 5. Update `src/components/ViewerRestriction.tsx`
 
-Replace all `has_contributor_access()` calls in RLS policies with new account_id-based checks:
+- Rename exports: `ViewerRestriction` stays but uses `useAccount` instead of `useContributor`
+- Update text: "Viewer" → "Read Only", "contributor" references removed
+- `useViewerCheck` → uses new `isReadOnly` / `canEdit` from `AccountContext`
 
-```sql
--- Pattern: user belongs to same account as the row
-account_id IN (
-  SELECT account_id FROM account_memberships 
-  WHERE user_id = auth.uid() AND status = 'active'
-)
-```
+### 6. Wire into `src/App.tsx`
 
-Write-level policies check role:
-- `full_access` or `owner` for INSERT/UPDATE
-- `owner` only for DELETE on sensitive tables
+- Replace `ContributorProvider` with `AccountProvider` in the provider tree
+- Replace `useContributor` calls in `ProtectedRoute` with `useAccount`
+- Update membership bypass logic (replaces `isContributor` check)
+- Remove `accept-contributor-invitation` call from subscription check
+- Add `/invite` route (public, not protected)
+- Remove `/contributor-welcome` route
 
-### Phase 7: Global Text Cleanup
+### 7. Update consumer files (minimal — bridge only)
 
-Search-and-replace across all files:
-- 58 files referencing "contributor"
-- Email templates in edge functions
-- FAQ sections, tooltips, helper text
-- Onboarding copy
-- Error messages
+For files that import `useContributor` (`Account.tsx`, `AccountSettings.tsx`, `SecureVault.tsx`, `VIPContacts.tsx`, `AdminContributorPlanInfo.tsx`, `CreatePassword.tsx`):
+- Replace `useContributor()` with `useAccount()`
+- Map old properties to new: `isViewer` → `isReadOnly`, `canEdit` stays, `isContributorRole` → removed, `isAdministrator` → `isFullAccess`, `accountOwnerId` → `accountId`
 
-### Phase 8: Legacy Cleanup
+### Files changed
 
-- Drop `contributors` table (after data migration)
-- Drop `contributor_role` enum
-- Drop old `has_contributor_access()` functions
-- Remove old edge functions: `invite-contributor`, `complete-contributor-signup`, `accept-contributor-invitation`, `send-contributor-invitation`
-- Remove `ContributorContext.tsx`
-- Remove contributor mode from `AuthLegacy.tsx`
+| File | Action |
+|------|--------|
+| `src/contexts/AccountContext.tsx` | **New** — replaces ContributorContext |
+| `src/pages/InviteLanding.tsx` | **New** — invite landing page |
+| `src/components/AuthorizedUsersTab.tsx` | **New** — replaces ContributorsTab |
+| `src/components/AccessActivitySection.tsx` | Update imports + role explanations |
+| `src/components/ViewerRestriction.tsx` | Update to use AccountContext |
+| `src/App.tsx` | Swap providers, add /invite route |
+| `src/pages/Account.tsx` | useContributor → useAccount |
+| `src/pages/AccountSettings.tsx` | useContributor → useAccount |
+| `src/pages/CreatePassword.tsx` | useContributor → useAccount |
+| `src/pages/VIPContacts.tsx` | useContributor → useAccount |
+| `src/components/SecureVault.tsx` | useContributor → useAccount |
+| `src/components/AdminContributorPlanInfo.tsx` | useContributor → useAccount |
 
-### What Does NOT Change
-- Owner/admin system roles (`user_roles` table for platform admin) — untouched
-- Supabase Auth — untouched
-- Billing/subscription system — untouched
-- Secure Vault — vault access remains restricted (not auto-granted)
-- Navigation structure — untouched
-
-### Files Affected (~60+)
-
-| Category | Files |
-|----------|-------|
-| New migration(s) | 1-2 SQL files |
-| New/replaced edge functions | 2 (send-invite, accept-invite) |
-| Removed edge functions | 4 |
-| New context | AccountContext.tsx (replaces ContributorContext) |
-| New page | /invite landing page |
-| Replaced component | AuthorizedUsersTab (replaces ContributorsTab) |
-| Updated components | ~30 files using useContributor |
-| Updated pages | ~10 pages with role checks |
-| Text/copy updates | ~20 files with hardcoded strings |
-| RLS policy updates | ~15 tables |
-
-### Proposed Implementation Order
-
-Given the size, I recommend implementing in 3-4 sessions:
-1. **Session 1**: Database migration (tables, enum, trigger, backfill) + new edge functions
-2. **Session 2**: AccountContext + invite landing page + AuthorizedUsersTab
-3. **Session 3**: Wire all components to new context + RLS migration
-4. **Session 4**: Global text cleanup + legacy removal
+Legacy files (`ContributorContext.tsx`, `ContributorsTab.tsx`, `ContributorWelcome.tsx`) will be removed after all references are updated.
 
