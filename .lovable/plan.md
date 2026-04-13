@@ -1,96 +1,101 @@
 
 
-## Phase 2: AccountContext + Invite Landing Page + AuthorizedUsersTab
+## Multi-Account Support — Architecture and UX Plan
 
-### Overview
-Create the new `AccountContext` provider (replacing `ContributorContext`), build the `/invite` landing page, and replace `ContributorsTab` with `AuthorizedUsersTab` — all using the new `accounts`, `account_memberships`, and `invites` tables from Phase 1.
+### Summary
+Extend the existing authorized users system so a single user can belong to multiple accounts and switch between them from within the dashboard.
 
-### 1. New file: `src/contexts/AccountContext.tsx`
+### Database Changes (Migration)
 
-Queries `account_memberships` to determine the current user's role and active account. Exposes:
+1. **Add `account_name`** to `accounts` table (text, nullable, default null). Backfill existing rows with owner's `first_name || "'s Account"` from profiles.
+
+2. **Add `last_used_account_id`** to `profiles` table (uuid, nullable, FK to accounts). Used to remember which account to open on next login.
+
+3. **Update `get_user_account_id` function** — currently returns only the owner membership. Change to return the `last_used_account_id` if valid, otherwise first active membership.
+
+### AccountContext Rewrite
+
+Replace the current single-membership fetch with multi-account support:
 
 ```typescript
 interface AccountContextType {
+  // Current active account
   accountId: string | null;
-  accountRole: 'owner' | 'full_access' | 'read_only' | null;
-  isOwner: boolean;
-  isFullAccess: boolean;
-  isReadOnly: boolean;
-  canEdit: boolean;           // owner or full_access
-  canManageBilling: boolean;  // owner only
+  accountRole: AccountRole;
+  accountName: string;
   ownerName: string;
-  loading: boolean;
-  showReadOnlyRestriction: () => void;
-  refreshAccount: () => Promise<void>;
+  
+  // All accessible accounts
+  accounts: Array<{
+    accountId: string;
+    accountName: string;
+    role: AccountRole;
+    ownerName: string;
+  }>;
+  hasMultipleAccounts: boolean;
+  
+  // Switch function
+  switchAccount: (accountId: string) => Promise<void>;
+  
+  // Existing permission flags (unchanged)
+  isOwner, isFullAccess, isReadOnly, canEdit, canManageBilling, loading...
 }
 ```
 
-Fetches membership from `account_memberships` joined with `accounts` and owner's `profiles`. Replaces `ContributorContext` entirely.
+On mount: fetch ALL active memberships (not just one). Set active account from `last_used_account_id` if valid, otherwise first membership. `switchAccount()` updates state + persists `last_used_account_id` to profiles table.
 
-### 2. New file: `src/pages/InviteLanding.tsx` (route: `/invite`)
+### Account Switcher Component
 
-- Reads `?token=` from URL
-- Calls `accept-invite` edge function with the raw token
-- Shows invite details (inviter name, role) on success
-- If user is not logged in: shows Sign In / Create Account buttons
-- If user is logged in: auto-accepts and redirects to `/account`
-- Error states: expired, already accepted, invalid token
+New `AccountSwitcher.tsx` — a dropdown in the dashboard header/navbar area:
 
-### 3. New file: `src/components/AuthorizedUsersTab.tsx`
+- Shows current account name with a chevron
+- Dropdown lists all accounts grouped: "Owned by You" / "Shared With You"
+- Each item shows account name + role badge
+- Selecting triggers `switchAccount()` which re-renders all data
 
-Replaces `ContributorsTab`. Uses `account_memberships` and `invites` tables instead of `contributors`.
+### Invite Acceptance Update
 
-- Invite form: email + role selector (Full Access / Read Only only)
-- No first/last name fields (user creates their own profile)
-- Calls `send-invite` edge function
-- Lists current members from `account_memberships` with role badges
-- Lists pending invites from `invites` table
-- Owner can change roles and revoke access
-- Cannot remove or demote owner
+In `InviteLanding.tsx`, after successful acceptance:
+- Call `switchAccount(acceptedAccountId)` to immediately set context to the invited account
+- This persists `last_used_account_id` so the user stays in that account
 
-### 4. Update `src/components/AccessActivitySection.tsx`
+### WelcomeBanner Update
 
-- Replace `ContributorsTab` import with `AuthorizedUsersTab`
-- Update role explanations section: remove 3-role grid, replace with 2-role grid (Full Access + Read Only)
-- Update terminology throughout
+Update to use `accountName` from context instead of fetching contributor info separately. Show the current account name.
 
-### 5. Update `src/components/ViewerRestriction.tsx`
+### Login Flow
 
-- Rename exports: `ViewerRestriction` stays but uses `useAccount` instead of `useContributor`
-- Update text: "Viewer" → "Read Only", "contributor" references removed
-- `useViewerCheck` → uses new `isReadOnly` / `canEdit` from `AccountContext`
+Current `ProtectedRoute` + `AccountProvider` handles this naturally:
+- AccountContext fetches all memberships
+- If `last_used_account_id` is set and valid → use it
+- Otherwise → use first active membership
+- No separate account selection screen needed (switcher handles it)
 
-### 6. Wire into `src/App.tsx`
+### RLS — No Changes Needed
 
-- Replace `ContributorProvider` with `AccountProvider` in the provider tree
-- Replace `useContributor` calls in `ProtectedRoute` with `useAccount`
-- Update membership bypass logic (replaces `isContributor` check)
-- Remove `accept-contributor-invitation` call from subscription check
-- Add `/invite` route (public, not protected)
-- Remove `/contributor-welcome` route
+RLS already uses `account_memberships` for access. The frontend passes `accountId` to queries. Multi-account works because the user simply changes which `accountId` they query with, and RLS validates membership.
 
-### 7. Update consumer files (minimal — bridge only)
+### Files Changed
 
-For files that import `useContributor` (`Account.tsx`, `AccountSettings.tsx`, `SecureVault.tsx`, `VIPContacts.tsx`, `AdminContributorPlanInfo.tsx`, `CreatePassword.tsx`):
-- Replace `useContributor()` with `useAccount()`
-- Map old properties to new: `isViewer` → `isReadOnly`, `canEdit` stays, `isContributorRole` → removed, `isAdministrator` → `isFullAccess`, `accountOwnerId` → `accountId`
-
-### Files changed
-
-| File | Action |
+| File | Change |
 |------|--------|
-| `src/contexts/AccountContext.tsx` | **New** — replaces ContributorContext |
-| `src/pages/InviteLanding.tsx` | **New** — invite landing page |
-| `src/components/AuthorizedUsersTab.tsx` | **New** — replaces ContributorsTab |
-| `src/components/AccessActivitySection.tsx` | Update imports + role explanations |
-| `src/components/ViewerRestriction.tsx` | Update to use AccountContext |
-| `src/App.tsx` | Swap providers, add /invite route |
-| `src/pages/Account.tsx` | useContributor → useAccount |
-| `src/pages/AccountSettings.tsx` | useContributor → useAccount |
-| `src/pages/CreatePassword.tsx` | useContributor → useAccount |
-| `src/pages/VIPContacts.tsx` | useContributor → useAccount |
-| `src/components/SecureVault.tsx` | useContributor → useAccount |
-| `src/components/AdminContributorPlanInfo.tsx` | useContributor → useAccount |
+| New migration | Add `account_name` to accounts, `last_used_account_id` to profiles, backfill |
+| `src/contexts/AccountContext.tsx` | Fetch all memberships, add `accounts[]`, `switchAccount()`, `accountName` |
+| New: `src/components/AccountSwitcher.tsx` | Dropdown component for switching accounts |
+| `src/components/WelcomeBanner.tsx` | Use account context instead of legacy contributor fetch |
+| `src/pages/InviteLanding.tsx` | Call `switchAccount` after acceptance |
+| `src/components/Navbar.tsx` | Add AccountSwitcher to authenticated nav |
 
-Legacy files (`ContributorContext.tsx`, `ContributorsTab.tsx`, `ContributorWelcome.tsx`) will be removed after all references are updated.
+### Edge Cases Handled
+
+- **Revoked membership on active account**: `switchAccount` validates membership exists; if current account becomes invalid on refresh, auto-switch to next valid one
+- **No valid memberships**: Show empty state "You do not currently have access to any accounts"
+- **User owns no account but is shared on others**: Works — switcher shows only shared accounts
+- **`last_used_account_id` points to revoked account**: Ignored, falls back to first valid membership
+
+### What Does NOT Change
+- RLS policies — already account-based
+- Edge functions (send-invite, accept-invite) — already work
+- AuthorizedUsersTab — already scoped to current accountId
+- Subscription/billing logic — unchanged
 
