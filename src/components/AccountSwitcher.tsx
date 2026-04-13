@@ -15,11 +15,11 @@ import { Badge } from '@/components/ui/badge';
 const roleBadge = (role: string | null) => {
   switch (role) {
     case 'owner':
-      return <Badge variant="secondary" className="text-[10px] px-1.5 py-0 ml-2 bg-amber-100 text-amber-800 border-amber-200"><Crown className="h-2.5 w-2.5 mr-0.5 inline" />Owner</Badge>;
+      return <Badge variant="secondary" className="text-[10px] px-1.5 py-0 ml-2 bg-accent text-accent-foreground"><Crown className="h-2.5 w-2.5 mr-0.5 inline" />Owner</Badge>;
     case 'full_access':
-      return <Badge variant="secondary" className="text-[10px] px-1.5 py-0 ml-2 bg-blue-100 text-blue-800 border-blue-200"><Shield className="h-2.5 w-2.5 mr-0.5 inline" />Full Access</Badge>;
+      return <Badge variant="secondary" className="text-[10px] px-1.5 py-0 ml-2 bg-primary/10 text-primary"><Shield className="h-2.5 w-2.5 mr-0.5 inline" />Full Access</Badge>;
     case 'read_only':
-      return <Badge variant="secondary" className="text-[10px] px-1.5 py-0 ml-2 bg-gray-100 text-gray-600 border-gray-200"><Eye className="h-2.5 w-2.5 mr-0.5 inline" />Read Only</Badge>;
+      return <Badge variant="secondary" className="text-[10px] px-1.5 py-0 ml-2 bg-muted text-muted-foreground"><Eye className="h-2.5 w-2.5 mr-0.5 inline" />Read Only</Badge>;
     default:
       return null;
   }
