@@ -56,6 +56,47 @@ export type Database = {
         }
         Relationships: []
       }
+      account_memberships: {
+        Row: {
+          accepted_at: string | null
+          account_id: string
+          created_at: string
+          id: string
+          invited_by: string | null
+          role: Database["public"]["Enums"]["membership_role"]
+          status: string
+          user_id: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          account_id: string
+          created_at?: string
+          id?: string
+          invited_by?: string | null
+          role?: Database["public"]["Enums"]["membership_role"]
+          status?: string
+          user_id: string
+        }
+        Update: {
+          accepted_at?: string | null
+          account_id?: string
+          created_at?: string
+          id?: string
+          invited_by?: string | null
+          role?: Database["public"]["Enums"]["membership_role"]
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_memberships_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       account_verification: {
         Row: {
           account_age_met: boolean
@@ -128,6 +169,24 @@ export type Database = {
           user_id?: string
           verified_at?: string | null
           verified_plus_at?: string | null
+        }
+        Relationships: []
+      }
+      accounts: {
+        Row: {
+          created_at: string
+          id: string
+          owner_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          owner_user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          owner_user_id?: string
         }
         Relationships: []
       }
@@ -1604,6 +1663,50 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      invites: {
+        Row: {
+          account_id: string
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string | null
+          role: Database["public"]["Enums"]["membership_role"]
+          status: string
+          token_hash: string
+        }
+        Insert: {
+          account_id: string
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          role?: Database["public"]["Enums"]["membership_role"]
+          status?: string
+          token_hash: string
+        }
+        Update: {
+          account_id?: string
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          role?: Database["public"]["Enums"]["membership_role"]
+          status?: string
+          token_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invites_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       items: {
         Row: {
@@ -4104,6 +4207,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_user_account_id: { Args: { _user_id: string }; Returns: string }
       get_user_engagement_stats: {
         Args: never
         Returns: {
@@ -4156,6 +4260,14 @@ export type Database = {
       has_dev_workspace_access: { Args: { _user_id: string }; Returns: boolean }
       has_owner_workspace_access: {
         Args: { _user_id: string }
+        Returns: boolean
+      }
+      is_account_member: {
+        Args: { _account_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_account_owner: {
+        Args: { _account_id: string; _user_id: string }
         Returns: boolean
       }
       update_user_storage_usage: {
@@ -4217,6 +4329,7 @@ export type Database = {
         | "question"
       dev_task_priority: "low" | "medium" | "high" | "critical"
       dev_task_status: "todo" | "in_progress" | "done" | "archived"
+      membership_role: "owner" | "full_access" | "read_only"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -4401,6 +4514,7 @@ export const Constants = {
       ],
       dev_task_priority: ["low", "medium", "high", "critical"],
       dev_task_status: ["todo", "in_progress", "done", "archived"],
+      membership_role: ["owner", "full_access", "read_only"],
     },
   },
 } as const
