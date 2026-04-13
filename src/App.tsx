@@ -10,7 +10,7 @@ import useScrollToTop from "@/hooks/useScrollToTop";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { TranslationProvider } from "@/contexts/TranslationContext";
-import { ContributorProvider, useContributor } from "@/contexts/ContributorContext";
+import { AccountProvider, useContributor } from "@/contexts/AccountContext";
 import CookieConsent from "@/components/CookieConsent";
 import MobileCTA from "@/components/MobileCTA";
 import AskAssetSafe from "@/components/AskAssetSafe";
@@ -111,7 +111,7 @@ import AcknowledgeAccess from "./pages/AcknowledgeAccess";
 import ActivityLog from "./pages/ActivityLog";
 import ForgotPassword from "./pages/ForgotPassword";
 import LegacyLockerInfo from "./pages/LegacyLockerInfo";
-import ContributorWelcome from "./pages/ContributorWelcome";
+import InviteLanding from "./pages/InviteLanding";
 import CookiePolicy from "./pages/CookiePolicy";
 import Install from "./pages/Install";
 import VIPContacts from "./pages/VIPContacts";
@@ -183,17 +183,28 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
       }
 
       try {
-        // First, try to accept any pending contributor invitations
-        if (retryCount === 0) {
-          try {
-            const { data: session } = await supabase.auth.getSession();
-            if (session?.session) {
-              await supabase.functions.invoke('accept-contributor-invitation');
-            }
-          } catch (inviteError) {
-            console.log('Invitation acceptance check:', inviteError);
-          }
+    // Check for active membership (non-owner members bypass subscription gate)
+    if (retryCount === 0) {
+      try {
+        const { data: membership } = await supabase
+          .from('account_memberships')
+          .select('id, role')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .neq('role', 'owner')
+          .limit(1)
+          .maybeSingle();
+
+        if (membership) {
+          checkedUserIdRef.current = user.id;
+          setHasSubscription(true);
+          setCheckingSubscription(false);
+          return;
         }
+      } catch (membershipError) {
+        console.log('Membership check error (non-fatal):', membershipError);
+      }
+    }
 
         if (abortRef.current) return;
 
@@ -377,7 +388,7 @@ const AppContent = () => {
         <Route path="/welcome" element={<Welcome />} />
         <Route path="/welcome/create-password" element={<CreatePassword />} />
         <Route path="/onboarding" element={<Onboarding />} />
-        <Route path="/contributor-welcome" element={<ContributorWelcome />} />
+        <Route path="/invite" element={<InviteLanding />} />
         
         {/* Protected routes */}
         <Route path="/subscription-success" element={<SubscriptionSuccess />} />
@@ -471,10 +482,10 @@ const App = () => {
           <TranslationProvider>
             <AuthProvider>
               <SubscriptionProvider>
-                <ContributorProvider>
+                <AccountProvider>
                   <AppContent />
                   <CookieConsent />
-                </ContributorProvider>
+                </AccountProvider>
               </SubscriptionProvider>
             </AuthProvider>
           </TranslationProvider>

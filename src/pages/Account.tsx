@@ -10,7 +10,7 @@ import DashboardTour from '@/components/DashboardTour';
 import { FeatureGuard } from '@/components/FeatureGuard';
 import DocumentationChecklist from '@/components/DocumentationChecklist';
 import { useSubscription } from '@/contexts/SubscriptionContext';
-import { useContributor } from '@/contexts/ContributorContext';
+import { useAccount } from '@/contexts/AccountContext';
 import { ViewerRestrictionBanner } from '@/components/ViewerRestriction';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -54,7 +54,7 @@ const Account: React.FC = () => {
     return queryTab || stateTab || 'overview';
   });
   const { subscriptionTier } = useSubscription();
-  const { isViewer, showViewerRestriction, canEdit } = useContributor();
+  const { isReadOnly: isViewer, showReadOnlyRestriction: showViewerRestriction, canEdit } = useAccount();
 
   // Scroll to top when tab changes
   useEffect(() => {

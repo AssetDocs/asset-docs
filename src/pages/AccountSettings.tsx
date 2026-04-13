@@ -10,7 +10,7 @@ import MFADropdown from '@/components/MFADropdown';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import StorageDashboard from '@/components/StorageDashboard';
 import { ViewerRestrictionBanner } from '@/components/ViewerRestriction';
-import { useContributor } from '@/contexts/ContributorContext';
+import { useAccount } from '@/contexts/AccountContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -47,7 +47,7 @@ const AccountSettings: React.FC = () => {
   const { toast } = useToast();
   const location = useLocation();
   const navigate = useNavigate();
-  const { isViewer, isContributorRole, ownerName } = useContributor();
+  const { isReadOnly: isViewer, isFullAccess: isContributorRole, ownerName } = useAccount();
   const { unreadCount, markAllRead } = useUnreadNotifications();
 
   // Restricted tabs for viewers and contributors

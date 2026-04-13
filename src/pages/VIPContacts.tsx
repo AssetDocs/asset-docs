@@ -14,7 +14,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { useContributor } from '@/contexts/ContributorContext';
+import { useAccount } from '@/contexts/AccountContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Plus, Edit, Trash2, Star, Phone, Mail, MapPin, User, ChevronLeft, ChevronDown, ChevronUp, Paperclip, AlertTriangle } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -62,7 +62,7 @@ const VIPContacts: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
-  const { isViewer, accountOwnerId } = useContributor();
+  const { isReadOnly: isViewer, accountId: accountOwnerId } = useAccount();
   
   const [contacts, setContacts] = useState<VIPContact[]>([]);
   const [loading, setLoading] = useState(true);

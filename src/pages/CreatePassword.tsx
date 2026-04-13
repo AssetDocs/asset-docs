@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useContributor } from '@/contexts/ContributorContext';
+import { useAccount } from '@/contexts/AccountContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,7 +12,7 @@ import { Shield, Eye, EyeOff, MailOpen } from 'lucide-react';
 
 const CreatePassword = () => {
   const { user, profile, loading, refreshProfile } = useAuth();
-  const { refreshContributor } = useContributor();
+  const { refreshAccount: refreshContributor } = useAccount();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -105,17 +105,16 @@ const CreatePassword = () => {
       const { error: pwError } = await supabase.auth.updateUser({ password });
       if (pwError) throw pwError;
 
-      // Accept any pending contributor invitations (idempotent — safe to call again)
+      // Accept any pending invites (idempotent — safe to call again)
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-          await supabase.functions.invoke('accept-contributor-invitation', {
+          await supabase.functions.invoke('accept-invite', {
             headers: { Authorization: `Bearer ${session.access_token}` },
           });
         }
       } catch (e) {
-        // Non-fatal — contributor acceptance also runs in AuthCallback
-        console.warn('[CreatePassword] accept-contributor-invitation error (non-fatal):', e);
+        console.warn('[CreatePassword] accept-invite error (non-fatal):', e);
       }
 
       const profileUpdate: Record<string, unknown> = {
