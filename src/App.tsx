@@ -155,8 +155,8 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
       return;
     }
 
-    // Contributors inherit access via account owner's subscription — bypass subscription gate
-    if (!contributorLoading && isContributor) {
+    // Non-owner members inherit access via account owner's subscription — bypass subscription gate
+    if (!memberLoading && isMemberUser) {
       checkedUserIdRef.current = user?.id ?? null;
       setHasSubscription(true);
       setCheckingSubscription(false);
@@ -230,38 +230,28 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
           return;
         }
 
-        // Fallback: Check contributor status directly if subscription check fails
+        // Fallback: re-check membership via account_memberships if subscription check fails
         if (retryCount >= 2) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const contribQuery: any = supabase
-            .from('contributors')
-            .select('id, account_owner_id, role, status')
-            .eq('contributor_user_id' as any, user.id)
-            .eq('status' as any, 'accepted')
-            .limit(1);
-          const { data: contributorData } = await contribQuery as { data: any[] | null };
-
-          if (abortRef.current) return;
-          
-          if (contributorData && contributorData.length > 0) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const ownerQuery: any = supabase
-              .from('profiles')
-              .select('plan_status')
-              .eq('user_id' as any, contributorData[0].account_owner_id)
-              .single();
-            const { data: ownerProfile } = await ownerQuery as { data: any };
+          try {
+            const { data: membershipData } = await supabase
+              .from('account_memberships')
+              .select('id, role')
+              .eq('user_id', user.id)
+              .eq('status', 'active')
+              .neq('role', 'owner')
+              .limit(1)
+              .maybeSingle();
 
             if (abortRef.current) return;
-            
-            const ownerIsActive = ownerProfile?.plan_status === 'active' || ownerProfile?.plan_status === 'trialing';
-            
-            if (ownerIsActive) {
+
+            if (membershipData) {
               checkedUserIdRef.current = user.id;
               setHasSubscription(true);
               setCheckingSubscription(false);
               return;
             }
+          } catch (memberErr) {
+            console.log('Membership fallback check error (non-fatal):', memberErr);
           }
         }
         
