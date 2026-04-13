@@ -60,12 +60,23 @@ const ProtectionScore: React.FC<ProtectionScoreProps> = ({ defaultOpen = false }
       const { data: factors } = await supabase.auth.mfa.listFactors();
       const vaultEnabled = (factors?.totp || []).some(f => f.status === 'verified');
 
-      // Count contributors (trusted users)
-      const { count: contributorCount } = await supabase
-        .from('contributors')
-        .select('id', { count: 'exact' })
-        .eq('account_owner_id', user.id)
-        .eq('status', 'accepted');
+      // Count authorized users (non-owner active memberships)
+      const { data: account } = await supabase
+        .from('accounts')
+        .select('id')
+        .eq('owner_user_id', user.id)
+        .maybeSingle();
+      
+      let authorizedUserCount = 0;
+      if (account) {
+        const { count } = await supabase
+          .from('account_memberships')
+          .select('id', { count: 'exact' })
+          .eq('account_id', account.id)
+          .neq('role', 'owner')
+          .eq('status', 'active');
+        authorizedUserCount = count || 0;
+      }
 
       // Count receipts
       const { count: receiptCount } = await supabase
@@ -77,7 +88,7 @@ const ProtectionScore: React.FC<ProtectionScoreProps> = ({ defaultOpen = false }
         totalUploads,
         categoriesCompleted,
         vaultEnabled,
-        trustedUsersAdded: contributorCount || 0,
+        trustedUsersAdded: authorizedUserCount,
         receiptsStored: receiptCount || 0,
       });
     } catch (error) {
