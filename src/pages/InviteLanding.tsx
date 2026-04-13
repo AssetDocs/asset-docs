@@ -2,22 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAccount } from '@/contexts/AccountContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, Users, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react';
+import { Users, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react';
 
 const InviteLanding: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
+  const { switchAccount, refreshAccount } = useAccount();
   const token = searchParams.get('token');
 
   const [status, setStatus] = useState<'loading' | 'ready' | 'accepting' | 'accepted' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState('');
-  const [inviteInfo, setInviteInfo] = useState<{ role: string; ownerName: string } | null>(null);
+  const [inviteInfo, setInviteInfo] = useState<{ role: string; ownerName: string; accountId: string } | null>(null);
 
-  // If user is logged in, auto-accept the invite
   useEffect(() => {
     if (authLoading) return;
     if (!token) {
@@ -29,7 +30,6 @@ const InviteLanding: React.FC = () => {
     if (isAuthenticated && user) {
       acceptInvite();
     } else {
-      // Show the landing page with sign-in options
       setStatus('ready');
     }
   }, [token, isAuthenticated, user, authLoading]);
@@ -53,13 +53,20 @@ const InviteLanding: React.FC = () => {
         return;
       }
 
+      const acceptedAccountId = data?.account_id;
       setInviteInfo({
         role: data?.role || 'read_only',
         ownerName: data?.owner_name || 'the account owner',
+        accountId: acceptedAccountId || '',
       });
       setStatus('accepted');
 
-      // Redirect to dashboard after a brief delay
+      // Refresh memberships then switch to the invited account
+      if (acceptedAccountId) {
+        await refreshAccount();
+        await switchAccount(acceptedAccountId);
+      }
+
       setTimeout(() => {
         navigate('/account', { replace: true });
       }, 2000);
@@ -134,7 +141,7 @@ const InviteLanding: React.FC = () => {
               <Alert className="border-green-200 bg-green-50">
                 <CheckCircle className="h-4 w-4 text-green-600" />
                 <AlertDescription className="text-green-800">
-                  Invitation accepted! You now have <strong>{getRoleLabel(inviteInfo.role)}</strong> access
+                  You now have <strong>{getRoleLabel(inviteInfo.role)}</strong> access
                   to {inviteInfo.ownerName}'s account.
                 </AlertDescription>
               </Alert>

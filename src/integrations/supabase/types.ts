@@ -174,16 +174,19 @@ export type Database = {
       }
       accounts: {
         Row: {
+          account_name: string | null
           created_at: string
           id: string
           owner_user_id: string
         }
         Insert: {
+          account_name?: string | null
           created_at?: string
           id?: string
           owner_user_id: string
         }
         Update: {
+          account_name?: string | null
           created_at?: string
           id?: string
           owner_user_id?: string
@@ -2721,6 +2724,7 @@ export type Database = {
           household_income: string | null
           id: string
           last_name: string | null
+          last_used_account_id: string | null
           onboarding_complete: boolean
           password_set: boolean
           phone: string | null
@@ -2744,6 +2748,7 @@ export type Database = {
           household_income?: string | null
           id?: string
           last_name?: string | null
+          last_used_account_id?: string | null
           onboarding_complete?: boolean
           password_set?: boolean
           phone?: string | null
@@ -2767,6 +2772,7 @@ export type Database = {
           household_income?: string | null
           id?: string
           last_name?: string | null
+          last_used_account_id?: string | null
           onboarding_complete?: boolean
           password_set?: boolean
           phone?: string | null
@@ -2780,7 +2786,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_last_used_account_id_fkey"
+            columns: ["last_used_account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       properties: {
         Row: {
