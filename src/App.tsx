@@ -144,8 +144,8 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
   // Admin users bypass the subscription gate entirely — they always have full access
   const isAdminUser = !adminRole.loading && adminRole.hasDevAccess;
 
-  // Check contributor status early so we can bypass the subscription gate
-  const { isContributor, loading: contributorLoading } = useContributor();
+  // Check membership status early so we can bypass the subscription gate for authorized users
+  const { isContributor: isMemberUser, loading: memberLoading } = useContributor();
 
   useEffect(() => {
     // Skip subscription check for admin users
@@ -155,8 +155,8 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
       return;
     }
 
-    // Contributors inherit access via account owner's subscription — bypass subscription gate
-    if (!contributorLoading && isContributor) {
+    // Non-owner members inherit access via account owner's subscription — bypass subscription gate
+    if (!memberLoading && isMemberUser) {
       checkedUserIdRef.current = user?.id ?? null;
       setHasSubscription(true);
       setCheckingSubscription(false);
@@ -230,38 +230,28 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
           return;
         }
 
-        // Fallback: Check contributor status directly if subscription check fails
+        // Fallback: re-check membership via account_memberships if subscription check fails
         if (retryCount >= 2) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const contribQuery: any = supabase
-            .from('contributors')
-            .select('id, account_owner_id, role, status')
-            .eq('contributor_user_id' as any, user.id)
-            .eq('status' as any, 'accepted')
-            .limit(1);
-          const { data: contributorData } = await contribQuery as { data: any[] | null };
-
-          if (abortRef.current) return;
-          
-          if (contributorData && contributorData.length > 0) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const ownerQuery: any = supabase
-              .from('profiles')
-              .select('plan_status')
-              .eq('user_id' as any, contributorData[0].account_owner_id)
-              .single();
-            const { data: ownerProfile } = await ownerQuery as { data: any };
+          try {
+            const { data: membershipData } = await supabase
+              .from('account_memberships')
+              .select('id, role')
+              .eq('user_id', user.id)
+              .eq('status', 'active')
+              .neq('role', 'owner')
+              .limit(1)
+              .maybeSingle();
 
             if (abortRef.current) return;
-            
-            const ownerIsActive = ownerProfile?.plan_status === 'active' || ownerProfile?.plan_status === 'trialing';
-            
-            if (ownerIsActive) {
+
+            if (membershipData) {
               checkedUserIdRef.current = user.id;
               setHasSubscription(true);
               setCheckingSubscription(false);
               return;
             }
+          } catch (memberErr) {
+            console.log('Membership fallback check error (non-fatal):', memberErr);
           }
         }
         
@@ -293,10 +283,10 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
     return () => {
       abortRef.current = true;
     };
-  }, [user?.id, skipSubscriptionCheck, loading, isAdminUser, isContributor, contributorLoading]);
+  }, [user?.id, skipSubscriptionCheck, loading, isAdminUser, isMemberUser, memberLoading]);
   
-  // Wait for auth + admin role loading + contributor status + subscription check
-  if (loading || profileLoading || adminRole.loading || contributorLoading || checkingSubscription) {
+  // Wait for auth + admin role loading + membership status + subscription check
+  if (loading || profileLoading || adminRole.loading || memberLoading || checkingSubscription) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
@@ -323,12 +313,12 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
     return <Navigate to="/onboarding" replace />;
   }
 
-  // Check if email is verified — contributors bypass this gate since their email
-  // is pre-confirmed via the magic link invite flow.
-  // Also bypass if user_metadata marks them as an invited contributor — this handles
-  // the JWT-refresh race window where isContributor hasn't re-resolved yet.
-  const isInvitedContributor = !!user?.user_metadata?.invited_as_contributor;
-  if (!skipSubscriptionCheck && user && !user.email_confirmed_at && !isContributor && !isInvitedContributor) {
+  // Check if email is verified — authorized users (non-owner members) bypass this gate
+  // since their email is pre-confirmed via the invite flow.
+  // Also bypass if user_metadata marks them as an invited user — this handles
+  // the JWT-refresh race window where membership hasn't re-resolved yet.
+  const isInvitedUser = !!user?.user_metadata?.invited_as_contributor;
+  if (!skipSubscriptionCheck && user && !user.email_confirmed_at && !isMemberUser && !isInvitedUser) {
     return <Navigate to="/welcome" replace />;
   }
 

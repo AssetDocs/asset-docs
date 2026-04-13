@@ -13,7 +13,7 @@ const formatActivityLabel = (log: ActivityLogEntry): string => {
     case 'edit': return `Edited ${resource}`;
     case 'delete': return `Deleted ${resource}`;
     case 'access_vault': return 'Accessed Secure Vault';
-    case 'contributor_access': return 'Contributor accessed dashboard';
+    case 'contributor_access': return 'Authorized user accessed dashboard';
     case 'contributor_invite': return `Invited ${resource}`;
     case 'contributor_remove': return `Removed ${resource}`;
     case 'property_update': return `Updated ${resource}`;

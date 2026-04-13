@@ -152,11 +152,17 @@ const EmergencyInstructions: React.FC<EmergencyInstructionsProps> = ({ onNavigat
     const load = async () => {
       setIsLoading(true);
       try {
-        const [instrRes, contribRes] = await Promise.all([
+        // Check for authorized users via accounts/memberships
+        const accountRes = await supabase.from('accounts').select('id').eq('owner_user_id', user.id).maybeSingle();
+        let hasUsers = false;
+        if (accountRes.data) {
+          const membersRes = await supabase.from('account_memberships').select('id').eq('account_id', accountRes.data.id).neq('role', 'owner').eq('status', 'active').limit(1);
+          hasUsers = (membersRes.data?.length ?? 0) > 0;
+        }
+        const [instrRes] = await Promise.all([
           supabase.from('emergency_instructions').select('*').eq('user_id', user.id).maybeSingle(),
-          supabase.from('contributors').select('id').eq('account_owner_id', user.id).limit(1),
         ]);
-        setHasContributors((contribRes.data?.length ?? 0) > 0);
+        setHasContributors(hasUsers);
         if (instrRes.data) {
           const d = instrRes.data;
           setHasSavedData(true);

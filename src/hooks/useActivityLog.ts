@@ -49,18 +49,17 @@ export function useActivityLog() {
       const enrichedLogs: ActivityLogEntry[] = await Promise.all(
         (data || []).map(async (log) => {
           if (log.actor_user_id && log.actor_user_id !== log.user_id) {
-            // Get contributor name
-            const { data: contributor } = await supabase
-              .from('contributors')
+            // Get authorized user name from profiles
+            const { data: profile } = await supabase
+              .from('profiles')
               .select('first_name, last_name')
-              .eq('contributor_user_id', log.actor_user_id)
-              .eq('account_owner_id', log.user_id)
+              .eq('user_id', log.actor_user_id)
               .maybeSingle();
 
-            if (contributor) {
+            if (profile) {
               return {
                 ...log,
-                actor_name: `${contributor.first_name || ''} ${contributor.last_name || ''}`.trim() || 'Contributor'
+                actor_name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Authorized User'
               };
             }
           }

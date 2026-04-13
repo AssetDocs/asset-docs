@@ -49,13 +49,25 @@ const OnboardingProgress: React.FC<OnboardingProgressProps> = ({ inline = false 
     const fetchAdditionalData = async () => {
       if (!user) return;
 
-      // Check for contributors (trusted contacts)
-      const { data: contributors } = await supabase
-        .from('contributors')
+      // Check for authorized users (account memberships)
+      const { data: account } = await supabase
+        .from('accounts')
         .select('id')
-        .eq('account_owner_id', user.id)
-        .limit(1);
-      setHasContributors((contributors?.length ?? 0) > 0);
+        .eq('owner_user_id', user.id)
+        .maybeSingle();
+      
+      let hasAuthorizedUsers = false;
+      if (account) {
+        const { data: members } = await supabase
+          .from('account_memberships')
+          .select('id')
+          .eq('account_id', account.id)
+          .neq('role', 'owner')
+          .eq('status', 'active')
+          .limit(1);
+        hasAuthorizedUsers = (members?.length ?? 0) > 0;
+      }
+      setHasContributors(hasAuthorizedUsers);
 
       // Check for legacy locker data, encryption, and recovery delegate
       const { data: legacyLocker } = await supabase

@@ -12,7 +12,7 @@ import { useActivityLog, ActivityLogEntry } from '@/hooks/useActivityLog';
 import { formatDistanceToNow } from 'date-fns';
 import { Link } from 'react-router-dom';
 
-interface Contributor {
+interface AuthorizedUser {
   id: string;
   role: string;
   status: string;
@@ -28,9 +28,9 @@ const UPGRADE_PATH = '/account/settings?tab=subscription';
 
 const getRoleIcon = (role: string) => {
   switch (role) {
-    case 'administrator': return <Shield className="h-3 w-3" />;
-    case 'contributor': return <Users className="h-3 w-3" />;
-    case 'viewer': return <Eye className="h-3 w-3" />;
+    case 'owner': return <Crown className="h-3 w-3" />;
+    case 'full_access': return <Shield className="h-3 w-3" />;
+    case 'read_only': return <Eye className="h-3 w-3" />;
     default: return <Eye className="h-3 w-3" />;
   }
 };
@@ -42,7 +42,7 @@ const formatActivityLabel = (log: ActivityLogEntry): string => {
     case 'edit': return `Edited ${resource}`;
     case 'delete': return `Deleted ${resource}`;
     case 'access_vault': return 'Accessed Secure Vault';
-    case 'contributor_access': return 'Contributor accessed dashboard';
+    case 'contributor_access': return 'Authorized user accessed dashboard';
     case 'contributor_invite': return `Invited ${resource}`;
     case 'contributor_remove': return `Removed ${resource}`;
     case 'property_update': return `Updated ${resource}`;
@@ -57,34 +57,60 @@ const PeopleActivityCard: React.FC<PeopleActivityCardProps> = ({ onNavigate }) =
   const { user } = useAuth();
   const { hasFeature } = useSubscription();
   const { logs, isLoading: logsLoading } = useActivityLog();
-  const [contributors, setContributors] = useState<Contributor[]>([]);
-  const [loadingContributors, setLoadingContributors] = useState(true);
+  const [authorizedUsers, setAuthorizedUsers] = useState<AuthorizedUser[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
 
   const hasPremiumAccess = hasFeature('trusted_contacts');
 
   useEffect(() => {
-    const fetchContributors = async () => {
+    const fetchAuthorizedUsers = async () => {
       if (!user) {
-        setLoadingContributors(false);
+        setLoadingUsers(false);
         return;
       }
-      const { data } = await supabase
-        .from('contributors')
-        .select('id, role, status, first_name, last_name')
-        .eq('account_owner_id', user.id)
-        .order('invited_at', { ascending: false });
+      // Fetch members from account_memberships for the user's owned account
+      const { data: account } = await supabase
+        .from('accounts')
+        .select('id')
+        .eq('owner_user_id', user.id)
+        .maybeSingle();
 
-      setContributors(data || []);
-      setLoadingContributors(false);
+      if (account) {
+        const { data: members } = await supabase
+          .from('account_memberships')
+          .select('id, role, status, user_id')
+          .eq('account_id', account.id)
+          .neq('role', 'owner');
+
+        // Fetch profile info for each member
+        const usersWithProfiles = await Promise.all(
+          (members || []).map(async (m) => {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('first_name, last_name')
+              .eq('user_id', m.user_id)
+              .maybeSingle();
+            return {
+              id: m.id,
+              role: m.role,
+              status: m.status,
+              first_name: profile?.first_name || null,
+              last_name: profile?.last_name || null,
+            };
+          })
+        );
+        setAuthorizedUsers(usersWithProfiles);
+      }
+      setLoadingUsers(false);
     };
-    fetchContributors();
+    fetchAuthorizedUsers();
   }, [user]);
 
   const recentLogs = logs.slice(0, 5);
   const lastActivity = logs.length > 0 ? logs[0].created_at : null;
-  const acceptedCount = contributors.filter(c => c.status === 'accepted').length;
-  const pendingCount = contributors.filter(c => c.status === 'pending').length;
+  const acceptedCount = authorizedUsers.filter(c => c.status === 'active').length;
+  const pendingCount = 0; // Pending invites are tracked in the invites table, not here
 
   return (
     <Card className="border-l-4 border-l-blue-500 hover:shadow-lg transition-all bg-white">
