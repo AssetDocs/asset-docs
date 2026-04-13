@@ -4,21 +4,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Eye, Lock } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-interface ViewerRestrictionProps {
+interface ReadOnlyRestrictionProps {
   children: React.ReactNode;
   fallbackMessage?: string;
   showCard?: boolean;
 }
 
 // Full page/section restriction - shows a card with lock message
-export const ViewerRestriction: React.FC<ViewerRestrictionProps> = ({ 
+export const ViewerRestriction: React.FC<ReadOnlyRestrictionProps> = ({ 
   children, 
   fallbackMessage = "Authorized users with Read Only access are not allowed to make changes to this account.",
   showCard = true
 }) => {
-  const { isReadOnly: isViewer } = useAccount();
+  const { isReadOnly } = useAccount();
 
-  if (isViewer) {
+  if (isReadOnly) {
     if (showCard) {
       return (
         <Card className="border-amber-200 bg-amber-50">
@@ -49,9 +49,9 @@ export const ViewerRestriction: React.FC<ViewerRestrictionProps> = ({
 
 // Inline restriction - shows alert banner above content
 export const ViewerRestrictionBanner: React.FC = () => {
-  const { isReadOnly: isViewer, ownerName } = useAccount();
+  const { isReadOnly, ownerName } = useAccount();
 
-  if (!isViewer) return null;
+  if (!isReadOnly) return null;
 
   return (
     <Alert className="border-amber-200 bg-amber-50 mb-4">
@@ -64,13 +64,13 @@ export const ViewerRestrictionBanner: React.FC = () => {
   );
 };
 
-// Hook for checking viewer status in event handlers
+// Hook for checking read-only status in event handlers
 export const useViewerCheck = () => {
-  const { isReadOnly: isViewer, showReadOnlyRestriction: showViewerRestriction, canEdit, canDelete } = useAccount();
+  const { isReadOnly, showReadOnlyRestriction, canEdit, canDelete } = useAccount();
   
   const checkCanEdit = (action?: () => void): boolean => {
-    if (isViewer) {
-      showViewerRestriction();
+    if (isReadOnly) {
+      showReadOnlyRestriction();
       return false;
     }
     if (action) action();
@@ -79,14 +79,14 @@ export const useViewerCheck = () => {
 
   const checkCanDelete = (action?: () => void): boolean => {
     if (!canDelete) {
-      showViewerRestriction();
+      showReadOnlyRestriction();
       return false;
     }
     if (action) action();
     return true;
   };
 
-  return { isViewer, canEdit, canDelete, checkCanEdit, checkCanDelete };
+  return { isReadOnly, canEdit, canDelete, checkCanEdit, checkCanDelete };
 };
 
 export default ViewerRestriction;
