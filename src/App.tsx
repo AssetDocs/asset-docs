@@ -144,8 +144,8 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
   // Admin users bypass the subscription gate entirely — they always have full access
   const isAdminUser = !adminRole.loading && adminRole.hasDevAccess;
 
-  // Check contributor status early so we can bypass the subscription gate
-  const { isContributor, loading: contributorLoading } = useContributor();
+  // Check membership status early so we can bypass the subscription gate for authorized users
+  const { isContributor: isMemberUser, loading: memberLoading } = useContributor();
 
   useEffect(() => {
     // Skip subscription check for admin users
