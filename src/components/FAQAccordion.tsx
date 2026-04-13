@@ -521,19 +521,25 @@ const FAQAccordion: React.FC = () => {
           <AccordionItem value="plans-1">
             <AccordionTrigger className="text-lg font-medium">Who should I add as an authorized user?</AccordionTrigger>
             <AccordionContent>
-              You can invite trusted individuals such as family members, close friends, or professional advisors to collaborate on your Asset Safe account. Each authorized user's access is fully customizable, allowing you to decide exactly what they can view or manage.
+              <p className="mb-3">You can invite trusted individuals such as family members, close friends, or professional advisors to access your Asset Safe account.</p>
+              <p className="mb-3">Access is intentionally simple and secure — you choose whether each person has:</p>
+              <ul className="list-disc list-inside space-y-2 ml-4 mb-3">
+                <li><strong>Full Access</strong> to manage and update your information, or</li>
+                <li><strong>Read Only</strong> access to view important details when needed</li>
+              </ul>
+              <p>Only add people you trust to handle your information responsibly.</p>
             </AccordionContent>
           </AccordionItem>
           
           <AccordionItem value="plans-2">
             <AccordionTrigger className="text-lg font-medium">What access levels are available?</AccordionTrigger>
             <AccordionContent>
-              <p className="mb-3">Asset Safe offers tiered access levels so you stay in control at all times:</p>
-              <ul className="list-disc list-inside space-y-2 ml-4">
-                <li><strong>Viewer</strong> – Can see selected items but cannot make changes.</li>
-                <li><strong>Contributor</strong> – Can add, update, or organize information you choose to share with them.</li>
-                <li><strong>Administrator</strong> – Full access to account features and settings, including the ability to manage authorized users.</li>
+              <p className="mb-3">Asset Safe uses two clear access levels to keep things simple and secure:</p>
+              <ul className="list-disc list-inside space-y-2 ml-4 mb-3">
+                <li><strong>Full Access</strong> – Can view, add, update, and manage information across your account, including certain settings and authorized users</li>
+                <li><strong>Read Only</strong> – Can view shared information but cannot make any changes</li>
               </ul>
+              <p>This streamlined approach ensures you stay in control, while making it easy for others to access what they need when it matters most.</p>
             </AccordionContent>
           </AccordionItem>
           
