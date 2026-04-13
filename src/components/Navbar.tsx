@@ -7,6 +7,7 @@ import assetSafeLogo from '@/assets/asset-safe-logo.png';
 
 import { useTranslation } from '@/contexts/TranslationContext';
 import { useAuth } from '@/contexts/AuthContext';
+import AccountSwitcher from '@/components/AccountSwitcher';
 
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
