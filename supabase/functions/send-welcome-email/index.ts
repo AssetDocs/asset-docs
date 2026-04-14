@@ -17,108 +17,87 @@ interface WelcomeEmailRequest {
 }
 
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const { user_id, email, first_name, last_name }: WelcomeEmailRequest = await req.json();
-
     console.log("Sending welcome email for:", { user_id, email, first_name });
 
-    const fullName = first_name && last_name ? `${first_name} ${last_name}` : first_name || "Valued Customer";
+    const fullName = first_name && last_name ? `${first_name} ${last_name}` : first_name || "there";
+    const dashboardUrl = "https://www.getassetsafe.com/welcome";
+    const baseUrl = "https://www.getassetsafe.com";
 
-    // Send welcome email to the new user
     const emailResponse = await resend.emails.send({
-      from: "Asset Safe <onboarding@resend.dev>",
+      from: "Asset Safe <noreply@assetsafe.net>",
       to: [email],
-      subject: "Welcome to Asset Safe - Let's Protect Your Valuable Assets!",
+      subject: "Welcome to Asset Safe — Let's Get Started",
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="text-align: center; margin-bottom: 30px;">
-            <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 20px;" />
-            <h1 style="color: #1e40af; font-size: 28px; margin: 0;">Welcome to Asset Safe!</h1>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8fafc;">
+          <div style="text-align: center; padding: 30px 20px 20px;">
+            <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
           </div>
-          
-          <p style="font-size: 18px; color: #333; margin-bottom: 20px;">
-            Hi ${fullName},
-          </p>
-          
-          <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
-            We're thrilled to have you join the Asset Safe community! You're now part of a growing network of homeowners, renters, and business owners who are taking control of their asset protection and documentation.
-          </p>
-          
-          <div style="background: #f0f9ff; padding: 20px; border-radius: 8px; margin: 30px 0; border-left: 4px solid #1e40af;">
-            <h2 style="color: #1e40af; font-size: 20px; margin-top: 0;">🎉 Your 30-Day Free Trial Starts Now!</h2>
-            <p style="color: #1e3a8a; margin: 0; font-size: 16px;">
-              No credit card required - explore all these features during your trial period.
+
+          <div style="background: #ffffff; padding: 30px 25px; margin: 0 20px; border-radius: 8px;">
+            <h2 style="color: #1f2937; margin: 0 0 20px; font-size: 22px;">Welcome to Asset Safe!</h2>
+
+            <p style="color: #374151; line-height: 1.6; margin: 0 0 20px;">
+              Hi ${fullName}, we're glad you're here. You've taken an important step toward protecting what matters most.
             </p>
-          </div>
-          
-          <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 30px 0;">
-            <h3 style="color: #10b981; font-size: 18px; margin-top: 0;">✅ What's Included in Your Free Trial:</h3>
-            <ul style="color: #666; line-height: 1.8; padding-left: 20px; margin: 10px 0;">
-              <li><strong>Account Settings:</strong> Personalize your profile and preferences</li>
-              <li><strong>Property Profiles:</strong> Create detailed profiles for all your properties</li>
-              <li><strong>Photo Upload & Management:</strong> Secure cloud storage for your asset photos</li>
-              <li><strong>Asset Valuation:</strong> AI-powered identification and valuation of your items</li>
-            </ul>
-          </div>
-          
-          <div style="background: #fef2f2; padding: 20px; border-radius: 8px; margin: 30px 0; border-left: 4px solid #ef4444;">
-            <h3 style="color: #dc2626; font-size: 18px; margin-top: 0;">🔒 Premium Features (Available After Subscription):</h3>
-            <ul style="color: #666; line-height: 1.8; padding-left: 20px; margin: 10px 0;">
-              <li><strong>Video Upload & Management:</strong> Store and organize video documentation</li>
-              <li><strong>Document Storage:</strong> Secure storage for receipts, warranties, and contracts</li>
-              <li><strong>Insurance Information:</strong> Comprehensive insurance tracking and management</li>
-              <li><strong>Export Assets:</strong> Download your data in various formats</li>
-              <li><strong>Download Files:</strong> Access all your stored files offline</li>
-              <li><strong>Post Damage Reporting:</strong> Document and report damage claims</li>
-              <li><strong>Voice Notes:</strong> Audio recording and management features</li>
-            </ul>
-          </div>
-          
-          <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 30px 0;">
-            <h3 style="color: #1e40af; font-size: 18px; margin-top: 0;">📚 Helpful Resources:</h3>
-            <div style="display: flex; flex-wrap: wrap; gap: 15px; margin: 15px 0;">
-              <a href="${req.headers.get("origin") || 'https://www.getassetsafe.com'}/video-help" style="color: #1e40af; text-decoration: none; padding: 8px 16px; background: #e0f2fe; border-radius: 5px; font-size: 14px;">📹 Video Help</a>
-              <a href="${req.headers.get("origin") || 'https://www.getassetsafe.com'}/resources" style="color: #1e40af; text-decoration: none; padding: 8px 16px; background: #e0f2fe; border-radius: 5px; font-size: 14px;">📖 Resources</a>
-              <a href="${req.headers.get("origin") || 'https://www.getassetsafe.com'}/social-impact" style="color: #1e40af; text-decoration: none; padding: 8px 16px; background: #e0f2fe; border-radius: 5px; font-size: 14px;">🌍 Social Impact</a>
-              <a href="${req.headers.get("origin") || 'https://www.getassetsafe.com'}/qa" style="color: #1e40af; text-decoration: none; padding: 8px 16px; background: #e0f2fe; border-radius: 5px; font-size: 14px;">❓ Q&A</a>
+
+            <div style="background: #f0f9ff; padding: 16px 20px; border-radius: 6px; border-left: 4px solid #1e40af; margin: 0 0 20px;">
+              <p style="color: #1e3a8a; margin: 0; font-size: 15px; font-weight: 600;">Your 30-day free trial is now active</p>
+              <p style="color: #1e3a8a; margin: 6px 0 0; font-size: 14px;">No credit card required — explore all features during your trial.</p>
             </div>
-          </div>
-          
-          
-          <div style="background: #ecfdf5; border-left: 4px solid #10b981; padding: 15px; margin: 30px 0;">
-            <h3 style="color: #065f46; margin-top: 0; font-size: 16px;">💡 Getting Started Tip:</h3>
-            <p style="color: #047857; margin: 0; font-size: 14px;">
-              Begin by adding your most valuable items and take advantage of our AI-powered identification and valuation features!
+
+            <p style="color: #374151; line-height: 1.6; margin: 0 0 15px; font-weight: 600;">What you can do right away:</p>
+            <ul style="color: #374151; line-height: 1.8; padding-left: 20px; margin: 0 0 25px;">
+              <li>Create property profiles for your home and assets</li>
+              <li>Upload and organize photos securely</li>
+              <li>Use AI-powered identification and valuation</li>
+              <li>Invite trusted people as authorized users</li>
+            </ul>
+
+            <div style="text-align: center; margin: 0 0 20px;">
+              <a href="${dashboardUrl}" style="background-color: #1e40af; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
+                Go to My Dashboard
+              </a>
+            </div>
+
+            <p style="color: #6b7280; font-size: 13px; line-height: 1.5; margin: 0 0 25px;">
+              If the button doesn't work, copy and paste this link into your browser:<br/>
+              <a href="${dashboardUrl}" style="color: #1e40af; word-break: break-all;">${dashboardUrl}</a>
+            </p>
+
+            <p style="color: #374151; line-height: 1.6; margin: 0 0 10px; font-weight: 600;">Helpful resources:</p>
+            <ul style="color: #374151; line-height: 1.8; padding-left: 20px; margin: 0 0 25px;">
+              <li><a href="${baseUrl}/video-help" style="color: #1e40af;">Video Tutorials</a> — Step-by-step guides</li>
+              <li><a href="${baseUrl}/resources" style="color: #1e40af;">Resources</a> — Best practices</li>
+              <li><a href="${baseUrl}/qa" style="color: #1e40af;">Q&amp;A</a> — Common questions answered</li>
+            </ul>
+
+            <p style="color: #374151; line-height: 1.6; margin: 0 0 10px;">
+              Questions? Reach us anytime at <a href="mailto:support@assetsafe.net" style="color: #1e40af;">support@assetsafe.net</a>.
+            </p>
+
+            <p style="color: #374151; margin: 20px 0 0;">
+              – The Asset Safe Team
             </p>
           </div>
-          
-          <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
-            Questions? Need help getting started? Our support team is here to help at 
-            <a href="mailto:support@assetsafe.net" style="color: #1e40af;">support@assetsafe.net</a>.
-          </p>
-          
-          <p style="color: #666; margin-bottom: 30px;">
-            Welcome to your digital safety net!<br>
-            <strong>The Asset Safe Team</strong>
-          </p>
-          
-          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
-          
-          <p style="color: #9ca3af; font-size: 12px; text-align: center;">
-            This email was sent to ${email}. If you didn't create an account with Asset Safe, please ignore this email.
-          </p>
+
+          <div style="padding: 20px; text-align: center;">
+            <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+              This email was sent to ${email}. If you didn't create an account with Asset Safe, you can safely ignore this email.
+            </p>
+          </div>
         </div>
       `,
     });
 
-    // Also send notification to business email
+    // Internal notification
     await resend.emails.send({
-      from: "Asset Safe Notifications <onboarding@resend.dev>",
+      from: "Asset Safe Notifications <noreply@assetsafe.net>",
       to: ["support@assetsafe.net"],
       subject: `New User Registration: ${fullName}`,
       html: `
@@ -128,7 +107,7 @@ const handler = async (req: Request): Promise<Response> => {
         <p><strong>User ID:</strong> ${user_id}</p>
         <p><strong>Registration Time:</strong> ${new Date().toLocaleString()}</p>
         <hr>
-        <p style="color: #666; font-size: 12px;">This is an automated notification from the Asset Safe registration system.</p>
+        <p style="color: #666; font-size: 12px;">Automated notification from Asset Safe.</p>
       `,
     });
 
@@ -136,19 +115,13 @@ const handler = async (req: Request): Promise<Response> => {
 
     return new Response(JSON.stringify({ success: true, message: "Welcome emails sent successfully" }), {
       status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        ...corsHeaders,
-      },
+      headers: { "Content-Type": "application/json", ...corsHeaders },
     });
   } catch (error: any) {
     console.error("Error in send-welcome-email function:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
+      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }
 };
