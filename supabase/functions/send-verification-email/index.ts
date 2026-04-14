@@ -16,69 +16,60 @@ interface VerificationEmailRequest {
 }
 
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const { email, verification_url, first_name }: VerificationEmailRequest = await req.json();
-
     console.log("Sending verification email for:", { email, first_name });
 
-    const displayName = first_name || "Valued User";
+    const displayName = first_name || "there";
 
-    // Send verification email
     const emailResponse = await resend.emails.send({
       from: "Asset Safe <noreply@assetsafe.net>",
       to: [email],
-      subject: "Verify your email to complete your subscription",
+      subject: "Verify your email to complete your account setup",
       html: `
-        <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-          <div style="background: linear-gradient(135deg, #f97316, #ea580c); padding: 40px 20px; text-align: center;">
-            <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 20px;" />
-            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">Almost There!</h1>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8fafc;">
+          <div style="text-align: center; padding: 30px 20px 20px;">
+            <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
           </div>
-          
-          <div style="padding: 40px 20px; background: #ffffff;">
-            <p style="font-size: 18px; margin-bottom: 20px;">Hi ${displayName},</p>
-            
-            <p style="font-size: 16px; margin-bottom: 20px;">
-              Thank you for choosing Asset Safe! You're just one click away from activating your account.
+
+          <div style="background: #ffffff; padding: 30px 25px; margin: 0 20px; border-radius: 8px;">
+            <h2 style="color: #1f2937; margin: 0 0 20px; font-size: 22px;">Almost There!</h2>
+
+            <p style="color: #374151; line-height: 1.6; margin: 0 0 20px;">
+              Hi ${displayName}, thank you for choosing Asset Safe. Please verify your email address to complete your account setup.
             </p>
-            
-            <p style="font-size: 16px; margin-bottom: 30px;">
-              Please verify your email address to complete your subscription setup:
-            </p>
-            
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${verification_url}" 
-                 style="display: inline-block; background: #f97316; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">
-                Verify Email & Continue
+
+            <div style="text-align: center; margin: 0 0 20px;">
+              <a href="${verification_url}" style="background-color: #1e40af; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
+                Verify Email &amp; Continue
               </a>
             </div>
-            
-            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 30px 0;">
-              <h3 style="margin: 0 0 15px 0; color: #333; font-size: 16px;">What happens next?</h3>
-              <ol style="margin: 0; padding-left: 20px;">
-                <li style="margin-bottom: 8px;">Click the verification button above</li>
-                <li style="margin-bottom: 8px;">Complete your payment setup</li>
-                <li style="margin-bottom: 8px;">Start documenting and protecting your valuable assets</li>
+
+            <p style="color: #6b7280; font-size: 13px; line-height: 1.5; margin: 0 0 25px;">
+              If the button doesn't work, copy and paste this link into your browser:<br/>
+              <a href="${verification_url}" style="color: #1e40af; word-break: break-all;">${verification_url}</a>
+            </p>
+
+            <div style="background: #f3f4f6; padding: 16px 20px; border-radius: 6px; margin: 0 0 20px;">
+              <p style="color: #374151; margin: 0 0 8px; font-size: 14px; font-weight: 600;">What happens next?</p>
+              <ol style="color: #6b7280; margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.6;">
+                <li>Click the verification button above</li>
+                <li>Complete your payment setup</li>
+                <li>Start documenting and protecting your valuable assets</li>
               </ol>
             </div>
-            
-            <p style="font-size: 14px; color: #666; margin-top: 30px;">
-              If the button doesn't work, you can copy and paste this link into your browser:<br>
-              <a href="${verification_url}" style="color: #f97316; word-break: break-all;">${verification_url}</a>
-            </p>
-            
-            <p style="font-size: 14px; color: #666; margin-top: 20px;">
-              Questions? We're here to help! Contact us at support@assetsafe.net
+
+            <p style="color: #374151; line-height: 1.6; margin: 0 0 10px; font-size: 14px;">
+              Questions? Contact us at <a href="mailto:support@assetsafe.net" style="color: #1e40af;">support@assetsafe.net</a>
             </p>
           </div>
-          
-          <div style="background: #f8f9fa; padding: 20px; text-align: center; color: #666; font-size: 12px;">
-            <p style="margin: 0;">
+
+          <div style="padding: 20px; text-align: center;">
+            <p style="color: #9ca3af; font-size: 12px; margin: 0;">
               This email was sent to ${email}. If you didn't request this verification, you can safely ignore this email.
             </p>
           </div>
@@ -90,19 +81,13 @@ const handler = async (req: Request): Promise<Response> => {
 
     return new Response(JSON.stringify({ success: true, message: "Verification email sent successfully" }), {
       status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        ...corsHeaders,
-      },
+      headers: { "Content-Type": "application/json", ...corsHeaders },
     });
   } catch (error: any) {
     console.error("Error in send-verification-email function:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
+      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }
 };

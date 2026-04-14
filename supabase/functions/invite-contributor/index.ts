@@ -1,13 +1,6 @@
 /**
- * ╔══════════════════════════════════════════════════════════════════════╗
- * ║  CANONICAL AUTHORIZED-USER INVITATION FLOW — DO NOT REVERT        ║
- * ║                                                                    ║
- * ║  This function uses a custom token-based invite system.            ║
- * ║  DO NOT reintroduce Supabase magic links, generate_link, or OTP.  ║
- * ║  The invite_token lives in the contributors table with no expiry.  ║
- * ║  User lookup uses create-first + listUsers email filter fallback. ║
- * ║  Paired with: complete-contributor-signup, AuthLegacy.tsx          ║
- * ╚══════════════════════════════════════════════════════════════════════╝
+ * invite-contributor — Legacy function, now delegates to send-invite patterns.
+ * Uses the new 2-tier role model: full_access / read_only.
  */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.51.0';
@@ -24,19 +17,13 @@ const inviteSchema = z.object({
   contributor_email: z.string().email().max(255),
   first_name: z.string().trim().min(1).max(100),
   last_name: z.string().trim().min(1).max(100),
-  role: z.enum(['administrator', 'contributor', 'viewer']),
+  role: z.enum(['full_access', 'read_only']),
   redirect_url: z.string().url().optional(),
   resend: z.boolean().optional().default(false),
 });
 
-const escapeHtml = (str: string): string => {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-};
+const escapeHtml = (str: string): string =>
+  str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -69,7 +56,6 @@ serve(async (req: Request) => {
     const body = await req.json();
     const validated = inviteSchema.parse(body);
 
-    // Get caller's profile for the invitation email
     const { data: callerProfile } = await supabaseAdmin
       .from('profiles')
       .select('first_name, last_name')
@@ -80,10 +66,8 @@ serve(async (req: Request) => {
       ? `${callerProfile.first_name || ''} ${callerProfile.last_name || ''}`.trim() || callerUser.email
       : callerUser.email;
 
-    // Generate a secure invite token (no expiry — lives in DB)
     const inviteToken = crypto.randomUUID();
 
-    // 1. Insert contributor record (skip on resend to avoid duplicate constraint)
     if (!validated.resend) {
       const { error: dbError } = await supabaseAdmin
         .from('contributors')
@@ -92,21 +76,20 @@ serve(async (req: Request) => {
           contributor_email: validated.contributor_email,
           first_name: validated.first_name,
           last_name: validated.last_name,
-          role: validated.role,
+          role: validated.role === 'full_access' ? 'contributor' : 'viewer',
           status: 'pending',
           invite_token: inviteToken,
         });
 
       if (dbError) {
         if (dbError.code === '23505') {
-          return new Response(JSON.stringify({ error: 'This email is already invited as a contributor', code: 'DUPLICATE' }), {
+          return new Response(JSON.stringify({ error: 'This email is already invited as an authorized user', code: 'DUPLICATE' }), {
             status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
         throw dbError;
       }
     } else {
-      // On resend, update the existing record with a fresh token
       const { error: updateError } = await supabaseAdmin
         .from('contributors')
         .update({ invite_token: inviteToken })
@@ -120,10 +103,7 @@ serve(async (req: Request) => {
       }
     }
 
-    // 2. Ensure user exists in auth (pre-confirmed, no password)
-    // Create-first approach: try createUser, fallback to listUsers + email filter if exists
     let existingUserId: string | null = null;
-
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email: validated.contributor_email,
       email_confirm: true,
@@ -136,100 +116,89 @@ serve(async (req: Request) => {
 
     if (createError) {
       if (createError.message?.includes('already been registered') || (createError as any).status === 422) {
-        // User exists — find them via listUsers with strict email filter
-        console.log('[INVITE-CONTRIBUTOR] User already exists, looking up:', validated.contributor_email);
         const { data: userList } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
         const found = userList?.users?.find(u => u.email === validated.contributor_email);
         existingUserId = found?.id || null;
-
         if (existingUserId) {
-          // Mark existing user as contributor in metadata
           await supabaseAdmin.auth.admin.updateUserById(existingUserId, {
             email_confirm: true,
-            user_metadata: {
-              ...(found?.user_metadata ?? {}),
-              invited_as_contributor: true,
-            },
+            user_metadata: { ...(found?.user_metadata ?? {}), invited_as_contributor: true },
           });
-          console.log('[INVITE-CONTRIBUTOR] Updated existing user metadata for:', validated.contributor_email);
         }
-      } else {
-        console.error('[INVITE-CONTRIBUTOR] Error creating user:', createError);
-        // Not fatal — user may exist via a different path
       }
     } else if (newUser?.user) {
       existingUserId = newUser.user.id;
-      console.log('[INVITE-CONTRIBUTOR] Created new auth user for:', validated.contributor_email);
     }
 
-    // 3. Build direct invite link — NO Supabase magic link, NO OTP, NO expiry
     const inviteLink = `https://www.getassetsafe.com/auth?mode=contributor&email=${encodeURIComponent(validated.contributor_email)}&token=${inviteToken}`;
-    console.log('[INVITE-CONTRIBUTOR] Using direct token-based invite link (no OTP/expiry)');
-
-    // 4. Send branded invitation email via Resend
-    const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
     const safeInviterName = escapeHtml(inviterName || '');
     const safeContributorName = escapeHtml(`${validated.first_name} ${validated.last_name}`);
-    const safeRole = escapeHtml(validated.role);
+    const roleLabel = validated.role === 'full_access' ? 'Full Access' : 'Read Only';
+    const roleDescription = validated.role === 'full_access'
+      ? 'Can view, add, update, and manage information across the account, including certain settings and authorized users.'
+      : 'Can view shared information but cannot make any changes.';
 
-    const getRoleDescription = (role: string) => {
-      switch (role) {
-        case 'administrator': return 'Full access to all account features, including managing other authorized users';
-        case 'contributor': return 'Can view, upload, and manage files but cannot manage authorized users or account settings';
-        case 'viewer': return 'Read-only access for sharing account overviews. Cannot upload, download, or delete files';
-        default: return 'Access to the account';
-      }
-    };
-
-    const roleDescription = getRoleDescription(validated.role);
+    const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
     await resend.emails.send({
-      from: "AssetSafe <invitations@assetsafe.net>",
+      from: "Asset Safe <noreply@assetsafe.net>",
       to: [validated.contributor_email],
-      subject: `You've been invited to collaborate on ${inviterName}'s AssetSafe account`,
+      subject: `You've been invited to access ${inviterName}'s Asset Safe account`,
       html: `
-        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
-          <div style="background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <div style="text-align: center; margin-bottom: 30px;">
-              <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 20px;" />
-            </div>
-            
-            <h2 style="color: #111827; margin-bottom: 20px;">You've been invited to collaborate!</h2>
-            
-            <p style="color: #374151; line-height: 1.6; margin-bottom: 20px;">
-              Hello ${safeContributorName}! <strong>${safeInviterName}</strong> (${escapeHtml(callerUser.email || '')}) has invited you to access their AssetSafe account as a <strong>${safeRole}</strong>.
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8fafc;">
+          <div style="text-align: center; padding: 30px 20px 20px;">
+            <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
+          </div>
+
+          <div style="background: #ffffff; padding: 30px 25px; margin: 0 20px; border-radius: 8px;">
+            <h2 style="color: #1f2937; margin: 0 0 20px; font-size: 22px;">You've Been Invited</h2>
+
+            <p style="color: #374151; line-height: 1.6; margin: 0 0 20px;">
+              Hello ${safeContributorName}! <strong>${safeInviterName}</strong> has invited you to access their Asset Safe account as an authorized user.
             </p>
-            
-            <div style="background-color: #f3f4f6; padding: 20px; border-radius: 6px; margin: 20px 0;">
-              <h3 style="color: #1f2937; margin: 0 0 10px 0; font-size: 16px;">Your Role: ${safeRole.charAt(0).toUpperCase() + safeRole.slice(1)}</h3>
-              <p style="color: #4b5563; margin: 0; font-size: 14px;">${roleDescription}</p>
+
+            <div style="background: #f3f4f6; padding: 16px 20px; border-radius: 6px; margin: 0 0 20px;">
+              <p style="color: #374151; margin: 0 0 6px; font-size: 14px;"><strong>Your access level:</strong> ${roleLabel}</p>
+              <p style="color: #6b7280; margin: 0; font-size: 14px;">${roleDescription}</p>
             </div>
-            
-            <p style="color: #374151; line-height: 1.6; margin-bottom: 30px;">
-              Click the button below to accept your invitation and set up your account. This link does not expire.
+
+            <p style="color: #374151; line-height: 1.6; margin: 0 0 25px;">
+              This allows you to securely access important records and information when it matters most.
             </p>
-            
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${inviteLink}" 
-                 style="background-color: #1e40af; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">
+
+            <div style="text-align: center; margin: 0 0 20px;">
+              <a href="${inviteLink}" style="background-color: #1e40af; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
                 Accept Invitation
               </a>
             </div>
-            
-            <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 30px;">
-              <p style="color: #6b7280; font-size: 14px; margin: 0;">
-                If you have any questions, please contact us at <a href="mailto:support@assetsafe.net" style="color: #1e40af;">support@assetsafe.net</a>
-              </p>
-              <p style="color: #6b7280; font-size: 12px; margin: 10px 0 0 0;">
-                This invitation was sent to ${escapeHtml(validated.contributor_email)}. If you didn't expect this invitation, you can safely ignore this email.
+
+            <p style="color: #6b7280; font-size: 13px; line-height: 1.5; margin: 0 0 25px;">
+              If the button doesn't work, copy and paste this link into your browser:<br/>
+              <a href="${inviteLink}" style="color: #1e40af; word-break: break-all;">${inviteLink}</a>
+            </p>
+
+            <div style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 12px 16px; border-radius: 4px; margin: 0 0 20px;">
+              <p style="color: #374151; margin: 0; font-size: 14px;">
+                🔒 <strong>For your security,</strong> you'll create your own login — you'll never be given someone else's password.
               </p>
             </div>
+
+            <p style="color: #6b7280; font-size: 13px; margin: 0;">
+              If you don't recognize the person who sent this invitation, you can safely ignore this email.
+            </p>
+          </div>
+
+          <div style="padding: 25px 20px; text-align: center;">
+            <p style="color: #6b7280; font-size: 13px; font-weight: 600; margin: 0 0 6px;">What is Asset Safe?</p>
+            <p style="color: #9ca3af; font-size: 12px; margin: 0; line-height: 1.5;">
+              Asset Safe helps people securely document and protect important information for their home, assets, and family.
+            </p>
           </div>
         </div>
       `,
     });
 
-    console.log('[INVITE-CONTRIBUTOR] Branded email sent successfully');
+    console.log('[INVITE-CONTRIBUTOR] Email sent to:', validated.contributor_email);
 
     return new Response(JSON.stringify({
       success: true,
@@ -242,7 +211,7 @@ serve(async (req: Request) => {
 
   } catch (error: any) {
     const errorId = crypto.randomUUID();
-    console.error('[INVITE-CONTRIBUTOR] Error:', { errorId, message: error.message, stack: error.stack });
+    console.error('[INVITE-CONTRIBUTOR] Error:', { errorId, message: error.message });
 
     let userMessage = 'Failed to send invitation. Please try again.';
     let status = 500;

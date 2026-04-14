@@ -18,116 +18,95 @@ interface WelcomeEmailRequest {
 }
 
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const { email, subscription_tier, trial_end, current_period_end }: WelcomeEmailRequest = await req.json();
-
     console.log('Sending subscription welcome email to:', email);
 
-    // Initialize Supabase client to get user profile
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Get user profile to extract first name
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('first_name')
-      .eq('user_id', '(SELECT id FROM auth.users WHERE email = $1)')
-      .single();
-
-    // Get user from auth.users table
-    const { data: { users }, error: userError } = await supabase.auth.admin.listUsers();
+    const { data: { users } } = await supabase.auth.admin.listUsers();
     const user = users?.find(u => u.email === email);
-    
+
     let firstName = 'there';
     if (user) {
-      // Try to get from profiles table first
       const { data: profileData } = await supabase
         .from('profiles')
         .select('first_name')
         .eq('user_id', user.id)
         .single();
-      
-      firstName = profileData?.first_name || 
-                 user.user_metadata?.first_name || 
-                 'there';
+      firstName = profileData?.first_name || user.user_metadata?.first_name || 'there';
     }
 
-    // Format plan name
     const planNames: { [key: string]: string } = {
-      'basic': 'Basic',
-      'standard': 'Standard', 
-      'premium': 'Premium',
-      'enterprise': 'Enterprise'
+      'basic': 'Basic', 'standard': 'Standard', 'premium': 'Premium', 'enterprise': 'Enterprise',
     };
     const planName = planNames[subscription_tier] || subscription_tier;
-
-    // Calculate next billing date
-    const billingDate = new Date(current_period_end).toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    const billingDate = new Date(current_period_end).toLocaleDateString('en-US', {
+      year: 'numeric', month: 'long', day: 'numeric',
     });
-
-    const billingText = `Your next billing date is ${billingDate}.`;
-
+    const dashboardUrl = 'https://www.getassetsafe.com/welcome';
     const baseUrl = 'https://www.getassetsafe.com';
-    const dashboardUrl = `${baseUrl}/welcome`;
 
     const emailResponse = await resend.emails.send({
-      from: "Asset Safe <support@assetsafe.net>",
+      from: "Asset Safe <noreply@assetsafe.net>",
       to: [email],
       subject: `Welcome to Asset Safe — Your ${planName} Plan is Active!`,
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="text-align: center; margin-bottom: 20px;">
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8fafc;">
+          <div style="text-align: center; padding: 30px 20px 20px;">
             <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
           </div>
-          <h1 style="color: #2563eb; margin-bottom: 20px;">Welcome to Asset Safe!</h1>
-          
-          <p>Hi ${firstName},</p>
-          
-          <p>Your account is now active! You're on the <strong>${planName} Plan</strong>.</p>
-          
-          <p><strong>You'll have access to:</strong></p>
-          <ul style="margin: 15px 0; padding-left: 20px;">
-            <li>Secure cloud storage for your property records</li>
-            <li>Photo &amp; video uploads</li>
-            <li>Verified documentation features</li>
-            <li>Sharing with trusted contacts</li>
-          </ul>
-          
-          <p>${billingText}</p>
-          
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${dashboardUrl}" 
-               style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
-              👉 Go to My Dashboard
-            </a>
+
+          <div style="background: #ffffff; padding: 30px 25px; margin: 0 20px; border-radius: 8px;">
+            <h2 style="color: #1f2937; margin: 0 0 20px; font-size: 22px;">Welcome to Asset Safe!</h2>
+
+            <p style="color: #374151; line-height: 1.6; margin: 0 0 20px;">
+              Hi ${firstName}, your account is now active! You're on the <strong>${planName} Plan</strong>.
+            </p>
+
+            <p style="color: #374151; line-height: 1.6; margin: 0 0 15px; font-weight: 600;">You now have access to:</p>
+            <ul style="color: #374151; line-height: 1.8; padding-left: 20px; margin: 0 0 20px;">
+              <li>Secure cloud storage for your property records</li>
+              <li>Photo &amp; video uploads</li>
+              <li>Verified documentation features</li>
+              <li>Sharing with trusted authorized users</li>
+            </ul>
+
+            <p style="color: #6b7280; font-size: 14px; margin: 0 0 25px;">Your next billing date is <strong>${billingDate}</strong>.</p>
+
+            <div style="text-align: center; margin: 0 0 20px;">
+              <a href="${dashboardUrl}" style="background-color: #1e40af; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
+                Go to My Dashboard
+              </a>
+            </div>
+
+            <p style="color: #6b7280; font-size: 13px; line-height: 1.5; margin: 0 0 25px;">
+              If the button doesn't work, copy and paste this link into your browser:<br/>
+              <a href="${dashboardUrl}" style="color: #1e40af; word-break: break-all;">${dashboardUrl}</a>
+            </p>
+
+            <p style="color: #374151; line-height: 1.6; margin: 0 0 10px; font-weight: 600;">Get started:</p>
+            <ul style="color: #374151; line-height: 1.8; padding-left: 20px; margin: 0 0 20px;">
+              <li><a href="${baseUrl}/video-help" style="color: #1e40af;">Video Tutorials</a></li>
+              <li><a href="${baseUrl}/resources" style="color: #1e40af;">Resources &amp; Security</a></li>
+              <li><a href="${baseUrl}/qa" style="color: #1e40af;">Q&amp;A</a></li>
+            </ul>
+
+            <p style="color: #374151; margin: 20px 0 0;">– The Asset Safe Team</p>
           </div>
-          
-          <h3 style="color: #2563eb; margin-top: 30px;">Get Started with These Resources:</h3>
-          <ul style="margin: 15px 0; padding-left: 20px;">
-            <li><a href="${baseUrl}/video-help" style="color: #2563eb; text-decoration: underline;">Video Tutorials</a> - Step-by-step guides</li>
-            <li><a href="${baseUrl}/resources" style="color: #2563eb; text-decoration: underline;">Resources &amp; Security</a> - Best practices</li>
-            <li><a href="${baseUrl}/awareness-guide" style="color: #2563eb; text-decoration: underline;">Awareness Guide</a> - Important tips</li>
-            <li><a href="${baseUrl}/qa" style="color: #2563eb; text-decoration: underline;">Q&amp;A</a> - Common questions answered</li>
-          </ul>
-          
-          <p style="margin-top: 30px;">We're excited to protect what matters most to you.</p>
-          
-          <p style="margin-bottom: 0;">– The Asset Safe Team</p>
-          
-          <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
-          <p style="font-size: 12px; color: #6b7280; text-align: center;">
-            If you have any questions, reply to this email or visit our support center.
-          </p>
+
+          <div style="padding: 20px; text-align: center;">
+            <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+              If you have any questions, contact us at <a href="mailto:support@assetsafe.net" style="color: #1e40af;">support@assetsafe.net</a>.
+            </p>
+          </div>
         </div>
       `,
     });
@@ -136,19 +115,13 @@ const handler = async (req: Request): Promise<Response> => {
 
     return new Response(JSON.stringify(emailResponse), {
       status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        ...corsHeaders,
-      },
+      headers: { "Content-Type": "application/json", ...corsHeaders },
     });
   } catch (error: any) {
     console.error("Error in send-subscription-welcome-email function:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
+      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }
 };

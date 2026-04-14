@@ -1,6 +1,5 @@
 /**
  * send-invite — Creates an invite for an authorized user and sends email.
- * Replaces: invite-contributor
  */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.51.0';
@@ -18,6 +17,9 @@ const inviteSchema = z.object({
   role: z.enum(['full_access', 'read_only']),
 });
 
+const escapeHtml = (str: string): string =>
+  str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -30,7 +32,6 @@ serve(async (req: Request) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    // Authenticate the caller
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) throw new Error('No authorization header');
 
@@ -44,11 +45,9 @@ serve(async (req: Request) => {
     );
     if (authError || !user) throw new Error('Unauthorized');
 
-    // Validate input
     const body = await req.json();
     const validated = inviteSchema.parse(body);
 
-    // Get the caller's account (they must be owner)
     const { data: account, error: accErr } = await supabaseAdmin
       .from('accounts')
       .select('id')
@@ -61,17 +60,6 @@ serve(async (req: Request) => {
       });
     }
 
-    // Check for existing active membership
-    const { data: existingMember } = await supabaseAdmin
-      .from('account_memberships')
-      .select('id')
-      .eq('account_id', account.id)
-      .eq('status', 'active')
-      .in('user_id', [
-        // Find user by email
-      ]);
-
-    // Check for existing pending invite
     const { data: existingInvite } = await supabaseAdmin
       .from('invites')
       .select('id')
@@ -96,7 +84,6 @@ serve(async (req: Request) => {
     const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(rawToken));
     const tokenHash = Array.from(new Uint8Array(hashBuffer), b => b.toString(16).padStart(2, '0')).join('');
 
-    // Insert invite record
     const { error: insertErr } = await supabaseAdmin
       .from('invites')
       .insert({
@@ -123,7 +110,11 @@ serve(async (req: Request) => {
       ? `${ownerProfile.first_name || ''} ${ownerProfile.last_name || ''}`.trim()
       : 'An Asset Safe user';
 
+    const safeOwnerName = escapeHtml(ownerName);
     const roleLabel = validated.role === 'full_access' ? 'Full Access' : 'Read Only';
+    const roleDescription = validated.role === 'full_access'
+      ? 'You\'ll be able to view, add, update, and manage information across the account.'
+      : 'You\'ll be able to view important information, but not make changes.';
     const inviteUrl = `https://www.getassetsafe.com/invite?token=${rawToken}`;
 
     // Send email via Resend
@@ -135,17 +126,59 @@ serve(async (req: Request) => {
         to: [validated.email],
         subject: "You've been invited to access an Asset Safe account",
         html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h2 style="color: #1a365d;">You've Been Invited</h2>
-            <p>${ownerName} has invited you to access their Asset Safe account as an authorized user.</p>
-            <p><strong>Your access level:</strong> ${roleLabel}</p>
-            <p>You'll create your own secure login and be granted access based on the level selected for you.</p>
-            <div style="margin: 30px 0;">
-              <a href="${inviteUrl}" style="background-color: #2563eb; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">
-                Accept Invitation
-              </a>
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8fafc;">
+            <div style="text-align: center; padding: 30px 20px 20px;">
+              <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
             </div>
-            <p style="color: #6b7280; font-size: 14px;">This invitation expires in 7 days.</p>
+
+            <div style="background: #ffffff; padding: 30px 25px; margin: 0 20px; border-radius: 8px;">
+              <h2 style="color: #1f2937; margin: 0 0 20px; font-size: 22px;">You've Been Invited</h2>
+
+              <p style="color: #374151; line-height: 1.6; margin: 0 0 20px;">
+                <strong>${safeOwnerName}</strong> has invited you to access their Asset Safe account as an authorized user.
+              </p>
+
+              <div style="background: #f3f4f6; padding: 16px 20px; border-radius: 6px; margin: 0 0 20px;">
+                <p style="color: #374151; margin: 0 0 6px; font-size: 14px;"><strong>Your access level:</strong> ${roleLabel}</p>
+                <p style="color: #6b7280; margin: 0; font-size: 14px;">${roleDescription}</p>
+              </div>
+
+              <p style="color: #374151; line-height: 1.6; margin: 0 0 25px;">
+                This allows you to securely access important records and information when it matters most.
+              </p>
+
+              <div style="text-align: center; margin: 0 0 20px;">
+                <a href="${inviteUrl}" style="background-color: #1e40af; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
+                  Accept Invitation
+                </a>
+              </div>
+
+              <p style="color: #6b7280; font-size: 13px; line-height: 1.5; margin: 0 0 25px;">
+                If the button doesn't work, copy and paste this link into your browser:<br/>
+                <a href="${inviteUrl}" style="color: #1e40af; word-break: break-all;">${inviteUrl}</a>
+              </p>
+
+              <div style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 12px 16px; border-radius: 4px; margin: 0 0 20px;">
+                <p style="color: #374151; margin: 0; font-size: 14px;">
+                  🔒 <strong>For your security,</strong> you'll create your own login — you'll never be given someone else's password.
+                </p>
+              </div>
+
+              <p style="color: #6b7280; font-size: 13px; margin: 0 0 10px;">
+                This invitation will expire in 7 days for security purposes.
+              </p>
+
+              <p style="color: #6b7280; font-size: 13px; margin: 0;">
+                If you don't recognize the person who sent this invitation, you can safely ignore this email.
+              </p>
+            </div>
+
+            <div style="padding: 25px 20px; text-align: center;">
+              <p style="color: #6b7280; font-size: 13px; font-weight: 600; margin: 0 0 6px;">What is Asset Safe?</p>
+              <p style="color: #9ca3af; font-size: 12px; margin: 0; line-height: 1.5;">
+                Asset Safe helps people securely document and protect important information for their home, assets, and family.
+              </p>
+            </div>
           </div>
         `,
       });

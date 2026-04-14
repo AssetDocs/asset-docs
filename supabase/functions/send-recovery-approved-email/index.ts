@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@2.0.0";
+import { Resend } from "https://esm.sh/resend@2.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -24,89 +24,70 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { delegateEmail, delegateName, ownerName, legacyLockerId, delegateUserId }: RecoveryApprovedEmailData = await req.json();
 
-    console.log("Sending recovery approved email to:", delegateEmail);
-
     const acknowledgeUrl = legacyLockerId && delegateUserId
       ? `https://www.getassetsafe.com/acknowledge-access?lockerId=${legacyLockerId}&delegateId=${delegateUserId}`
       : `https://www.getassetsafe.com/account`;
 
     const emailResponse = await resend.emails.send({
-      from: "Asset Safe <support@assetsafe.net>",
+      from: "Asset Safe <noreply@assetsafe.net>",
       to: [delegateEmail],
-      subject: "Your Access Request Has Been Approved",
+      subject: "Your Access Request Has Been Approved — Asset Safe",
       html: `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <style>
-              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-              .header { text-align: center; margin-bottom: 30px; }
-              .logo { max-width: 150px; height: auto; }
-              .content { background: #f9f9f9; padding: 20px; border-radius: 8px; }
-              .footer { margin-top: 30px; font-size: 12px; color: #666; text-align: center; }
-              .button { display: inline-block; padding: 12px 24px; background: #0ea5e9; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
-              .success { background: #d1fae5; border-left: 4px solid #10b981; padding: 12px; margin: 15px 0; }
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <div class="header">
-                <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" class="logo" />
-              </div>
-              
-              <div class="content">
-                <h2>Your Access Request Has Been Approved</h2>
-                
-                <p>Hello ${delegateName},</p>
-                
-                <div class="success">
-                  <strong>✓ Access Granted:</strong> Your recovery request for ${ownerName}'s encrypted Secure Vault (Password Catalog & Legacy Locker) has been approved.
-                </div>
-                
-                <p>You may now unlock and view the contents of both the Password Catalog and Legacy Locker.</p>
-                
-                <p><strong>What you can do:</strong></p>
-                <ul>
-                  <li>Access all encrypted passwords and financial accounts</li>
-                  <li>View Legacy Locker documents, photos, and voice notes</li>
-                  <li>Review important contacts and instructions</li>
-                </ul>
-                
-                <center>
-                  <a href="${acknowledgeUrl}" class="button">Activate Your Access Now</a>
-                </center>
-                
-                <p>Clicking the button above will take you to Asset Safe where you can acknowledge your responsibilities and gain immediate access to the vault.</p>
-                
-                <p><strong>Security reminder:</strong> This information is highly sensitive. Please handle it with the appropriate care and discretion.</p>
-              </div>
-              
-              <div class="footer">
-                <p>This is an automated notification from Asset Safe.</p>
-                <p>If you have questions, contact support@assetsafe.net</p>
-              </div>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8fafc;">
+          <div style="text-align: center; padding: 30px 20px 20px;">
+            <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
+          </div>
+
+          <div style="background: #ffffff; padding: 30px 25px; margin: 0 20px; border-radius: 8px;">
+            <h2 style="color: #1f2937; margin: 0 0 20px; font-size: 22px;">Your Access Request Has Been Approved</h2>
+
+            <p style="color: #374151; line-height: 1.6; margin: 0 0 20px;">Hello ${delegateName},</p>
+
+            <div style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 12px 16px; border-radius: 4px; margin: 0 0 20px;">
+              <p style="color: #374151; margin: 0; font-size: 14px;">
+                <strong>✓ Access Granted:</strong> Your recovery request for ${ownerName}'s encrypted Secure Vault has been approved.
+              </p>
             </div>
-          </body>
-        </html>
+
+            <p style="color: #374151; line-height: 1.6; margin: 0 0 15px; font-weight: 600;">What you can do:</p>
+            <ul style="color: #374151; line-height: 1.8; padding-left: 20px; margin: 0 0 25px;">
+              <li>Access encrypted passwords and financial accounts</li>
+              <li>View Legacy Locker documents, photos, and voice notes</li>
+              <li>Review important contacts and instructions</li>
+            </ul>
+
+            <div style="text-align: center; margin: 0 0 20px;">
+              <a href="${acknowledgeUrl}" style="background-color: #1e40af; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
+                Activate Your Access
+              </a>
+            </div>
+
+            <p style="color: #6b7280; font-size: 13px; line-height: 1.5; margin: 0 0 20px;">
+              If the button doesn't work, copy and paste this link into your browser:<br/>
+              <a href="${acknowledgeUrl}" style="color: #1e40af; word-break: break-all;">${acknowledgeUrl}</a>
+            </p>
+
+            <div style="background: #fef2f2; border-left: 4px solid #dc2626; padding: 12px 16px; border-radius: 4px; margin: 0 0 20px;">
+              <p style="color: #374151; margin: 0; font-size: 14px;">
+                🔒 <strong>Security reminder:</strong> This information is highly sensitive. Please handle it with appropriate care and discretion.
+              </p>
+            </div>
+          </div>
+
+          <div style="padding: 20px; text-align: center;">
+            <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+              Questions? Contact <a href="mailto:support@assetsafe.net" style="color: #1e40af;">support@assetsafe.net</a>
+            </p>
+          </div>
+        </div>
       `,
     });
 
-    console.log("Recovery approved email sent successfully:", emailResponse);
-
-    return new Response(JSON.stringify(emailResponse), {
-      status: 200,
-      headers: { "Content-Type": "application/json", ...corsHeaders },
-    });
+    console.log("Recovery approved email sent:", emailResponse);
+    return new Response(JSON.stringify(emailResponse), { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } });
   } catch (error: any) {
     console.error("Error sending recovery approved email:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
+    return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } });
   }
 };
 
