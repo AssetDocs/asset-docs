@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@2.0.0";
+import { Resend } from "https://esm.sh/resend@2.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -21,69 +21,57 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const { email, name, deletionDate }: DeletionConfirmationRequest = await req.json();
-
     if (!email || !name) {
-      return new Response(
-        JSON.stringify({ error: "Email and name are required" }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
+      return new Response(JSON.stringify({ error: "Email and name are required" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
     }
 
-    console.log(`Sending account deletion confirmation to: ${email}`);
+    const formattedDate = new Date(deletionDate || Date.now()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
     const emailResponse = await resend.emails.send({
-      from: "Asset Safe <support@assetsafe.net>",
+      from: "Asset Safe <noreply@assetsafe.net>",
       to: [email],
-      subject: "Account Deletion Confirmation - Asset Safe",
+      subject: "Account Deletion Confirmed — Asset Safe",
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="text-align: center; margin-bottom: 30px;">
-            <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 20px;" />
-            <h1 style="color: #1f2937; margin-bottom: 10px;">Account Deletion Confirmed</h1>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8fafc;">
+          <div style="text-align: center; padding: 30px 20px 20px;">
+            <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
           </div>
-          
-          <div style="background: #f8fafc; border-radius: 8px; padding: 30px; margin-bottom: 30px;">
-            <p style="font-size: 18px; color: #374151; margin-bottom: 20px;">
-              Hi ${name},
+
+          <div style="background: #ffffff; padding: 30px 25px; margin: 0 20px; border-radius: 8px;">
+            <h2 style="color: #1f2937; margin: 0 0 20px; font-size: 22px;">Account Deletion Confirmed</h2>
+
+            <p style="color: #374151; line-height: 1.6; margin: 0 0 20px;">Hi ${name},</p>
+
+            <p style="color: #374151; line-height: 1.6; margin: 0 0 20px;">
+              Your Asset Safe account has been successfully deleted as of ${formattedDate}.
             </p>
-            <p style="color: #374151; line-height: 1.6;">
-              Your Asset Safe account has been successfully deleted as of ${new Date(deletionDate || Date.now()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}.
-            </p>
-          </div>
-          
-          <div style="margin-bottom: 30px;">
-            <h3 style="color: #1f2937;">What's been deleted:</h3>
-            <ul style="color: #374151; line-height: 1.6;">
-              <li>All your uploaded photos, videos, and documents</li>
-              <li>Your property profiles and asset inventory</li>
+
+            <p style="color: #374151; line-height: 1.6; margin: 0 0 10px; font-weight: 600;">What's been deleted:</p>
+            <ul style="color: #374151; line-height: 1.8; padding-left: 20px; margin: 0 0 20px;">
+              <li>All uploaded photos, videos, and documents</li>
+              <li>Property profiles and asset inventory</li>
               <li>All personal information and account data</li>
-              <li>Your subscription and billing history</li>
+              <li>Subscription and billing history</li>
             </ul>
-          </div>
-          
-          <div style="background: #fef2f2; border-left: 4px solid #dc2626; padding: 20px; margin-bottom: 30px; border-radius: 4px;">
-            <p style="color: #374151; margin: 0; line-height: 1.6;">
-              <strong>Important:</strong> This action is permanent and cannot be undone. All your data has been securely removed from our systems.
+
+            <div style="background: #fef2f2; border-left: 4px solid #dc2626; padding: 12px 16px; border-radius: 4px; margin: 0 0 20px;">
+              <p style="color: #374151; margin: 0; font-size: 14px;">
+                <strong>Important:</strong> This action is permanent and cannot be undone. All your data has been securely removed from our systems.
+              </p>
+            </div>
+
+            <p style="color: #374151; line-height: 1.6; margin: 0 0 10px;">
+              If you'd like to return in the future, you can always create a new account at <a href="https://www.getassetsafe.com/auth" style="color: #1e40af;">www.getassetsafe.com</a>.
+            </p>
+
+            <p style="color: #374151; font-size: 14px; margin: 20px 0 0;">
+              Questions? Contact us at <a href="mailto:support@assetsafe.net" style="color: #1e40af;">support@assetsafe.net</a>
             </p>
           </div>
-          
-          <div style="background: #f8fafc; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
-            <p style="color: #374151; margin: 0 0 15px 0; line-height: 1.6;">
-              We're sorry to see you go. If you deleted your account by mistake or would like to return in the future, you can always create a new account at:
-            </p>
-            <p style="margin: 0; text-align: center;">
-              <a href="https://www.getassetsafe.com/auth" style="color: #2563eb; font-weight: bold;">www.getassetsafe.com</a>
-            </p>
-          </div>
-          
-          <div style="text-align: center; margin-top: 30px; padding-top: 30px; border-top: 1px solid #e5e7eb;">
-            <p style="color: #6b7280; font-size: 14px;">
-              If you have any questions or feedback, please contact us at <a href="mailto:support@assetsafe.net" style="color: #2563eb;">support@assetsafe.net</a>
-            </p>
-            <p style="color: #6b7280; font-size: 12px; margin-top: 15px;">
+
+          <div style="padding: 20px; text-align: center;">
+            <p style="color: #9ca3af; font-size: 12px; margin: 0;">
               Thank you for using Asset Safe. We hope to see you again in the future.
             </p>
           </div>
@@ -91,34 +79,14 @@ const handler = async (req: Request): Promise<Response> => {
       `,
     });
 
-    console.log("Account deletion confirmation email sent successfully:", emailResponse);
+    console.log("Deletion confirmation email sent:", emailResponse);
 
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: "Deletion confirmation email sent successfully",
-        emailId: emailResponse.data?.id 
-      }),
-      {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          ...corsHeaders,
-        },
-      }
-    );
+    return new Response(JSON.stringify({ success: true, emailId: emailResponse.data?.id }),
+      { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } });
   } catch (error: any) {
-    console.error("Error sending deletion confirmation email:", error);
-    return new Response(
-      JSON.stringify({ 
-        success: false,
-        error: error.message
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
+    console.error("Error sending deletion confirmation:", error);
+    return new Response(JSON.stringify({ success: false, error: error.message }),
+      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } });
   }
 };
 
