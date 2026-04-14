@@ -24,174 +24,98 @@ const handler = async (req: Request): Promise<Response> => {
   const resendKey = Deno.env.get("RESEND_API_KEY");
 
   if (!supabaseUrl || !serviceKey || !resendKey) {
-    console.error("Missing environment variables");
-    return new Response(
-      JSON.stringify({ error: "Missing required environment variables" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "Missing required environment variables" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
   try {
     const { email, customerName, subscriptionTier, userId }: PaymentReminderRequest = await req.json();
 
-    // Check user's billing notification preferences
     const supabase = createClient(supabaseUrl, serviceKey);
-    
     let shouldSend = true;
-    
+
     if (userId) {
-      const { data: preferences, error: prefError } = await supabase
+      const { data: preferences } = await supabase
         .from("notification_preferences")
         .select("email_notifications, billing_notifications")
         .eq("user_id", userId)
         .single();
-      
-      if (prefError) {
-        console.log("Could not fetch notification preferences, defaulting to send:", prefError.message);
-      } else if (preferences && (preferences.email_notifications === false || preferences.billing_notifications === false)) {
-        console.log(`User ${userId} has email or billing notifications disabled, skipping email`);
+      if (preferences && (preferences.email_notifications === false || preferences.billing_notifications === false)) {
         shouldSend = false;
-      }
-    } else {
-      // Try to find user by email if userId not provided
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("user_id")
-        .eq("user_id", (
-          await supabase.auth.admin.listUsers()
-        ).data.users.find(u => u.email === email)?.id)
-        .single();
-      
-      if (profile?.user_id) {
-        const { data: preferences } = await supabase
-          .from("notification_preferences")
-          .select("email_notifications, billing_notifications")
-          .eq("user_id", profile.user_id)
-          .single();
-        
-        if (preferences?.email_notifications === false || preferences?.billing_notifications === false) {
-          console.log(`User with email ${email} has email or billing notifications disabled, skipping email`);
-          shouldSend = false;
-        }
       }
     }
 
     if (!shouldSend) {
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          skipped: true,
-          reason: "User has disabled billing notifications"
-        }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ success: true, skipped: true, reason: "User has disabled billing notifications" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const resend = new Resend(resendKey);
+    const accountUrl = "https://www.getassetsafe.com/account";
 
     const emailResponse = await resend.emails.send({
-      from: "AssetSafe <noreply@assetsafe.net>",
+      from: "Asset Safe <noreply@assetsafe.net>",
       to: [email],
-      subject: "Action Required: Update Your Payment Method",
+      subject: "Action Required: Update Your Payment Method — Asset Safe",
       html: `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Update Your Payment Method</title>
-            <style>
-              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
-              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-              .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0; }
-              .content { background: #ffffff; padding: 30px 20px; border: 1px solid #e0e0e0; border-top: none; }
-              .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #666; border-radius: 0 0 8px 8px; }
-              .button { display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }
-              .button:hover { background: #5a67d8; }
-              .warning-box { background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; padding: 15px; margin: 20px 0; }
-              .highlight { background: #e8f4fd; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #667eea; }
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <div class="header">
-                <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px; margin-bottom: 15px;" />
-                <h1 style="margin: 0; font-size: 28px;">Payment Method Update Required</h1>
-                <p style="margin: 10px 0 0 0; opacity: 0.9;">AssetSafe</p>
-              </div>
-              
-              <div class="content">
-                <p style="font-size: 18px; margin-bottom: 20px;">Hi ${customerName},</p>
-                
-                <div class="warning-box">
-                  <strong>⚠️ Action Required:</strong> We've detected an issue with your payment method for your ${subscriptionTier} subscription.
-                </div>
-                
-                <p>We were unable to process your recent payment due to one of the following reasons:</p>
-                <ul>
-                  <li>Your card has expired</li>
-                  <li>Your card was declined</li>
-                  <li>Insufficient funds</li>
-                  <li>Your payment method needs to be updated</li>
-                </ul>
-                
-                <div class="highlight">
-                  <strong>Don't worry!</strong> Your account is still active, but to ensure uninterrupted service, please update your payment method as soon as possible.
-                </div>
-                
-                <p>To update your payment information:</p>
-                <ol>
-                  <li>Log in to your AssetSafe account</li>
-                  <li>Go to Account Settings → Billing</li>
-                  <li>Update your payment method</li>
-                  <li>Or use the quick link below</li>
-                </ol>
-                
-                <div style="text-align: center; margin: 30px 0;">
-                  <a href="https://www.getassetsafe.com/account" class="button">Update Payment Method</a>
-                </div>
-                
-                <p><strong>Need help?</strong> Our support team is here to assist you:</p>
-                <ul>
-                  <li>Email: <a href="mailto:support@assetsafe.net">support@assetsafe.net</a></li>
-                  <li>Visit: <a href="https://www.getassetsafe.com/contact">Contact Support</a></li>
-                </ul>
-                
-                <p style="margin-top: 30px;">Thank you for being a valued AssetSafe customer!</p>
-                
-                <p style="margin-top: 20px;">
-                  Best regards,<br>
-                  <strong>The AssetSafe Team</strong>
-                </p>
-              </div>
-              
-              <div class="footer">
-                <p>AssetSafe - Professional Asset Documentation Platform</p>
-                <p>This is an automated message. Please do not reply to this email.</p>
-                <p>If you no longer wish to receive these emails, you can <a href="https://www.getassetsafe.com/account">manage your preferences</a> in your account settings.</p>
-              </div>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8fafc;">
+          <div style="text-align: center; padding: 30px 20px 20px;">
+            <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
+          </div>
+
+          <div style="background: #ffffff; padding: 30px 25px; margin: 0 20px; border-radius: 8px;">
+            <h2 style="color: #1f2937; margin: 0 0 20px; font-size: 22px;">Payment Method Update Required</h2>
+
+            <p style="color: #374151; line-height: 1.6; margin: 0 0 20px;">Hi ${customerName},</p>
+
+            <div style="background: #fef3cd; border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: 4px; margin: 0 0 20px;">
+              <p style="color: #92400e; margin: 0; font-size: 14px;">
+                <strong>⚠️ Action Required:</strong> We were unable to process your recent payment for your ${subscriptionTier} subscription.
+              </p>
             </div>
-          </body>
-        </html>
+
+            <p style="color: #374151; line-height: 1.6; margin: 0 0 15px;">This may be because your card expired, was declined, or needs to be updated.</p>
+
+            <div style="background: #f0f9ff; border-left: 4px solid #1e40af; padding: 12px 16px; border-radius: 4px; margin: 0 0 20px;">
+              <p style="color: #1e3a8a; margin: 0; font-size: 14px;">
+                <strong>Your account is still active</strong> — update your payment method soon to avoid any interruption.
+              </p>
+            </div>
+
+            <div style="text-align: center; margin: 0 0 20px;">
+              <a href="${accountUrl}" style="background-color: #1e40af; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
+                Update Payment Method
+              </a>
+            </div>
+
+            <p style="color: #6b7280; font-size: 13px; line-height: 1.5; margin: 0 0 20px;">
+              If the button doesn't work, copy and paste this link into your browser:<br/>
+              <a href="${accountUrl}" style="color: #1e40af; word-break: break-all;">${accountUrl}</a>
+            </p>
+
+            <p style="color: #374151; line-height: 1.6; margin: 0; font-size: 14px;">
+              Questions? Contact us at <a href="mailto:support@assetsafe.net" style="color: #1e40af;">support@assetsafe.net</a>
+            </p>
+          </div>
+
+          <div style="padding: 20px; text-align: center;">
+            <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+              You can <a href="${accountUrl}" style="color: #1e40af;">manage your notification preferences</a> in your account settings.
+            </p>
+          </div>
+        </div>
       `,
     });
 
-    console.log("Payment reminder email sent successfully:", emailResponse);
+    console.log("Payment reminder email sent:", emailResponse);
 
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        messageId: emailResponse.data?.id 
-      }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ success: true, messageId: emailResponse.data?.id }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   } catch (error: any) {
-    console.error("Error in send-payment-reminder function:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    console.error("Error in send-payment-reminder:", error);
+    return new Response(JSON.stringify({ error: error.message }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 };
 

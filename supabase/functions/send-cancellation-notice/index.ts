@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@2.0.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { Resend } from "https://esm.sh/resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.51.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -21,7 +21,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    console.log("[SEND-CANCELLATION-NOTICE] Starting function");
+    console.log("[SEND-CANCELLATION-NOTICE] Starting");
 
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -30,127 +30,116 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
     const { owner_user_id, owner_name, billing_end_date }: CancellationNoticeRequest = await req.json();
+    if (!owner_user_id || !billing_end_date) throw new Error("Missing required parameters");
 
-    if (!owner_user_id || !billing_end_date) {
-      throw new Error("Missing required parameters: owner_user_id and billing_end_date");
+    // Get the owner's account
+    const { data: account } = await supabaseClient
+      .from('accounts')
+      .select('id')
+      .eq('owner_user_id', owner_user_id)
+      .single();
+
+    if (!account) {
+      console.log("[SEND-CANCELLATION-NOTICE] No account found for owner");
+      return new Response(JSON.stringify({ success: true, message: "No account found" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    console.log("[SEND-CANCELLATION-NOTICE] Fetching contributors for owner:", owner_user_id);
+    // Fetch active memberships (non-owner) for this account
+    const { data: memberships, error: membershipsError } = await supabaseClient
+      .from('account_memberships')
+      .select('user_id, role')
+      .eq('account_id', account.id)
+      .eq('status', 'active')
+      .neq('role', 'owner');
 
-    // Fetch all contributors for this owner
-    const { data: contributors, error: contributorsError } = await supabaseClient
-      .from('contributors')
-      .select('contributor_email, first_name, last_name, role')
-      .eq('account_owner_id', owner_user_id)
-      .eq('status', 'accepted');
-
-    if (contributorsError) {
-      throw new Error(`Error fetching contributors: ${contributorsError.message}`);
+    if (membershipsError || !memberships || memberships.length === 0) {
+      console.log("[SEND-CANCELLATION-NOTICE] No authorized users to notify");
+      return new Response(JSON.stringify({ success: true, message: "No authorized users to notify" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    if (!contributors || contributors.length === 0) {
-      console.log("[SEND-CANCELLATION-NOTICE] No contributors found for this owner");
-      return new Response(
-        JSON.stringify({ success: true, message: "No contributors to notify" }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    console.log(`[SEND-CANCELLATION-NOTICE] Found ${contributors.length} contributors to notify`);
-
-    // Format the billing end date
     const endDate = new Date(billing_end_date);
-    const formattedEndDate = endDate.toLocaleDateString('en-US', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    const formattedEndDate = endDate.toLocaleDateString('en-US', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
     });
 
     const emailsSent = [];
     const emailsFailed = [];
 
-    for (const contributor of contributors) {
-      const contributorName = `${contributor.first_name || ''} ${contributor.last_name || ''}`.trim() || 'Contributor';
-      const roleDisplay = contributor.role.charAt(0).toUpperCase() + contributor.role.slice(1);
-
+    for (const membership of memberships) {
       try {
-        const emailResponse = await resend.emails.send({
-          from: "Asset Safe <no-reply@assetsafe.net>",
-          to: [contributor.contributor_email],
-          subject: `Important: Account Subscription Cancellation Notice`,
+        // Get user email and profile
+        const { data: authUser } = await supabaseClient.auth.admin.getUserById(membership.user_id);
+        if (!authUser?.user?.email) continue;
+
+        const { data: profile } = await supabaseClient
+          .from('profiles')
+          .select('first_name, last_name')
+          .eq('user_id', membership.user_id)
+          .single();
+
+        const memberName = profile
+          ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'there'
+          : 'there';
+        const roleLabel = membership.role === 'full_access' ? 'Full Access' : 'Read Only';
+
+        await resend.emails.send({
+          from: "Asset Safe <noreply@assetsafe.net>",
+          to: [authUser.user.email],
+          subject: "Important: Account Subscription Cancellation Notice — Asset Safe",
           html: `
-            <!DOCTYPE html>
-            <html>
-            <head>
-              <meta charset="utf-8">
-              <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            </head>
-            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-              <div style="text-align: center; margin-bottom: 30px;">
-                <img src="https://leotcbfpqiekgkgumecn.supabase.co/storage/v1/object/public/photos/email-assets/asset-safe-logo.jpg" alt="Asset Safe" style="height: 60px;" />
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8fafc;">
+              <div style="text-align: center; padding: 30px 20px 20px;">
+                <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
               </div>
-              
-              <h1 style="color: #1a365d; margin-bottom: 20px;">Subscription Cancellation Notice</h1>
-              
-              <p>Hello ${contributorName},</p>
-              
-              <p>We are writing to inform you that the Asset Safe account you have ${roleDisplay} access to has been scheduled for cancellation.</p>
-              
-              <div style="background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 20px; margin: 25px 0;">
-                <h3 style="color: #856404; margin-top: 0;">⚠️ Important Information</h3>
-                <p style="margin-bottom: 5px;"><strong>Account Owner:</strong> ${owner_name}</p>
-                <p style="margin-bottom: 5px;"><strong>Your Access Level:</strong> ${roleDisplay}</p>
-                <p style="margin-bottom: 0;"><strong>Access Available Until:</strong> ${formattedEndDate}</p>
+
+              <div style="background: #ffffff; padding: 30px 25px; margin: 0 20px; border-radius: 8px;">
+                <h2 style="color: #1f2937; margin: 0 0 20px; font-size: 22px;">Subscription Cancellation Notice</h2>
+
+                <p style="color: #374151; line-height: 1.6; margin: 0 0 20px;">Hi ${memberName},</p>
+
+                <p style="color: #374151; line-height: 1.6; margin: 0 0 20px;">
+                  The Asset Safe account you have access to has been scheduled for cancellation by its owner.
+                </p>
+
+                <div style="background: #fef3cd; border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: 4px; margin: 0 0 20px;">
+                  <p style="color: #374151; margin: 0 0 6px; font-size: 14px;"><strong>Account Owner:</strong> ${owner_name}</p>
+                  <p style="color: #374151; margin: 0 0 6px; font-size: 14px;"><strong>Your Access Level:</strong> ${roleLabel}</p>
+                  <p style="color: #374151; margin: 0; font-size: 14px;"><strong>Access Available Until:</strong> ${formattedEndDate}</p>
+                </div>
+
+                <p style="color: #374151; line-height: 1.6; margin: 0 0 15px; font-weight: 600;">What you should do:</p>
+                <ul style="color: #374151; line-height: 1.8; padding-left: 20px; margin: 0 0 20px;">
+                  <li>Download or export any records you may need</li>
+                  <li>Save any important information</li>
+                  <li>Contact the account owner if you have questions</li>
+                </ul>
+
+                <p style="color: #374151; line-height: 1.6; margin: 0; font-size: 14px;">
+                  If you believe this was done in error, please contact the account owner directly or reach us at <a href="mailto:support@assetsafe.net" style="color: #1e40af;">support@assetsafe.net</a>.
+                </p>
               </div>
-              
-              <p>You will continue to have access to the account until <strong>${formattedEndDate}</strong>. After this date, your authorized user access will be deactivated and you will no longer be able to view or manage the account's data.</p>
-              
-              <h3 style="color: #1a365d;">What You Should Do</h3>
-              <ul>
-                <li>Download or export any personal records you may need</li>
-                <li>Ensure you have saved any important information</li>
-                <li>Contact the account owner if you have questions about this cancellation</li>
-              </ul>
-              
-              <p style="margin-top: 30px;">If you believe this was done in error, please contact the account owner directly.</p>
-              
-              <p>Thank you for using Asset Safe.</p>
-              
-              <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
-              
-              <p style="font-size: 12px; color: #666;">
-                This is an automated notification from Asset Safe. If you have any questions, please contact us at 
-                <a href="mailto:support@assetsafe.net" style="color: #0066cc;">support@assetsafe.net</a>
-              </p>
-            </body>
-            </html>
+
+              <div style="padding: 20px; text-align: center;">
+                <p style="color: #9ca3af; font-size: 12px; margin: 0;">This is an automated notification from Asset Safe.</p>
+              </div>
+            </div>
           `,
         });
 
-        console.log(`[SEND-CANCELLATION-NOTICE] Email sent to ${contributor.contributor_email}:`, emailResponse);
-        emailsSent.push(contributor.contributor_email);
+        emailsSent.push(authUser.user.email);
       } catch (emailError: any) {
-        console.error(`[SEND-CANCELLATION-NOTICE] Failed to send email to ${contributor.contributor_email}:`, emailError);
-        emailsFailed.push({ email: contributor.contributor_email, error: emailError.message });
+        emailsFailed.push({ userId: membership.user_id, error: emailError.message });
       }
     }
 
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        emailsSent: emailsSent.length,
-        emailsFailed: emailsFailed.length,
-        details: { sent: emailsSent, failed: emailsFailed }
-      }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ success: true, emailsSent: emailsSent.length, emailsFailed: emailsFailed.length }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (error: any) {
     console.error("[SEND-CANCELLATION-NOTICE] Error:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: error.message }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 };
 
