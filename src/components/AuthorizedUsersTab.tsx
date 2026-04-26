@@ -42,6 +42,18 @@ const AuthorizedUsersTab: React.FC = () => {
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<'full_access' | 'read_only'>('read_only');
   const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const suggestedSms = `Hey — I just added you as an authorized user on my Asset Safe account.\nYou'll get an email invite shortly. It may land in promotions/spam — just search "Asset Safe" if you don't see it.`;
+  const handleCopySms = async () => {
+    try {
+      await navigator.clipboard.writeText(suggestedSms);
+      setCopied(true);
+      toast({ title: 'Copied', description: 'Suggested message copied to clipboard.' });
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast({ title: 'Copy failed', description: 'Please copy the message manually.', variant: 'destructive' });
+    }
+  };
   const { toast } = useToast();
   const { hasFeature } = useSubscription();
   const { accountId, isOwner } = useAccount();
