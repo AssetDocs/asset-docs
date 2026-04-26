@@ -31,17 +31,20 @@ const Signup: React.FC = () => {
   const [isContributorSignup, setIsContributorSignup] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, signUp } = useAuth();
+  const { user, signUp, signIn } = useAuth();
 
   // Check if this is a contributor signup
   const contributorEmail = searchParams.get('email');
   const isContributorMode = searchParams.get('mode') === 'contributor';
+  const isInviteMode = searchParams.get('mode') === 'invite';
+  const redirectParam = searchParams.get('redirect');
+  const inviteEmail = isInviteMode ? searchParams.get('email') || '' : '';
 
   const signUpForm = useForm<SignUpFormData>({
     defaultValues: {
       firstName: '',
       lastName: '',
-      email: contributorEmail || '',
+      email: contributorEmail || inviteEmail || '',
       password: '',
       confirmPassword: '',
       acceptTerms: false,
@@ -74,12 +77,13 @@ const Signup: React.FC = () => {
     checkContributorInvitation();
   }, [isContributorMode, contributorEmail, signUpForm]);
 
-  // Redirect if already logged in
+  // Redirect if already logged in (skip during invite mode — we route to the
+  // invite landing manually after sign-in so the invite is accepted first).
   useEffect(() => {
-    if (user) {
+    if (user && !isInviteMode) {
       navigate('/account');
     }
-  }, [user, navigate]);
+  }, [user, navigate, isInviteMode]);
 
   const onSignUp = async (data: SignUpFormData) => {
     setEmailExistsError(false);
@@ -133,6 +137,27 @@ const Signup: React.FC = () => {
             console.error('Error accepting contributor invitation:', err);
           }
           navigate('/contributor-welcome');
+        } else if (isInviteMode && redirectParam) {
+          // Invited authorized user — skip the email-verification step entirely.
+          // Possession of the invite link proves mailbox ownership, so we
+          // auto-confirm the email server-side, sign the user in, then send
+          // them to the invite landing which accepts the invite and routes
+          // straight to /account.
+          try {
+            const inviteToken = new URLSearchParams(redirectParam.split('?')[1] || '').get('token');
+            if (inviteToken) {
+              await supabase.functions.invoke('confirm-invite-email', {
+                body: { token: inviteToken, email: data.email },
+              });
+            }
+            const { error: signInError } = await signIn(data.email, data.password);
+            if (signInError) {
+              console.warn('Invite auto sign-in failed, falling back to invite landing:', signInError);
+            }
+          } catch (e) {
+            console.error('Invite auto-confirm error:', e);
+          }
+          navigate(redirectParam, { replace: true });
         } else {
           // Redirect to welcome page for email verification prompt
           const giftCodeParam = data.giftCode?.trim() ? `?giftCode=${encodeURIComponent(data.giftCode.trim())}` : '';
@@ -272,8 +297,15 @@ const Signup: React.FC = () => {
                           type="email"
                           placeholder="Enter your email"
                           {...field}
+                          readOnly={isInviteMode}
+                          disabled={isInviteMode}
                         />
                       </FormControl>
+                      {isInviteMode && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          This invitation was sent to this email address and can't be changed.
+                        </p>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}

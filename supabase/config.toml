@@ -10,3 +10,8 @@ verify_jwt = false
 # Authenticates internally via Standard Webhooks signature (SEND_EMAIL_HOOK_SECRET).
 [functions.send-auth-email]
 verify_jwt = false
+
+# Public — caller proves identity via the raw invite token (delivered to the
+# invitee's mailbox), so a user JWT is not required.
+[functions.confirm-invite-email]
+verify_jwt = false

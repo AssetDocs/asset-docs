@@ -142,6 +142,17 @@ serve(async (req: Request) => {
     // Mark invite as accepted
     await supabaseAdmin.from('invites').update({ status: 'accepted' }).eq('id', invite.id);
 
+    // Auto-confirm the invited user's email — they proved ownership by clicking
+    // the unique invite link delivered to that mailbox, so a second verification
+    // email is unnecessary.
+    if (!user.email_confirmed_at) {
+      try {
+        await supabaseAdmin.auth.admin.updateUserById(user.id, { email_confirm: true });
+      } catch (e) {
+        console.error('[ACCEPT-INVITE] Email auto-confirm failed (non-fatal):', e);
+      }
+    }
+
     // Log activity
     try {
       const { data: account } = await supabaseAdmin
