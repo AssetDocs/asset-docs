@@ -109,7 +109,7 @@ serve(async (req) => {
       logStep("New user created", { userId });
     } else if (createError?.message?.includes('already been registered') || (createError as any)?.status === 422) {
       // Step 2: User exists — recover by fetching with large page size
-      logStep("User already exists, recovering", { customerEmail, error: createError.message });
+      logStep("User already exists, recovering", { customerEmail, error: createError?.message });
       const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
       const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
       const listRes = await fetch(
