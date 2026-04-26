@@ -279,8 +279,15 @@ const Signup: React.FC = () => {
                           type="email"
                           placeholder="Enter your email"
                           {...field}
+                          readOnly={isInviteMode}
+                          disabled={isInviteMode}
                         />
                       </FormControl>
+                      {isInviteMode && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          This invitation was sent to this email address and can't be changed.
+                        </p>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
