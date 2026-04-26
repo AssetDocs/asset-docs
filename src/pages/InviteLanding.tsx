@@ -118,11 +118,12 @@ const InviteLanding: React.FC = () => {
                     const email = searchParams.get('email') || '';
                     const params = new URLSearchParams();
                     params.set('redirect', `/invite?token=${token || ''}`);
+                    params.set('mode', 'invite');
                     if (email) params.set('email', email);
-                    navigate(`/auth?${params.toString()}`);
+                    navigate(`/signup?${params.toString()}`);
                   }}
                 >
-                  Sign In
+                  Create Account
                 </Button>
                 <Button
                   variant="outline"
@@ -131,12 +132,11 @@ const InviteLanding: React.FC = () => {
                     const email = searchParams.get('email') || '';
                     const params = new URLSearchParams();
                     params.set('redirect', `/invite?token=${token || ''}`);
-                    params.set('mode', 'invite');
                     if (email) params.set('email', email);
-                    navigate(`/signup?${params.toString()}`);
+                    navigate(`/auth?${params.toString()}`);
                   }}
                 >
-                  Create Account
+                  Sign In
                 </Button>
               </div>
             </>
