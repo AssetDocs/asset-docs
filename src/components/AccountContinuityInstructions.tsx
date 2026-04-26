@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAccount } from '@/contexts/AccountContext';
 import { useToast } from '@/hooks/use-toast';
-import { encryptData } from '@/utils/encryption';
+import { encryptPassword } from '@/utils/encryption';
 
 interface Props {
   /** Optional Secure Vault passphrase from parent SecureVault context — when set, notes are encrypted. */
@@ -78,7 +78,7 @@ const AccountContinuityInstructions: React.FC<Props> = ({ vaultPassphrase }) => 
         continuity_preference: preference || null,
       };
       if (vaultPassphrase && notes) {
-        payload.continuity_notes_encrypted = await encryptData(notes, vaultPassphrase);
+        payload.continuity_notes_encrypted = await encryptPassword(notes, vaultPassphrase);
         payload.continuity_notes = null;
       } else {
         payload.continuity_notes = notes || null;
