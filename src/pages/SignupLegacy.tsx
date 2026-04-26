@@ -31,7 +31,7 @@ const Signup: React.FC = () => {
   const [isContributorSignup, setIsContributorSignup] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, signUp } = useAuth();
+  const { user, signUp, signIn } = useAuth();
 
   // Check if this is a contributor signup
   const contributorEmail = searchParams.get('email');
