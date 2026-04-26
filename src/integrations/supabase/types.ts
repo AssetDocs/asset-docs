@@ -14,6 +14,75 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_continuity_requests: {
+        Row: {
+          account_id: string
+          admin_notes: string | null
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          id: string
+          legacy_admin_id: string | null
+          notes: string | null
+          reason: string
+          request_type: string
+          requested_by_user_id: string
+          reviewed_at: string | null
+          reviewed_by_admin_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          account_id: string
+          admin_notes?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          legacy_admin_id?: string | null
+          notes?: string | null
+          reason: string
+          request_type: string
+          requested_by_user_id: string
+          reviewed_at?: string | null
+          reviewed_by_admin_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string
+          admin_notes?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          legacy_admin_id?: string | null
+          notes?: string | null
+          reason?: string
+          request_type?: string
+          requested_by_user_id?: string
+          reviewed_at?: string | null
+          reviewed_by_admin_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_continuity_requests_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "account_continuity_requests_legacy_admin_id_fkey"
+            columns: ["legacy_admin_id"]
+            isOneToOne: false
+            referencedRelation: "legacy_admins"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       account_deletion_requests: {
         Row: {
           account_owner_id: string
@@ -1819,6 +1888,50 @@ export type Database = {
         }
         Relationships: []
       }
+      legacy_admins: {
+        Row: {
+          account_id: string
+          assigned_at: string
+          assigned_by_owner_id: string
+          created_at: string
+          id: string
+          legacy_admin_user_id: string
+          notes: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          account_id: string
+          assigned_at?: string
+          assigned_by_owner_id: string
+          created_at?: string
+          id?: string
+          legacy_admin_user_id: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string
+          assigned_at?: string
+          assigned_by_owner_id?: string
+          created_at?: string
+          id?: string
+          legacy_admin_user_id?: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legacy_admins_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       legacy_locker: {
         Row: {
           address: string | null
@@ -1837,6 +1950,9 @@ export type Database = {
           business_succession_plan: string | null
           ceremony_preferences: string | null
           charitable_giving: string | null
+          continuity_notes: string | null
+          continuity_notes_encrypted: string | null
+          continuity_preference: string | null
           created_at: string
           crypto_passwords: string | null
           debts_expenses: string | null
@@ -1915,6 +2031,9 @@ export type Database = {
           business_succession_plan?: string | null
           ceremony_preferences?: string | null
           charitable_giving?: string | null
+          continuity_notes?: string | null
+          continuity_notes_encrypted?: string | null
+          continuity_preference?: string | null
           created_at?: string
           crypto_passwords?: string | null
           debts_expenses?: string | null
@@ -1993,6 +2112,9 @@ export type Database = {
           business_succession_plan?: string | null
           ceremony_preferences?: string | null
           charitable_giving?: string | null
+          continuity_notes?: string | null
+          continuity_notes_encrypted?: string | null
+          continuity_preference?: string | null
           created_at?: string
           crypto_passwords?: string | null
           debts_expenses?: string | null
@@ -4281,6 +4403,10 @@ export type Database = {
         Returns: boolean
       }
       is_account_owner: {
+        Args: { _account_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_active_legacy_admin: {
         Args: { _account_id: string; _user_id: string }
         Returns: boolean
       }

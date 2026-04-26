@@ -15,6 +15,8 @@ import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useAccount } from '@/contexts/AccountContext';
 import { logActivity } from '@/hooks/useActivityLog';
 import { PremiumFeatureGate } from '@/components/PremiumFeatureGate';
+import LegacyAdminAssignment from '@/components/LegacyAdminAssignment';
+import LegacyAdminContinuityRequests from '@/components/LegacyAdminContinuityRequests';
 
 interface Member {
   id: string;
@@ -252,6 +254,9 @@ const AuthorizedUsersTab: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Legacy Admin continuity requests — only renders for the active Legacy Admin */}
+      <LegacyAdminContinuityRequests />
+
       {/* Invite Form — Owner only */}
       {isOwner && (
         <Card>
@@ -423,6 +428,9 @@ const AuthorizedUsersTab: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Legacy Admin assignment — owner only */}
+      <LegacyAdminAssignment members={members} />
 
       {/* Pending Invites */}
       {pendingInvites.length > 0 && (

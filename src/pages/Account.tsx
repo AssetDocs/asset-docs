@@ -37,6 +37,7 @@ import PaintCodesSection from '@/components/PaintCodesSection';
 import ServiceProsSection from '@/components/ServiceProsSection';
 import AccessActivitySection from '@/components/AccessActivitySection';
 import EmergencyInstructions from '@/components/EmergencyInstructions';
+import AccountContinuityInstructions from '@/components/AccountContinuityInstructions';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
@@ -240,6 +241,7 @@ const Account: React.FC = () => {
                   <h2 className="text-2xl font-bold text-foreground">{getSectionConfig().title}</h2>
                   <p className="text-muted-foreground text-sm mt-1">{getSectionConfig().subtitle}</p>
                 </div>
+                <AccountContinuityInstructions />
                 <SecureVault initialTab="legacy" />
               </div>
             </TabsContent>
