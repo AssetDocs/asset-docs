@@ -429,6 +429,9 @@ const AuthorizedUsersTab: React.FC = () => {
         </CardContent>
       </Card>
 
+      {/* Legacy Admin assignment — owner only */}
+      <LegacyAdminAssignment members={members} />
+
       {/* Pending Invites */}
       {pendingInvites.length > 0 && (
         <Card>
