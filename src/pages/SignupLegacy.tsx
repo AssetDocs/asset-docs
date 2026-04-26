@@ -136,6 +136,10 @@ const Signup: React.FC = () => {
             console.error('Error accepting contributor invitation:', err);
           }
           navigate('/contributor-welcome');
+        } else if (isInviteMode && redirectParam) {
+          // Invited authorized user — skip /welcome (and the pricing redirect there).
+          // The invite landing will sign them in, accept the invite, and route to /account.
+          navigate(redirectParam, { replace: true });
         } else {
           // Redirect to welcome page for email verification prompt
           const giftCodeParam = data.giftCode?.trim() ? `?giftCode=${encodeURIComponent(data.giftCode.trim())}` : '';
