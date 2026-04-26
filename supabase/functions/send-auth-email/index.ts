@@ -13,6 +13,8 @@ interface AuthEmailPayload {
     user_metadata?: {
       first_name?: string;
       last_name?: string;
+      invited_as_contributor?: boolean;
+      [key: string]: unknown;
     };
   };
   email_data: {
