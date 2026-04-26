@@ -77,12 +77,13 @@ const Signup: React.FC = () => {
     checkContributorInvitation();
   }, [isContributorMode, contributorEmail, signUpForm]);
 
-  // Redirect if already logged in
+  // Redirect if already logged in (skip during invite mode — we route to the
+  // invite landing manually after sign-in so the invite is accepted first).
   useEffect(() => {
-    if (user) {
+    if (user && !isInviteMode) {
       navigate('/account');
     }
-  }, [user, navigate]);
+  }, [user, navigate, isInviteMode]);
 
   const onSignUp = async (data: SignUpFormData) => {
     setEmailExistsError(false);
