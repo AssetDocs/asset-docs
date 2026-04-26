@@ -100,7 +100,7 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
       let ownerProfiles: Record<string, string> = {};
       if (ownerIds.length > 0) {
         const { data: profiles } = await supabase
-          .from('profiles')
+          .from('profiles_safe' as any)
           .select('user_id, first_name, last_name')
           .in('user_id', ownerIds);
         

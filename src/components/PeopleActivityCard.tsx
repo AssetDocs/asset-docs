@@ -87,7 +87,7 @@ const PeopleActivityCard: React.FC<PeopleActivityCardProps> = ({ onNavigate }) =
         const usersWithProfiles = await Promise.all(
           (members || []).map(async (m) => {
             const { data: profile } = await supabase
-              .from('profiles')
+              .from('profiles_safe' as any)
               .select('first_name, last_name')
               .eq('user_id', m.user_id)
               .maybeSingle();

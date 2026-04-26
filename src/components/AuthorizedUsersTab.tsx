@@ -87,10 +87,10 @@ const AuthorizedUsersTab: React.FC = () => {
     const membersWithProfiles = await Promise.all(
       (data || []).map(async (m) => {
         const { data: profile } = await supabase
-          .from('profiles')
+          .from('profiles_safe' as any)
           .select('first_name, last_name')
           .eq('user_id', m.user_id)
-          .single();
+          .maybeSingle();
 
         // Get email from auth (we'll use profiles or a fallback)
         const { data: authData } = await supabase.auth.admin?.getUserById?.(m.user_id) || { data: null };

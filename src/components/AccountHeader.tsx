@@ -51,10 +51,10 @@ const AccountHeader: React.FC = () => {
       if (contribData) {
         // User is a contributor - get owner's profile
         const { data: ownerProfile } = await supabase
-          .from('profiles')
+          .from('profiles_safe' as any)
           .select('first_name, last_name, account_number')
           .eq('user_id', contribData.account_owner_id)
-          .single() as any;
+          .maybeSingle() as any;
 
         const ownerData = ownerProfile as any;
         if (ownerData) {
