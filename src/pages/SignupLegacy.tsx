@@ -137,8 +137,25 @@ const Signup: React.FC = () => {
           }
           navigate('/contributor-welcome');
         } else if (isInviteMode && redirectParam) {
-          // Invited authorized user — skip /welcome (and the pricing redirect there).
-          // The invite landing will sign them in, accept the invite, and route to /account.
+          // Invited authorized user — skip the email-verification step entirely.
+          // Possession of the invite link proves mailbox ownership, so we
+          // auto-confirm the email server-side, sign the user in, then send
+          // them to the invite landing which accepts the invite and routes
+          // straight to /account.
+          try {
+            const inviteToken = new URLSearchParams(redirectParam.split('?')[1] || '').get('token');
+            if (inviteToken) {
+              await supabase.functions.invoke('confirm-invite-email', {
+                body: { token: inviteToken, email: data.email },
+              });
+            }
+            const { error: signInError } = await signIn(data.email, data.password);
+            if (signInError) {
+              console.warn('Invite auto sign-in failed, falling back to invite landing:', signInError);
+            }
+          } catch (e) {
+            console.error('Invite auto-confirm error:', e);
+          }
           navigate(redirectParam, { replace: true });
         } else {
           // Redirect to welcome page for email verification prompt
