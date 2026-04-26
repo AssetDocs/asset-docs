@@ -115,7 +115,7 @@ const InviteLanding: React.FC = () => {
                 <Button
                   className="w-full"
                   onClick={() => {
-                    const email = inviteInfo?.email || searchParams.get('email') || '';
+                    const email = searchParams.get('email') || '';
                     const params = new URLSearchParams();
                     params.set('redirect', `/invite?token=${token || ''}`);
                     if (email) params.set('email', email);
@@ -128,7 +128,7 @@ const InviteLanding: React.FC = () => {
                   variant="outline"
                   className="w-full"
                   onClick={() => {
-                    const email = inviteInfo?.email || searchParams.get('email') || '';
+                    const email = searchParams.get('email') || '';
                     const params = new URLSearchParams();
                     params.set('redirect', `/invite?token=${token || ''}`);
                     params.set('mode', 'invite');
