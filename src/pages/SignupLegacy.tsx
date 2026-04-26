@@ -36,12 +36,15 @@ const Signup: React.FC = () => {
   // Check if this is a contributor signup
   const contributorEmail = searchParams.get('email');
   const isContributorMode = searchParams.get('mode') === 'contributor';
+  const isInviteMode = searchParams.get('mode') === 'invite';
+  const redirectParam = searchParams.get('redirect');
+  const inviteEmail = isInviteMode ? searchParams.get('email') || '' : '';
 
   const signUpForm = useForm<SignUpFormData>({
     defaultValues: {
       firstName: '',
       lastName: '',
-      email: contributorEmail || '',
+      email: contributorEmail || inviteEmail || '',
       password: '',
       confirmPassword: '',
       acceptTerms: false,
