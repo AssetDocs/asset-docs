@@ -4196,7 +4196,30 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      profiles_safe: {
+        Row: {
+          account_number: string | null
+          avatar_url: string | null
+          first_name: string | null
+          last_name: string | null
+          user_id: string | null
+        }
+        Insert: {
+          account_number?: string | null
+          avatar_url?: string | null
+          first_name?: string | null
+          last_name?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          account_number?: string | null
+          avatar_url?: string | null
+          first_name?: string | null
+          last_name?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       calculate_user_storage_usage: {
