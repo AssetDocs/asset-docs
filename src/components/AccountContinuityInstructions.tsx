@@ -78,7 +78,7 @@ const AccountContinuityInstructions: React.FC<Props> = ({ vaultPassphrase }) => 
         continuity_preference: preference || null,
       };
       if (vaultPassphrase && notes) {
-        payload.continuity_notes_encrypted = await encryptData(notes, vaultPassphrase);
+        payload.continuity_notes_encrypted = await encryptPassword(notes, vaultPassphrase);
         payload.continuity_notes = null;
       } else {
         payload.continuity_notes = notes || null;
