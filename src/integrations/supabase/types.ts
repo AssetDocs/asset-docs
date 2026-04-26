@@ -4204,20 +4204,6 @@ export type Database = {
           last_name: string | null
           user_id: string | null
         }
-        Insert: {
-          account_number?: string | null
-          avatar_url?: string | null
-          first_name?: string | null
-          last_name?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          account_number?: string | null
-          avatar_url?: string | null
-          first_name?: string | null
-          last_name?: string | null
-          user_id?: string | null
-        }
         Relationships: []
       }
     }
@@ -4292,6 +4278,16 @@ export type Database = {
         Returns: {
           count: number
           source: string
+        }[]
+      }
+      get_profiles_safe: {
+        Args: never
+        Returns: {
+          account_number: string
+          avatar_url: string
+          first_name: string
+          last_name: string
+          user_id: string
         }[]
       }
       get_purchaser_gifts: {

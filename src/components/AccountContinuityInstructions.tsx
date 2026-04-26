@@ -51,7 +51,7 @@ const AccountContinuityInstructions: React.FC<Props> = ({ vaultPassphrase }) => 
         .maybeSingle();
       if (la) {
         const { data: prof } = await supabase
-          .from('profiles')
+          .from('profiles_safe' as any)
           .select('first_name, last_name')
           .eq('user_id', la.legacy_admin_user_id)
           .maybeSingle();
