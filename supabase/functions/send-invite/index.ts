@@ -115,7 +115,7 @@ serve(async (req: Request) => {
     const roleDescription = validated.role === 'full_access'
       ? 'You\'ll be able to view, add, update, and manage information across the account.'
       : 'You\'ll be able to view important information, but not make changes.';
-    const inviteUrl = `https://www.getassetsafe.com/invite?token=${rawToken}`;
+    const inviteUrl = `https://www.getassetsafe.com/invite?token=${rawToken}&email=${encodeURIComponent(validated.email)}`;
 
     // Send email via Resend
     const resendApiKey = Deno.env.get('RESEND_API_KEY');
