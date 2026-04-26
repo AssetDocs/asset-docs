@@ -295,6 +295,48 @@ const AuthorizedUsersTab: React.FC = () => {
                 </Button>
               </div>
             </div>
+            </div>
+
+            <div className="mt-6 rounded-md border border-border bg-muted/40 p-4">
+              <div className="flex items-start gap-3">
+                <Lightbulb className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                <div className="flex-1 space-y-3">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Tip: Let them know it's coming</p>
+                    <p className="text-sm text-muted-foreground">
+                      A quick text or call helps them recognize the invitation and accept it faster.
+                    </p>
+                  </div>
+                  <div className="rounded-md border border-border bg-background p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Suggested text message
+                      </p>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleCopySms}
+                        className="h-7 px-2 text-xs"
+                      >
+                        {copied ? (
+                          <>
+                            <Check className="h-3.5 w-3.5 mr-1" /> Copied
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="h-3.5 w-3.5 mr-1" /> Copy
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    <p className="text-sm text-foreground whitespace-pre-line leading-relaxed">
+                      {suggestedSms}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}
