@@ -130,15 +130,28 @@ async function fetchFromMLSGrid(
 ): Promise<MLSPropertyData | null> {
   if (!apiKey || !endpoint) return null
 
+  // Sanitize inputs to prevent OData filter injection
+  const sanitize = (s: string, max = 200) => {
+    if (typeof s !== 'string') throw new Error('Invalid input')
+    const cleaned = s.replace(/[^a-zA-Z0-9\s,.'#-]/g, '').trim()
+    if (cleaned.length === 0 || cleaned.length > max) throw new Error('Invalid input length')
+    return cleaned.replace(/'/g, "''") // OData escape single quotes
+  }
+
+  const safeAddress = sanitize(address)
+  const safeCity = city ? sanitize(city, 100) : undefined
+  const safeState = state ? sanitize(state, 50) : undefined
+  const safeZip = zipCode ? sanitize(zipCode, 20) : undefined
+
   const searchParams = new URLSearchParams({
     access_token: apiKey,
-    $filter: `UnparsedAddress eq '${address}'`,
+    $filter: `UnparsedAddress eq '${safeAddress}'`,
     $top: '1'
   })
 
-  if (city) searchParams.append('City', city)
-  if (state) searchParams.append('StateOrProvince', state)
-  if (zipCode) searchParams.append('PostalCode', zipCode)
+  if (safeCity) searchParams.append('City', safeCity)
+  if (safeState) searchParams.append('StateOrProvince', safeState)
+  if (safeZip) searchParams.append('PostalCode', safeZip)
 
   const response = await fetch(`${endpoint}/v2/Property?${searchParams}`, {
     method: 'GET',

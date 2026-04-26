@@ -23,9 +23,30 @@ const feedbackEmailSchema = z.object({
 const escapeHtml = (str: string): string =>
   str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 
+// Simple in-memory IP rate limiting (per warm instance)
+const RATE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const RATE_MAX = 5;
+const ipHits = new Map<string, number[]>();
+const checkRate = (ip: string): boolean => {
+  const now = Date.now();
+  const arr = (ipHits.get(ip) || []).filter((t) => now - t < RATE_WINDOW_MS);
+  if (arr.length >= RATE_MAX) return false;
+  arr.push(now);
+  ipHits.set(ip, arr);
+  return true;
+};
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  if (!checkRate(ip)) {
+    return new Response(JSON.stringify({ error: "Too many requests. Please try again later." }), {
+      status: 429,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
   }
 
   try {
