@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { UserPlus, Trash2, Mail, Shield, Eye, Users } from 'lucide-react';
+import { UserPlus, Trash2, Mail, Shield, Eye, Users, Lightbulb, Copy, Check } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -42,6 +42,18 @@ const AuthorizedUsersTab: React.FC = () => {
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<'full_access' | 'read_only'>('read_only');
   const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const suggestedSms = `Hey — I just added you as an authorized user on my Asset Safe account.\nYou'll get an email invite shortly. It may land in promotions/spam — just search "Asset Safe" if you don't see it.`;
+  const handleCopySms = async () => {
+    try {
+      await navigator.clipboard.writeText(suggestedSms);
+      setCopied(true);
+      toast({ title: 'Copied', description: 'Suggested message copied to clipboard.' });
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast({ title: 'Copy failed', description: 'Please copy the message manually.', variant: 'destructive' });
+    }
+  };
   const { toast } = useToast();
   const { hasFeature } = useSubscription();
   const { accountId, isOwner } = useAccount();
@@ -281,6 +293,47 @@ const AuthorizedUsersTab: React.FC = () => {
                   <Mail className="h-4 w-4 mr-2" />
                   {loading ? 'Sending...' : 'Send Invitation'}
                 </Button>
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-md border border-border bg-muted/40 p-4">
+              <div className="flex items-start gap-3">
+                <Lightbulb className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                <div className="flex-1 space-y-3">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Tip: Let them know it's coming</p>
+                    <p className="text-sm text-muted-foreground">
+                      A quick text or call helps them recognize the invitation and accept it faster.
+                    </p>
+                  </div>
+                  <div className="rounded-md border border-border bg-background p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Suggested text message
+                      </p>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleCopySms}
+                        className="h-7 px-2 text-xs"
+                      >
+                        {copied ? (
+                          <>
+                            <Check className="h-3.5 w-3.5 mr-1" /> Copied
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="h-3.5 w-3.5 mr-1" /> Copy
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    <p className="text-sm text-foreground whitespace-pre-line leading-relaxed">
+                      {suggestedSms}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </CardContent>
