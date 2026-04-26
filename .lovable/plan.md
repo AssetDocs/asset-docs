@@ -1,38 +1,29 @@
-# Fix: signup fails with "Service currently unavailable due to hook"
+# Fix Pricing Page bullet alignment
 
-## Root cause
+## Problem
+On `/pricing`, two feature bullets render as two visually-centered lines with the parenthetical descriptor sitting awkwardly under the main label:
 
-Supabase Auth logs show the `/signup` request fails because the **Send Email Hook** errored out:
+- "Secure Vault" / "(Legacy & Digital Access)"
+- "Legacy Locker" / "(family continuity & instructions)"
 
-```
-hook: https://leotcbfpqiekgkgumecn.supabase.co/functions/v1/send-auth-email
-error: 500: Service currently unavailable due to hook
-```
+Cause: in `src/pages/Pricing.tsx` the `unifiedFeatures` array stores these two entries with an embedded newline (`\n`). The `SubscriptionPlan` list item renders text with `whitespace-pre-line`, so the `\n` forces a hard break and the second line, lacking the checkmark gutter, looks indented/centered rather than aligned to the first line.
 
-There are **zero logs** for `send-auth-email` in the same window — meaning the function never executed. Supabase rejected the call before it ran.
-
-The reason: `supabase/config.toml` only declares `verify_jwt = false` for two functions (`finalize-checkout`, `force-signout`). Every other function defaults to **`verify_jwt = true`**, including `send-auth-email`. Supabase Auth Hooks call the function URL directly with a Standard Webhooks signature — there is no user JWT in the request — so the platform returns 401 and Auth reports the hook as unavailable. Result: every signup (not just authorized users) fails.
+The other rows (e.g. "50GB secure cloud storage (+ add-ons available)") are single strings with no `\n`, so they wrap naturally and stay left-aligned next to the checkmark.
 
 ## Fix
+Edit `src/pages/Pricing.tsx` (lines 149–150) to remove the `\n` and join each label with its descriptor inline, matching the 50GB row's style:
 
-Add a `[functions.send-auth-email]` entry with `verify_jwt = false` to `supabase/config.toml`. The function already validates requests internally via the Standard Webhooks signature using `SEND_EMAIL_HOOK_SECRET`.
+```ts
+"Secure Vault (Legacy & Digital Access)",
+"Legacy Locker (family continuity & instructions)",
+```
 
-While editing the file, also disable JWT verification for the other functions that are designed to be called without a user JWT (public/invite landing flows and webhook-style callbacks). These are all authenticated by their own internal mechanisms (signed tokens, hashed invite tokens, signature verification, or service-role checks):
-
-- `send-auth-email` — Supabase Auth hook (Standard Webhooks signature)
-- `accept-invite` — validates session in code; called from public `/invite` page
-- `accept-contributor-invitation` — same pattern (legacy fallback)
-- `accept-dev-invite` — same pattern
-- `verify-dev-invite` — public token lookup
-- `stripe-webhook` — Stripe signature verification
-- `lead-capture`, `submit-lead`, `log-consent`, `track`, `rate-limit-check` — public unauthenticated endpoints
-
-The primary fix is `send-auth-email`; the others are included to prevent the same class of bug. No other code changes are needed.
+Result: both bullets render as a single line that wraps naturally if needed, with text left-aligned next to the checkmark — identical treatment to the 50GB row.
 
 ## Files touched
+- `src/pages/Pricing.tsx` — two-line string change inside the `unifiedFeatures` array.
 
-- `supabase/config.toml` — add `verify_jwt = false` entries for the functions above.
+No changes needed to `SubscriptionPlan.tsx` (the underlying component is already correct) or to `PricingPlans.tsx` (its strings are already inline).
 
-## Verification
-
-After deploying, retry signup. Auth log should show `/signup` returning 200 (or 400 for validation), and `send-auth-email` should produce its `=== SEND-AUTH-EMAIL FUNCTION CALLED ===` log line.
+## Out of scope
+- The similar `(n & instructions)` truncation showing in `ManageTab.tsx`, `SubscriptionTab.tsx`, and `CompletePricing.tsx` looks like a separate bug (likely a botched find-and-replace). Happy to clean those up in a follow-up if you confirm.
