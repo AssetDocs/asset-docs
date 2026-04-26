@@ -295,7 +295,6 @@ const AuthorizedUsersTab: React.FC = () => {
                 </Button>
               </div>
             </div>
-            </div>
 
             <div className="mt-6 rounded-md border border-border bg-muted/40 p-4">
               <div className="flex items-start gap-3">
