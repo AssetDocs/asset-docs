@@ -745,7 +745,7 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
             <Alert>
               <Lock className="h-4 w-4" />
               <AlertDescription>
-                This Legacy Locker is encrypted. {isDelegate ? 'As a designated recovery delegate, you can request access if needed.' : 'Enter your master password to unlock and view.'}
+                This Legacy Locker is encrypted. {isDelegate ? 'As a designated recovery delegate, you can request access if needed.' : 'Enter your vault passphrase to unlock and view.'}
               </AlertDescription>
             </Alert>
             
@@ -853,7 +853,7 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
             <Alert className="mb-4">
               <AlertDescription>
                 {isEncrypted 
-                  ? 'This information is encrypted and only accessible with your master password. Contributors will not be able to view encrypted data.'
+                  ? 'This information is encrypted and only accessible with your vault passphrase. Contributors will not be able to view encrypted data.'
                   : 'This information is not encrypted. Contributors with access can view this data.'}
               </AlertDescription>
             </Alert>
