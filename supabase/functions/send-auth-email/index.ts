@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Webhook } from "https://esm.sh/standardwebhooks@1.0.0";
-import { Resend } from "npm:resend@2.0.0";
+import { Resend } from "https://esm.sh/resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
@@ -13,6 +13,8 @@ interface AuthEmailPayload {
     user_metadata?: {
       first_name?: string;
       last_name?: string;
+      invited_as_contributor?: boolean;
+      [key: string]: unknown;
     };
   };
   email_data: {

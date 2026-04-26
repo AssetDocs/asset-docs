@@ -5,3 +5,8 @@ verify_jwt = false
 
 [functions.force-signout]
 verify_jwt = false
+
+# Supabase Auth "Send Email" hook — called by Auth without a user JWT.
+# Authenticates internally via Standard Webhooks signature (SEND_EMAIL_HOOK_SECRET).
+[functions.send-auth-email]
+verify_jwt = false
