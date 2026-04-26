@@ -127,7 +127,7 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
     const storedHash = localStorage.getItem(MASTER_PASSWORD_HASH_KEY);
     
     if (!storedHash) {
-      // First time - need to setup master password
+      // First time - need to setup vault passphrase
       setMasterPasswordModal({ isOpen: true, isSetup: true });
     } else {
       // Already setup - need to enter password
@@ -139,7 +139,7 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
   useEffect(() => {
     if (isControlledByParent && isUnlocked) {
       if (!isVaultEncrypted) {
-        // Unencrypted vault: fetch without needing a master password
+        // Unencrypted vault: fetch without needing a vault passphrase
         fetchPasswordsPlaintext();
         fetchAccountsPlaintext();
       } else if (sessionMasterPassword) {
@@ -154,7 +154,7 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
     const storedHash = localStorage.getItem(MASTER_PASSWORD_HASH_KEY);
 
     if (masterPasswordModal.isSetup) {
-      // Setup new master password
+      // Setup new vault passphrase
       const hash = await createPasswordVerificationHash(password);
       localStorage.setItem(MASTER_PASSWORD_HASH_KEY, hash);
       setLocalSessionMasterPassword(password);
@@ -163,7 +163,7 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
       fetchPasswords(password);
       fetchAccounts(password);
       toast({
-        title: "Master Password Set",
+        title: "Vault Passphrase Set",
         description: "Your passwords will now be encrypted with client-side encryption.",
       });
     } else {
@@ -175,7 +175,7 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
         fetchPasswords(password);
         fetchAccounts(password);
       } else {
-        throw new Error('Incorrect master password');
+        throw new Error('Incorrect vault passphrase');
       }
     }
   };
@@ -618,7 +618,7 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
               <Lock className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
               <h3 className="text-lg font-semibold mb-2">Digital Access Locked</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Enter your master password to access your encrypted digital accounts
+                Enter your vault passphrase to access your encrypted digital accounts
               </p>
               <Button onClick={handleUnlockClick}>
                 <Lock className="h-4 w-4 mr-2" />

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Lock, Shield, Eye, EyeOff } from 'lucide-react';
+import { Lock, Shield, Eye, EyeOff, AlertTriangle } from 'lucide-react';
 
 interface MasterPasswordModalProps {
   isOpen: boolean;
@@ -21,6 +21,7 @@ const MasterPasswordModal: React.FC<MasterPasswordModalProps> = ({
 }) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [acknowledgedRisk, setAcknowledgedRisk] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -30,19 +31,22 @@ const MasterPasswordModal: React.FC<MasterPasswordModalProps> = ({
     setError('');
 
     if (isSetup) {
-      // Validation for setup
       if (password.length < 8) {
-        setError('Master password must be at least 8 characters long');
+        setError('Vault passphrase must be at least 8 characters long');
         return;
       }
       if (password !== confirmPassword) {
-        setError('Passwords do not match');
+        setError('Passphrases do not match');
+        return;
+      }
+      if (!acknowledgedRisk) {
+        setError('Please acknowledge that Asset Safe cannot recover this passphrase');
         return;
       }
     }
 
     if (!password) {
-      setError('Please enter your master password');
+      setError('Please enter your Secure Vault passphrase');
       return;
     }
 
@@ -51,8 +55,9 @@ const MasterPasswordModal: React.FC<MasterPasswordModalProps> = ({
       await onSubmit(password);
       setPassword('');
       setConfirmPassword('');
+      setAcknowledgedRisk(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to process master password');
+      setError(err instanceof Error ? err.message : 'Failed to process passphrase');
     } finally {
       setIsLoading(false);
     }
@@ -64,34 +69,40 @@ const MasterPasswordModal: React.FC<MasterPasswordModalProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            {isSetup ? 'Setup Master Password' : 'Enter Master Password'}
+            {isSetup ? 'Create your Secure Vault passphrase' : 'Unlock your Secure Vault'}
           </DialogTitle>
           <DialogDescription>
-            {isSetup ? (
-              <>
-                Create a strong master password to encrypt your passwords. 
-                <strong className="block mt-2 text-destructive">⚠️ This password is NEVER stored and must be entered every time you access your passwords!</strong>
-              </>
-            ) : (
-              'Enter your master password to decrypt and access your passwords. You must enter this every time.'
-            )}
+            {isSetup
+              ? 'This passphrase adds an extra layer of protection for your most sensitive information. Asset Safe cannot view or recover it.'
+              : 'Enter your Secure Vault passphrase to unlock Legacy Locker and Digital Access.'}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           {isSetup && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription className="ml-2">
+                <strong>Important:</strong> If you forget this passphrase, your encrypted vault data
+                cannot be recovered — not by you, not by Asset Safe. Store it somewhere safe.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {isSetup && (
             <Alert>
               <Lock className="h-4 w-4" />
               <AlertDescription className="ml-2">
-                Your master password encrypts all passwords on YOUR device before sending to our database. 
-                You must enter it every time you access your passwords - we never store it!
+                Your passphrase encrypts vault data on YOUR device before it is sent to our database.
+                It is never transmitted to or stored by Asset Safe. MFA still protects your account
+                login — this is an additional layer just for the Secure Vault.
               </AlertDescription>
             </Alert>
           )}
 
           <div className="space-y-2">
             <Label htmlFor="masterPassword">
-              {isSetup ? 'Create Master Password' : 'Master Password'}
+              {isSetup ? 'Create Vault Passphrase' : 'Vault Passphrase'}
             </Label>
             <div className="relative">
               <Input
@@ -99,7 +110,7 @@ const MasterPasswordModal: React.FC<MasterPasswordModalProps> = ({
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder={isSetup ? 'Enter a strong master password' : 'Enter your master password'}
+                placeholder={isSetup ? 'Enter a strong passphrase' : 'Enter your vault passphrase'}
                 disabled={isLoading}
                 autoFocus
               />
@@ -115,23 +126,39 @@ const MasterPasswordModal: React.FC<MasterPasswordModalProps> = ({
             </div>
             {isSetup && (
               <p className="text-xs text-muted-foreground">
-                Minimum 8 characters. Use a strong, unique password.
+                Minimum 8 characters. Use something memorable to you but hard for others to guess.
               </p>
             )}
           </div>
 
           {isSetup && (
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Master Password</Label>
+              <Label htmlFor="confirmPassword">Confirm Vault Passphrase</Label>
               <Input
                 id="confirmPassword"
                 type={showPassword ? 'text' : 'password'}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Re-enter your master password"
+                placeholder="Re-enter your vault passphrase"
                 disabled={isLoading}
               />
             </div>
+          )}
+
+          {isSetup && (
+            <label className="flex items-start gap-2 text-sm text-muted-foreground cursor-pointer">
+              <input
+                type="checkbox"
+                checked={acknowledgedRisk}
+                onChange={(e) => setAcknowledgedRisk(e.target.checked)}
+                className="mt-1"
+                disabled={isLoading}
+              />
+              <span>
+                I understand that Asset Safe cannot recover my encrypted vault data if I forget this
+                passphrase.
+              </span>
+            </label>
           )}
 
           {error && (
@@ -150,7 +177,7 @@ const MasterPasswordModal: React.FC<MasterPasswordModalProps> = ({
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Processing...' : isSetup ? 'Setup & Encrypt' : 'Unlock'}
+              {isLoading ? 'Processing...' : isSetup ? 'Create & Encrypt Vault' : 'Unlock Vault'}
             </Button>
           </div>
         </form>
@@ -158,8 +185,8 @@ const MasterPasswordModal: React.FC<MasterPasswordModalProps> = ({
         {isSetup && (
           <div className="mt-4 p-3 bg-muted rounded-lg">
             <p className="text-xs text-muted-foreground">
-              <strong>💡 Tip:</strong> Store your master password in a secure location. Consider using a password manager 
-              like 1Password or Bitwarden to store this master password.
+              <strong>💡 Tip:</strong> Store your vault passphrase in a trusted password manager
+              (1Password, Bitwarden, etc.) so you never lose access to your encrypted vault.
             </p>
           </div>
         )}
