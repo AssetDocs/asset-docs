@@ -114,14 +114,27 @@ const InviteLanding: React.FC = () => {
               <div className="space-y-3">
                 <Button
                   className="w-full"
-                  onClick={() => navigate(`/auth?redirect=/invite?token=${encodeURIComponent(token || '')}`)}
+                  onClick={() => {
+                    const email = inviteInfo?.email || searchParams.get('email') || '';
+                    const params = new URLSearchParams();
+                    params.set('redirect', `/invite?token=${token || ''}`);
+                    if (email) params.set('email', email);
+                    navigate(`/auth?${params.toString()}`);
+                  }}
                 >
                   Sign In
                 </Button>
                 <Button
                   variant="outline"
                   className="w-full"
-                  onClick={() => navigate(`/signup?redirect=/invite?token=${encodeURIComponent(token || '')}`)}
+                  onClick={() => {
+                    const email = inviteInfo?.email || searchParams.get('email') || '';
+                    const params = new URLSearchParams();
+                    params.set('redirect', `/invite?token=${token || ''}`);
+                    params.set('mode', 'invite');
+                    if (email) params.set('email', email);
+                    navigate(`/signup?${params.toString()}`);
+                  }}
                 >
                   Create Account
                 </Button>
