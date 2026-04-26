@@ -37,6 +37,7 @@ import PaintCodesSection from '@/components/PaintCodesSection';
 import ServiceProsSection from '@/components/ServiceProsSection';
 import AccessActivitySection from '@/components/AccessActivitySection';
 import EmergencyInstructions from '@/components/EmergencyInstructions';
+import AccountContinuityInstructions from '@/components/AccountContinuityInstructions';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
