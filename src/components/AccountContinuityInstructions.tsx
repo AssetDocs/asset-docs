@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAccount } from '@/contexts/AccountContext';
 import { useToast } from '@/hooks/use-toast';
-import { encryptData } from '@/utils/encryption';
+import { encryptPassword } from '@/utils/encryption';
 
 interface Props {
   /** Optional Secure Vault passphrase from parent SecureVault context — when set, notes are encrypted. */
