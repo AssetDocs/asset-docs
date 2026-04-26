@@ -359,30 +359,6 @@ const Signup: React.FC = () => {
                   )}
                 />
 
-                {/* Gift Code Field - for lifetime access */}
-                <FormField
-                  control={signUpForm.control}
-                  name="giftCode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Gift Code (Optional)</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="Enter gift code if you have one"
-                          {...field}
-                          onChange={(e) => field.onChange(e.target.value.toUpperCase())}
-                        />
-                      </FormControl>
-                      {field.value && (
-                        <p className="text-sm text-green-600 mt-1">
-                          🎁 Gift code will be validated after email verification
-                        </p>
-                      )}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
                 <FormField
                   control={signUpForm.control}
                   name="confirmPassword"
@@ -416,6 +392,31 @@ const Signup: React.FC = () => {
                     </FormItem>
                   )}
                 />
+
+                {/* Gift Code Field - for lifetime access */}
+                <FormField
+                  control={signUpForm.control}
+                  name="giftCode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Gift Code (Optional)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Enter gift code if you have one"
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                        />
+                      </FormControl>
+                      {field.value && (
+                        <p className="text-sm text-green-600 mt-1">
+                          🎁 Gift code will be validated after email verification
+                        </p>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
 
 
                 <FormField
