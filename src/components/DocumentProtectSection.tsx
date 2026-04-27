@@ -31,7 +31,7 @@ const DocumentProtectSection: React.FC = () => {
     {
       icon: <Image className="w-5 h-5" />,
       title: 'Photo, video, and document storage',
-      description: 'Time-stamped, tamper-resistant records for your home and belongings.',
+      description: 'Time-stamped, secure records you can trust',
     },
     {
       icon: <Lock className="w-5 h-5" />,
