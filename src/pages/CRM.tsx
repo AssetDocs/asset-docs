@@ -3,8 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useNavigate } from 'react-router-dom';
-import SecureStorage from '@/utils/secureStorage';
-import AdminPasswordGate from '@/components/AdminPasswordGate';
+import { useAuth } from '@/contexts/AuthContext';
+import { useAdminRole } from '@/hooks/useAdminRole';
 import { LogOut, Users, TrendingUp, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -27,22 +27,16 @@ interface AtRiskCustomer {
 }
 
 const CRM = () => {
-  const [hasAccess, setHasAccess] = useState(false);
-  const [isChecking, setIsChecking] = useState(true);
   const [leadsBySource, setLeadsBySource] = useState<LeadsBySource[]>([]);
   const [activationData, setActivationData] = useState<ActivationData[]>([]);
   const [atRiskCustomers, setAtRiskCustomers] = useState<AtRiskCustomer[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { user, loading: authLoading, signOut } = useAuth();
+  const { hasOwnerAccess, loading: roleLoading } = useAdminRole();
 
-  useEffect(() => {
-    const checkAccess = async () => {
-      const adminAccess = await SecureStorage.getItem('admin_access');
-      setHasAccess(adminAccess === 'granted');
-      setIsChecking(false);
-    };
-    checkAccess();
-  }, []);
+  const isChecking = authLoading || roleLoading;
+  const hasAccess = !!user && hasOwnerAccess;
 
   useEffect(() => {
     if (hasAccess) {
@@ -71,9 +65,9 @@ const CRM = () => {
     }
   };
 
-  const handleLogout = () => {
-    SecureStorage.removeItem('admin_access');
-    setHasAccess(false);
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/login');
   };
 
   if (isChecking) {
@@ -84,8 +78,27 @@ const CRM = () => {
     );
   }
 
+  if (!user) {
+    navigate('/login');
+    return null;
+  }
+
   if (!hasAccess) {
-    return <AdminPasswordGate onPasswordCorrect={() => setHasAccess(true)} />;
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle>Access Denied</CardTitle>
+            <CardDescription>
+              You do not have permission to access the CRM dashboard. Contact an administrator if you believe this is an error.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => navigate('/account')} className="w-full">Return to Dashboard</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
