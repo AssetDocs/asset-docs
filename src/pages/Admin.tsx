@@ -3,7 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useNavigate } from 'react-router-dom';
-import SecureStorage from '@/utils/secureStorage';
+import { useAuth } from '@/contexts/AuthContext';
+import { useAdminRole } from '@/hooks/useAdminRole';
 import AdminPasswordGate from '@/components/AdminPasswordGate';
 import AdminUsers from '@/components/admin/AdminUsers';
 import AdminDatabase from '@/components/admin/AdminDatabase';
@@ -16,24 +17,17 @@ import { LogOut, Shield, Users, Database, Settings, Handshake, BarChart, CreditC
 import AdminLegalAgreements from './AdminLegalAgreements';
 
 const Admin = () => {
-  const [hasAccess, setHasAccess] = useState(false);
-  const [isChecking, setIsChecking] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const navigate = useNavigate();
+  const { user, loading: authLoading, signOut } = useAuth();
+  const { hasDevAccess, loading: roleLoading } = useAdminRole();
 
-  useEffect(() => {
-    // Check if user has valid admin access
-    const checkAccess = async () => {
-      const adminAccess = await SecureStorage.getItem('admin_access');
-      setHasAccess(adminAccess === 'granted');
-      setIsChecking(false);
-    };
-    checkAccess();
-  }, []);
+  const isChecking = authLoading || roleLoading;
+  const hasAccess = !!user && hasDevAccess;
 
-  const handleLogout = () => {
-    SecureStorage.removeItem('admin_access');
-    setHasAccess(false);
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/login');
   };
 
   if (isChecking) {
@@ -44,8 +38,27 @@ const Admin = () => {
     );
   }
 
+  if (!user) {
+    navigate('/login');
+    return null;
+  }
+
   if (!hasAccess) {
-    return <AdminPasswordGate onPasswordCorrect={() => setHasAccess(true)} />;
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle>Access Denied</CardTitle>
+            <CardDescription>
+              You do not have permission to access the admin dashboard. This area is restricted to authorized administrators.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => navigate('/account')} className="w-full">Return to Dashboard</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
