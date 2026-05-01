@@ -1,76 +1,47 @@
-# Why your published changes aren't showing
+## Goal
+Fully remove PWA / service worker behavior so every visit to the live site and Lovable preview loads the latest published code. Add a one-time cleanup so users who already installed the old service worker get unstuck automatically.
 
-## Root cause
+## Changes
 
-Your project is configured as a **PWA (Progressive Web App)** in `vite.config.ts` using `vite-plugin-pwa`. Specifically:
+### 1. `vite.config.ts`
+- Remove the `import { VitePWA } from "vite-plugin-pwa"` line.
+- Remove the entire `VitePWA({ ... })` plugin block (manifest, workbox, runtimeCaching, navigateFallback, etc.).
+- Keep `react()` and `componentTagger()` plugins intact. No other build behavior changes.
 
-- `registerType: 'autoUpdate'`
-- A Workbox service worker is generated and registered on every visitor's browser
-- It pre-caches **all JS, CSS, HTML, images, fonts** (`globPatterns: ['**/*.{js,css,html,ico,png,jpg,jpeg,svg,woff,woff2}']`)
-- A separate `NetworkFirst` cache is also set up for Supabase calls
+### 2. `src/main.tsx`
+Replace the current "preview-only" SW unregister logic with an unconditional one-time cleanup that runs on every environment (preview + production):
+- Unregister every service worker registration returned by `navigator.serviceWorker.getRegistrations()`.
+- Delete every Cache Storage entry returned by `caches.keys()` (clears Workbox `html-cache`, `supabase-cache`, precache, etc.).
+- Wrap in try/catch and feature-detect `serviceWorker` / `caches` so it's a no-op in unsupported browsers.
+- Run before `createRoot(...).render(...)` but do not block rendering (fire-and-forget promises).
 
-What this means in practice:
+This is safe to leave in indefinitely — once a browser has no SW and no caches, the calls become no-ops. We can remove it in a future cleanup pass.
 
-1. The first time anyone visits your site, the service worker installs and caches the entire app.
-2. After you publish/update, the **server has the new files**, but returning visitors' browsers serve the **old cached files** from the service worker.
-3. The new service worker downloads in the background, but the user typically has to **close all tabs of the site and reopen** (or do a hard refresh + clear) before the update actually shows.
-4. This is why "Publish/Update" looks like it did nothing — the deployment succeeded, the cache is just intercepting it.
+### 3. `index.html`
+- Remove the `<link rel="manifest" href="/manifest.webmanifest" />` tag (the file no longer exists once VitePWA is gone).
+- Leave the PWA-style meta tags (`theme-color`, `apple-mobile-web-app-*`, `mobile-web-app-capable`) — they're harmless metadata and don't trigger SW behavior. Optional: remove the "PWA Meta Tags" comment.
 
-You can confirm this yourself right now: open the live site in an **incognito/private window** (no service worker yet) — you will almost certainly see the latest changes there, while your normal browser still shows the old version.
+### 4. `package.json`
+- Remove `"vite-plugin-pwa": "^1.2.0"` from `dependencies`.
+- Lockfile (`bun.lock` / `package-lock.json`) updates happen automatically on install.
 
-## Fix — two parts
+## What is intentionally NOT changed
+- `public/_redirects` — SPA fallback stays as-is. Routing, Supabase auth callbacks (`/~oauth`, `/auth/callback`), Stripe success routes, invite acceptance routes, and dashboard routes are all client-side React Router routes served via `/*  /index.html  200` and are unaffected.
+- `src/pages/Install.tsx` — the "Add to Home Screen" instructions page stays. Without a service worker, browsers can still pin the site to the home screen using basic metadata; only true offline support is lost.
+- `capacitor.config.ts` — unrelated to web SW.
+- No changes to AuthContext, Stripe checkout flows, or invite flows.
 
-### 1. Make updates take effect immediately for returning visitors
+## Verification after implementation
+1. Hard reload the live site twice — first reload installs the cleanup, second loads fresh code with no SW.
+2. DevTools → Application → Service Workers should show "no service workers".
+3. DevTools → Application → Cache Storage should be empty (or empty after one navigation).
+4. Subsequent publishes should appear immediately on next page load.
 
-Update `vite.config.ts` so the service worker:
-- Skips waiting and claims clients on activation (so a new SW takes over immediately instead of waiting for all tabs to close).
-- Uses `cleanupOutdatedCaches: true` to drop stale precache entries.
-- Switches HTML/navigation requests to `NetworkFirst` so the entry document always tries the network first and only falls back to cache when offline. This ensures users always get the latest `index.html`, which references the latest hashed JS/CSS bundles.
+## Follow-up (optional, later)
+After ~2–4 weeks the cleanup block in `main.tsx` can be deleted, since by then virtually all returning users will have had it run at least once.
 
-Conceptually:
-
-```text
-VitePWA({
-  registerType: 'autoUpdate',
-  workbox: {
-    cleanupOutdatedCaches: true,
-    skipWaiting: true,
-    clientsClaim: true,
-    navigateFallback: '/index.html',
-    runtimeCaching: [
-      { urlPattern: ({request}) => request.mode === 'navigate',
-        handler: 'NetworkFirst', options: { cacheName: 'html-cache' } },
-      ...existing supabase rule
-    ],
-  },
-})
-```
-
-### 2. One-time recovery for users already stuck on the old version
-
-Add a tiny SW-update prompt (or silent auto-reload) using `virtual:pwa-register` so that as soon as the new service worker is detected, the page reloads automatically. This ensures the next visit after publishing actually shows the new build, even for users who already have the old SW installed.
-
-Conceptually, in `src/main.tsx`:
-
-```text
-import { registerSW } from 'virtual:pwa-register';
-registerSW({ immediate: true, onNeedRefresh() { window.location.reload(); } });
-```
-
-## What to check before/after the fix
-
-- **Verify it's the cache, not the deploy**: open `https://www.getassetsafe.com` in an incognito window. If the latest changes appear there, this plan is the correct fix.
-- **After deploying the fix**: existing users may still need **one** more reload (because their currently-installed old SW has to fetch the new SW first). After that, all future updates will appear immediately.
-- For an immediate manual workaround on your own browser today: DevTools → Application → Service Workers → Unregister, then hard reload.
-
-## Files to change
-
-- `vite.config.ts` — harden the VitePWA/Workbox config (skipWaiting, clientsClaim, cleanupOutdatedCaches, NetworkFirst for navigations).
-- `src/main.tsx` — register the SW with auto-reload on update via `virtual:pwa-register`.
-
-No other code, routes, or features are affected.
-
-## Out of scope
-
-- Lovable's hosting/CDN: there's no evidence the platform itself is serving stale files; SPA fallback and redirects in `public/_redirects` look correct.
-- Custom domain DNS: domains resolve fine (you're seeing the site, just an old version).
+## Files touched
+- `vite.config.ts` (edit)
+- `src/main.tsx` (edit)
+- `index.html` (edit — remove manifest link)
+- `package.json` (remove dependency)
