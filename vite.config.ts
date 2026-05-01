@@ -44,7 +44,22 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,jpg,jpeg,svg,woff,woff2}'],
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10 MB limit
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true,
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/~oauth/],
         runtimeCaching: [
+          {
+            // Always try network for HTML navigations so users see the latest deploy
+            urlPattern: ({ request }: { request: Request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'html-cache',
+              networkTimeoutSeconds: 3,
+              expiration: { maxEntries: 32, maxAgeSeconds: 60 * 60 * 24 }
+            }
+          },
           {
             urlPattern: /^https:\/\/leotcbfpqiekgkgumecn\.supabase\.co\/.*/i,
             handler: 'NetworkFirst',
