@@ -3,27 +3,36 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 
-// Service worker hygiene:
-// - In the Lovable editor preview (iframe / preview hostnames), proactively
-//   unregister any service worker so cached builds never mask code changes.
-// - In production, the auto-generated SW (vite-plugin-pwa, registerType:
-//   'autoUpdate' + skipWaiting + clientsClaim) takes over on next load.
+// One-time cleanup: PWA / service worker support has been removed from this
+// project. Any browser that previously installed our service worker still has
+// it active and would keep serving stale cached assets. This block unregisters
+// every service worker and clears every Cache Storage entry so returning
+// visitors are immediately moved back to the live (network-served) version.
+//
+// Safe to leave in place: once a browser has no service workers and no caches,
+// these calls are no-ops. Can be removed in a future cleanup pass once the
+// majority of returning users have run it at least once.
 (() => {
-  if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
+  if (typeof window === 'undefined') return;
 
-  let inIframe = false;
-  try { inIframe = window.self !== window.top; } catch { inIframe = true; }
+  try {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations()
+        .then((regs) => Promise.all(regs.map((r) => r.unregister().catch(() => false))))
+        .catch(() => {});
+    }
+  } catch {
+    /* no-op */
+  }
 
-  const host = window.location.hostname;
-  const isPreviewHost =
-    host.includes('id-preview--') ||
-    host.includes('lovableproject.com') ||
-    host.includes('lovable.app') === false ? false : host.includes('lovable.app') && host.startsWith('id-preview--');
-
-  if (inIframe || isPreviewHost) {
-    navigator.serviceWorker.getRegistrations().then((regs) => {
-      regs.forEach((r) => r.unregister());
-    }).catch(() => {});
+  try {
+    if ('caches' in window) {
+      caches.keys()
+        .then((keys) => Promise.all(keys.map((k) => caches.delete(k).catch(() => false))))
+        .catch(() => {});
+    }
+  } catch {
+    /* no-op */
   }
 })();
 
