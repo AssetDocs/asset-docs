@@ -165,7 +165,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (lastSignedInTokenRef.current === currentSession.access_token) {
         lastSignedInTokenRef.current = null; // consume
 
-        supabase.functions.invoke('check-subscription').catch(console.error);
+        // Skip Stripe check-subscription for non-owner members (authorized
+        // users) — they inherit billing from the account owner and have no
+        // Stripe customer of their own. Avoids spurious 4xx noise on signin.
+        try {
+          const { data: nonOwnerMembership } = await supabase
+            .from('account_memberships')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('status', 'active')
+            .neq('role', 'owner')
+            .limit(1)
+            .maybeSingle();
+
+          if (!nonOwnerMembership) {
+            supabase.functions.invoke('check-subscription').catch(console.error);
+          }
+        } catch {
+          // Fail open — if the membership probe errors, fall back to running
+          // check-subscription so owners are never left without a subscription
+          // refresh.
+          supabase.functions.invoke('check-subscription').catch(console.error);
+        }
 
         // Legacy fallback: accept-contributor-invitation handles edge cases where
         // an existing user is invited to a second account. New invitees use the
