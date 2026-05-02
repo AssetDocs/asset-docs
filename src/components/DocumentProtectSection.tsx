@@ -71,7 +71,7 @@ const DocumentProtectSection: React.FC = () => {
 
             {/* Security & Privacy expandable */}
             <div
-            className="mt-10 -mx-6 -mb-6 px-6 pb-6 pt-8 border-t border-border rounded-b-lg"
+            className="mt-auto -mx-6 -mb-6 px-6 pb-6 pt-8 border-t border-border rounded-b-lg"
               style={{ background: 'linear-gradient(to bottom, transparent, rgba(42,157,143,0.18))' }}
             >
               <button
@@ -114,7 +114,7 @@ const DocumentProtectSection: React.FC = () => {
 
             {/* Expandable more items */}
             <div
-              className="mt-10 -mx-6 -mb-6 px-6 pb-6 pt-8 border-t border-border rounded-b-lg"
+              className="mt-auto -mx-6 -mb-6 px-6 pb-6 pt-8 border-t border-border rounded-b-lg"
               style={{ background: 'linear-gradient(to bottom, transparent, rgba(42,157,143,0.18))' }}
             >
               <button
