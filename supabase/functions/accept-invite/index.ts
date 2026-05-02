@@ -153,6 +153,24 @@ serve(async (req: Request) => {
       }
     }
 
+    // Mark the invited user's profile as fully provisioned. AUs set a real
+    // password during signup and do NOT run the owner onboarding wizard, so
+    // these flags must be flipped here to prevent ProtectedRoute from
+    // bouncing them to /welcome/create-password or /onboarding. Also pin
+    // last_used_account_id so they land on the inviter's account.
+    try {
+      await supabaseAdmin
+        .from('profiles')
+        .update({
+          password_set: true,
+          onboarding_complete: true,
+          last_used_account_id: invite.account_id,
+        })
+        .eq('user_id', user.id);
+    } catch (e) {
+      console.error('[ACCEPT-INVITE] Profile flag update failed (non-fatal):', e);
+    }
+
     // Log activity
     try {
       const { data: account } = await supabaseAdmin
