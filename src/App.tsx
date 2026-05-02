@@ -303,6 +303,14 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
     return <>{children}</>;
   }
 
+  // Non-owner members (authorized users): inherit access from the owner's
+  // account. They set a real password during signup and never run the owner
+  // onboarding wizard, so bypass the password_set / onboarding_complete /
+  // email_confirmed / subscription gates entirely.
+  if (!memberLoading && isMemberUser) {
+    return <>{children}</>;
+  }
+
   // Enforce password setup for new users (catches both null and false)
   if (profile && !profile.password_set) {
     return <Navigate to="/welcome/create-password" replace />;
@@ -313,12 +321,11 @@ const ProtectedRoute = ({ children, skipSubscriptionCheck = false }: { children:
     return <Navigate to="/onboarding" replace />;
   }
 
-  // Check if email is verified — authorized users (non-owner members) bypass this gate
-  // since their email is pre-confirmed via the invite flow.
-  // Also bypass if user_metadata marks them as an invited user — this handles
-  // the JWT-refresh race window where membership hasn't re-resolved yet.
+  // Check if email is verified — also bypass if user_metadata marks them as
+  // an invited user (covers the JWT-refresh race window before membership
+  // re-resolves).
   const isInvitedUser = !!user?.user_metadata?.invited_as_contributor;
-  if (!skipSubscriptionCheck && user && !user.email_confirmed_at && !isMemberUser && !isInvitedUser) {
+  if (!skipSubscriptionCheck && user && !user.email_confirmed_at && !isInvitedUser) {
     return <Navigate to="/welcome" replace />;
   }
 
