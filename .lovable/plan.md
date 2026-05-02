@@ -1,47 +1,30 @@
 ## Goal
-Fully remove PWA / service worker behavior so every visit to the live site and Lovable preview loads the latest published code. Add a one-time cleanup so users who already installed the old service worker get unstuck automatically.
 
-## Changes
+Clean up the "How It Works" and "What You Get" cards in `src/components/DocumentProtectSection.tsx` so descriptions fit on a single line and the expandable footers ("🔒 Security & Privacy" and "More ways Asset Safe supports your life") have more vertical breathing room.
 
-### 1. `vite.config.ts`
-- Remove the `import { VitePWA } from "vite-plugin-pwa"` line.
-- Remove the entire `VitePWA({ ... })` plugin block (manifest, workbox, runtimeCaching, navigateFallback, etc.).
-- Keep `react()` and `componentTagger()` plugins intact. No other build behavior changes.
+## Changes (single file: `src/components/DocumentProtectSection.tsx`)
 
-### 2. `src/main.tsx`
-Replace the current "preview-only" SW unregister logic with an unconditional one-time cleanup that runs on every environment (preview + production):
-- Unregister every service worker registration returned by `navigator.serviceWorker.getRegistrations()`.
-- Delete every Cache Storage entry returned by `caches.keys()` (clears Workbox `html-cache`, `supabase-cache`, precache, etc.).
-- Wrap in try/catch and feature-detect `serviceWorker` / `caches` so it's a no-op in unsupported browsers.
-- Run before `createRoot(...).render(...)` but do not block rendering (fire-and-forget promises).
+1. **Widen the two-column grid**
+   - Current: `max-w-5xl` (1024px) wrapping the `grid grid-cols-1 lg:grid-cols-2`.
+   - Change to `max-w-7xl` (1280px) so each card is wider and long descriptions like:
+     - "Access verified records whenever insurance, legal, or estate needs arise."
+     - "Time-stamped, secure records you can trust"
+     - "Encrypted storage for life's most important details and instructions."
+     fit on a single line at `lg:` breakpoint and above.
+   - Keep the existing `gap-8` between columns.
 
-This is safe to leave in indefinitely — once a browser has no SW and no caches, the calls become no-ops. We can remove it in a future cleanup pass.
+2. **Add vertical breathing room above the expandable footer sections**
+   - Both cards have a footer block with `mt-auto -mx-6 -mb-6 px-6 pb-6 pt-4 border-t`.
+   - Increase the top padding from `pt-4` to `pt-8` so the "🔒 Security & Privacy" toggle and the "More ways Asset Safe supports your life" toggle sit further down from the steps/features list above them.
+   - Also add `mt-8` (or `mt-10`) before the `mt-auto` block to guarantee extra space even when content is short — keep `mt-auto` so it still sticks to the bottom when the column is taller.
 
-### 3. `index.html`
-- Remove the `<link rel="manifest" href="/manifest.webmanifest" />` tag (the file no longer exists once VitePWA is gone).
-- Leave the PWA-style meta tags (`theme-color`, `apple-mobile-web-app-*`, `mobile-web-app-capable`) — they're harmless metadata and don't trigger SW behavior. Optional: remove the "PWA Meta Tags" comment.
+3. **No content/text changes** — only layout/spacing adjustments. Both cards remain visually balanced (`items-stretch` already in place).
 
-### 4. `package.json`
-- Remove `"vite-plugin-pwa": "^1.2.0"` from `dependencies`.
-- Lockfile (`bun.lock` / `package-lock.json`) updates happen automatically on install.
+## Out of scope
 
-## What is intentionally NOT changed
-- `public/_redirects` — SPA fallback stays as-is. Routing, Supabase auth callbacks (`/~oauth`, `/auth/callback`), Stripe success routes, invite acceptance routes, and dashboard routes are all client-side React Router routes served via `/*  /index.html  200` and are unaffected.
-- `src/pages/Install.tsx` — the "Add to Home Screen" instructions page stays. Without a service worker, browsers can still pin the site to the home screen using basic metadata; only true offline support is lost.
-- `capacitor.config.ts` — unrelated to web SW.
-- No changes to AuthContext, Stripe checkout flows, or invite flows.
-
-## Verification after implementation
-1. Hard reload the live site twice — first reload installs the cleanup, second loads fresh code with no SW.
-2. DevTools → Application → Service Workers should show "no service workers".
-3. DevTools → Application → Cache Storage should be empty (or empty after one navigation).
-4. Subsequent publishes should appear immediately on next page load.
-
-## Follow-up (optional, later)
-After ~2–4 weeks the cleanup block in `main.tsx` can be deleted, since by then virtually all returning users will have had it run at least once.
+- No font, color, or copy edits.
+- No changes to the mobile (single-column) layout — wider `max-w-7xl` only affects `lg:` and up; mobile still stacks full-width within the container.
 
 ## Files touched
-- `vite.config.ts` (edit)
-- `src/main.tsx` (edit)
-- `index.html` (edit — remove manifest link)
-- `package.json` (remove dependency)
+
+- `src/components/DocumentProtectSection.tsx` (one file, ~3 small edits)
