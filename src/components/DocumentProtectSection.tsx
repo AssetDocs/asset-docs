@@ -51,7 +51,7 @@ const DocumentProtectSection: React.FC = () => {
         <p className="text-center text-base md:text-lg text-muted-foreground mb-4">Perfect for homeowners, families, landlords, and small business owners.</p>
         <h2 className="section-title mb-10">Most people don't realize how unprepared they are—until it's too late.</h2>
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto items-stretch">
           {/* Left: 3-Step Process in Single Box */}
           <div className="bg-card rounded-lg border border-border shadow-sm p-6 flex flex-col h-full">
             <h3 className="text-lg font-semibold text-foreground mb-6">How It Works</h3>
