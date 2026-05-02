@@ -1,30 +1,23 @@
 ## Goal
+Add more breathing room between the last bullet in each box ("Access verified records..." and "Grant secure access...") and the horizontal divider line above the "🔒 Security & Privacy" / "More ways Asset Safe supports your life" toggles.
 
-Clean up the "How It Works" and "What You Get" cards in `src/components/DocumentProtectSection.tsx` so descriptions fit on a single line and the expandable footers ("🔒 Security & Privacy" and "More ways Asset Safe supports your life") have more vertical breathing room.
+## Change
+File: `src/components/DocumentProtectSection.tsx`
 
-## Changes (single file: `src/components/DocumentProtectSection.tsx`)
+On both expandable footer wrappers (the two `<div>`s with `className="mt-auto -mx-6 -mb-6 px-6 pb-6 pt-8 border-t border-border rounded-b-lg"`), add a top margin so the border-top sits further below the content list.
 
-1. **Widen the two-column grid**
-   - Current: `max-w-5xl` (1024px) wrapping the `grid grid-cols-1 lg:grid-cols-2`.
-   - Change to `max-w-7xl` (1280px) so each card is wider and long descriptions like:
-     - "Access verified records whenever insurance, legal, or estate needs arise."
-     - "Time-stamped, secure records you can trust"
-     - "Encrypted storage for life's most important details and instructions."
-     fit on a single line at `lg:` breakpoint and above.
-   - Keep the existing `gap-8` between columns.
+Update class from:
+```
+mt-auto -mx-6 -mb-6 px-6 pb-6 pt-8 border-t border-border rounded-b-lg
+```
+to:
+```
+mt-10 -mx-6 -mb-6 px-6 pb-6 pt-8 border-t border-border rounded-b-lg
+```
 
-2. **Add vertical breathing room above the expandable footer sections**
-   - Both cards have a footer block with `mt-auto -mx-6 -mb-6 px-6 pb-6 pt-4 border-t`.
-   - Increase the top padding from `pt-4` to `pt-8` so the "🔒 Security & Privacy" toggle and the "More ways Asset Safe supports your life" toggle sit further down from the steps/features list above them.
-   - Also add `mt-8` (or `mt-10`) before the `mt-auto` block to guarantee extra space even when content is short — keep `mt-auto` so it still sticks to the bottom when the column is taller.
+Replacing `mt-auto` with `mt-10` (40px) gives a guaranteed gap above the divider on both cards. Because both cards use the same value and the grid uses `items-stretch`, the cards will continue to align in height. The `pt-8` inside the footer keeps the toggle button itself spaced below the divider (already addressed in the prior change).
 
-3. **No content/text changes** — only layout/spacing adjustments. Both cards remain visually balanced (`items-stretch` already in place).
+If after review the cards no longer match heights perfectly due to differing content lengths, we can switch to `mt-10 lg:mt-auto lg:pt-16` to restore stretch behavior while keeping the visual gap — but the simpler `mt-10` is the first step.
 
-## Out of scope
-
-- No font, color, or copy edits.
-- No changes to the mobile (single-column) layout — wider `max-w-7xl` only affects `lg:` and up; mobile still stacks full-width within the container.
-
-## Files touched
-
-- `src/components/DocumentProtectSection.tsx` (one file, ~3 small edits)
+## Files Changed
+- `src/components/DocumentProtectSection.tsx` (two class updates)
