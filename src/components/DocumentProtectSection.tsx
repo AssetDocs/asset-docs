@@ -49,7 +49,7 @@ const DocumentProtectSection: React.FC = () => {
     <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
         <p className="text-center text-base md:text-lg text-muted-foreground mb-4">Perfect for homeowners, families, landlords, and small business owners.</p>
-        <h2 className="section-title mb-10">Most people don't realize how unprepared they are—until it's too late.</h2>
+        <h2 className="section-title mb-10">When life gets unpredictable, everything you need is already in place.</h2>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto items-stretch">
           {/* Left: 3-Step Process in Single Box */}
@@ -145,9 +145,6 @@ const DocumentProtectSection: React.FC = () => {
 
         {/* CTAs */}
         <div className="mt-8 text-center space-y-3">
-          <p className="text-foreground text-xl md:text-2xl font-semibold md:whitespace-nowrap">
-            When life gets unpredictable, you won't have to rely on memory — Asset Safe has it covered.
-          </p>
           <p className="text-primary text-lg md:text-xl font-medium mx-auto max-w-md text-center md:whitespace-nowrap md:max-w-none">
             Not just storage — a guided path to being fully prepared.
           </p>
