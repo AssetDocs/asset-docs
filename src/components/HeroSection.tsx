@@ -17,10 +17,10 @@ const HeroSection: React.FC = () => {
               Your family's assets — secured today, ready for generations.
             </p>
             <p className="text-xl mb-4 animate-slide-up text-white/85">
-              Document your home, belongings, and important records—so you're prepared for the unexpected.
+              Insurance-ready documentation, secure digital vaults, and legacy planning tools — all in one system.
             </p>
             <p className="text-lg mb-4 animate-slide-up text-white/70">
-              Insurance-ready documentation, secure digital vaults, and legacy planning tools — all in one system.
+              Document your home, belongings, and important records — so you're ready when it matters.
             </p>
             
             <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 animate-slide-up">
