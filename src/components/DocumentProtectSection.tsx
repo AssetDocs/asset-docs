@@ -121,7 +121,7 @@ const DocumentProtectSection: React.FC = () => {
                 onClick={() => setMoreOpen(!moreOpen)}
                 className="flex w-full items-center justify-between gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
-                <span>More ways Asset Safe supports your life</span>
+                <span>✨ Explore everything included</span>
                 <ChevronDown className={cn("w-4 h-4 transition-transform duration-200", moreOpen && "rotate-180")} />
               </button>
               <div
@@ -146,7 +146,7 @@ const DocumentProtectSection: React.FC = () => {
         {/* CTAs */}
         <div className="mt-8 text-center space-y-3">
           <p className="text-foreground text-xl md:text-2xl font-semibold md:whitespace-nowrap">
-            After damage happens, you won't remember everything you owned — but Asset Safe will.
+            When life gets unpredictable, you won't have to rely on memory — Asset Safe has it covered.
           </p>
           <p className="text-primary text-lg md:text-xl font-medium mx-auto max-w-md text-center md:whitespace-nowrap md:max-w-none">
             Not just storage — a guided path to being fully prepared.
