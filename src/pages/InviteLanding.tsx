@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAccount } from '@/contexts/AccountContext';
@@ -11,38 +11,71 @@ import { Users, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react';
 const InviteLanding: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
   const { switchAccount, refreshAccount } = useAccount();
   const token = searchParams.get('token');
+  const stateAccessToken = (location.state as any)?.accessToken as string | undefined;
 
   const [status, setStatus] = useState<'loading' | 'ready' | 'accepting' | 'accepted' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState('');
   const [inviteInfo, setInviteInfo] = useState<{ role: string; ownerName: string; accountId: string } | null>(null);
 
   useEffect(() => {
-    if (authLoading) return;
     if (!token) {
       setStatus('error');
       setErrorMessage('No invitation token provided. Please check your invite link.');
       return;
     }
 
-    if (isAuthenticated && user) {
-      acceptInvite();
-    } else {
-      setStatus('ready');
-    }
-  }, [token, isAuthenticated, user, authLoading]);
+    let cancelled = false;
 
-  const acceptInvite = async () => {
+    // Fast path: token passed via navigation state from signup
+    if (stateAccessToken) {
+      acceptInvite(stateAccessToken);
+      return;
+    }
+
+    // If auth context already has the user, accept immediately
+    if (!authLoading && isAuthenticated && user) {
+      acceptInvite();
+      return;
+    }
+
+    // Otherwise poll for a session before falling back to ready state.
+    // Handles the race where signIn() resolves before AuthContext propagates.
+    const poll = async () => {
+      for (let i = 0; i < 12; i++) {
+        if (cancelled) return;
+        const { data } = await supabase.auth.getSession();
+        if (data?.session?.access_token) {
+          acceptInvite(data.session.access_token);
+          return;
+        }
+        await new Promise(r => setTimeout(r, 500));
+      }
+      if (!cancelled) setStatus('ready');
+    };
+
+    if (!authLoading) poll();
+
+    return () => { cancelled = true; };
+  }, [token, isAuthenticated, user?.id, authLoading, stateAccessToken]);
+
+  const acceptInvite = async (accessTokenOverride?: string) => {
     if (!token) return;
     setStatus('accepting');
 
     try {
-      const { data: session } = await supabase.auth.getSession();
+      let accessToken = accessTokenOverride;
+      if (!accessToken) {
+        const { data: session } = await supabase.auth.getSession();
+        accessToken = session?.session?.access_token;
+      }
+
       const { data, error } = await supabase.functions.invoke('accept-invite', {
         body: { token },
-        headers: session?.session ? { Authorization: `Bearer ${session.session.access_token}` } : undefined,
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
       });
 
       if (error) throw error;
@@ -61,7 +94,6 @@ const InviteLanding: React.FC = () => {
       });
       setStatus('accepted');
 
-      // Refresh memberships then switch to the invited account
       if (acceptedAccountId) {
         await refreshAccount();
         await switchAccount(acceptedAccountId);

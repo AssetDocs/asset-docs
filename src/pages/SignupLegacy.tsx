@@ -143,6 +143,7 @@ const Signup: React.FC = () => {
           // auto-confirm the email server-side, sign the user in, then send
           // them to the invite landing which accepts the invite and routes
           // straight to /account.
+          let accessToken: string | undefined;
           try {
             const inviteToken = new URLSearchParams(redirectParam.split('?')[1] || '').get('token');
             if (inviteToken) {
@@ -153,11 +154,15 @@ const Signup: React.FC = () => {
             const { error: signInError } = await signIn(data.email, data.password);
             if (signInError) {
               console.warn('Invite auto sign-in failed, falling back to invite landing:', signInError);
+            } else {
+              // Pull session token to hand off directly — avoids race with AuthContext
+              const { data: sessionData } = await supabase.auth.getSession();
+              accessToken = sessionData?.session?.access_token;
             }
           } catch (e) {
             console.error('Invite auto-confirm error:', e);
           }
-          navigate(redirectParam, { replace: true });
+          navigate(redirectParam, { replace: true, state: accessToken ? { accessToken } : undefined });
         } else {
           // Redirect to welcome page for email verification prompt
           const giftCodeParam = data.giftCode?.trim() ? `?giftCode=${encodeURIComponent(data.giftCode.trim())}` : '';
