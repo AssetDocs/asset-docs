@@ -1,110 +1,43 @@
-## Audit of the current Authorized User (AU) invite flow
+## Problem
 
-I traced every step end-to-end. Below is what happens today, what's correct, and the three concrete bugs that were almost certainly producing the broken behavior you saw (the PWA cache likely masked these too — but they're real).
+After an Authorized User completes the signup form at `/signup?mode=invite&...`, they get bounced back to `/invite?token=...` and see the "Create Account / Sign In" card again instead of being accepted into the account and routed to `/account`.
 
-### Step-by-step trace
+## Root Cause
 
-1. **Owner invites AU** — `AuthorizedUsersTab` → `send-invite` edge function. It validates the owner, creates a row in `invites` (token hashed), and emails a link to `https://www.getassetsafe.com/invite?token=…&email=…`. ✅ Correct.
+A race condition between Supabase's auth hydration and React Router navigation:
 
-2. **AU receives email** — Branded Resend email with "Accept Invitation" button pointing at `/invite?token=…&email=…`. ✅ Correct.
+1. `SignupLegacy.tsx` calls `signUp()` → `confirm-invite-email` → `signIn()` → `navigate(redirectParam)`.
+2. `signIn()` resolves before `AuthContext`'s `onAuthStateChange` SIGNED_IN event finishes propagating user/session into React state.
+3. `InviteLanding.tsx` mounts, reads `authLoading=false` and `user=null`, and falls through to `setStatus('ready')` — re-showing the signup/login card.
+4. By the time the session does land, the component has already rendered the wrong state and never retries.
 
-3. **AU clicks link → `/invite` (`InviteLanding`)** — If not logged in, shows "Create Account" / "Sign In". "Create Account" routes to `/signup?mode=invite&email=…&redirect=/invite?token=…`. The email field is pre-filled and locked. ✅ Correct.
+The `accept-invite` edge function and downstream gating (profile flags, ProtectedRoute member bypass) are already correct — the bug is purely the client-side hydration race.
 
-4. **AU completes signup (`SignupLegacy`)** — On success, because `mode=invite`:
-   - Calls `confirm-invite-email` (auto-confirms the auth user's email since the invite token proves mailbox ownership). ✅
-   - Calls `signIn(email, password)` to establish a session. ✅
-   - Navigates back to `/invite?token=…`. ✅
+## Fix
 
-5. **Back at `/invite` authenticated → `accept-invite`** — Validates token + email, creates `account_memberships` row (role = `full_access` or `read_only`), marks invite `accepted`, refreshes memberships, switches to that account, redirects to `/account` after 2s. ✅
+### 1. `src/pages/InviteLanding.tsx` — eliminate the race
 
-6. **`/account` is wrapped in `ProtectedRoute`** — This is where the flow currently breaks. See bugs below.
+- Replace the single `useEffect` check with a short polling window that calls `supabase.auth.getSession()` directly (up to ~5s, every 500ms) before falling back to the "ready" state.
+- If a session shows up during the poll, call `accept-invite` immediately using that session's `access_token` rather than waiting for `isAuthenticated` to flip in context.
+- Keep current behavior when the user truly is unauthenticated (no session after polling) → show signup/login card as today.
 
-7. **`AccountContext`** — Once on `/account`, derives the active account from `account_memberships`. `canEdit = isOwner || isFullAccess`, `isReadOnly` blocks mutations. ✅ Permissions are wired correctly downstream.
+### 2. `src/pages/SignupLegacy.tsx` — make the invite handoff deterministic
 
----
+- After `confirm-invite-email` + `signIn`, await `supabase.auth.getSession()` and confirm a session exists before navigating.
+- If a session is present, navigate to `/invite?token=...` with `replace: true` and pass the `accessToken` via `navigate(..., { state: { accessToken } })` so `InviteLanding` can use it on first render with zero wait.
+- If `signIn` fails (rare), still navigate to the invite landing — the polling loop will recover.
 
-### 🔴 Bug 1 — New AU is bounced to `/welcome/create-password`
+### 3. `InviteLanding.tsx` — consume the optional `location.state.accessToken`
 
-`profiles.password_set` defaults to `false` (migration `20260301162927`). `ProtectedRoute` (App.tsx:307) redirects any user with `password_set !== true` to `/welcome/create-password`. The AU just set a real password during signup, but nothing flips that flag, so they're forced to set it again.
+- If present, skip polling entirely and call `accept-invite` immediately with that token.
 
-### 🔴 Bug 2 — New AU is then bounced to `/onboarding`
+## Files Changed
 
-`profiles.onboarding_complete` also defaults to `false`. App.tsx:312 redirects to `/onboarding`. Onboarding is the property/asset wizard meant for owners — an AU who just accepted an invite shouldn't see it at all.
+- `src/pages/InviteLanding.tsx` — add session polling + optional `location.state.accessToken` fast-path.
+- `src/pages/SignupLegacy.tsx` — pass session token via navigation state after invite signup.
 
-(`complete-contributor-signup` does set both flags, but that's the legacy path. The current `accept-invite` function does not.)
+No changes to edge functions, DB, or routing config.
 
-### 🟡 Bug 3 — Stripe `check-subscription` runs unnecessarily for AUs
+## Expected Result
 
-`AuthContext` fires `check-subscription` on every SIGNED_IN event for every user, including invited AUs who will never have their own Stripe customer. It's not fatal (ProtectedRoute has a membership-based bypass), but it produces a confusing 4xx in the logs and a brief flicker. Skip the call when the user has a non-owner active membership.
-
----
-
-## What to change (3 fixes)
-
-### Fix 1 — `accept-invite` marks the AU profile as fully provisioned
-
-In `supabase/functions/accept-invite/index.ts`, after the membership insert/reactivate succeeds, update the AU's profile row:
-
-```ts
-await supabaseAdmin
-  .from('profiles')
-  .update({
-    password_set: true,        // they set a real password during signup
-    onboarding_complete: true, // AUs do not run the owner onboarding wizard
-    last_used_account_id: invite.account_id, // land on the inviter's account
-  })
-  .eq('user_id', user.id);
-```
-
-Result: when the AU lands on `/account`, both gates pass and they see the owner's dashboard immediately.
-
-### Fix 2 — `ProtectedRoute` short-circuits the password/onboarding gates for non-owner members
-
-Belt-and-suspenders for the JWT-refresh race window (membership fetched, profile flags not yet refreshed). In `src/App.tsx` `ProtectedRoute`, move the existing `isMemberUser` check above the `password_set` and `onboarding_complete` redirects:
-
-```tsx
-// Non-owner members: skip owner-only gates entirely
-if (!memberLoading && isMemberUser) {
-  return <>{children}</>;
-}
-
-if (profile && !profile.password_set) { … }
-if (profile && profile.onboarding_complete === false) { … }
-```
-
-This guarantees an AU never gets bounced into the owner setup flow even on the first render after the invite is accepted.
-
-### Fix 3 — Skip `check-subscription` for AUs in `AuthContext`
-
-In `src/contexts/AuthContext.tsx` (the SIGNED_IN side-effect block in the profile useEffect), check membership first and only invoke `check-subscription` when the user has no active non-owner membership. Cheap query, no behavior change for owners.
-
----
-
-## Permissions confirmation (Step 7)
-
-The role mapping is already correct and does not need changes:
-
-| Invite role     | `account_memberships.role` | `canEdit` | `canDelete` | Sees dashboard |
-|-----------------|----------------------------|-----------|-------------|----------------|
-| Full Access     | `full_access`              | ✅        | ❌          | ✅ owner's     |
-| Read Only       | `read_only`                | ❌        | ❌          | ✅ owner's (read) |
-
-`AccountContext` derives `accountId` from the active membership, so `useProperties`, `useFileUpload`, etc. all scope to the owner's `account_id`. Read Only users hit `showReadOnlyRestriction()` on any mutation. Full Access can add/edit/delete content but cannot manage billing or settings (`canManageBilling`, `canAccessSettings` are owner-only). This matches your spec.
-
----
-
-## Files to change
-
-1. `supabase/functions/accept-invite/index.ts` — add the profile update after successful membership insert.
-2. `src/App.tsx` — reorder the `ProtectedRoute` gates so member bypass runs before password/onboarding checks.
-3. `src/contexts/AuthContext.tsx` — gate the `check-subscription` invoke on "not a non-owner member".
-
-No DB migration required. No changes to the Stripe webhook, `/account`, or any owner-facing route.
-
----
-
-## What this should produce after approval
-
-- AU clicks email link → signs up → no second email confirmation → no password re-prompt → no onboarding wizard → lands directly on the owner's `/account` dashboard with the correct role applied.
-- Repeat invites to the same email continue to work (existing-membership reactivation path is untouched).
-- Owner-side flows (billing, settings, invites, property edits) are unaffected.
+AU clicks email link → fills signup form → lands on `/invite` briefly (spinner, "Accepting invitation…") → `/account` dashboard. The "Create Account / Sign In" card is never re-shown after a successful signup.
