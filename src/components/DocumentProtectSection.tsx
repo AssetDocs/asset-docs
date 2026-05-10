@@ -6,14 +6,14 @@ import SecurityBadges from './SecurityBadges';
 import { cn } from '@/lib/utils';
 
 const moreItems = [
+  'Property profiles (homes, rentals, vacation properties)',
+  'Secure sharing with authorized users',
   'Guided documentation checklists',
   'Room-by-room inventory tools',
   'Insurance & claim-ready exports',
   'Emergency instructions',
   'Password & digital access catalog',
   'Family archive (memories, notes, history)',
-  'Property profiles (homes, rentals, vacation properties)',
-  'Secure sharing with authorized users',
   'Post-damage documentation tools',
 ];
 
