@@ -58,6 +58,14 @@ const Navbar: React.FC = () => {
                    </NavLink>
                    <AccountSwitcher />
                  <NavLink
+                   to="/about"
+                   className={({ isActive }) =>
+                     `text-gray-700 hover:text-brand-blue transition-colors ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
+                   }
+                 >
+                   About
+                 </NavLink>
+                 <NavLink
                    to="/features" 
                    className={({ isActive }) => 
                      `text-gray-700 hover:text-brand-blue transition-colors ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
@@ -211,6 +219,15 @@ const Navbar: React.FC = () => {
                    >
                      <Home className="h-4 w-4 mr-1" />
                      {translate('nav.dashboard')}
+                   </NavLink>
+                   <NavLink
+                     to="/about"
+                     className={({ isActive }) =>
+                       `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
+                     }
+                     onClick={() => setIsMenuOpen(false)}
+                   >
+                     About
                    </NavLink>
                    <NavLink 
                      to="/features" 
