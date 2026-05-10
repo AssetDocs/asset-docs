@@ -27,6 +27,13 @@ interface AccountContextType {
   // Switch function
   switchAccount: (accountId: string) => Promise<void>;
 
+  // Workspace context flags
+  isViewingOwnWorkspace: boolean;
+  isViewingSharedWorkspace: boolean;
+  hasPersonalWorkspace: boolean;
+  ownedWorkspaceId: string | null;
+  sharedWorkspaceIds: string[];
+
   // Permission flags
   isOwner: boolean;
   isFullAccess: boolean;
@@ -143,7 +150,11 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
         if (lastUsed && accountList.some(a => a.accountId === lastUsed)) {
           setActiveAccountId(lastUsed);
         } else {
-          setActiveAccountId(accountList[0]?.accountId || null);
+          // If user has any shared (non-owner) memberships, prefer those by default.
+          // This ensures unpaid Authorized Users land in their working shared
+          // workspace instead of an unpaid personal workspace preview.
+          const firstShared = accountList.find(a => a.role !== 'owner');
+          setActiveAccountId(firstShared?.accountId || accountList[0]?.accountId || null);
         }
       }
     } catch (error) {
@@ -201,6 +212,14 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const isMember = !isOwner && accountRole !== null;
   const isContributor = isMember; // legacy compat: true when non-owner member
 
+  const ownedAccounts = accounts.filter(a => a.role === 'owner');
+  const sharedAccounts = accounts.filter(a => a.role !== 'owner');
+  const isViewingOwnWorkspace = accountRole === 'owner';
+  const isViewingSharedWorkspace = accountRole === 'full_access' || accountRole === 'read_only';
+  const hasPersonalWorkspace = ownedAccounts.length > 0;
+  const ownedWorkspaceId = ownedAccounts[0]?.accountId || null;
+  const sharedWorkspaceIds = sharedAccounts.map(a => a.accountId);
+
   const showReadOnlyRestriction = () => {
     toast({
       title: "Access Restricted",
@@ -219,6 +238,11 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
         accounts,
         hasMultipleAccounts,
         switchAccount,
+        isViewingOwnWorkspace,
+        isViewingSharedWorkspace,
+        hasPersonalWorkspace,
+        ownedWorkspaceId,
+        sharedWorkspaceIds,
         isOwner,
         isFullAccess,
         isReadOnly,
