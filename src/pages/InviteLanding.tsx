@@ -95,8 +95,11 @@ const InviteLanding: React.FC = () => {
       setStatus('accepted');
 
       if (acceptedAccountId) {
+        // accept-invite edge function already pinned last_used_account_id on
+        // the profile; refreshing memberships is enough. Calling switchAccount
+        // here races with setAccounts() and trips a spurious "Account Not
+        // Found" toast.
         await refreshAccount();
-        await switchAccount(acceptedAccountId);
       }
 
       setTimeout(() => {

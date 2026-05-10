@@ -1,43 +1,38 @@
-## Problem
+## What the red box said
 
-After an Authorized User completes the signup form at `/signup?mode=invite&...`, they get bounced back to `/invite?token=...` and see the "Create Account / Sign In" card again instead of being accepted into the account and routed to `/account`.
+`Account Not Found — You do not have access to that account.`
 
-## Root Cause
+It comes from `src/contexts/AccountContext.tsx` (`switchAccount`, lines 156–165). When the target account isn't in the local `accounts` array yet, it fires this destructive toast.
 
-A race condition between Supabase's auth hydration and React Router navigation:
+## Why it briefly appeared
 
-1. `SignupLegacy.tsx` calls `signUp()` → `confirm-invite-email` → `signIn()` → `navigate(redirectParam)`.
-2. `signIn()` resolves before `AuthContext`'s `onAuthStateChange` SIGNED_IN event finishes propagating user/session into React state.
-3. `InviteLanding.tsx` mounts, reads `authLoading=false` and `user=null`, and falls through to `setStatus('ready')` — re-showing the signup/login card.
-4. By the time the session does land, the component has already rendered the wrong state and never retries.
+In `src/pages/InviteLanding.tsx` (lines 97–100), right after `accept-invite` succeeds we do:
 
-The `accept-invite` edge function and downstream gating (profile flags, ProtectedRoute member bypass) are already correct — the bug is purely the client-side hydration race.
+```ts
+await refreshAccount();
+await switchAccount(acceptedAccountId);
+```
 
-## Fix
+`refreshAccount()` triggers an async `fetchAllMemberships()` and resolves, but React's `setAccounts(...)` state update is not yet visible in the same render cycle. So `switchAccount(acceptedAccountId)` reads the **stale** `accounts` array (closure value, before the new membership lands), can't find the new account, and fires the "Account Not Found" destructive toast. A moment later the new memberships propagate, the active account gets set via the existing `last_used_account_id` logic, and the user lands on `/account` correctly — which is why the toast disappears quickly.
 
-### 1. `src/pages/InviteLanding.tsx` — eliminate the race
+## Is the toast necessary?
 
-- Replace the single `useEffect` check with a short polling window that calls `supabase.auth.getSession()` directly (up to ~5s, every 500ms) before falling back to the "ready" state.
-- If a session shows up during the poll, call `accept-invite` immediately using that session's `access_token` rather than waiting for `isAuthenticated` to flip in context.
-- Keep current behavior when the user truly is unauthenticated (no session after polling) → show signup/login card as today.
+Yes — it's a real safeguard for the case where someone calls `switchAccount` with an ID they have no membership for. We shouldn't remove it. We just shouldn't trip it during the invite-accept hand-off.
 
-### 2. `src/pages/SignupLegacy.tsx` — make the invite handoff deterministic
+The `accept-invite` edge function already pins `last_used_account_id` on the profile, so once memberships refresh, the correct account is auto-selected. The extra `switchAccount` call in `InviteLanding` is redundant — and harmful because of the race.
 
-- After `confirm-invite-email` + `signIn`, await `supabase.auth.getSession()` and confirm a session exists before navigating.
-- If a session is present, navigate to `/invite?token=...` with `replace: true` and pass the `accessToken` via `navigate(..., { state: { accessToken } })` so `InviteLanding` can use it on first render with zero wait.
-- If `signIn` fails (rare), still navigate to the invite landing — the polling loop will recover.
+## The fix
 
-### 3. `InviteLanding.tsx` — consume the optional `location.state.accessToken`
+In `src/pages/InviteLanding.tsx`, remove the redundant `switchAccount` call after acceptance. Keep `refreshAccount()` so the new membership shows up; rely on the edge function's `last_used_account_id` write to land the user on the right account.
 
-- If present, skip polling entirely and call `accept-invite` immediately with that token.
+```ts
+if (acceptedAccountId) {
+  await refreshAccount(); // memberships reload; last_used_account_id pins the right one
+}
+```
 
-## Files Changed
+No other files need to change. The destructive toast in `AccountContext` stays as-is for legitimate misuse.
 
-- `src/pages/InviteLanding.tsx` — add session polling + optional `location.state.accessToken` fast-path.
-- `src/pages/SignupLegacy.tsx` — pass session token via navigation state after invite signup.
+## Verification
 
-No changes to edge functions, DB, or routing config.
-
-## Expected Result
-
-AU clicks email link → fills signup form → lands on `/invite` briefly (spinner, "Accepting invitation…") → `/account` dashboard. The "Create Account / Sign In" card is never re-shown after a successful signup.
+After the change, walk through the AU invite → signup → redirect flow once. The accepted-invitation card should appear, then `/account` loads with no red toast in between.
