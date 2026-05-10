@@ -22,6 +22,7 @@ import WelcomeBanner from '@/components/WelcomeBanner';
 import SecurityProgress from '@/components/SecurityProgress';
 import MFADropdown from '@/components/MFADropdown';
 import DashboardGrid from '@/components/DashboardGrid';
+import PersonalWorkspacePreview from '@/components/personal-workspace/PersonalWorkspacePreview';
 import InsightsToolsGrid from '@/components/InsightsToolsGrid';
 import LifeHubGrid from '@/components/LifeHubGrid';
 import NotesAndTraditions from '@/components/NotesAndTraditions';
@@ -215,7 +216,7 @@ const Account: React.FC = () => {
 
             {/* Dashboard Grid Overview */}
             <TabsContent value="overview">
-              <DashboardGrid onTabChange={setActiveTab} />
+              <OverviewContent setActiveTab={setActiveTab} />
             </TabsContent>
 
             {/* Asset Documentation Grid */}
