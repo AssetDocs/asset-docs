@@ -220,14 +220,6 @@ const Navbar: React.FC = () => {
                      <Home className="h-4 w-4 mr-1" />
                      {translate('nav.dashboard')}
                    </NavLink>
-                   <NavLink 
-                     to="/features" 
-                     className={({ isActive }) => 
-                       `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
-                     }
-                     onClick={() => setIsMenuOpen(false)}
-                   >
-                   </NavLink>
                    <NavLink
                      to="/about"
                      className={({ isActive }) =>
@@ -238,6 +230,16 @@ const Navbar: React.FC = () => {
                      About
                    </NavLink>
                    <NavLink 
+                     to="/features" 
+                     className={({ isActive }) => 
+                       `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
+                     }
+                     onClick={() => setIsMenuOpen(false)}
+                   >
+                     {translate('nav.features')}
+                   </NavLink>
+                   <NavLink 
+                     to="/pricing" 
                      className={({ isActive }) => 
                        `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
                      }
