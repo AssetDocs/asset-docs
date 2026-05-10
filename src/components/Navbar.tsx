@@ -227,10 +227,17 @@ const Navbar: React.FC = () => {
                      }
                      onClick={() => setIsMenuOpen(false)}
                    >
-                     {translate('nav.features')}
+                   </NavLink>
+                   <NavLink
+                     to="/about"
+                     className={({ isActive }) =>
+                       `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
+                     }
+                     onClick={() => setIsMenuOpen(false)}
+                   >
+                     About
                    </NavLink>
                    <NavLink 
-                     to="/pricing" 
                      className={({ isActive }) => 
                        `text-gray-700 hover:text-brand-blue transition-colors py-2 ${isActive ? 'bg-brand-green text-white px-3 py-1 rounded-md font-medium' : ''}`
                      }
