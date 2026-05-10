@@ -391,3 +391,16 @@ const Account: React.FC = () => {
 };
 
 export default Account;
+
+// Renders the personal workspace preview for unpaid Authorized Users viewing
+// their own (owner) workspace; otherwise renders the standard dashboard grid.
+const OverviewContent: React.FC<{ setActiveTab: (t: string) => void }> = ({ setActiveTab }) => {
+  const { isViewingOwnWorkspace } = useAccount();
+  const { isPremium, loading: subLoading } = useSubscription();
+
+  if (isViewingOwnWorkspace && !isPremium && !subLoading) {
+    return <PersonalWorkspacePreview />;
+  }
+  return <DashboardGrid onTabChange={setActiveTab} />;
+};
+
