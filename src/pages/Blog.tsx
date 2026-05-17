@@ -125,6 +125,26 @@ const Blog = () => {
         description="Expert insights on home inventory management, estate planning, insurance claims, and asset protection. Learn how to protect what matters most."
         keywords="property documentation blog, home inventory tips, estate planning insights, insurance claims guide, asset protection articles"
         canonicalUrl="https://www.getassetsafe.com/blog"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@context": "https://schema.org",
+              "@type": "CollectionPage",
+              "name": "Asset Safe Blog",
+              "url": "https://www.getassetsafe.com/blog",
+              "description": "Expert insights on home inventory, estate planning, insurance claims, and asset protection."
+            },
+            {
+              "@context": "https://schema.org",
+              "@type": "BreadcrumbList",
+              "itemListElement": [
+                { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.getassetsafe.com/" },
+                { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://www.getassetsafe.com/blog" }
+              ]
+            }
+          ]
+        }}
       />
       <div className="min-h-screen flex flex-col bg-background">
         <Navbar />
