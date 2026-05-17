@@ -73,10 +73,8 @@ const AdminContributorPlanInfo: React.FC = () => {
     return null;
   }
 
-  const rawTier = subscriptionInfo.subscription_tier?.toLowerCase() || 'standard';
-  const isPremium = rawTier.includes('premium');
-  const planName = isPremium ? 'Premium (Professional Plan)' : 'Standard (Homeowner Plan)';
-  const planIcon = isPremium ? <Star className="h-5 w-5 text-purple-600" /> : <Zap className="h-5 w-5 text-orange-600" />;
+  const planName = 'Asset Safe Plan';
+  const planIcon = <Zap className="h-5 w-5 text-orange-600" />;
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
