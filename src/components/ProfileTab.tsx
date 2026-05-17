@@ -121,6 +121,8 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ viewerMode = false }) => {
         throw updateError;
       }
 
+      await refreshProfile();
+
       if (emailChanged) {
         toast({
           title: "Verification Email Sent",
