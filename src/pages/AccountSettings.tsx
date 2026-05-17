@@ -189,6 +189,7 @@ const AccountSettings: React.FC = () => {
             </TabsList>
 
             <TabsContent value="profile">
+              {hasRestrictedAccess && isContributorRole && <AdminContributorPlanInfo />}
               {hasRestrictedAccess ? <RestrictedProfileTab roleLabel={getRoleLabel()} /> : <ProfileTab />}
             </TabsContent>
 
