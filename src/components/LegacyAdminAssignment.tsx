@@ -93,6 +93,13 @@ const LegacyAdminAssignment: React.FC<Props> = ({ members }) => {
       });
       if (error) throw error;
 
+      // Fire-and-forget email notification to the newly designated Legacy Admin
+      supabase.functions
+        .invoke('send-legacy-admin-notification', {
+          body: { legacy_admin_user_id: selectedUserId, account_id: accountId },
+        })
+        .catch((e) => console.warn('legacy admin email failed', e));
+
       toast({ title: 'Legacy Admin assigned', description: `${memberLabel(selectedUserId)} is now your Legacy Admin.` });
       setConfirmOpen(false);
       setSelectedUserId('');
