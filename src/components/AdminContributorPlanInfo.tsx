@@ -119,7 +119,7 @@ const AdminContributorPlanInfo: React.FC = () => {
               <HardDrive className="h-4 w-4 text-green-600" />
               <div>
                 <Label className="text-xs text-muted-foreground">Storage</Label>
-                <p className="text-sm font-medium">{subscriptionInfo.storage_quota_gb || 25} GB</p>
+                <p className="text-sm font-medium">{subscriptionInfo.storage_quota_gb || 50} GB</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
