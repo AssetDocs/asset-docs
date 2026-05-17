@@ -193,6 +193,12 @@ const AuthorizedUsersTab: React.FC = () => {
 
   const handleChangeRole = async (membershipId: string, newRole: 'full_access' | 'read_only') => {
     try {
+      const target = members.find(m => m.id === membershipId);
+      const prevRole = target?.role;
+      const memberName = target
+        ? `${target.first_name || ''} ${target.last_name || ''}`.trim() || target.email || 'Authorized User'
+        : 'Authorized User';
+
       const { error } = await supabase
         .from('account_memberships')
         .update({ role: newRole })
@@ -200,7 +206,16 @@ const AuthorizedUsersTab: React.FC = () => {
 
       if (error) throw error;
 
-      toast({ title: 'Role updated', description: `Role changed to ${newRole === 'full_access' ? 'Full Access' : 'Read Only'}.` });
+      const newLabel = newRole === 'full_access' ? 'Full Access' : 'Read Only';
+      toast({ title: 'Role updated', description: `${memberName} now has ${newLabel}.` });
+
+      await logActivity({
+        action_type: 'contributor_role_change',
+        resource_type: 'authorized_user',
+        resource_name: memberName,
+        metadata: { from: prevRole, to: newRole },
+      });
+
       fetchMembers();
     } catch (err: any) {
       toast({ title: 'Error', description: err.message, variant: 'destructive' });
