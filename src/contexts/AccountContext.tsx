@@ -194,6 +194,48 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
     fetchAllMemberships();
   }, [user?.id]);
 
+  // Realtime: react to role changes / membership revocation pushed by the Owner.
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel(`account-memberships-${user.id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'account_memberships', filter: `user_id=eq.${user.id}` },
+        (payload: any) => {
+          const newRow = payload.new || {};
+          const oldRow = payload.old || {};
+          const isActiveAccount =
+            newRow.account_id === activeAccountId || oldRow.account_id === activeAccountId;
+
+          if (payload.eventType === 'UPDATE' && isActiveAccount && newRow.role !== oldRow.role) {
+            const label = newRow.role === 'full_access'
+              ? 'Full Access'
+              : newRow.role === 'read_only' ? 'Read Only' : newRow.role;
+            toast({
+              title: 'Access level updated',
+              description: `The account owner changed your access to ${label}.`,
+            });
+          }
+
+          if (payload.eventType === 'DELETE' && isActiveAccount) {
+            toast({
+              title: 'Access removed',
+              description: 'Your access to this account was revoked by the owner.',
+              variant: 'destructive',
+            });
+          }
+
+          fetchAllMemberships();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, activeAccountId, fetchAllMemberships, toast]);
+
   // Derive current account info
   const currentAccount = accounts.find(a => a.accountId === activeAccountId) || null;
   const accountRole = currentAccount?.role || null;
