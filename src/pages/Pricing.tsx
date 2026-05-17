@@ -187,7 +187,7 @@ const Pricing: React.FC = () => {
       )}
       <SEOHead
         title="Asset Safe Plan — Everything Included | Asset Safe"
-        description="One simple plan starting at $18.99/mo. Secure asset documentation, cloud storage, legacy tools, and trusted access — with flexible storage that grows with you."
+        description="One simple plan from $18.99/mo. Secure asset documentation, cloud storage, legacy tools, and trusted access — with flexible storage that grows."
         keywords="home inventory pricing, property documentation cost, digital asset management pricing, insurance inventory app cost, estate planning tools pricing"
         canonicalUrl="https://www.getassetsafe.com/pricing"
         structuredData={structuredData}
