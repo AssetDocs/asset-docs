@@ -170,7 +170,7 @@ const Account: React.FC = () => {
               <div className="mb-4">
                 <SecurityProgress hideChecklist />
               </div>
-              <AdminContributorPlanInfo />
+              
             </>
           )}
 

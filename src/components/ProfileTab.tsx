@@ -17,7 +17,7 @@ interface ProfileTabProps {
 
 const ProfileTab: React.FC<ProfileTabProps> = ({ viewerMode = false }) => {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
   
@@ -120,6 +120,8 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ viewerMode = false }) => {
       if (updateError) {
         throw updateError;
       }
+
+      await refreshProfile();
 
       if (emailChanged) {
         toast({

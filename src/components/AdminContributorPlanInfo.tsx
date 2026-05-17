@@ -73,10 +73,8 @@ const AdminContributorPlanInfo: React.FC = () => {
     return null;
   }
 
-  const rawTier = subscriptionInfo.subscription_tier?.toLowerCase() || 'standard';
-  const isPremium = rawTier.includes('premium');
-  const planName = isPremium ? 'Premium (Professional Plan)' : 'Standard (Homeowner Plan)';
-  const planIcon = isPremium ? <Star className="h-5 w-5 text-purple-600" /> : <Zap className="h-5 w-5 text-orange-600" />;
+  const planName = 'Asset Safe Plan';
+  const planIcon = <Zap className="h-5 w-5 text-orange-600" />;
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
@@ -96,7 +94,7 @@ const AdminContributorPlanInfo: React.FC = () => {
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-lg">
           <Users className="h-5 w-5 text-primary" />
-          Account Overview (Admin Access)
+          Account Overview (Full Access)
         </CardTitle>
         <CardDescription>
           Subscription and contributor information for {ownerName}'s account
@@ -121,7 +119,7 @@ const AdminContributorPlanInfo: React.FC = () => {
               <HardDrive className="h-4 w-4 text-green-600" />
               <div>
                 <Label className="text-xs text-muted-foreground">Storage</Label>
-                <p className="text-sm font-medium">{subscriptionInfo.storage_quota_gb || 25} GB</p>
+                <p className="text-sm font-medium">{subscriptionInfo.storage_quota_gb || 50} GB</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
