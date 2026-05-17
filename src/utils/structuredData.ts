@@ -1,14 +1,18 @@
 // Organization Schema
 export const organizationSchema = {
   "@context": "https://schema.org",
-  "@type": "Organization",
+  "@type": ["Organization", "LocalBusiness"],
   "name": "Asset Safe",
   "url": "https://www.getassetsafe.com",
   "logo": "https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg",
+  "image": "https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg",
   "description": "Digital home inventory and legacy planning platform for comprehensive property documentation and asset protection.",
   "foundingDate": "2024",
+  "email": "support@assetsafe.net",
   "address": {
     "@type": "PostalAddress",
+    "addressLocality": "McKinney",
+    "addressRegion": "TX",
     "addressCountry": "US"
   },
   "contactPoint": {
