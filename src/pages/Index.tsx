@@ -42,7 +42,7 @@ const Index: React.FC = () => {
     <div className="flex flex-col min-h-screen">
       <SEOHead
         title="Digital Home Inventory & Legacy Planning | Asset Safe"
-        description="Document your home, belongings, and important records in one secure platform. Insurance-ready inventory, Legacy Locker, and estate planning tools. No long-term contract."
+        description="Document your home, belongings, and key records in one secure platform. Insurance-ready inventory, Legacy Locker, and estate planning tools."
         keywords="digital home inventory, property documentation, home inventory app, insurance claims documentation, legacy locker, estate planning vault, digital asset management, homeowner inventory system"
         canonicalUrl="https://www.getassetsafe.com/"
         structuredData={structuredData}
