@@ -94,7 +94,7 @@ const AdminContributorPlanInfo: React.FC = () => {
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-lg">
           <Users className="h-5 w-5 text-primary" />
-          Account Overview (Admin Access)
+          Account Overview (Full Access)
         </CardTitle>
         <CardDescription>
           Subscription and contributor information for {ownerName}'s account
