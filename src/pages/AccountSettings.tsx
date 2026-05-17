@@ -9,6 +9,7 @@ import CookieSettings from '@/components/CookieSettings';
 import MFADropdown from '@/components/MFADropdown';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import StorageDashboard from '@/components/StorageDashboard';
+import AdminContributorPlanInfo from '@/components/AdminContributorPlanInfo';
 import { ViewerRestrictionBanner } from '@/components/ViewerRestriction';
 import { useAccount } from '@/contexts/AccountContext';
 import { Button } from '@/components/ui/button';
