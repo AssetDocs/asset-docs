@@ -16,7 +16,7 @@ import { useAccount } from '@/contexts/AccountContext';
 import { logActivity } from '@/hooks/useActivityLog';
 import { PremiumFeatureGate } from '@/components/PremiumFeatureGate';
 import LegacyAdminAssignment from '@/components/LegacyAdminAssignment';
-import LegacyAdminContinuityRequests from '@/components/LegacyAdminContinuityRequests';
+import LegacyContinuitySection from '@/components/legacy-continuity/LegacyContinuitySection';
 
 interface Member {
   id: string;
