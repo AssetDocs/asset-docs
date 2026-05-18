@@ -23,6 +23,7 @@ export type Database = {
           created_at: string
           id: string
           legacy_admin_id: string | null
+          metadata: Json | null
           notes: string | null
           reason: string
           request_type: string
@@ -40,6 +41,7 @@ export type Database = {
           created_at?: string
           id?: string
           legacy_admin_id?: string | null
+          metadata?: Json | null
           notes?: string | null
           reason: string
           request_type: string
@@ -57,6 +59,7 @@ export type Database = {
           created_at?: string
           id?: string
           legacy_admin_id?: string | null
+          metadata?: Json | null
           notes?: string | null
           reason?: string
           request_type?: string

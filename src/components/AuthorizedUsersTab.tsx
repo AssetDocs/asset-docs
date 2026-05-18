@@ -16,7 +16,7 @@ import { useAccount } from '@/contexts/AccountContext';
 import { logActivity } from '@/hooks/useActivityLog';
 import { PremiumFeatureGate } from '@/components/PremiumFeatureGate';
 import LegacyAdminAssignment from '@/components/LegacyAdminAssignment';
-import LegacyAdminContinuityRequests from '@/components/LegacyAdminContinuityRequests';
+import LegacyContinuitySection from '@/components/legacy-continuity/LegacyContinuitySection';
 
 interface Member {
   id: string;
@@ -269,8 +269,8 @@ const AuthorizedUsersTab: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Legacy Admin continuity requests — only renders for the active Legacy Admin */}
-      <LegacyAdminContinuityRequests />
+      {/* Legacy Continuity — only renders for the active Legacy Admin */}
+      <LegacyContinuitySection />
 
       {/* Invite Form — Owner only */}
       {isOwner && (
