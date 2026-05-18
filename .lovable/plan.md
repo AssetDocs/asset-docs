@@ -1,107 +1,95 @@
-## Goal
+## Legacy Continuity Admin Workspace
 
-Rebuild the Legacy Admin continuity experience inside the existing Authorized Users area so a designated Legacy Admin can submit a serious, manually-reviewed continuity request. No automatic access, transfer, export, or closure is ever performed — this is strictly a review case.
+Build a dedicated case management area inside the Admin Owner Workspace for reviewing Legacy Continuity requests. This is a large feature — proposing a phased plan so you can approve scope before implementation.
 
-## Placement
+### Placement
 
-- Inside `src/components/AuthorizedUsersTab.tsx`, the existing `<LegacyAdminContinuityRequests />` slot (already rendered at the top of the tab) is replaced by a new section component `<LegacyContinuitySection />`.
-- Section is visually separated from normal authorized-user management:
-  - Section heading: **Legacy Continuity** (small uppercase eyebrow + serif/medium title, muted divider above and below).
-  - Only renders when the current user is an active Legacy Admin for the current account.
-  - Sits above the standard Authorized Users management UI.
+Add a new top-level tab **"Legacy Continuity"** to `AdminOwnerWorkspace.tsx` (between Security and Legal). The tab renders a new `LegacyContinuityWorkspace` component containing 7 sub-tabs:
 
-## Section UI
+1. Request Queue
+2. Active Reviews
+3. Temporary Access
+4. Ownership Transfers
+5. Denied Requests
+6. Archived Cases
+7. Audit Log
 
-A single bordered card titled **Continuity Request** with:
-- Subtle shield icon (`ShieldCheck` from lucide) in muted foreground.
-- Muted "Legacy Admin" badge.
-- Body copy (verbatim):
-  > You have been designated as the Legacy Admin for this account.
-  >
-  > If the account holder becomes deceased, incapacitated, or unable to manage their Asset Safe account, you may submit a continuity request for review by Asset Safe.
-  >
-  > Requests are manually reviewed and may require supporting documentation before any action is taken.
-- Primary button: **Start Continuity Request** (default variant, restrained — not success-green).
-- Tone: neutral border, soft `bg-muted/30`, no celebratory color.
+### Database (one migration)
 
-Below the card, a **Request History** panel renders only when ≥1 request exists for this admin/account:
-- Columns/rows: Request type · Submitted date · Current status (badge) · Last updated · `View details` button.
-- Statuses supported: Draft, Submitted, Under Review, Additional Information Requested, Approved, Denied, Completed (color-muted badges, no bright green/red).
+Extend the existing `account_continuity_requests` table with admin review columns:
+- `risk_level`, `assigned_reviewer_id`, `priority`, `completed_at`, `preservation_hold` (bool)
 
-## Guided Flow
+Add new tables (all RLS-restricted to admins via `has_owner_workspace_access` / `has_any_app_role`):
+- `continuity_documents` (mirror metadata from storage; per-file verification_status, reviewer_notes, category)
+- `continuity_checklist_items` (identity, legal authority, account safety checklist with status)
+- `continuity_notes` (internal admin notes with category)
+- `continuity_messages` (outbound communications)
+- `continuity_timeline_events` (chronological events)
+- `continuity_temporary_access` (grants with permissions JSONB, expires_at)
+- `continuity_ownership_transfers` (multi-step transfer workflow tracking)
+- `continuity_audit_logs` (immutable admin action log)
 
-Clicking **Start Continuity Request** opens a full-screen `Dialog` with a stepper (Step N of 6) and Back / Continue controls. The dialog feels deliberate (wider max-w-2xl, generous spacing, no auto-advance).
+Add a helper RPC `log_continuity_event` for writing timeline + audit log rows in one call.
 
-**Step 1 — Request Type** (radio cards)
-- Temporary Assistance Access
-- Data Export Request
-- Ownership Transfer Request
-- Account Closure Request
+### Components (under `src/components/admin/legacy-continuity/`)
 
-(Each with the description copy specified by the user.)
+- `LegacyContinuityWorkspace.tsx` — tab container + metric cards header
+- `RequestQueueTab.tsx` — filterable/sortable table with status & risk badges
+- `ActiveReviewsTab.tsx` — focused list of in-progress cases
+- `TemporaryAccessTab.tsx` — active grants table with extend/revoke/modify actions
+- `OwnershipTransfersTab.tsx` — multi-step transfer pipeline view
+- `DeniedRequestsTab.tsx` — read-only denied list
+- `ArchivedCasesTab.tsx` — read-only completed/archived cases
+- `AuditLogTab.tsx` — filterable immutable log view
+- `CaseReviewDialog.tsx` — large dialog with 3-zone layout:
+  - **Left:** `CaseSummarySidebar.tsx` (case info, account holder, legacy admin)
+  - **Center:** tabbed sections — Request Summary, Requested Actions, Documents, Identity & Authority Checklist, Timeline, Internal Notes, Communication Center
+  - **Right:** `DecisionPanel.tsx` (assign reviewer, change status, request info, preservation hold, grant temp access, start ownership transfer, deny, complete)
+- `OwnershipTransferWizard.tsx` — 5-step deliberate flow (recommendation → senior approval → invitation → acceptance tracking → final execution with TRANSFER text confirmation)
+- `TemporaryAccessDialog.tsx` — permissions toggles + expiration + reason
+- Shared `constants.ts` for status/risk labels, badge classes, denial reasons, message templates
 
-**Step 2 — Relationship Verification**
-- Relationship to account holder (Select: Spouse, Parent, Child, Sibling, Executor, Attorney, Power of Attorney, Guardian, Caregiver, Business Partner, Other)
-- Legally authorized to act on behalf of the account holder? (Yes / No / Unsure)
-- Has the account holder passed away? (Yes / No / Unsure)
-- If either authorization=Yes or passed_away=Yes → show an inline notice prompting the user that supporting documentation will be required in Step 4.
+### Permissions
 
-**Step 3 — Situation Explanation**
-- Textarea (min ~80 chars), helper text per spec.
+Use existing `useAdminRole` hook. Map app_role → continuity capability:
+- `qa` / support → view + notes + messages only
+- `developer` → + checklist + recommend
+- `dev_lead` → + approve temp access + preservation hold
+- `admin` → + execute ownership transfer
+- `owner` → full
 
-**Step 4 — Supporting Documentation**
-- Multi-file uploader with category dropdown per file (Death certificate, Power of attorney, Trust documentation, Letters testamentary, Guardianship paperwork, Physician statement, Government ID, Other legal documentation).
-- Files uploaded to a new private storage bucket `continuity-documents` under path `{account_id}/{request_id}/{filename}`.
-- Files are queued client-side and uploaded after the request row is created in Step 6 submission.
+Disabled actions show tooltip: "Requires Senior Reviewer permission."
 
-**Step 5 — Requested Outcome**
-- Checkbox list: Temporary access assistance, Export account contents, Transfer ownership, Preserve account as-is, Close account, Other.
-- Other → text field.
+### Important constraints honored
 
-**Step 6 — Review & Acknowledgement**
-- Read-only summary of all prior steps.
-- Five required checkboxes (verbatim from spec).
-- Final button: **Submit Continuity Request** (disabled until all five checked).
+- No "claim account" language anywhere
+- No one-click ownership transfer — requires recommendation, senior approval, invitation, acceptance, TRANSFER text confirmation
+- Reason required for: deny, grant temp access, preservation hold, recommend transfer, execute transfer
+- Temp access always has expiration
+- Archived cases read-only
+- Every meaningful action writes to timeline + audit log
+- Calm institutional styling using existing semantic tokens (muted/border/amber/emerald/rose), no celebratory colors
 
-## Post-Submission
+### Out of scope (this round)
 
-Replace dialog body with a confirmation view:
-- Title: **Request Submitted for Review**
-- Body copy per spec.
-- Status badge: **Under Review**
-- Helper: *Estimated review time: 2–5 business days*
-- "Close" button → returns to section; new row appears in Request History.
+- Actually sending emails for messages (logs them; wires to existing `notify-continuity-request` only)
+- Real preservation hold enforcement at the data layer (flag set + UI gating only; deeper enforcement is a follow-up)
+- Real-time inter-admin notifications
+- Encrypted document viewing tools beyond signed-URL download/view
+- Senior approval as separate auth gate beyond role check (no second-device confirmation)
 
-## Backend / Data
+### Files
 
-Reuse `account_continuity_requests` table. It already has: `request_type`, `reason`, `notes`, `contact_email`, `contact_phone`, `status`, `legacy_admin_id`, `account_id`, `requested_by_user_id`, `admin_notes`. New structured fields are stored as JSON inside `notes` (with a stable key prefix), so no schema change is required initially.
+**Created (~15):**
+- 1 migration
+- ~12 components under `src/components/admin/legacy-continuity/`
+- 1 `constants.ts`, 1 `types.ts`
 
-A migration adds:
-- New private storage bucket `continuity-documents` + RLS (insert by Legacy Admin for their account; select by Legacy Admin who owns the path or workspace admin).
-- New column `account_continuity_requests.metadata jsonb` (nullable) to cleanly hold: relationship, legal_authorization, passed_away, requested_outcomes[], outcome_other, documents[] (name, category, storage path).
-- Status enum widened via CHECK update to include: draft, submitted, under_review, additional_info_requested, approved, denied, completed.
-- RLS confirms: Legacy Admin can insert/select their own requests; account owner can select; workspace admins can select all.
+**Edited:**
+- `src/components/admin/AdminOwnerWorkspace.tsx` (add tab)
 
-After insert, the existing `notify-continuity-request` edge function is invoked (already wired) — no changes needed there for this iteration. (Optional small edit: pass the new `metadata` payload through to the staff notification email.)
+### Estimated scope
 
-## Files
+This is a substantial build (~2500–3500 lines across components + migration). Approving the plan kicks off the migration first, then the UI in a single follow-up pass.
 
-- New: `src/components/legacy-continuity/LegacyContinuitySection.tsx` (section + card + history).
-- New: `src/components/legacy-continuity/ContinuityRequestWizard.tsx` (stepper dialog + 6 step components).
-- New: `src/components/legacy-continuity/ContinuityRequestDetails.tsx` (View details modal).
-- New: `src/components/legacy-continuity/types.ts` (status enum, labels, badge classes, request-type labels, relationship options).
-- Edit: `src/components/AuthorizedUsersTab.tsx` — swap `<LegacyAdminContinuityRequests />` for `<LegacyContinuitySection />`.
-- Delete (or keep until cutover): `src/components/LegacyAdminContinuityRequests.tsx`.
-- Migration: add `metadata jsonb`, status CHECK, bucket + RLS.
-- Optional minor edit: `supabase/functions/notify-continuity-request/index.ts` to include metadata summary.
-
-## Out of scope
-
-- No automatic ownership transfer, export, closure, or access grant.
-- No admin review UI in this iteration (staff review happens outside the app).
-- No edits to AuthorizedUsersTab role logic or other Legacy Admin assignment flow.
-- No changes to the existing email sender or branding.
-
-## Language guardrails
-
-Only the approved vocabulary is used in copy and button labels: Continuity Request, Manual Review, Supporting Documentation, Stewardship, Account Holder, Legacy Admin. Forbidden phrases ("take over", "claim", "gain ownership", "get access now", "transfer now") are not used anywhere in the UI.
+Approve to proceed, or tell me which screens/tabs to trim or defer.
