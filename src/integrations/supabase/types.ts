@@ -18,6 +18,8 @@ export type Database = {
         Row: {
           account_id: string
           admin_notes: string | null
+          assigned_reviewer_id: string | null
+          completed_at: string | null
           contact_email: string | null
           contact_phone: string | null
           created_at: string
@@ -25,17 +27,25 @@ export type Database = {
           legacy_admin_id: string | null
           metadata: Json | null
           notes: string | null
+          preservation_hold: boolean
+          preservation_hold_applied_at: string | null
+          preservation_hold_applied_by: string | null
+          preservation_hold_reason: string | null
+          priority: string
           reason: string
           request_type: string
           requested_by_user_id: string
           reviewed_at: string | null
           reviewed_by_admin_id: string | null
+          risk_level: string
           status: string
           updated_at: string
         }
         Insert: {
           account_id: string
           admin_notes?: string | null
+          assigned_reviewer_id?: string | null
+          completed_at?: string | null
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
@@ -43,17 +53,25 @@ export type Database = {
           legacy_admin_id?: string | null
           metadata?: Json | null
           notes?: string | null
+          preservation_hold?: boolean
+          preservation_hold_applied_at?: string | null
+          preservation_hold_applied_by?: string | null
+          preservation_hold_reason?: string | null
+          priority?: string
           reason: string
           request_type: string
           requested_by_user_id: string
           reviewed_at?: string | null
           reviewed_by_admin_id?: string | null
+          risk_level?: string
           status?: string
           updated_at?: string
         }
         Update: {
           account_id?: string
           admin_notes?: string | null
+          assigned_reviewer_id?: string | null
+          completed_at?: string | null
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
@@ -61,11 +79,17 @@ export type Database = {
           legacy_admin_id?: string | null
           metadata?: Json | null
           notes?: string | null
+          preservation_hold?: boolean
+          preservation_hold_applied_at?: string | null
+          preservation_hold_applied_by?: string | null
+          preservation_hold_reason?: string | null
+          priority?: string
           reason?: string
           request_type?: string
           requested_by_user_id?: string
           reviewed_at?: string | null
           reviewed_by_admin_id?: string | null
+          risk_level?: string
           status?: string
           updated_at?: string
         }
@@ -576,6 +600,433 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      continuity_audit_logs: {
+        Row: {
+          action_details: Json | null
+          action_type: string
+          admin_role: string | null
+          admin_user_id: string
+          affected_account_id: string | null
+          created_at: string
+          device_info: string | null
+          id: string
+          ip_address: string | null
+          request_id: string | null
+        }
+        Insert: {
+          action_details?: Json | null
+          action_type: string
+          admin_role?: string | null
+          admin_user_id: string
+          affected_account_id?: string | null
+          created_at?: string
+          device_info?: string | null
+          id?: string
+          ip_address?: string | null
+          request_id?: string | null
+        }
+        Update: {
+          action_details?: Json | null
+          action_type?: string
+          admin_role?: string | null
+          admin_user_id?: string
+          affected_account_id?: string | null
+          created_at?: string
+          device_info?: string | null
+          id?: string
+          ip_address?: string | null
+          request_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "continuity_audit_logs_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "account_continuity_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      continuity_checklist_items: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          item_key: string
+          label: string
+          request_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          reviewer_notes: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          item_key: string
+          label: string
+          request_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewer_notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          item_key?: string
+          label?: string
+          request_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewer_notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "continuity_checklist_items_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "account_continuity_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      continuity_documents: {
+        Row: {
+          document_category: string | null
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string | null
+          id: string
+          request_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          reviewer_notes: string | null
+          uploaded_at: string
+          uploaded_by: string
+          verification_status: string
+        }
+        Insert: {
+          document_category?: string | null
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          request_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewer_notes?: string | null
+          uploaded_at?: string
+          uploaded_by: string
+          verification_status?: string
+        }
+        Update: {
+          document_category?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          request_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewer_notes?: string | null
+          uploaded_at?: string
+          uploaded_by?: string
+          verification_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "continuity_documents_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "account_continuity_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      continuity_messages: {
+        Row: {
+          created_at: string
+          id: string
+          message_body: string
+          request_id: string
+          sent_by: string
+          sent_to: string | null
+          sent_to_email: string | null
+          subject: string | null
+          template_key: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_body: string
+          request_id: string
+          sent_by: string
+          sent_to?: string | null
+          sent_to_email?: string | null
+          subject?: string | null
+          template_key?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_body?: string
+          request_id?: string
+          sent_by?: string
+          sent_to?: string | null
+          sent_to_email?: string | null
+          subject?: string | null
+          template_key?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "continuity_messages_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "account_continuity_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      continuity_notes: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          internal_only: boolean
+          note_body: string
+          note_category: string
+          request_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          internal_only?: boolean
+          note_body: string
+          note_category?: string
+          request_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          internal_only?: boolean
+          note_body?: string
+          note_category?: string
+          request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "continuity_notes_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "account_continuity_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      continuity_ownership_transfers: {
+        Row: {
+          accepted_at: string | null
+          account_id: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          cancelled_reason: string | null
+          created_at: string
+          current_owner_id: string
+          executed_at: string | null
+          executed_by: string | null
+          id: string
+          identity_confirmed_at: string | null
+          invitation_opened_at: string | null
+          invitation_sent_at: string | null
+          proposed_owner_id: string
+          recommendation_rationale: string
+          recommended_at: string
+          recommended_by: string
+          request_id: string
+          senior_approval_notes: string | null
+          senior_approved_at: string | null
+          senior_approved_by: string | null
+          status: string
+          terms_accepted_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          account_id?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          cancelled_reason?: string | null
+          created_at?: string
+          current_owner_id: string
+          executed_at?: string | null
+          executed_by?: string | null
+          id?: string
+          identity_confirmed_at?: string | null
+          invitation_opened_at?: string | null
+          invitation_sent_at?: string | null
+          proposed_owner_id: string
+          recommendation_rationale: string
+          recommended_at?: string
+          recommended_by: string
+          request_id: string
+          senior_approval_notes?: string | null
+          senior_approved_at?: string | null
+          senior_approved_by?: string | null
+          status?: string
+          terms_accepted_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          account_id?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          cancelled_reason?: string | null
+          created_at?: string
+          current_owner_id?: string
+          executed_at?: string | null
+          executed_by?: string | null
+          id?: string
+          identity_confirmed_at?: string | null
+          invitation_opened_at?: string | null
+          invitation_sent_at?: string | null
+          proposed_owner_id?: string
+          recommendation_rationale?: string
+          recommended_at?: string
+          recommended_by?: string
+          request_id?: string
+          senior_approval_notes?: string | null
+          senior_approved_at?: string | null
+          senior_approved_by?: string | null
+          status?: string
+          terms_accepted_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "continuity_ownership_transfers_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "account_continuity_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      continuity_temporary_access: {
+        Row: {
+          account_holder_id: string
+          account_id: string | null
+          created_at: string
+          expires_at: string
+          granted_by: string
+          id: string
+          legacy_admin_id: string
+          permissions: Json
+          reason: string
+          request_id: string
+          revoked_at: string | null
+          revoked_by: string | null
+          revoked_reason: string | null
+          starts_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          account_holder_id: string
+          account_id?: string | null
+          created_at?: string
+          expires_at: string
+          granted_by: string
+          id?: string
+          legacy_admin_id: string
+          permissions?: Json
+          reason: string
+          request_id: string
+          revoked_at?: string | null
+          revoked_by?: string | null
+          revoked_reason?: string | null
+          starts_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          account_holder_id?: string
+          account_id?: string | null
+          created_at?: string
+          expires_at?: string
+          granted_by?: string
+          id?: string
+          legacy_admin_id?: string
+          permissions?: Json
+          reason?: string
+          request_id?: string
+          revoked_at?: string | null
+          revoked_by?: string | null
+          revoked_reason?: string | null
+          starts_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "continuity_temporary_access_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "account_continuity_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      continuity_timeline_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          event_description: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          request_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          event_description?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          request_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          event_description?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "continuity_timeline_events_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "account_continuity_requests"
             referencedColumns: ["id"]
           },
         ]
@@ -4435,6 +4886,16 @@ export type Database = {
       is_active_legacy_admin: {
         Args: { _account_id: string; _user_id: string }
         Returns: boolean
+      }
+      log_continuity_event: {
+        Args: {
+          _action_details?: Json
+          _affected_account_id?: string
+          _event_description: string
+          _event_type: string
+          _request_id: string
+        }
+        Returns: undefined
       }
       update_user_storage_usage: {
         Args: { target_user_id: string }
