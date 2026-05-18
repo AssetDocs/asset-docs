@@ -12,17 +12,19 @@ import AdminLegalAgreements from '@/pages/AdminLegalAgreements';
 import DevTeamManagement from './DevTeamManagement';
 import MarketSizing from './MarketSizing';
 import AdminDocuments from './AdminDocuments';
-import { 
-  Users, 
-  CreditCard, 
-  Shield, 
-  Settings, 
-  FileText, 
+import LegacyContinuityWorkspace from './legacy-continuity/LegacyContinuityWorkspace';
+import {
+  Users,
+  CreditCard,
+  Shield,
+  Settings,
+  FileText,
   BarChart,
   Handshake,
   UserPlus,
   TrendingUp,
-  FolderOpen
+  FolderOpen,
+  ShieldCheck,
 } from 'lucide-react';
 
 const AdminOwnerWorkspace: React.FC = () => {
@@ -31,7 +33,7 @@ const AdminOwnerWorkspace: React.FC = () => {
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-      <TabsList className="grid grid-cols-4 md:grid-cols-10 gap-2 h-auto p-1">
+      <TabsList className="grid grid-cols-4 md:grid-cols-11 gap-2 h-auto p-1">
         <TabsTrigger value="overview" className="flex items-center gap-2">
           <BarChart className="w-4 h-4" />
           Overview
@@ -59,6 +61,10 @@ const AdminOwnerWorkspace: React.FC = () => {
         <TabsTrigger value="security" className="flex items-center gap-2">
           <Shield className="w-4 h-4" />
           Security
+        </TabsTrigger>
+        <TabsTrigger value="continuity" className="flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4" />
+          Legacy Continuity
         </TabsTrigger>
         <TabsTrigger value="legal" className="flex items-center gap-2">
           <FileText className="w-4 h-4" />
