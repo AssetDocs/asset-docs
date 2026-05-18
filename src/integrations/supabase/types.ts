@@ -23,6 +23,9 @@ export type Database = {
           contact_email: string | null
           contact_phone: string | null
           created_at: string
+          executed_at: string | null
+          executed_by: string | null
+          execution_status: string | null
           id: string
           legacy_admin_id: string | null
           metadata: Json | null
@@ -38,7 +41,11 @@ export type Database = {
           reviewed_at: string | null
           reviewed_by_admin_id: string | null
           risk_level: string
+          senior_approver_id: string | null
+          snapshot_reference: string | null
           status: string
+          transfer_preview_reviewed_at: string | null
+          transfer_scope: string | null
           updated_at: string
         }
         Insert: {
@@ -49,6 +56,9 @@ export type Database = {
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
+          executed_at?: string | null
+          executed_by?: string | null
+          execution_status?: string | null
           id?: string
           legacy_admin_id?: string | null
           metadata?: Json | null
@@ -64,7 +74,11 @@ export type Database = {
           reviewed_at?: string | null
           reviewed_by_admin_id?: string | null
           risk_level?: string
+          senior_approver_id?: string | null
+          snapshot_reference?: string | null
           status?: string
+          transfer_preview_reviewed_at?: string | null
+          transfer_scope?: string | null
           updated_at?: string
         }
         Update: {
@@ -75,6 +89,9 @@ export type Database = {
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
+          executed_at?: string | null
+          executed_by?: string | null
+          execution_status?: string | null
           id?: string
           legacy_admin_id?: string | null
           metadata?: Json | null
@@ -90,7 +107,11 @@ export type Database = {
           reviewed_at?: string | null
           reviewed_by_admin_id?: string | null
           risk_level?: string
+          senior_approver_id?: string | null
+          snapshot_reference?: string | null
           status?: string
+          transfer_preview_reviewed_at?: string | null
+          transfer_scope?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -193,6 +214,51 @@ export type Database = {
           },
         ]
       }
+      account_ownership_metadata: {
+        Row: {
+          account_id: string
+          continuity_case_id: string | null
+          continuity_setup_required: boolean
+          created_at: string
+          executed_by_admin_id: string | null
+          new_owner_id: string | null
+          ownership_origin: string | null
+          previous_owner_id: string | null
+          senior_approver_id: string | null
+          snapshot_reference: string | null
+          transfer_date: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_id: string
+          continuity_case_id?: string | null
+          continuity_setup_required?: boolean
+          created_at?: string
+          executed_by_admin_id?: string | null
+          new_owner_id?: string | null
+          ownership_origin?: string | null
+          previous_owner_id?: string | null
+          senior_approver_id?: string | null
+          snapshot_reference?: string | null
+          transfer_date?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string
+          continuity_case_id?: string | null
+          continuity_setup_required?: boolean
+          created_at?: string
+          executed_by_admin_id?: string | null
+          new_owner_id?: string | null
+          ownership_origin?: string | null
+          previous_owner_id?: string | null
+          senior_approver_id?: string | null
+          snapshot_reference?: string | null
+          transfer_date?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       account_verification: {
         Row: {
           account_age_met: boolean
@@ -271,20 +337,26 @@ export type Database = {
       accounts: {
         Row: {
           account_name: string | null
+          continuity_setup_required: boolean
           created_at: string
           id: string
+          owner_state: string
           owner_user_id: string
         }
         Insert: {
           account_name?: string | null
+          continuity_setup_required?: boolean
           created_at?: string
           id?: string
+          owner_state?: string
           owner_user_id: string
         }
         Update: {
           account_name?: string | null
+          continuity_setup_required?: boolean
           created_at?: string
           id?: string
+          owner_state?: string
           owner_user_id?: string
         }
         Relationships: []
@@ -604,6 +676,117 @@ export type Database = {
           },
         ]
       }
+      continuity_account_snapshots: {
+        Row: {
+          account_id: string
+          checksum: string | null
+          created_at: string
+          created_by_admin_id: string
+          id: string
+          included_assets: Json
+          included_audit_history: Json
+          included_documents: Json
+          included_permissions: Json
+          included_user_relationships: Json
+          request_id: string
+          snapshot_reference: string
+          snapshot_type: string
+          storage_location: string | null
+        }
+        Insert: {
+          account_id: string
+          checksum?: string | null
+          created_at?: string
+          created_by_admin_id: string
+          id?: string
+          included_assets?: Json
+          included_audit_history?: Json
+          included_documents?: Json
+          included_permissions?: Json
+          included_user_relationships?: Json
+          request_id: string
+          snapshot_reference: string
+          snapshot_type?: string
+          storage_location?: string | null
+        }
+        Update: {
+          account_id?: string
+          checksum?: string | null
+          created_at?: string
+          created_by_admin_id?: string
+          id?: string
+          included_assets?: Json
+          included_audit_history?: Json
+          included_documents?: Json
+          included_permissions?: Json
+          included_user_relationships?: Json
+          request_id?: string
+          snapshot_reference?: string
+          snapshot_type?: string
+          storage_location?: string | null
+        }
+        Relationships: []
+      }
+      continuity_archive_custodian_access: {
+        Row: {
+          account_id: string
+          audit_log_reference: string | null
+          can_delete: boolean
+          can_download: boolean
+          can_export: boolean
+          can_modify: boolean
+          can_view: boolean
+          created_at: string
+          custodian_user_id: string
+          expires_at: string | null
+          granted_by_admin_id: string
+          id: string
+          reason: string | null
+          request_id: string
+          starts_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          account_id: string
+          audit_log_reference?: string | null
+          can_delete?: boolean
+          can_download?: boolean
+          can_export?: boolean
+          can_modify?: boolean
+          can_view?: boolean
+          created_at?: string
+          custodian_user_id: string
+          expires_at?: string | null
+          granted_by_admin_id: string
+          id?: string
+          reason?: string | null
+          request_id: string
+          starts_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string
+          audit_log_reference?: string | null
+          can_delete?: boolean
+          can_download?: boolean
+          can_export?: boolean
+          can_modify?: boolean
+          can_view?: boolean
+          created_at?: string
+          custodian_user_id?: string
+          expires_at?: string | null
+          granted_by_admin_id?: string
+          id?: string
+          reason?: string | null
+          request_id?: string
+          starts_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       continuity_audit_logs: {
         Row: {
           action_details: Json | null
@@ -756,6 +939,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      continuity_execution_events: {
+        Row: {
+          account_id: string
+          audit_log_reference: string | null
+          completed_at: string | null
+          executed_by_admin_id: string
+          execution_type: string
+          failure_reason: string | null
+          id: string
+          request_id: string
+          started_at: string
+          status: string
+        }
+        Insert: {
+          account_id: string
+          audit_log_reference?: string | null
+          completed_at?: string | null
+          executed_by_admin_id: string
+          execution_type: string
+          failure_reason?: string | null
+          id?: string
+          request_id: string
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          account_id?: string
+          audit_log_reference?: string | null
+          completed_at?: string | null
+          executed_by_admin_id?: string
+          execution_type?: string
+          failure_reason?: string | null
+          id?: string
+          request_id?: string
+          started_at?: string
+          status?: string
+        }
+        Relationships: []
       }
       continuity_messages: {
         Row: {
@@ -3080,6 +3302,66 @@ export type Database = {
         }
         Relationships: []
       }
+      ownership_transfer_history: {
+        Row: {
+          account_id: string
+          audit_log_reference: string | null
+          created_at: string
+          executed_by_admin_id: string
+          execution_timestamp: string
+          id: string
+          new_owner_id: string
+          new_owner_role: string
+          notes: string | null
+          previous_owner_final_state: string
+          previous_owner_id: string
+          request_id: string | null
+          rollback_eligible: boolean
+          senior_approver_id: string | null
+          snapshot_reference: string | null
+          transfer_reason: string | null
+          transfer_type: string
+        }
+        Insert: {
+          account_id: string
+          audit_log_reference?: string | null
+          created_at?: string
+          executed_by_admin_id: string
+          execution_timestamp?: string
+          id?: string
+          new_owner_id: string
+          new_owner_role?: string
+          notes?: string | null
+          previous_owner_final_state?: string
+          previous_owner_id: string
+          request_id?: string | null
+          rollback_eligible?: boolean
+          senior_approver_id?: string | null
+          snapshot_reference?: string | null
+          transfer_reason?: string | null
+          transfer_type?: string
+        }
+        Update: {
+          account_id?: string
+          audit_log_reference?: string | null
+          created_at?: string
+          executed_by_admin_id?: string
+          execution_timestamp?: string
+          id?: string
+          new_owner_id?: string
+          new_owner_role?: string
+          notes?: string | null
+          previous_owner_final_state?: string
+          previous_owner_id?: string
+          request_id?: string | null
+          rollback_eligible?: boolean
+          senior_approver_id?: string | null
+          snapshot_reference?: string | null
+          transfer_reason?: string | null
+          transfer_type?: string
+        }
+        Relationships: []
+      }
       paint_codes: {
         Row: {
           created_at: string
@@ -4679,6 +4961,37 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: Json
       }
+      create_continuity_snapshot: {
+        Args: { _request_id: string }
+        Returns: string
+      }
+      execute_archive_custodian: {
+        Args: {
+          _expires_at: string
+          _permissions: Json
+          _reason: string
+          _request_id: string
+        }
+        Returns: string
+      }
+      execute_ownership_transfer: {
+        Args: {
+          _reason: string
+          _request_id: string
+          _senior_approver_id: string
+          _snapshot_reference: string
+        }
+        Returns: string
+      }
+      execute_temporary_stewardship: {
+        Args: {
+          _expires_at: string
+          _permissions: Json
+          _reason: string
+          _request_id: string
+        }
+        Returns: string
+      }
       get_activation_funnel: {
         Args: never
         Returns: {
@@ -4895,6 +5208,10 @@ export type Database = {
           _event_type: string
           _request_id: string
         }
+        Returns: undefined
+      }
+      revoke_continuity_access: {
+        Args: { _grant_id: string; _grant_type: string; _reason: string }
         Returns: undefined
       }
       update_user_storage_usage: {
