@@ -269,8 +269,8 @@ const AuthorizedUsersTab: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Legacy Admin continuity requests — only renders for the active Legacy Admin */}
-      <LegacyAdminContinuityRequests />
+      {/* Legacy Continuity — only renders for the active Legacy Admin */}
+      <LegacyContinuitySection />
 
       {/* Invite Form — Owner only */}
       {isOwner && (
