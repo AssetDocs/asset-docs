@@ -12,17 +12,19 @@ import AdminLegalAgreements from '@/pages/AdminLegalAgreements';
 import DevTeamManagement from './DevTeamManagement';
 import MarketSizing from './MarketSizing';
 import AdminDocuments from './AdminDocuments';
-import { 
-  Users, 
-  CreditCard, 
-  Shield, 
-  Settings, 
-  FileText, 
+import LegacyContinuityWorkspace from './legacy-continuity/LegacyContinuityWorkspace';
+import {
+  Users,
+  CreditCard,
+  Shield,
+  Settings,
+  FileText,
   BarChart,
   Handshake,
   UserPlus,
   TrendingUp,
-  FolderOpen
+  FolderOpen,
+  ShieldCheck,
 } from 'lucide-react';
 
 const AdminOwnerWorkspace: React.FC = () => {
