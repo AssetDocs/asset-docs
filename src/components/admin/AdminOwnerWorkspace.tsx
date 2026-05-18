@@ -245,6 +245,10 @@ const AdminOwnerWorkspace: React.FC = () => {
         <SecurityChecklist />
       </TabsContent>
 
+      <TabsContent value="continuity">
+        <LegacyContinuityWorkspace />
+      </TabsContent>
+
       <TabsContent value="legal">
         <AdminLegalAgreements />
       </TabsContent>
