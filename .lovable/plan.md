@@ -1,95 +1,90 @@
-## Legacy Continuity Admin Workspace
+# Continuity Execution Panel
 
-Build a dedicated case management area inside the Admin Owner Workspace for reviewing Legacy Continuity requests. This is a large feature — proposing a phased plan so you can approve scope before implementation.
+A protected execution layer inside an open Legacy Continuity case that lets approved cases be carried out — Temporary Stewardship, Archive Custodian Mode, or Full Ownership Transfer — with snapshot, preview, typed confirmation, audit logging, and automated role/permission changes. No ownership change ever happens through normal user management.
 
-### Placement
+## Visibility rules
 
-Add a new top-level tab **"Legacy Continuity"** to `AdminOwnerWorkspace.tsx` (between Security and Legal). The tab renders a new `LegacyContinuityWorkspace` component containing 7 sub-tabs:
+Show panel only when case status is one of: `approved`, `approved_temporary`, `approved_transfer`, `ready_to_execute`, `transfer_pending`.
 
-1. Request Queue
-2. Active Reviews
-3. Temporary Access
-4. Ownership Transfers
-5. Denied Requests
-6. Archived Cases
-7. Audit Log
+Hide entirely for: `submitted`, `under_review`, `additional_info_requested`, `escalated`, `denied`, `completed`, `archived`.
 
-### Database (one migration)
+To support new statuses, extend the case `status` column choices and the `STATUS_LABEL`/`STATUS_BADGE_CLASS` constants.
 
-Extend the existing `account_continuity_requests` table with admin review columns:
-- `risk_level`, `assigned_reviewer_id`, `priority`, `completed_at`, `preservation_hold` (bool)
+## Database (one migration)
 
-Add new tables (all RLS-restricted to admins via `has_owner_workspace_access` / `has_any_app_role`):
-- `continuity_documents` (mirror metadata from storage; per-file verification_status, reviewer_notes, category)
-- `continuity_checklist_items` (identity, legal authority, account safety checklist with status)
-- `continuity_notes` (internal admin notes with category)
-- `continuity_messages` (outbound communications)
-- `continuity_timeline_events` (chronological events)
-- `continuity_temporary_access` (grants with permissions JSONB, expires_at)
-- `continuity_ownership_transfers` (multi-step transfer workflow tracking)
-- `continuity_audit_logs` (immutable admin action log)
+New tables (all RLS, `has_dev_workspace_access` for SELECT, role-gated INSERT via RPC):
 
-Add a helper RPC `log_continuity_event` for writing timeline + audit log rows in one call.
+1. `ownership_transfer_history` — permanent record of every executed transfer (account_id, previous_owner_id, new_owner_id, executed_by_admin_id, senior_approver_id, request_id, transfer_reason, transfer_type, execution_timestamp, snapshot_reference, rollback_eligible default false, previous_owner_final_state, new_owner_role, audit_log_reference, notes).
+2. `continuity_account_snapshots` — immutable JSON snapshot per execution (snapshot_reference unique, snapshot_type, included_assets/documents/permissions/user_relationships/audit_history JSONB, checksum, storage_location).
+3. `continuity_execution_events` — start→complete lifecycle (execution_type, status, started_at, completed_at, failure_reason).
+4. `continuity_archive_custodian_access` — view/export-only grants (can_view/export/download/modify/delete booleans, starts_at, expires_at, status, reason).
+5. `account_ownership_metadata` — per-account stamp written on transfer: `ownership_origin = 'transferred_via_legacy_continuity'`, continuity_case_id, transfer_date, previous_owner_id, executed_by, senior_approver, snapshot_reference, `continuity_setup_required` boolean.
 
-### Components (under `src/components/admin/legacy-continuity/`)
+Extend existing tables:
+- `account_continuity_requests`: add `transfer_scope` (temporary/transfer/archive), `execution_status`, `executed_at`, `executed_by`, `senior_approver_id`, `snapshot_reference`, `transfer_preview_reviewed_at`.
+- `accounts`: add `owner_state` enum (`active`, `archived_owner`, `disabled`), `continuity_setup_required` boolean.
 
-- `LegacyContinuityWorkspace.tsx` — tab container + metric cards header
-- `RequestQueueTab.tsx` — filterable/sortable table with status & risk badges
-- `ActiveReviewsTab.tsx` — focused list of in-progress cases
-- `TemporaryAccessTab.tsx` — active grants table with extend/revoke/modify actions
-- `OwnershipTransfersTab.tsx` — multi-step transfer pipeline view
-- `DeniedRequestsTab.tsx` — read-only denied list
-- `ArchivedCasesTab.tsx` — read-only completed/archived cases
-- `AuditLogTab.tsx` — filterable immutable log view
-- `CaseReviewDialog.tsx` — large dialog with 3-zone layout:
-  - **Left:** `CaseSummarySidebar.tsx` (case info, account holder, legacy admin)
-  - **Center:** tabbed sections — Request Summary, Requested Actions, Documents, Identity & Authority Checklist, Timeline, Internal Notes, Communication Center
-  - **Right:** `DecisionPanel.tsx` (assign reviewer, change status, request info, preservation hold, grant temp access, start ownership transfer, deny, complete)
-- `OwnershipTransferWizard.tsx` — 5-step deliberate flow (recommendation → senior approval → invitation → acceptance tracking → final execution with TRANSFER text confirmation)
-- `TemporaryAccessDialog.tsx` — permissions toggles + expiration + reason
-- Shared `constants.ts` for status/risk labels, badge classes, denial reasons, message templates
+New RPCs (SECURITY DEFINER, role-gated):
+- `create_continuity_snapshot(request_id)` — gathers account data, inserts snapshot row, returns snapshot_reference.
+- `execute_temporary_stewardship(request_id, permissions, expires_at, reason)` — inserts `continuity_temporary_access`, logs event + audit, updates case execution_status.
+- `execute_archive_custodian(request_id, perms, expires_at, reason)` — same for archive custodian.
+- `execute_ownership_transfer(request_id, reason, senior_approver_id, snapshot_reference)` — verifies snapshot exists, archives original owner (`accounts.owner_state='archived_owner'`, demote `account_memberships.role` to `archived_owner`), promotes Legacy Admin to `owner` membership, writes `ownership_transfer_history`, stamps `account_ownership_metadata`, sets `continuity_setup_required=true`, logs all events.
+- `revoke_continuity_access(grant_id, grant_type, reason)` — revokes temp/custodian grants.
 
-### Permissions
+## Components (under `src/components/admin/legacy-continuity/execution/`)
 
-Use existing `useAdminRole` hook. Map app_role → continuity capability:
-- `qa` / support → view + notes + messages only
-- `developer` → + checklist + recommend
-- `dev_lead` → + approve temp access + preservation hold
-- `admin` → + execute ownership transfer
-- `owner` → full
+- `ContinuityExecutionPanel.tsx` — gated container; renders only for approved statuses. Mounts into `CaseReviewDialog` as a new center tab "Execution" (or a sticky bottom panel within Decision panel).
+- `CurrentOwnershipSummary.tsx` — read-only current-owner + account metadata block.
+- `ProposedSuccessorSummary.tsx` — read-only Legacy Admin block with verification status badges.
+- `PreTransferChecklist.tsx` — required checklist with Complete/Incomplete/Failed/Not Applicable states; computes `canExecute`.
+- `TransferScopeSelector.tsx` — three radio cards: Temporary Stewardship, Full Ownership Transfer, Archive Custodian Mode, each with description + permission template.
+- `TemporaryStewardshipForm.tsx` — permissions toggles, expiration date (required), reason, reviewer confirmation.
+- `ArchiveCustodianForm.tsx` — view/export/download/permanent toggles, optional expiration, reason.
+- `OwnershipTransferForm.tsx` — reason, senior approver dropdown (filtered to `admin`/`owner` roles), confirmation gates.
+- `TransferPreviewDialog.tsx` — Before / After / Changed Permissions / Restricted Permissions / Audit Records to be created. Marks `transfer_preview_reviewed_at`.
+- `OwnershipTransferConfirmModal.tsx` — checkbox + typed "TRANSFER" gate, calls `execute_ownership_transfer`.
+- `ExecutionCompletionScreen.tsx` — post-execution summary with case/account/owners/snapshot/audit references.
+- `ExecutionGate.tsx` — small helper mapping role → allowed actions with disabled tooltips ("Requires Ownership Administrator permission.").
 
-Disabled actions show tooltip: "Requires Senior Reviewer permission."
+## Permissions
 
-### Important constraints honored
+Extend `capabilitiesForRole` in `constants.ts`:
+- `qa` / support → view only
+- `developer` → checklist + recommend
+- `dev_lead` (Senior Reviewer) → approve temp / archive / recommend transfer
+- `admin` (Ownership Administrator) → execute ownership transfer
+- `owner` → all
 
-- No "claim account" language anywhere
-- No one-click ownership transfer — requires recommendation, senior approval, invitation, acceptance, TRANSFER text confirmation
-- Reason required for: deny, grant temp access, preservation hold, recommend transfer, execute transfer
-- Temp access always has expiration
-- Archived cases read-only
-- Every meaningful action writes to timeline + audit log
-- Calm institutional styling using existing semantic tokens (muted/border/amber/emerald/rose), no celebratory colors
+Disabled buttons render with tooltip when role insufficient.
 
-### Out of scope (this round)
+## Notifications
 
-- Actually sending emails for messages (logs them; wires to existing `notify-continuity-request` only)
-- Real preservation hold enforcement at the data layer (flag set + UI gating only; deeper enforcement is a follow-up)
-- Real-time inter-admin notifications
-- Encrypted document viewing tools beyond signed-URL download/view
-- Senior approval as separate auth gate beyond role check (no second-device confirmation)
+After execution, invoke existing `notify-continuity-request` edge function with new `event_type` values (`temporary_stewardship_granted`, `archive_custodian_granted`, `ownership_transfer_completed`) so:
+- New owner gets ownership confirmation email
+- Internal admins get summary email
+- (Estate/legal contact email left as future hook)
 
-### Files
+No new edge function unless current one cannot be parameterized — will be a small additive change.
 
-**Created (~15):**
+## Out of scope (deferred)
+
+- Rollback execution (only flag `rollback_eligible=false` stored; no UI).
+- Real-time inter-admin notifications.
+- Estate/legal external contact emails.
+- Cryptographic snapshot signing beyond a computed SHA-256 `checksum` over the JSON payload.
+- Enforcement of "Disabled User" alternative state (we ship `archived_owner` only).
+
+## Files
+
+**Created (~14):**
 - 1 migration
-- ~12 components under `src/components/admin/legacy-continuity/`
-- 1 `constants.ts`, 1 `types.ts`
+- ~11 components under `execution/`
+- 1 helper `executionConstants.ts`
+- 1 hook `useContinuityExecution.ts`
 
 **Edited:**
-- `src/components/admin/AdminOwnerWorkspace.tsx` (add tab)
+- `CaseReviewDialog.tsx` — add Execution tab
+- `legacy-continuity/constants.ts` — new statuses, transfer scope labels, capabilities
+- `notify-continuity-request` edge function — add new event types
 
-### Estimated scope
-
-This is a substantial build (~2500–3500 lines across components + migration). Approving the plan kicks off the migration first, then the UI in a single follow-up pass.
-
-Approve to proceed, or tell me which screens/tabs to trim or defer.
+Approve to proceed; migration runs first, then UI in one pass.
