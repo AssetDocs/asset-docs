@@ -14,6 +14,7 @@ import CaseNotes from './CaseNotes';
 import CaseMessages from './CaseMessages';
 import CaseTimeline from './CaseTimeline';
 import CaseRequestSummary from './CaseRequestSummary';
+import ContinuityExecutionPanel from './execution/ContinuityExecutionPanel';
 
 const CaseReviewDialog: React.FC<{ caseId: string | null; onClose: () => void }> = ({ caseId, onClose }) => {
   const [caseData, setCaseData] = useState<any>(null);
@@ -57,13 +58,14 @@ const CaseReviewDialog: React.FC<{ caseId: string | null; onClose: () => void }>
 
             <main className="col-span-12 lg:col-span-6 overflow-y-auto">
               <Tabs defaultValue="summary" className="p-4">
-                <TabsList className="grid grid-cols-3 lg:grid-cols-6 h-auto">
+                <TabsList className="grid grid-cols-4 lg:grid-cols-7 h-auto">
                   <TabsTrigger value="summary">Summary</TabsTrigger>
                   <TabsTrigger value="documents">Documents</TabsTrigger>
                   <TabsTrigger value="checklist">Checklist</TabsTrigger>
                   <TabsTrigger value="timeline">Timeline</TabsTrigger>
                   <TabsTrigger value="notes">Notes</TabsTrigger>
                   <TabsTrigger value="messages">Messages</TabsTrigger>
+                  <TabsTrigger value="execution">Execution</TabsTrigger>
                 </TabsList>
                 <TabsContent value="summary"><CaseRequestSummary caseData={caseData} /></TabsContent>
                 <TabsContent value="documents"><CaseDocuments caseData={caseData} readOnly={isReadOnly} onChange={refresh} /></TabsContent>
@@ -71,6 +73,7 @@ const CaseReviewDialog: React.FC<{ caseId: string | null; onClose: () => void }>
                 <TabsContent value="timeline"><CaseTimeline caseId={caseData.id} reloadKey={reloadKey} /></TabsContent>
                 <TabsContent value="notes"><CaseNotes caseData={caseData} readOnly={isReadOnly} onChange={refresh} /></TabsContent>
                 <TabsContent value="messages"><CaseMessages caseData={caseData} readOnly={isReadOnly} onChange={refresh} /></TabsContent>
+                <TabsContent value="execution"><ContinuityExecutionPanel caseData={caseData} onChange={refresh} /></TabsContent>
               </Tabs>
             </main>
 
