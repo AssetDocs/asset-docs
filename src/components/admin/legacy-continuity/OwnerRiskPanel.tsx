@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ShieldAlert, Snowflake, Clock } from 'lucide-react';
+import { notifyContinuityEvent } from '@/lib/continuityNotifications';
 
 const FREEZE_TYPES = [
   { value: 'continuity_review', label: 'Continuity Review Freeze' },
@@ -55,6 +56,7 @@ const OwnerRiskPanel: React.FC<{ caseData: any; onChange: () => void }> = ({ cas
       _account_id: caseData.account_id, _request_id: caseData.id, _freeze_type: freezeType, _reason: freezeReason,
     });
     if (error) { toast.error(error.message); return; }
+    await notifyContinuityEvent(caseData.id, 'freeze_applied', { freeze_type: freezeType, reason: freezeReason });
     toast.success('Freeze applied'); setFreezeReason(''); load(); onChange();
   };
 

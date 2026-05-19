@@ -44,6 +44,14 @@ const ContinuityDispute: React.FC = () => {
 
     setBusy(false);
     if (error) { toast.error(error.message); return; }
+    try {
+      const requestId = caseId || (token ? (await supabase.from('account_continuity_requests')
+        .select('id').eq('owner_dispute_reason', reason).order('updated_at', { ascending: false }).limit(1).maybeSingle()).data?.id : null);
+      if (requestId) {
+        const { notifyContinuityEvent } = await import('@/lib/continuityNotifications');
+        await notifyContinuityEvent(requestId, 'owner_disputed', { reason });
+      }
+    } catch (e) { console.warn('continuity-notify failed', e); }
     setDone(true);
   };
 

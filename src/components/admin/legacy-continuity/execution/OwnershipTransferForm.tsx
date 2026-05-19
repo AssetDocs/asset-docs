@@ -63,6 +63,10 @@ const OwnershipTransferForm: React.FC<Props> = ({ caseData, snapshot, disabled, 
     });
     setBusy(false);
     if (error) { toast.error(error.message); return; }
+    try {
+      const { notifyContinuityEvent } = await import('@/lib/continuityNotifications');
+      await notifyContinuityEvent(caseData.id, 'transfer_completed', { reason });
+    } catch (e) { console.warn('continuity-notify failed', e); }
     toast.success('Ownership transferred');
     setOpen(false); onDone();
   };
