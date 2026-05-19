@@ -23,14 +23,13 @@ const ContinuityDispute: React.FC = () => {
     if (!reason.trim()) { toast.error('Please describe why you are disputing this request.'); return; }
     setBusy(true);
 
-    // If we have a token, use the token RPC. Otherwise create a token-less dispute through caseId for an authenticated owner.
     let error: any = null;
+    let resolvedRequestId: string | null = caseId || null;
     if (token) {
       const res = await supabase.rpc('submit_continuity_dispute', { _token: token, _reason: reason });
       error = res.error;
+      if (!error && (res.data as any)?.request_id) resolvedRequestId = (res.data as any).request_id;
     } else if (caseId) {
-      // For authenticated owners disputing from the in-app banner, update directly via RPC pattern.
-      // We still call submit_continuity_dispute with a synthetic flow: insert a temporary token. Easier: update via plain update guarded by RLS.
       const upd = await supabase.from('account_continuity_requests').update({
         owner_dispute_status: 'disputed',
         owner_disputed_at: new Date().toISOString(),
@@ -44,14 +43,12 @@ const ContinuityDispute: React.FC = () => {
 
     setBusy(false);
     if (error) { toast.error(error.message); return; }
-    try {
-      const requestId = caseId || (token ? (await supabase.from('account_continuity_requests')
-        .select('id').eq('owner_dispute_reason', reason).order('updated_at', { ascending: false }).limit(1).maybeSingle()).data?.id : null);
-      if (requestId) {
+    if (resolvedRequestId) {
+      try {
         const { notifyContinuityEvent } = await import('@/lib/continuityNotifications');
-        await notifyContinuityEvent(requestId, 'owner_disputed', { reason });
-      }
-    } catch (e) { console.warn('continuity-notify failed', e); }
+        await notifyContinuityEvent(resolvedRequestId, 'owner_disputed', { reason });
+      } catch (e) { console.warn('continuity-notify failed', e); }
+    }
     setDone(true);
   };
 
