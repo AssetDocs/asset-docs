@@ -18,6 +18,7 @@ import {
 import { toast } from '@/hooks/use-toast';
 import { AlertTriangle, Shield, KeyRound, ArrowRightLeft, Ban, CheckCircle2 } from 'lucide-react';
 import OwnershipTransferWizard from './OwnershipTransferWizard';
+import { notifyContinuityEvent, eventForStatus } from '@/lib/continuityNotifications';
 
 const DecisionPanel: React.FC<{ caseData: any; readOnly?: boolean; onChange: () => void }> = ({ caseData, readOnly, onChange }) => {
   const { role } = useAdminRole();
@@ -60,6 +61,8 @@ const DecisionPanel: React.FC<{ caseData: any; readOnly?: boolean; onChange: () 
       note_body: `Status changed to ${STATUS_LABEL[newStatus]}: ${statusNote}`, created_by: u.user?.id,
     });
     await logEvent('status_changed', `Status changed to ${STATUS_LABEL[newStatus]}`, { from: caseData.status, to: newStatus, note: statusNote, risk_level: newRisk });
+    const evt = eventForStatus(newStatus);
+    if (evt) await notifyContinuityEvent(caseData.id, evt, { risk_level: newRisk });
     toast({ title: 'Status updated' });
     setStatusOpen(false); setStatusNote(''); onChange();
   };
@@ -109,6 +112,7 @@ const DecisionPanel: React.FC<{ caseData: any; readOnly?: boolean; onChange: () 
       note_body: `Denied — ${denyReason}: ${denyNotes}`, created_by: u.user?.id,
     });
     await logEvent('request_denied', `Request denied: ${denyReason}`, { reason: denyReason, notes: denyNotes });
+    await notifyContinuityEvent(caseData.id, 'denied', { reason: denyReason });
     toast({ title: 'Request denied' });
     setDenyOpen(false); onChange();
   };
