@@ -15,6 +15,7 @@ import CaseMessages from './CaseMessages';
 import CaseTimeline from './CaseTimeline';
 import CaseRequestSummary from './CaseRequestSummary';
 import ContinuityExecutionPanel from './execution/ContinuityExecutionPanel';
+import OwnerRiskPanel from './OwnerRiskPanel';
 
 const CaseReviewDialog: React.FC<{ caseId: string | null; onClose: () => void }> = ({ caseId, onClose }) => {
   const [caseData, setCaseData] = useState<any>(null);
