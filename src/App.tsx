@@ -40,6 +40,7 @@ import VerifyEmail from "./pages/VerifyEmail";
 import CompletePricing from "./pages/CompletePricing";
 import NotFound from "./pages/NotFound";
 import Terms from "./pages/Terms";
+import ContinuityDispute from "./pages/ContinuityDispute";
 import QA from "./pages/QA";
 import Welcome from "./pages/Welcome";
 import Account from "./pages/Account";
@@ -354,6 +355,7 @@ const AppContent = () => {
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/legal" element={<Legal />} />
+        <Route path="/continuity/dispute" element={<ContinuityDispute />} />
         <Route path="/pricing" element={<Pricing />} />
           <Route path="/gift" element={<Gift />} />
           <Route path="/gift-checkout" element={<GiftCheckout />} />

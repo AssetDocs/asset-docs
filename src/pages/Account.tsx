@@ -39,6 +39,8 @@ import ServiceProsSection from '@/components/ServiceProsSection';
 import AccessActivitySection from '@/components/AccessActivitySection';
 import EmergencyInstructions from '@/components/EmergencyInstructions';
 import AccountContinuityInstructions from '@/components/AccountContinuityInstructions';
+import ContinuityPreferencesPage from '@/components/continuity/ContinuityPreferencesPage';
+import ContinuityRequestBanner from '@/components/continuity/ContinuityRequestBanner';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
@@ -242,7 +244,9 @@ const Account: React.FC = () => {
                   <h2 className="text-2xl font-bold text-foreground">{getSectionConfig().title}</h2>
                   <p className="text-muted-foreground text-sm mt-1">{getSectionConfig().subtitle}</p>
                 </div>
+                <ContinuityRequestBanner />
                 <AccountContinuityInstructions />
+                <ContinuityPreferencesPage />
                 <SecureVault initialTab="legacy" />
               </div>
             </TabsContent>

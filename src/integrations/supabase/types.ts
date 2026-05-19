@@ -26,10 +26,19 @@ export type Database = {
           executed_at: string | null
           executed_by: string | null
           execution_status: string | null
+          freeze_applied_at: string | null
+          freeze_applied_by: string | null
+          freeze_reason: string | null
+          freeze_status: string | null
+          freeze_type: string | null
           id: string
           legacy_admin_id: string | null
           metadata: Json | null
           notes: string | null
+          owner_dispute_reason: string | null
+          owner_dispute_status: string | null
+          owner_disputed_at: string | null
+          owner_last_active_at: string | null
           preservation_hold: boolean
           preservation_hold_applied_at: string | null
           preservation_hold_applied_by: string | null
@@ -40,13 +49,19 @@ export type Database = {
           requested_by_user_id: string
           reviewed_at: string | null
           reviewed_by_admin_id: string | null
+          risk_flags: Json
           risk_level: string
+          scheduled_execution_at: string | null
           senior_approver_id: string | null
           snapshot_reference: string | null
           status: string
           transfer_preview_reviewed_at: string | null
           transfer_scope: string | null
           updated_at: string
+          waiting_period_bypass_reason: string | null
+          waiting_period_bypassed_at: string | null
+          waiting_period_bypassed_by: string | null
+          waiting_period_starts_at: string | null
         }
         Insert: {
           account_id: string
@@ -59,10 +74,19 @@ export type Database = {
           executed_at?: string | null
           executed_by?: string | null
           execution_status?: string | null
+          freeze_applied_at?: string | null
+          freeze_applied_by?: string | null
+          freeze_reason?: string | null
+          freeze_status?: string | null
+          freeze_type?: string | null
           id?: string
           legacy_admin_id?: string | null
           metadata?: Json | null
           notes?: string | null
+          owner_dispute_reason?: string | null
+          owner_dispute_status?: string | null
+          owner_disputed_at?: string | null
+          owner_last_active_at?: string | null
           preservation_hold?: boolean
           preservation_hold_applied_at?: string | null
           preservation_hold_applied_by?: string | null
@@ -73,13 +97,19 @@ export type Database = {
           requested_by_user_id: string
           reviewed_at?: string | null
           reviewed_by_admin_id?: string | null
+          risk_flags?: Json
           risk_level?: string
+          scheduled_execution_at?: string | null
           senior_approver_id?: string | null
           snapshot_reference?: string | null
           status?: string
           transfer_preview_reviewed_at?: string | null
           transfer_scope?: string | null
           updated_at?: string
+          waiting_period_bypass_reason?: string | null
+          waiting_period_bypassed_at?: string | null
+          waiting_period_bypassed_by?: string | null
+          waiting_period_starts_at?: string | null
         }
         Update: {
           account_id?: string
@@ -92,10 +122,19 @@ export type Database = {
           executed_at?: string | null
           executed_by?: string | null
           execution_status?: string | null
+          freeze_applied_at?: string | null
+          freeze_applied_by?: string | null
+          freeze_reason?: string | null
+          freeze_status?: string | null
+          freeze_type?: string | null
           id?: string
           legacy_admin_id?: string | null
           metadata?: Json | null
           notes?: string | null
+          owner_dispute_reason?: string | null
+          owner_dispute_status?: string | null
+          owner_disputed_at?: string | null
+          owner_last_active_at?: string | null
           preservation_hold?: boolean
           preservation_hold_applied_at?: string | null
           preservation_hold_applied_by?: string | null
@@ -106,13 +145,19 @@ export type Database = {
           requested_by_user_id?: string
           reviewed_at?: string | null
           reviewed_by_admin_id?: string | null
+          risk_flags?: Json
           risk_level?: string
+          scheduled_execution_at?: string | null
           senior_approver_id?: string | null
           snapshot_reference?: string | null
           status?: string
           transfer_preview_reviewed_at?: string | null
           transfer_scope?: string | null
           updated_at?: string
+          waiting_period_bypass_reason?: string | null
+          waiting_period_bypassed_at?: string | null
+          waiting_period_bypassed_by?: string | null
+          waiting_period_starts_at?: string | null
         }
         Relationships: [
           {
@@ -336,26 +381,44 @@ export type Database = {
       }
       accounts: {
         Row: {
+          account_freeze_status: string | null
+          account_freeze_type: string | null
           account_name: string | null
           continuity_setup_required: boolean
           created_at: string
           id: string
+          memorialized: boolean
+          memorialized_at: string | null
+          memorialized_by: string | null
+          memorialized_reason: string | null
           owner_state: string
           owner_user_id: string
         }
         Insert: {
+          account_freeze_status?: string | null
+          account_freeze_type?: string | null
           account_name?: string | null
           continuity_setup_required?: boolean
           created_at?: string
           id?: string
+          memorialized?: boolean
+          memorialized_at?: string | null
+          memorialized_by?: string | null
+          memorialized_reason?: string | null
           owner_state?: string
           owner_user_id: string
         }
         Update: {
+          account_freeze_status?: string | null
+          account_freeze_type?: string | null
           account_name?: string | null
           continuity_setup_required?: boolean
           created_at?: string
           id?: string
+          memorialized?: boolean
+          memorialized_at?: string | null
+          memorialized_by?: string | null
+          memorialized_reason?: string | null
           owner_state?: string
           owner_user_id?: string
         }
@@ -676,6 +739,48 @@ export type Database = {
           },
         ]
       }
+      continuity_account_freezes: {
+        Row: {
+          account_id: string
+          applied_at: string
+          applied_by: string
+          freeze_type: string
+          id: string
+          reason: string
+          removal_reason: string | null
+          removed_at: string | null
+          removed_by: string | null
+          request_id: string | null
+          status: string
+        }
+        Insert: {
+          account_id: string
+          applied_at?: string
+          applied_by: string
+          freeze_type: string
+          id?: string
+          reason: string
+          removal_reason?: string | null
+          removed_at?: string | null
+          removed_by?: string | null
+          request_id?: string | null
+          status?: string
+        }
+        Update: {
+          account_id?: string
+          applied_at?: string
+          applied_by?: string
+          freeze_type?: string
+          id?: string
+          reason?: string
+          removal_reason?: string | null
+          removed_at?: string | null
+          removed_by?: string | null
+          request_id?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       continuity_account_snapshots: {
         Row: {
           account_id: string
@@ -834,6 +939,45 @@ export type Database = {
           },
         ]
       }
+      continuity_billing_succession: {
+        Row: {
+          account_id: string
+          billing_review_notes: string | null
+          created_at: string
+          id: string
+          new_owner_user_id: string
+          payment_method_confirmed_at: string | null
+          request_id: string
+          status: string
+          terms_accepted_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_id: string
+          billing_review_notes?: string | null
+          created_at?: string
+          id?: string
+          new_owner_user_id: string
+          payment_method_confirmed_at?: string | null
+          request_id: string
+          status?: string
+          terms_accepted_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string
+          billing_review_notes?: string | null
+          created_at?: string
+          id?: string
+          new_owner_user_id?: string
+          payment_method_confirmed_at?: string | null
+          request_id?: string
+          status?: string
+          terms_accepted_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       continuity_checklist_items: {
         Row: {
           category: string
@@ -886,13 +1030,19 @@ export type Database = {
       }
       continuity_documents: {
         Row: {
+          access_restriction: string | null
           document_category: string | null
+          encryption_status: string | null
           file_name: string
           file_path: string
           file_size: number | null
           file_type: string | null
           id: string
+          last_accessed_at: string | null
+          last_accessed_by: string | null
           request_id: string
+          retention_category: string | null
+          retention_expires_at: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           reviewer_notes: string | null
@@ -901,13 +1051,19 @@ export type Database = {
           verification_status: string
         }
         Insert: {
+          access_restriction?: string | null
           document_category?: string | null
+          encryption_status?: string | null
           file_name: string
           file_path: string
           file_size?: number | null
           file_type?: string | null
           id?: string
+          last_accessed_at?: string | null
+          last_accessed_by?: string | null
           request_id: string
+          retention_category?: string | null
+          retention_expires_at?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           reviewer_notes?: string | null
@@ -916,13 +1072,19 @@ export type Database = {
           verification_status?: string
         }
         Update: {
+          access_restriction?: string | null
           document_category?: string | null
+          encryption_status?: string | null
           file_name?: string
           file_path?: string
           file_size?: number | null
           file_type?: string | null
           id?: string
+          last_accessed_at?: string | null
+          last_accessed_by?: string | null
           request_id?: string
+          retention_category?: string | null
+          retention_expires_at?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           reviewer_notes?: string | null
@@ -939,6 +1101,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      continuity_email_audit_log: {
+        Row: {
+          clicked_at: string | null
+          created_at: string
+          delivery_status: string
+          dispute_submitted_at: string | null
+          email_type: string
+          id: string
+          metadata: Json
+          opened_at: string | null
+          provider_message_id: string | null
+          recipient_email: string
+          recipient_role: string
+          request_id: string | null
+          token_expires_at: string | null
+        }
+        Insert: {
+          clicked_at?: string | null
+          created_at?: string
+          delivery_status?: string
+          dispute_submitted_at?: string | null
+          email_type: string
+          id?: string
+          metadata?: Json
+          opened_at?: string | null
+          provider_message_id?: string | null
+          recipient_email: string
+          recipient_role: string
+          request_id?: string | null
+          token_expires_at?: string | null
+        }
+        Update: {
+          clicked_at?: string | null
+          created_at?: string
+          delivery_status?: string
+          dispute_submitted_at?: string | null
+          email_type?: string
+          id?: string
+          metadata?: Json
+          opened_at?: string | null
+          provider_message_id?: string | null
+          recipient_email?: string
+          recipient_role?: string
+          request_id?: string | null
+          token_expires_at?: string | null
+        }
+        Relationships: []
       }
       continuity_execution_events: {
         Row: {
@@ -976,6 +1186,60 @@ export type Database = {
           request_id?: string
           started_at?: string
           status?: string
+        }
+        Relationships: []
+      }
+      continuity_export_forensics: {
+        Row: {
+          account_id: string
+          approved_by: string | null
+          created_at: string
+          downloaded_at: string | null
+          downloaded_by: string | null
+          export_type: string
+          exported_sections: Json
+          file_hash: string | null
+          file_name: string | null
+          file_size_bytes: number | null
+          id: string
+          ip_address: unknown
+          request_id: string
+          requested_by: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          account_id: string
+          approved_by?: string | null
+          created_at?: string
+          downloaded_at?: string | null
+          downloaded_by?: string | null
+          export_type: string
+          exported_sections?: Json
+          file_hash?: string | null
+          file_name?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          ip_address?: unknown
+          request_id: string
+          requested_by?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          account_id?: string
+          approved_by?: string | null
+          created_at?: string
+          downloaded_at?: string | null
+          downloaded_by?: string | null
+          export_type?: string
+          exported_sections?: Json
+          file_hash?: string | null
+          file_name?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          ip_address?: unknown
+          request_id?: string
+          requested_by?: string | null
+          user_agent?: string | null
         }
         Relationships: []
       }
@@ -1060,6 +1324,111 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      continuity_owner_dispute_tokens: {
+        Row: {
+          account_id: string
+          expires_at: string
+          id: string
+          issued_at: string
+          owner_user_id: string
+          purpose: string
+          request_id: string
+          token_hash: string
+          used_at: string | null
+          used_ip: unknown
+          used_user_agent: string | null
+        }
+        Insert: {
+          account_id: string
+          expires_at: string
+          id?: string
+          issued_at?: string
+          owner_user_id: string
+          purpose?: string
+          request_id: string
+          token_hash: string
+          used_at?: string | null
+          used_ip?: unknown
+          used_user_agent?: string | null
+        }
+        Update: {
+          account_id?: string
+          expires_at?: string
+          id?: string
+          issued_at?: string
+          owner_user_id?: string
+          purpose?: string
+          request_id?: string
+          token_hash?: string
+          used_at?: string | null
+          used_ip?: unknown
+          used_user_agent?: string | null
+        }
+        Relationships: []
+      }
+      continuity_owner_notifications: {
+        Row: {
+          account_id: string
+          clicked_at: string | null
+          created_at: string
+          delivered_at: string | null
+          delivery_status: string
+          dispute_clicked_at: string | null
+          email_type: string
+          id: string
+          metadata: Json
+          opened_at: string | null
+          provider_message_id: string | null
+          recipient_email: string
+          recipient_role: string
+          recipient_user_id: string | null
+          request_id: string
+          sent_at: string | null
+          subject: string | null
+          token_expires_at: string | null
+        }
+        Insert: {
+          account_id: string
+          clicked_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          delivery_status?: string
+          dispute_clicked_at?: string | null
+          email_type: string
+          id?: string
+          metadata?: Json
+          opened_at?: string | null
+          provider_message_id?: string | null
+          recipient_email: string
+          recipient_role: string
+          recipient_user_id?: string | null
+          request_id: string
+          sent_at?: string | null
+          subject?: string | null
+          token_expires_at?: string | null
+        }
+        Update: {
+          account_id?: string
+          clicked_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          delivery_status?: string
+          dispute_clicked_at?: string | null
+          email_type?: string
+          id?: string
+          metadata?: Json
+          opened_at?: string | null
+          provider_message_id?: string | null
+          recipient_email?: string
+          recipient_role?: string
+          recipient_user_id?: string | null
+          request_id?: string
+          sent_at?: string | null
+          subject?: string | null
+          token_expires_at?: string | null
+        }
+        Relationships: []
       }
       continuity_ownership_transfers: {
         Row: {
@@ -1149,6 +1518,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      continuity_secondary_legacy_admins: {
+        Row: {
+          account_id: string
+          created_at: string
+          designated_at: string
+          id: string
+          notes: string | null
+          secondary_user_id: string
+          status: string
+        }
+        Insert: {
+          account_id: string
+          created_at?: string
+          designated_at?: string
+          id?: string
+          notes?: string | null
+          secondary_user_id: string
+          status?: string
+        }
+        Update: {
+          account_id?: string
+          created_at?: string
+          designated_at?: string
+          id?: string
+          notes?: string | null
+          secondary_user_id?: string
+          status?: string
+        }
+        Relationships: []
       }
       continuity_temporary_access: {
         Row: {
@@ -2564,15 +2963,69 @@ export type Database = {
         }
         Relationships: []
       }
+      legacy_admin_consent_history: {
+        Row: {
+          account_id: string
+          account_owner_id: string
+          consent_acknowledged_at: string
+          consent_terms_version: string | null
+          consent_text: string | null
+          created_at: string
+          id: string
+          ip_address: unknown
+          legacy_admin_user_id: string
+          mfa_completed: boolean
+          optional_review_acknowledged: boolean
+          preferences_version: number | null
+          user_agent: string | null
+        }
+        Insert: {
+          account_id: string
+          account_owner_id: string
+          consent_acknowledged_at?: string
+          consent_terms_version?: string | null
+          consent_text?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          legacy_admin_user_id: string
+          mfa_completed?: boolean
+          optional_review_acknowledged?: boolean
+          preferences_version?: number | null
+          user_agent?: string | null
+        }
+        Update: {
+          account_id?: string
+          account_owner_id?: string
+          consent_acknowledged_at?: string
+          consent_terms_version?: string | null
+          consent_text?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          legacy_admin_user_id?: string
+          mfa_completed?: boolean
+          optional_review_acknowledged?: boolean
+          preferences_version?: number | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       legacy_admins: {
         Row: {
           account_id: string
           assigned_at: string
           assigned_by_owner_id: string
+          consent_acknowledged_at: string | null
+          consent_ip: unknown
+          consent_mfa_completed: boolean
+          consent_terms_version: string | null
+          consent_user_agent: string | null
           created_at: string
           id: string
           legacy_admin_user_id: string
           notes: string | null
+          preferences_version_at_consent: number | null
           status: string
           updated_at: string
         }
@@ -2580,10 +3033,16 @@ export type Database = {
           account_id: string
           assigned_at?: string
           assigned_by_owner_id: string
+          consent_acknowledged_at?: string | null
+          consent_ip?: unknown
+          consent_mfa_completed?: boolean
+          consent_terms_version?: string | null
+          consent_user_agent?: string | null
           created_at?: string
           id?: string
           legacy_admin_user_id: string
           notes?: string | null
+          preferences_version_at_consent?: number | null
           status?: string
           updated_at?: string
         }
@@ -2591,10 +3050,16 @@ export type Database = {
           account_id?: string
           assigned_at?: string
           assigned_by_owner_id?: string
+          consent_acknowledged_at?: string | null
+          consent_ip?: unknown
+          consent_mfa_completed?: boolean
+          consent_terms_version?: string | null
+          consent_user_agent?: string | null
           created_at?: string
           id?: string
           legacy_admin_user_id?: string
           notes?: string | null
+          preferences_version_at_consent?: number | null
           status?: string
           updated_at?: string
         }
@@ -2626,9 +3091,13 @@ export type Database = {
           business_succession_plan: string | null
           ceremony_preferences: string | null
           charitable_giving: string | null
+          continuity_annual_reminder: boolean
           continuity_notes: string | null
           continuity_notes_encrypted: string | null
           continuity_preference: string | null
+          continuity_preferences: Json
+          continuity_preferences_reviewed_at: string | null
+          continuity_preferences_version: number
           created_at: string
           crypto_passwords: string | null
           debts_expenses: string | null
@@ -2707,9 +3176,13 @@ export type Database = {
           business_succession_plan?: string | null
           ceremony_preferences?: string | null
           charitable_giving?: string | null
+          continuity_annual_reminder?: boolean
           continuity_notes?: string | null
           continuity_notes_encrypted?: string | null
           continuity_preference?: string | null
+          continuity_preferences?: Json
+          continuity_preferences_reviewed_at?: string | null
+          continuity_preferences_version?: number
           created_at?: string
           crypto_passwords?: string | null
           debts_expenses?: string | null
@@ -2788,9 +3261,13 @@ export type Database = {
           business_succession_plan?: string | null
           ceremony_preferences?: string | null
           charitable_giving?: string | null
+          continuity_annual_reminder?: boolean
           continuity_notes?: string | null
           continuity_notes_encrypted?: string | null
           continuity_preference?: string | null
+          continuity_preferences?: Json
+          continuity_preferences_reviewed_at?: string | null
+          continuity_preferences_version?: number
           created_at?: string
           crypto_passwords?: string | null
           debts_expenses?: string | null
@@ -4944,6 +5421,19 @@ export type Database = {
       }
     }
     Functions: {
+      apply_account_freeze: {
+        Args: {
+          _account_id: string
+          _freeze_type: string
+          _reason: string
+          _request_id: string
+        }
+        Returns: string
+      }
+      bypass_waiting_period: {
+        Args: { _reason: string; _request_id: string }
+        Returns: undefined
+      }
       calculate_user_storage_usage: {
         Args: { target_user_id: string }
         Returns: {
@@ -4957,6 +5447,10 @@ export type Database = {
         Returns: Json
       }
       claim_gift_subscription: { Args: { p_gift_code: string }; Returns: Json }
+      compute_continuity_readiness: {
+        Args: { _user_id: string }
+        Returns: Json
+      }
       compute_user_verification: {
         Args: { target_user_id: string }
         Returns: Json
@@ -4964,6 +5458,10 @@ export type Database = {
       create_continuity_snapshot: {
         Args: { _request_id: string }
         Returns: string
+      }
+      enforce_continuity_execution_guard: {
+        Args: { _request_id: string }
+        Returns: undefined
       }
       execute_archive_custodian: {
         Args: {
@@ -5210,9 +5708,21 @@ export type Database = {
         }
         Returns: undefined
       }
+      remove_account_freeze: {
+        Args: { _freeze_id: string; _reason: string }
+        Returns: undefined
+      }
       revoke_continuity_access: {
         Args: { _grant_id: string; _grant_type: string; _reason: string }
         Returns: undefined
+      }
+      set_memorialized_mode: {
+        Args: { _account_id: string; _reason: string; _request_id?: string }
+        Returns: undefined
+      }
+      submit_continuity_dispute: {
+        Args: { _reason: string; _token: string }
+        Returns: Json
       }
       update_user_storage_usage: {
         Args: { target_user_id: string }
