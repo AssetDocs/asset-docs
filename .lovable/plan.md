@@ -1,90 +1,116 @@
-# Continuity Execution Panel
+# Legacy Continuity Safeguards Expansion
 
-A protected execution layer inside an open Legacy Continuity case that lets approved cases be carried out — Temporary Stewardship, Archive Custodian Mode, or Full Ownership Transfer — with snapshot, preview, typed confirmation, audit logging, and automated role/permission changes. No ownership change ever happens through normal user management.
+This is a very large expansion (17 parts). Proposing a phased build with clear scope per phase so you can approve the whole roadmap, or trim phases before we start.
 
-## Visibility rules
+## Phase 1 — Database foundation (one migration)
 
-Show panel only when case status is one of: `approved`, `approved_temporary`, `approved_transfer`, `ready_to_execute`, `transfer_pending`.
+**Extend existing tables**
+- `legacy_locker` (owner preferences live here, keyed by user_id):
+  add `continuity_preferences JSONB` (incapacity, permanent_incapacity, death, vault_segments, annual_reminder bool, last_reviewed_at, preferences_version int).
+- `legacy_admins`:
+  add `consent_acknowledged_at`, `consent_terms_version`, `consent_ip`, `consent_user_agent`, `consent_mfa_completed`, `continuity_preferences_version_at_consent`.
+- `account_continuity_requests`:
+  add `owner_dispute_status`, `owner_disputed_at`, `owner_dispute_reason`, `freeze_status`, `freeze_type`, `freeze_reason`, `freeze_applied_at`, `freeze_applied_by`, `waiting_period_starts_at`, `scheduled_execution_at`, `waiting_period_bypass_reason`, `risk_flags JSONB`, `owner_last_active_at`.
+- `accounts`:
+  add `account_freeze_status`, `account_freeze_type`, `memorialized` bool, `memorialized_at`, `memorialized_by`.
 
-Hide entirely for: `submitted`, `under_review`, `additional_info_requested`, `escalated`, `denied`, `completed`, `archived`.
+**New tables (all RLS — admin read, owner read where applicable)**
+- `legacy_admin_consent_history` — full snapshot per consent event.
+- `continuity_owner_notifications` — every owner email (type, recipient, delivery_status, opened_at, clicked_at, dispute_clicked_at, token_expires_at, related_case_id).
+- `continuity_owner_dispute_tokens` — one-time tokens for dispute links (token hash, request_id, owner_user_id, expires_at, used_at).
+- `continuity_account_freezes` — freeze history (type, reason, applied_by, applied_at, removed_at, removed_by).
+- `continuity_billing_succession` — per-transfer billing state (status, payment_method_confirmed_at, terms_accepted_at, new_owner_id).
+- `continuity_export_forensics` — per-export record (export_type, sections, file_hash, requested_by, approved_by, downloaded_by, downloaded_at, ip, user_agent).
+- `continuity_document_retention` — adds retention_category, retention_expires_at, encryption_status, access_restriction, last_accessed_by/at to `continuity_documents` (extend existing table).
+- `continuity_secondary_legacy_admins` — future-compatible model (schema only, no UI).
+- `continuity_email_audit_log` — every continuity email send (admin/owner/legacy admin).
 
-To support new statuses, extend the case `status` column choices and the `STATUS_LABEL`/`STATUS_BADGE_CLASS` constants.
+**New RPCs (SECURITY DEFINER, role/owner-gated)**
+- `submit_continuity_dispute(token, reason)` — owner action.
+- `apply_account_freeze(account_id, type, reason)` / `remove_account_freeze(...)` — admin.
+- `record_owner_notification(...)`, `record_email_open(...)`, `record_email_click(...)`.
+- `compute_continuity_readiness(user_id)` — returns score + checklist.
+- `set_memorialized_mode(account_id, reason)` — admin.
+- `bypass_waiting_period(request_id, reason)` — senior admin.
 
-## Database (one migration)
+## Phase 2 — Owner-facing UI
 
-New tables (all RLS, `has_dev_workspace_access` for SELECT, role-gated INSERT via RPC):
+New page/section: `src/components/continuity/ContinuityPreferences/` rendered inside the owner dashboard near Legacy Continuity.
 
-1. `ownership_transfer_history` — permanent record of every executed transfer (account_id, previous_owner_id, new_owner_id, executed_by_admin_id, senior_approver_id, request_id, transfer_reason, transfer_type, execution_timestamp, snapshot_reference, rollback_eligible default false, previous_owner_final_state, new_owner_role, audit_log_reference, notes).
-2. `continuity_account_snapshots` — immutable JSON snapshot per execution (snapshot_reference unique, snapshot_type, included_assets/documents/permissions/user_relationships/audit_history JSONB, checksum, storage_location).
-3. `continuity_execution_events` — start→complete lifecycle (execution_type, status, started_at, completed_at, failure_reason).
-4. `continuity_archive_custodian_access` — view/export-only grants (can_view/export/download/modify/delete booleans, starts_at, expires_at, status, reason).
-5. `account_ownership_metadata` — per-account stamp written on transfer: `ownership_origin = 'transferred_via_legacy_continuity'`, continuity_case_id, transfer_date, previous_owner_id, executed_by, senior_approver, snapshot_reference, `continuity_setup_required` boolean.
+Components:
+- `ContinuityPreferencesPage.tsx` — container with the 7 sections.
+- `LegacyAdminSummaryCard.tsx` — current designate + change/remove.
+- `IncapacityPreferencesCard.tsx` — temp incapacity checkboxes.
+- `PermanentIncapacityCard.tsx` — checkboxes + require docs.
+- `DeathPreferencesCard.tsx` — checkboxes + executor/legal docs required.
+- `VaultSegmentPreferencesCard.tsx` — per-segment policy selector.
+- `ContinuityReadinessCard.tsx` — calm progress widget using `compute_continuity_readiness`.
+- `AnnualReviewToggle.tsx` — opt-in reminder.
+- `LegacyAdminConsentDialog.tsx` — required checkboxes + optional re-auth before save, writes `legacy_admin_consent_history`.
 
-Extend existing tables:
-- `account_continuity_requests`: add `transfer_scope` (temporary/transfer/archive), `execution_status`, `executed_at`, `executed_by`, `senior_approver_id`, `snapshot_reference`, `transfer_preview_reviewed_at`.
-- `accounts`: add `owner_state` enum (`active`, `archived_owner`, `disabled`), `continuity_setup_required` boolean.
+Owner dashboard alerts:
+- `ContinuityRequestBanner.tsx` — persistent banner if active request, with "View Details / I Recognize / Dispute" actions.
+- New page `/continuity/dispute` — handles token from email, shows confirmation, posts to `submit_continuity_dispute`, then displays freeze copy.
 
-New RPCs (SECURITY DEFINER, role-gated):
-- `create_continuity_snapshot(request_id)` — gathers account data, inserts snapshot row, returns snapshot_reference.
-- `execute_temporary_stewardship(request_id, permissions, expires_at, reason)` — inserts `continuity_temporary_access`, logs event + audit, updates case execution_status.
-- `execute_archive_custodian(request_id, perms, expires_at, reason)` — same for archive custodian.
-- `execute_ownership_transfer(request_id, reason, senior_approver_id, snapshot_reference)` — verifies snapshot exists, archives original owner (`accounts.owner_state='archived_owner'`, demote `account_memberships.role` to `archived_owner`), promotes Legacy Admin to `owner` membership, writes `ownership_transfer_history`, stamps `account_ownership_metadata`, sets `continuity_setup_required=true`, logs all events.
-- `revoke_continuity_access(grant_id, grant_type, reason)` — revokes temp/custodian grants.
+## Phase 3 — Owner notifications & email audit
 
-## Components (under `src/components/admin/legacy-continuity/execution/`)
+Add 6 transactional Resend templates (using existing `@assetsafe.net` sender) wired through a small new edge function `send-continuity-notification`:
+1. Request Submitted, 2. Under Review, 3. Additional Docs Requested, 4. Approved for Next Step, 5. Transfer Pending Execution, 6. Transfer Completed.
 
-- `ContinuityExecutionPanel.tsx` — gated container; renders only for approved statuses. Mounts into `CaseReviewDialog` as a new center tab "Execution" (or a sticky bottom panel within Decision panel).
-- `CurrentOwnershipSummary.tsx` — read-only current-owner + account metadata block.
-- `ProposedSuccessorSummary.tsx` — read-only Legacy Admin block with verification status badges.
-- `PreTransferChecklist.tsx` — required checklist with Complete/Incomplete/Failed/Not Applicable states; computes `canExecute`.
-- `TransferScopeSelector.tsx` — three radio cards: Temporary Stewardship, Full Ownership Transfer, Archive Custodian Mode, each with description + permission template.
-- `TemporaryStewardshipForm.tsx` — permissions toggles, expiration date (required), reason, reviewer confirmation.
-- `ArchiveCustodianForm.tsx` — view/export/download/permanent toggles, optional expiration, reason.
-- `OwnershipTransferForm.tsx` — reason, senior approver dropdown (filtered to `admin`/`owner` roles), confirmation gates.
-- `TransferPreviewDialog.tsx` — Before / After / Changed Permissions / Restricted Permissions / Audit Records to be created. Marks `transfer_preview_reviewed_at`.
-- `OwnershipTransferConfirmModal.tsx` — checkbox + typed "TRANSFER" gate, calls `execute_ownership_transfer`.
-- `ExecutionCompletionScreen.tsx` — post-execution summary with case/account/owners/snapshot/audit references.
-- `ExecutionGate.tsx` — small helper mapping role → allowed actions with disabled tooltips ("Requires Ownership Administrator permission.").
+Each send writes a row to `continuity_owner_notifications` and `continuity_email_audit_log`. All "deny" CTAs use signed tokens stored in `continuity_owner_dispute_tokens`.
+
+Hook into existing case state transitions in the admin Decision panel and the new execution RPCs so each transition triggers the right email automatically.
+
+## Phase 4 — Admin workspace additions
+
+Inside `CaseReviewDialog`, add 6 new tabs/sections (or a grouped "Owner & Risk" panel):
+- `OwnerPreferencesPanel.tsx` — render legacy_locker.continuity_preferences for this account, with vault segment rules.
+- `ConsentHistoryPanel.tsx` — table of `legacy_admin_consent_history`.
+- `OwnerNotificationHistoryPanel.tsx` — table from `continuity_owner_notifications`.
+- `OwnerActivityPanel.tsx` — last login, last email open, recent settings/password/billing/vault changes (joined views).
+- `DisputeFreezeControls.tsx` — dispute banner, apply/remove freeze, escalate.
+- `WaitingPeriodPanel.tsx` — start/scheduled/remaining, override controls.
+
+## Phase 5 — Execution-layer integration
+
+Update the existing execution panel/RPCs (from prior turn) so:
+- `execute_ownership_transfer` refuses to run if `owner_dispute_status='disputed'`, `freeze_status` is active, or waiting period unfulfilled (with senior-only bypass via `bypass_waiting_period`).
+- Approval transitions to "Transfer Approved – Waiting Period" instead of immediate execute, with default 7-day window.
+- Billing succession block — pre-execution gate that requires `continuity_billing_succession.status='accepted'` (or admin override with audit note).
+- Memorialized mode added as a 4th scope alongside Temporary/Archive/Transfer.
+
+## Phase 6 — Forensics, retention, risk
+
+- Add risk-flag computation when a request is submitted (recent owner activity, recent password/email change, MFA disabled, multiple requests, etc.) — written into `risk_flags`.
+- Export actions write into `continuity_export_forensics` + audit log; sensitive segment exports show confirm dialog before download.
+- Document upload UI captures retention_category + retention_expires_at.
 
 ## Permissions
 
-Extend `capabilitiesForRole` in `constants.ts`:
-- `qa` / support → view only
-- `developer` → checklist + recommend
-- `dev_lead` (Senior Reviewer) → approve temp / archive / recommend transfer
-- `admin` (Ownership Administrator) → execute ownership transfer
-- `owner` → all
+Reuse existing `capabilitiesForRole`. Add new caps:
+- `apply_freeze`, `remove_freeze`, `bypass_waiting_period`, `set_memorialized_mode` — Senior Reviewer + above.
+- `resolve_dispute` — Senior Reviewer + above.
 
-Disabled buttons render with tooltip when role insufficient.
+## Out of scope (this round)
 
-## Notifications
+- Real second-device MFA confirmation on dispute (we accept existing logged-in session as auth).
+- Open/click pixel tracking — we record `delivery_status` from Resend webhooks only.
+- Secondary Legacy Admin full UI (schema only).
+- Automatic retention deletion job (UI-only retention metadata).
+- IP/device geo lookup — store IP + UA only.
+- New ActivityCampaign / external CRM events.
 
-After execution, invoke existing `notify-continuity-request` edge function with new `event_type` values (`temporary_stewardship_granted`, `archive_custodian_granted`, `ownership_transfer_completed`) so:
-- New owner gets ownership confirmation email
-- Internal admins get summary email
-- (Estate/legal contact email left as future hook)
+## Scope
 
-No new edge function unless current one cannot be parameterized — will be a small additive change.
+This is a multi-day build (~30–40 new files, 1 large migration, 1 new edge function, 6 email templates, integration into existing Execution Panel and CaseReviewDialog). Lines of code in the high thousands.
 
-## Out of scope (deferred)
+## Recommended question before we start
 
-- Rollback execution (only flag `rollback_eligible=false` stored; no UI).
-- Real-time inter-admin notifications.
-- Estate/legal external contact emails.
-- Cryptographic snapshot signing beyond a computed SHA-256 `checksum` over the JSON payload.
-- Enforcement of "Disabled User" alternative state (we ship `archived_owner` only).
+Because each phase is large and partially independent, please answer one of:
 
-## Files
+A. **Build all 6 phases now** in a single sweep (long agent run, many files).
+B. **Build Phases 1 + 2 first** (database + owner-facing preferences/dispute UI), then iterate — recommended.
+C. **Build Phases 1 + 4 + 5 first** (database + admin workspace + execution integration), then add owner UI/emails.
+D. **Trim** — list any parts (e.g. memorialized mode, secondary legacy admin, export forensics) to defer or drop.
 
-**Created (~14):**
-- 1 migration
-- ~11 components under `execution/`
-- 1 helper `executionConstants.ts`
-- 1 hook `useContinuityExecution.ts`
-
-**Edited:**
-- `CaseReviewDialog.tsx` — add Execution tab
-- `legacy-continuity/constants.ts` — new statuses, transfer scope labels, capabilities
-- `notify-continuity-request` edge function — add new event types
-
-Approve to proceed; migration runs first, then UI in one pass.
+Reply with the letter (or specify a custom subset) and I will start with the migration immediately.
