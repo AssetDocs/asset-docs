@@ -155,12 +155,18 @@ const ContinuityRequestWizard: React.FC<Props> = ({ open, onOpenChange, legacyAd
           .eq('id', inserted.id);
       }
 
-      // Fire-and-forget staff notification
+      // Fire-and-forget staff notification (legacy support email digest)
       try {
         await supabase.functions.invoke('notify-continuity-request', {
           body: { request_id: inserted.id },
         });
       } catch (e) { console.warn('notify failed', e); }
+
+      // Owner + Legacy Admin continuity notifications (audit-logged, idempotent)
+      try {
+        const { notifyContinuityEvent } = await import('@/lib/continuityNotifications');
+        await notifyContinuityEvent(inserted.id, 'request_submitted');
+      } catch (e) { console.warn('continuity-notify failed', e); }
 
       setSubmitted(true);
       onSubmitted();

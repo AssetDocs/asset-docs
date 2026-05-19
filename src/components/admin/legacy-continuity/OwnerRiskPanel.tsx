@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ShieldAlert, Snowflake, Clock } from 'lucide-react';
+import { notifyContinuityEvent } from '@/lib/continuityNotifications';
 
 const FREEZE_TYPES = [
   { value: 'continuity_review', label: 'Continuity Review Freeze' },
@@ -55,6 +56,7 @@ const OwnerRiskPanel: React.FC<{ caseData: any; onChange: () => void }> = ({ cas
       _account_id: caseData.account_id, _request_id: caseData.id, _freeze_type: freezeType, _reason: freezeReason,
     });
     if (error) { toast.error(error.message); return; }
+    await notifyContinuityEvent(caseData.id, 'freeze_applied', { freeze_type: freezeType, reason: freezeReason });
     toast.success('Freeze applied'); setFreezeReason(''); load(); onChange();
   };
 
@@ -162,7 +164,15 @@ const OwnerRiskPanel: React.FC<{ caseData: any; onChange: () => void }> = ({ cas
                       <TableCell className="text-xs">{new Date(n.created_at).toLocaleString()}</TableCell>
                       <TableCell className="text-xs">{n.email_type}</TableCell>
                       <TableCell className="text-xs">{n.recipient_email}</TableCell>
-                      <TableCell><Badge variant="outline" className="text-xs">{n.delivery_status}</Badge></TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={`text-xs ${n.delivery_status === 'failed' ? 'border-rose-300 bg-rose-50 text-rose-900' : n.delivery_status === 'sent' ? 'border-emerald-200 bg-emerald-50 text-emerald-900' : ''}`}
+                        >
+                          {n.delivery_status}
+                          {n.delivery_status === 'failed' && n.metadata?.error ? ` — ${String(n.metadata.error).slice(0, 60)}` : ''}
+                        </Badge>
+                      </TableCell>
                       <TableCell className="text-xs">{n.opened_at ? new Date(n.opened_at).toLocaleString() : '—'}</TableCell>
                       <TableCell className="text-xs">{n.dispute_clicked_at ? '✓' : '—'}</TableCell>
                     </TableRow>
