@@ -164,7 +164,15 @@ const OwnerRiskPanel: React.FC<{ caseData: any; onChange: () => void }> = ({ cas
                       <TableCell className="text-xs">{new Date(n.created_at).toLocaleString()}</TableCell>
                       <TableCell className="text-xs">{n.email_type}</TableCell>
                       <TableCell className="text-xs">{n.recipient_email}</TableCell>
-                      <TableCell><Badge variant="outline" className="text-xs">{n.delivery_status}</Badge></TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={`text-xs ${n.delivery_status === 'failed' ? 'border-rose-300 bg-rose-50 text-rose-900' : n.delivery_status === 'sent' ? 'border-emerald-200 bg-emerald-50 text-emerald-900' : ''}`}
+                        >
+                          {n.delivery_status}
+                          {n.delivery_status === 'failed' && n.metadata?.error ? ` — ${String(n.metadata.error).slice(0, 60)}` : ''}
+                        </Badge>
+                      </TableCell>
                       <TableCell className="text-xs">{n.opened_at ? new Date(n.opened_at).toLocaleString() : '—'}</TableCell>
                       <TableCell className="text-xs">{n.dispute_clicked_at ? '✓' : '—'}</TableCell>
                     </TableRow>
