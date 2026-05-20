@@ -80,6 +80,11 @@ const Footer: React.FC = () => {
                   </Link>
                 </li>
                 <li>
+                  <Link to="/account-assistance" className="text-gray-300 hover:text-white transition-colors text-sm">
+                    Account Assistance
+                  </Link>
+                </li>
+                <li>
                   <Link to="/install" className="text-gray-300 hover:text-white transition-colors text-sm flex items-center gap-1">
                     <Smartphone className="h-3 w-3" />
                     Install App

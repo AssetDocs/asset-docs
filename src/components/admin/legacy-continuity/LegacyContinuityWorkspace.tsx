@@ -11,6 +11,7 @@ import DeniedRequestsTab from './DeniedRequestsTab';
 import ArchivedCasesTab from './ArchivedCasesTab';
 import AuditLogTab from './AuditLogTab';
 import CaseReviewDialog from './CaseReviewDialog';
+import ExternalAssistanceTab from './ExternalAssistanceTab';
 
 const LegacyContinuityWorkspace: React.FC = () => {
   const [tab, setTab] = useState('queue');
@@ -83,9 +84,10 @@ const LegacyContinuityWorkspace: React.FC = () => {
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="grid grid-cols-3 md:grid-cols-7 h-auto">
+        <TabsList className="grid grid-cols-3 md:grid-cols-8 h-auto">
           <TabsTrigger value="queue">Request Queue</TabsTrigger>
           <TabsTrigger value="active">Active Reviews</TabsTrigger>
+          <TabsTrigger value="external">External Assistance</TabsTrigger>
           <TabsTrigger value="temp">Temporary Stewardship</TabsTrigger>
           <TabsTrigger value="transfers">Continuity Actions</TabsTrigger>
           <TabsTrigger value="denied">Denied</TabsTrigger>
@@ -100,6 +102,9 @@ const LegacyContinuityWorkspace: React.FC = () => {
         </TabsContent>
         <TabsContent value="active">
           <RequestQueueTab onOpenCase={openCase} refreshKey={refreshKey} activeOnly />
+        </TabsContent>
+        <TabsContent value="external">
+          <ExternalAssistanceTab refreshKey={refreshKey} />
         </TabsContent>
         <TabsContent value="temp">
           <TemporaryAccessTab onOpenCase={openCase} refreshKey={refreshKey} />
