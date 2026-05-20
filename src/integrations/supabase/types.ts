@@ -2497,6 +2497,296 @@ export type Database = {
         }
         Relationships: []
       }
+      external_account_assistance_requests: {
+        Row: {
+          account_holder_email: string | null
+          account_holder_name: string
+          account_holder_other_info: string | null
+          account_holder_phone: string | null
+          acknowledgements: Json
+          assigned_reviewer_id: string | null
+          billing_action_taken: string | null
+          billing_action_timestamp: string | null
+          billing_review_notes: string | null
+          completed_at: string | null
+          explanation: string
+          id: string
+          ip_address: string | null
+          metadata: Json
+          owner_dispute_reason: string | null
+          owner_dispute_status: string | null
+          owner_disputed_at: string | null
+          owner_notified_at: string | null
+          preservation_hold: boolean
+          preservation_hold_expires_at: string | null
+          preservation_hold_started_at: string | null
+          reason_for_contact: string
+          requester_email: string
+          requester_name: string
+          requester_phone: string | null
+          requester_relationship: string
+          risk_level: string
+          status: string
+          submitted_at: string
+          updated_at: string
+          user_agent: string | null
+        }
+        Insert: {
+          account_holder_email?: string | null
+          account_holder_name: string
+          account_holder_other_info?: string | null
+          account_holder_phone?: string | null
+          acknowledgements?: Json
+          assigned_reviewer_id?: string | null
+          billing_action_taken?: string | null
+          billing_action_timestamp?: string | null
+          billing_review_notes?: string | null
+          completed_at?: string | null
+          explanation: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json
+          owner_dispute_reason?: string | null
+          owner_dispute_status?: string | null
+          owner_disputed_at?: string | null
+          owner_notified_at?: string | null
+          preservation_hold?: boolean
+          preservation_hold_expires_at?: string | null
+          preservation_hold_started_at?: string | null
+          reason_for_contact: string
+          requester_email: string
+          requester_name: string
+          requester_phone?: string | null
+          requester_relationship: string
+          risk_level?: string
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Update: {
+          account_holder_email?: string | null
+          account_holder_name?: string
+          account_holder_other_info?: string | null
+          account_holder_phone?: string | null
+          acknowledgements?: Json
+          assigned_reviewer_id?: string | null
+          billing_action_taken?: string | null
+          billing_action_timestamp?: string | null
+          billing_review_notes?: string | null
+          completed_at?: string | null
+          explanation?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json
+          owner_dispute_reason?: string | null
+          owner_dispute_status?: string | null
+          owner_disputed_at?: string | null
+          owner_notified_at?: string | null
+          preservation_hold?: boolean
+          preservation_hold_expires_at?: string | null
+          preservation_hold_started_at?: string | null
+          reason_for_contact?: string
+          requester_email?: string
+          requester_name?: string
+          requester_phone?: string | null
+          requester_relationship?: string
+          risk_level?: string
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
+      external_assistance_account_matches: {
+        Row: {
+          id: string
+          internal_only: boolean
+          match_confidence: string
+          match_method: string | null
+          matched_account_id: string | null
+          matched_at: string
+          matched_by: string | null
+          matched_user_id: string | null
+          notes: string | null
+          request_id: string
+        }
+        Insert: {
+          id?: string
+          internal_only?: boolean
+          match_confidence?: string
+          match_method?: string | null
+          matched_account_id?: string | null
+          matched_at?: string
+          matched_by?: string | null
+          matched_user_id?: string | null
+          notes?: string | null
+          request_id: string
+        }
+        Update: {
+          id?: string
+          internal_only?: boolean
+          match_confidence?: string
+          match_method?: string | null
+          matched_account_id?: string | null
+          matched_at?: string
+          matched_by?: string | null
+          matched_user_id?: string | null
+          notes?: string | null
+          request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_assistance_account_matches_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "external_account_assistance_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      external_assistance_audit_logs: {
+        Row: {
+          action_details: Json
+          action_type: string
+          actor_id: string | null
+          actor_type: string
+          created_at: string
+          device_info: string | null
+          id: string
+          ip_address: string | null
+          request_id: string | null
+        }
+        Insert: {
+          action_details?: Json
+          action_type: string
+          actor_id?: string | null
+          actor_type: string
+          created_at?: string
+          device_info?: string | null
+          id?: string
+          ip_address?: string | null
+          request_id?: string | null
+        }
+        Update: {
+          action_details?: Json
+          action_type?: string
+          actor_id?: string | null
+          actor_type?: string
+          created_at?: string
+          device_info?: string | null
+          id?: string
+          ip_address?: string | null
+          request_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_assistance_audit_logs_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "external_account_assistance_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      external_assistance_documents: {
+        Row: {
+          document_category: string | null
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string | null
+          id: string
+          request_id: string
+          reviewer_notes: string | null
+          updated_at: string
+          uploaded_at: string
+          verification_status: string
+        }
+        Insert: {
+          document_category?: string | null
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          request_id: string
+          reviewer_notes?: string | null
+          updated_at?: string
+          uploaded_at?: string
+          verification_status?: string
+        }
+        Update: {
+          document_category?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          request_id?: string
+          reviewer_notes?: string | null
+          updated_at?: string
+          uploaded_at?: string
+          verification_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_assistance_documents_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "external_account_assistance_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      external_assistance_notifications: {
+        Row: {
+          clicked_at: string | null
+          created_at: string
+          delivery_status: string
+          error_message: string | null
+          id: string
+          notification_type: string
+          opened_at: string | null
+          recipient_email: string | null
+          recipient_type: string
+          request_id: string
+        }
+        Insert: {
+          clicked_at?: string | null
+          created_at?: string
+          delivery_status?: string
+          error_message?: string | null
+          id?: string
+          notification_type: string
+          opened_at?: string | null
+          recipient_email?: string | null
+          recipient_type: string
+          request_id: string
+        }
+        Update: {
+          clicked_at?: string | null
+          created_at?: string
+          delivery_status?: string
+          error_message?: string | null
+          id?: string
+          notification_type?: string
+          opened_at?: string | null
+          recipient_email?: string | null
+          recipient_type?: string
+          request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_assistance_notifications_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "external_account_assistance_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       family_recipes: {
         Row: {
           bucket_name: string | null
