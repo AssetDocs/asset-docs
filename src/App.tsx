@@ -65,6 +65,7 @@ import MemoryEdit from "./pages/MemoryEdit";
 import ScheduleProfessional from "./pages/ScheduleProfessional";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
+import AccountAssistance from "./pages/AccountAssistance";
 import Testimonials from "./pages/Testimonials";
 import PressNews from "./pages/PressNews";
 import Resources from "./pages/Resources";
@@ -354,6 +355,7 @@ const AppContent = () => {
         <Route path="/install" element={<Install />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/account-assistance" element={<AccountAssistance />} />
         <Route path="/legal" element={<Legal />} />
         <Route path="/continuity/dispute" element={<ContinuityDispute />} />
         <Route path="/pricing" element={<Pricing />} />

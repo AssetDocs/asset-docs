@@ -246,6 +246,18 @@ const Contact: React.FC = () => {
               </form>
             </Form>
           </div>
+
+          {/* Continuity & Account Assistance */}
+          <div className="mt-10 bg-white border border-gray-200 rounded-lg p-6 text-center">
+            <h2 className="text-xl font-semibold text-brand-blue mb-2">Need Help With a Loved One's Account?</h2>
+            <p className="text-gray-600 mb-5 max-w-2xl mx-auto">
+              If you are contacting Asset Safe regarding the account of a family member or loved one, our team can help
+              review continuity, preservation, billing, or account closure-related requests.
+            </p>
+            <Button asChild variant="outline" className="border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white">
+              <Link to="/account-assistance">Continuity & Account Assistance</Link>
+            </Button>
+          </div>
         </div>
       </div>
       
