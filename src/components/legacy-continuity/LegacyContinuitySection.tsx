@@ -60,7 +60,7 @@ const LegacyContinuitySection: React.FC = () => {
     <section className="space-y-3">
       <div className="flex items-center gap-2 pb-1 border-b border-border">
         <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
-          Legacy Continuity
+          Continuity &amp; Preservation
         </span>
       </div>
 
@@ -69,13 +69,15 @@ const LegacyContinuitySection: React.FC = () => {
           <CardTitle className="flex items-center gap-2 text-base">
             <ShieldCheck className="h-5 w-5 text-muted-foreground" />
             Continuity Request
-            <Badge variant="outline" className="ml-1 text-xs font-normal">Legacy Admin</Badge>
+            <Badge variant="outline" className="ml-1 text-xs font-normal">Continuity Steward</Badge>
           </CardTitle>
           <CardDescription className="text-sm leading-relaxed pt-1 space-y-2">
-            <p>You have been designated as the Legacy Admin for this account.</p>
+            <p>You have been designated as a Continuity Steward for this account.</p>
             <p>
-              If the account holder becomes deceased, incapacitated, or unable to manage their
-              Asset Safe account, you may submit a continuity request for review by Asset Safe.
+              If the account holder becomes temporarily unavailable, incapacitated, or has passed,
+              you may submit a continuity request — for emergency access, stewardship, or
+              preservation. Asset Safe does not handle ownership transfer, inheritance,
+              succession, or estate adjudication.
             </p>
             <p>
               Requests are manually reviewed and may require supporting documentation before any
