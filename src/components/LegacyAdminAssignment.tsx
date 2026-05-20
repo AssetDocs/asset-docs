@@ -15,7 +15,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Crown, Info, Trash2 } from 'lucide-react';
+import { HeartHandshake, Info, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAccount } from '@/contexts/AccountContext';
@@ -100,7 +100,7 @@ const LegacyAdminAssignment: React.FC<Props> = ({ members }) => {
         })
         .catch((e) => console.warn('legacy admin email failed', e));
 
-      toast({ title: 'Legacy Admin assigned', description: `${memberLabel(selectedUserId)} is now your Legacy Admin.` });
+      toast({ title: 'Continuity Steward assigned', description: `${memberLabel(selectedUserId)} is now your Continuity Steward.` });
       setConfirmOpen(false);
       setSelectedUserId('');
       fetchCurrent();
@@ -120,7 +120,7 @@ const LegacyAdminAssignment: React.FC<Props> = ({ members }) => {
         .update({ status: 'removed' })
         .eq('id', current.id);
       if (error) throw error;
-      toast({ title: 'Legacy Admin removed' });
+      toast({ title: 'Continuity Steward removed' });
       setRemoveOpen(false);
       fetchCurrent();
     } catch (err: any) {
@@ -136,31 +136,34 @@ const LegacyAdminAssignment: React.FC<Props> = ({ members }) => {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Crown className="h-5 w-5 text-amber-600" />
-          Legacy Admin
+          <HeartHandshake className="h-5 w-5 text-primary" />
+          Continuity Steward
         </CardTitle>
         <CardDescription>
-          A Legacy Admin is the person you choose to help manage your Asset Safe account if you become unable to do so.
+          A Continuity Steward is the person you trust to help preserve and steward your Asset Safe
+          account if you are temporarily unavailable or unable to manage it yourself.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription className="text-xs">
-            This designation does not grant immediate billing, deletion, or owner-profile access. It records your chosen
-            account successor for future continuity. Their normal Read Only or Full Access permissions are unchanged.
+            This is a designation, not an immediate role change. It does not grant ownership,
+            billing, deletion, or owner-profile access. It signals your trusted steward for future
+            emergency access or preservation. Their normal Read Only or Full Access permissions are
+            unchanged.
           </AlertDescription>
         </Alert>
 
         {current ? (
           <div className="flex items-center justify-between rounded-md border p-3">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center">
-                <Crown className="h-4 w-4 text-amber-700" />
+              <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+                <HeartHandshake className="h-4 w-4 text-primary" />
               </div>
               <div>
                 <p className="text-sm font-medium">{memberLabel(current.legacy_admin_user_id)}</p>
-                <Badge className="bg-amber-100 text-amber-800 border-amber-200 mt-1">Legacy Admin</Badge>
+                <Badge className="bg-primary/10 text-primary border-primary/20 mt-1">Continuity Steward</Badge>
               </div>
             </div>
             <Button variant="ghost" size="sm" onClick={() => setRemoveOpen(true)} className="text-destructive">
@@ -168,14 +171,14 @@ const LegacyAdminAssignment: React.FC<Props> = ({ members }) => {
             </Button>
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground italic">No Legacy Admin selected yet.</p>
+          <p className="text-sm text-muted-foreground italic">No Continuity Steward selected yet.</p>
         )}
 
         {eligibleMembers.length > 0 && (
           <div className="flex flex-col sm:flex-row gap-2">
             <Select value={selectedUserId} onValueChange={setSelectedUserId}>
               <SelectTrigger className="flex-1">
-                <SelectValue placeholder={current ? 'Change Legacy Admin…' : 'Choose an authorized user…'} />
+                <SelectValue placeholder={current ? 'Change Continuity Steward…' : 'Choose an authorized user…'} />
               </SelectTrigger>
               <SelectContent>
                 {eligibleMembers
@@ -188,14 +191,14 @@ const LegacyAdminAssignment: React.FC<Props> = ({ members }) => {
               </SelectContent>
             </Select>
             <Button disabled={!selectedUserId || loading} onClick={() => setConfirmOpen(true)}>
-              {current ? 'Change' : 'Assign'} Legacy Admin
+              {current ? 'Change' : 'Assign'} Continuity Steward
             </Button>
           </div>
         )}
 
         {eligibleMembers.length === 0 && (
           <p className="text-xs text-muted-foreground">
-            Invite an authorized user first — only existing authorized users can be designated as Legacy Admin.
+            Invite an authorized user first — only existing authorized users can be designated as a Continuity Steward.
           </p>
         )}
       </CardContent>
@@ -203,10 +206,11 @@ const LegacyAdminAssignment: React.FC<Props> = ({ members }) => {
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Assign Legacy Admin?</AlertDialogTitle>
+            <AlertDialogTitle>Assign Continuity Steward?</AlertDialogTitle>
             <AlertDialogDescription>
-              This does not give immediate billing or deletion access. It records your chosen account successor for
-              future continuity. You can change or remove this designation at any time.
+              This is a designation, not an immediate role change. It does not give billing,
+              deletion, or owner-profile access. It records your trusted steward for future
+              emergency access and preservation. You can change or remove this designation at any time.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -221,10 +225,10 @@ const LegacyAdminAssignment: React.FC<Props> = ({ members }) => {
       <AlertDialog open={removeOpen} onOpenChange={setRemoveOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove Legacy Admin?</AlertDialogTitle>
+            <AlertDialogTitle>Remove Continuity Steward?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will clear the current Legacy Admin designation. Their normal authorized-user access (Read Only or
-              Full Access) is unchanged.
+              This clears the current Continuity Steward designation. Their normal authorized-user
+              access (Read Only or Full Access) is unchanged.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

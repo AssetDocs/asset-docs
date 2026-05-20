@@ -46,8 +46,8 @@ const LegacyContinuityWorkspace: React.FC = () => {
     { label: 'Under Review', value: metrics.under_review ?? 0, icon: Clock },
     { label: 'Needs Documentation', value: metrics.needs_docs ?? 0, icon: FileWarning },
     { label: 'High Risk', value: metrics.high_risk ?? 0, icon: AlertTriangle },
-    { label: 'Temporary Access Active', value: metrics.temp_active ?? 0, icon: KeyRound },
-    { label: 'Pending Ownership Transfer', value: metrics.transfer_pending ?? 0, icon: ArrowRightLeft },
+    { label: 'Temporary Stewardship Active', value: metrics.temp_active ?? 0, icon: KeyRound },
+    { label: 'Continuity Actions Pending', value: metrics.transfer_pending ?? 0, icon: ArrowRightLeft },
     { label: 'Completed Cases', value: metrics.completed ?? 0, icon: CheckCircle2 },
   ];
 
@@ -59,9 +59,11 @@ const LegacyContinuityWorkspace: React.FC = () => {
       <div className="flex items-start gap-3 pb-1 border-b border-border">
         <ShieldCheck className="h-6 w-6 text-muted-foreground mt-1" />
         <div>
-          <h2 className="text-xl font-semibold">Legacy Continuity</h2>
+          <h2 className="text-xl font-semibold">Continuity &amp; Preservation</h2>
           <p className="text-sm text-muted-foreground">
-            Manual review workspace for Legacy Continuity cases. All decisions are recorded in the audit log.
+            Manual review workspace for Continuity &amp; Preservation cases. Asset Safe focuses on
+            emergency access, stewardship, and preservation — not ownership transfer, inheritance,
+            or estate adjudication. All decisions are recorded in the audit log.
           </p>
         </div>
       </div>
@@ -84,8 +86,8 @@ const LegacyContinuityWorkspace: React.FC = () => {
         <TabsList className="grid grid-cols-3 md:grid-cols-7 h-auto">
           <TabsTrigger value="queue">Request Queue</TabsTrigger>
           <TabsTrigger value="active">Active Reviews</TabsTrigger>
-          <TabsTrigger value="temp">Temporary Access</TabsTrigger>
-          <TabsTrigger value="transfers">Ownership Transfers</TabsTrigger>
+          <TabsTrigger value="temp">Temporary Stewardship</TabsTrigger>
+          <TabsTrigger value="transfers">Continuity Actions</TabsTrigger>
           <TabsTrigger value="denied">Denied</TabsTrigger>
           <TabsTrigger value="archived">Archived</TabsTrigger>
           <TabsTrigger value="audit">
