@@ -668,6 +668,66 @@ export type Database = {
           },
         ]
       }
+      closure_requests: {
+        Row: {
+          account_id: string
+          approved_by_admin_id: string | null
+          cancellation_reason: string | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          request_id: string | null
+          requested_by_user_id: string | null
+          snapshot_reference: string | null
+          status: string
+          waiting_period_ends_at: string | null
+          waiting_period_starts_at: string | null
+        }
+        Insert: {
+          account_id: string
+          approved_by_admin_id?: string | null
+          cancellation_reason?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          request_id?: string | null
+          requested_by_user_id?: string | null
+          snapshot_reference?: string | null
+          status?: string
+          waiting_period_ends_at?: string | null
+          waiting_period_starts_at?: string | null
+        }
+        Update: {
+          account_id?: string
+          approved_by_admin_id?: string | null
+          cancellation_reason?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          request_id?: string | null
+          requested_by_user_id?: string | null
+          snapshot_reference?: string | null
+          status?: string
+          waiting_period_ends_at?: string | null
+          waiting_period_starts_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "closure_requests_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "closure_requests_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "account_continuity_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       companies: {
         Row: {
           created_at: string | null
@@ -1188,6 +1248,66 @@ export type Database = {
           status?: string
         }
         Relationships: []
+      }
+      continuity_export_authorizations: {
+        Row: {
+          account_id: string
+          authorized_at: string
+          authorized_by_admin_id: string | null
+          download_count: number
+          download_limit: number | null
+          expires_at: string | null
+          id: string
+          internal_reason: string | null
+          request_id: string | null
+          scope: Json
+          sensitive_areas_included: boolean
+          status: string
+        }
+        Insert: {
+          account_id: string
+          authorized_at?: string
+          authorized_by_admin_id?: string | null
+          download_count?: number
+          download_limit?: number | null
+          expires_at?: string | null
+          id?: string
+          internal_reason?: string | null
+          request_id?: string | null
+          scope?: Json
+          sensitive_areas_included?: boolean
+          status?: string
+        }
+        Update: {
+          account_id?: string
+          authorized_at?: string
+          authorized_by_admin_id?: string | null
+          download_count?: number
+          download_limit?: number | null
+          expires_at?: string | null
+          id?: string
+          internal_reason?: string | null
+          request_id?: string | null
+          scope?: Json
+          sensitive_areas_included?: boolean
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "continuity_export_authorizations_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "continuity_export_authorizations_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "account_continuity_requests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       continuity_export_forensics: {
         Row: {
@@ -3617,6 +3737,60 @@ export type Database = {
           },
         ]
       }
+      memorialized_accounts: {
+        Row: {
+          account_id: string
+          billing_handling_status: string
+          export_allowed: boolean
+          id: string
+          memorialized_at: string
+          memorialized_by_admin_id: string | null
+          reason: string | null
+          request_id: string | null
+          status: string
+          steward_access_level: string
+        }
+        Insert: {
+          account_id: string
+          billing_handling_status?: string
+          export_allowed?: boolean
+          id?: string
+          memorialized_at?: string
+          memorialized_by_admin_id?: string | null
+          reason?: string | null
+          request_id?: string | null
+          status?: string
+          steward_access_level?: string
+        }
+        Update: {
+          account_id?: string
+          billing_handling_status?: string
+          export_allowed?: boolean
+          id?: string
+          memorialized_at?: string
+          memorialized_by_admin_id?: string | null
+          reason?: string | null
+          request_id?: string | null
+          status?: string
+          steward_access_level?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memorialized_accounts_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "memorialized_accounts_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "account_continuity_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       memory_safe_folders: {
         Row: {
           created_at: string
@@ -4047,6 +4221,57 @@ export type Database = {
           years_experience?: string
         }
         Relationships: []
+      }
+      preservation_states: {
+        Row: {
+          account_id: string
+          applied_at: string
+          applied_by_admin_id: string | null
+          id: string
+          reason: string | null
+          request_id: string | null
+          restrictions: Json
+          state_type: string
+          status: string
+        }
+        Insert: {
+          account_id: string
+          applied_at?: string
+          applied_by_admin_id?: string | null
+          id?: string
+          reason?: string | null
+          request_id?: string | null
+          restrictions?: Json
+          state_type: string
+          status?: string
+        }
+        Update: {
+          account_id?: string
+          applied_at?: string
+          applied_by_admin_id?: string | null
+          id?: string
+          reason?: string | null
+          request_id?: string | null
+          restrictions?: Json
+          state_type?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "preservation_states_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "preservation_states_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "account_continuity_requests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -5430,6 +5655,21 @@ export type Database = {
         }
         Returns: string
       }
+      approve_closure_request: {
+        Args: { _reason?: string; _request_id: string; _waiting_days?: number }
+        Returns: string
+      }
+      authorize_continuity_export: {
+        Args: {
+          _download_limit?: number
+          _expires_at: string
+          _internal_reason?: string
+          _request_id: string
+          _scope: Json
+          _sensitive_areas_included?: boolean
+        }
+        Returns: string
+      }
       bypass_waiting_period: {
         Args: { _reason: string; _request_id: string }
         Returns: undefined
@@ -5442,11 +5682,19 @@ export type Database = {
           total_size_bytes: number
         }[]
       }
+      cancel_closure: {
+        Args: { _closure_id: string; _reason: string }
+        Returns: string
+      }
       check_gift_claim_rate_limit: {
         Args: { p_email: string; p_gift_code: string; p_ip_address: unknown }
         Returns: Json
       }
       claim_gift_subscription: { Args: { p_gift_code: string }; Returns: Json }
+      complete_closure: {
+        Args: { _closure_id: string; _override?: boolean }
+        Returns: string
+      }
       compute_continuity_readiness: {
         Args: { _user_id: string }
         Returns: Json
@@ -5472,12 +5720,31 @@ export type Database = {
         }
         Returns: string
       }
+      execute_memorialization: {
+        Args: {
+          _billing_handling_status?: string
+          _export_allowed?: boolean
+          _reason?: string
+          _request_id: string
+          _steward_access_level?: string
+        }
+        Returns: string
+      }
       execute_ownership_transfer: {
         Args: {
           _reason: string
           _request_id: string
           _senior_approver_id: string
           _snapshot_reference: string
+        }
+        Returns: string
+      }
+      execute_preservation_mode: {
+        Args: {
+          _reason?: string
+          _request_id: string
+          _restrictions?: Json
+          _state_type: string
         }
         Returns: string
       }

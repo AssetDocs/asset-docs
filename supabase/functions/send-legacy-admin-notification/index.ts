@@ -106,33 +106,34 @@ Deno.serve(async (req) => {
       });
     }
 
-    const subject = "You've been designated as a Legacy Admin on Asset Safe";
+    const subject = "You've been designated as a Continuity Steward on Asset Safe";
 
     const html = `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1f2937; line-height: 1.55;">
-        <h2 style="color: #111827; margin: 0 0 16px;">You're now a Legacy Admin</h2>
+        <h2 style="color: #111827; margin: 0 0 16px;">You're now a Continuity Steward</h2>
 
         <p>Hi ${escapeHtml(greetingName)},</p>
 
-        <p><strong>${escapeHtml(ownerName)}</strong> has designated you as the <strong>Legacy Admin</strong> for their Asset Safe account.</p>
+        <p><strong>${escapeHtml(ownerName)}</strong> has designated you as a <strong>Continuity Steward</strong> for their Asset Safe account.</p>
 
-        <p>This is a <em>designation</em> — not a change to your day-to-day role. Here's what it means:</p>
+        <p>This is a <em>designation</em> — not a change to your day-to-day role. Asset Safe focuses on emergency access, stewardship, and preservation. We do not handle ownership transfer, inheritance, succession, or estate adjudication.</p>
 
         <h3 style="color: #111827; margin: 24px 0 8px;">What stays the same</h3>
         <ul style="padding-left: 20px; margin: 0 0 16px;">
           <li>Your existing access level (Read Only or Full Access) is <strong>unchanged</strong>.</li>
           <li>You do <strong>not</strong> gain billing, account deletion, or owner-profile access today.</li>
           <li>You still cannot see anything you couldn't see before.</li>
+          <li>${escapeHtml(ownerName)} remains in full control of their account.</li>
         </ul>
 
         <h3 style="color: #111827; margin: 24px 0 8px;">What's new</h3>
         <ul style="padding-left: 20px; margin: 0 0 16px;">
-          <li>You are now listed as ${escapeHtml(ownerName)}'s chosen successor for future account continuity.</li>
-          <li>If they ever become unable to manage their account, you can submit a <strong>continuity request</strong> — such as account closure, data export, or ownership transfer.</li>
-          <li>Every continuity request is reviewed by the Asset Safe team before any action is taken.</li>
+          <li>You are on record as ${escapeHtml(ownerName)}'s trusted steward for future continuity.</li>
+          <li>If they ever become unable to manage their account, you can submit a <strong>continuity request</strong> for review — for temporary stewardship, a controlled export, preservation, memorialization, or a reviewed account closure.</li>
+          <li>Every continuity request is manually reviewed by the Asset Safe team. Nothing happens automatically.</li>
         </ul>
 
-        <p style="background: #fef3c7; border-left: 3px solid #f59e0b; padding: 12px 14px; border-radius: 6px; margin: 24px 0;">
+        <p style="background: #f1f5f9; border-left: 3px solid #64748b; padding: 12px 14px; border-radius: 6px; margin: 24px 0;">
           You don't need to do anything right now. This designation is simply on file. ${escapeHtml(ownerName)} can change or remove it at any time.
         </p>
 
@@ -145,19 +146,20 @@ Deno.serve(async (req) => {
     const text = [
       `Hi ${greetingName},`,
       ``,
-      `${ownerName} has designated you as the Legacy Admin for their Asset Safe account.`,
+      `${ownerName} has designated you as a Continuity Steward for their Asset Safe account.`,
       ``,
-      `This is a designation — not a change to your day-to-day role.`,
+      `This is a designation — not a change to your day-to-day role. Asset Safe focuses on emergency access, stewardship, and preservation. We do not handle ownership transfer, inheritance, succession, or estate adjudication.`,
       ``,
       `WHAT STAYS THE SAME:`,
       `- Your existing access level (Read Only or Full Access) is unchanged.`,
       `- You do NOT gain billing, account deletion, or owner-profile access today.`,
       `- You still cannot see anything you couldn't see before.`,
+      `- ${ownerName} remains in full control of their account.`,
       ``,
       `WHAT'S NEW:`,
-      `- You are now listed as ${ownerName}'s chosen successor for future account continuity.`,
-      `- If they ever become unable to manage their account, you can submit a continuity request (closure, data export, or ownership transfer).`,
-      `- Every continuity request is reviewed by the Asset Safe team before any action is taken.`,
+      `- You are on record as ${ownerName}'s trusted steward for future continuity.`,
+      `- If they ever become unable to manage their account, you can submit a continuity request (temporary stewardship, controlled export, preservation, memorialization, or reviewed closure).`,
+      `- Every continuity request is manually reviewed by Asset Safe. Nothing happens automatically.`,
       ``,
       `You don't need to do anything right now. This designation is simply on file. ${ownerName} can change or remove it at any time.`,
       ``,

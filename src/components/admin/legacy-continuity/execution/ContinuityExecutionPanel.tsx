@@ -15,7 +15,10 @@ import PreTransferChecklist, { computeCanExecute } from './PreTransferChecklist'
 import TransferScopeSelector from './TransferScopeSelector';
 import TemporaryStewardshipForm from './TemporaryStewardshipForm';
 import ArchiveCustodianForm from './ArchiveCustodianForm';
-import OwnershipTransferForm from './OwnershipTransferForm';
+import MemorializationForm from './MemorializationForm';
+import PreservationForm from './PreservationForm';
+import ApproveClosureForm from './ApproveClosureForm';
+import AuthorizeExportForm from './AuthorizeExportForm';
 import TransferPreviewDialog from './TransferPreviewDialog';
 import ExecutionCompletionScreen from './ExecutionCompletionScreen';
 
@@ -39,11 +42,11 @@ const ContinuityExecutionPanel: React.FC<{ caseData: any; onChange: () => void }
   if (EXECUTION_HIDDEN_STATUSES.has(caseData.status) && !history && !tempAccess.length && !archiveAccess.length) {
     return (
       <Card>
-        <CardHeader><CardTitle className="text-base">Continuity Execution Panel</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">Continuity Action Panel</CardTitle></CardHeader>
         <CardContent>
           <Alert>
             <AlertDescription className="text-sm">
-              Execution controls are unavailable while this case is in <strong>{caseData.status}</strong>. The panel appears once the case is approved.
+              Continuity actions are unavailable while this case is in <strong>{caseData.status}</strong>. The panel appears once the case is approved.
             </AlertDescription>
           </Alert>
         </CardContent>
@@ -59,7 +62,7 @@ const ContinuityExecutionPanel: React.FC<{ caseData: any; onChange: () => void }
   if (!EXECUTION_VISIBLE_STATUSES.has(caseData.status)) {
     return (
       <Card>
-        <CardHeader><CardTitle className="text-base">Continuity Execution Panel</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">Continuity Action Panel</CardTitle></CardHeader>
         <CardContent>
           <Alert><AlertDescription className="text-sm">This case is not in an approvable state.</AlertDescription></Alert>
         </CardContent>
@@ -68,7 +71,7 @@ const ContinuityExecutionPanel: React.FC<{ caseData: any; onChange: () => void }
   }
 
   const checklistOk = computeCanExecute(checklist);
-  const canExecuteTransfer = caps.has('execute_transfer');
+  const canSeniorAction = caps.has('execute_transfer') || caps.has('senior_approve_transfer');
   const canApproveAccess = caps.has('approve_temp_access');
 
   const handleSnapshot = () => setReloadKey((k) => k + 1);
@@ -78,11 +81,14 @@ const ContinuityExecutionPanel: React.FC<{ caseData: any; onChange: () => void }
     <div className="space-y-4">
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Continuity Execution Panel</CardTitle>
+          <CardTitle className="text-base">Continuity Action Panel</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
-            This protected workflow is used to complete approved Legacy Continuity actions. Execution actions are logged, permissioned, and may affect account ownership, access, billing authority, and continuity settings.
+            Asset Safe focuses on emergency access, stewardship, and preservation —
+            not ownership transfer, inheritance, or estate adjudication. Every action
+            here is logged and permissioned and may affect access, billing, and the
+            account's continuity state.
           </p>
         </CardContent>
       </Card>
@@ -118,15 +124,38 @@ const ContinuityExecutionPanel: React.FC<{ caseData: any; onChange: () => void }
         />
       )}
 
-      {scope === 'transfer' && (
-        <OwnershipTransferForm
+      {scope === 'memorialization' && (
+        <MemorializationForm
           caseData={caseData}
-          snapshot={snapshot}
-          disabled={!checklistOk || !canExecuteTransfer}
-          disabledReason={!canExecuteTransfer ? CAP_REQUIREMENT_HELP.execute_transfer : EXECUTION_DISABLED_HELP}
-          previewReviewed={previewReviewed}
-          onSnapshotCreated={handleSnapshot}
-          onPreviewRequest={() => setPreviewOpen(true)}
+          disabled={!checklistOk || !canSeniorAction}
+          disabledReason={!canSeniorAction ? CAP_REQUIREMENT_HELP.senior_approve_transfer : EXECUTION_DISABLED_HELP}
+          onDone={handleDone}
+        />
+      )}
+
+      {scope === 'preservation' && (
+        <PreservationForm
+          caseData={caseData}
+          disabled={!checklistOk || !canApproveAccess}
+          disabledReason={!canApproveAccess ? CAP_REQUIREMENT_HELP.approve_temp_access : EXECUTION_DISABLED_HELP}
+          onDone={handleDone}
+        />
+      )}
+
+      {scope === 'closure' && (
+        <ApproveClosureForm
+          caseData={caseData}
+          disabled={!checklistOk || !canSeniorAction}
+          disabledReason={!canSeniorAction ? CAP_REQUIREMENT_HELP.senior_approve_transfer : EXECUTION_DISABLED_HELP}
+          onDone={handleDone}
+        />
+      )}
+
+      {scope === 'export' && (
+        <AuthorizeExportForm
+          caseData={caseData}
+          disabled={!checklistOk || !canApproveAccess}
+          disabledReason={!canApproveAccess ? CAP_REQUIREMENT_HELP.approve_temp_access : EXECUTION_DISABLED_HELP}
           onDone={handleDone}
         />
       )}
@@ -134,7 +163,7 @@ const ContinuityExecutionPanel: React.FC<{ caseData: any; onChange: () => void }
       <TransferPreviewDialog
         open={previewOpen}
         onClose={() => setPreviewOpen(false)}
-        scope={scope}
+        scope={scope as any}
         caseData={caseData}
         snapshot={snapshot}
         onAcknowledge={() => { setPreviewReviewed(true); setPreviewOpen(false); }}
