@@ -476,14 +476,14 @@ const AuthorizedUsersTab: React.FC = () => {
           <CardContent>
             <div className="space-y-3">
               {pendingInvites.map((invite) => (
-                <div key={invite.id} className="flex items-center justify-between py-3 border-b last:border-0">
+                <div key={invite.id} className="flex flex-col sm:flex-row sm:items-center justify-between py-3 border-b last:border-0 gap-2">
                   <div>
                     <p className="font-medium text-sm">{invite.email}</p>
                     <p className="text-xs text-muted-foreground">
                       Invited {new Date(invite.created_at).toLocaleDateString()} · Expires {new Date(invite.expires_at).toLocaleDateString()}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                     {getRoleBadge(invite.role)}
                     {isOwner && (
                       <Button
