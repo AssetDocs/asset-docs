@@ -18,6 +18,7 @@ interface NotificationPreferences {
   marketing_communications: boolean;
   billing_notifications: boolean;
   property_updates: boolean;
+  authorized_user_access_alerts: boolean;
 }
 
 interface AlertItem {
