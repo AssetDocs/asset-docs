@@ -391,7 +391,7 @@ const NotificationsTab: React.FC = () => {
             <div className="flex items-center justify-between p-4 rounded-lg border bg-card">
               <div className="flex-1">
                 <h3 className="font-medium">Security Alerts</h3>
-                <p className="text-sm text-muted-foreground">Get notified about login attempts and security changes</p>
+                <p className="text-sm text-muted-foreground">Notify me when I log into my account, change my password, or update security settings</p>
                 <span className="text-xs text-muted-foreground/70 mt-1 inline-block">Managed by Lovable</span>
               </div>
               <Switch 
@@ -399,6 +399,23 @@ const NotificationsTab: React.FC = () => {
                 onCheckedChange={() => handleToggle('security_alerts')}
               />
             </div>
+
+            {/* Authorized User Access Alerts */}
+            <div className="flex items-center justify-between p-4 rounded-lg border bg-card">
+              <div className="flex-1">
+                <h3 className="font-medium">Authorized User Access Alerts</h3>
+                <p className="text-sm text-muted-foreground">
+                  Notify me when an Authorized User accesses my shared account. This improves transparency
+                  for shared accounts — it's expected activity, not suspicious.
+                </p>
+                <span className="text-xs text-muted-foreground/70 mt-1 inline-block">Account owners only</span>
+              </div>
+              <Switch
+                checked={preferences.authorized_user_access_alerts}
+                onCheckedChange={() => handleToggle('authorized_user_access_alerts')}
+              />
+            </div>
+            
             
             {/* Marketing Communications */}
             <div className="flex items-center justify-between p-4 rounded-lg border bg-card">
