@@ -393,7 +393,7 @@ const AuthorizedUsersTab: React.FC = () => {
           ) : (
             <div className="space-y-3">
               {members.map((member) => (
-                <div key={member.id} className="flex items-center justify-between py-3 border-b last:border-0">
+                <div key={member.id} className="flex flex-col sm:flex-row sm:items-center justify-between py-3 border-b last:border-0 gap-2">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                       {member.role === 'owner' ? (
@@ -414,15 +414,15 @@ const AuthorizedUsersTab: React.FC = () => {
                     </div>
 
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                     {getRoleBadge(member.role)}
                     {isOwner && member.role !== 'owner' && (
-                      <div className="flex items-center gap-1">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-1">
                         <Select
                           value={member.role}
                           onValueChange={(val) => handleChangeRole(member.id, val as 'full_access' | 'read_only')}
                         >
-                          <SelectTrigger className="h-7 text-xs w-[110px]">
+                          <SelectTrigger className="h-7 text-xs w-full sm:w-[110px]">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -432,7 +432,7 @@ const AuthorizedUsersTab: React.FC = () => {
                         </Select>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-destructive hover:text-destructive">
+                            <Button variant="ghost" size="sm" className="h-7 w-full sm:w-7 p-0 text-destructive hover:text-destructive">
                               <Trash2 className="h-3.5 w-3.5" />
                             </Button>
                           </AlertDialogTrigger>
