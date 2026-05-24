@@ -371,6 +371,21 @@ const AuthorizedUsersTab: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <Alert className="mb-4 bg-primary/5 border-primary/20">
+            <HeartHandshake className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+            <AlertDescription className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <span className="text-sm text-foreground">
+                Need to set up account continuity or submit a legacy request?
+              </span>
+              <Link
+                to="/account-assistance"
+                className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline shrink-0"
+              >
+                Request Account Assistance <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </AlertDescription>
+          </Alert>
+
           {members.length === 0 ? (
             <p className="text-sm text-muted-foreground italic py-4 text-center">
               No authorized users yet. Invite someone above to get started.
