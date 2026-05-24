@@ -151,7 +151,8 @@ const NotificationsTab: React.FC = () => {
         preferences.security_alerts !== originalPreferences.security_alerts ||
         preferences.marketing_communications !== originalPreferences.marketing_communications ||
         preferences.billing_notifications !== originalPreferences.billing_notifications ||
-        preferences.property_updates !== originalPreferences.property_updates;
+        preferences.property_updates !== originalPreferences.property_updates ||
+        preferences.authorized_user_access_alerts !== originalPreferences.authorized_user_access_alerts;
       setHasChanges(changed);
     }
   }, [preferences, originalPreferences]);
