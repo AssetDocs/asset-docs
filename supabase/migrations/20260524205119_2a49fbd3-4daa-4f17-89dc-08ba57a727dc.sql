@@ -1,0 +1,1 @@
+ALTER TABLE public.notification_preferences ADD COLUMN IF NOT EXISTS authorized_user_access_alerts boolean NOT NULL DEFAULT true;

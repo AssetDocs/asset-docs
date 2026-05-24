@@ -18,6 +18,7 @@ interface NotificationPreferences {
   marketing_communications: boolean;
   billing_notifications: boolean;
   property_updates: boolean;
+  authorized_user_access_alerts: boolean;
 }
 
 interface AlertItem {
@@ -64,6 +65,7 @@ const NotificationsTab: React.FC = () => {
     marketing_communications: false,
     billing_notifications: true,
     property_updates: true,
+    authorized_user_access_alerts: true,
   });
   const [originalPreferences, setOriginalPreferences] = useState<NotificationPreferences | null>(null);
 
@@ -112,6 +114,7 @@ const NotificationsTab: React.FC = () => {
             marketing_communications: data.marketing_communications,
             billing_notifications: data.billing_notifications,
             property_updates: data.property_updates,
+            authorized_user_access_alerts: data.authorized_user_access_alerts ?? true,
           };
           setPreferences(loadedPrefs);
           setOriginalPreferences(loadedPrefs);
@@ -148,7 +151,8 @@ const NotificationsTab: React.FC = () => {
         preferences.security_alerts !== originalPreferences.security_alerts ||
         preferences.marketing_communications !== originalPreferences.marketing_communications ||
         preferences.billing_notifications !== originalPreferences.billing_notifications ||
-        preferences.property_updates !== originalPreferences.property_updates;
+        preferences.property_updates !== originalPreferences.property_updates ||
+        preferences.authorized_user_access_alerts !== originalPreferences.authorized_user_access_alerts;
       setHasChanges(changed);
     }
   }, [preferences, originalPreferences]);
@@ -173,6 +177,7 @@ const NotificationsTab: React.FC = () => {
           marketing_communications: preferences.marketing_communications,
           billing_notifications: preferences.billing_notifications,
           property_updates: preferences.property_updates,
+          authorized_user_access_alerts: preferences.authorized_user_access_alerts,
         })
         .eq('user_id', user.id);
 
@@ -386,7 +391,7 @@ const NotificationsTab: React.FC = () => {
             <div className="flex items-center justify-between p-4 rounded-lg border bg-card">
               <div className="flex-1">
                 <h3 className="font-medium">Security Alerts</h3>
-                <p className="text-sm text-muted-foreground">Get notified about login attempts and security changes</p>
+                <p className="text-sm text-muted-foreground">Notify me when I log into my account, change my password, or update security settings</p>
                 <span className="text-xs text-muted-foreground/70 mt-1 inline-block">Managed by Lovable</span>
               </div>
               <Switch 
@@ -394,6 +399,23 @@ const NotificationsTab: React.FC = () => {
                 onCheckedChange={() => handleToggle('security_alerts')}
               />
             </div>
+
+            {/* Authorized User Access Alerts */}
+            <div className="flex items-center justify-between p-4 rounded-lg border bg-card">
+              <div className="flex-1">
+                <h3 className="font-medium">Authorized User Access Alerts</h3>
+                <p className="text-sm text-muted-foreground">
+                  Notify me when an Authorized User accesses my shared account. This improves transparency
+                  for shared accounts — it's expected activity, not suspicious.
+                </p>
+                <span className="text-xs text-muted-foreground/70 mt-1 inline-block">Account owners only</span>
+              </div>
+              <Switch
+                checked={preferences.authorized_user_access_alerts}
+                onCheckedChange={() => handleToggle('authorized_user_access_alerts')}
+              />
+            </div>
+            
             
             {/* Marketing Communications */}
             <div className="flex items-center justify-between p-4 rounded-lg border bg-card">
