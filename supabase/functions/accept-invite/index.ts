@@ -131,6 +131,7 @@ serve(async (req: Request) => {
           status: 'active',
           invited_by: invite.invited_by,
           accepted_at: new Date().toISOString(),
+          email: invite.email,
         });
 
       if (memberErr) {
@@ -138,6 +139,18 @@ serve(async (req: Request) => {
         throw memberErr;
       }
     }
+
+    // Backfill email on existing memberships (e.g., reactivated revoked rows)
+    try {
+      await supabaseAdmin
+        .from('account_memberships')
+        .update({ email: invite.email })
+        .eq('account_id', invite.account_id)
+        .eq('user_id', user.id);
+    } catch (e) {
+      console.error('[ACCEPT-INVITE] Email backfill failed (non-fatal):', e);
+    }
+
 
     // Mark invite as accepted
     await supabaseAdmin.from('invites').update({ status: 'accepted' }).eq('id', invite.id);
