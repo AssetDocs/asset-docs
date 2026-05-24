@@ -114,6 +114,7 @@ const NotificationsTab: React.FC = () => {
             marketing_communications: data.marketing_communications,
             billing_notifications: data.billing_notifications,
             property_updates: data.property_updates,
+            authorized_user_access_alerts: data.authorized_user_access_alerts ?? true,
           };
           setPreferences(loadedPrefs);
           setOriginalPreferences(loadedPrefs);
