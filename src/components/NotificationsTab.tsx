@@ -177,6 +177,7 @@ const NotificationsTab: React.FC = () => {
           marketing_communications: preferences.marketing_communications,
           billing_notifications: preferences.billing_notifications,
           property_updates: preferences.property_updates,
+          authorized_user_access_alerts: preferences.authorized_user_access_alerts,
         })
         .eq('user_id', user.id);
 
