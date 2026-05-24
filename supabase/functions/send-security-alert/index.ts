@@ -13,7 +13,8 @@ type SecurityAlertType =
   | "email_changed"
   | "failed_login_attempt"
   | "two_factor_enabled"
-  | "two_factor_disabled";
+  | "two_factor_disabled"
+  | "authorized_user_access";
 
 interface SecurityAlertRequest {
   userId: string;
@@ -26,8 +27,21 @@ interface SecurityAlertRequest {
     timestamp?: string;
     oldEmail?: string;
     newEmail?: string;
+    // For authorized_user_access (sent to owner):
+    ownerFirstName?: string;
+    authorizedUserName?: string;
+    authorizedUserRole?: string;
+    accountName?: string;
+    accountNumber?: string;
   };
 }
+
+const ROLE_LABELS: Record<string, string> = {
+  owner: "Owner",
+  administrator: "Full Access",
+  contributor: "Full Access",
+  viewer: "Read Only",
+};
 
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {

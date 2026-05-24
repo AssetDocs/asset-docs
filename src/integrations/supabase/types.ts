@@ -4212,6 +4212,7 @@ export type Database = {
       }
       notification_preferences: {
         Row: {
+          authorized_user_access_alerts: boolean
           billing_notifications: boolean
           created_at: string
           email_notifications: boolean
@@ -4223,6 +4224,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          authorized_user_access_alerts?: boolean
           billing_notifications?: boolean
           created_at?: string
           email_notifications?: boolean
@@ -4234,6 +4236,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          authorized_user_access_alerts?: boolean
           billing_notifications?: boolean
           created_at?: string
           email_notifications?: boolean
