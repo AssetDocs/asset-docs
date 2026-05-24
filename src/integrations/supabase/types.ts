@@ -223,6 +223,7 @@ export type Database = {
           accepted_at: string | null
           account_id: string
           created_at: string
+          email: string | null
           id: string
           invited_by: string | null
           role: Database["public"]["Enums"]["membership_role"]
@@ -233,6 +234,7 @@ export type Database = {
           accepted_at?: string | null
           account_id: string
           created_at?: string
+          email?: string | null
           id?: string
           invited_by?: string | null
           role?: Database["public"]["Enums"]["membership_role"]
@@ -243,6 +245,7 @@ export type Database = {
           accepted_at?: string | null
           account_id?: string
           created_at?: string
+          email?: string | null
           id?: string
           invited_by?: string | null
           role?: Database["public"]["Enums"]["membership_role"]

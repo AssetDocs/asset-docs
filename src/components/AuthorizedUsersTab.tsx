@@ -74,7 +74,7 @@ const AuthorizedUsersTab: React.FC = () => {
 
     const { data, error } = await supabase
       .from('account_memberships')
-      .select('id, user_id, role, status, accepted_at')
+      .select('id, user_id, role, status, accepted_at, email')
       .eq('account_id', accountId)
       .eq('status', 'active');
 
@@ -85,27 +85,25 @@ const AuthorizedUsersTab: React.FC = () => {
 
     // Fetch profile info for each member
     const membersWithProfiles = await Promise.all(
-      (data || []).map(async (m) => {
+      (data || []).map(async (m: any) => {
         const { data: profile } = await supabase
           .from('profiles_safe' as any)
           .select('first_name, last_name')
           .eq('user_id', m.user_id)
           .maybeSingle();
 
-        // Get email from auth (we'll use profiles or a fallback)
-        const { data: authData } = await supabase.auth.admin?.getUserById?.(m.user_id) || { data: null };
-
         return {
           ...m,
           first_name: profile?.first_name || null,
           last_name: profile?.last_name || null,
-          email: authData?.user?.email || '',
+          email: m.email || '',
         };
       })
     );
 
     setMembers(membersWithProfiles);
   };
+
 
   const fetchPendingInvites = async () => {
     if (!accountId) return;
@@ -391,11 +389,14 @@ const AuthorizedUsersTab: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <p className="font-medium text-sm">{getMemberName(member)}</p>
-                      {member.email && (
-                        <p className="text-xs text-muted-foreground">{member.email}</p>
-                      )}
+                      <p className="font-medium text-sm flex flex-wrap items-baseline gap-x-2">
+                        <span>{getMemberName(member)}</span>
+                        {member.email && (
+                          <span className="text-xs font-normal text-muted-foreground">{member.email}</span>
+                        )}
+                      </p>
                     </div>
+
                   </div>
                   <div className="flex items-center gap-2">
                     {getRoleBadge(member.role)}
