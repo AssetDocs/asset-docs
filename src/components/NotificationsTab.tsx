@@ -65,6 +65,7 @@ const NotificationsTab: React.FC = () => {
     marketing_communications: false,
     billing_notifications: true,
     property_updates: true,
+    authorized_user_access_alerts: true,
   });
   const [originalPreferences, setOriginalPreferences] = useState<NotificationPreferences | null>(null);
 
