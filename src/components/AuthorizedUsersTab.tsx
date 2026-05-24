@@ -389,11 +389,14 @@ const AuthorizedUsersTab: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <p className="font-medium text-sm">{getMemberName(member)}</p>
-                      {member.email && (
-                        <p className="text-xs text-muted-foreground">{member.email}</p>
-                      )}
+                      <p className="font-medium text-sm flex flex-wrap items-baseline gap-x-2">
+                        <span>{getMemberName(member)}</span>
+                        {member.email && (
+                          <span className="text-xs font-normal text-muted-foreground">{member.email}</span>
+                        )}
+                      </p>
                     </div>
+
                   </div>
                   <div className="flex items-center gap-2">
                     {getRoleBadge(member.role)}
