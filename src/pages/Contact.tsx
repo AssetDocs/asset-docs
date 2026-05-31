@@ -115,7 +115,7 @@ const Contact: React.FC = () => {
               
               <Button 
                 onClick={() => {
-                  // Dispatch custom event to open the Ask Asset Safe floating chatbot
+                  // Dispatch custom event to open the Ask Ashley floating chatbot
                   window.dispatchEvent(new CustomEvent('openAskAssetSafe'));
                 }}
                 variant="outline"

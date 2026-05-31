@@ -16,7 +16,7 @@ const ChatbotInterface: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      text: "Hello! I'm the AssetSafe AI assistant. How can I help you with property documentation or asset valuation today?",
+      text: "Hello! I'm the Ashley, the Asset Safe AI assistant. How can I help you with property documentation or asset valuation today?",
       sender: 'bot',
       timestamp: new Date(),
     },
@@ -115,7 +115,7 @@ const ChatbotInterface: React.FC = () => {
       <div className="bg-brand-blue p-4">
         <div className="flex items-center text-white">
           <MessageCircle className="w-6 h-6 mr-2" />
-          <h3 className="font-medium">AssetSafe Assistant</h3>
+          <h3 className="font-medium">Ashley</h3>
         </div>
       </div>
       

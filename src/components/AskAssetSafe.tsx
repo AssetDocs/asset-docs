@@ -252,11 +252,11 @@ const AskAssetSafe: React.FC = () => {
       <button
         onClick={() => setIsOpen(true)}
         className="fixed bottom-4 right-4 z-50 bg-brand-green hover:bg-brand-green/90 text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 group"
-        aria-label="Ask Asset Safe"
+        aria-label="Ask Ashley"
       >
         <MessageCircle className="w-6 h-6" />
         <span className="absolute bottom-full right-0 mb-2 px-3 py-1 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-          Ask Asset Safe
+          Ask Ashley
         </span>
       </button>
     );
@@ -270,7 +270,7 @@ const AskAssetSafe: React.FC = () => {
           <div className="flex items-center justify-between p-3 gap-4">
             <div className="flex items-center gap-2">
               <MessageCircle className="w-5 h-5" />
-              <span className="font-medium text-sm">Ask Asset Safe</span>
+              <span className="font-medium text-sm">Ask Ashley</span>
             </div>
             <div className="flex gap-1">
               <Button 
@@ -304,7 +304,7 @@ const AskAssetSafe: React.FC = () => {
         <div className="bg-brand-green p-3 flex items-center justify-between">
           <div className="flex items-center text-white">
             <MessageCircle className="w-5 h-5 mr-2" />
-            <h3 className="font-medium text-sm">Ask Asset Safe</h3>
+            <h3 className="font-medium text-sm">Ask Ashley</h3>
           </div>
           <div className="flex gap-1">
             <Button 
