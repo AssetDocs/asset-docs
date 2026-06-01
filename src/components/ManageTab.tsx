@@ -20,6 +20,8 @@ import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import AccountDeletedDialog from '@/components/AccountDeletedDialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import PaymentHistory from '@/components/PaymentHistory';
+import CancelSubscriptionDialog from '@/components/billing/CancelSubscriptionDialog';
+import DeleteAccountDialog from '@/components/account/DeleteAccountDialog';
 
 const planConfig = {
   title: "Asset Safe Plan",
@@ -95,6 +97,8 @@ const ManageTab: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('month');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showNewDeleteDialog, setShowNewDeleteDialog] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showAccountDeletedDialog, setShowAccountDeletedDialog] = useState(false);
   const [showDeletionRequestDialog, setShowDeletionRequestDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -578,24 +582,57 @@ const ManageTab: React.FC = () => {
         </Alert>
       )}
 
-      {/* 5 — Account Deletion */}
-      {!isContributor && (
-        <Card className="border-destructive/20">
+      {/* 5 — Cancel Subscription */}
+      {!isContributor && hasActivePlan && !isCancelAtPeriodEnd && (
+        <Card>
           <CardHeader>
-            <CardTitle className="text-destructive">Danger Zone</CardTitle>
-            <CardDescription>Permanently delete your account and all associated data</CardDescription>
+            <CardTitle>Cancel Subscription</CardTitle>
+            <CardDescription>
+              Stop future billing. Your records stay securely stored and remain available in read-only mode after expiration.
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              If you wish to delete your account, make sure you securely back up or export your dashboard files. Once deleted, this action cannot be undone.
-            </p>
-            <Button variant="destructive" onClick={() => setShowDeleteDialog(true)} disabled={isDeleting} className="w-full">
-              <Trash2 className="h-4 w-4 mr-2" />
-              {isDeleting ? 'Deleting Account...' : 'Delete Account'}
+            <Button variant="outline" onClick={() => setShowCancelDialog(true)}>
+              Cancel Subscription
             </Button>
           </CardContent>
         </Card>
       )}
+
+      {/* 6 — Account Deletion */}
+      {!isContributor && (
+        <Card className="border-destructive/20">
+          <CardHeader>
+            <CardTitle className="text-destructive">Delete Account</CardTitle>
+            <CardDescription>
+              Permanently delete your account and all associated data. This is separate from cancelling your subscription.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              After your subscription expires, your records will remain securely stored and available in read-only mode.
+              You may reactivate, export your information, or request permanent account deletion at any time.
+            </p>
+            <Button variant="destructive" onClick={() => setShowNewDeleteDialog(true)} className="w-full">
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Account
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      <CancelSubscriptionDialog
+        open={showCancelDialog}
+        onClose={() => setShowCancelDialog(false)}
+        onCancelled={() => checkSubscription()}
+        periodEndIso={subscriptionStatus.subscription_end}
+      />
+      <DeleteAccountDialog
+        open={showNewDeleteDialog}
+        onClose={() => setShowNewDeleteDialog(false)}
+        onScheduled={() => checkSubscription()}
+      />
+
 
       {/* Admin Contributor Deletion */}
       {isContributor && contributorInfo?.role === 'administrator' && (

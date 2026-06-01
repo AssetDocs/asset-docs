@@ -7,22 +7,14 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const logStep = (step: string, details?: any) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[CANCEL-SUBSCRIPTION] ${step}${detailsStr}`);
-};
+const log = (s: string, d?: any) => console.log(`[CANCEL-SUB] ${s}${d ? ' ' + JSON.stringify(d) : ''}`);
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    logStep("Function started");
-
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
-    logStep("Stripe key verified");
 
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -32,163 +24,128 @@ serve(async (req) => {
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header provided");
-    logStep("Authorization header found");
 
     const token = authHeader.replace("Bearer ", "");
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
     if (userError) throw new Error(`Authentication error: ${userError.message}`);
     const user = userData.user;
     if (!user?.email) throw new Error("User not authenticated or email not available");
-    logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Parse request body for action (cancel or reactivate)
-    const { action } = await req.json();
-    logStep("Action requested", { action });
+    const body = await req.json().catch(() => ({}));
+    const { action, reason, comments } = body || {};
+    log("Action", { action, userId: user.id });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
-    
-    // Get customer by email
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    
-    if (customers.data.length === 0) {
-      throw new Error("No Stripe customer found for this user");
-    }
-
+    if (customers.data.length === 0) throw new Error("No Stripe customer found for this user");
     const customerId = customers.data[0].id;
-    logStep("Found Stripe customer", { customerId });
 
-    // Get active subscriptions
-    const subscriptions = await stripe.subscriptions.list({
-      customer: customerId,
-      status: 'active',
-      limit: 1
-    });
-
-    // Also check for subscriptions that are scheduled to cancel
-    const cancelingSubscriptions = await stripe.subscriptions.list({
-      customer: customerId,
-      limit: 10
-    });
-
-    const activeOrCancelingSub = cancelingSubscriptions.data.find(
-      sub => sub.status === 'active' || (sub.status === 'active' && sub.cancel_at_period_end)
-    );
-
-    if (!activeOrCancelingSub && action === 'cancel') {
-      throw new Error("No active subscription found to cancel");
-    }
+    const all = await stripe.subscriptions.list({ customer: customerId, limit: 10 });
+    const activeSubs = all.data.filter((s) => s.status === 'active' || s.status === 'trialing');
 
     if (action === 'cancel') {
-      // Cancel at period end (user keeps access until billing cycle ends)
-      const subscription = subscriptions.data[0] || activeOrCancelingSub;
-      
-      if (!subscription) {
-        throw new Error("No subscription found to cancel");
-      }
+      const subscription = activeSubs[0];
+      if (!subscription) throw new Error("No active subscription found to cancel");
 
-      const updatedSubscription = await stripe.subscriptions.update(subscription.id, {
-        cancel_at_period_end: true
-      });
+      const updated = await stripe.subscriptions.update(subscription.id, { cancel_at_period_end: true });
+      log("Cancelled at period end", { id: subscription.id });
 
-      logStep("Subscription set to cancel at period end", { 
-        subscriptionId: subscription.id,
-        cancelAt: updatedSubscription.cancel_at 
-      });
-
-      // Update profile to reflect pending cancellation
+      // Update profile to reflect status
       await supabaseClient
         .from('profiles')
         .update({
           plan_status: 'canceling',
-          updated_at: new Date().toISOString()
+          account_status: 'cancelled_billing_active',
+          updated_at: new Date().toISOString(),
         })
         .eq('user_id', user.id);
 
-      // Get owner's profile for name
+      // Fetch account
+      const { data: account } = await supabaseClient
+        .from('accounts')
+        .select('id')
+        .eq('owner_user_id', user.id)
+        .maybeSingle();
+
+      const periodEnd = updated.current_period_end
+        ? new Date(updated.current_period_end * 1000).toISOString()
+        : null;
+
+      // Record cancellation
+      try {
+        await supabaseClient.from('subscription_cancellations').insert({
+          account_id: account?.id ?? null,
+          owner_user_id: user.id,
+          period_end: periodEnd,
+          reason: reason ?? null,
+          comments: comments ?? null,
+          plan: (subscription.items.data[0]?.price?.lookup_key as string) || null,
+          stripe_subscription_id: subscription.id,
+        });
+      } catch (e) {
+        console.error("[CANCEL-SUB] insert cancellation failed", e);
+      }
+
+      // Owner profile for name
       const { data: ownerProfile } = await supabaseClient
         .from('profiles')
         .select('first_name, last_name')
         .eq('user_id', user.id)
-        .single();
-
-      const ownerName = ownerProfile 
+        .maybeSingle();
+      const ownerName = ownerProfile
         ? `${ownerProfile.first_name || ''} ${ownerProfile.last_name || ''}`.trim() || user.email
         : user.email;
 
-      // Send cancellation notice to all contributors
-      const billingEndDate = updatedSubscription.current_period_end 
-        ? new Date(updatedSubscription.current_period_end * 1000).toISOString()
-        : new Date().toISOString();
-
+      // Send emails (idempotent)
       try {
-        await supabaseClient.functions.invoke('send-cancellation-notice', {
+        await supabaseClient.functions.invoke('send-cancellation-emails', {
           body: {
+            account_id: account?.id ?? null,
             owner_user_id: user.id,
+            owner_email: user.email,
             owner_name: ownerName,
-            billing_end_date: billingEndDate
-          }
+            period_end: periodEnd,
+          },
         });
-        logStep("Cancellation notice sent to contributors");
-      } catch (notifyError) {
-        // Don't fail the cancellation if notification fails
-        console.error("Failed to send cancellation notices:", notifyError);
+      } catch (e) {
+        console.error("[CANCEL-SUB] send-cancellation-emails failed", e);
       }
 
-      return new Response(JSON.stringify({ 
-        success: true, 
+      return new Response(JSON.stringify({
+        success: true,
         message: "Subscription will be canceled at the end of the billing period",
-        cancel_at: updatedSubscription.cancel_at,
-        current_period_end: updatedSubscription.current_period_end
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
+        cancel_at: updated.cancel_at,
+        current_period_end: updated.current_period_end,
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
+    }
 
-    } else if (action === 'reactivate') {
-      // Find the subscription that's set to cancel
-      const subscriptionToReactivate = cancelingSubscriptions.data.find(
-        sub => sub.cancel_at_period_end === true
-      );
+    if (action === 'reactivate') {
+      const target = all.data.find((s) => s.cancel_at_period_end === true);
+      if (!target) throw new Error("No subscription found that is scheduled for cancellation");
 
-      if (!subscriptionToReactivate) {
-        throw new Error("No subscription found that is scheduled for cancellation");
-      }
+      const updated = await stripe.subscriptions.update(target.id, { cancel_at_period_end: false });
 
-      // Reactivate by removing cancel_at_period_end
-      const updatedSubscription = await stripe.subscriptions.update(subscriptionToReactivate.id, {
-        cancel_at_period_end: false
-      });
-
-      logStep("Subscription reactivated", { subscriptionId: subscriptionToReactivate.id });
-
-      // Update profile back to active
       await supabaseClient
         .from('profiles')
         .update({
           plan_status: 'active',
-          updated_at: new Date().toISOString()
+          account_status: 'active',
+          cancellation_notice_sent_at: null,
+          updated_at: new Date().toISOString(),
         })
         .eq('user_id', user.id);
 
-      return new Response(JSON.stringify({ 
-        success: true, 
-        message: "Subscription has been reactivated",
-        status: updatedSubscription.status
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
+      return new Response(JSON.stringify({ success: true, message: "Subscription has been reactivated", status: updated.status }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200,
       });
-
-    } else {
-      throw new Error("Invalid action. Use 'cancel' or 'reactivate'");
     }
 
+    throw new Error("Invalid action. Use 'cancel' or 'reactivate'");
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in cancel-subscription", { message: errorMessage });
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
+    const message = error instanceof Error ? error.message : String(error);
+    log("ERROR", { message });
+    return new Response(JSON.stringify({ error: message }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500,
     });
   }
 });

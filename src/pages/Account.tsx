@@ -19,6 +19,7 @@ import SecureVault from '@/components/SecureVault';
 import FeedbackSection from '@/components/FeedbackSection';
 import AdminContributorPlanInfo from '@/components/AdminContributorPlanInfo';
 import WelcomeBanner from '@/components/WelcomeBanner';
+import ExpiredSubscriptionBanner from '@/components/ExpiredSubscriptionBanner';
 import SecurityProgress from '@/components/SecurityProgress';
 import MFADropdown from '@/components/MFADropdown';
 import DashboardGrid from '@/components/DashboardGrid';
@@ -162,6 +163,12 @@ const Account: React.FC = () => {
         <div className="max-w-6xl mx-auto">
           {/* Viewer Restriction Banner */}
           <ViewerRestrictionBanner />
+          <ExpiredSubscriptionBanner
+            onReactivate={() => setActiveTab('manage')}
+            onExport={() => setActiveTab('export')}
+            onDelete={() => setActiveTab('manage')}
+          />
+
 
           {/* Welcome Banner + Security Progress - ONLY on overview */}
           {isOverview && (
