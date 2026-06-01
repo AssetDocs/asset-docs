@@ -13,6 +13,7 @@ import DevTeamManagement from './DevTeamManagement';
 import MarketSizing from './MarketSizing';
 import AdminDocuments from './AdminDocuments';
 import LegacyContinuityWorkspace from './legacy-continuity/LegacyContinuityWorkspace';
+import AdminCancellations from './AdminCancellations';
 import {
   Users,
   CreditCard,
@@ -33,7 +34,7 @@ const AdminOwnerWorkspace: React.FC = () => {
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-      <TabsList className="grid grid-cols-4 md:grid-cols-11 gap-2 h-auto p-1">
+      <TabsList className="grid grid-cols-4 md:grid-cols-12 gap-2 h-auto p-1">
         <TabsTrigger value="overview" className="flex items-center gap-2">
           <BarChart className="w-4 h-4" />
           Overview
@@ -49,6 +50,10 @@ const AdminOwnerWorkspace: React.FC = () => {
         <TabsTrigger value="billing" className="flex items-center gap-2">
           <CreditCard className="w-4 h-4" />
           Billing
+        </TabsTrigger>
+        <TabsTrigger value="cancellations" className="flex items-center gap-2">
+          <CreditCard className="w-4 h-4" />
+          Cancellations
         </TabsTrigger>
         <TabsTrigger value="crm" className="flex items-center gap-2">
           <Users className="w-4 h-4" />
@@ -231,6 +236,10 @@ const AdminOwnerWorkspace: React.FC = () => {
 
       <TabsContent value="billing">
         <StripeReconciliation />
+      </TabsContent>
+
+      <TabsContent value="cancellations">
+        <AdminCancellations />
       </TabsContent>
 
       <TabsContent value="crm">
