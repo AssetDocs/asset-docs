@@ -107,11 +107,17 @@ const AdminUsers = () => {
         `)
         .order('created_at', { ascending: false });
 
-      // Fetch all contributors
+      // Fetch all contributors (legacy table)
       const { data: contributorsData } = await supabase
         .from('contributors')
         .select('*')
         .order('created_at', { ascending: false });
+
+      // Fetch active account_memberships (authoritative source for AU status)
+      const { data: membershipsData } = await supabase
+        .from('account_memberships')
+        .select('user_id, role, account_id, status, accounts!inner(owner_user_id, account_name)')
+        .eq('status', 'active');
 
       if (usersData) {
         // Get subscriber info (legacy, used only for email fallback)
@@ -148,7 +154,7 @@ const AdminUsers = () => {
           usersData.map(u => [u.user_id, u])
         );
 
-        // Create a map of contributor user_id to their contributor record
+        // Create a map of contributor user_id to their contributor record (legacy)
         const contributorMap = new Map<string, ContributorRecord>();
         contributorsData?.forEach(c => {
           if (c.contributor_user_id) {
@@ -156,15 +162,40 @@ const AdminUsers = () => {
           }
         });
 
+        // Build a map: user_id -> first active non-owner membership (Authorized User)
+        const auMembershipMap = new Map<string, any>();
+        membershipsData?.forEach((m: any) => {
+          if (m.role && m.role !== 'owner') {
+            if (!auMembershipMap.has(m.user_id)) {
+              auMembershipMap.set(m.user_id, m);
+            }
+          }
+        });
+
         const mergedUsers = usersData.map(user => {
+          const auMembership = auMembershipMap.get(user.user_id);
           const contributorRecord = contributorMap.get(user.user_id);
-          const ownerProfile = contributorRecord ? ownerProfileMap.get(contributorRecord.account_owner_id) : null;
-          const ownerEmail = ownerProfile ? (subscriberMap.get(ownerProfile.user_id)?.email || authEmails[ownerProfile.user_id]) : null;
           const entitlement = entitlementMap.get(user.user_id);
-          
-          // Use entitlements as authoritative source, fall back to profiles/subscribers
           const isActive = entitlement?.status === 'active' || entitlement?.status === 'trialing';
-          
+
+          // AU = any active non-owner membership OR legacy contributor record
+          const isAU = !!auMembership || !!contributorRecord;
+
+          let ownerUserId: string | null = null;
+          let auRole: string | null = null;
+          if (auMembership) {
+            ownerUserId = auMembership.accounts?.owner_user_id || null;
+            auRole = auMembership.role;
+          } else if (contributorRecord) {
+            ownerUserId = contributorRecord.account_owner_id;
+            auRole = contributorRecord.role;
+          }
+
+          const ownerProfile = ownerUserId ? ownerProfileMap.get(ownerUserId) : null;
+          const ownerEmail = ownerProfile
+            ? (subscriberMap.get(ownerProfile.user_id)?.email || authEmails[ownerProfile.user_id])
+            : null;
+
           return {
             ...user,
             phone: user.phone || null,
@@ -173,8 +204,8 @@ const AdminUsers = () => {
             subscription_tier: entitlement?.plan || subscriberMap.get(user.user_id)?.subscription_tier || null,
             subscribed: isActive,
             plan_status: entitlement?.status || user.plan_status || null,
-            isContributor: !!contributorRecord,
-            contributorRole: contributorRecord?.role || null,
+            isContributor: isAU,
+            contributorRole: auRole,
             ownerEmail: ownerEmail || null,
             ownerName: ownerProfile ? `${ownerProfile.first_name || ''} ${ownerProfile.last_name || ''}`.trim() : null,
             ownerAccountNumber: ownerProfile?.account_number || null,
@@ -186,27 +217,59 @@ const AdminUsers = () => {
 
         setUsers(mergedUsers);
 
-        // Build owners with contributors data
+        // Build owners with contributors data — combine legacy contributors + account_memberships
         const ownersMap = new Map<string, OwnerWithContributors>();
-        
-        contributorsData?.forEach(contributor => {
-          const ownerProfile = ownerProfileMap.get(contributor.account_owner_id);
-          if (ownerProfile) {
-            const ownerId = contributor.account_owner_id;
-            if (!ownersMap.has(ownerId)) {
-              ownersMap.set(ownerId, {
-                ownerId,
-                ownerName: `${ownerProfile.first_name || ''} ${ownerProfile.last_name || ''}`.trim(),
-                ownerEmail: subscriberMap.get(ownerId)?.email || authEmails[ownerId] || null,
-                accountNumber: ownerProfile.account_number,
-                contributors: []
-              });
-            }
-            ownersMap.get(ownerId)?.contributors.push({
-              ...contributor,
-              accepted_at: contributor.accepted_at || null
+
+        const ensureOwner = (ownerId: string) => {
+          const ownerProfile = ownerProfileMap.get(ownerId);
+          if (!ownerProfile) return null;
+          if (!ownersMap.has(ownerId)) {
+            ownersMap.set(ownerId, {
+              ownerId,
+              ownerName: `${ownerProfile.first_name || ''} ${ownerProfile.last_name || ''}`.trim(),
+              ownerEmail: subscriberMap.get(ownerId)?.email || authEmails[ownerId] || null,
+              accountNumber: ownerProfile.account_number,
+              contributors: []
             });
           }
+          return ownersMap.get(ownerId)!;
+        };
+
+        contributorsData?.forEach(contributor => {
+          const bucket = ensureOwner(contributor.account_owner_id);
+          if (bucket) {
+            bucket.contributors.push({
+              ...contributor,
+              accepted_at: contributor.accepted_at || null,
+            });
+          }
+        });
+
+        membershipsData?.forEach((m: any) => {
+          if (!m.role || m.role === 'owner') return;
+          const ownerId = m.accounts?.owner_user_id;
+          if (!ownerId) return;
+          const bucket = ensureOwner(ownerId);
+          if (!bucket) return;
+          const auProfile = ownerProfileMap.get(m.user_id);
+          const auEmail = subscriberMap.get(m.user_id)?.email || authEmails[m.user_id] || null;
+          const alreadyTracked = bucket.contributors.some(c =>
+            c.contributor_user_id === m.user_id ||
+            (auEmail && c.contributor_email?.toLowerCase() === auEmail.toLowerCase())
+          );
+          if (alreadyTracked) return;
+          bucket.contributors.push({
+            id: `membership-${m.user_id}-${m.account_id}`,
+            contributor_email: auEmail || '',
+            contributor_user_id: m.user_id,
+            first_name: auProfile?.first_name || null,
+            last_name: auProfile?.last_name || null,
+            role: m.role,
+            status: m.status,
+            account_owner_id: ownerId,
+            created_at: '',
+            accepted_at: null,
+          });
         });
 
         setOwnersWithContributors(Array.from(ownersMap.values()));
