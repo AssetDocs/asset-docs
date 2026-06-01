@@ -163,6 +163,12 @@ const Account: React.FC = () => {
         <div className="max-w-6xl mx-auto">
           {/* Viewer Restriction Banner */}
           <ViewerRestrictionBanner />
+          <ExpiredSubscriptionBanner
+            onReactivate={() => setActiveTab('manage')}
+            onExport={() => setActiveTab('export')}
+            onDelete={() => setActiveTab('manage')}
+          />
+
 
           {/* Welcome Banner + Security Progress - ONLY on overview */}
           {isOverview && (
