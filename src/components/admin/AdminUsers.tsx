@@ -819,6 +819,56 @@ const AdminUsers = () => {
             </Card>
           )}
         </TabsContent>
+
+        <TabsContent value="cancelled" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Cancelled Subscriptions</CardTitle>
+              <CardDescription>Users who have cancelled their subscription</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <p>Loading...</p>
+              ) : (() => {
+                const cancelledUsers = users.filter(
+                  (u) => u.plan_status === 'canceled' || u.plan_status === 'cancelled'
+                );
+                return cancelledUsers.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Account #</TableHead>
+                        <TableHead>Cancelled On</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {cancelledUsers.map((user) => (
+                        <TableRow key={user.user_id}>
+                          <TableCell className="font-medium">
+                            {`${user.first_name || ''} ${user.last_name || ''}`.trim() || '-'}
+                          </TableCell>
+                          <TableCell>{user.email || '-'}</TableCell>
+                          <TableCell>
+                            <span className="font-mono text-xs bg-muted px-2 py-1 rounded">
+                              {user.account_number || '-'}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {formatDate(user.created_at)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <p className="text-center text-muted-foreground py-8">No cancelled subscriptions</p>
+                );
+              })()}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
     </div>
   );
