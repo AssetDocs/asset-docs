@@ -1,136 +1,134 @@
+# Account Closure, Subscription Cancellation & Post-Expiration Access
 
-# Continuity & Preservation Refactor
-
-This is a large, multi-area change. To keep risk low and preserve audit history, I'll do it in **four sequenced passes** rather than one giant migration. Each pass is shippable on its own.
-
-## Guiding rules (apply everywhere)
-
-- **Non-destructive migration.** Existing ownership-transfer tables, RPCs, and audit rows stay in the DB for history. We **hide** them from UI, **disable** their execution paths, and stop referencing them in new flows.
-- **No ownership/inheritance language** anywhere user-visible (UI, emails, status labels, admin badges, audit-event display strings). Backend column names may keep legacy identifiers where renaming would break references; display layer translates.
-- **Owner silence ≠ approval.** Already enforced by the dispute/waiting-period guard — reinforced in new closure & memorialization flows.
-- **Every action writes an audit row** via the existing `log_continuity_event` RPC.
+Split today's combined flow into two distinct workflows (Cancel Subscription, Delete Account), preserve all data after cancellation, convert expired accounts to read-only, and add admin tracking + confirmation emails.
 
 ---
 
-## Pass 1 — Terminology + UI hiding (no schema changes)
+## 1. Database (single migration)
 
-Goal: ship the rebrand and remove ownership-transfer surfaces immediately.
+**New tables**
 
-**Shared rename map** in a new `src/lib/continuityTerms.ts` (single source of truth, imported by every component below):
+- `subscription_cancellations` — `account_id`, `owner_user_id`, `cancelled_at`, `period_end`, `reason`, `comments`, `plan`, `stripe_subscription_id`
+- `account_closure_requests` — `account_id`, `owner_user_id`, `request_date`, `deletion_scheduled_date`, `reason`, `comments`, `subscription_status`, `current_period_end`, `status` (`pending|scheduled|reversed|completed`), `reversed_at`, `completed_at`
+- `subscription_email_events` — `account_id`, `user_id`, `event_type`, `recipient_email`, `sent_at`, `status`, `resend_message_id`; **unique index on `(account_id, event_type, recipient_email)`** to block duplicate webhook sends
 
-| Old | New |
-|---|---|
-| Legacy Admin | Continuity Steward |
-| Legacy Continuity | Continuity & Preservation |
-| Ownership Transfer / Transfer Ownership | Grant Continuity Access / Stewardship Access |
-| Successor Owner / New Owner | Designated Steward |
-| Transfer Execution Panel | Continuity Action Panel |
-| Ownership Review | Continuity Review |
-| Permanent Transfer | Preservation Stewardship |
+**Profile additions**
 
-**Files touched (rename-only, no behavior change):**
-- `src/components/LegacyAdminAssignment.tsx` → user-facing strings updated, file kept at same path.
-- `src/components/legacy-continuity/*` → all labels, status text, request-type options, wizard copy.
-- `src/components/admin/legacy-continuity/constants.ts` → STATUS_LABEL, REQUEST_TYPE_LABEL, risk labels.
-- `src/components/admin/legacy-continuity/LegacyContinuityWorkspace.tsx` → header → "Continuity & Preservation"; tab list updated (see below).
-- `src/components/admin/legacy-continuity/CaseReviewDialog.tsx` → tab + sidebar labels.
-- `src/components/admin/legacy-continuity/OwnerRiskPanel.tsx` → "Continuity Steward Info".
-- `src/pages/ContinuityDispute.tsx`, `src/components/continuity/ContinuityRequestBanner.tsx`, `src/components/continuity/ContinuityPreferencesPage.tsx` → all owner-facing copy.
+- `profiles.account_status` enum-text: `active | cancelled_billing_active | expired_read_only | deletion_requested | scheduled_for_deletion | deleted`
+- `profiles.cancellation_notice_sent_at timestamptz`
+- Derived in a SECURITY DEFINER function `public.compute_account_status(uuid)` that reads from subscribers/entitlements/closure-requests so all surfaces agree.
 
-**Admin tab restructure** in `LegacyContinuityWorkspace.tsx`:
-- New tabs: Request Queue · Active Reviews · Temporary Stewardship · Export Requests · Memorialized Accounts · Closure Requests · Disputed Requests · Audit Logs.
-- **Remove from nav:** "Ownership Transfers" tab.
-- The `OwnershipTransfersTab.tsx` file stays on disk for now (history) but is no longer routed.
+**Read-only enforcement helper**
 
-**Hide ownership-transfer execution surfaces:**
-- `ContinuityExecutionPanel.tsx` → remove "Full Ownership Transfer" from `TransferScopeSelector`; show only Temporary Stewardship, Export, Memorialization, Preservation, Closure.
-- `OwnershipTransferForm.tsx` → render a disabled "Ownership transfer is deprecated. Use Grant Continuity Access." stub. Keep the file so any deep links don't 500.
-- Add a server guard: a new SQL trigger on `account_continuity_requests` rejects writes that set `status` to `ownership_transfer_pending` going forward (existing rows untouched).
+- `public.is_account_read_only(uuid)` returns true when status is `expired_read_only`.
+- New RLS policy fragments added to write-paths on: `items`, `properties`, `property_files`, `damage_reports`, `insurance_policies`, `legacy_locker*`, `document_folders`, `photo_folders`, `video_folders`, `password_catalog`, `vip_contacts`, `account_memberships` (insert). Each adds: `WITH CHECK (NOT public.is_account_read_only(auth.uid()))` while leaving SELECT untouched so owners can still read everything.
 
-**Email subjects/bodies** in `dispatch-continuity-event/index.ts` rewritten to use the new vocabulary. No structural change to the dispatcher — just template strings.
+**Authorized-user access cutoff**
+
+- Update `public.has_account_access(account_id)` (or equivalent membership helper) so AUs get `false` when the owner's account status is `expired_read_only`, `deletion_requested`, `scheduled_for_deletion`, or `deleted`. Owner-self SELECT remains allowed.
+
+All new tables ship with GRANTs (`authenticated`, `service_role`) and RLS:
+- Owner can SELECT own rows.
+- Admins SELECT all via `has_role(auth.uid(),'admin')`.
+- Writes restricted to `service_role`.
 
 ---
 
-## Pass 2 — Expanded owner preferences
+## 2. Frontend — Cancel Subscription wizard
 
-Goal: deliver the full "Continuity Preferences" screen spec.
+`src/components/billing/CancelSubscriptionDialog.tsx` (new) replacing the single button:
 
-**Schema (migration):**
-- Extend `legacy_locker.continuity_preferences` JSONB to support the 5 sections (temporary incapacity, permanent incapacity, death, protected areas per-segment, readiness). Backwards-compatible — old shape continues to read.
-- Add `legacy_locker.continuity_preferences_last_reviewed_at` (already exists as `continuity_preferences_reviewed_at` — reuse).
+1. **Info screen** — bulleted reassurance using the approved retention copy ("records remain securely stored and available in read-only mode… reactivate, export, or request permanent deletion at any time"). Buttons: `Keep Subscription` / `Continue`.
+2. **Optional exit survey** — reason radio list + comments textarea. Fully skippable.
+3. **Final confirm** — shows calculated billing end date, "No data will be deleted." Buttons: `Go Back` / `Confirm Cancellation`.
+4. On confirm → `cancel-subscription` with `{ action:'cancel', reason, comments }`. Toast: "Your subscription cancellation has been confirmed. We've sent a confirmation email to you and notified any active authorized users."
 
-**UI:** rewrite `src/components/continuity/ContinuityPreferencesPage.tsx` into 5 collapsible sections matching the spec exactly, with the defaults you listed (manual review on temp incapacity; Secure Vault + Password Catalog default to "requires additional verification"; Family Archive defaults to "preserve read-only"). Readiness widget pulls from MFA status, backup email, last-reviewed-at, etc.
+`Keep Subscription` and `Cancel Subscription` are equally prominent — no dark patterns, no retention loops.
 
----
+## 3. Frontend — Delete Account wizard
 
-## Pass 3 — New action types + schema
+`src/components/account/DeleteAccountDialog.tsx` (new, replaces current delete confirm):
 
-Goal: support Memorialization, Preservation Mode, and Closure as first-class continuity actions.
+1. **Info screen** — permanent-deletion warning + **Account Impact Summary** (assets, files, AUs, properties, Legacy Locker present, Password Catalog present) from new `get-account-impact` edge function. Buttons: `Export My Data` / `Continue` / `Cancel`.
+2. **Re-auth** — password input → `supabase.auth.signInWithPassword` re-verification.
+3. **Optional exit survey** — separate reason set (includes Privacy concerns). Stored separately from cancellation.
+4. **Final destructive confirm** — must type `DELETE MY ACCOUNT` exactly; button disabled until match.
+5. On confirm → `request-account-closure` edge function. Creates `account_closure_requests` row (`status='scheduled'`, `deletion_scheduled_date = current_period_end || now()+30d`), flips `account_status` accordingly, ensures Stripe cancel-at-period-end. **Does NOT destroy data.**
+6. **Closure confirmation screen** — schedule + reversal note.
 
-**Migration adds 4 tables** (matching your spec, with RLS):
-- `memorialized_accounts` (account_id, request_id, memorialized_at, steward_access_level, export_allowed, billing_handling_status, reason)
-- `preservation_states` (account_id, request_id, state_type, restrictions JSONB, applied_at, status)
-- `closure_requests` (request_id, account_id, status, waiting_period_starts_at, waiting_period_ends_at default `+30 days`, snapshot_reference, completed_at, cancellation_reason)
-- `dispute_flags` (already partially covered by existing `owner_dispute_*` cols on requests — add this table only for non-owner-initiated disputes; otherwise reuse).
+Self-service end-to-end — no support contact required.
 
-**Existing tables we keep and reuse** (no rename to avoid breaking types.ts):
-- `account_continuity_requests` → adds new allowed values for `request_type`: `memorialization`, `account_preservation`, `account_closure`. New status values: `approved_memorialization`, `approved_preservation`, `closure_waiting_period`, `closure_completed`, etc.
-- `continuity_temporary_access` → unchanged (already models temp stewardship).
-- `continuity_ownership_transfers` → marked deprecated in a SQL COMMENT; no new rows written.
-- `continuity_audit_logs` → unchanged, used for all new actions.
+## 4. Post-Expiration Read-Only Experience
 
-**RPCs:**
-- `execute_memorialization(_request_id, _steward_access_level, _export_allowed, _billing_handling_status, _reason)` — writes memorialized_accounts row, sets account.status='memorialized', writes audit + timeline event. Calls existing `enforce_continuity_execution_guard` first.
-- `execute_preservation_mode(_request_id, _state_type, _restrictions, _reason)` — analogous.
-- `approve_closure_request(_request_id, _waiting_days default 30, _reason)` — creates closure_requests row with waiting period, sets status, notifies owner + steward via dispatch-continuity-event.
-- `complete_closure(_closure_id, _override boolean default false)` — guarded; refuses if waiting period not elapsed AND `_override=false`. Creates archive snapshot via existing `create_continuity_snapshot`.
-- `cancel_closure(_closure_id, _reason)` — restores account.
+- `SubscriptionContext` exposes `accountStatus` and `isReadOnly` from the new function.
+- New `<ExpiredSubscriptionBanner>` shown persistently on dashboard + key pages when `isReadOnly`. Title "Subscription Expired", approved body copy, three buttons: `Reactivate Subscription`, `Export My Data`, `Delete Account`.
+- All "upload / create / edit / add AU / generate report" CTAs gated through a small `useCanWrite()` hook → buttons disabled with tooltip "Read-only mode. Reactivate to enable." Affected pages/components: Properties, Items, Documents, Photos, Videos, MemorySafe, LegacyLocker, PasswordCatalog, DamageReports, InsuranceForm, ReportGenerator, AuthorizedUsersTab.
+- Owner retains: login, dashboard, View All Assets, Family Archive view, Legacy Locker view, Password Catalog view, Export, Reactivate, Delete Account.
+- AUs hitting `/account` while account is expired/deleting are shown an `AccessRevokedScreen` and signed out of that workspace context.
 
-**Note on owner role:** the existing `execute_ownership_transfer` RPC is **not deleted** (audit history), but a new `REVOKE EXECUTE … FROM authenticated, anon, service_role` revokes call rights. Internal callers are gone (Pass 1 removed UI). If any other code path still references it, the revoke makes it inert.
+## 5. Reactivation
 
----
+- Existing reactivate path (`cancel-subscription` with `action:'reactivate'`, plus checkout for fully-expired) → on success, set `account_status='active'`, clear `cancellation_notice_sent_at`. No data restore needed (nothing was removed). Banner disappears immediately on next status refresh.
 
-## Pass 4 — New admin Continuity Action Panel + closure UX
+## 6. Edge Functions
 
-Goal: replace the execution panel UX with the 7-action panel.
+- **`cancel-subscription`** (extend) — accept `reason`/`comments`, write `subscription_cancellations`, then invoke `send-cancellation-emails`.
+- **`request-account-closure`** (new) — JWT-validated owner-only; write `account_closure_requests`; ensure Stripe cancel-at-period-end; bump `account_status='deletion_requested'`; invoke `send-closure-emails`.
+- **`reverse-account-closure`** (new) — owner-only; flips status to `reversed`, restores prior account_status.
+- **`send-cancellation-emails`** (new, replaces `send-cancellation-notice`):
+  - Recipients: owner + active non-owner `account_memberships`. Dedupe.
+  - Per-recipient idempotency via unique index on `subscription_email_events`.
+  - Owner subject: "Your Asset Safe subscription cancellation is confirmed" — `View Account` CTA → `https://www.getassetsafe.com/account`. Body uses retention-friendly language.
+  - AU subject: "Asset Safe access update" — `Open Asset Safe` CTA → `https://www.getassetsafe.com/dashboard`. **No billing, no amounts, no Stripe IDs.** Calm, non-alarming.
+  - Reuse Resend `noreply@assetsafe.net` + existing brand header/footer.
+  - Log to `subscription_email_events` and `user_activity_log`.
+  - Failures logged, never block cancellation.
+- **`send-closure-emails`** (new) — owner closure confirmation + AU "closure requested" notice (no billing details).
+- **`get-account-impact`** (new) — JWT-validated; returns counts only.
+- **`stripe-webhook`** — on `customer.subscription.updated` with `cancel_at_period_end=true`, invoke `send-cancellation-emails` (idempotency-guarded). On `customer.subscription.deleted` (period end reached), set `account_status='expired_read_only'`.
+- **`delete-account`** — unchanged executor; called by scheduled job after `deletion_scheduled_date`.
 
-**New components under `src/components/admin/legacy-continuity/action-panel/`:**
-- `ContinuityActionPanel.tsx` — replaces the rendered `ContinuityExecutionPanel`. Same gating (only on approved/ready statuses). Renders the 7 action forms as Cards.
-- `GrantTemporaryStewardshipForm.tsx` (wraps existing TemporaryStewardshipForm with relabeled copy + permission toggles per spec).
-- `AuthorizeExportForm.tsx` (export scope checkboxes, expiration, download limit, sensitive-area confirmation).
-- `ActivateMemorializationForm.tsx` (steward access level, export, billing handling).
-- `ActivatePreservationForm.tsx` (restrictions checkboxes).
-- `ApproveClosureForm.tsx` (waiting-period selector default 30d, owner-notice toggle, snapshot toggle, confirmation modal with required wording).
-- `FreezeAccountForm.tsx` (4 freeze types — reuses existing `apply_account_freeze` RPC).
-- `DenyRequestForm.tsx` (denial reason enum + internal note + optional steward message).
+## 7. Admin Workspace
 
-**Pre-action checklist** (`PreActionChecklist.tsx`) — single shared component used by every action form; renders the 13 checklist items from your spec; disables Execute button until required items pass; auto-derives several items (dispute window, freeze status, etc.) from server state.
+`AdminUsers.tsx` updates:
 
-**Continuity Action Preview** (`ContinuityActionPreview.tsx`) — generic preview dialog, replaces `TransferPreviewDialog`. Includes the required confirmation paragraph: *"This action does not determine legal ownership or inheritance rights…"*
+- **User Directory** — add `Account Status` column + filter chip group: Active / Cancelled (Billing Active) / Expired (Read Only) / Deletion Requested / Scheduled for Deletion / Deleted.
+- **New tab: Subscription Cancellations** — table from `subscription_cancellations` joined to profiles: name, email, plan, cancelled_at, period_end, reason, comments, AU count. Filters: date range, reason, plan.
+- **New tab: Closure Requests** — table from `account_closure_requests`: name, email, request_date, scheduled_deletion_date, status, reason, comments, asset count, AU count. Status chip filter. Row action `Reverse` (admin override).
 
-**Closure waiting-period banner** in `CaseReviewDialog` header when status = `closure_waiting_period`, showing countdown and "Cancel Closure" / "Complete Closure (after waiting period)" buttons.
+`AdminCancellationAnalytics.tsx` (new) on Admin dashboard:
+- Top cancellation reasons (bar)
+- Top deletion reasons (bar)
+- Monthly cancellation rate (line)
+- Monthly deletion rate (line)
 
----
+## 8. Copy & UX Principles
 
-## Email notification updates
+- All cancellation surfaces use the approved retention language: data remains securely stored, read-only after expiration, reactivate/export/delete available anytime.
+- Never imply data deletion, account closure, or loss of ownership unless the user explicitly initiated the Delete Account workflow.
+- Cancel and Delete are visually + functionally distinct entry points.
+- No dark patterns, no hidden cancel option, no repeated "stay" prompts.
 
-`supabase/functions/dispatch-continuity-event/index.ts` gets:
-- Rewritten subject + body templates for every existing event in the new vocabulary.
-- New events: `memorialization_approved`, `memorialization_activated`, `preservation_activated`, `closure_requested`, `closure_waiting_period_started`, `closure_export_reminder`, `closure_completed`, `closure_cancelled`.
-- All owner action links continue to use signed expiring tokens (existing mechanism).
-- `eventForStatus()` in `src/lib/continuityNotifications.ts` extended for new statuses.
+## 9. Test Cases (must pass)
 
----
+- Cancel with no AUs → 1 owner email.
+- Cancel with N active AUs → 1 owner + N AU emails, no billing data in AU emails.
+- Pending/revoked invitees receive nothing.
+- Duplicate webhook → no duplicate emails (unique index).
+- Email failure → cancellation still succeeds.
+- Expired owner login → banner + read-only enforcement; reads work, writes blocked at RLS and UI.
+- Expired AU login → access denied screen.
+- Reactivate → full functionality restored, banner gone, no data restore needed.
+- Closure request → status changes propagate; owner can reverse before scheduled date.
 
-## What I am NOT doing in this pass
+## Technical Details
 
-- Not deleting any existing table, RPC, or audit row.
-- Not changing the storage bucket structure (`continuity-documents` stays).
-- Not building memorialized-account read-only enforcement across the rest of the app (Family Archive, Vault, etc. respect `accounts.status='memorialized'` via existing RLS in a follow-up; this pass adds the flag and admin tooling).
-- Not migrating in-flight ownership-transfer cases (none exist in DB — verified earlier).
+- New migration includes CREATE TABLE → GRANTs → RLS → POLICIES per platform rules. Includes the read-only helper function and updated membership-access function.
+- All new edge functions validate JWT via `auth.getUser` and verify ownership before mutating.
+- `src/integrations/supabase/types.ts` regenerates after migration approval.
+- No changes to unrelated auth, media, or property domains beyond the read-only RLS guards.
 
----
+## Out of Scope
 
-## Confirm before I start
-
-This is ~3 migrations, ~15 new files, ~25 modified files, and 1 edge-function rewrite. **Shall I proceed with all four passes in this single response**, or would you prefer I ship Pass 1 (rebrand + hide) first so you can review tone/copy before I commit to the schema and new admin panel?
+- Scheduled cron job to execute hard-delete on `deletion_scheduled_date` — existing `delete-account` remains the executor; cron worker can be added later.
+- Resend bounce/complaint webhook tracking.
