@@ -20,6 +20,8 @@ import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import AccountDeletedDialog from '@/components/AccountDeletedDialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import PaymentHistory from '@/components/PaymentHistory';
+import CancelSubscriptionDialog from '@/components/billing/CancelSubscriptionDialog';
+import DeleteAccountDialog from '@/components/account/DeleteAccountDialog';
 
 const planConfig = {
   title: "Asset Safe Plan",
