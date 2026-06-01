@@ -451,6 +451,7 @@ const AdminUsers = () => {
         <TabsList>
           <TabsTrigger value="all-users">All Users</TabsTrigger>
           <TabsTrigger value="contributors">Authorized Users</TabsTrigger>
+          <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
           <TabsTrigger value="gifts">Gift Subscriptions</TabsTrigger>
           <TabsTrigger value="payments">Payment Events</TabsTrigger>
         </TabsList>
