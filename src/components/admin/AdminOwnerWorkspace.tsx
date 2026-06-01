@@ -51,6 +51,10 @@ const AdminOwnerWorkspace: React.FC = () => {
           <CreditCard className="w-4 h-4" />
           Billing
         </TabsTrigger>
+        <TabsTrigger value="cancellations" className="flex items-center gap-2">
+          <CreditCard className="w-4 h-4" />
+          Cancellations
+        </TabsTrigger>
         <TabsTrigger value="crm" className="flex items-center gap-2">
           <Users className="w-4 h-4" />
           CRM
