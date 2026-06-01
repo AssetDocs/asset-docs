@@ -238,6 +238,10 @@ const AdminOwnerWorkspace: React.FC = () => {
         <StripeReconciliation />
       </TabsContent>
 
+      <TabsContent value="cancellations">
+        <AdminCancellations />
+      </TabsContent>
+
       <TabsContent value="crm">
         <EnhancedCRM />
       </TabsContent>
