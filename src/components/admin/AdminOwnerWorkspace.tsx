@@ -13,6 +13,7 @@ import DevTeamManagement from './DevTeamManagement';
 import MarketSizing from './MarketSizing';
 import AdminDocuments from './AdminDocuments';
 import LegacyContinuityWorkspace from './legacy-continuity/LegacyContinuityWorkspace';
+import AdminCancellations from './AdminCancellations';
 import {
   Users,
   CreditCard,
