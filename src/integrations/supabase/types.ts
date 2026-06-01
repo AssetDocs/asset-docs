@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_closure_requests: {
+        Row: {
+          account_id: string | null
+          comments: string | null
+          completed_at: string | null
+          created_at: string
+          current_period_end: string | null
+          deletion_scheduled_date: string | null
+          id: string
+          owner_user_id: string
+          reason: string | null
+          request_date: string
+          reversed_at: string | null
+          status: string
+          subscription_status: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_id?: string | null
+          comments?: string | null
+          completed_at?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          deletion_scheduled_date?: string | null
+          id?: string
+          owner_user_id: string
+          reason?: string | null
+          request_date?: string
+          reversed_at?: string | null
+          status?: string
+          subscription_status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string | null
+          comments?: string | null
+          completed_at?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          deletion_scheduled_date?: string | null
+          id?: string
+          owner_user_id?: string
+          reason?: string | null
+          request_date?: string
+          reversed_at?: string | null
+          status?: string
+          subscription_status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       account_continuity_requests: {
         Row: {
           account_id: string
@@ -4572,8 +4623,10 @@ export type Database = {
       profiles: {
         Row: {
           account_number: string | null
+          account_status: string
           avatar_url: string | null
           bio: string | null
+          cancellation_notice_sent_at: string | null
           created_at: string
           current_period_end: string | null
           first_name: string | null
@@ -4596,8 +4649,10 @@ export type Database = {
         }
         Insert: {
           account_number?: string | null
+          account_status?: string
           avatar_url?: string | null
           bio?: string | null
+          cancellation_notice_sent_at?: string | null
           created_at?: string
           current_period_end?: string | null
           first_name?: string | null
@@ -4620,8 +4675,10 @@ export type Database = {
         }
         Update: {
           account_number?: string | null
+          account_status?: string
           avatar_url?: string | null
           bio?: string | null
+          cancellation_notice_sent_at?: string | null
           created_at?: string
           current_period_end?: string | null
           first_name?: string | null
@@ -5187,6 +5244,81 @@ export type Database = {
           trial_reminder_sent_at?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      subscription_cancellations: {
+        Row: {
+          account_id: string | null
+          cancelled_at: string
+          comments: string | null
+          created_at: string
+          id: string
+          owner_user_id: string
+          period_end: string | null
+          plan: string | null
+          reason: string | null
+          stripe_subscription_id: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          cancelled_at?: string
+          comments?: string | null
+          created_at?: string
+          id?: string
+          owner_user_id: string
+          period_end?: string | null
+          plan?: string | null
+          reason?: string | null
+          stripe_subscription_id?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          cancelled_at?: string
+          comments?: string | null
+          created_at?: string
+          id?: string
+          owner_user_id?: string
+          period_end?: string | null
+          plan?: string | null
+          reason?: string | null
+          stripe_subscription_id?: string | null
+        }
+        Relationships: []
+      }
+      subscription_email_events: {
+        Row: {
+          account_id: string | null
+          created_at: string
+          event_type: string
+          id: string
+          recipient_email: string
+          resend_message_id: string | null
+          sent_at: string
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          recipient_email: string
+          resend_message_id?: string | null
+          sent_at?: string
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          recipient_email?: string
+          resend_message_id?: string | null
+          sent_at?: string
+          status?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -6257,6 +6389,7 @@ export type Database = {
         Args: { _account_id: string; _user_id: string }
         Returns: boolean
       }
+      is_account_read_only: { Args: { _user_id: string }; Returns: boolean }
       is_active_legacy_admin: {
         Args: { _account_id: string; _user_id: string }
         Returns: boolean
