@@ -510,8 +510,12 @@ const AdminUsers = () => {
                         </TableCell>
                         <TableCell>
                           {user.isContributor ? (
-                            <Badge variant="outline" className="capitalize">
-                              {user.contributorRole}
+                            <Badge variant="outline">
+                              {user.contributorRole === 'full_access'
+                                ? 'Authorized User · Full Access'
+                                : user.contributorRole === 'read_only'
+                                ? 'Authorized User · Read Only'
+                                : `Authorized User${user.contributorRole ? ` · ${user.contributorRole}` : ''}`}
                             </Badge>
                           ) : (
                             <Badge className="bg-primary">Owner</Badge>
@@ -533,7 +537,12 @@ const AdminUsers = () => {
                           )}
                         </TableCell>
                         <TableCell>
-                          {(() => {
+                          {user.isContributor && !user.subscribed ? (
+                            <div>
+                              <p className="font-medium">Authorized User (AU)</p>
+                              <p className="text-xs text-muted-foreground">No charge</p>
+                            </div>
+                          ) : (() => {
                             const planInfo = getPlanInfo(user.plan_id, user.subscription_tier, user.entitlement_source, null);
                             return (
                               <div>
