@@ -97,6 +97,8 @@ const ManageTab: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('month');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showNewDeleteDialog, setShowNewDeleteDialog] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showAccountDeletedDialog, setShowAccountDeletedDialog] = useState(false);
   const [showDeletionRequestDialog, setShowDeletionRequestDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
