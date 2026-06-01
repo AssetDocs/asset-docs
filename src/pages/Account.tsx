@@ -19,6 +19,7 @@ import SecureVault from '@/components/SecureVault';
 import FeedbackSection from '@/components/FeedbackSection';
 import AdminContributorPlanInfo from '@/components/AdminContributorPlanInfo';
 import WelcomeBanner from '@/components/WelcomeBanner';
+import ExpiredSubscriptionBanner from '@/components/ExpiredSubscriptionBanner';
 import SecurityProgress from '@/components/SecurityProgress';
 import MFADropdown from '@/components/MFADropdown';
 import DashboardGrid from '@/components/DashboardGrid';
