@@ -118,6 +118,8 @@ const AccountSettings: React.FC = () => {
         <div className="max-w-4xl mx-auto">
           <DashboardBreadcrumb hidePageName />
 
+          <ScheduledDeletionBanner />
+
           <ViewerRestrictionBanner />
 
           {/* Storage Dashboard at top */}
