@@ -468,9 +468,12 @@ async function handlePaymentSucceeded(
             updated_at: new Date().toISOString()
           }).eq('user_id', user.id);
         }
+
+        await applyAccountStatusFromStripe(supabase, user.id, 'active');
       }
     }
   }
+
 
   await supabase.from('subscribers').update({
     payment_failure_reminder_sent: false,
