@@ -201,6 +201,64 @@ serve(async (req) => {
 // HANDLER FUNCTIONS
 // ============================================================================
 
+const GRACE_PERIOD_DAYS = 7;
+const PROTECTED_ACCOUNT_STATUSES = ['deletion_requested', 'scheduled_for_deletion', 'deleted'];
+
+/**
+ * Drive profiles.account_status from Stripe subscription status.
+ * Never overrides user-initiated deletion states.
+ */
+async function applyAccountStatusFromStripe(
+  supabase: any,
+  userId: string,
+  stripeStatus: string,
+) {
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('account_status, payment_failed_at, grace_period_ends_at')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (!profile) {
+    logStep('applyAccountStatus: no profile', { userId });
+    return;
+  }
+  if (PROTECTED_ACCOUNT_STATUSES.includes(profile.account_status)) {
+    logStep('applyAccountStatus: skipping protected status', { userId, status: profile.account_status });
+    return;
+  }
+
+  const now = new Date();
+  const update: Record<string, any> = { updated_at: now.toISOString() };
+
+  if (stripeStatus === 'active' || stripeStatus === 'trialing') {
+    update.account_status = 'active';
+    update.payment_failed_at = null;
+    update.grace_period_ends_at = null;
+  } else if (stripeStatus === 'past_due') {
+    const failedAt = profile.payment_failed_at ? new Date(profile.payment_failed_at) : now;
+    const graceEnd = profile.grace_period_ends_at
+      ? new Date(profile.grace_period_ends_at)
+      : new Date(failedAt.getTime() + GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000);
+    if (!profile.payment_failed_at) update.payment_failed_at = failedAt.toISOString();
+    if (!profile.grace_period_ends_at) update.grace_period_ends_at = graceEnd.toISOString();
+    update.account_status = now < graceEnd ? 'active' : 'expired_read_only';
+  } else if (
+    stripeStatus === 'unpaid' ||
+    stripeStatus === 'incomplete_expired' ||
+    stripeStatus === 'canceled'
+  ) {
+    update.account_status = 'expired_read_only';
+  } else {
+    return;
+  }
+
+  const { error } = await supabase.from('profiles').update(update).eq('user_id', userId);
+  if (error) logStep('applyAccountStatus error', error);
+  else logStep('applyAccountStatus', { userId, stripeStatus, applied: update });
+}
+
+
 async function handleSubscriptionChange(
   supabase: any, stripe: Stripe, subscription: Stripe.Subscription, eventType: string, sourceEventId: string
 ) {
