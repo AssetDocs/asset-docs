@@ -84,11 +84,14 @@ const DeleteAccountDialog: React.FC<Props> = ({ open, onClose, onScheduled }) =>
     setSubmitting(true);
     try {
       const { data: sessionData } = await supabase.auth.getSession();
-      const { error } = await supabase.functions.invoke('request-account-closure', {
+      const { data, error } = await supabase.functions.invoke('request-account-closure', {
         body: { reason, comments },
         headers: { Authorization: `Bearer ${sessionData.session?.access_token}` },
       });
       if (error) throw error;
+      const req = (data as any)?.request;
+      if (req?.deletion_scheduled_date) setScheduledDate(req.deletion_scheduled_date);
+      setScheduledReason(req?.current_period_end ? 'billing_period' : 'default_30_days');
       onScheduled?.();
       setStep(5);
     } catch (e: any) {
@@ -96,6 +99,9 @@ const DeleteAccountDialog: React.FC<Props> = ({ open, onClose, onScheduled }) =>
     }
     setSubmitting(false);
   };
+
+  const formatDate = (iso: string) =>
+    new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
