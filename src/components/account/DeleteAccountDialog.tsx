@@ -43,6 +43,8 @@ const DeleteAccountDialog: React.FC<Props> = ({ open, onClose, onScheduled }) =>
   const [comments, setComments] = useState('');
   const [typed, setTyped] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [scheduledDate, setScheduledDate] = useState<string | null>(null);
+  const [scheduledReason, setScheduledReason] = useState<'billing_period' | 'default_30_days' | null>(null);
 
   const reset = () => {
     setStep(1); setPassword(''); setReason(''); setComments(''); setTyped(''); setReauthError('');
@@ -82,11 +84,14 @@ const DeleteAccountDialog: React.FC<Props> = ({ open, onClose, onScheduled }) =>
     setSubmitting(true);
     try {
       const { data: sessionData } = await supabase.auth.getSession();
-      const { error } = await supabase.functions.invoke('request-account-closure', {
+      const { data, error } = await supabase.functions.invoke('request-account-closure', {
         body: { reason, comments },
         headers: { Authorization: `Bearer ${sessionData.session?.access_token}` },
       });
       if (error) throw error;
+      const req = (data as any)?.request;
+      if (req?.deletion_scheduled_date) setScheduledDate(req.deletion_scheduled_date);
+      setScheduledReason(req?.current_period_end ? 'billing_period' : 'default_30_days');
       onScheduled?.();
       setStep(5);
     } catch (e: any) {
@@ -94,6 +99,9 @@ const DeleteAccountDialog: React.FC<Props> = ({ open, onClose, onScheduled }) =>
     }
     setSubmitting(false);
   };
+
+  const formatDate = (iso: string) =>
+    new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
@@ -222,10 +230,28 @@ const DeleteAccountDialog: React.FC<Props> = ({ open, onClose, onScheduled }) =>
             <DialogHeader>
               <DialogTitle>Deletion Scheduled</DialogTitle>
               <DialogDescription>
-                We've scheduled your account for permanent deletion. Until that date, you retain
-                read-only access and can reverse this request from Account Settings at any time.
+                {scheduledDate ? (
+                  <>
+                    Your account is scheduled for permanent deletion on{' '}
+                    <strong>{formatDate(scheduledDate)}</strong>.
+                  </>
+                ) : (
+                  <>We've scheduled your account for permanent deletion.</>
+                )}
               </DialogDescription>
             </DialogHeader>
+            <div className="text-sm text-muted-foreground space-y-2 py-2">
+              {scheduledReason === 'billing_period' && (
+                <p>This date matches the end of your current billing period.</p>
+              )}
+              {scheduledReason === 'default_30_days' && (
+                <p>This is 30 days from today.</p>
+              )}
+              <p>
+                Until that date, you retain read-only access and can reverse this request from
+                Account Settings at any time.
+              </p>
+            </div>
             <DialogFooter>
               <Button onClick={handleClose}>Close</Button>
             </DialogFooter>
@@ -235,5 +261,7 @@ const DeleteAccountDialog: React.FC<Props> = ({ open, onClose, onScheduled }) =>
     </Dialog>
   );
 };
+
+export default DeleteAccountDialog;
 
 export default DeleteAccountDialog;
