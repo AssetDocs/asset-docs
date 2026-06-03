@@ -417,11 +417,11 @@ const ManageTab: React.FC = () => {
   return (
     <div className="space-y-6">
 
-      {/* 1 — Manage Your Subscription */}
+      {/* 1 — Manage Payment Methods & Invoices */}
       <Card>
         <CardHeader>
-          <CardTitle>Manage Your Subscription</CardTitle>
-          <CardDescription>View your current plan and manage billing through Stripe</CardDescription>
+          <CardTitle>Manage Payment Methods & Invoices</CardTitle>
+          <CardDescription>View and update payment methods, billing details, and invoice history through Stripe</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-500 rounded-lg p-6 shadow-sm">
@@ -479,9 +479,9 @@ const ManageTab: React.FC = () => {
 
             <Button onClick={handleManageBilling} disabled={isLoading} variant="outline" className="mt-4">
               <ExternalLink className="h-4 w-4 mr-2" />
-              {isLoading ? 'Opening...' : 'Manage Your Subscription'}
+              {isLoading ? 'Opening...' : 'Manage Payment Methods & Invoices'}
             </Button>
-            <p className="text-xs text-muted-foreground mt-2">Plan changes, cancellations, billing and payment updates, and payment history all through Stripe.</p>
+            <p className="text-xs text-muted-foreground mt-2">Payment methods, billing address updates, and invoice history. Plan changes and cancellations are handled in Account Settings.</p>
           </div>
         </CardContent>
       </Card>
