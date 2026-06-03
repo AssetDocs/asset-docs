@@ -43,6 +43,8 @@ const DeleteAccountDialog: React.FC<Props> = ({ open, onClose, onScheduled }) =>
   const [comments, setComments] = useState('');
   const [typed, setTyped] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [scheduledDate, setScheduledDate] = useState<string | null>(null);
+  const [scheduledReason, setScheduledReason] = useState<'billing_period' | 'default_30_days' | null>(null);
 
   const reset = () => {
     setStep(1); setPassword(''); setReason(''); setComments(''); setTyped(''); setReauthError('');
