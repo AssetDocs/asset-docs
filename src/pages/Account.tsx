@@ -20,6 +20,7 @@ import FeedbackSection from '@/components/FeedbackSection';
 import AdminContributorPlanInfo from '@/components/AdminContributorPlanInfo';
 import WelcomeBanner from '@/components/WelcomeBanner';
 import ExpiredSubscriptionBanner from '@/components/ExpiredSubscriptionBanner';
+import GracePeriodBanner from '@/components/GracePeriodBanner';
 import SecurityProgress from '@/components/SecurityProgress';
 import MFADropdown from '@/components/MFADropdown';
 import DashboardGrid from '@/components/DashboardGrid';
@@ -163,6 +164,7 @@ const Account: React.FC = () => {
         <div className="max-w-6xl mx-auto">
           {/* Viewer Restriction Banner */}
           <ViewerRestrictionBanner />
+          <GracePeriodBanner />
           <ExpiredSubscriptionBanner
             onReactivate={() => setActiveTab('manage')}
             onExport={() => setActiveTab('export')}

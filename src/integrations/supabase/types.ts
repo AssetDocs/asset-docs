@@ -4630,12 +4630,14 @@ export type Database = {
           created_at: string
           current_period_end: string | null
           first_name: string | null
+          grace_period_ends_at: string | null
           household_income: string | null
           id: string
           last_name: string | null
           last_used_account_id: string | null
           onboarding_complete: boolean
           password_set: boolean
+          payment_failed_at: string | null
           phone: string | null
           phone_verified: boolean | null
           phone_verified_at: string | null
@@ -4656,12 +4658,14 @@ export type Database = {
           created_at?: string
           current_period_end?: string | null
           first_name?: string | null
+          grace_period_ends_at?: string | null
           household_income?: string | null
           id?: string
           last_name?: string | null
           last_used_account_id?: string | null
           onboarding_complete?: boolean
           password_set?: boolean
+          payment_failed_at?: string | null
           phone?: string | null
           phone_verified?: boolean | null
           phone_verified_at?: string | null
@@ -4682,12 +4686,14 @@ export type Database = {
           created_at?: string
           current_period_end?: string | null
           first_name?: string | null
+          grace_period_ends_at?: string | null
           household_income?: string | null
           id?: string
           last_name?: string | null
           last_used_account_id?: string | null
           onboarding_complete?: boolean
           password_set?: boolean
+          payment_failed_at?: string | null
           phone?: string | null
           phone_verified?: boolean | null
           phone_verified_at?: string | null
@@ -6185,6 +6191,7 @@ export type Database = {
         }
         Returns: string
       }
+      expire_grace_periods: { Args: never; Returns: number }
       get_activation_funnel: {
         Args: never
         Returns: {

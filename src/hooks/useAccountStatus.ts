@@ -20,20 +20,26 @@ const READ_ONLY_STATUSES: AccountStatus[] = [
 export function useAccountStatus() {
   const { user } = useAuth();
   const [accountStatus, setAccountStatus] = useState<AccountStatus>('active');
+  const [paymentFailedAt, setPaymentFailedAt] = useState<string | null>(null);
+  const [gracePeriodEndsAt, setGracePeriodEndsAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const refresh = async () => {
     if (!user?.id) {
       setAccountStatus('active');
+      setPaymentFailedAt(null);
+      setGracePeriodEndsAt(null);
       setLoading(false);
       return;
     }
     const { data } = await supabase
       .from('profiles')
-      .select('account_status')
+      .select('account_status, payment_failed_at, grace_period_ends_at')
       .eq('user_id', user.id)
       .maybeSingle();
     setAccountStatus((data?.account_status as AccountStatus) || 'active');
+    setPaymentFailedAt(data?.payment_failed_at || null);
+    setGracePeriodEndsAt(data?.grace_period_ends_at || null);
     setLoading(false);
   };
 
@@ -41,8 +47,16 @@ export function useAccountStatus() {
     refresh();
   }, [user?.id]);
 
+  const isInGracePeriod =
+    accountStatus === 'active' &&
+    !!gracePeriodEndsAt &&
+    new Date(gracePeriodEndsAt).getTime() > Date.now();
+
   return {
     accountStatus,
+    paymentFailedAt,
+    gracePeriodEndsAt,
+    isInGracePeriod,
     isReadOnly: READ_ONLY_STATUSES.includes(accountStatus),
     isDeletionRequested:
       accountStatus === 'deletion_requested' ||
