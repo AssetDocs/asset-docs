@@ -500,9 +500,13 @@ async function handlePaymentFailed(
           source_event_id: sourceEventId,
           updated_at: new Date().toISOString()
         }).eq('user_id', user.id);
+
+        // Start (or update) the 7-day grace period — does NOT flip to read-only yet.
+        await applyAccountStatusFromStripe(supabase, user.id, 'past_due');
       }
     }
   }
+
 
   await supabase.from('profiles').update({
     plan_status: 'past_due',
