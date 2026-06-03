@@ -345,7 +345,9 @@ async function handleSubscriptionChange(
     logStep('Error upserting entitlement', entitlementError);
   } else {
     logStep('Entitlement upserted successfully', { plan: parsed.plan, status: finalStatus });
+    await applyAccountStatusFromStripe(supabase, user.id, stripeStatus);
   }
+
 
   // BACKWARDS COMPAT: Update profiles table
   const totalStorageGb = parsed.baseStorageGb + (parsed.storageAddonBlocksQty * 25);
