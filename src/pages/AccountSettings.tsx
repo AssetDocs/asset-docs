@@ -11,6 +11,7 @@ import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import StorageDashboard from '@/components/StorageDashboard';
 import AdminContributorPlanInfo from '@/components/AdminContributorPlanInfo';
 import { ViewerRestrictionBanner } from '@/components/ViewerRestriction';
+import ScheduledDeletionBanner from '@/components/account/ScheduledDeletionBanner';
 import { useAccount } from '@/contexts/AccountContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
