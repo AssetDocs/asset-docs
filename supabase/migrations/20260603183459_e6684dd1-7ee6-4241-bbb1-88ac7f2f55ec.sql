@@ -1,0 +1,2 @@
+COMMENT ON FUNCTION public.expire_grace_periods() IS
+  'Flips profiles.account_status from active to expired_read_only when grace_period_ends_at has passed. Idempotent. Invoked hourly by pg_cron job "expire-subscription-grace-periods-hourly" (SELECT public.expire_grace_periods()). Do not call from edge functions — schedule via pg_cron only.';
