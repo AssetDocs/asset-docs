@@ -1,6 +1,10 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.51.0";
+import {
+  sendOwnerScheduledEmail,
+  sendContributorScheduledEmail,
+} from "../_shared/closure-emails.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -87,6 +91,55 @@ serve(async (req) => {
       .eq('user_id', user.id);
 
     log("Closure scheduled", { id: created.id, scheduled: scheduled.toISOString() });
+
+    // Fire notification emails (non-blocking, never fails the request)
+    try {
+      const { data: ownerProfile } = await supabase
+        .from('profiles')
+        .select('first_name, last_name')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      const ownerName = [ownerProfile?.first_name, ownerProfile?.last_name]
+        .filter(Boolean).join(' ').trim() || (user.email ?? 'Account Owner');
+      const ownerEmail = user.email ?? '';
+
+      const tasks: Promise<any>[] = [];
+      if (ownerEmail) {
+        tasks.push(
+          sendOwnerScheduledEmail({
+            to: ownerEmail,
+            ownerName,
+            scheduledDateIso: scheduled.toISOString(),
+            matchesBillingPeriod: !!periodEndIso,
+          }).catch((e) => log("owner email error", { message: e?.message }))
+        );
+      }
+
+      const { data: contribs } = await supabase
+        .from('contributors')
+        .select('contributor_email, first_name, last_name, status')
+        .eq('account_owner_id', user.id)
+        .eq('status', 'accepted');
+
+      for (const c of contribs ?? []) {
+        if (!c.contributor_email) continue;
+        const cName = [c.first_name, c.last_name].filter(Boolean).join(' ').trim() || null;
+        tasks.push(
+          sendContributorScheduledEmail({
+            to: c.contributor_email,
+            contributorName: cName,
+            ownerName,
+            ownerEmail,
+            scheduledDateIso: scheduled.toISOString(),
+          }).catch((e) => log("contributor email error", { email: c.contributor_email, message: e?.message }))
+        );
+      }
+
+      await Promise.allSettled(tasks);
+      log("Notification emails dispatched", { count: tasks.length });
+    } catch (e: any) {
+      log("email block error (non-fatal)", { message: e?.message });
+    }
 
     return new Response(JSON.stringify({ success: true, request: created }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
