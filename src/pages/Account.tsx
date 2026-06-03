@@ -164,6 +164,7 @@ const Account: React.FC = () => {
         <div className="max-w-6xl mx-auto">
           {/* Viewer Restriction Banner */}
           <ViewerRestrictionBanner />
+          <GracePeriodBanner />
           <ExpiredSubscriptionBanner
             onReactivate={() => setActiveTab('manage')}
             onExport={() => setActiveTab('export')}
