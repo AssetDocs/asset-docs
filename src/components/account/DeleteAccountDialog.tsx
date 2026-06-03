@@ -230,15 +230,39 @@ const DeleteAccountDialog: React.FC<Props> = ({ open, onClose, onScheduled }) =>
             <DialogHeader>
               <DialogTitle>Deletion Scheduled</DialogTitle>
               <DialogDescription>
-                We've scheduled your account for permanent deletion. Until that date, you retain
-                read-only access and can reverse this request from Account Settings at any time.
+                {scheduledDate ? (
+                  <>
+                    Your account is scheduled for permanent deletion on{' '}
+                    <strong>{formatDate(scheduledDate)}</strong>.
+                  </>
+                ) : (
+                  <>We've scheduled your account for permanent deletion.</>
+                )}
               </DialogDescription>
             </DialogHeader>
+            <div className="text-sm text-muted-foreground space-y-2 py-2">
+              {scheduledReason === 'billing_period' && (
+                <p>This date matches the end of your current billing period.</p>
+              )}
+              {scheduledReason === 'default_30_days' && (
+                <p>This is 30 days from today.</p>
+              )}
+              <p>
+                Until that date, you retain read-only access and can reverse this request from
+                Account Settings at any time.
+              </p>
+            </div>
             <DialogFooter>
               <Button onClick={handleClose}>Close</Button>
             </DialogFooter>
           </>
         )}
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default DeleteAccountDialog;
       </DialogContent>
     </Dialog>
   );
