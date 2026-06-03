@@ -263,9 +263,5 @@ const DeleteAccountDialog: React.FC<Props> = ({ open, onClose, onScheduled }) =>
 };
 
 export default DeleteAccountDialog;
-      </DialogContent>
-    </Dialog>
-  );
-};
 
 export default DeleteAccountDialog;
