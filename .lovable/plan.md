@@ -1,134 +1,97 @@
-# Account Closure, Subscription Cancellation & Post-Expiration Access
 
-Split today's combined flow into two distinct workflows (Cancel Subscription, Delete Account), preserve all data after cancellation, convert expired accounts to read-only, and add admin tracking + confirmation emails.
+# Stripe-driven grace period + read-only transitions
 
----
+Make Stripe webhook events the single source of truth for `profiles.account_status`. Add a 7-day grace period before flipping to `expired_read_only`, and recover cleanly on payment success. No data deletion.
 
-## 1. Database (single migration)
+## 1. Migration (one)
 
-**New tables**
+Add to `public.profiles`:
+- `payment_failed_at timestamptz null`
+- `grace_period_ends_at timestamptz null`
 
-- `subscription_cancellations` — `account_id`, `owner_user_id`, `cancelled_at`, `period_end`, `reason`, `comments`, `plan`, `stripe_subscription_id`
-- `account_closure_requests` — `account_id`, `owner_user_id`, `request_date`, `deletion_scheduled_date`, `reason`, `comments`, `subscription_status`, `current_period_end`, `status` (`pending|scheduled|reversed|completed`), `reversed_at`, `completed_at`
-- `subscription_email_events` — `account_id`, `user_id`, `event_type`, `recipient_email`, `sent_at`, `status`, `resend_message_id`; **unique index on `(account_id, event_type, recipient_email)`** to block duplicate webhook sends
+Add helper (SECURITY DEFINER):
+- `public.expire_grace_periods()` — for each profile where `account_status = 'active'` AND `grace_period_ends_at IS NOT NULL` AND `grace_period_ends_at < now()`, set `account_status = 'expired_read_only'`. Returns count. Used by a scheduled invocation so an account flips even if no further Stripe event fires.
 
-**Profile additions**
+No new tables. No changes to existing RLS shape beyond what `is_account_read_only()` already does (already enforced on write paths per plan.md).
 
-- `profiles.account_status` enum-text: `active | cancelled_billing_active | expired_read_only | deletion_requested | scheduled_for_deletion | deleted`
-- `profiles.cancellation_notice_sent_at timestamptz`
-- Derived in a SECURITY DEFINER function `public.compute_account_status(uuid)` that reads from subscribers/entitlements/closure-requests so all surfaces agree.
+## 2. Stripe webhook changes (`supabase/functions/stripe-webhook/index.ts` only)
 
-**Read-only enforcement helper**
+Treat `customer.subscription.updated` as the source of truth; other events are signals that trigger a status recompute.
 
-- `public.is_account_read_only(uuid)` returns true when status is `expired_read_only`.
-- New RLS policy fragments added to write-paths on: `items`, `properties`, `property_files`, `damage_reports`, `insurance_policies`, `legacy_locker*`, `document_folders`, `photo_folders`, `video_folders`, `password_catalog`, `vip_contacts`, `account_memberships` (insert). Each adds: `WITH CHECK (NOT public.is_account_read_only(auth.uid()))` while leaving SELECT untouched so owners can still read everything.
+Add a single helper `applyAccountStatusFromStripe(supabase, userId, stripeStatus, opts)` that writes `profiles` deterministically:
 
-**Authorized-user access cutoff**
+| Stripe status | profiles.account_status | payment_failed_at | grace_period_ends_at |
+|---|---|---|---|
+| `active`, `trialing` | `active` (only if currently `active`, `cancelled_billing_active`, or `expired_read_only` from billing — never override `deletion_requested`/`scheduled_for_deletion`/`deleted`) | `null` | `null` |
+| `past_due` | keep `active` while `now() < grace_period_ends_at`; else `expired_read_only` | set to `now()` if null | set to `payment_failed_at + 7 days` if null |
+| `unpaid`, `incomplete_expired` | `expired_read_only` | preserve | preserve |
+| `canceled` (subscription ended, not user-initiated closure) | `expired_read_only` | preserve | preserve |
 
-- Update `public.has_account_access(account_id)` (or equivalent membership helper) so AUs get `false` when the owner's account status is `expired_read_only`, `deletion_requested`, `scheduled_for_deletion`, or `deleted`. Owner-self SELECT remains allowed.
+Wire it in:
+- **`customer.subscription.updated` / `.created`** → after the existing entitlements upsert, call helper with `subscription.status`.
+- **`customer.subscription.deleted`** → call helper with `'canceled'`.
+- **`invoice.payment_failed`** → call helper with `'past_due'` (starts grace period if not already started). Do **not** flip to read-only here.
+- **`invoice.paid` / `invoice.payment_succeeded`** → call helper with `'active'`, clearing past-due markers and `cancellation_notice_sent_at` only if it was set due to billing failure (leave intact for user-initiated cancel-at-period-end).
 
-All new tables ship with GRANTs (`authenticated`, `service_role`) and RLS:
-- Owner can SELECT own rows.
-- Admins SELECT all via `has_role(auth.uid(),'admin')`.
-- Writes restricted to `service_role`.
+Guards:
+- Skip if entitlement's `stripe_subscription_id` doesn't match (existing stale-event guard already covers this — extend to also short-circuit the status write).
+- Dedup via existing `stripe_events` table (already implemented).
+- Never write `account_status` for accounts in `deletion_requested`, `scheduled_for_deletion`, or `deleted` — explicit allow-list check before writing.
 
----
+## 3. Scheduled grace-period expiration
 
-## 2. Frontend — Cancel Subscription wizard
+New edge function `expire-subscription-grace-periods` (mirrors existing `check-grace-period-expiry` pattern, guarded by `x-internal-secret`):
+- Calls `public.expire_grace_periods()` RPC.
+- Idempotent. Safe to run hourly.
 
-`src/components/billing/CancelSubscriptionDialog.tsx` (new) replacing the single button:
+User adds a Supabase scheduled trigger (hourly) — note in deliverable; no code-side scheduling.
 
-1. **Info screen** — bulleted reassurance using the approved retention copy ("records remain securely stored and available in read-only mode… reactivate, export, or request permanent deletion at any time"). Buttons: `Keep Subscription` / `Continue`.
-2. **Optional exit survey** — reason radio list + comments textarea. Fully skippable.
-3. **Final confirm** — shows calculated billing end date, "No data will be deleted." Buttons: `Go Back` / `Confirm Cancellation`.
-4. On confirm → `cancel-subscription` with `{ action:'cancel', reason, comments }`. Toast: "Your subscription cancellation has been confirmed. We've sent a confirmation email to you and notified any active authorized users."
+## 4. Frontend — owner-only grace warning
 
-`Keep Subscription` and `Cancel Subscription` are equally prominent — no dark patterns, no retention loops.
+New `src/components/GracePeriodBanner.tsx`:
+- Reads new fields via extended `useAccountStatus()` (returns `paymentFailedAt`, `gracePeriodEndsAt`, `isInGracePeriod`).
+- Visible only when `accountStatus === 'active'` AND `gracePeriodEndsAt > now()`.
+- Owner-only: hidden for Authorized Users (check `useAccount()` — if not owner of current workspace, do not render).
+- Copy: "We couldn't process your latest payment. Your account remains active until {date}. Update your payment method to avoid read-only access." CTA → existing `customer-portal` function.
+- Render in same locations as `ExpiredSubscriptionBanner` (Account page, dashboard wrapper).
 
-## 3. Frontend — Delete Account wizard
+Extend `src/hooks/useAccountStatus.ts`:
+- Select `payment_failed_at, grace_period_ends_at` alongside `account_status`.
+- Expose `isInGracePeriod`, `gracePeriodEndsAt`.
 
-`src/components/account/DeleteAccountDialog.tsx` (new, replaces current delete confirm):
+`ExpiredSubscriptionBanner` already covers post-expiration; no changes needed beyond confirming the "Reactivate" CTA opens the customer portal.
 
-1. **Info screen** — permanent-deletion warning + **Account Impact Summary** (assets, files, AUs, properties, Legacy Locker present, Password Catalog present) from new `get-account-impact` edge function. Buttons: `Export My Data` / `Continue` / `Cancel`.
-2. **Re-auth** — password input → `supabase.auth.signInWithPassword` re-verification.
-3. **Optional exit survey** — separate reason set (includes Privacy concerns). Stored separately from cancellation.
-4. **Final destructive confirm** — must type `DELETE MY ACCOUNT` exactly; button disabled until match.
-5. On confirm → `request-account-closure` edge function. Creates `account_closure_requests` row (`status='scheduled'`, `deletion_scheduled_date = current_period_end || now()+30d`), flips `account_status` accordingly, ensures Stripe cancel-at-period-end. **Does NOT destroy data.**
-6. **Closure confirmation screen** — schedule + reversal note.
+## 5. Authorized User suppression
 
-Self-service end-to-end — no support contact required.
+`GracePeriodBanner` and any payment-update CTAs check `account.role === 'owner'` (existing AccountContext). AUs see neither billing warning, portal link, Stripe IDs, nor failure reasons. `useCanWrite()` already returns false for AUs when owner workspace is read-only via the existing `has_account_access` membership rules (per plan.md §1) — no change needed there.
 
-## 4. Post-Expiration Read-Only Experience
+## 6. Read-only enforcement (already in place — verify only)
 
-- `SubscriptionContext` exposes `accountStatus` and `isReadOnly` from the new function.
-- New `<ExpiredSubscriptionBanner>` shown persistently on dashboard + key pages when `isReadOnly`. Title "Subscription Expired", approved body copy, three buttons: `Reactivate Subscription`, `Export My Data`, `Delete Account`.
-- All "upload / create / edit / add AU / generate report" CTAs gated through a small `useCanWrite()` hook → buttons disabled with tooltip "Read-only mode. Reactivate to enable." Affected pages/components: Properties, Items, Documents, Photos, Videos, MemorySafe, LegacyLocker, PasswordCatalog, DamageReports, InsuranceForm, ReportGenerator, AuthorizedUsersTab.
-- Owner retains: login, dashboard, View All Assets, Family Archive view, Legacy Locker view, Password Catalog view, Export, Reactivate, Delete Account.
-- AUs hitting `/account` while account is expired/deleting are shown an `AccessRevokedScreen` and signed out of that workspace context.
+`is_account_read_only()` + RLS write guards from the existing migration cover items, properties, files, folders, legacy locker, password catalog, vip contacts, memberships. Export and download paths in `ExportService` / signed-URL flows: add a `useCanWrite()` gate in `ExportAssetsButton` and bulk-download triggers to disable client-side; storage RLS already restricts uploads.
 
-## 5. Reactivation
+No new RLS policies in this plan — relying on the existing read-only helper, just driven by the new webhook transitions.
 
-- Existing reactivate path (`cancel-subscription` with `action:'reactivate'`, plus checkout for fully-expired) → on success, set `account_status='active'`, clear `cancellation_notice_sent_at`. No data restore needed (nothing was removed). Banner disappears immediately on next status refresh.
+## 7. What is explicitly NOT changed
 
-## 6. Edge Functions
+- `subscribers`/`entitlements` columns — webhook keeps writing them as today.
+- User-initiated cancel flow (`request-account-closure`, `cancel-subscription`) — independent path; webhook helper respects `deletion_requested` states.
+- No data deletion, no Stripe ID exposure to AUs, no new secrets.
 
-- **`cancel-subscription`** (extend) — accept `reason`/`comments`, write `subscription_cancellations`, then invoke `send-cancellation-emails`.
-- **`request-account-closure`** (new) — JWT-validated owner-only; write `account_closure_requests`; ensure Stripe cancel-at-period-end; bump `account_status='deletion_requested'`; invoke `send-closure-emails`.
-- **`reverse-account-closure`** (new) — owner-only; flips status to `reversed`, restores prior account_status.
-- **`send-cancellation-emails`** (new, replaces `send-cancellation-notice`):
-  - Recipients: owner + active non-owner `account_memberships`. Dedupe.
-  - Per-recipient idempotency via unique index on `subscription_email_events`.
-  - Owner subject: "Your Asset Safe subscription cancellation is confirmed" — `View Account` CTA → `https://www.getassetsafe.com/account`. Body uses retention-friendly language.
-  - AU subject: "Asset Safe access update" — `Open Asset Safe` CTA → `https://www.getassetsafe.com/dashboard`. **No billing, no amounts, no Stripe IDs.** Calm, non-alarming.
-  - Reuse Resend `noreply@assetsafe.net` + existing brand header/footer.
-  - Log to `subscription_email_events` and `user_activity_log`.
-  - Failures logged, never block cancellation.
-- **`send-closure-emails`** (new) — owner closure confirmation + AU "closure requested" notice (no billing details).
-- **`get-account-impact`** (new) — JWT-validated; returns counts only.
-- **`stripe-webhook`** — on `customer.subscription.updated` with `cancel_at_period_end=true`, invoke `send-cancellation-emails` (idempotency-guarded). On `customer.subscription.deleted` (period end reached), set `account_status='expired_read_only'`.
-- **`delete-account`** — unchanged executor; called by scheduled job after `deletion_scheduled_date`.
+## Technical details
 
-## 7. Admin Workspace
+Files touched:
+- new `supabase/migrations/<ts>_grace_period.sql` (2 columns + 1 function)
+- `supabase/functions/stripe-webhook/index.ts` — add helper + 5 call sites
+- new `supabase/functions/expire-subscription-grace-periods/index.ts`
+- new `src/components/GracePeriodBanner.tsx`
+- `src/hooks/useAccountStatus.ts` — extend return
+- `src/pages/Account.tsx` + dashboard layout — mount `<GracePeriodBanner />`
+- `src/components/ExportAssetsButton.tsx` — `useCanWrite()` gate
 
-`AdminUsers.tsx` updates:
+## Verification
 
-- **User Directory** — add `Account Status` column + filter chip group: Active / Cancelled (Billing Active) / Expired (Read Only) / Deletion Requested / Scheduled for Deletion / Deleted.
-- **New tab: Subscription Cancellations** — table from `subscription_cancellations` joined to profiles: name, email, plan, cancelled_at, period_end, reason, comments, AU count. Filters: date range, reason, plan.
-- **New tab: Closure Requests** — table from `account_closure_requests`: name, email, request_date, scheduled_deletion_date, status, reason, comments, asset count, AU count. Status chip filter. Row action `Reverse` (admin override).
-
-`AdminCancellationAnalytics.tsx` (new) on Admin dashboard:
-- Top cancellation reasons (bar)
-- Top deletion reasons (bar)
-- Monthly cancellation rate (line)
-- Monthly deletion rate (line)
-
-## 8. Copy & UX Principles
-
-- All cancellation surfaces use the approved retention language: data remains securely stored, read-only after expiration, reactivate/export/delete available anytime.
-- Never imply data deletion, account closure, or loss of ownership unless the user explicitly initiated the Delete Account workflow.
-- Cancel and Delete are visually + functionally distinct entry points.
-- No dark patterns, no hidden cancel option, no repeated "stay" prompts.
-
-## 9. Test Cases (must pass)
-
-- Cancel with no AUs → 1 owner email.
-- Cancel with N active AUs → 1 owner + N AU emails, no billing data in AU emails.
-- Pending/revoked invitees receive nothing.
-- Duplicate webhook → no duplicate emails (unique index).
-- Email failure → cancellation still succeeds.
-- Expired owner login → banner + read-only enforcement; reads work, writes blocked at RLS and UI.
-- Expired AU login → access denied screen.
-- Reactivate → full functionality restored, banner gone, no data restore needed.
-- Closure request → status changes propagate; owner can reverse before scheduled date.
-
-## Technical Details
-
-- New migration includes CREATE TABLE → GRANTs → RLS → POLICIES per platform rules. Includes the read-only helper function and updated membership-access function.
-- All new edge functions validate JWT via `auth.getUser` and verify ownership before mutating.
-- `src/integrations/supabase/types.ts` regenerates after migration approval.
-- No changes to unrelated auth, media, or property domains beyond the read-only RLS guards.
-
-## Out of Scope
-
-- Scheduled cron job to execute hard-delete on `deletion_scheduled_date` — existing `delete-account` remains the executor; cron worker can be added later.
-- Resend bounce/complaint webhook tracking.
+- Simulated `invoice.payment_failed` → profile stays `active`, `grace_period_ends_at` set 7d out, owner sees banner, AU does not.
+- Run `expire-subscription-grace-periods` past expiry → flips to `expired_read_only`, `ExpiredSubscriptionBanner` shows, write CTAs disabled, RLS blocks inserts.
+- `invoice.paid` after recovery → clears markers, banner gone, writes work.
+- `customer.subscription.deleted` → immediate `expired_read_only`.
+- Account in `deletion_requested` receiving stray Stripe events → status untouched.
