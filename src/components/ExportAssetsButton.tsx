@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { FileDown, Loader2, Lock } from 'lucide-react';
+import { FileDown, Loader2 } from 'lucide-react';
 import { ExportService } from '@/services/ExportService';
 import { useAuth } from '@/contexts/AuthContext';
-import { useCanWrite } from '@/hooks/useAccountStatus';
 import { toast } from '@/hooks/use-toast';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ExportAssetsButtonProps {
   variant?: 'default' | 'outline' | 'secondary';
