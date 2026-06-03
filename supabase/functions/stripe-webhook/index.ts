@@ -421,7 +421,10 @@ async function handleSubscriptionDeleted(
       source_event_id: sourceEventId,
       updated_at: new Date().toISOString()
     }).eq('user_id', userId);
+
+    await applyAccountStatusFromStripe(supabase, userId, 'canceled');
   }
+
 
   // BACKWARDS COMPAT
   await supabase.from('profiles').update({
