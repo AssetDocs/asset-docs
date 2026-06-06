@@ -3071,88 +3071,133 @@ export type Database = {
       gift_subscriptions: {
         Row: {
           amount: number | null
+          claim_token_hash: string | null
           created_at: string
           currency: string | null
+          delivered_at: string | null
+          delivery_attempted_at: string | null
           delivery_date: string
+          delivery_status: string
           expires_at: string | null
           first_login_at: string | null
           gift_code: string
           gift_message: string | null
           id: string
+          last_delivery_error: string | null
+          paid_at: string | null
+          payment_status: string
           plan_type: string
           purchaser_email: string
+          purchaser_email_sent_at: string | null
           purchaser_name: string
           purchaser_phone: string | null
           purchaser_user_id: string | null
           recipient_email: string
+          recipient_email_sent_at: string | null
           recipient_name: string
           recipient_user_id: string | null
           redeemed: boolean | null
           redeemed_at: string | null
           redeemed_by_user_id: string | null
+          redemption_status: string
           reminder_email_sent: boolean | null
           reminder_email_sent_at: string | null
+          resend_purchaser_email_id: string | null
+          resend_recipient_email_id: string | null
           status: string
           stripe_checkout_session_id: string | null
+          stripe_payment_intent_id: string | null
           stripe_session_id: string | null
+          success_token_expires_at: string | null
+          success_token_hash: string | null
           term: string | null
           updated_at: string
         }
         Insert: {
           amount?: number | null
+          claim_token_hash?: string | null
           created_at?: string
           currency?: string | null
+          delivered_at?: string | null
+          delivery_attempted_at?: string | null
           delivery_date: string
+          delivery_status?: string
           expires_at?: string | null
           first_login_at?: string | null
           gift_code: string
           gift_message?: string | null
           id?: string
+          last_delivery_error?: string | null
+          paid_at?: string | null
+          payment_status?: string
           plan_type: string
           purchaser_email: string
+          purchaser_email_sent_at?: string | null
           purchaser_name: string
           purchaser_phone?: string | null
           purchaser_user_id?: string | null
           recipient_email: string
+          recipient_email_sent_at?: string | null
           recipient_name: string
           recipient_user_id?: string | null
           redeemed?: boolean | null
           redeemed_at?: string | null
           redeemed_by_user_id?: string | null
+          redemption_status?: string
           reminder_email_sent?: boolean | null
           reminder_email_sent_at?: string | null
+          resend_purchaser_email_id?: string | null
+          resend_recipient_email_id?: string | null
           status?: string
           stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
+          success_token_expires_at?: string | null
+          success_token_hash?: string | null
           term?: string | null
           updated_at?: string
         }
         Update: {
           amount?: number | null
+          claim_token_hash?: string | null
           created_at?: string
           currency?: string | null
+          delivered_at?: string | null
+          delivery_attempted_at?: string | null
           delivery_date?: string
+          delivery_status?: string
           expires_at?: string | null
           first_login_at?: string | null
           gift_code?: string
           gift_message?: string | null
           id?: string
+          last_delivery_error?: string | null
+          paid_at?: string | null
+          payment_status?: string
           plan_type?: string
           purchaser_email?: string
+          purchaser_email_sent_at?: string | null
           purchaser_name?: string
           purchaser_phone?: string | null
           purchaser_user_id?: string | null
           recipient_email?: string
+          recipient_email_sent_at?: string | null
           recipient_name?: string
           recipient_user_id?: string | null
           redeemed?: boolean | null
           redeemed_at?: string | null
           redeemed_by_user_id?: string | null
+          redemption_status?: string
           reminder_email_sent?: boolean | null
           reminder_email_sent_at?: string | null
+          resend_purchaser_email_id?: string | null
+          resend_recipient_email_id?: string | null
           status?: string
           stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
+          success_token_expires_at?: string | null
+          success_token_hash?: string | null
           term?: string | null
           updated_at?: string
         }
@@ -6240,6 +6285,10 @@ export type Database = {
           users_with_feature: number
         }[]
       }
+      get_gift_status_by_session_and_token: {
+        Args: { _session_id: string; _token_hash: string }
+        Returns: Json
+      }
       get_leads_by_source: {
         Args: never
         Returns: {
@@ -6410,6 +6459,15 @@ export type Database = {
           _request_id: string
         }
         Returns: undefined
+      }
+      redeem_gift: {
+        Args: {
+          _code: string
+          _token_hash: string
+          _user_email: string
+          _user_id: string
+        }
+        Returns: Json
       }
       remove_account_freeze: {
         Args: { _freeze_id: string; _reason: string }
