@@ -524,143 +524,115 @@ async function handleCheckoutCompleted(
 ) {
   logStep('Handling checkout completion', { sessionId: session.id, mode: session.mode, metadata: session.metadata });
 
-  // ── GIFT FLOW ──────────────────────────────────────────────────────────────
+  // ── GIFT FLOW (v5: webhook is fulfillment authority, single-writer email) ─
   if (session.metadata?.gift === "true" && (session.mode === 'payment' || session.mode === 'subscription')) {
-    logStep('Gift checkout completed, processing unified gift flow', { mode: session.mode });
+    logStep('Gift checkout completed — fulfillment', { sessionId: session.id, mode: session.mode });
     try {
-      // Generate GIFT-XXXXXXXXXX code
-      const randomPart = Array.from(crypto.getRandomValues(new Uint8Array(5)))
-        .map(b => b.toString(16).padStart(2, '0'))
-        .join('')
-        .toUpperCase();
-      const giftCode = `GIFT-${randomPart}`;
-      const giftTerm = session.metadata.gift_term || 'yearly';
-      const now = new Date();
-      const expiresAt = new Date(now);
-      if (giftTerm === 'monthly') {
-        expiresAt.setMonth(expiresAt.getMonth() + 1);
-      } else {
-        expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+      // Look up the pre-created gift row (created by create-gift-checkout)
+      const { data: rows, error: lookupErr } = await supabase
+        .from('gift_subscriptions')
+        .select('*')
+        .eq('stripe_session_id', session.id)
+        .limit(1);
+      if (lookupErr) {
+        logStep('ERROR looking up gift row', lookupErr);
+        throw new Error(`gift lookup failed: ${lookupErr.message}`);
       }
+      if (!rows || rows.length === 0) {
+        logStep('WARN: no gift row for session — create-gift-checkout did not pre-insert. Skipping.', { sessionId: session.id });
+        return;
+      }
+      const gift = rows[0];
 
-      // For subscription mode: immediately cancel auto-renew
+      const giftTerm = session.metadata.gift_term || gift.term || 'yearly';
+      const now = new Date();
+      const expiresAt = gift.expires_at
+        ? new Date(gift.expires_at)
+        : (() => {
+          const e = new Date(now);
+          if (giftTerm === 'monthly') e.setMonth(e.getMonth() + 1);
+          else e.setFullYear(e.getFullYear() + 1);
+          return e;
+        })();
+
+      // Ensure no auto-renew on subscription gifts
       if (session.mode === 'subscription' && session.subscription) {
         try {
-          await stripe.subscriptions.update(session.subscription as string, {
-            cancel_at_period_end: true,
-          });
-          logStep('Subscription set to cancel_at_period_end', { subscriptionId: session.subscription });
+          await stripe.subscriptions.update(session.subscription as string, { cancel_at_period_end: true });
         } catch (subErr) {
-          logStep('ERROR: CRITICAL — could not set cancel_at_period_end on gift subscription. This subscription may auto-renew. Manual review required.', { subscriptionId: session.subscription, error: (subErr as Error).message });
+          logStep('ERROR: could not set cancel_at_period_end', { error: (subErr as Error).message });
         }
       }
 
-      // Insert into gift_subscriptions (unified system)
-      const recipientName = session.metadata.recipient_name || null;
-      const purchaserName = session.metadata.from_name;
-      const { error: giftInsertError } = await supabase.from('gift_subscriptions').insert({
-        gift_code: giftCode,
-        recipient_email: session.metadata.recipient_email,
-        recipient_name: recipientName,
-        purchaser_name: purchaserName,
-        purchaser_email: session.metadata.purchaser_email || session.customer_details?.email || null,
-        gift_message: session.metadata.gift_message || null,
-        plan_type: 'standard',
-        term: giftTerm,
-        delivery_date: new Date().toISOString(),
-        expires_at: expiresAt.toISOString(),
-        stripe_checkout_session_id: session.id,
-        stripe_session_id: session.id,
-        stripe_subscription_id: session.mode === 'subscription' ? session.subscription as string : null,
-        status: 'paid',
-        amount: session.amount_total || 18900,
-        currency: session.currency || 'usd',
-        redeemed: false,
+      // 1. Mark paid (idempotent — only if not already paid)
+      const { error: payUpdErr } = await supabase
+        .from('gift_subscriptions')
+        .update({
+          payment_status: 'paid',
+          status: gift.status === 'pending' ? 'paid' : gift.status,
+          paid_at: gift.paid_at ?? new Date().toISOString(),
+          stripe_payment_intent_id: (session.payment_intent as string) ?? gift.stripe_payment_intent_id,
+          stripe_subscription_id: session.mode === 'subscription'
+            ? (session.subscription as string)
+            : gift.stripe_subscription_id,
+          expires_at: expiresAt.toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', gift.id);
+      if (payUpdErr) {
+        logStep('ERROR marking gift paid', payUpdErr);
+        throw new Error(`gift paid update failed: ${payUpdErr.message}`);
+      }
+
+      // 2. Acquire sending lock with stuck-recovery guard (10 min)
+      const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+      const newClaimToken = (() => {
+        const bytes = crypto.getRandomValues(new Uint8Array(32));
+        return btoa(String.fromCharCode(...bytes)).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
+      })();
+      const newHashBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(newClaimToken));
+      const newHash = Array.from(new Uint8Array(newHashBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+      // Eligible if not_sent/failed, or sending+stale
+      const { data: locked, error: lockErr } = await supabase
+        .from('gift_subscriptions')
+        .update({
+          delivery_status: 'sending',
+          delivery_attempted_at: new Date().toISOString(),
+          claim_token_hash: newHash,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', gift.id)
+        .or(`delivery_status.in.(not_sent,failed),and(delivery_status.eq.sending,delivery_attempted_at.lt.${tenMinAgo})`)
+        .select('id');
+
+      if (lockErr) {
+        logStep('ERROR acquiring sending lock', lockErr);
+        return;
+      }
+      if (!locked || locked.length === 0) {
+        // Already sending recently or already sent — idempotent skip
+        logStep('Gift email already in progress or sent — skipping', { giftId: gift.id });
+        return;
+      }
+
+      // 3. Invoke send-gift-email via internal secret
+      const internalSecret = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      const sendUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-gift-email`;
+      const res = await fetch(sendUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-internal-secret': internalSecret,
+          'Authorization': `Bearer ${internalSecret}`,
+        },
+        body: JSON.stringify({ giftId: gift.id, claimToken: newClaimToken }),
       });
-
-      if (giftInsertError) {
-        // Classify errors: duplicate key (23505) is idempotent — treat as success
-        const pgCode = (giftInsertError as any)?.code;
-        if (pgCode === '23505') {
-          logStep('Warning: gift_subscriptions insert skipped — duplicate record already exists (idempotent)', { sessionId: session.id });
-        } else {
-          // All other errors: log at ERROR level and re-throw so Stripe retries
-          logStep('ERROR: gift_subscriptions insert failed — will NOT fall back to legacy table. Stripe will retry.', { sessionId: session.id, error: giftInsertError.message, code: pgCode });
-          throw new Error(`gift_subscriptions insert failed: ${giftInsertError.message}`);
-        }
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        logStep('ERROR: send-gift-email returned non-2xx', { status: res.status, body: text });
       } else {
-        logStep('Gift record created in gift_subscriptions', { giftCode, expiresAt: expiresAt.toISOString() });
-      }
-
-      // Send recipient email with claim link + code
-      const claimUrl = `https://www.getassetsafe.com/gift-claim?code=${giftCode}`;
-      const resendKey = Deno.env.get('RESEND_API_KEY');
-      const greeting = session.metadata.recipient_name
-        ? `Hi ${session.metadata.recipient_name},`
-        : "Hello,";
-      if (resendKey) {
-        try {
-          await fetch('https://api.resend.com/emails', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${resendKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              from: 'Asset Safe <no-reply@getassetsafe.com>',
-              to: [session.metadata.recipient_email],
-              subject: "You've been gifted full access to Asset Safe 🎁",
-              html: `
-                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #fff;">
-                  <h2 style="color: #1a1a1a;">${greeting} You've received a gift! 🎁</h2>
-                  <p><strong>${session.metadata.from_name}</strong> has gifted you a full year of access to Asset Safe — the secure home documentation platform.</p>
-                  ${session.metadata.gift_message ? `<blockquote style="border-left: 3px solid #f97316; padding-left: 16px; color: #555; margin: 16px 0;">${session.metadata.gift_message}</blockquote>` : ''}
-                  <p>Your access includes everything: unlimited properties, 25GB storage, Legacy Locker, Vault, and more.</p>
-                  <p><strong>Access expires:</strong> ${expiresAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                  <div style="text-align: center; margin: 32px 0;">
-                    <a href="${claimUrl}" style="background: #f97316; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">Claim Your Gift Now</a>
-                  </div>
-                  <p style="color: #555; font-size: 14px;">Or use your gift code manually: <strong>${giftCode}</strong></p>
-                  <p style="color: #888; font-size: 12px;">No auto-renew. After your gift expires, you can choose to subscribe monthly or yearly.</p>
-                </div>
-              `,
-            }),
-          });
-          logStep('Recipient gift email sent with claim link');
-        } catch (emailError) {
-          logStep('Failed to send recipient email', emailError);
-        }
-
-        // Send gifter confirmation email
-        try {
-          const gifterEmail = session.metadata.purchaser_email || session.customer_details?.email;
-          if (gifterEmail) {
-            await fetch('https://api.resend.com/emails', {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${resendKey}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                from: 'Asset Safe <no-reply@getassetsafe.com>',
-                to: [gifterEmail],
-                subject: "Your Asset Safe gift was delivered",
-                html: `
-                  <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-                    <h2 style="color: #1a1a1a;">Your gift is on its way! 🎉</h2>
-                    <p>Your gift to <strong>${session.metadata.recipient_email}</strong> has been processed and the redemption link has been delivered.</p>
-                    ${session.metadata.gift_message ? `<p><strong>Your message:</strong> "${session.metadata.gift_message}"</p>` : ''}
-                    <p><strong>Access period:</strong> 1 year (expires ${expiresAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })})</p>
-                    <p>Thank you for sharing Asset Safe with someone you care about.</p>
-                  </div>
-                `,
-              }),
-            });
-            logStep('Gifter confirmation email sent');
-          }
-        } catch (emailError) {
-          logStep('Failed to send gifter confirmation email', emailError);
-        }
+        logStep('Gift email dispatched', { giftId: gift.id });
       }
     } catch (giftError) {
       logStep('Error in gift flow', { error: (giftError as Error).message });
