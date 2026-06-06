@@ -1,134 +1,180 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, Gift, Mail, Loader2 } from 'lucide-react';
+import { CheckCircle, Gift, Mail, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+
+type GiftStatus = {
+  found?: boolean;
+  payment_status?: 'pending' | 'paid' | 'refunded' | 'canceled';
+  delivery_status?: 'not_sent' | 'sending' | 'sent' | 'failed';
+  created_at?: string;
+  delivered_at?: string | null;
+  recipient_email_masked?: string;
+};
 
 const GiftSuccess: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(true);
-  const [emailSent, setEmailSent] = useState(false);
   const sessionId = searchParams.get('session_id');
+  const successToken = searchParams.get('t');
 
+  const [status, setStatus] = useState<GiftStatus | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [resending, setResending] = useState(false);
+
+  const fetchStatus = useCallback(async () => {
+    if (!sessionId || !successToken) return;
+    try {
+      const { data, error } = await supabase.functions.invoke('get-gift-status', {
+        body: { sessionId, successToken, action: 'status' },
+      });
+      if (error) throw error;
+      setStatus(data as GiftStatus);
+    } catch (e) {
+      console.error('[GiftSuccess] status error', e);
+    }
+  }, [sessionId, successToken]);
+
+  // Poll every 5s up to ~30s while not delivered
   useEffect(() => {
-    const sendGiftEmail = async () => {
-      if (!sessionId) {
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        // Get gift details from database using session ID
-        const { data: giftSub, error: fetchError } = await supabase
-          .from('gift_subscriptions')
-          .select('*')
-          .eq('stripe_session_id', sessionId)
-          .single();
-
-        if (fetchError || !giftSub) {
-          throw new Error('Gift subscription not found');
-        }
-
-        // Send gift email to recipient
-        const { error: emailError } = await supabase.functions.invoke('send-gift-email', {
-          body: {
-            giftCode: giftSub.gift_code,
-            sessionId: sessionId
-          }
-        });
-
-        if (emailError) {
-          throw emailError;
-        }
-
-        setEmailSent(true);
-      } catch (error) {
-        console.error('Error sending gift email:', error);
-        toast({
-          title: "Notice",
-          description: "Your gift purchase was successful, but there was an issue sending the notification email. The recipient can still claim their gift.",
-          variant: "default",
-        });
-      } finally {
-        setIsLoading(false);
-      }
+    let cancelled = false;
+    let attempts = 0;
+    const tick = async () => {
+      if (cancelled) return;
+      attempts += 1;
+      await fetchStatus();
+      setIsLoading(false);
+      const stop =
+        attempts >= 7 ||
+        (status?.delivery_status === 'sent' || status?.delivery_status === 'failed');
+      if (!stop && !cancelled) setTimeout(tick, 5000);
     };
+    tick();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchStatus]);
 
-    sendGiftEmail();
-  }, [sessionId, toast]);
+  const handleResend = async () => {
+    if (!sessionId || !successToken) return;
+    setResending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('get-gift-status', {
+        body: { sessionId, successToken, action: 'resend' },
+      });
+      if (error || !(data as any)?.success) {
+        throw new Error((data as any)?.error || error?.message || 'Resend failed');
+      }
+      toast({ title: 'Resending', description: 'Gift email is on its way.' });
+      setTimeout(fetchStatus, 1500);
+    } catch (e: any) {
+      toast({
+        title: 'Could not resend',
+        description: e?.message || 'Please try again in a few minutes.',
+        variant: 'destructive',
+      });
+    } finally {
+      setResending(false);
+    }
+  };
+
+  const delivered = status?.delivery_status === 'sent';
+  const failed = status?.delivery_status === 'failed';
+  const inProgress = !delivered && !failed;
 
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
-      
       <div className="flex-1 bg-secondary/5 py-16">
         <div className="container mx-auto px-4 max-w-2xl">
           <Card className="text-center">
             <CardHeader>
               <div className="flex justify-center mb-4">
-                {isLoading ? (
-                  <Loader2 className="h-16 w-16 text-brand-orange animate-spin" />
-                ) : (
+                {isLoading || inProgress ? (
+                  <Loader2 className="h-16 w-16 text-primary animate-spin" />
+                ) : delivered ? (
                   <CheckCircle className="h-16 w-16 text-green-500" />
+                ) : (
+                  <AlertCircle className="h-16 w-16 text-amber-500" />
                 )}
               </div>
-              <CardTitle className="text-2xl text-green-700">
-                {isLoading ? 'Processing Your Gift...' : 'Gift Purchase Successful!'}
+              <CardTitle className="text-2xl">
+                {delivered
+                  ? 'Gift Delivered!'
+                  : failed
+                    ? 'Gift Purchase Successful'
+                    : 'Processing Your Gift…'}
               </CardTitle>
               <CardDescription className="text-lg">
-                {isLoading ? 'Sending gift notification to recipient' : 'Your gift subscription has been purchased'}
+                {delivered
+                  ? 'The recipient has been notified by email.'
+                  : failed
+                    ? 'We had trouble sending the email — you can try again below.'
+                    : 'Finalizing payment and sending the gift notification.'}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {!isLoading && (
+              {!sessionId || !successToken ? (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-sm text-amber-800">
+                  Missing session details. If you completed a purchase, please check your email — the
+                  recipient will still receive their gift.
+                </div>
+              ) : (
                 <>
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-                    <Gift className="h-8 w-8 text-green-600 mx-auto mb-3" />
-                    <h3 className="font-semibold text-green-800 mb-2">Gift Successfully Sent!</h3>
-                    <p className="text-green-700 text-sm mb-4">
-                      {emailSent 
-                        ? "The recipient has been notified via email with instructions to claim their gift."
-                        : "Your gift has been processed successfully. The recipient will receive their gift notification shortly."}
-                    </p>
-                    <div className="flex items-center justify-center gap-2 text-green-600">
+                  <div className={`rounded-lg p-6 border ${delivered ? 'bg-green-50 border-green-200' : failed ? 'bg-amber-50 border-amber-200' : 'bg-secondary/10 border-border'}`}>
+                    <Gift className={`h-8 w-8 mx-auto mb-3 ${delivered ? 'text-green-600' : failed ? 'text-amber-600' : 'text-primary'}`} />
+                    {status?.recipient_email_masked && (
+                      <p className="text-sm text-foreground/80">
+                        Recipient: <strong>{status.recipient_email_masked}</strong>
+                      </p>
+                    )}
+                    <div className="mt-3 flex items-center justify-center gap-2 text-sm">
                       <Mail className="h-4 w-4" />
-                      <span className="text-sm">Email notification sent</span>
+                      <span>
+                        {delivered
+                          ? 'Email delivered'
+                          : failed
+                            ? 'Email failed to send'
+                            : 'Email in progress'}
+                      </span>
                     </div>
                   </div>
 
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-gray-800">What happens next?</h4>
-                    <div className="text-left space-y-2 text-sm text-gray-600">
-                      <div className="flex items-start gap-2">
-                        <span className="bg-brand-orange text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">1</span>
-                        <span>The recipient will receive a welcome email with their gift code and redemption instructions</span>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <span className="bg-brand-orange text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">2</span>
-                        <span>They'll create their Asset Safe account using the gift code</span>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <span className="bg-brand-orange text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">3</span>
-                        <span>Their 12-month subscription will be activated immediately</span>
-                      </div>
+                  {failed && (
+                    <Button onClick={handleResend} disabled={resending} size="lg" className="w-full">
+                      {resending ? (
+                        <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Resending…</>
+                      ) : (
+                        <><RefreshCw className="h-4 w-4 mr-2" />Resend gift email</>
+                      )}
+                    </Button>
+                  )}
+
+                  <div className="space-y-3 text-left text-sm text-muted-foreground">
+                    <div className="flex items-start gap-2">
+                      <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">1</span>
+                      <span>The recipient receives a secure redemption link unique to their email address.</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">2</span>
+                      <span>They sign in (or create an account) using the gifted email address.</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">3</span>
+                      <span>Their 12-month subscription activates immediately.</span>
                     </div>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <Link to="/gift" className="flex-1">
-                      <Button variant="outline" size="lg" className="w-full">
-                        Give Another Gift
-                      </Button>
+                      <Button variant="outline" size="lg" className="w-full">Give Another Gift</Button>
                     </Link>
                     <Link to="/" className="flex-1">
-                      <Button size="lg" className="w-full">
-                        Return Home
-                      </Button>
+                      <Button size="lg" className="w-full">Return Home</Button>
                     </Link>
                   </div>
                 </>
@@ -137,7 +183,6 @@ const GiftSuccess: React.FC = () => {
           </Card>
         </div>
       </div>
-      
       <Footer />
     </div>
   );

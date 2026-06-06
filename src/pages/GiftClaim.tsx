@@ -1,127 +1,79 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Gift, CheckCircle, Loader2, Lock } from 'lucide-react';
+import { Gift, CheckCircle, Loader2, Lock, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
-const formSchema = z.object({
-  giftCode: z.string().min(1, 'Gift code is required'),
-});
+const REASON_MESSAGES: Record<string, string> = {
+  invalid_token: 'This gift link is invalid or has been replaced by a newer one. Ask the purchaser to resend it.',
+  wrong_email: 'This gift can only be redeemed by the email address it was sent to. Please sign in with that address.',
+  legacy_link_needs_resend: 'This older gift link is no longer valid. Ask the purchaser (or our support team) to resend a new link.',
+  already_redeemed: 'This gift has already been redeemed.',
+  expired: 'This gift has expired.',
+  not_paid: 'The gift payment is still processing. Please try again in a minute.',
+  invalid_input: 'Missing gift code or token in the link.',
+};
 
 const GiftClaim: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
+
+  const code = searchParams.get('code') || searchParams.get('gift_code') || '';
+  const token = searchParams.get('token') || '';
+
   const [isLoading, setIsLoading] = useState(false);
-  const [claimSuccess, setClaimSuccess] = useState(false);
-  const [giftDetails, setGiftDetails] = useState<any>(null);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Accept both ?code= and ?gift_code= params
-  const codeFromUrl = searchParams.get('code') || searchParams.get('gift_code') || '';
+  const redeemUrl = `/gift-claim?code=${encodeURIComponent(code)}&token=${encodeURIComponent(token)}`;
+  const loginUrl = `/auth?redirect=${encodeURIComponent(redeemUrl)}`;
+  const signupUrl = `/signup?redirect=${encodeURIComponent(redeemUrl)}`;
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      giftCode: codeFromUrl,
-    },
-  });
-
-  // Auto-attempt claim if user is logged in and code is in URL
-  useEffect(() => {
-    if (user && codeFromUrl && !claimSuccess) {
-      form.setValue('giftCode', codeFromUrl);
-      handleClaim(codeFromUrl);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, codeFromUrl]);
-
-  // If not logged in but code is present, pre-fill and wait
-  useEffect(() => {
-    if (!user && codeFromUrl) {
-      form.setValue('giftCode', codeFromUrl);
-    }
-  }, [codeFromUrl, form, user]);
-
-  const handleClaim = async (code: string) => {
+  const handleClaim = async () => {
     if (!user) return;
+    if (!code || !token) {
+      setError(REASON_MESSAGES.invalid_input);
+      return;
+    }
     setIsLoading(true);
+    setError(null);
     try {
-      // Get gift details preview first
-      const { data: giftData, error: giftError } = await supabase.rpc('get_claimable_gift', {
-        p_gift_code: code
+      const { data, error: invErr } = await supabase.functions.invoke('redeem-gift', {
+        body: { code, token },
       });
-
-      if (giftError) throw giftError;
-
-      if (!giftData || giftData.length === 0) {
-        throw new Error('Gift code not found or not available for your account. Make sure you are logged in with the email the gift was sent to.');
+      if (invErr) throw invErr;
+      const result = data as { success: boolean; reason?: string };
+      if (result?.success) {
+        setSuccess(true);
+        toast({ title: 'Gift Claimed!', description: 'Your subscription is now active.' });
+        setTimeout(() => navigate('/account'), 2500);
+      } else {
+        setError(REASON_MESSAGES[result?.reason || ''] || 'Failed to redeem this gift.');
       }
-
-      setGiftDetails(giftData[0]);
-
-      // Claim the gift
-      const { data: claimResult, error: claimError } = await supabase.rpc('claim_gift_subscription', {
-        p_gift_code: code
-      });
-
-      if (claimError) throw claimError;
-
-      const result = claimResult as { success: boolean; error?: string; message?: string };
-
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to claim gift');
-      }
-
-      setClaimSuccess(true);
-      toast({
-        title: "Gift Claimed Successfully!",
-        description: "Your subscription has been activated. Welcome to Asset Safe!",
-      });
-
-      setTimeout(() => navigate('/account'), 3000);
-
-    } catch (error) {
-      console.error('Error claiming gift:', error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to claim gift. Please try again.",
-        variant: "destructive",
-      });
+    } catch (e: any) {
+      setError(e?.message || 'Failed to redeem this gift. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please log in or create an account to claim your gift.",
-        variant: "destructive",
-      });
-      return;
+  // Auto-claim once signed in
+  useEffect(() => {
+    if (user && code && token && !success && !isLoading && !error) {
+      handleClaim();
     }
-    await handleClaim(values.giftCode);
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, code, token]);
 
-  // Build auth redirect URLs that return here with the code
-  const redeemUrl = codeFromUrl ? `/gift-claim?code=${codeFromUrl}` : '/gift-claim';
-  const loginUrl = `/auth?redirect=${encodeURIComponent(redeemUrl)}`;
-  const signupUrl = `/signup?redirect=${encodeURIComponent(redeemUrl)}`;
-
-  if (claimSuccess) {
+  if (success) {
     return (
       <div className="flex flex-col min-h-screen">
         <Navbar />
@@ -133,33 +85,11 @@ const GiftClaim: React.FC = () => {
                   <CheckCircle className="h-16 w-16 text-green-500" />
                 </div>
                 <CardTitle className="text-2xl text-green-700">Gift Claimed Successfully!</CardTitle>
-                <CardDescription className="text-lg">
-                  Welcome to Asset Safe — your subscription is now active
-                </CardDescription>
+                <CardDescription className="text-lg">Your Asset Safe subscription is now active.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                {giftDetails && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-                    <h3 className="font-semibold text-green-800 mb-2">
-                      {giftDetails.plan_type
-                        ? giftDetails.plan_type.charAt(0).toUpperCase() + giftDetails.plan_type.slice(1)
-                        : 'Standard'}{' '}Plan Activated
-                    </h3>
-                    <p className="text-green-700 text-sm mb-2">
-                      Gift from: {giftDetails.purchaser_name}
-                    </p>
-                    {giftDetails.gift_message && (
-                      <div className="bg-white rounded-lg p-3 mt-3">
-                        <p className="text-sm text-gray-700 italic">"{giftDetails.gift_message}"</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-                <p className="text-muted-foreground">
-                  Redirecting you to your dashboard in a few seconds...
-                </p>
+              <CardContent>
                 <Button onClick={() => navigate('/account')} size="lg" className="w-full">
-                  Go to Dashboard Now
+                  Go to Dashboard
                 </Button>
               </CardContent>
             </Card>
@@ -184,15 +114,23 @@ const GiftClaim: React.FC = () => {
               </div>
               <CardTitle className="text-2xl">Claim Your Gift Subscription</CardTitle>
               <CardDescription>
-                {codeFromUrl
-                  ? 'Your gift code was automatically detected.'
-                  : 'Enter your gift code to activate your Asset Safe subscription'}
+                {code && token
+                  ? 'Sign in with the email address the gift was sent to.'
+                  : 'This page requires a valid gift link.'}
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              {/* Not logged in + code in URL → clear CTA */}
-              {!user && codeFromUrl && (
-                <Alert className="mb-6">
+            <CardContent className="space-y-4">
+              {(!code || !token) && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    This page must be opened from the secure link in your gift email.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {!user && code && token && (
+                <Alert>
                   <Lock className="h-4 w-4" />
                   <AlertDescription>
                     Sign in or create an account to redeem your gift.
@@ -208,66 +146,27 @@ const GiftClaim: React.FC = () => {
                 </Alert>
               )}
 
-              {/* Not logged in + no code → generic prompt */}
-              {!user && !codeFromUrl && (
-                <Alert className="mb-6">
-                  <AlertDescription>
-                    You need to be logged in to claim your gift.{' '}
-                    <Button variant="link" className="p-0 h-auto" onClick={() => navigate('/auth')}>
-                      Sign in or create an account
-                    </Button>{' '}
-                    first.
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              {/* Auto-claiming spinner */}
-              {user && codeFromUrl && isLoading && (
-                <div className="flex items-center justify-center gap-2 py-4 text-muted-foreground">
+              {user && code && token && isLoading && (
+                <div className="flex items-center justify-center gap-2 py-6 text-muted-foreground">
                   <Loader2 className="h-5 w-5 animate-spin" />
                   <span>Claiming your gift…</span>
                 </div>
               )}
 
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  <FormField
-                    control={form.control}
-                    name="giftCode"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Gift Code</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Enter your gift code (e.g., GIFT-XXXXXXXXXX)"
-                            {...field}
-                            className="uppercase"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+              {error && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
 
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    size="lg"
-                    disabled={isLoading || !user}
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Claiming Gift…
-                      </>
-                    ) : (
-                      'Claim Gift'
-                    )}
-                  </Button>
-                </form>
-              </Form>
+              {user && code && token && !isLoading && (
+                <Button onClick={handleClaim} className="w-full" size="lg">
+                  Claim Gift
+                </Button>
+              )}
 
-              <div className="mt-6 text-center text-sm text-muted-foreground">
+              <div className="text-center text-sm text-muted-foreground pt-2">
                 <p>
                   Don't have a gift code?{' '}
                   <Button variant="link" className="p-0 h-auto" onClick={() => navigate('/gift')}>
