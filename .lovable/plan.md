@@ -1,88 +1,51 @@
 ## Goal
-In Admin → Overview → User Management → All Users, make the **Plan** column clearly distinguish between:
-- **Asset Safe Plan (Monthly)** — paid Stripe monthly subscription
-- **Asset Safe Plan (Annual)** — paid Stripe annual subscription
-- **Asset Safe Plan (Gift)** — entitlement granted via a redeemed gift, with purchaser name + email shown beneath the plan label
+In Admin → Overview → User Management → **Authorized Users** tab, ensure every authorized user (AU) row displays:
+- AU's full name
+- AU's own account number
+- AU's email
+- Role badge + status
+- **The owner account they are authorized on**: owner name + owner account number
 
-Lifetime/Admin/AU rows stay as they are.
+## Current state
+The tab groups AUs under owner cards. The owner header shows owner name + account #, but each AU row only shows name/email/role/status/invited/accepted — the AU's own account number is missing, and the owner-account context is only visible via the surrounding card header (easy to lose when scrolling/searching).
 
 ## Scope
-Frontend-only change to `src/components/admin/AdminUsers.tsx`. No schema or edge function changes — all data needed is already loaded.
-
-## Data sources (already loaded in the component)
-- `entitlements.plan_lookup_key` — `asset_safe_monthly` | `asset_safe_annual` (and similar)
-- `entitlements.entitlement_source` — `stripe` | `admin` | (future) `gift`
-- `giftSubscriptions` state — already fetched via `from('gift_subscriptions').select('*')`
-
-A gift-redeemed user is identified by:
-- `gift_subscriptions.recipient_user_id === user.user_id`
-- `redeemed === true` (or `redemption_status === 'redeemed'`)
+Frontend-only change in `src/components/admin/AdminUsers.tsx`. All data is already loaded — AU profile (with `account_number`) is in `ownerProfileMap`, owner profile is on the bucket.
 
 ## Changes
 
-### 1. Build a gift lookup map (after gifts are fetched)
+### 1. Capture AU's own account number on the contributor record
+When building `bucket.contributors` from `membershipsData` (≈ line 266) and from `contributorsData` (≈ line 246), attach the AU's profile fields we need:
 ```ts
-const giftByRecipient = useMemo(() => {
-  const m = new Map<string, GiftSubscription>();
-  for (const g of giftSubscriptions) {
-    if (g.recipient_user_id && (g.redeemed || g.redemption_status === 'redeemed')) {
-      m.set(g.recipient_user_id, g);
-    }
-  }
-  return m;
-}, [giftSubscriptions]);
+const auProfile = ownerProfileMap.get(m.user_id); // already done for memberships
+// also do for legacy contributors when contributor_user_id is present
+bucket.contributors.push({
+  ...,
+  contributor_account_number: auProfile?.account_number || null,
+});
 ```
+Extend `ContributorRecord` interface with `contributor_account_number?: string | null`.
 
-### 2. Extend `getPlanInfo` to accept gift + lookup_key
-Update the signature and the Asset Safe branch:
-```ts
-const getPlanInfo = (planId, subscriptionTier, entitlementSource, stripeSubId, planLookupKey, gift) => {
-  // existing lifetime / admin branches unchanged
-  // ...
-  if (tier === 'standard' || tier === 'premium') {
-    if (gift) {
-      return { name: 'Asset Safe Plan (Gift)', price: 'Gift', variant: 'gift' };
-    }
-    const isAnnual = planLookupKey?.includes('annual') || planLookupKey?.includes('yearly');
-    return {
-      name: isAnnual ? 'Asset Safe Plan (Annual)' : 'Asset Safe Plan (Monthly)',
-      price: isAnnual ? '$189/yr' : '$18.99/mo',
-    };
-  }
-};
-```
+### 2. Convert the grouped view to a flat "All Authorized Users" table
+Replace the per-owner cards with a single table so every AU is visible at a glance with full context. Columns:
 
-Also surface `plan_lookup_key` on the user row (already pulled from entitlements at line ~131 — add it to the mapping at ~204 so it's available here).
+| Authorized User | AU Account # | Email | Role | Status | Authorized On (Owner) | Owner Account # | Invited | Accepted |
 
-### 3. Render purchaser info under the plan name for gift rows
-In the Plan cell (around line 547), when `planInfo.variant === 'gift'`:
-```tsx
-<div>
-  <p className="font-medium">Asset Safe Plan (Gift)</p>
-  <p className="text-xs text-muted-foreground">Gift · no recurring charge</p>
-  <div className="mt-1 pt-1 border-t text-xs">
-    <p className="text-muted-foreground">Gifted by:</p>
-    <p className="font-medium">{gift.purchaser_name || '—'}</p>
-    <p className="text-muted-foreground">{gift.purchaser_email}</p>
-    {gift.redeemed_at && (
-      <p className="text-muted-foreground mt-0.5">
-        Redeemed {formatDate(gift.redeemed_at)}
-      </p>
-    )}
-  </div>
-</div>
-```
+Each row pulls AU fields from the contributor record and owner fields from the parent bucket. Sort by owner name, then AU name.
 
-### 4. Source badge
-When a row is gift-redeemed, render a `Gift` badge (purple/pink) in the Source column instead of/in addition to whatever `entitlement_source` says, so admins can scan-spot gifts.
+Keep the existing search input — extend match to also include `contributor_account_number` and owner `accountNumber`.
+
+Keep the summary count badge at the top: "X Authorized Users across Y Accounts".
+
+### 3. Empty state
+"No authorized users found" if list is empty after filter.
 
 ## Out of scope
-- Gift Subscriptions tab (already shows purchaser + recipient correctly).
-- Any change to checkout/redeem flows — the purchaser is already captured at `create-gift-checkout` time (`purchaser_name`, `purchaser_email`).
-- No DB migration.
+- Owner side (already correct in All Users tab).
+- Backend / RLS / data fetching changes.
+- Gift Subscriptions tab.
 
 ## Acceptance
-- Monthly Stripe subscriber → "Asset Safe Plan (Monthly)" / "$18.99/mo"
-- Annual Stripe subscriber → "Asset Safe Plan (Annual)" / "$189/yr"
-- Redeemed gift recipient → "Asset Safe Plan (Gift)" with purchaser name + email + redeemed date underneath, plus a `Gift` source badge
-- Lifetime / Admin / Authorized User rows unchanged
+- Every AU appears once in the table.
+- Each row shows AU name, AU account #, AU email, role badge, status, owner name, owner account #.
+- Searching by AU name, AU account #, owner name, owner account #, or AU email all return matching rows.
