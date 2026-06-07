@@ -1,20 +1,35 @@
-## Fix Payment Events table in Admin > User Management
+# Add Account # to Payment Events
 
-**File:** `src/components/admin/AdminUsers.tsx` (Payment Events tab, ~lines 713-782)
+## Goal
+In Admin → Overview → User Management → Payment Events, display the Asset Safe **Account #** (assigned internally) alongside the Stripe **Customer ID** so each transaction can be tied back to a specific account.
 
-### Changes
+## Where
+`src/components/admin/AdminUsers.tsx` — the Payment Events table and the existing `customerLookup` builder created in the previous change.
 
-1. **Show full Stripe customer ID** — remove `customerInfo.slice(0, 12) + '...'`. Render the full `cus_...` string in a monospace cell with `break-all` so it wraps cleanly instead of truncating.
+## Changes
 
-2. **Add Name and Email columns** — new table headers: `Event Type | Customer Name | Email | Customer ID | Amount | Status | Date`.
+1. **Extend `customerLookup` shape**
+   Currently: `Record<string, { name, email }>` keyed by `stripe_customer_id`.
+   New: `Record<string, { name, email, accountNumber, userId }>`.
 
-3. **Resolve name + email per event** by building a lookup map in `loadUsers()`:
-   - Map `stripe_customer_id → user_id` from the already-fetched `entitlements` rows (line 136 already selects `stripe_customer_id`).
-   - Map `user_id → profile` from the already-fetched `users`/`profiles` state.
-   - Store both as a memoized `customerLookup: Record<string, { name, email }>` on state (or `useMemo`).
-   - Fallback chain when rendering a row: lookup by `customerInfo` → else read `event.event_data.object.customer_details.{name,email}` / `customer_email` → else show `—`.
+2. **Populate `accountNumber` during `loadData`**
+   - Already-fetched data: `entitlements` rows give `stripe_customer_id → user_id`; `ownerProfileMap` / `subscriberMap` give the user's profile.
+   - Add a lookup `userId → account_number` built from the `accounts` rows the page already loads (owner workspace accounts). If `accounts` isn't currently fetched on this view, add a single `from('accounts').select('id, owner_user_id, account_number')` call scoped to the owner user IDs already in scope.
+   - Fallback chain for account #: owner's account_number → "—".
 
-4. **Empty/short customer IDs** still render `—`.
+3. **Update Payment Events table header**
+   New column order: `Event Type | Customer Name | Email | Account # | Customer ID | Amount | Status | Date`.
 
-### Out of scope
-No schema or edge function changes; data already available in current queries.
+4. **Render Account # cell**
+   - Monospace, same styling as Customer ID cell.
+   - Show `customerLookup[customerInfo]?.accountNumber ?? "—"`.
+
+## Out of scope
+- No schema changes.
+- No edge function changes.
+- No changes to non-admin views.
+
+## Verification
+- Open Admin → User Management → Payment Events.
+- Confirm each row shows both the full `cus_...` ID and the matching Asset Safe Account #.
+- Rows where the Stripe customer can't be matched to an internal user still render "—" for Account #, Name, and Email (no crash).

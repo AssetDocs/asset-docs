@@ -85,7 +85,7 @@ const AdminUsers = () => {
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [giftSubscriptions, setGiftSubscriptions] = useState<GiftSubscription[]>([]);
   const [paymentEvents, setPaymentEvents] = useState<PaymentEvent[]>([]);
-  const [customerLookup, setCustomerLookup] = useState<Record<string, { name: string; email: string | null }>>({});
+  const [customerLookup, setCustomerLookup] = useState<Record<string, { name: string; email: string | null; accountNumber: string | null }>>({});
   const [ownersWithContributors, setOwnersWithContributors] = useState<OwnerWithContributors[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -225,7 +225,7 @@ const AdminUsers = () => {
         setUsers(mergedUsers);
 
         // Build Stripe customer_id -> { name, email } lookup for Payment Events
-        const lookup: Record<string, { name: string; email: string | null }> = {};
+        const lookup: Record<string, { name: string; email: string | null; accountNumber: string | null }> = {};
         entitlementsData?.forEach((e: any) => {
           if (!e.stripe_customer_id) return;
           const profile = ownerProfileMap.get(e.user_id);
@@ -233,7 +233,8 @@ const AdminUsers = () => {
             ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
             : '';
           const email = subscriberMap.get(e.user_id)?.email || authEmails[e.user_id] || null;
-          lookup[e.stripe_customer_id] = { name: name || '—', email };
+          const accountNumber = profile?.account_number || null;
+          lookup[e.stripe_customer_id] = { name: name || '—', email, accountNumber };
         });
         setCustomerLookup(lookup);
 
@@ -740,6 +741,7 @@ const AdminUsers = () => {
                       <TableHead>Event Type</TableHead>
                       <TableHead>Customer Name</TableHead>
                       <TableHead>Email</TableHead>
+                      <TableHead>Account #</TableHead>
                       <TableHead>Customer ID</TableHead>
                       <TableHead>Amount</TableHead>
                       <TableHead>Status</TableHead>
@@ -783,6 +785,9 @@ const AdminUsers = () => {
                           </TableCell>
                           <TableCell className="text-sm">{displayName}</TableCell>
                           <TableCell className="text-sm">{displayEmail}</TableCell>
+                          <TableCell className="font-mono text-xs">
+                            {looked?.accountNumber || '—'}
+                          </TableCell>
                           <TableCell className="font-mono text-xs break-all max-w-[220px]">
                             {customerInfo || '—'}
                           </TableCell>
