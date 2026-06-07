@@ -576,17 +576,39 @@ const AdminUsers = () => {
                               <p className="text-xs text-muted-foreground">No charge</p>
                             </div>
                           ) : (() => {
-                            const planInfo = getPlanInfo(user.plan_id, user.subscription_tier, user.entitlement_source, null);
+                            const gift = giftByRecipient.get(user.user_id) || null;
+                            const planInfo = getPlanInfo(
+                              user.plan_id,
+                              user.subscription_tier,
+                              user.entitlement_source,
+                              null,
+                              user.plan_lookup_key,
+                              gift,
+                            );
                             return (
                               <div>
                                 <p className="font-medium">{planInfo.name}</p>
                                 <p className="text-xs text-muted-foreground">{planInfo.price}</p>
+                                {planInfo.variant === 'gift' && gift && (
+                                  <div className="mt-1 pt-1 border-t text-xs">
+                                    <p className="text-muted-foreground">Gifted by:</p>
+                                    <p className="font-medium">{gift.purchaser_name || '—'}</p>
+                                    <p className="text-muted-foreground">{gift.purchaser_email}</p>
+                                    {gift.redeemed_at && (
+                                      <p className="text-muted-foreground mt-0.5">
+                                        Redeemed {formatDate(gift.redeemed_at)}
+                                      </p>
+                                    )}
+                                  </div>
+                                )}
                               </div>
                             );
                           })()}
                         </TableCell>
                         <TableCell>
-                          {user.entitlement_source === 'lifetime' ? (
+                          {giftByRecipient.has(user.user_id) ? (
+                            <Badge className="bg-pink-600 text-white">Gift</Badge>
+                          ) : user.entitlement_source === 'lifetime' ? (
                             <Badge className="bg-purple-600 text-white">Lifetime</Badge>
                           ) : user.entitlement_source === 'admin' ? (
                             <Badge className="bg-amber-500 text-white">Admin</Badge>
