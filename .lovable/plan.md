@@ -1,51 +1,52 @@
-## Goal
-In Admin → Overview → User Management → **Authorized Users** tab, ensure every authorized user (AU) row displays:
-- AU's full name
-- AU's own account number
-- AU's email
-- Role badge + status
-- **The owner account they are authorized on**: owner name + owner account number
+# Admin → User Management → Cancellations: enrich + add Deleted tab
 
-## Current state
-The tab groups AUs under owner cards. The owner header shows owner name + account #, but each AU row only shows name/email/role/status/invited/accepted — the AU's own account number is missing, and the owner-account context is only visible via the surrounding card header (easy to lose when scrolling/searching).
+Frontend-only change in `src/components/admin/AdminCancellations.tsx`. All data is already available via existing tables.
 
-## Scope
-Frontend-only change in `src/components/admin/AdminUsers.tsx`. All data is already loaded — AU profile (with `account_number`) is in `ownerProfileMap`, owner profile is on the bucket.
+## 1. Enrich the existing "Subscription Cancellations" tab
 
-## Changes
+Currently shows: Cancelled | Owner (truncated UUID) | Plan | Period End | Reason | Comments.
 
-### 1. Capture AU's own account number on the contributor record
-When building `bucket.contributors` from `membershipsData` (≈ line 266) and from `contributorsData` (≈ line 246), attach the AU's profile fields we need:
-```ts
-const auProfile = ownerProfileMap.get(m.user_id); // already done for memberships
-// also do for legacy contributors when contributor_user_id is present
-bucket.contributors.push({
-  ...,
-  contributor_account_number: auProfile?.account_number || null,
-});
-```
-Extend `ContributorRecord` interface with `contributor_account_number?: string | null`.
+Change to: **Name | Account # | Plan | Reason | Comments | Cancelled On**
 
-### 2. Convert the grouped view to a flat "All Authorized Users" table
-Replace the per-owner cards with a single table so every AU is visible at a glance with full context. Columns:
+- Load `profiles` (first_name, last_name, account_number, user_id) for every `owner_user_id` in the result set in one batched query, build a `Map<user_id, profile>`.
+- Render full name (fall back to email-style placeholder or "—"); render `account_number` in a monospace badge.
+- Keep search/sort behavior as-is (none currently). Keep top stats (Total + Top Reasons).
 
-| Authorized User | AU Account # | Email | Role | Status | Authorized On (Owner) | Owner Account # | Invited | Accepted |
+## 2. Rework "Account Closure Requests" tab → rename to "Cancelled (Pending Deletion)"
 
-Each row pulls AU fields from the contributor record and owner fields from the parent bucket. Sort by owner name, then AU name.
+This tab currently mixes scheduled/reversed/completed closures. Keep it for in-flight closures only:
 
-Keep the existing search input — extend match to also include `contributor_account_number` and owner `accountNumber`.
+- Filter rows where `status IN ('scheduled','pending','reversed')` (exclude `completed` — those move to the new Deleted tab).
+- Columns: **Name | Account # | Status | Reason | Comments | Requested | Scheduled Deletion**
+- Same profile-batch lookup as above.
 
-Keep the summary count badge at the top: "X Authorized Users across Y Accounts".
+## 3. NEW "Deleted" tab
 
-### 3. Empty state
-"No authorized users found" if list is empty after filter.
+Source: `deleted_accounts` (email, original_user_id, deleted_at, deleted_by) joined with the latest matching `account_closure_requests` row (by `owner_user_id = original_user_id`) to obtain `reason` and `comments`. `account_deletion_requests` is used as a secondary source if no closure request exists (match by `account_owner_id`).
+
+Note: `profiles` rows are wiped on deletion, so name/account_number are typically unavailable. Display:
+
+Columns: **Name | Account # | Email | Reason | Deleted On | Deleted By**
+
+- Name/Account #: show "—" if no surviving profile (expected); attempt a `profiles` lookup by `original_user_id` first in case it exists.
+- Reason: prefer `account_closure_requests.reason` (latest), else `account_deletion_requests.reason`, else "—".
+- Add a Total card at the top.
+
+## Tabs
+
+Update `TabsList` to three tabs:
+1. `cancellations` — "Subscription Cancellations"
+2. `closures` — "Cancelled (Pending Deletion)"
+3. `deleted` — "Deleted Accounts"
 
 ## Out of scope
-- Owner side (already correct in All Users tab).
-- Backend / RLS / data fetching changes.
-- Gift Subscriptions tab.
+
+- Backend/RLS changes, edge functions, schema changes.
+- Capturing additional deletion metadata (e.g., storing reason in `deleted_accounts`) — current data is what we display.
+- Other admin tabs.
 
 ## Acceptance
-- Every AU appears once in the table.
-- Each row shows AU name, AU account #, AU email, role badge, status, owner name, owner account #.
-- Searching by AU name, AU account #, owner name, owner account #, or AU email all return matching rows.
+
+- Cancellations tab shows owner name + account number instead of truncated UUID, plus reason and date.
+- Closures tab only lists in-flight (non-completed) requests with name + account #.
+- New Deleted tab lists each `deleted_accounts` row with email, deletion date, deleted_by, and a best-effort reason pulled from closure/deletion request history.
