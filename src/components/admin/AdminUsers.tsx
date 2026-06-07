@@ -738,7 +738,9 @@ const AdminUsers = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Event Type</TableHead>
-                      <TableHead>Customer</TableHead>
+                      <TableHead>Customer Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Customer ID</TableHead>
                       <TableHead>Amount</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Date</TableHead>
@@ -750,7 +752,9 @@ const AdminUsers = () => {
                       let displayAmount = event.amount;
                       let displayCurrency = event.currency || 'usd';
                       let customerInfo = event.customer_id;
-                      
+                      let evtName: string | null = null;
+                      let evtEmail: string | null = null;
+
                       if (event.event_data?.object) {
                         const obj = event.event_data.object;
                         if (!displayAmount) {
@@ -762,8 +766,14 @@ const AdminUsers = () => {
                         if (!customerInfo && obj.customer) {
                           customerInfo = obj.customer;
                         }
+                        evtName = obj.customer_details?.name || obj.customer_name || null;
+                        evtEmail = obj.customer_details?.email || obj.customer_email || obj.receipt_email || null;
                       }
-                      
+
+                      const looked = customerInfo ? customerLookup[customerInfo] : null;
+                      const displayName = looked?.name && looked.name !== '—' ? looked.name : (evtName || '—');
+                      const displayEmail = looked?.email || evtEmail || '—';
+
                       return (
                         <TableRow key={event.id}>
                           <TableCell>
@@ -771,8 +781,10 @@ const AdminUsers = () => {
                               {event.event_type.replace('customer.', '').replace('invoice.', '').replace('checkout.', '')}
                             </Badge>
                           </TableCell>
-                          <TableCell className="font-mono text-xs">
-                            {customerInfo ? customerInfo.slice(0, 12) + '...' : '-'}
+                          <TableCell className="text-sm">{displayName}</TableCell>
+                          <TableCell className="text-sm">{displayEmail}</TableCell>
+                          <TableCell className="font-mono text-xs break-all max-w-[220px]">
+                            {customerInfo || '—'}
                           </TableCell>
                           <TableCell>{formatAmount(displayAmount, displayCurrency)}</TableCell>
                           <TableCell>
