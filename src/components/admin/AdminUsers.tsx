@@ -85,6 +85,7 @@ const AdminUsers = () => {
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [giftSubscriptions, setGiftSubscriptions] = useState<GiftSubscription[]>([]);
   const [paymentEvents, setPaymentEvents] = useState<PaymentEvent[]>([]);
+  const [customerLookup, setCustomerLookup] = useState<Record<string, { name: string; email: string | null }>>({});
   const [ownersWithContributors, setOwnersWithContributors] = useState<OwnerWithContributors[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
