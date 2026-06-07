@@ -27,6 +27,7 @@ interface UserRecord {
   ownerName?: string | null;
   ownerAccountNumber?: string | null;
   entitlement_source?: string | null;
+  plan_lookup_key?: string | null;
 }
 
 interface ContributorRecord {
