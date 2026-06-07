@@ -57,10 +57,13 @@ interface GiftSubscription {
   purchaser_email: string;
   recipient_name: string;
   recipient_email: string;
+  recipient_user_id?: string | null;
   plan_type: string;
   amount: number | null;
   status: string;
   redeemed: boolean | null;
+  redeemed_at?: string | null;
+  redemption_status?: string | null;
   created_at: string;
 }
 
