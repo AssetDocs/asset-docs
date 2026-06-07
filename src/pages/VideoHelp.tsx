@@ -5,8 +5,7 @@ import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Play, BookOpen, UserPlus, Camera, Upload, Building, FileText, Settings } from 'lucide-react';
-import walkthroughCover from '@/assets/youtube-cover-walkthrough.jpg';
+import { Play, BookOpen, Shield, Building, Camera, FileText, ClipboardList, BarChart, Users, Lock, Key, Home } from 'lucide-react';
 import { breadcrumbSchema } from '@/utils/structuredData';
 
 const VideoHelp: React.FC = () => {
@@ -16,61 +15,101 @@ const VideoHelp: React.FC = () => {
 
   const tutorials = [
     {
+      id: 1,
+      title: "Welcome to Asset Safe",
+      description: "Get an overview of Asset Safe and learn how to navigate your dashboard.",
+      duration: "3:15",
+      icon: Shield,
+      category: "Getting Started",
+      thumbnail: "/placeholder.svg",
+      videoUrl: ""
+    },
+    {
       id: 2,
       title: "Adding Your First Property",
       description: "Step-by-step guide to adding property information and basic details.",
       duration: "5:20",
       icon: Building,
-      category: "Property Management",
+      category: "Getting Started",
+      thumbnail: "/placeholder.svg",
+      videoUrl: ""
+    },
+    {
+      id: 3,
+      title: "Uploading Photos",
+      description: "Best practices for photographing your assets and uploading them for AI analysis.",
+      duration: "6:30",
+      icon: Camera,
+      category: "Asset Documentation",
       thumbnail: "/placeholder.svg",
       videoUrl: ""
     },
     {
       id: 4,
-      title: "Uploading Photos for Asset Documentation",
-      description: "Best practices for photographing your assets and uploading them for AI analysis.",
-      duration: "6:30",
-      icon: Camera,
-      category: "Photo Management",
+      title: "Uploading Documents",
+      description: "Learn how to organize, categorize, and manage all your property documents efficiently.",
+      duration: "5:40",
+      icon: FileText,
+      category: "Asset Documentation",
       thumbnail: "/placeholder.svg",
       videoUrl: ""
     },
     {
       id: 5,
-      title: "Video Documentation Tips",
-      description: "How to create effective video documentation of your property and assets.",
+      title: "Understanding the Checklist",
+      description: "Learn how to use the interactive checklist for comprehensive asset documentation.",
       duration: "4:50",
-      icon: Upload,
-      category: "Video Management",
+      icon: ClipboardList,
+      category: "Asset Documentation",
       thumbnail: "/placeholder.svg",
       videoUrl: ""
     },
     {
       id: 6,
-      title: "Managing Your Documents",
-      description: "Organize, categorize, and manage all your property documents efficiently.",
-      duration: "5:40",
-      icon: FileText,
-      category: "Document Management",
+      title: "Understanding the Protection Score",
+      description: "Discover how your Protection Score is calculated and how to improve it.",
+      duration: "5:10",
+      icon: BarChart,
+      category: "Insights & Tools",
       thumbnail: "/placeholder.svg",
       videoUrl: ""
     },
     {
       id: 7,
-      title: "Asset Documentation Best Practices",
-      description: "Learn the best practices for documenting and valuing your assets.",
-      duration: "6:10",
-      icon: Settings,
-      category: "Documentation",
+      title: "Setting Up Authorized Users",
+      description: "Grant access to family members, advisors, or assistants with customizable permissions.",
+      duration: "6:00",
+      icon: Users,
+      category: "Account Management",
       thumbnail: "/placeholder.svg",
       videoUrl: ""
     },
     {
       id: 8,
-      title: "Generating Reports for Insurance",
-      description: "Create comprehensive reports for insurance claims and property documentation.",
+      title: "Using Legacy Locker",
+      description: "Store important information your loved ones will need in a secure digital vault.",
+      duration: "7:15",
+      icon: Lock,
+      category: "Legacy Planning",
+      thumbnail: "/placeholder.svg",
+      videoUrl: ""
+    },
+    {
+      id: 9,
+      title: "Using Digital Access",
+      description: "Manage and share digital account credentials and access instructions securely.",
+      duration: "5:45",
+      icon: Key,
+      category: "Legacy Planning",
+      thumbnail: "/placeholder.svg",
+      videoUrl: ""
+    },
+    {
+      id: 10,
+      title: "Creating an Insurance-Ready Home Inventory",
+      description: "Generate comprehensive reports formatted for insurance claims and property documentation.",
       duration: "8:25",
-      icon: FileText,
+      icon: Home,
       category: "Reports",
       thumbnail: "/placeholder.svg",
       videoUrl: ""
