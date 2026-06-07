@@ -27,6 +27,7 @@ interface UserRecord {
   ownerName?: string | null;
   ownerAccountNumber?: string | null;
   entitlement_source?: string | null;
+  plan_lookup_key?: string | null;
 }
 
 interface ContributorRecord {
@@ -56,10 +57,13 @@ interface GiftSubscription {
   purchaser_email: string;
   recipient_name: string;
   recipient_email: string;
+  recipient_user_id?: string | null;
   plan_type: string;
   amount: number | null;
   status: string;
   redeemed: boolean | null;
+  redeemed_at?: string | null;
+  redemption_status?: string | null;
   created_at: string;
 }
 
@@ -210,6 +214,7 @@ const AdminUsers = () => {
             ownerName: ownerProfile ? `${ownerProfile.first_name || ''} ${ownerProfile.last_name || ''}`.trim() : null,
             ownerAccountNumber: ownerProfile?.account_number || null,
             entitlement_source: entitlement?.entitlement_source || null,
+            plan_lookup_key: entitlement?.plan_lookup_key || null,
             billing_status: entitlement?.billing_status || null,
             total_storage_gb: entitlement?.total_storage_gb || null,
           };
@@ -352,36 +357,63 @@ const AdminUsers = () => {
     }).format(amount / 100);
   };
 
-  // Map plan info using entitlements data (plan + plan_lookup_key + entitlement_source)
-  const getPlanInfo = (planId: string | null, subscriptionTier: string | null, entitlementSource?: string | null, stripeSubId?: string | null) => {
-    if (!planId && !subscriptionTier) {
-      return { name: 'None', price: '-' };
+  // Build lookup: recipient_user_id -> redeemed gift
+  const giftByRecipient = React.useMemo(() => {
+    const m = new Map<string, GiftSubscription>();
+    for (const g of giftSubscriptions) {
+      if (g.recipient_user_id && (g.redeemed || g.redemption_status === 'redeemed')) {
+        m.set(g.recipient_user_id, g);
+      }
     }
-    
+    return m;
+  }, [giftSubscriptions]);
+
+  // Map plan info using entitlements data (plan + plan_lookup_key + entitlement_source)
+  const getPlanInfo = (
+    planId: string | null,
+    subscriptionTier: string | null,
+    entitlementSource?: string | null,
+    stripeSubId?: string | null,
+    planLookupKey?: string | null,
+    gift?: GiftSubscription | null,
+  ) => {
+    if (!planId && !subscriptionTier && !gift) {
+      return { name: 'None', price: '-', variant: 'none' as const };
+    }
+
     // Lifetime plan by explicit planId
     if (planId === 'premium_lifetime') {
-      return { name: 'Free Lifetime (ASL2025)', price: 'Lifetime' };
+      return { name: 'Free Lifetime (ASL2025)', price: 'Lifetime', variant: 'lifetime' as const };
     }
-    
+
     // Admin or lifetime entitlement source with no Stripe subscription = free lifetime
-    if ((entitlementSource === 'admin' || entitlementSource === 'lifetime') && !stripeSubId) {
-      return { name: 'Free Lifetime (ASL2025)', price: 'Lifetime' };
+    if ((entitlementSource === 'admin' || entitlementSource === 'lifetime') && !stripeSubId && !gift) {
+      return { name: 'Free Lifetime (ASL2025)', price: 'Lifetime', variant: 'lifetime' as const };
     }
-    
-    // Single-plan model: Asset Safe Plan
+
+    // Gift takes precedence over Stripe-style labeling
+    if (gift) {
+      return { name: 'Asset Safe Plan (Gift)', price: 'Gift · no recurring charge', variant: 'gift' as const };
+    }
+
+    // Single-plan model: Asset Safe Plan — distinguish monthly vs annual
     const tier = subscriptionTier?.toLowerCase();
     if (tier === 'standard' || tier === 'premium') {
-      return { name: 'Asset Safe Plan', price: '$18.99/mo or $189/yr' };
+      const key = planLookupKey?.toLowerCase() || '';
+      const isAnnual = key.includes('annual') || key.includes('yearly') || key.includes('year');
+      return isAnnual
+        ? { name: 'Asset Safe Plan (Annual)', price: '$189/yr', variant: 'annual' as const }
+        : { name: 'Asset Safe Plan (Monthly)', price: '$18.99/mo', variant: 'monthly' as const };
     }
-    
+
     // Map known Stripe price IDs
     if (planId) {
       if (planId.startsWith('price_')) {
-        return { name: 'Asset Safe Plan', price: 'Stripe' };
+        return { name: 'Asset Safe Plan', price: 'Stripe', variant: 'monthly' as const };
       }
     }
-    
-    return { name: subscriptionTier || planId || 'Unknown', price: '-' };
+
+    return { name: subscriptionTier || planId || 'Unknown', price: '-', variant: 'none' as const };
   };
 
   return (
@@ -544,17 +576,39 @@ const AdminUsers = () => {
                               <p className="text-xs text-muted-foreground">No charge</p>
                             </div>
                           ) : (() => {
-                            const planInfo = getPlanInfo(user.plan_id, user.subscription_tier, user.entitlement_source, null);
+                            const gift = giftByRecipient.get(user.user_id) || null;
+                            const planInfo = getPlanInfo(
+                              user.plan_id,
+                              user.subscription_tier,
+                              user.entitlement_source,
+                              null,
+                              user.plan_lookup_key,
+                              gift,
+                            );
                             return (
                               <div>
                                 <p className="font-medium">{planInfo.name}</p>
                                 <p className="text-xs text-muted-foreground">{planInfo.price}</p>
+                                {planInfo.variant === 'gift' && gift && (
+                                  <div className="mt-1 pt-1 border-t text-xs">
+                                    <p className="text-muted-foreground">Gifted by:</p>
+                                    <p className="font-medium">{gift.purchaser_name || '—'}</p>
+                                    <p className="text-muted-foreground">{gift.purchaser_email}</p>
+                                    {gift.redeemed_at && (
+                                      <p className="text-muted-foreground mt-0.5">
+                                        Redeemed {formatDate(gift.redeemed_at)}
+                                      </p>
+                                    )}
+                                  </div>
+                                )}
                               </div>
                             );
                           })()}
                         </TableCell>
                         <TableCell>
-                          {user.entitlement_source === 'lifetime' ? (
+                          {giftByRecipient.has(user.user_id) ? (
+                            <Badge className="bg-pink-600 text-white">Gift</Badge>
+                          ) : user.entitlement_source === 'lifetime' ? (
                             <Badge className="bg-purple-600 text-white">Lifetime</Badge>
                           ) : user.entitlement_source === 'admin' ? (
                             <Badge className="bg-amber-500 text-white">Admin</Badge>

@@ -1,66 +1,88 @@
+## Goal
+In Admin → Overview → User Management → All Users, make the **Plan** column clearly distinguish between:
+- **Asset Safe Plan (Monthly)** — paid Stripe monthly subscription
+- **Asset Safe Plan (Annual)** — paid Stripe annual subscription
+- **Asset Safe Plan (Gift)** — entitlement granted via a redeemed gift, with purchaser name + email shown beneath the plan label
 
-## Status
+Lifetime/Admin/AU rows stay as they are.
 
-- Database migration **already applied** (additive only — new columns, indexes, two SECURITY DEFINER RPCs locked to `service_role`). No legacy columns dropped.
-- All remaining changes are code: 6 edge functions + 2 frontend pages. They require build mode.
+## Scope
+Frontend-only change to `src/components/admin/AdminUsers.tsx`. No schema or edge function changes — all data needed is already loaded.
 
-## Database (done)
+## Data sources (already loaded in the component)
+- `entitlements.plan_lookup_key` — `asset_safe_monthly` | `asset_safe_annual` (and similar)
+- `entitlements.entitlement_source` — `stripe` | `admin` | (future) `gift`
+- `giftSubscriptions` state — already fetched via `from('gift_subscriptions').select('*')`
 
-`gift_subscriptions` now has:
+A gift-redeemed user is identified by:
+- `gift_subscriptions.recipient_user_id === user.user_id`
+- `redeemed === true` (or `redemption_status === 'redeemed'`)
 
-- `payment_status` (`pending|paid|refunded|canceled`), `delivery_status` (`not_sent|sending|sent|failed`), `redemption_status` (`unredeemed|redeemed|expired`).
-- `paid_at`, `delivered_at`, `recipient_email_sent_at`, `purchaser_email_sent_at`, `delivery_attempted_at`, `last_delivery_error`.
-- `stripe_payment_intent_id`, `claim_token_hash`, `resend_recipient_email_id`, `resend_purchaser_email_id`.
-- `success_token_hash`, `success_token_expires_at` (24h).
-- Backfilled from legacy `status`/`redeemed`.
-- Unique partial index on `stripe_session_id`; lookup index on `(stripe_session_id, success_token_hash)`.
+## Changes
 
-RPCs (service_role only, `SECURITY DEFINER SET search_path = public, pg_temp`):
+### 1. Build a gift lookup map (after gifts are fetched)
+```ts
+const giftByRecipient = useMemo(() => {
+  const m = new Map<string, GiftSubscription>();
+  for (const g of giftSubscriptions) {
+    if (g.recipient_user_id && (g.redeemed || g.redemption_status === 'redeemed')) {
+      m.set(g.recipient_user_id, g);
+    }
+  }
+  return m;
+}, [giftSubscriptions]);
+```
 
-- `get_gift_status_by_session_and_token(session_id, token_hash)` → `{found, payment_status, delivery_status, created_at, delivered_at, recipient_email_masked}`. No row id, no Stripe IDs.
-- `redeem_gift(code, token_hash, user_email, user_id)` → returns `{success, reason?, gift_id?}` with reasons `invalid_token|not_paid|already_redeemed|expired|legacy_link_needs_resend|wrong_email`. Row-locked; verifies token hash + recipient email match.
+### 2. Extend `getPlanInfo` to accept gift + lookup_key
+Update the signature and the Asset Safe branch:
+```ts
+const getPlanInfo = (planId, subscriptionTier, entitlementSource, stripeSubId, planLookupKey, gift) => {
+  // existing lifetime / admin branches unchanged
+  // ...
+  if (tier === 'standard' || tier === 'premium') {
+    if (gift) {
+      return { name: 'Asset Safe Plan (Gift)', price: 'Gift', variant: 'gift' };
+    }
+    const isAnnual = planLookupKey?.includes('annual') || planLookupKey?.includes('yearly');
+    return {
+      name: isAnnual ? 'Asset Safe Plan (Annual)' : 'Asset Safe Plan (Monthly)',
+      price: isAnnual ? '$189/yr' : '$18.99/mo',
+    };
+  }
+};
+```
 
-## Edge functions (to write in build mode)
+Also surface `plan_lookup_key` on the user row (already pulled from entitlements at line ~131 — add it to the mapping at ~204 so it's available here).
 
-1. **`create-gift-checkout`** — rewrite.
-   - Validate inputs, verify consent.
-   - Generate `giftId`, `giftCode`, `successToken` (32 bytes base64url), `successTokenHash`, 24h expiry — all server-side.
-   - **Insert `gift_subscriptions` row BEFORE Stripe** with `payment_status=pending`, `delivery_status=not_sent`, `redemption_status=unredeemed`, `success_token_hash`, `success_token_expires_at`.
-   - Build `success_url` server-side: `${origin}/gift-success?session_id={CHECKOUT_SESSION_ID}&t=${successToken}`.
-   - Stripe metadata: only `gift="true"`, `gift_subscription_id`, `gift_term`. No PII, no token, no message.
-   - After session creation, store `stripe_session_id`. Return `{ url }`.
+### 3. Render purchaser info under the plan name for gift rows
+In the Plan cell (around line 547), when `planInfo.variant === 'gift'`:
+```tsx
+<div>
+  <p className="font-medium">Asset Safe Plan (Gift)</p>
+  <p className="text-xs text-muted-foreground">Gift · no recurring charge</p>
+  <div className="mt-1 pt-1 border-t text-xs">
+    <p className="text-muted-foreground">Gifted by:</p>
+    <p className="font-medium">{gift.purchaser_name || '—'}</p>
+    <p className="text-muted-foreground">{gift.purchaser_email}</p>
+    {gift.redeemed_at && (
+      <p className="text-muted-foreground mt-0.5">
+        Redeemed {formatDate(gift.redeemed_at)}
+      </p>
+    )}
+  </div>
+</div>
+```
 
-2. **`stripe-webhook` (gift branch only)** — patch lines 527–669.
-   - Look up the existing gift row by `stripe_session_id` (created by `create-gift-checkout`); if missing, log and skip.
-   - Set `cancel_at_period_end` on the Stripe subscription.
-   - Update payment fields: `payment_status='paid'`, `paid_at`, `stripe_payment_intent_id`, `stripe_subscription_id`, `expires_at`.
-   - Atomic sending lock with stuck-recovery guard (allow if `delivery_status in (not_sent, failed)` OR (`sending` AND `delivery_attempted_at < now() - 10 min`)). Set `delivery_status='sending'`, `delivery_attempted_at=now()`.
-   - Generate raw `claimToken`, store `claim_token_hash`.
-   - Invoke `send-gift-email` via internal secret with `{ giftId, claimToken }`. Webhook NEVER writes `sent/failed/delivered_at/*_email_sent_at/last_delivery_error`.
+### 4. Source badge
+When a row is gift-redeemed, render a `Gift` badge (purple/pink) in the Source column instead of/in addition to whatever `entitlement_source` says, so admins can scan-spot gifts.
 
-3. **`send-gift-email`** — single writer. Auth via `x-internal-secret` (SUPABASE_SERVICE_ROLE_KEY) or admin JWT (`has_app_role`). Idempotent: skip if `recipient_email_sent_at` and `resend !== true`. Build tokenized claim URL `…/gift-claim?code=…&token=…`. All Resend from `@assetsafe.net`. Writes `sent/failed/delivered_at/recipient_email_sent_at/purchaser_email_sent_at/resend_*_id/last_delivery_error`. Purchaser email sent only on first delivery.
+## Out of scope
+- Gift Subscriptions tab (already shows purchaser + recipient correctly).
+- Any change to checkout/redeem flows — the purchaser is already captured at `create-gift-checkout` time (`purchaser_name`, `purchaser_email`).
+- No DB migration.
 
-4. **`get-gift-status`** — public. `action: 'status'` calls the RPC (verbatim safe response). `action: 'resend'` re-queries `gift_subscriptions` with the verified `(session_id, success_token_hash, success_token_expires_at > now())` tuple to obtain `gift_id`, applies 3/15-min rate limit per `(session_id, IP)`, requires `payment_status='paid'`, acquires sending lock with stuck-recovery guard, rotates `claim_token_hash`, invokes `send-gift-email` with `{ resend:true }`. Never returns gift id or row.
-
-5. **`resend-gift-email`** — JWT-authenticated (purchaser by `purchaser_user_id` or matching email, or admin). 5/15-min rate limit per user. Same lock + rotate + invoke pattern. Logs `gift_email_resent`.
-
-6. **`redeem-gift`** — JWT-authenticated. Validates `code` + `token` from body. Hashes token server-side; calls `redeem_gift` RPC with user email and id derived from JWT. 10/15-min rate limit per user+IP. Returns RPC payload.
-
-7. **`backfill-gift-session`** — admin-only (`has_app_role admin`). Verifies Stripe Checkout Session is `paid`. Updates payment fields FIRST (required by `send-gift-email`), then lock, then rotate, then invoke. Audit-logged.
-
-## Frontend (to write in build mode)
-
-- **`src/pages/GiftCheckout.tsx`** — no change. Already redirects to the returned Stripe URL.
-- **`src/pages/GiftSuccess.tsx`** — rewrite. Read `session_id` and `t` from URL. Call `get-gift-status` with `{ action:'status', sessionId, successToken: t }`. Poll every 5s up to ~30s. Render masked recipient + delivery status. If `delivery_status === 'failed'`, surface a "Resend gift email" button that calls `get-gift-status` with `{ action:'resend' }`. Never invokes `send-gift-email`, never reads the table directly, never shows raw tokens / Stripe IDs / errors.
-- **`src/pages/GiftClaim.tsx`** — rewrite. Read `code` + `token` from URL. Require sign-in (preserve via `?redirect=`). On submit, POST `{ code, token }` to `redeem-gift`. Map RPC reasons to friendly messages (`wrong_email`, `legacy_link_needs_resend`, `already_redeemed`, `expired`, `not_paid`, `invalid_token`). On success, navigate to `/account`.
-
-## Sender domain
-
-All gift Resend calls use `noreply@assetsafe.net` (already correct in `send-gift-email`; updated wherever needed).
-
-## Verification after build
-
-- Deploy edge functions, then trigger a test gift checkout end-to-end on staging Stripe.
-- Confirm: no raw token in Stripe metadata; GiftSuccess never calls `send-gift-email`; webhook retries don't duplicate emails; recipient email comes from `@assetsafe.net`; claim requires matching recipient email; code-only links rejected for new sends.
-
-Reply "build mode" (or approve) to let me write the 6 edge function files and 2 page updates.
+## Acceptance
+- Monthly Stripe subscriber → "Asset Safe Plan (Monthly)" / "$18.99/mo"
+- Annual Stripe subscriber → "Asset Safe Plan (Annual)" / "$189/yr"
+- Redeemed gift recipient → "Asset Safe Plan (Gift)" with purchaser name + email + redeemed date underneath, plus a `Gift` source badge
+- Lifetime / Admin / Authorized User rows unchanged
