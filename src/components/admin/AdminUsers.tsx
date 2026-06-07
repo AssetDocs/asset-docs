@@ -781,104 +781,130 @@ const AdminUsers = () => {
         </TabsContent>
 
         <TabsContent value="contributors" className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Search className="w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by owner name, account #, or contributor email..."
-              value={contributorSearchTerm}
-              onChange={(e) => setContributorSearchTerm(e.target.value)}
-              className="max-w-sm"
-            />
-          </div>
+          {(() => {
+            // Flatten all AUs across owners
+            const flatRows = filteredOwnersWithContributors
+              .flatMap((owner) =>
+                owner.contributors.map((c) => ({ owner, c }))
+              )
+              .sort((a, b) => {
+                const ow = (a.owner.ownerName || '').localeCompare(b.owner.ownerName || '');
+                if (ow !== 0) return ow;
+                const an = `${a.c.first_name || ''} ${a.c.last_name || ''}`.trim();
+                const bn = `${b.c.first_name || ''} ${b.c.last_name || ''}`.trim();
+                return an.localeCompare(bn);
+              });
+            const ownerCount = new Set(flatRows.map((r) => r.owner.ownerId)).size;
 
-          {loading ? (
-            <p>Loading...</p>
-          ) : filteredOwnersWithContributors.length > 0 ? (
-            <div className="space-y-6">
-              {filteredOwnersWithContributors.map((owner) => (
-                <Card key={owner.ownerId}>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle className="flex items-center gap-2">
-                          <Users className="w-5 h-5 text-primary" />
-                          {owner.ownerName || 'Unknown Owner'}
-                        </CardTitle>
-                        <CardDescription className="mt-1">
-                          <span className="font-mono text-xs bg-muted px-2 py-1 rounded mr-2">
-                            {owner.accountNumber || 'No Account #'}
-                          </span>
-                          {owner.ownerEmail && <span>{owner.ownerEmail}</span>}
-                        </CardDescription>
-                      </div>
-                      <Badge className="bg-primary">
-                        <UserPlus className="w-3 h-3 mr-1" />
-                        {owner.contributors.length} Contributor{owner.contributors.length !== 1 ? 's' : ''}
-                      </Badge>
+            return (
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <Users className="w-5 h-5 text-primary" />
+                        All Authorized Users
+                      </CardTitle>
+                      <CardDescription>
+                        {flatRows.length} Authorized User{flatRows.length !== 1 ? 's' : ''} across {ownerCount} Account{ownerCount !== 1 ? 's' : ''}
+                      </CardDescription>
                     </div>
-                  </CardHeader>
-                  <CardContent>
+                    <div className="flex items-center gap-2">
+                      <Search className="w-4 h-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search AU name, AU account #, email, owner name, owner account #..."
+                        value={contributorSearchTerm}
+                        onChange={(e) => setContributorSearchTerm(e.target.value)}
+                        className="w-[360px]"
+                      />
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {loading ? (
+                    <p>Loading...</p>
+                  ) : flatRows.length > 0 ? (
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Name</TableHead>
+                          <TableHead>Authorized User</TableHead>
+                          <TableHead>AU Account #</TableHead>
                           <TableHead>Email</TableHead>
                           <TableHead>Role</TableHead>
                           <TableHead>Status</TableHead>
+                          <TableHead>Authorized On (Owner)</TableHead>
+                          <TableHead>Owner Account #</TableHead>
                           <TableHead>Invited</TableHead>
                           <TableHead>Accepted</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {owner.contributors.map((contributor) => (
-                          <TableRow key={contributor.id}>
-                            <TableCell className="font-medium">
-                              {contributor.first_name || contributor.last_name 
-                                ? `${contributor.first_name || ''} ${contributor.last_name || ''}`.trim()
-                                : '-'}
-                            </TableCell>
-                            <TableCell>{contributor.contributor_email}</TableCell>
-                            <TableCell>
-                              <Badge 
-                                variant="outline" 
-                                className={
-                                  contributor.role === 'administrator' 
-                                    ? 'border-green-500 text-green-600' 
-                                    : contributor.role === 'viewer' 
-                                    ? 'border-blue-500 text-blue-600' 
-                                    : 'border-yellow-500 text-yellow-600'
-                                }
-                              >
-                                {contributor.role}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant={contributor.status === 'accepted' ? 'default' : 'secondary'}>
-                                {contributor.status}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-sm text-muted-foreground">
-                              {formatDate(contributor.created_at)}
-                            </TableCell>
-                            <TableCell className="text-sm text-muted-foreground">
-                              {contributor.accepted_at ? formatDate(contributor.accepted_at) : '-'}
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                        {flatRows.map(({ owner, c }) => {
+                          const auName =
+                            c.first_name || c.last_name
+                              ? `${c.first_name || ''} ${c.last_name || ''}`.trim()
+                              : '-';
+                          return (
+                            <TableRow key={`${owner.ownerId}-${c.id}`}>
+                              <TableCell className="font-medium">{auName}</TableCell>
+                              <TableCell>
+                                <span className="font-mono text-xs bg-muted px-2 py-1 rounded">
+                                  {c.contributor_account_number || '—'}
+                                </span>
+                              </TableCell>
+                              <TableCell>{c.contributor_email || '-'}</TableCell>
+                              <TableCell>
+                                <Badge
+                                  variant="outline"
+                                  className={
+                                    c.role === 'administrator'
+                                      ? 'border-green-500 text-green-600'
+                                      : c.role === 'viewer'
+                                      ? 'border-blue-500 text-blue-600'
+                                      : 'border-yellow-500 text-yellow-600'
+                                  }
+                                >
+                                  {c.role}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant={c.status === 'accepted' ? 'default' : 'secondary'}>
+                                  {c.status}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="font-medium">
+                                {owner.ownerName || 'Unknown Owner'}
+                                {owner.ownerEmail && (
+                                  <div className="text-xs text-muted-foreground">{owner.ownerEmail}</div>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                <span className="font-mono text-xs bg-muted px-2 py-1 rounded">
+                                  {owner.accountNumber || '—'}
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-sm text-muted-foreground">
+                                {c.created_at ? formatDate(c.created_at) : '-'}
+                              </TableCell>
+                              <TableCell className="text-sm text-muted-foreground">
+                                {c.accepted_at ? formatDate(c.accepted_at) : '-'}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
                       </TableBody>
                     </Table>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <Card>
-              <CardContent className="py-8">
-                <p className="text-center text-muted-foreground">No accounts with contributors found</p>
-              </CardContent>
-            </Card>
-          )}
+                  ) : (
+                    <p className="text-center text-muted-foreground py-8">
+                      No authorized users found
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })()}
         </TabsContent>
+
 
         <TabsContent value="cancelled" className="space-y-4">
           <Card>
