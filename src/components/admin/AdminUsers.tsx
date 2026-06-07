@@ -357,36 +357,63 @@ const AdminUsers = () => {
     }).format(amount / 100);
   };
 
-  // Map plan info using entitlements data (plan + plan_lookup_key + entitlement_source)
-  const getPlanInfo = (planId: string | null, subscriptionTier: string | null, entitlementSource?: string | null, stripeSubId?: string | null) => {
-    if (!planId && !subscriptionTier) {
-      return { name: 'None', price: '-' };
+  // Build lookup: recipient_user_id -> redeemed gift
+  const giftByRecipient = React.useMemo(() => {
+    const m = new Map<string, GiftSubscription>();
+    for (const g of giftSubscriptions) {
+      if (g.recipient_user_id && (g.redeemed || g.redemption_status === 'redeemed')) {
+        m.set(g.recipient_user_id, g);
+      }
     }
-    
+    return m;
+  }, [giftSubscriptions]);
+
+  // Map plan info using entitlements data (plan + plan_lookup_key + entitlement_source)
+  const getPlanInfo = (
+    planId: string | null,
+    subscriptionTier: string | null,
+    entitlementSource?: string | null,
+    stripeSubId?: string | null,
+    planLookupKey?: string | null,
+    gift?: GiftSubscription | null,
+  ) => {
+    if (!planId && !subscriptionTier && !gift) {
+      return { name: 'None', price: '-', variant: 'none' as const };
+    }
+
     // Lifetime plan by explicit planId
     if (planId === 'premium_lifetime') {
-      return { name: 'Free Lifetime (ASL2025)', price: 'Lifetime' };
+      return { name: 'Free Lifetime (ASL2025)', price: 'Lifetime', variant: 'lifetime' as const };
     }
-    
+
     // Admin or lifetime entitlement source with no Stripe subscription = free lifetime
-    if ((entitlementSource === 'admin' || entitlementSource === 'lifetime') && !stripeSubId) {
-      return { name: 'Free Lifetime (ASL2025)', price: 'Lifetime' };
+    if ((entitlementSource === 'admin' || entitlementSource === 'lifetime') && !stripeSubId && !gift) {
+      return { name: 'Free Lifetime (ASL2025)', price: 'Lifetime', variant: 'lifetime' as const };
     }
-    
-    // Single-plan model: Asset Safe Plan
+
+    // Gift takes precedence over Stripe-style labeling
+    if (gift) {
+      return { name: 'Asset Safe Plan (Gift)', price: 'Gift · no recurring charge', variant: 'gift' as const };
+    }
+
+    // Single-plan model: Asset Safe Plan — distinguish monthly vs annual
     const tier = subscriptionTier?.toLowerCase();
     if (tier === 'standard' || tier === 'premium') {
-      return { name: 'Asset Safe Plan', price: '$18.99/mo or $189/yr' };
+      const key = planLookupKey?.toLowerCase() || '';
+      const isAnnual = key.includes('annual') || key.includes('yearly') || key.includes('year');
+      return isAnnual
+        ? { name: 'Asset Safe Plan (Annual)', price: '$189/yr', variant: 'annual' as const }
+        : { name: 'Asset Safe Plan (Monthly)', price: '$18.99/mo', variant: 'monthly' as const };
     }
-    
+
     // Map known Stripe price IDs
     if (planId) {
       if (planId.startsWith('price_')) {
-        return { name: 'Asset Safe Plan', price: 'Stripe' };
+        return { name: 'Asset Safe Plan', price: 'Stripe', variant: 'monthly' as const };
       }
     }
-    
-    return { name: subscriptionTier || planId || 'Unknown', price: '-' };
+
+    return { name: subscriptionTier || planId || 'Unknown', price: '-', variant: 'none' as const };
   };
 
   return (
