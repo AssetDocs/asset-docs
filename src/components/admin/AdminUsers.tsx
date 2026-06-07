@@ -41,6 +41,7 @@ interface ContributorRecord {
   account_owner_id: string;
   created_at: string;
   accepted_at: string | null;
+  contributor_account_number?: string | null;
 }
 
 interface OwnerWithContributors {
