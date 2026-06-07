@@ -244,9 +244,13 @@ const AdminUsers = () => {
         contributorsData?.forEach(contributor => {
           const bucket = ensureOwner(contributor.account_owner_id);
           if (bucket) {
+            const auProfile = contributor.contributor_user_id
+              ? ownerProfileMap.get(contributor.contributor_user_id)
+              : null;
             bucket.contributors.push({
               ...contributor,
               accepted_at: contributor.accepted_at || null,
+              contributor_account_number: auProfile?.account_number || null,
             });
           }
         });
@@ -275,6 +279,7 @@ const AdminUsers = () => {
             account_owner_id: ownerId,
             created_at: '',
             accepted_at: null,
+            contributor_account_number: auProfile?.account_number || null,
           });
         });
 
