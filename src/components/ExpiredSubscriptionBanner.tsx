@@ -1,10 +1,12 @@
 // @ts-nocheck
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, Lock, Download, RefreshCw, Trash2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { useAccountStatus } from '@/hooks/useAccountStatus';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Props {
   onReactivate?: () => void;
@@ -14,9 +16,30 @@ interface Props {
 
 const ExpiredSubscriptionBanner: React.FC<Props> = ({ onReactivate, onExport, onDelete }) => {
   const { isReadOnly, accountStatus, loading } = useAccountStatus();
+  const { user } = useAuth();
   const navigate = useNavigate();
+  const [scheduledDate, setScheduledDate] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user?.id || accountStatus !== 'deletion_requested' && accountStatus !== 'scheduled_for_deletion') return;
+    (async () => {
+      const { data } = await supabase
+        .from('account_closure_requests')
+        .select('deletion_scheduled_date')
+        .eq('owner_user_id', user.id)
+        .in('status', ['pending', 'scheduled'])
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (data?.deletion_scheduled_date) setScheduledDate(data.deletion_scheduled_date);
+    })();
+  }, [user?.id, accountStatus]);
 
   if (loading || !isReadOnly) return null;
+
+  const formattedDate = scheduledDate
+    ? new Date(scheduledDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
+    : null;
 
   const title =
     accountStatus === 'expired_read_only'
@@ -26,7 +49,7 @@ const ExpiredSubscriptionBanner: React.FC<Props> = ({ onReactivate, onExport, on
   const message =
     accountStatus === 'expired_read_only'
       ? 'Your records remain securely stored and available in read-only mode. You can continue viewing your information, exporting your data, reactivating your subscription, or requesting permanent account deletion.'
-      : 'Your account is scheduled for deletion. You retain read-only access until the scheduled date. You can still export your data or reverse this request from Account Settings.';
+      : `Your account is scheduled for deletion${formattedDate ? ` on ${formattedDate}` : ''}. You retain read-only access until ${formattedDate ? `that date` : 'the scheduled date'}. You can still export your data or reverse this request from Account Settings.`;
 
   return (
     <Alert className="mb-4 border-orange-400 bg-orange-50">
