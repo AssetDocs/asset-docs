@@ -214,6 +214,7 @@ const AdminUsers = () => {
             ownerName: ownerProfile ? `${ownerProfile.first_name || ''} ${ownerProfile.last_name || ''}`.trim() : null,
             ownerAccountNumber: ownerProfile?.account_number || null,
             entitlement_source: entitlement?.entitlement_source || null,
+            plan_lookup_key: entitlement?.plan_lookup_key || null,
             billing_status: entitlement?.billing_status || null,
             total_storage_gb: entitlement?.total_storage_gb || null,
           };
