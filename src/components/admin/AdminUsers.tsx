@@ -329,7 +329,8 @@ const AdminUsers = () => {
       owner.contributors.some(c => 
         c.contributor_email.toLowerCase().includes(searchLower) ||
         c.first_name?.toLowerCase().includes(searchLower) ||
-        c.last_name?.toLowerCase().includes(searchLower)
+        c.last_name?.toLowerCase().includes(searchLower) ||
+        c.contributor_account_number?.toLowerCase().includes(searchLower)
       )
     );
   });
