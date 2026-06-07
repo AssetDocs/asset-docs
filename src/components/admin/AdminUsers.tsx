@@ -224,6 +224,19 @@ const AdminUsers = () => {
 
         setUsers(mergedUsers);
 
+        // Build Stripe customer_id -> { name, email } lookup for Payment Events
+        const lookup: Record<string, { name: string; email: string | null }> = {};
+        entitlementsData?.forEach((e: any) => {
+          if (!e.stripe_customer_id) return;
+          const profile = ownerProfileMap.get(e.user_id);
+          const name = profile
+            ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
+            : '';
+          const email = subscriberMap.get(e.user_id)?.email || authEmails[e.user_id] || null;
+          lookup[e.stripe_customer_id] = { name: name || '—', email };
+        });
+        setCustomerLookup(lookup);
+
         // Build owners with contributors data — combine legacy contributors + account_memberships
         const ownersMap = new Map<string, OwnerWithContributors>();
 
