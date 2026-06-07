@@ -519,6 +519,63 @@ export type Database = {
           },
         ]
       }
+      admin_fulfillment_overrides: {
+        Row: {
+          admin_user_id: string
+          created_at: string
+          decision: string
+          email_matched: boolean | null
+          fulfillment_id: string | null
+          id: string
+          manual_review_reason_at_decision: string | null
+          notes: string | null
+          original_metadata_user_id: string | null
+          outcome: string
+          override_reason: string | null
+          override_user_email: string | null
+          override_user_id: string | null
+          stripe_customer_id: string | null
+          stripe_email: string | null
+          stripe_session_id: string
+        }
+        Insert: {
+          admin_user_id: string
+          created_at?: string
+          decision: string
+          email_matched?: boolean | null
+          fulfillment_id?: string | null
+          id?: string
+          manual_review_reason_at_decision?: string | null
+          notes?: string | null
+          original_metadata_user_id?: string | null
+          outcome: string
+          override_reason?: string | null
+          override_user_email?: string | null
+          override_user_id?: string | null
+          stripe_customer_id?: string | null
+          stripe_email?: string | null
+          stripe_session_id: string
+        }
+        Update: {
+          admin_user_id?: string
+          created_at?: string
+          decision?: string
+          email_matched?: boolean | null
+          fulfillment_id?: string | null
+          id?: string
+          manual_review_reason_at_decision?: string | null
+          notes?: string | null
+          original_metadata_user_id?: string | null
+          outcome?: string
+          override_reason?: string | null
+          override_user_email?: string | null
+          override_user_id?: string | null
+          stripe_customer_id?: string | null
+          stripe_email?: string | null
+          stripe_session_id?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -721,6 +778,111 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      checkout_fulfillments: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          email: string | null
+          fulfillment_source: string | null
+          id: string
+          last_email_error: string | null
+          magic_link_delivery_status: string | null
+          magic_link_sent_at: string | null
+          manual_review_reason: string | null
+          manual_review_resolved_at: string | null
+          manual_review_resolved_by: string | null
+          metadata: Json | null
+          plan_lookup_key: string | null
+          processing_started_at: string | null
+          status: string
+          stripe_customer_id: string | null
+          stripe_session_id: string
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          email?: string | null
+          fulfillment_source?: string | null
+          id?: string
+          last_email_error?: string | null
+          magic_link_delivery_status?: string | null
+          magic_link_sent_at?: string | null
+          manual_review_reason?: string | null
+          manual_review_resolved_at?: string | null
+          manual_review_resolved_by?: string | null
+          metadata?: Json | null
+          plan_lookup_key?: string | null
+          processing_started_at?: string | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_session_id: string
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          email?: string | null
+          fulfillment_source?: string | null
+          id?: string
+          last_email_error?: string | null
+          magic_link_delivery_status?: string | null
+          magic_link_sent_at?: string | null
+          manual_review_reason?: string | null
+          manual_review_resolved_at?: string | null
+          manual_review_resolved_by?: string | null
+          metadata?: Json | null
+          plan_lookup_key?: string | null
+          processing_started_at?: string | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_session_id?: string
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      checkout_session_audit: {
+        Row: {
+          created_at: string
+          email: string | null
+          error_message: string | null
+          id: string
+          ip: string | null
+          lookup_key: string | null
+          outcome: string | null
+          stripe_session_id: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          error_message?: string | null
+          id?: string
+          ip?: string | null
+          lookup_key?: string | null
+          outcome?: string | null
+          stripe_session_id?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          error_message?: string | null
+          id?: string
+          ip?: string | null
+          lookup_key?: string | null
+          outcome?: string | null
+          stripe_session_id?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
       }
       closure_requests: {
         Row: {
@@ -4007,6 +4169,33 @@ export type Database = {
         }
         Relationships: []
       }
+      legal_terms_versions: {
+        Row: {
+          created_at: string
+          current_version: string
+          effective_at: string
+          id: string
+          is_active: boolean
+          notes: string | null
+        }
+        Insert: {
+          created_at?: string
+          current_version: string
+          effective_at?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+        }
+        Update: {
+          created_at?: string
+          current_version?: string
+          effective_at?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+        }
+        Relationships: []
+      }
       lifetime_codes: {
         Row: {
           code: string
@@ -5220,6 +5409,7 @@ export type Database = {
           outcome: string | null
           payload: Json | null
           processed_at: string
+          status: string
           stripe_event_id: string
         }
         Insert: {
@@ -5230,6 +5420,7 @@ export type Database = {
           outcome?: string | null
           payload?: Json | null
           processed_at?: string
+          status?: string
           stripe_event_id: string
         }
         Update: {
@@ -5240,6 +5431,7 @@ export type Database = {
           outcome?: string | null
           payload?: Json | null
           processed_at?: string
+          status?: string
           stripe_event_id?: string
         }
         Relationships: []
@@ -6123,8 +6315,29 @@ export type Database = {
         }
         Relationships: []
       }
+      v_authoritative_consent: {
+        Row: {
+          consent_type: string | null
+          created_at: string | null
+          ip_address: string | null
+          strength: number | null
+          terms_version: string | null
+          user_email: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      admin_resolve_manual_review: {
+        Args: {
+          p_decision: string
+          p_fulfillment_id: string
+          p_notes?: string
+          p_override_reason?: string
+          p_override_user_id?: string
+        }
+        Returns: Json
+      }
       apply_account_freeze: {
         Args: {
           _account_id: string
