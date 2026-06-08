@@ -8,6 +8,7 @@ import { useBackupCodes } from '@/hooks/useBackupCodes';
 import { useTOTP } from '@/hooks/useTOTP';
 import { useToast } from '@/hooks/use-toast';
 import BackupCodesDisplay from './BackupCodesDisplay';
+import MfaStepUpDialog from './MfaStepUpDialog';
 import { logActivity } from '@/hooks/useActivityLog';
 import {
   AlertDialog,
@@ -26,6 +27,7 @@ const BackupCodesSettings: React.FC = () => {
   const { isEnrolled: hasTOTP, isLoading: totpLoading } = useTOTP();
   const [showCodesDialog, setShowCodesDialog] = useState(false);
   const [showRegenerateConfirm, setShowRegenerateConfirm] = useState(false);
+  const [showStepUp, setShowStepUp] = useState(false);
   const [generatedCodes, setGeneratedCodes] = useState<string[]>([]);
   const [generating, setGenerating] = useState(false);
 
@@ -46,8 +48,6 @@ const BackupCodesSettings: React.FC = () => {
           title: "Backup Codes Generated",
           description: "Your new backup recovery codes are ready.",
         });
-        
-        // Log activity
         logActivity({
           action_type: 'backup_codes_generated',
           action_category: 'security',
@@ -57,15 +57,34 @@ const BackupCodesSettings: React.FC = () => {
         });
       }
     } catch (error: any) {
+      const msg: string = error?.message || '';
+      // Edge function returns 403 with code 'step_up_required' when there is
+      // no fresh step-up session. Prompt the user to re-verify, then retry.
+      if (
+        msg.toLowerCase().includes('step-up required') ||
+        msg.toLowerCase().includes('step_up_required') ||
+        error?.context?.response?.status === 403
+      ) {
+        setShowRegenerateConfirm(false);
+        setShowStepUp(true);
+        return;
+      }
       toast({
         title: "Error",
-        description: error.message || "Failed to generate backup codes.",
+        description: msg || "Failed to generate backup codes.",
         variant: "destructive",
       });
     } finally {
       setGenerating(false);
       setShowRegenerateConfirm(false);
     }
+  };
+
+  // Called after a successful step-up — retry the generation.
+  const handleStepUpVerified = () => {
+    setShowStepUp(false);
+    // Small delay so the freshly-written step-up row is visible.
+    setTimeout(() => { void handleGenerateCodes(); }, 150);
   };
 
   if (totpLoading || isLoading) {
