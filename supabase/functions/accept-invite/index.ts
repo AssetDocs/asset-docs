@@ -69,6 +69,21 @@ serve(async (req: Request) => {
     );
     if (authError || !user || !user.email) throw new Error("Unauthorized");
 
+    // Rate limit: 10 accept attempts per hour per user (token guessing defense).
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const rlUser = await checkAuRateLimit(`user:${user.id}`, "accept-invite", { maxAttempts: 10, windowMinutes: 60 });
+    if (!rlUser.allowed) {
+      return new Response(JSON.stringify({ error: rlUser.message, success: false }), {
+        status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const rlIp = await checkAuRateLimit(`ip:${ip}`, "accept-invite", { maxAttempts: 20, windowMinutes: 60 });
+    if (!rlIp.allowed) {
+      return new Response(JSON.stringify({ error: rlIp.message, success: false }), {
+        status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // 2) Hash the raw token.
     const body = await req.json();
     const { token } = bodySchema.parse(body);
