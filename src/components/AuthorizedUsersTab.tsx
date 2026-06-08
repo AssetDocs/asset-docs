@@ -544,9 +544,9 @@ const AuthorizedUsersTab: React.FC = () => {
                     <p className="text-xs text-muted-foreground">
                       Invited {new Date(invite.created_at).toLocaleDateString()} · Expires {new Date(invite.expires_at).toLocaleDateString()}
                     </p>
-                    {invite.delivery_status === 'failed' && invite.last_delivery_error && (
+                    {invite.delivery_status === 'failed' && (
                       <p className="text-xs text-red-700 mt-1">
-                        Delivery error: {invite.last_delivery_error}
+                        Email could not be sent. Use Resend to try again.
                       </p>
                     )}
                   </div>
@@ -554,14 +554,24 @@ const AuthorizedUsersTab: React.FC = () => {
                     {getRoleBadge(invite.role)}
                     {getDeliveryBadge(invite)}
                     {isOwner && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 text-xs text-destructive"
-                        onClick={() => handleCancelInvite(invite.id)}
-                      >
-                        Cancel
-                      </Button>
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-xs"
+                          onClick={() => handleResendInvite(invite.id, invite.email)}
+                        >
+                          Resend
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs text-destructive"
+                          onClick={() => handleCancelInvite(invite.id)}
+                        >
+                          Cancel
+                        </Button>
+                      </>
                     )}
                   </div>
                 </div>
