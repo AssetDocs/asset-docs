@@ -22,8 +22,8 @@ function toLookupKey(_planType: string, billingInterval: string): string {
 
 async function rateLimit(
   supabaseAdmin: any,
-  scope: string,
-  key: string,
+  action: string,
+  identifier: string,
   limit: number,
   windowMin: number,
 ): Promise<boolean> {
@@ -31,11 +31,16 @@ async function rateLimit(
   const { count } = await supabaseAdmin
     .from("rate_limits")
     .select("id", { count: "exact", head: true })
-    .eq("scope", scope)
-    .eq("key", key)
+    .eq("action", action)
+    .eq("identifier", identifier)
     .gte("created_at", windowStart);
   if ((count ?? 0) >= limit) return false;
-  await supabaseAdmin.from("rate_limits").insert({ scope, key });
+  await supabaseAdmin.from("rate_limits").insert({
+    action,
+    identifier,
+    attempts: 1,
+    window_start: new Date().toISOString(),
+  });
   return true;
 }
 
