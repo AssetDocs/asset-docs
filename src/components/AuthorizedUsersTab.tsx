@@ -349,6 +349,14 @@ const AuthorizedUsersTab: React.FC = () => {
               </div>
             </div>
 
+            {inviteError && (
+              <Alert variant="destructive" className="mt-4">
+                <AlertDescription>{inviteError}</AlertDescription>
+              </Alert>
+            )}
+
+
+
             <div className="mt-6 rounded-md border border-border bg-muted/40 p-4">
               <div className="flex items-start gap-3">
                 <Lightbulb className="h-5 w-5 text-primary mt-0.5 shrink-0" />
