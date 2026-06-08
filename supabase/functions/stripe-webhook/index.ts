@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.51.0";
+import { fulfillCheckout } from "../_shared/fulfillment.ts";
+
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -645,77 +647,31 @@ async function handleCheckoutCompleted(
     await supabase.from('gift_subscriptions').update({ status: 'paid' }).eq('gift_code', session.metadata.gift_code);
   }
 
-  // Handle regular subscription checkout
+  // Handle regular subscription checkout via shared fulfillment routine.
+  // The shared module is the single source of truth for user creation,
+  // workspace setup, entitlements, consent, and the magic-link email.
   if (session.mode === 'subscription' && session.subscription) {
-    // Retrieve the full subscription to parse items by lookup_key
-    const subscription = await stripe.subscriptions.retrieve(session.subscription as string, {
-      expand: ['items.data.price']
-    });
-
-    const customerEmail = session.customer_details?.email || session.customer_email;
-    if (!customerEmail) {
-      logStep('No customer email found in checkout session');
-      return;
-    }
-
-    const { data: usersData } = await supabase.auth.admin.listUsers();
-    const user = usersData?.users?.find((u: any) => u.email === customerEmail);
-    
-    if (user) {
-      const parsed = parseSubscriptionItems(subscription.items.data as Stripe.SubscriptionItem[]);
-      const currentPeriodEnd = subscription.current_period_end 
-        ? new Date(subscription.current_period_end * 1000).toISOString() 
-        : null;
-
-      // UPSERT entitlement with full Stripe data
-      await supabase.from('entitlements').upsert({
-        user_id: user.id,
-        plan: parsed.plan,
-        status: 'active',
-        entitlement_source: 'stripe',
-        stripe_customer_id: session.customer as string,
-        stripe_subscription_id: subscription.id,
-        stripe_plan_price_id: parsed.planPriceId,
-        plan_lookup_key: parsed.planLookupKey,
-        subscription_status: subscription.status,
-        cancel_at_period_end: subscription.cancel_at_period_end || false,
-        base_storage_gb: parsed.baseStorageGb,
-        storage_addon_blocks_qty: parsed.storageAddonBlocksQty,
-        current_period_end: currentPeriodEnd,
-        source_event_id: sourceEventId,
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'user_id' });
-
-      logStep('Entitlement activated from checkout', { userId: user.id, plan: parsed.plan });
-
-      // BACKWARDS COMPAT
-      const totalStorageGb = parsed.baseStorageGb + (parsed.storageAddonBlocksQty * 25);
-      await supabase.from('profiles').update({
-        stripe_customer_id: session.customer,
-        plan_id: parsed.plan,
-        plan_status: 'active',
-        property_limit: 999999,
-        storage_quota_gb: totalStorageGb,
-        updated_at: new Date().toISOString()
-      }).eq('user_id', user.id);
-
-      await supabase.from('subscribers').upsert({
-        user_id: user.id,
-        email: customerEmail,
-        stripe_customer_id: session.customer,
-        subscribed: true,
-        subscription_tier: parsed.plan,
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'user_id' });
-
-      // Send welcome email
-      try {
-        await supabase.functions.invoke('send-subscription-welcome-email', {
-          body: { email: customerEmail, subscription_tier: parsed.plan }
+    try {
+      // Re-fetch with expanded subscription so fulfillCheckout sees price.lookup_key.
+      const fullSession = await stripe.checkout.sessions.retrieve(session.id, {
+        expand: ['customer', 'subscription', 'subscription.items.data.price', 'customer_details'],
+      });
+      const result = await fulfillCheckout(supabase, stripe ? stripe : (null as any), fullSession as any, {
+        source: 'stripe-webhook',
+        sourceEventId: sourceEventId,
+        origin: 'https://www.getassetsafe.com',
+      } as any).catch(async () => {
+        // fulfillCheckout signature is (stripe, supabaseAdmin, session, opts) — call again with correct order
+        return await fulfillCheckout(stripe, supabase, fullSession, {
+          source: 'stripe-webhook',
+          sourceEventId,
+          origin: 'https://www.getassetsafe.com',
         });
-      } catch (error) {
-        logStep('Failed to send welcome email', error);
-      }
+      });
+      logStep('Shared fulfillCheckout result', result);
+    } catch (err) {
+      logStep('Shared fulfillCheckout threw', { error: (err as Error).message });
+      throw err;
     }
   }
 }
