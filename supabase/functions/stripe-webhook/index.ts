@@ -652,21 +652,13 @@ async function handleCheckoutCompleted(
   // workspace setup, entitlements, consent, and the magic-link email.
   if (session.mode === 'subscription' && session.subscription) {
     try {
-      // Re-fetch with expanded subscription so fulfillCheckout sees price.lookup_key.
       const fullSession = await stripe.checkout.sessions.retrieve(session.id, {
         expand: ['customer', 'subscription', 'subscription.items.data.price', 'customer_details'],
       });
-      const result = await fulfillCheckout(supabase, stripe ? stripe : (null as any), fullSession as any, {
+      const result = await fulfillCheckout(stripe, supabase, fullSession, {
         source: 'stripe-webhook',
-        sourceEventId: sourceEventId,
+        sourceEventId,
         origin: 'https://www.getassetsafe.com',
-      } as any).catch(async () => {
-        // fulfillCheckout signature is (stripe, supabaseAdmin, session, opts) — call again with correct order
-        return await fulfillCheckout(stripe, supabase, fullSession, {
-          source: 'stripe-webhook',
-          sourceEventId,
-          origin: 'https://www.getassetsafe.com',
-        });
       });
       logStep('Shared fulfillCheckout result', result);
     } catch (err) {
