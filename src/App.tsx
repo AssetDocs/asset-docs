@@ -378,6 +378,7 @@ const AppContent = () => {
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/email-verification" element={<EmailVerification />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/confirm-email-change" element={<ConfirmEmailChange />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         {/* TOTP-based 2FA is now used instead of phone verification */}
         <Route path="/complete-pricing" element={<CompletePricing />} />
