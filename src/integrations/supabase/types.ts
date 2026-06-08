@@ -3484,34 +3484,52 @@ export type Database = {
       }
       invites: {
         Row: {
+          accepted_at: string | null
           account_id: string
           created_at: string
+          delivered_at: string | null
+          delivery_status: string
           email: string
           expires_at: string
           id: string
           invited_by: string | null
+          last_delivery_error: string | null
+          last_sent_at: string | null
+          resend_count: number
           role: Database["public"]["Enums"]["membership_role"]
           status: string
           token_hash: string
         }
         Insert: {
+          accepted_at?: string | null
           account_id: string
           created_at?: string
+          delivered_at?: string | null
+          delivery_status?: string
           email: string
           expires_at?: string
           id?: string
           invited_by?: string | null
+          last_delivery_error?: string | null
+          last_sent_at?: string | null
+          resend_count?: number
           role?: Database["public"]["Enums"]["membership_role"]
           status?: string
           token_hash: string
         }
         Update: {
+          accepted_at?: string | null
           account_id?: string
           created_at?: string
+          delivered_at?: string | null
+          delivery_status?: string
           email?: string
           expires_at?: string
           id?: string
           invited_by?: string | null
+          last_delivery_error?: string | null
+          last_sent_at?: string | null
+          resend_count?: number
           role?: Database["public"]["Enums"]["membership_role"]
           status?: string
           token_hash?: string
@@ -6328,6 +6346,10 @@ export type Database = {
       }
     }
     Functions: {
+      accept_invite_atomic: {
+        Args: { _token_hash: string; _user_email: string; _user_id: string }
+        Returns: Json
+      }
       admin_resolve_manual_review: {
         Args: {
           p_decision: string
@@ -6374,6 +6396,8 @@ export type Database = {
           total_size_bytes: number
         }[]
       }
+      can_accept_au_invite: { Args: { _account_id: string }; Returns: boolean }
+      can_send_au_invite: { Args: { _account_id: string }; Returns: boolean }
       cancel_closure: {
         Args: { _closure_id: string; _reason: string }
         Returns: string
