@@ -127,8 +127,14 @@ const AuthorizedUsersTab: React.FC = () => {
   };
 
   const handleInvite = async () => {
+    setInviteError(null);
+
     if (!email.trim()) {
       toast({ title: 'Email required', description: 'Please enter an email address.', variant: 'destructive' });
+      return;
+    }
+    if (!accountId) {
+      toast({ title: 'No active account', description: 'Please reload and try again.', variant: 'destructive' });
       return;
     }
 
@@ -138,17 +144,29 @@ const AuthorizedUsersTab: React.FC = () => {
       if (!session?.session) throw new Error('Not authenticated');
 
       const { data, error } = await supabase.functions.invoke('send-invite', {
-        body: { email: email.trim(), role },
+        body: { accountId, email: email.trim(), role },
         headers: { Authorization: `Bearer ${session.session.access_token}` },
       });
 
       if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      if (data?.success === false) throw new Error(data.error || 'Failed to send invitation.');
 
-      toast({
-        title: 'Invitation sent',
-        description: `An invitation has been sent to ${email.trim()}.`,
-      });
+      const deliveryStatus = data?.delivery_status as 'sent' | 'failed' | undefined;
+
+      if (deliveryStatus === 'failed') {
+        const msg = data?.error || 'The invite was created but the email could not be sent. Use Resend from the pending list.';
+        setInviteError(msg);
+        toast({
+          title: 'Invite saved — email delivery failed',
+          description: msg,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Invitation sent',
+          description: `An invitation has been sent to ${email.trim()}.`,
+        });
+      }
 
       await logActivity({
         action_type: 'contributor_invite',
@@ -160,9 +178,11 @@ const AuthorizedUsersTab: React.FC = () => {
       setRole('read_only');
       fetchPendingInvites();
     } catch (err: any) {
+      const msg = err?.message || 'Please try again.';
+      setInviteError(msg);
       toast({
         title: 'Error sending invitation',
-        description: err.message || 'Please try again.',
+        description: msg,
         variant: 'destructive',
       });
     } finally {
