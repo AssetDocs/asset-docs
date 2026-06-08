@@ -370,19 +370,7 @@ const Pricing: React.FC = () => {
                     </p>
                     <Button 
                       variant="outline" 
-                      onClick={async () => {
-                        try {
-                          const { data, error } = await supabase.functions.invoke('customer-portal');
-                          if (error) throw error;
-                          window.open(data.url, '_blank');
-                        } catch (error) {
-                          toast({
-                            title: "Error",
-                            description: "Failed to open customer portal. Please try again.",
-                            variant: "destructive",
-                          });
-                        }
-                      }}
+                      onClick={() => openCustomerPortal()}
                     >
                       Manage Subscription
                     </Button>
