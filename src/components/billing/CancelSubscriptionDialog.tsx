@@ -9,6 +9,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield, Database, Users, Clock, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { invokeWithStepUp } from '@/lib/invokeWithStepUp';
+import { useStepUpPrompt } from '@/contexts/StepUpContext';
 
 interface Props {
   open: boolean;
@@ -29,6 +31,7 @@ const REASONS = [
 
 const CancelSubscriptionDialog: React.FC<Props> = ({ open, onClose, onCancelled, periodEndIso }) => {
   const { toast } = useToast();
+  const { promptStepUp } = useStepUpPrompt();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [reason, setReason] = useState<string>('');
   const [comments, setComments] = useState('');
@@ -51,10 +54,17 @@ const CancelSubscriptionDialog: React.FC<Props> = ({ open, onClose, onCancelled,
     setSubmitting(true);
     try {
       const { data: sessionData } = await supabase.auth.getSession();
-      const { error } = await supabase.functions.invoke('cancel-subscription', {
-        body: { action: 'cancel', reason, comments },
-        headers: { Authorization: `Bearer ${sessionData.session?.access_token}` },
-      });
+      const { error } = await invokeWithStepUp(
+        'cancel-subscription',
+        {
+          body: { action: 'cancel', reason, comments },
+          headers: { Authorization: `Bearer ${sessionData.session?.access_token}` },
+        },
+        () => promptStepUp({
+          title: 'Verify before cancelling',
+          description: 'For security, confirm your authenticator before cancelling your subscription.',
+        }),
+      );
       if (error) throw error;
       toast({
         title: 'Cancellation confirmed',

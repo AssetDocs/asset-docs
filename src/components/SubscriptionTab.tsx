@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { invokeWithStepUp } from '@/lib/invokeWithStepUp';
+import { useStepUpPrompt } from '@/contexts/StepUpContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { CheckIcon, ExternalLink, CreditCard, Shield, Star, Zap, Trash2, Clock, AlertTriangle, X, Check, HardDrive, XCircle, ChevronDown } from 'lucide-react';
@@ -82,6 +84,7 @@ interface ContributorInfo {
 
 const SubscriptionTab: React.FC = () => {
   const { toast } = useToast();
+  const { promptStepUp } = useStepUpPrompt();
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -304,7 +307,14 @@ const SubscriptionTab: React.FC = () => {
     if (!user) return;
     setIsDeleting(true);
     try {
-      const { error } = await supabase.functions.invoke('delete-account');
+      const { error } = await invokeWithStepUp(
+        'delete-account',
+        {},
+        () => promptStepUp({
+          title: 'Verify before deleting your account',
+          description: 'For security, confirm your authenticator. This action is permanent.',
+        }),
+      );
       if (error) throw error;
       await signOut();
       setShowDeleteDialog(false);

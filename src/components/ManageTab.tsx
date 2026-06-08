@@ -9,6 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { invokeWithStepUp } from '@/lib/invokeWithStepUp';
+import { useStepUpPrompt } from '@/contexts/StepUpContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -92,6 +94,7 @@ const CollapsiblePaymentHistory: React.FC = () => {
 
 const ManageTab: React.FC = () => {
   const { toast } = useToast();
+  const { promptStepUp } = useStepUpPrompt();
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -227,7 +230,14 @@ const ManageTab: React.FC = () => {
     if (!user) return;
     setIsDeleting(true);
     try {
-      const { error } = await supabase.functions.invoke('delete-account');
+      const { error } = await invokeWithStepUp(
+        'delete-account',
+        {},
+        () => promptStepUp({
+          title: 'Verify before deleting your account',
+          description: 'For security, confirm your authenticator. This action is permanent.',
+        }),
+      );
       if (error) throw error;
       await signOut();
       setShowDeleteDialog(false);
