@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.51.0'
 import Stripe from 'https://esm.sh/stripe@14.21.0'
+import { requireStepUp, getClientIp } from '../_shared/mfa.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -88,6 +89,23 @@ Deno.serve(async (req) => {
     } catch {
       // No body provided, deleting own account
     }
+
+    // Account deletion is destructive — for self-deletion, require a FRESH
+    // MFA step-up (last 60s) if the user has MFA enrolled. Admin/contributor
+    // deletions skip this gate (governed by contributor-role check above).
+    if (!isAdminDeletion) {
+      const gate = await requireStepUp(supabaseAdmin, user.id, {
+        fresh: true,
+        kind: 'delete_account',
+        ip: getClientIp(req),
+        corsHeaders,
+      });
+      if (!gate.ok) {
+        console.log('[DELETE-ACCOUNT] Blocked by step-up gate');
+        return gate.response;
+      }
+    }
+
 
     console.log('[DELETE-ACCOUNT] Verifying user permissions for:', user.id, 'Target:', targetAccountId);
 

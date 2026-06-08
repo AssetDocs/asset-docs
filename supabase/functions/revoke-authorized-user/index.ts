@@ -8,6 +8,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.51.0";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { checkAuRateLimit } from "../_shared/au-rate-limit.ts";
 import { sendAccessChangedEmail } from "../_shared/au-invite-email.ts";
+import { requireStepUp, getClientIp } from "../_shared/mfa.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -32,9 +33,18 @@ serve(async (req) => {
     const { data: { user }, error: authErr } = await authClient.auth.getUser(authHeader.replace("Bearer ", ""));
     if (authErr || !user) return json({ error: "Unauthorized", success: false }, 401);
 
+    // AU revocation is sensitive — require active step-up if MFA enrolled.
+    const gate = await requireStepUp(admin, user.id, {
+      kind: 'revoke_authorized_user',
+      ip: getClientIp(req),
+      corsHeaders,
+    });
+    if (!gate.ok) return gate.response;
+
     const parsed = bodySchema.safeParse(await req.json().catch(() => null));
     if (!parsed.success) return json({ error: "Invalid input.", success: false }, 400);
     const { membershipId } = parsed.data;
+
 
     const { data: membership } = await admin
       .from("account_memberships")
