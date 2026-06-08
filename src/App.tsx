@@ -38,6 +38,7 @@ import Onboarding from "./pages/Onboarding";
 import EmailVerification from "./pages/EmailVerification";
 import AuthCallback from "./pages/AuthCallback";
 import VerifyEmail from "./pages/VerifyEmail";
+import ConfirmEmailChange from "./pages/ConfirmEmailChange";
 import CompletePricing from "./pages/CompletePricing";
 import NotFound from "./pages/NotFound";
 import Terms from "./pages/Terms";
