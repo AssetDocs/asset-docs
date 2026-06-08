@@ -138,7 +138,7 @@ serve(async (req: Request) => {
 
     const inviteId = inserted!.id as string;
 
-    // Build email content.
+    // Build email content + send via shared helper.
     const { data: ownerProfile } = await supabaseAdmin
       .from("profiles")
       .select("first_name, last_name")
@@ -148,103 +148,33 @@ serve(async (req: Request) => {
     const ownerName = ownerProfile
       ? `${ownerProfile.first_name || ""} ${ownerProfile.last_name || ""}`.trim()
       : "An Asset Safe user";
-    const safeOwnerName = escapeHtml(ownerName || "An Asset Safe user");
-    const roleLabel = role === "full_access" ? "Full Access" : "Read Only";
-    const roleDescription = role === "full_access"
-      ? "You'll be able to view, add, update, and manage information across the account."
-      : "You'll be able to view important information, but not make changes.";
-    const inviteUrl = `https://www.getassetsafe.com/invite?token=${rawToken}&email=${encodeURIComponent(email)}`;
 
-    // Attempt Resend delivery.
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
-    let deliveryStatus: "sent" | "failed" = "failed";
-    let deliveryError: string | null = null;
+    const sendResult = await sendInviteEmail({
+      toEmail: email,
+      ownerName: ownerName || "An Asset Safe user",
+      role,
+      rawToken,
+    });
 
-    if (!resendApiKey) {
-      deliveryError = "Email service is not configured.";
-      console.warn("[SEND-INVITE] No RESEND_API_KEY configured");
-    } else {
-      try {
-        const resend = new Resend(resendApiKey);
-        const { error: sendErr } = await resend.emails.send({
-          from: "Asset Safe <noreply@assetsafe.net>",
-          to: [email],
-          subject: "You've been invited to access an Asset Safe account",
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8fafc;">
-              <div style="text-align: center; padding: 30px 20px 20px;">
-                <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
-              </div>
-              <div style="background: #ffffff; padding: 30px 25px; margin: 0 20px; border-radius: 8px;">
-                <h2 style="color: #1f2937; margin: 0 0 20px; font-size: 22px;">You've Been Invited</h2>
-                <p style="color: #374151; line-height: 1.6; margin: 0 0 20px;">
-                  <strong>${safeOwnerName}</strong> has invited you to access their Asset Safe account as an authorized user.
-                </p>
-                <div style="background: #f3f4f6; padding: 16px 20px; border-radius: 6px; margin: 0 0 20px;">
-                  <p style="color: #374151; margin: 0 0 6px; font-size: 14px;"><strong>Your access level:</strong> ${roleLabel}</p>
-                  <p style="color: #6b7280; margin: 0; font-size: 14px;">${roleDescription}</p>
-                </div>
-                <p style="color: #374151; line-height: 1.6; margin: 0 0 25px;">
-                  This allows you to securely access important records and information when it matters most.
-                </p>
-                <div style="text-align: center; margin: 0 0 20px;">
-                  <a href="${inviteUrl}" style="background-color: #1e40af; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
-                    Accept Invitation
-                  </a>
-                </div>
-                <p style="color: #6b7280; font-size: 13px; line-height: 1.5; margin: 0 0 25px;">
-                  If the button doesn't work, copy and paste this link into your browser:<br/>
-                  <a href="${inviteUrl}" style="color: #1e40af; word-break: break-all;">${inviteUrl}</a>
-                </p>
-                <div style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 12px 16px; border-radius: 4px; margin: 0 0 20px;">
-                  <p style="color: #374151; margin: 0; font-size: 14px;">
-                    🔒 <strong>For your security,</strong> you'll create your own login — you'll never be given someone else's password.
-                  </p>
-                </div>
-                <p style="color: #6b7280; font-size: 13px; margin: 0 0 10px;">
-                  This invitation will expire in 7 days for security purposes.
-                </p>
-                <p style="color: #6b7280; font-size: 13px; margin: 0;">
-                  If you don't recognize the person who sent this invitation, you can safely ignore this email.
-                </p>
-              </div>
-              <div style="padding: 25px 20px; text-align: center;">
-                <p style="color: #6b7280; font-size: 13px; font-weight: 600; margin: 0 0 6px;">What is Asset Safe?</p>
-                <p style="color: #9ca3af; font-size: 12px; margin: 0; line-height: 1.5;">
-                  Asset Safe helps people securely document and protect important information for their home, assets, and family.
-                </p>
-              </div>
-            </div>
-          `,
-        });
-        if (sendErr) {
-          deliveryError = (sendErr as any)?.message || "Email provider rejected the message.";
-          console.error("[SEND-INVITE] Resend error:", sendErr);
-        } else {
-          deliveryStatus = "sent";
-        }
-      } catch (e: any) {
-        deliveryError = e?.message || "Failed to contact email provider.";
-        console.error("[SEND-INVITE] Resend exception:", e);
-      }
-    }
-
-    // Update the invite row with the actual delivery outcome.
     const nowIso = new Date().toISOString();
-    const update: Record<string, unknown> =
-      deliveryStatus === "sent"
-        ? {
-            delivery_status: "sent",
-            delivered_at: nowIso,
-            last_sent_at: nowIso,
-            last_delivery_error: null,
-          }
-        : {
-            delivery_status: "failed",
-            last_delivery_error: deliveryError,
-            last_sent_at: nowIso,
-          };
-    await supabaseAdmin.from("invites").update(update).eq("id", inviteId);
+    let deliveryStatus: "sent" | "failed";
+    if (sendResult.ok) {
+      deliveryStatus = "sent";
+      await supabaseAdmin.from("invites").update({
+        delivery_status: "sent",
+        delivered_at: nowIso,
+        last_sent_at: nowIso,
+        last_delivery_error: null,
+      }).eq("id", inviteId);
+    } else {
+      deliveryStatus = "failed";
+      console.error("[SEND-INVITE] delivery failed:", sendResult.rawError);
+      await supabaseAdmin.from("invites").update({
+        delivery_status: "failed",
+        last_delivery_error: sendResult.rawError,
+        last_sent_at: nowIso,
+      }).eq("id", inviteId);
+    }
 
     // Non-fatal: activity log.
     try {
@@ -267,7 +197,7 @@ serve(async (req: Request) => {
       inviteCreated: true,
       invite_id: inviteId,
       delivery_status: deliveryStatus,
-      ...(deliveryStatus === "failed" ? { error: deliveryError } : {}),
+      ...(deliveryStatus === "failed" ? { error: GENERIC_DELIVERY_ERROR } : {}),
     });
   } catch (error: any) {
     console.error("[SEND-INVITE] Unhandled error:", error);
