@@ -37,6 +37,8 @@ interface PendingInvite {
   status: string;
   created_at: string;
   expires_at: string;
+  delivery_status?: 'not_sent' | 'sent' | 'failed' | null;
+  last_delivery_error?: string | null;
 }
 
 const AuthorizedUsersTab: React.FC = () => {
