@@ -162,3 +162,61 @@ export function getClientIp(req: Request): string | null {
     null
   );
 }
+
+/** True if user has a verified TOTP factor (i.e. MFA is enabled). */
+export async function userHasMfa(svc: SupabaseClient, userId: string): Promise<boolean> {
+  try {
+    const { data } = await svc.auth.admin.mfa.listFactors({ userId });
+    return (data?.factors ?? []).some(
+      (f: any) => f.factor_type === 'totp' && f.status === 'verified',
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Reusable step-up gate for sensitive edge functions.
+ *
+ * - If the user does NOT have MFA enrolled → returns { ok: true } (no-op).
+ * - If MFA is enrolled and required freshness is satisfied → { ok: true }.
+ * - Otherwise → { ok: false, response } with a 403 JSON response carrying
+ *   `{ error, code: 'step_up_required' }` that the frontend wrapper detects.
+ *
+ * Pass `fresh: true` for the most destructive actions (account delete, MFA
+ * unenroll, recovery code generation) — that requires a step-up within the
+ * last 60 seconds rather than the 5-minute active window.
+ */
+export async function requireStepUp(
+  svc: SupabaseClient,
+  userId: string,
+  opts: { fresh?: boolean; kind: string; ip?: string | null; corsHeaders: Record<string, string> },
+): Promise<{ ok: true } | { ok: false; response: Response }> {
+  const hasMfa = await userHasMfa(svc, userId);
+  if (!hasMfa) return { ok: true };
+
+  const allowed = opts.fresh
+    ? await hasFreshStepUp(svc, userId)
+    : await hasActiveStepUp(svc, userId);
+
+  if (allowed) return { ok: true };
+
+  await logMfaAttempt(svc, {
+    userId,
+    ip: opts.ip ?? null,
+    kind: opts.kind,
+    outcome: 'denied',
+    metadata: { reason: opts.fresh ? 'no_fresh_step_up' : 'no_active_step_up' },
+  });
+
+  return {
+    ok: false,
+    response: new Response(
+      JSON.stringify({
+        error: 'Fresh MFA step-up required',
+        code: 'step_up_required',
+      }),
+      { status: 403, headers: { ...opts.corsHeaders, 'Content-Type': 'application/json' } },
+    ),
+  };
+}
