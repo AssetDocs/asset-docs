@@ -247,6 +247,10 @@ const AdminOwnerWorkspace: React.FC = () => {
         <AdminCancellations />
       </TabsContent>
 
+      <TabsContent value="manual-review">
+        <AdminBillingManualReview />
+      </TabsContent>
+
       <TabsContent value="crm">
         <EnhancedCRM />
       </TabsContent>
