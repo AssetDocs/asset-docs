@@ -4,6 +4,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, CheckCircle, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { invokeWithStepUp, isStepUpRequired } from "@/lib/invokeWithStepUp";
+import { useStepUpPrompt } from "@/contexts/StepUpContext";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 
