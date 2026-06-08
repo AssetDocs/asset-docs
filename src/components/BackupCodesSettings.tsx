@@ -214,6 +214,16 @@ const BackupCodesSettings: React.FC = () => {
         codes={generatedCodes}
       />
 
+      <MfaStepUpDialog
+        open={showStepUp}
+        onOpenChange={setShowStepUp}
+        onVerified={handleStepUpVerified}
+        title="Verify to generate backup codes"
+        description="Confirm your authenticator before we generate new recovery codes."
+      />
+
+
+
       <AlertDialog open={showRegenerateConfirm} onOpenChange={setShowRegenerateConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
