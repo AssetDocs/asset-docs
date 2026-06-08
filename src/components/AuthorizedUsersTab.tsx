@@ -114,7 +114,7 @@ const AuthorizedUsersTab: React.FC = () => {
 
     const { data, error } = await supabase
       .from('invites')
-      .select('id, email, role, status, created_at, expires_at')
+      .select('id, email, role, status, created_at, expires_at, delivery_status, last_delivery_error')
       .eq('account_id', accountId)
       .eq('status', 'pending');
 
