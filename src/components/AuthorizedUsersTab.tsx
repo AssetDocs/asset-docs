@@ -47,6 +47,7 @@ const AuthorizedUsersTab: React.FC = () => {
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<'full_access' | 'read_only'>('read_only');
   const [loading, setLoading] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const suggestedSms = `Hey — I just added you as an authorized user on my Asset Safe account.\nYou'll get an email invite shortly. It may land in promotions/spam — just search "Asset Safe" if you don't see it.`;
   const handleCopySms = async () => {
