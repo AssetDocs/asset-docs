@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { FileDown, Loader2 } from 'lucide-react';
 import { ExportService } from '@/services/ExportService';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAccount } from '@/contexts/AccountContext';
 import { toast } from '@/hooks/use-toast';
 
 interface ExportAssetsButtonProps {
