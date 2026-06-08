@@ -122,6 +122,26 @@ serve(async (req: Request) => {
     const result = rpcResult as { account_id: string; role: string; success: boolean } | null;
     console.log("[ACCEPT-INVITE] Success:", { userId: user.id, accountId: result?.account_id, role: result?.role });
 
+    // Non-fatal: notify owner.
+    if (result?.account_id) {
+      try {
+        const { data: acct } = await supabaseAdmin
+          .from("accounts").select("owner_user_id").eq("id", result.account_id).maybeSingle();
+        if (acct?.owner_user_id) {
+          const { data: { user: ownerUser } } = await supabaseAdmin.auth.admin.getUserById(acct.owner_user_id);
+          if (ownerUser?.email) {
+            sendInviteAcceptedOwnerEmail({
+              toEmail: ownerUser.email,
+              inviteeEmail: user.email!,
+              role: result.role as "full_access" | "read_only",
+            }).catch(() => {});
+          }
+        }
+      } catch (e) {
+        console.error("[ACCEPT-INVITE] owner notify failed (non-fatal):", e);
+      }
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
