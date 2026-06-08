@@ -18,7 +18,12 @@ export const ExportAssetsButton: React.FC<ExportAssetsButtonProps> = ({
   className = ''
 }) => {
   const { user } = useAuth();
+  const { isOwner } = useAccount();
   const [isExporting, setIsExporting] = useState(false);
+
+  // Bulk export is owner-only. UI hiding is a usability layer — server endpoints
+  // performing bulk export must enforce ownership independently.
+  if (!isOwner) return null;
 
   const handleExport = async () => {
     // Handle demo mode
