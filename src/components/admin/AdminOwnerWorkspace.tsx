@@ -14,6 +14,7 @@ import MarketSizing from './MarketSizing';
 import AdminDocuments from './AdminDocuments';
 import LegacyContinuityWorkspace from './legacy-continuity/LegacyContinuityWorkspace';
 import AdminCancellations from './AdminCancellations';
+import AdminBillingManualReview from './AdminBillingManualReview';
 import {
   Users,
   CreditCard,
@@ -54,6 +55,10 @@ const AdminOwnerWorkspace: React.FC = () => {
         <TabsTrigger value="cancellations" className="flex items-center gap-2">
           <CreditCard className="w-4 h-4" />
           Cancellations
+        </TabsTrigger>
+        <TabsTrigger value="manual-review" className="flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4" />
+          Manual Review
         </TabsTrigger>
         <TabsTrigger value="crm" className="flex items-center gap-2">
           <Users className="w-4 h-4" />
@@ -240,6 +245,10 @@ const AdminOwnerWorkspace: React.FC = () => {
 
       <TabsContent value="cancellations">
         <AdminCancellations />
+      </TabsContent>
+
+      <TabsContent value="manual-review">
+        <AdminBillingManualReview />
       </TabsContent>
 
       <TabsContent value="crm">
