@@ -4,12 +4,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Download, Archive, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAccount } from '@/contexts/AccountContext';
 import { ExportService } from '@/services/ExportService';
 
 const DownloadAllFilesButton: React.FC = () => {
   const [isDownloading, setIsDownloading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { isOwner } = useAccount();
+
+  // Bulk download is owner-only. Authorized Users can still download individual files
+  // via standard storage RLS; bulk archive is not exposed to non-owners.
+  if (!isOwner) return null;
 
   const handleDownloadAll = async () => {
     const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';

@@ -1,0 +1,92 @@
+/**
+ * revoke-authorized-user — Owner-only. Sets membership status='revoked' and
+ * clears the affected user's last_used_account_id pointer (so their next
+ * session won't try to re-enter the now-revoked workspace). Notifies the AU.
+ */
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.51.0";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { checkAuRateLimit } from "../_shared/au-rate-limit.ts";
+import { sendAccessChangedEmail } from "../_shared/au-invite-email.ts";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
+
+const bodySchema = z.object({ membershipId: z.string().uuid() });
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+}
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  try {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) return json({ error: "Unauthorized", success: false }, 401);
+
+    const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { autoRefreshToken: false, persistSession: false } });
+    const authClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, { auth: { autoRefreshToken: false, persistSession: false } });
+    const { data: { user }, error: authErr } = await authClient.auth.getUser(authHeader.replace("Bearer ", ""));
+    if (authErr || !user) return json({ error: "Unauthorized", success: false }, 401);
+
+    const parsed = bodySchema.safeParse(await req.json().catch(() => null));
+    if (!parsed.success) return json({ error: "Invalid input.", success: false }, 400);
+    const { membershipId } = parsed.data;
+
+    const { data: membership } = await admin
+      .from("account_memberships")
+      .select("id, account_id, user_id, role, status, email")
+      .eq("id", membershipId)
+      .maybeSingle();
+    if (!membership) return json({ error: "Member not found.", success: false }, 404);
+    if (membership.role === "owner") return json({ error: "Cannot revoke the owner.", success: false }, 403);
+
+    const { data: isOwner } = await admin.rpc("is_account_owner", { _user_id: user.id, _account_id: membership.account_id });
+    if (!isOwner) return json({ error: "You must be the account owner.", success: false }, 403);
+
+    const rl = await checkAuRateLimit(`account:${membership.account_id}`, "revoke-au", { maxAttempts: 30, windowMinutes: 60 });
+    if (!rl.allowed) return json({ error: rl.message, success: false }, 429);
+
+    if (membership.status === "revoked") return json({ success: true, already: true });
+
+    await admin
+      .from("account_memberships")
+      .update({ status: "revoked", revoked_at: new Date().toISOString() })
+      .eq("id", membershipId);
+
+    // Clear last_used_account_id pointer so AU doesn't get stuck on the revoked workspace.
+    try {
+      await admin.rpc("clear_last_used_account_if_revoked", {
+        _user_id: membership.user_id,
+        _account_id: membership.account_id,
+      });
+    } catch (e) { console.error("[REVOKE-AU] clear pointer failed:", e); }
+
+    try {
+      await admin.from("user_activity_logs").insert({
+        user_id: user.id,
+        actor_user_id: user.id,
+        action_type: "contributor_remove",
+        action_category: "authorized_users",
+        resource_type: "account_membership",
+        resource_name: membership.email || membership.user_id,
+        details: { account_id: membership.account_id, action: "revoked" },
+      });
+    } catch (e) { console.error("[REVOKE-AU] log error:", e); }
+
+    if (membership.email) {
+      const { data: ownerProfile } = await admin
+        .from("profiles").select("first_name, last_name").eq("user_id", user.id).maybeSingle();
+      const ownerName = ownerProfile ? `${ownerProfile.first_name || ""} ${ownerProfile.last_name || ""}`.trim() : "";
+      sendAccessChangedEmail({ toEmail: membership.email, ownerName, action: "revoked" }).catch(() => {});
+    }
+
+    return json({ success: true });
+  } catch (e) {
+    console.error("[REVOKE-AU] Unhandled:", e);
+    return json({ error: "Failed to revoke access.", success: false }, 500);
+  }
+});

@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { FileDown, Loader2 } from 'lucide-react';
 import { ExportService } from '@/services/ExportService';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAccount } from '@/contexts/AccountContext';
 import { toast } from '@/hooks/use-toast';
 
 interface ExportAssetsButtonProps {
@@ -17,7 +18,12 @@ export const ExportAssetsButton: React.FC<ExportAssetsButtonProps> = ({
   className = ''
 }) => {
   const { user } = useAuth();
+  const { isOwner } = useAccount();
   const [isExporting, setIsExporting] = useState(false);
+
+  // Bulk export is owner-only. UI hiding is a usability layer — server endpoints
+  // performing bulk export must enforce ownership independently.
+  if (!isOwner) return null;
 
   const handleExport = async () => {
     // Handle demo mode

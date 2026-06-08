@@ -9,6 +9,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.51.0";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { checkAuRateLimit } from "../_shared/au-rate-limit.ts";
+import { sendInviteAcceptedOwnerEmail } from "../_shared/au-invite-email.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -67,6 +69,21 @@ serve(async (req: Request) => {
     );
     if (authError || !user || !user.email) throw new Error("Unauthorized");
 
+    // Rate limit: 10 accept attempts per hour per user (token guessing defense).
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const rlUser = await checkAuRateLimit(`user:${user.id}`, "accept-invite", { maxAttempts: 10, windowMinutes: 60 });
+    if (!rlUser.allowed) {
+      return new Response(JSON.stringify({ error: rlUser.message, success: false }), {
+        status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const rlIp = await checkAuRateLimit(`ip:${ip}`, "accept-invite", { maxAttempts: 20, windowMinutes: 60 });
+    if (!rlIp.allowed) {
+      return new Response(JSON.stringify({ error: rlIp.message, success: false }), {
+        status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // 2) Hash the raw token.
     const body = await req.json();
     const { token } = bodySchema.parse(body);
@@ -104,6 +121,26 @@ serve(async (req: Request) => {
 
     const result = rpcResult as { account_id: string; role: string; success: boolean } | null;
     console.log("[ACCEPT-INVITE] Success:", { userId: user.id, accountId: result?.account_id, role: result?.role });
+
+    // Non-fatal: notify owner.
+    if (result?.account_id) {
+      try {
+        const { data: acct } = await supabaseAdmin
+          .from("accounts").select("owner_user_id").eq("id", result.account_id).maybeSingle();
+        if (acct?.owner_user_id) {
+          const { data: { user: ownerUser } } = await supabaseAdmin.auth.admin.getUserById(acct.owner_user_id);
+          if (ownerUser?.email) {
+            sendInviteAcceptedOwnerEmail({
+              toEmail: ownerUser.email,
+              inviteeEmail: user.email!,
+              role: result.role as "full_access" | "read_only",
+            }).catch(() => {});
+          }
+        }
+      } catch (e) {
+        console.error("[ACCEPT-INVITE] owner notify failed (non-fatal):", e);
+      }
+    }
 
     return new Response(
       JSON.stringify({

@@ -154,7 +154,8 @@ const AuthorizedUsersTab: React.FC = () => {
       const deliveryStatus = data?.delivery_status as 'sent' | 'failed' | undefined;
 
       if (deliveryStatus === 'failed') {
-        const msg = data?.error || 'The invite was created but the email could not be sent. Use Resend from the pending list.';
+        // Always show a generic, user-safe message. Raw provider errors stay in edge logs.
+        const msg = 'Email could not be sent. Please try Resend from the pending list below.';
         setInviteError(msg);
         toast({
           title: 'Invite saved — email delivery failed',
@@ -178,7 +179,9 @@ const AuthorizedUsersTab: React.FC = () => {
       setRole('read_only');
       fetchPendingInvites();
     } catch (err: any) {
-      const msg = err?.message || 'Please try again.';
+      // Sanitize: never show raw stack/internal error text to the user.
+      console.error('[AuthorizedUsersTab] invite error:', err);
+      const msg = 'We couldn\u2019t send the invitation. Please try again in a moment.';
       setInviteError(msg);
       toast({
         title: 'Error sending invitation',
@@ -190,26 +193,50 @@ const AuthorizedUsersTab: React.FC = () => {
     }
   };
 
+  const callFn = async (fn: string, body: any) => {
+    const { data: session } = await supabase.auth.getSession();
+    if (!session?.session) throw new Error('Not authenticated');
+    const { data, error } = await supabase.functions.invoke(fn, {
+      body,
+      headers: { Authorization: `Bearer ${session.session.access_token}` },
+    });
+    if (error) throw error;
+    if (data?.success === false) throw new Error(data.error || 'Request failed.');
+    return data;
+  };
+
+  const handleResendInvite = async (inviteId: string, email: string) => {
+    try {
+      const data = await callFn('resend-invite', { inviteId });
+      if (data?.delivery_status === 'failed') {
+        toast({
+          title: 'Email delivery failed',
+          description: data.error || 'Email could not be sent. Please try again shortly.',
+          variant: 'destructive',
+        });
+      } else {
+        toast({ title: 'Invitation resent', description: `A new invitation was sent to ${email}.` });
+      }
+      fetchPendingInvites();
+    } catch (err: any) {
+      console.error('[AuthorizedUsersTab] resend error:', err);
+      toast({ title: 'Error', description: 'Could not resend the invitation. Please try again.', variant: 'destructive' });
+    }
+  };
+
   const handleRevoke = async (membershipId: string, memberName: string) => {
     try {
-      const { error } = await supabase
-        .from('account_memberships')
-        .update({ status: 'revoked' })
-        .eq('id', membershipId);
-
-      if (error) throw error;
-
+      await callFn('revoke-authorized-user', { membershipId });
       toast({ title: 'Access revoked', description: `${memberName}'s access has been removed.` });
-
       await logActivity({
         action_type: 'contributor_remove',
         resource_type: 'authorized_user',
         resource_name: memberName,
       });
-
       fetchMembers();
     } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+      console.error('[AuthorizedUsersTab] revoke error:', err);
+      toast({ title: 'Error', description: 'Could not revoke access. Please try again.', variant: 'destructive' });
     }
   };
 
@@ -221,12 +248,7 @@ const AuthorizedUsersTab: React.FC = () => {
         ? `${target.first_name || ''} ${target.last_name || ''}`.trim() || target.email || 'Authorized User'
         : 'Authorized User';
 
-      const { error } = await supabase
-        .from('account_memberships')
-        .update({ role: newRole })
-        .eq('id', membershipId);
-
-      if (error) throw error;
+      await callFn('update-authorized-user-role', { membershipId, role: newRole });
 
       const newLabel = newRole === 'full_access' ? 'Full Access' : 'Read Only';
       toast({ title: 'Role updated', description: `${memberName} now has ${newLabel}.` });
@@ -240,25 +262,23 @@ const AuthorizedUsersTab: React.FC = () => {
 
       fetchMembers();
     } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+      console.error('[AuthorizedUsersTab] role change error:', err);
+      toast({ title: 'Error', description: 'Could not change role. Please try again.', variant: 'destructive' });
     }
   };
 
   const handleCancelInvite = async (inviteId: string) => {
     try {
-      const { error } = await supabase
-        .from('invites')
-        .update({ status: 'expired' })
-        .eq('id', inviteId);
-
-      if (error) throw error;
-
+      await callFn('cancel-invite', { inviteId });
       toast({ title: 'Invitation cancelled' });
       fetchPendingInvites();
     } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+      console.error('[AuthorizedUsersTab] cancel error:', err);
+      toast({ title: 'Error', description: 'Could not cancel invitation. Please try again.', variant: 'destructive' });
     }
   };
+
+
 
   const getRoleBadge = (role: string) => {
     switch (role) {
@@ -524,9 +544,9 @@ const AuthorizedUsersTab: React.FC = () => {
                     <p className="text-xs text-muted-foreground">
                       Invited {new Date(invite.created_at).toLocaleDateString()} · Expires {new Date(invite.expires_at).toLocaleDateString()}
                     </p>
-                    {invite.delivery_status === 'failed' && invite.last_delivery_error && (
+                    {invite.delivery_status === 'failed' && (
                       <p className="text-xs text-red-700 mt-1">
-                        Delivery error: {invite.last_delivery_error}
+                        Email could not be sent. Use Resend to try again.
                       </p>
                     )}
                   </div>
@@ -534,14 +554,24 @@ const AuthorizedUsersTab: React.FC = () => {
                     {getRoleBadge(invite.role)}
                     {getDeliveryBadge(invite)}
                     {isOwner && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 text-xs text-destructive"
-                        onClick={() => handleCancelInvite(invite.id)}
-                      >
-                        Cancel
-                      </Button>
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-xs"
+                          onClick={() => handleResendInvite(invite.id, invite.email)}
+                        >
+                          Resend
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs text-destructive"
+                          onClick={() => handleCancelInvite(invite.id)}
+                        >
+                          Cancel
+                        </Button>
+                      </>
                     )}
                   </div>
                 </div>
