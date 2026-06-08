@@ -524,9 +524,15 @@ const AuthorizedUsersTab: React.FC = () => {
                     <p className="text-xs text-muted-foreground">
                       Invited {new Date(invite.created_at).toLocaleDateString()} · Expires {new Date(invite.expires_at).toLocaleDateString()}
                     </p>
+                    {invite.delivery_status === 'failed' && invite.last_delivery_error && (
+                      <p className="text-xs text-red-700 mt-1">
+                        Delivery error: {invite.last_delivery_error}
+                      </p>
+                    )}
                   </div>
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                     {getRoleBadge(invite.role)}
+                    {getDeliveryBadge(invite)}
                     {isOwner && (
                       <Button
                         variant="ghost"
