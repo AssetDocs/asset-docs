@@ -97,6 +97,12 @@ serve(async (req: Request) => {
       );
     }
 
+    // Rate limits — 10 invites / hour per (owner, account).
+    const rl = await checkAuRateLimit(`owner:${user.id}:account:${accountId}`, "send-invite", { maxAttempts: 10, windowMinutes: 60 });
+    if (!rl.allowed) {
+      return jsonResponse({ error: rl.message, success: false }, 429);
+    }
+
     // Generate secure token + SHA-256 hash.
     const tokenBytes = new Uint8Array(32);
     crypto.getRandomValues(tokenBytes);
