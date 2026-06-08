@@ -18,6 +18,8 @@ import { logActivity } from '@/hooks/useActivityLog';
 import { PremiumFeatureGate } from '@/components/PremiumFeatureGate';
 import LegacyAdminAssignment from '@/components/LegacyAdminAssignment';
 import LegacyContinuitySection from '@/components/legacy-continuity/LegacyContinuitySection';
+import { invokeWithStepUp, isStepUpRequired } from '@/lib/invokeWithStepUp';
+import { useStepUpPrompt } from '@/contexts/StepUpContext';
 
 interface Member {
   id: string;
