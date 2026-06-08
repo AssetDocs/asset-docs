@@ -273,6 +273,17 @@ const AuthorizedUsersTab: React.FC = () => {
     }
   };
 
+  const getDeliveryBadge = (invite: PendingInvite) => {
+    const ds = invite.delivery_status || 'not_sent';
+    if (ds === 'failed') {
+      return <Badge className="bg-red-100 text-red-800 border-red-200">Email failed</Badge>;
+    }
+    if (ds === 'not_sent') {
+      return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">Sending…</Badge>;
+    }
+    return <Badge className="bg-amber-100 text-amber-800 border-amber-200">Pending</Badge>;
+  };
+
   const getMemberName = (member: Member) => {
     if (member.first_name || member.last_name) {
       return `${member.first_name || ''} ${member.last_name || ''}`.trim();
