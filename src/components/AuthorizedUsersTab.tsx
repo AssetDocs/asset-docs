@@ -278,75 +278,7 @@ const AuthorizedUsersTab: React.FC = () => {
     }
   };
 
-  const handleRevoke = async (membershipId: string, memberName: string) => {
-    try {
-      const { error } = await supabase
-        .from('account_memberships')
-        .update({ status: 'revoked' })
-        .eq('id', membershipId);
 
-      if (error) throw error;
-
-      toast({ title: 'Access revoked', description: `${memberName}'s access has been removed.` });
-
-      await logActivity({
-        action_type: 'contributor_remove',
-        resource_type: 'authorized_user',
-        resource_name: memberName,
-      });
-
-      fetchMembers();
-    } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
-    }
-  };
-
-  const handleChangeRole = async (membershipId: string, newRole: 'full_access' | 'read_only') => {
-    try {
-      const target = members.find(m => m.id === membershipId);
-      const prevRole = target?.role;
-      const memberName = target
-        ? `${target.first_name || ''} ${target.last_name || ''}`.trim() || target.email || 'Authorized User'
-        : 'Authorized User';
-
-      const { error } = await supabase
-        .from('account_memberships')
-        .update({ role: newRole })
-        .eq('id', membershipId);
-
-      if (error) throw error;
-
-      const newLabel = newRole === 'full_access' ? 'Full Access' : 'Read Only';
-      toast({ title: 'Role updated', description: `${memberName} now has ${newLabel}.` });
-
-      await logActivity({
-        action_type: 'contributor_role_change',
-        resource_type: 'authorized_user',
-        resource_name: memberName,
-        metadata: { from: prevRole, to: newRole },
-      });
-
-      fetchMembers();
-    } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
-    }
-  };
-
-  const handleCancelInvite = async (inviteId: string) => {
-    try {
-      const { error } = await supabase
-        .from('invites')
-        .update({ status: 'expired' })
-        .eq('id', inviteId);
-
-      if (error) throw error;
-
-      toast({ title: 'Invitation cancelled' });
-      fetchPendingInvites();
-    } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
-    }
-  };
 
   const getRoleBadge = (role: string) => {
     switch (role) {
