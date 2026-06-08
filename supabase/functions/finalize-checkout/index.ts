@@ -1,269 +1,119 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { fulfillCheckout } from "../_shared/fulfillment.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const logStep = (step: string, details?: any) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[FINALIZE-CHECKOUT] ${step}${detailsStr}`);
-};
+const log = (step: string, details?: unknown) =>
+  console.log(`[FINALIZE-CHECKOUT] ${step}`, details === undefined ? "" : JSON.stringify(details));
+
+const POLL_INTERVAL_MS = 1000;
+const POLL_MAX_MS = 10_000;
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    logStep("Function started");
-
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
-      auth: { persistSession: false },
-    });
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } },
+    );
 
     const { session_id } = await req.json();
     if (!session_id) throw new Error("session_id is required");
 
+    // Poll for fulfillment row (webhook may already be processing).
+    const start = Date.now();
+    let existing: any = null;
+    while (Date.now() - start < POLL_MAX_MS) {
+      const { data } = await supabaseAdmin
+        .from("checkout_fulfillments")
+        .select("status, magic_link_delivery_status, manual_review_reason")
+        .eq("stripe_session_id", session_id)
+        .maybeSingle();
+      existing = data;
+      if (
+        existing &&
+        ["fulfilled", "fulfilled_email_failed", "manual_review", "rejected"].includes(
+          existing.status,
+        )
+      ) {
+        break;
+      }
+      await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+    }
+
+    if (existing?.status === "fulfilled") {
+      return new Response(JSON.stringify({ status: "fulfilled" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+    if (existing?.status === "fulfilled_email_failed") {
+      return new Response(JSON.stringify({ status: "fulfilled_email_failed" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+    if (existing?.status === "manual_review") {
+      return new Response(
+        JSON.stringify({ status: "manual_review", reason: existing.manual_review_reason }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 },
+      );
+    }
+    if (existing?.status === "rejected") {
+      return new Response(JSON.stringify({ status: "rejected" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    // No terminal row yet — re-verify Stripe and attempt recovery fulfillment.
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
-
-    // Retrieve the checkout session with subscription expanded
     const session = await stripe.checkout.sessions.retrieve(session_id, {
-      expand: ["subscription", "subscription.items.data.price"],
+      expand: ["customer", "subscription", "subscription.items.data.price", "customer_details"],
     });
-
-    logStep("Stripe session retrieved", {
+    log("Stripe session re-fetched", {
       payment_status: session.payment_status,
-      customer_email: session.customer_email,
-      customer: session.customer,
+      mode: session.mode,
     });
 
     if (session.payment_status !== "paid") {
-      return new Response(
-        JSON.stringify({ error: "Payment not completed", payment_status: session.payment_status }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 402 }
-      );
-    }
-
-    // Extract customer details
-    const customerEmail = session.customer_details?.email || session.customer_email;
-    if (!customerEmail) throw new Error("No customer email found in Stripe session");
-
-    const customerId = typeof session.customer === "string" ? session.customer : session.customer?.id;
-    const subscription = session.subscription as Stripe.Subscription | null;
-    const subscriptionId = subscription?.id ?? null;
-    const planPriceId = subscription?.items?.data?.[0]?.price?.id ?? null;
-    const planLookupKey = subscription?.items?.data?.[0]?.price?.lookup_key ?? 
-      (session.metadata?.plan_lookup_key ?? null) ??
-      'asset_safe_monthly';
-
-    logStep("Extracted billing details", { customerEmail, customerId, subscriptionId, planPriceId, planLookupKey });
-
-    // Idempotency guard — if already processed, return early
-    if (subscriptionId) {
-      const { data: existingEntitlement } = await supabaseAdmin
-        .from("entitlements")
-        .select("user_id")
-        .eq("stripe_subscription_id", subscriptionId)
-        .eq("status", "active")
-        .maybeSingle();
-
-      if (existingEntitlement) {
-        logStep("Already processed — returning cached success");
-        return new Response(
-          JSON.stringify({ success: true, email: customerEmail, already_processed: true }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
-        );
-      }
-    }
-
-    // Lookup or create the Supabase user via try-create, fallback-fetch
-    let userId: string;
-    let userCreated = false;
-
-    const customerName = session.customer_details?.name ?? null;
-    const nameParts = customerName ? customerName.split(' ') : [];
-    const firstName = nameParts[0] ?? null;
-    const lastName = nameParts.slice(1).join(' ') || null;
-
-    // Step 1: Try to create the user
-    const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-      email: customerEmail,
-      email_confirm: true,
-      user_metadata: {
-        first_name: firstName,
-        last_name: lastName,
-      },
-    });
-
-    if (!createError && newUser?.user) {
-      userId = newUser.user.id;
-      userCreated = true;
-      logStep("New user created", { userId });
-    } else if (createError?.message?.includes('already been registered') || (createError as any)?.status === 422) {
-      // Step 2: User exists — recover by fetching with large page size
-      logStep("User already exists, recovering", { customerEmail, error: createError?.message });
-      const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
-      const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-      const listRes = await fetch(
-        `${supabaseUrl}/auth/v1/admin/users?per_page=1000&page=1`,
-        {
-          headers: {
-            apikey: serviceRoleKey,
-            Authorization: `Bearer ${serviceRoleKey}`,
-          },
-        }
-      );
-      const listData = await listRes.json();
-      const found = listData?.users?.find(
-        (u: any) => u.email?.toLowerCase() === customerEmail.toLowerCase()
-      );
-      if (!found) throw new Error(`User exists but could not be located: ${customerEmail}`);
-      userId = found.id;
-      logStep("Recovered existing user after 422", { userId });
-    } else {
-      throw new Error(`Failed to create user: ${createError?.message}`);
-    }
-
-    // Activate entitlement — all Stripe IDs required by DB trigger (validate_entitlement_source)
-    // planLookupKey must be non-null for active stripe entitlements per DB constraint
-    const safeLookupKey = planLookupKey ?? 'asset_safe_monthly';
-    const safeCustomerId = customerId ?? '';
-    const safeSubscriptionId = subscriptionId ?? '';
-    const safePlanPriceId = planPriceId ?? '';
-
-    logStep("Upserting entitlement", { userId, safeLookupKey, safeCustomerId, safeSubscriptionId, safePlanPriceId });
-
-    const { error: entitlementError } = await supabaseAdmin
-      .from("entitlements")
-      .upsert(
-        {
-          user_id: userId,
-          plan: "standard",
-          status: "active",
-          entitlement_source: "stripe",
-          stripe_customer_id: safeCustomerId,
-          stripe_subscription_id: safeSubscriptionId,
-          stripe_plan_price_id: safePlanPriceId,
-          plan_lookup_key: safeLookupKey,
-          base_storage_gb: 50,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "user_id" }
-      );
-
-    if (entitlementError) {
-      logStep("Entitlement upsert error — trying direct UPDATE fallback", { error: entitlementError.message, code: entitlementError.code });
-      // Fallback: direct UPDATE in case upsert trigger validation failed on INSERT path
-      const { error: updateError } = await supabaseAdmin
-        .from("entitlements")
-        .update({
-          plan: "standard",
-          status: "active",
-          entitlement_source: "stripe",
-          stripe_customer_id: safeCustomerId,
-          stripe_subscription_id: safeSubscriptionId,
-          stripe_plan_price_id: safePlanPriceId,
-          plan_lookup_key: safeLookupKey,
-          base_storage_gb: 50,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("user_id", userId);
-
-      if (updateError) {
-        logStep("Entitlement UPDATE fallback also failed", { error: updateError.message });
-        throw new Error(`Failed to activate entitlement: ${updateError.message}`);
-      }
-      logStep("Entitlement activated via UPDATE fallback");
-    } else {
-      logStep("Entitlement upserted successfully");
-    }
-
-    // Log consent (payment confirmed = user agreed to terms)
-    try {
-      await supabaseAdmin.from("user_consents").insert({
-        user_email: customerEmail.toLowerCase().trim(),
-        consent_type: "subscription_checkout_post_payment",
-        terms_version: "v1.0",
-        ip_address: null,
+      return new Response(JSON.stringify({ status: "pending" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
       });
-      logStep("Consent logged post-payment");
-    } catch (consentErr) {
-      logStep("Consent logging failed (non-fatal)", { error: String(consentErr) });
     }
 
-    // Generate magic link so user can sign in
     const origin = req.headers.get("origin") || "https://www.getassetsafe.com";
-    const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
-      type: "magiclink",
-      email: customerEmail,
-      options: {
-        redirectTo: `${origin}/auth/callback`,
-      },
+    const result = await fulfillCheckout(stripe, supabaseAdmin, session, {
+      source: "finalize-checkout-recovery",
+      origin,
     });
 
-    if (linkError) {
-      logStep("Magic link generation failed (non-fatal)", { error: linkError.message });
-    } else {
-      logStep("Magic link generated successfully");
+    let status: string = result.status;
+    if (status === "already_done") status = "fulfilled";
+    if (status === "in_progress") status = "pending";
+    if (status === "failed_retryable") status = "pending";
 
-      // Send the magic link via Resend
-      const resendKey = Deno.env.get("RESEND_API_KEY");
-      if (resendKey && linkData?.properties?.action_link) {
-        const magicLinkUrl = linkData.properties.action_link;
-        const emailRes = await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${resendKey}`,
-          },
-          body: JSON.stringify({
-            from: "Asset Safe <noreply@assetsafe.net>",
-            to: [customerEmail],
-            subject: "Your payment is confirmed — sign in to Asset Safe",
-            html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #1a1a1a;">Payment Confirmed! 🎉</h2>
-                <p>Your Asset Safe subscription is now active.</p>
-                <p>Click the button below to sign in and start protecting your assets:</p>
-                <div style="text-align: center; margin: 32px 0;">
-                  <a href="${magicLinkUrl}" 
-                     style="background: #f97316; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
-                    Sign In to Asset Safe
-                  </a>
-                </div>
-                <p style="color: #666; font-size: 14px;">This link expires in 1 hour. If you didn't expect this email, you can safely ignore it.</p>
-              </div>
-            `,
-          }),
-        });
-        if (!emailRes.ok) {
-          const errText = await emailRes.text();
-          logStep("Magic link email send failed (non-fatal)", { status: emailRes.status, body: errText });
-        } else {
-          logStep("Magic link email sent successfully");
-        }
-      }
-    }
-
-    return new Response(
-      JSON.stringify({ success: true, email: customerEmail, user_created: userCreated }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
-    );
+    return new Response(JSON.stringify({ status }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
+    });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
     const errorId = crypto.randomUUID();
-    logStep("ERROR in finalize-checkout", { errorId, message: errorMessage });
+    log("ERROR", { errorId, message: (error as Error).message });
     return new Response(
-      JSON.stringify({ error: "Failed to finalize checkout. Please contact support.", errorId }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+      JSON.stringify({ status: "error", errorId }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 },
     );
   }
 });
