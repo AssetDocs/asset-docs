@@ -29,8 +29,6 @@ const inviteSchema = z.object({
   role: z.enum(["full_access", "read_only"]),
 });
 
-const escapeHtml = (str: string): string =>
-  str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
