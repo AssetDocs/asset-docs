@@ -1,0 +1,1 @@
+ALTER FUNCTION public._safe_uuid(text) SET search_path = public;
