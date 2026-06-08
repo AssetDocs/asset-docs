@@ -41,6 +41,15 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { recoveryRequestId, action }: RespondRecoveryRequestData = await req.json();
 
+    // Require fresh MFA step-up for recovery approvals/rejections (highly sensitive: grants vault access).
+    const gate = await requireStepUp(serviceClient(), user.id, {
+      fresh: true,
+      kind: `recovery_${action}`,
+      ip: getClientIp(req),
+      corsHeaders,
+    });
+    if (!gate.ok) return gate.response;
+
     console.log(`Processing recovery request ${action}:`, recoveryRequestId);
 
     // Get the recovery request
