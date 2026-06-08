@@ -11,6 +11,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { TranslationProvider } from "@/contexts/TranslationContext";
 import { AccountProvider, useContributor } from "@/contexts/AccountContext";
+import { StepUpProvider } from "@/contexts/StepUpContext";
 import CookieConsent from "@/components/CookieConsent";
 import MobileCTA from "@/components/MobileCTA";
 import AskAssetSafe from "@/components/AskAssetSafe";
@@ -484,8 +485,10 @@ const App = () => {
             <AuthProvider>
               <SubscriptionProvider>
                 <AccountProvider>
-                  <AppContent />
-                  <CookieConsent />
+                  <StepUpProvider>
+                    <AppContent />
+                    <CookieConsent />
+                  </StepUpProvider>
                 </AccountProvider>
               </SubscriptionProvider>
             </AuthProvider>
