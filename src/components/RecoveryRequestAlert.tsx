@@ -31,6 +31,7 @@ export const RecoveryRequestAlert: React.FC<RecoveryRequestAlertProps> = ({
   const [request, setRequest] = useState<RecoveryRequest | null>(null);
   const [delegateEmail, setDelegateEmail] = useState("");
   const [isResponding, setIsResponding] = useState(false);
+  const { promptStepUp } = useStepUpPrompt();
 
   useEffect(() => {
     fetchPendingRequest();
