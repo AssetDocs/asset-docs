@@ -140,11 +140,21 @@ export const useTOTP = () => {
 
   const unenroll = async (factorId: string): Promise<boolean> => {
     try {
-      const { error } = await supabase.auth.mfa.unenroll({
-        factorId,
+      // Route through mfa-unenroll edge function so backup codes and step-up
+      // sessions are wiped server-side. Requires a fresh step-up (last 60s).
+      const { data, error } = await supabase.functions.invoke('mfa-unenroll', {
+        body: { factorId },
       });
 
       if (error) throw error;
+      if (!data?.success) {
+        if (data?.code === 'step_up_required') {
+          const err: any = new Error('Fresh MFA step-up required');
+          err.code = 'step_up_required';
+          throw err;
+        }
+        throw new Error(data?.error || 'Failed to disable MFA');
+      }
 
       await fetchFactors();
       return true;
