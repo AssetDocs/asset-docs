@@ -37,6 +37,8 @@ interface PendingInvite {
   status: string;
   created_at: string;
   expires_at: string;
+  delivery_status?: 'not_sent' | 'sent' | 'failed' | null;
+  last_delivery_error?: string | null;
 }
 
 const AuthorizedUsersTab: React.FC = () => {
@@ -45,6 +47,7 @@ const AuthorizedUsersTab: React.FC = () => {
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<'full_access' | 'read_only'>('read_only');
   const [loading, setLoading] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const suggestedSms = `Hey — I just added you as an authorized user on my Asset Safe account.\nYou'll get an email invite shortly. It may land in promotions/spam — just search "Asset Safe" if you don't see it.`;
   const handleCopySms = async () => {
@@ -111,7 +114,7 @@ const AuthorizedUsersTab: React.FC = () => {
 
     const { data, error } = await supabase
       .from('invites')
-      .select('id, email, role, status, created_at, expires_at')
+      .select('id, email, role, status, created_at, expires_at, delivery_status, last_delivery_error')
       .eq('account_id', accountId)
       .eq('status', 'pending');
 
@@ -124,8 +127,14 @@ const AuthorizedUsersTab: React.FC = () => {
   };
 
   const handleInvite = async () => {
+    setInviteError(null);
+
     if (!email.trim()) {
       toast({ title: 'Email required', description: 'Please enter an email address.', variant: 'destructive' });
+      return;
+    }
+    if (!accountId) {
+      toast({ title: 'No active account', description: 'Please reload and try again.', variant: 'destructive' });
       return;
     }
 
@@ -135,17 +144,29 @@ const AuthorizedUsersTab: React.FC = () => {
       if (!session?.session) throw new Error('Not authenticated');
 
       const { data, error } = await supabase.functions.invoke('send-invite', {
-        body: { email: email.trim(), role },
+        body: { accountId, email: email.trim(), role },
         headers: { Authorization: `Bearer ${session.session.access_token}` },
       });
 
       if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      if (data?.success === false) throw new Error(data.error || 'Failed to send invitation.');
 
-      toast({
-        title: 'Invitation sent',
-        description: `An invitation has been sent to ${email.trim()}.`,
-      });
+      const deliveryStatus = data?.delivery_status as 'sent' | 'failed' | undefined;
+
+      if (deliveryStatus === 'failed') {
+        const msg = data?.error || 'The invite was created but the email could not be sent. Use Resend from the pending list.';
+        setInviteError(msg);
+        toast({
+          title: 'Invite saved — email delivery failed',
+          description: msg,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Invitation sent',
+          description: `An invitation has been sent to ${email.trim()}.`,
+        });
+      }
 
       await logActivity({
         action_type: 'contributor_invite',
@@ -157,9 +178,11 @@ const AuthorizedUsersTab: React.FC = () => {
       setRole('read_only');
       fetchPendingInvites();
     } catch (err: any) {
+      const msg = err?.message || 'Please try again.';
+      setInviteError(msg);
       toast({
         title: 'Error sending invitation',
-        description: err.message || 'Please try again.',
+        description: msg,
         variant: 'destructive',
       });
     } finally {
@@ -250,6 +273,17 @@ const AuthorizedUsersTab: React.FC = () => {
     }
   };
 
+  const getDeliveryBadge = (invite: PendingInvite) => {
+    const ds = invite.delivery_status || 'not_sent';
+    if (ds === 'failed') {
+      return <Badge className="bg-red-100 text-red-800 border-red-200">Email failed</Badge>;
+    }
+    if (ds === 'not_sent') {
+      return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">Sending…</Badge>;
+    }
+    return <Badge className="bg-amber-100 text-amber-800 border-amber-200">Pending</Badge>;
+  };
+
   const getMemberName = (member: Member) => {
     if (member.first_name || member.last_name) {
       return `${member.first_name || ''} ${member.last_name || ''}`.trim();
@@ -314,6 +348,14 @@ const AuthorizedUsersTab: React.FC = () => {
                 </Button>
               </div>
             </div>
+
+            {inviteError && (
+              <Alert variant="destructive" className="mt-4">
+                <AlertDescription>{inviteError}</AlertDescription>
+              </Alert>
+            )}
+
+
 
             <div className="mt-6 rounded-md border border-border bg-muted/40 p-4">
               <div className="flex items-start gap-3">
@@ -482,9 +524,15 @@ const AuthorizedUsersTab: React.FC = () => {
                     <p className="text-xs text-muted-foreground">
                       Invited {new Date(invite.created_at).toLocaleDateString()} · Expires {new Date(invite.expires_at).toLocaleDateString()}
                     </p>
+                    {invite.delivery_status === 'failed' && invite.last_delivery_error && (
+                      <p className="text-xs text-red-700 mt-1">
+                        Delivery error: {invite.last_delivery_error}
+                      </p>
+                    )}
                   </div>
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                     {getRoleBadge(invite.role)}
+                    {getDeliveryBadge(invite)}
                     {isOwner && (
                       <Button
                         variant="ghost"
