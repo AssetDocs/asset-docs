@@ -56,6 +56,10 @@ const AdminOwnerWorkspace: React.FC = () => {
           <CreditCard className="w-4 h-4" />
           Cancellations
         </TabsTrigger>
+        <TabsTrigger value="manual-review" className="flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4" />
+          Manual Review
+        </TabsTrigger>
         <TabsTrigger value="crm" className="flex items-center gap-2">
           <Users className="w-4 h-4" />
           CRM
