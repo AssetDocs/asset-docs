@@ -277,7 +277,9 @@ export type Database = {
           email: string | null
           id: string
           invited_by: string | null
+          revoked_at: string | null
           role: Database["public"]["Enums"]["membership_role"]
+          role_changed_at: string | null
           status: string
           user_id: string
         }
@@ -288,7 +290,9 @@ export type Database = {
           email?: string | null
           id?: string
           invited_by?: string | null
+          revoked_at?: string | null
           role?: Database["public"]["Enums"]["membership_role"]
+          role_changed_at?: string | null
           status?: string
           user_id: string
         }
@@ -299,7 +303,9 @@ export type Database = {
           email?: string | null
           id?: string
           invited_by?: string | null
+          revoked_at?: string | null
           role?: Database["public"]["Enums"]["membership_role"]
+          role_changed_at?: string | null
           status?: string
           user_id?: string
         }
@@ -3486,6 +3492,7 @@ export type Database = {
         Row: {
           accepted_at: string | null
           account_id: string
+          canceled_at: string | null
           created_at: string
           delivered_at: string | null
           delivery_status: string
@@ -3503,6 +3510,7 @@ export type Database = {
         Insert: {
           accepted_at?: string | null
           account_id: string
+          canceled_at?: string | null
           created_at?: string
           delivered_at?: string | null
           delivery_status?: string
@@ -3520,6 +3528,7 @@ export type Database = {
         Update: {
           accepted_at?: string | null
           account_id?: string
+          canceled_at?: string | null
           created_at?: string
           delivered_at?: string | null
           delivery_status?: string
@@ -6407,6 +6416,10 @@ export type Database = {
         Returns: Json
       }
       claim_gift_subscription: { Args: { p_gift_code: string }; Returns: Json }
+      clear_last_used_account_if_revoked: {
+        Args: { _account_id: string; _user_id: string }
+        Returns: undefined
+      }
       complete_closure: {
         Args: { _closure_id: string; _override?: boolean }
         Returns: string
