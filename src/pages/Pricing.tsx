@@ -17,10 +17,12 @@ import { useToast } from '@/hooks/use-toast';
 import { CheckIcon, Shield, Gift, Mail } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { productSchema, faqSchema, breadcrumbSchema } from '@/utils/structuredData';
+import { useOpenCustomerPortal } from '@/hooks/useOpenCustomerPortal';
 
 const Pricing: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { open: openCustomerPortal } = useOpenCustomerPortal({ newTab: true });
   const searchParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
   const wasCanceled = searchParams.get('canceled') === '1';
   const [subscriptionStatus, setSubscriptionStatus] = useState<{
@@ -368,19 +370,7 @@ const Pricing: React.FC = () => {
                     </p>
                     <Button 
                       variant="outline" 
-                      onClick={async () => {
-                        try {
-                          const { data, error } = await supabase.functions.invoke('customer-portal');
-                          if (error) throw error;
-                          window.open(data.url, '_blank');
-                        } catch (error) {
-                          toast({
-                            title: "Error",
-                            description: "Failed to open customer portal. Please try again.",
-                            variant: "destructive",
-                          });
-                        }
-                      }}
+                      onClick={() => openCustomerPortal()}
                     >
                       Manage Subscription
                     </Button>

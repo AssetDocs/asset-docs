@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { invokeWithStepUp } from '@/lib/invokeWithStepUp';
+import { invokeWithStepUp, isStepUpRequired } from '@/lib/invokeWithStepUp';
 import { useStepUpPrompt } from '@/contexts/StepUpContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -197,9 +197,20 @@ const ManageTab: React.FC = () => {
   const handleManageBilling = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('customer-portal');
-      if (error) throw error;
-      window.location.href = data.url;
+      const result = await invokeWithStepUp<{ url?: string }>(
+        'customer-portal',
+        {},
+        () => promptStepUp({
+          title: 'Open billing portal',
+          description: 'Verify with your authenticator to manage billing.',
+        }),
+      );
+      if (isStepUpRequired(result)) {
+        toast({ title: 'MFA verification required', description: 'Please verify to open billing.', variant: 'destructive' });
+        return;
+      }
+      if (result.error) throw result.error;
+      window.location.href = result.data!.url!;
     } catch (error) {
       toast({ title: "Error", description: "Failed to open billing management. Please try again.", variant: "destructive" });
     } finally {

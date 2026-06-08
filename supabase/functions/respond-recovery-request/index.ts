@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { requireStepUp, getClientIp, serviceClient } from "../_shared/mfa.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -39,6 +40,15 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const { recoveryRequestId, action }: RespondRecoveryRequestData = await req.json();
+
+    // Require fresh MFA step-up for recovery approvals/rejections (highly sensitive: grants vault access).
+    const gate = await requireStepUp(serviceClient(), user.id, {
+      fresh: true,
+      kind: `recovery_${action}`,
+      ip: getClientIp(req),
+      corsHeaders,
+    });
+    if (!gate.ok) return gate.response;
 
     console.log(`Processing recovery request ${action}:`, recoveryRequestId);
 

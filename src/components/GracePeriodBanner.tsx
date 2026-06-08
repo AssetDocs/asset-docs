@@ -1,12 +1,11 @@
 // @ts-nocheck
-import React, { useState } from 'react';
+import React from 'react';
 import { AlertTriangle, CreditCard, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { useAccountStatus } from '@/hooks/useAccountStatus';
 import { useAccount } from '@/contexts/AccountContext';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { useOpenCustomerPortal } from '@/hooks/useOpenCustomerPortal';
 
 /**
  * Owner-only billing grace-period warning.
@@ -16,7 +15,7 @@ import { toast } from '@/hooks/use-toast';
 const GracePeriodBanner: React.FC = () => {
   const { isInGracePeriod, gracePeriodEndsAt, loading } = useAccountStatus();
   const { isOwner } = useAccount() as any;
-  const [opening, setOpening] = useState(false);
+  const { open: openPortal, loading: opening } = useOpenCustomerPortal({ newTab: true });
 
   if (loading || !isInGracePeriod || !isOwner) return null;
 
@@ -25,23 +24,6 @@ const GracePeriodBanner: React.FC = () => {
     ? endsAt.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })
     : '';
 
-  const openPortal = async () => {
-    setOpening(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('customer-portal');
-      if (error) throw error;
-      if (data?.url) window.open(data.url, '_blank');
-      else throw new Error('No portal URL returned');
-    } catch (e: any) {
-      toast({
-        title: 'Could not open billing portal',
-        description: e.message || 'Please try again.',
-        variant: 'destructive',
-      });
-    } finally {
-      setOpening(false);
-    }
-  };
 
   return (
     <Alert className="mb-4 border-amber-400 bg-amber-50">

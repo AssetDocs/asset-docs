@@ -4,6 +4,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, CheckCircle, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { invokeWithStepUp, isStepUpRequired } from "@/lib/invokeWithStepUp";
+import { useStepUpPrompt } from "@/contexts/StepUpContext";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 
@@ -29,6 +31,7 @@ export const RecoveryRequestAlert: React.FC<RecoveryRequestAlertProps> = ({
   const [request, setRequest] = useState<RecoveryRequest | null>(null);
   const [delegateEmail, setDelegateEmail] = useState("");
   const [isResponding, setIsResponding] = useState(false);
+  const { promptStepUp } = useStepUpPrompt();
 
   useEffect(() => {
     fetchPendingRequest();
@@ -70,14 +73,20 @@ export const RecoveryRequestAlert: React.FC<RecoveryRequestAlertProps> = ({
 
     setIsResponding(true);
     try {
-      const { error } = await supabase.functions.invoke("respond-recovery-request", {
-        body: {
-          recoveryRequestId: request.id,
-          action,
-        },
-      });
+      const result = await invokeWithStepUp(
+        "respond-recovery-request",
+        { body: { recoveryRequestId: request.id, action } },
+        () => promptStepUp({
+          title: action === 'approve' ? 'Approve recovery request' : 'Reject recovery request',
+          description: 'Verify with your authenticator to respond to this Legacy Locker recovery request.',
+        }),
+      );
 
-      if (error) throw error;
+      if (isStepUpRequired(result)) {
+        toast.error('MFA verification required to respond to recovery requests.');
+        return;
+      }
+      if (result.error) throw result.error;
 
       toast.success(`Recovery request ${action}d successfully`);
       onRequestResolved();
