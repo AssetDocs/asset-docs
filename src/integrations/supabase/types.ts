@@ -624,6 +624,7 @@ export type Database = {
       backup_codes: {
         Row: {
           code_hash: string
+          code_hash_algo: string
           created_at: string
           expires_at: string
           id: string
@@ -632,6 +633,7 @@ export type Database = {
         }
         Insert: {
           code_hash: string
+          code_hash_algo?: string
           created_at?: string
           expires_at?: string
           id?: string
@@ -640,6 +642,7 @@ export type Database = {
         }
         Update: {
           code_hash?: string
+          code_hash_algo?: string
           created_at?: string
           expires_at?: string
           id?: string
@@ -2566,6 +2569,45 @@ export type Database = {
         }
         Relationships: []
       }
+      email_change_requests: {
+        Row: {
+          cancelled_at: string | null
+          confirmed_at: string | null
+          expires_at: string
+          id: string
+          ip: string | null
+          new_email: string
+          requested_at: string
+          token_hash: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          confirmed_at?: string | null
+          expires_at?: string
+          id?: string
+          ip?: string | null
+          new_email: string
+          requested_at?: string
+          token_hash: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          confirmed_at?: string | null
+          expires_at?: string
+          id?: string
+          ip?: string | null
+          new_email?: string
+          requested_at?: string
+          token_hash?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       emergency_instructions: {
         Row: {
           access_notes: Json | null
@@ -4474,6 +4516,69 @@ export type Database = {
         }
         Relationships: []
       }
+      mfa_attempt_log: {
+        Row: {
+          created_at: string
+          id: string
+          ip: string | null
+          kind: string
+          metadata: Json
+          outcome: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ip?: string | null
+          kind: string
+          metadata?: Json
+          outcome: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ip?: string | null
+          kind?: string
+          metadata?: Json
+          outcome?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      mfa_step_up_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          ip: string | null
+          last_step_up_at: string
+          method: string
+          stepped_up_until: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ip?: string | null
+          last_step_up_at?: string
+          method: string
+          stepped_up_until: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ip?: string | null
+          last_step_up_at?: string
+          method?: string
+          stepped_up_until?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       notes_traditions: {
         Row: {
           bucket_name: string | null
@@ -4896,6 +5001,7 @@ export type Database = {
           id: string
           last_name: string | null
           last_used_account_id: string | null
+          mfa_enabled_email_sent_at: string | null
           onboarding_complete: boolean
           password_set: boolean
           payment_failed_at: string | null
@@ -4924,6 +5030,7 @@ export type Database = {
           id?: string
           last_name?: string | null
           last_used_account_id?: string | null
+          mfa_enabled_email_sent_at?: string | null
           onboarding_complete?: boolean
           password_set?: boolean
           payment_failed_at?: string | null
@@ -4952,6 +5059,7 @@ export type Database = {
           id?: string
           last_name?: string | null
           last_used_account_id?: string | null
+          mfa_enabled_email_sent_at?: string | null
           onboarding_complete?: boolean
           password_set?: boolean
           payment_failed_at?: string | null
