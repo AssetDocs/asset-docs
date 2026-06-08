@@ -63,6 +63,7 @@ const AuthorizedUsersTab: React.FC = () => {
     }
   };
   const { toast } = useToast();
+  const { promptStepUp } = useStepUpPrompt();
   const { hasFeature } = useSubscription();
   const { accountId, isOwner } = useAccount();
 
@@ -198,14 +199,30 @@ const AuthorizedUsersTab: React.FC = () => {
   const callFn = async (fn: string, body: any) => {
     const { data: session } = await supabase.auth.getSession();
     if (!session?.session) throw new Error('Not authenticated');
-    const { data, error } = await supabase.functions.invoke(fn, {
+    const invokeOpts = {
       body,
       headers: { Authorization: `Bearer ${session.session.access_token}` },
-    });
-    if (error) throw error;
+    };
+
+    // Sensitive AU endpoints can demand a fresh MFA step-up. Use the global
+    // dialog provider to prompt + retry transparently.
+    const needsStepUp = fn === 'revoke-authorized-user' || fn === 'update-authorized-user-role';
+    const result = needsStepUp
+      ? await invokeWithStepUp(fn, invokeOpts, () =>
+          promptStepUp({
+            title: 'Verify before changing access',
+            description: 'For security, confirm your authenticator before changing Authorized User access.',
+          }),
+        )
+      : await supabase.functions.invoke(fn, invokeOpts);
+
+    const { data, error } = result as any;
+    if (error && !isStepUpRequired(result as any)) throw error;
     if (data?.success === false) throw new Error(data.error || 'Request failed.');
     return data;
   };
+
+
 
   const handleResendInvite = async (inviteId: string, email: string) => {
     try {
