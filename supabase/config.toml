@@ -15,3 +15,8 @@ verify_jwt = false
 # invitee's mailbox), so a user JWT is not required.
 [functions.confirm-invite-email]
 verify_jwt = false
+
+# Public — caller proves identity via a one-time token from the email-change
+# confirmation email sent to the new mailbox. No user JWT required.
+[functions.confirm-email-change]
+verify_jwt = false

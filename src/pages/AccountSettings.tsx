@@ -7,6 +7,7 @@ import ManageTab from '@/components/ManageTab';
 import NotificationsTab from '@/components/NotificationsTab';
 import CookieSettings from '@/components/CookieSettings';
 import MFADropdown from '@/components/MFADropdown';
+import ChangeEmailSection from '@/components/ChangeEmailSection';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import StorageDashboard from '@/components/StorageDashboard';
 import AdminContributorPlanInfo from '@/components/AdminContributorPlanInfo';
@@ -202,9 +203,11 @@ const AccountSettings: React.FC = () => {
                   <ManageTab />
                 </TabsContent>
 
-                <TabsContent value="security">
+                <TabsContent value="security" className="space-y-6">
                   <MFADropdown collapsible={false} />
+                  <ChangeEmailSection />
                 </TabsContent>
+
 
                 <TabsContent value="notifications">
                   <NotificationsTab />
