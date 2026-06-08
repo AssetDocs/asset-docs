@@ -230,7 +230,14 @@ const ManageTab: React.FC = () => {
     if (!user) return;
     setIsDeleting(true);
     try {
-      const { error } = await supabase.functions.invoke('delete-account');
+      const { error } = await invokeWithStepUp(
+        'delete-account',
+        {},
+        () => promptStepUp({
+          title: 'Verify before deleting your account',
+          description: 'For security, confirm your authenticator. This action is permanent.',
+        }),
+      );
       if (error) throw error;
       await signOut();
       setShowDeleteDialog(false);
