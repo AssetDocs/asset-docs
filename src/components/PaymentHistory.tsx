@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { CreditCard, Receipt, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useOpenCustomerPortal } from '@/hooks/useOpenCustomerPortal';
 
 interface PaymentMethod {
   type: string;
@@ -28,26 +29,9 @@ interface PaymentHistoryProps {
 const PaymentHistory: React.FC<PaymentHistoryProps> = ({ embedded = false }) => {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isPortalLoading, setIsPortalLoading] = useState(false);
   const { toast } = useToast();
+  const { open: handleViewFullHistory, loading: isPortalLoading } = useOpenCustomerPortal({ newTab: true });
 
-  const handleViewFullHistory = async () => {
-    setIsPortalLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('customer-portal');
-      if (error) throw error;
-      if (data?.url) window.open(data.url, '_blank');
-    } catch (error) {
-      console.error('Error opening customer portal:', error);
-      toast({
-        title: "Error",
-        description: "Failed to open billing history. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsPortalLoading(false);
-    }
-  };
 
   useEffect(() => {
     fetchPaymentHistory();
