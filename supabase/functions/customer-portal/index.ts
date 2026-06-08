@@ -40,6 +40,14 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
+    const gate = await requireStepUp(supabaseClient, user.id, {
+      kind: 'customer_portal',
+      ip: getClientIp(req),
+      corsHeaders,
+    });
+    if (!gate.ok) return gate.response;
+
+
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     
