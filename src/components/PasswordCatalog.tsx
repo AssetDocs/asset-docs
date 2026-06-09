@@ -14,7 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { z } from 'zod';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import MasterPasswordModal from './MasterPasswordModal';
-import { encryptPassword, decryptPassword, createPasswordVerificationHash, verifyMasterPassword } from '@/utils/encryption';
+import { encryptPassword, decryptPassword } from '@/utils/encryption';
+import { unlockOrUpgradeVault, setVaultKey } from '@/lib/vaultKey';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const passwordSchema = z.object({
