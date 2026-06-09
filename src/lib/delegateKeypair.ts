@@ -78,11 +78,6 @@ async function unwrapPrivateKey(
   );
 }
 
-/**
- * Ensure the current user has a delegate keypair stored.
- * Requires an unlocked vault (vault key in memory).
- * Returns the user's public JWK.
- */
 export async function ensureDelegateKeypair(): Promise<JsonWebKey> {
   const { data: auth } = await supabase.auth.getUser();
   const user = auth?.user;
@@ -121,11 +116,6 @@ export async function ensureDelegateKeypair(): Promise<JsonWebKey> {
   return publicJwk;
 }
 
-
-/**
- * Wrap a raw vault key under a delegate's public key (for grant issuance).
- * Returns base64 ciphertext suitable for storage in `wrapped_vault_key`.
- */
 export async function wrapVaultKeyForDelegate(
   vaultKey: CryptoKey,
   delegatePublicJwk: JsonWebKey,
@@ -136,10 +126,6 @@ export async function wrapVaultKeyForDelegate(
   return b64.enc(ct);
 }
 
-/**
- * Unwrap a vault key from a delegate grant using the delegate's private key.
- * Requires the delegate's vault key in memory (to unwrap their private key).
- */
 export async function unwrapVaultKeyAsDelegate(
   wrappedVaultKey: string,
 ): Promise<CryptoKey> {
@@ -174,9 +160,6 @@ export async function unwrapVaultKeyAsDelegate(
   );
 }
 
-/**
- * Fetch a user's public JWK (for owners issuing grants to a delegate).
- */
 export async function fetchDelegatePublicKey(
   delegateUserId: string,
 ): Promise<{ jwk: JsonWebKey; keyVersion: number } | null> {

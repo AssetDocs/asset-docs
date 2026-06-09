@@ -25,6 +25,8 @@ import { useAccount } from '@/contexts/AccountContext';
 import { useToast } from '@/hooks/use-toast';
 import MasterPasswordModal from './MasterPasswordModal';
 import { unlockOrUpgradeVault, setVaultKey, clearVaultKey } from '@/lib/vaultKey';
+import { issuePendingDelegateGrants } from '@/lib/delegateGrants';
+
 import { MASTER_PASSWORD_HASH_KEY } from './PasswordCatalog';
 import PasswordCatalog from './PasswordCatalog';
 import LegacyLocker from './LegacyLocker';
@@ -258,6 +260,15 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
 
     // Cache the vault key in memory for this session.
     setVaultKey(user.id, outcome.vaultKey);
+
+    // Fire-and-forget: issue delegate vault grants for any acknowledged
+    // recovery requests that don't yet have an active grant. Also ensures
+    // the owner's own delegate keypair is on file.
+    issuePendingDelegateGrants(user.id, outcome.vaultKey).catch((e) =>
+      console.error('issuePendingDelegateGrants failed:', e),
+    );
+
+
 
     setSessionMasterPassword(password);
     setIsUnlocked(true);

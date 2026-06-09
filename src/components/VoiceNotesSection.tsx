@@ -4,23 +4,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mic, Square, Trash2, Play, Pause, Upload, FileText, X, Edit2, Lock } from 'lucide-react';
+import { Mic, Square, Trash2, Play, Pause, Upload, FileText, X, Edit2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { getVaultKey, decryptBytes, encryptBytes } from '@/lib/vaultKey';
 
 interface VoiceNote {
   id: string;
   title: string;
   description?: string;
   audio_url: string;
-  audio_path: string;
   duration?: number;
   created_at: string;
-  is_encrypted?: boolean;
-  storage_bucket?: string;
-  legacy_locker_id?: string | null;
 }
 
 interface VoiceNoteAttachment {
@@ -28,13 +23,9 @@ interface VoiceNoteAttachment {
   voice_note_id: string;
   file_name: string;
   file_url: string;
-  file_path: string;
   file_size: number;
   file_type: string;
   created_at: string;
-  is_encrypted?: boolean;
-  storage_bucket?: string;
-  legacy_locker_id?: string | null;
 }
 
 export const VoiceNotesSection = () => {
@@ -47,30 +38,14 @@ export const VoiceNotesSection = () => {
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [editingFileName, setEditingFileName] = useState<string | null>(null);
   const [newFileName, setNewFileName] = useState('');
-  const [lockerId, setLockerId] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
-    if (user?.id) {
-      fetchLocker();
+    if (user) {
       fetchVoiceNotes();
     }
-  }, [user?.id]);
-
-  const fetchLocker = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('legacy_locker')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      if (error) throw error;
-      setLockerId(data?.id ?? null);
-    } catch (err) {
-      console.error('Error fetching locker:', err);
-    }
-  };
+  }, [user]);
 
   const fetchAttachments = async (voiceNoteId: string) => {
     try {
@@ -96,6 +71,8 @@ export const VoiceNotesSection = () => {
 
       if (error) throw error;
       setVoiceNotes(data || []);
+      
+      // Fetch attachments for each voice note
       data?.forEach(note => fetchAttachments(note.id));
     } catch (error) {
       console.error('Error fetching voice notes:', error);
@@ -109,8 +86,11 @@ export const VoiceNotesSection = () => {
       const chunks: Blob[] = [];
 
       recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunks.push(e.data);
+        if (e.data.size > 0) {
+          chunks.push(e.data);
+        }
       };
+
       recorder.onstop = () => {
         setAudioChunks(chunks);
         stream.getTracks().forEach(track => track.stop());
@@ -120,7 +100,11 @@ export const VoiceNotesSection = () => {
       setMediaRecorder(recorder);
       setIsRecording(true);
     } catch (error) {
-      toast({ title: 'Error', description: 'Could not access microphone', variant: 'destructive' });
+      toast({
+        title: 'Error',
+        description: 'Could not access microphone',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -133,23 +117,9 @@ export const VoiceNotesSection = () => {
 
   const saveVoiceNote = async () => {
     if (!user || audioChunks.length === 0 || !newNote.title.trim()) {
-      toast({ title: 'Error', description: 'Please add a title and record audio', variant: 'destructive' });
-      return;
-    }
-
-    const vk = getVaultKey(user.id);
-    if (!vk) {
       toast({
-        title: 'Vault locked',
-        description: 'Unlock your Legacy Locker before recording new voice notes.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    if (!lockerId) {
-      toast({
-        title: 'Setup required',
-        description: 'Set up your Legacy Locker before recording voice notes.',
+        title: 'Error',
+        description: 'Please add a title and record audio',
         variant: 'destructive',
       });
       return;
@@ -157,210 +127,165 @@ export const VoiceNotesSection = () => {
 
     try {
       const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-      const rawBytes = new Uint8Array(await audioBlob.arrayBuffer());
+      const fileName = `${user.id}/${Date.now()}-voice-note.webm`;
 
-      // Encrypt with vault key, AAD bound to this locker.
-      const encBytes = await encryptBytes(rawBytes, vk, `voice:${lockerId}`);
-      const encBlob = new Blob([encBytes], { type: 'application/octet-stream' });
-
-      // Locker-scoped path: legacy-locker/<owner>/<locker>/<filename>
-      const fileName = `legacy-locker/${user.id}/${lockerId}/${Date.now()}-voice-note.webm.asv2`;
-
-      const { error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('documents')
-        .upload(fileName, encBlob, { contentType: 'application/octet-stream' });
+        .upload(fileName, audioBlob);
 
       if (uploadError) throw uploadError;
+
+      // Use signed URL for private bucket
+      const { data: signedData, error: signedError } = await supabase.storage
+        .from('documents')
+        .createSignedUrl(fileName, 86400); // 24 hour expiry
+
+      if (signedError) throw signedError;
 
       const { error: insertError } = await supabase
         .from('legacy_locker_voice_notes')
         .insert({
           user_id: user.id,
-          legacy_locker_id: lockerId,
           title: newNote.title,
           description: newNote.description,
           audio_path: fileName,
-          audio_url: '', // resolved on demand via signed URL + decryption
-          file_size: encBlob.size,
-          is_encrypted: true,
-          storage_bucket: 'documents',
+          audio_url: signedData.signedUrl,
+          file_size: audioBlob.size,
         });
 
       if (insertError) throw insertError;
 
-      toast({ title: 'Success', description: 'Voice note saved (encrypted).' });
+      toast({
+        title: 'Success',
+        description: 'Voice note saved successfully',
+      });
+
       setNewNote({ title: '', description: '' });
       setAudioChunks([]);
       fetchVoiceNotes();
     } catch (error) {
       console.error('Error saving voice note:', error);
-      toast({ title: 'Error', description: 'Failed to save voice note', variant: 'destructive' });
+      toast({
+        title: 'Error',
+        description: 'Failed to save voice note',
+        variant: 'destructive',
+      });
     }
   };
 
-  const deleteVoiceNote = async (id: string, audioPath: string, bucket: string = 'documents') => {
+  const deleteVoiceNote = async (id: string, audioPath: string) => {
     try {
-      if (audioPath) {
-        await supabase.storage.from(bucket).remove([audioPath]);
-      }
-      const { error } = await supabase.from('legacy_locker_voice_notes').delete().eq('id', id);
+      await supabase.storage.from('documents').remove([audioPath]);
+      
+      const { error } = await supabase
+        .from('legacy_locker_voice_notes')
+        .delete()
+        .eq('id', id);
+
       if (error) throw error;
-      toast({ title: 'Success', description: 'Voice note deleted' });
+
+      toast({
+        title: 'Success',
+        description: 'Voice note deleted',
+      });
+
       fetchVoiceNotes();
     } catch (error) {
       console.error('Error deleting voice note:', error);
-      toast({ title: 'Error', description: 'Failed to delete voice note', variant: 'destructive' });
+      toast({
+        title: 'Error',
+        description: 'Failed to delete voice note',
+        variant: 'destructive',
+      });
     }
   };
 
-  // Resolve a playable URL on demand: fetch (signed if private) and decrypt if encrypted.
-  const resolvePlayableUrl = async (note: VoiceNote): Promise<string | null> => {
-    try {
-      const bucket = note.storage_bucket || 'documents';
-      if (!note.is_encrypted) {
-        // Legacy plaintext audio: use signed URL directly.
-        if (note.audio_url && note.audio_url.startsWith('http')) return note.audio_url;
-        const { data, error } = await supabase.storage.from(bucket).createSignedUrl(note.audio_path, 3600);
-        if (error) throw error;
-        return data.signedUrl;
-      }
-      const vk = getVaultKey(user!.id);
-      if (!vk) {
-        toast({ title: 'Vault locked', description: 'Unlock your vault to play encrypted voice notes.', variant: 'destructive' });
-        return null;
-      }
-      const { data: signed, error: sErr } = await supabase.storage.from(bucket).createSignedUrl(note.audio_path, 300);
-      if (sErr) throw sErr;
-      const resp = await fetch(signed.signedUrl);
-      const encBytes = new Uint8Array(await resp.arrayBuffer());
-      const plain = await decryptBytes(encBytes, vk);
-      const blob = new Blob([plain], { type: 'audio/webm' });
-      return URL.createObjectURL(blob);
-    } catch (err) {
-      console.error('Error resolving audio:', err);
-      toast({ title: 'Error', description: 'Failed to load voice note', variant: 'destructive' });
-      return null;
-    }
-  };
-
-  const togglePlay = async (note: VoiceNote) => {
-    if (playingId === note.id) {
+  const togglePlay = (id: string, audioUrl: string) => {
+    if (playingId === id) {
       setPlayingId(null);
-      return;
+    } else {
+      const audio = new Audio(audioUrl);
+      audio.play();
+      setPlayingId(id);
+      audio.onended = () => setPlayingId(null);
     }
-    const url = await resolvePlayableUrl(note);
-    if (!url) return;
-    const audio = new Audio(url);
-    audio.play();
-    setPlayingId(note.id);
-    audio.onended = () => setPlayingId(null);
   };
 
   const handleFileUpload = async (voiceNoteId: string, files: FileList | null) => {
     if (!files || !user) return;
 
-    const vk = getVaultKey(user.id);
-    if (!vk) {
-      toast({ title: 'Vault locked', description: 'Unlock your vault to attach files.', variant: 'destructive' });
-      return;
-    }
-    if (!lockerId) {
-      toast({ title: 'Setup required', description: 'Legacy Locker not set up.', variant: 'destructive' });
-      return;
-    }
-
     for (const file of Array.from(files)) {
       try {
-        const rawBytes = new Uint8Array(await file.arrayBuffer());
-        const encBytes = await encryptBytes(rawBytes, vk, `voice:${lockerId}:${voiceNoteId}`);
-        const encBlob = new Blob([encBytes], { type: 'application/octet-stream' });
-
-        const fileName = `legacy-locker/${user.id}/${lockerId}/${voiceNoteId}/${Date.now()}-${file.name}.asv2`;
+        const fileName = `${user.id}/${voiceNoteId}/${Date.now()}-${file.name}`;
 
         const { error: uploadError } = await supabase.storage
           .from('documents')
-          .upload(fileName, encBlob, { contentType: 'application/octet-stream' });
+          .upload(fileName, file);
 
         if (uploadError) throw uploadError;
+
+        // Use signed URL for private bucket
+        const { data: signedData, error: signedError } = await supabase.storage
+          .from('documents')
+          .createSignedUrl(fileName, 86400); // 24 hour expiry
+
+        if (signedError) throw signedError;
 
         const { error: insertError } = await supabase
           .from('voice_note_attachments')
           .insert({
             voice_note_id: voiceNoteId,
             user_id: user.id,
-            legacy_locker_id: lockerId,
             file_name: file.name,
             file_path: fileName,
-            file_url: '',
-            file_size: encBlob.size,
+            file_url: signedData.signedUrl,
+            file_size: file.size,
             file_type: file.type,
-            is_encrypted: true,
-            storage_bucket: 'documents',
           });
 
         if (insertError) throw insertError;
 
-        toast({ title: 'Success', description: 'File attached (encrypted).' });
+        toast({
+          title: 'Success',
+          description: 'File attached successfully',
+        });
+
         fetchAttachments(voiceNoteId);
       } catch (error) {
         console.error('Error uploading file:', error);
-        toast({ title: 'Error', description: 'Failed to attach file', variant: 'destructive' });
+        toast({
+          title: 'Error',
+          description: 'Failed to attach file',
+          variant: 'destructive',
+        });
       }
     }
   };
 
-  const downloadAttachment = async (attachment: VoiceNoteAttachment) => {
+  const deleteAttachment = async (attachmentId: string, filePath: string, voiceNoteId: string) => {
     try {
-      const bucket = attachment.storage_bucket || 'documents';
-      if (!attachment.is_encrypted) {
-        const url =
-          attachment.file_url && attachment.file_url.startsWith('http')
-            ? attachment.file_url
-            : (await supabase.storage.from(bucket).createSignedUrl(attachment.file_path, 3600)).data?.signedUrl;
-        if (!url) throw new Error('No URL');
-        window.open(url, '_blank');
-        return;
-      }
-      const vk = getVaultKey(user!.id);
-      if (!vk) {
-        toast({ title: 'Vault locked', description: 'Unlock your vault to open this file.', variant: 'destructive' });
-        return;
-      }
-      const { data: signed, error: sErr } = await supabase.storage.from(bucket).createSignedUrl(attachment.file_path, 300);
-      if (sErr) throw sErr;
-      const resp = await fetch(signed.signedUrl);
-      const encBytes = new Uint8Array(await resp.arrayBuffer());
-      const plain = await decryptBytes(encBytes, vk);
-      const blob = new Blob([plain], { type: attachment.file_type || 'application/octet-stream' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = attachment.file_name;
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(url), 60_000);
-    } catch (err) {
-      console.error('Error downloading attachment:', err);
-      toast({ title: 'Error', description: 'Failed to open file', variant: 'destructive' });
-    }
-  };
-
-  const deleteAttachment = async (attachment: VoiceNoteAttachment) => {
-    try {
-      const bucket = attachment.storage_bucket || 'documents';
-      await supabase.storage.from(bucket).remove([attachment.file_path]);
+      await supabase.storage.from('documents').remove([filePath]);
 
       const { error } = await supabase
         .from('voice_note_attachments')
         .delete()
-        .eq('id', attachment.id);
+        .eq('id', attachmentId);
 
       if (error) throw error;
 
-      toast({ title: 'Success', description: 'File deleted' });
-      fetchAttachments(attachment.voice_note_id);
+      toast({
+        title: 'Success',
+        description: 'File deleted',
+      });
+
+      fetchAttachments(voiceNoteId);
     } catch (error) {
       console.error('Error deleting attachment:', error);
-      toast({ title: 'Error', description: 'Failed to delete file', variant: 'destructive' });
+      toast({
+        title: 'Error',
+        description: 'Failed to delete file',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -371,22 +296,31 @@ export const VoiceNotesSection = () => {
 
   const saveRename = async (attachmentId: string, voiceNoteId: string) => {
     if (!newFileName.trim()) return;
+
     try {
       const { error } = await supabase
         .from('voice_note_attachments')
         .update({ file_name: newFileName })
         .eq('id', attachmentId);
+
       if (error) throw error;
-      toast({ title: 'Success', description: 'File renamed' });
+
+      toast({
+        title: 'Success',
+        description: 'File renamed',
+      });
+
       setEditingFileName(null);
       fetchAttachments(voiceNoteId);
     } catch (error) {
       console.error('Error renaming file:', error);
-      toast({ title: 'Error', description: 'Failed to rename file', variant: 'destructive' });
+      toast({
+        title: 'Error',
+        description: 'Failed to rename file',
+        variant: 'destructive',
+      });
     }
   };
-
-  const vaultUnlocked = !!(user && getVaultKey(user.id));
 
   return (
     <div className="space-y-6">
@@ -396,18 +330,9 @@ export const VoiceNotesSection = () => {
             <Mic className="h-5 w-5 text-brand-blue" />
             Voice Notes
           </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Record and store voice memos for your records. New recordings are end-to-end encrypted with your vault key.
-          </p>
+          <p className="text-sm text-muted-foreground">Record and store voice memos for your records.</p>
         </CardHeader>
         <CardContent className="space-y-4">
-          {!vaultUnlocked && (
-            <div className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
-              <Lock className="h-4 w-4 mt-0.5" />
-              <span>Unlock your Legacy Locker vault to record new voice notes or attach files.</span>
-            </div>
-          )}
-
           <div>
             <label className="text-sm font-medium mb-2 block">Title *</label>
             <Input
@@ -429,7 +354,7 @@ export const VoiceNotesSection = () => {
 
           <div className="flex gap-2">
             {!isRecording ? (
-              <Button onClick={startRecording} disabled={!vaultUnlocked} className="flex items-center gap-2">
+              <Button onClick={startRecording} className="flex items-center gap-2">
                 <Mic className="h-4 w-4" />
                 Start Recording
               </Button>
@@ -441,7 +366,7 @@ export const VoiceNotesSection = () => {
             )}
 
             {audioChunks.length > 0 && (
-              <Button onClick={saveVoiceNote} variant="secondary" disabled={!vaultUnlocked}>
+              <Button onClick={saveVoiceNote} variant="secondary">
                 Save Voice Note
               </Button>
             )}
@@ -464,10 +389,7 @@ export const VoiceNotesSection = () => {
                 <CardContent className="pt-6">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 space-y-2">
-                      <h4 className="font-semibold flex items-center gap-2">
-                        {note.title}
-                        {note.is_encrypted && <Lock className="h-3 w-3 text-muted-foreground" aria-label="Encrypted" />}
-                      </h4>
+                      <h4 className="font-semibold">{note.title}</h4>
                       {note.description && (
                         <p className="text-sm text-muted-foreground">{note.description}</p>
                       )}
@@ -476,19 +398,28 @@ export const VoiceNotesSection = () => {
                       </p>
                     </div>
                     <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={() => togglePlay(note)}>
-                        {playingId === note.id ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => togglePlay(note.id, note.audio_url)}
+                      >
+                        {playingId === note.id ? (
+                          <Pause className="h-4 w-4" />
+                        ) : (
+                          <Play className="h-4 w-4" />
+                        )}
                       </Button>
                       <Button
                         size="sm"
                         variant="destructive"
-                        onClick={() => deleteVoiceNote(note.id, note.audio_path, note.storage_bucket || 'documents')}
+                        onClick={() => deleteVoiceNote(note.id, note.audio_url)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
 
+                  {/* Attachments Section */}
                   <div className="mt-4 space-y-2">
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-medium">Attachments</p>
@@ -497,10 +428,9 @@ export const VoiceNotesSection = () => {
                           type="file"
                           multiple
                           className="hidden"
-                          disabled={!vaultUnlocked}
                           onChange={(e) => handleFileUpload(note.id, e.target.files)}
                         />
-                        <Button size="sm" variant="outline" asChild disabled={!vaultUnlocked}>
+                        <Button size="sm" variant="outline" asChild>
                           <span className="cursor-pointer">
                             <Upload className="h-4 w-4 mr-2" />
                             Add Files
@@ -508,14 +438,13 @@ export const VoiceNotesSection = () => {
                         </Button>
                       </label>
                     </div>
-
+                    
                     {attachments[note.id]?.length > 0 && (
                       <div className="space-y-2">
                         {attachments[note.id].map((attachment) => (
                           <div key={attachment.id} className="flex items-center justify-between p-2 bg-muted rounded-md">
                             <div className="flex items-center gap-2 flex-1">
                               <FileText className="h-4 w-4" />
-                              {attachment.is_encrypted && <Lock className="h-3 w-3 text-muted-foreground" aria-label="Encrypted" />}
                               {editingFileName === attachment.id ? (
                                 <Input
                                   value={newFileName}
@@ -529,19 +458,22 @@ export const VoiceNotesSection = () => {
                                   autoFocus
                                 />
                               ) : (
-                                <button
-                                  className="text-sm truncate text-left hover:underline"
-                                  onClick={() => downloadAttachment(attachment)}
-                                >
-                                  {attachment.file_name}
-                                </button>
+                                <span className="text-sm truncate">{attachment.file_name}</span>
                               )}
                             </div>
                             <div className="flex gap-1">
-                              <Button size="sm" variant="ghost" onClick={() => startRename(attachment.id, attachment.file_name)}>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => startRename(attachment.id, attachment.file_name)}
+                              >
                                 <Edit2 className="h-3 w-3" />
                               </Button>
-                              <Button size="sm" variant="ghost" onClick={() => deleteAttachment(attachment)}>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => deleteAttachment(attachment.id, attachment.file_url, note.id)}
+                              >
                                 <X className="h-3 w-3" />
                               </Button>
                             </div>

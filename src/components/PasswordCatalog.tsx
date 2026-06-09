@@ -16,6 +16,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import MasterPasswordModal from './MasterPasswordModal';
 import { encryptPassword, decryptPassword } from '@/utils/encryption';
 import { unlockOrUpgradeVault, setVaultKey } from '@/lib/vaultKey';
+import { ensureDelegateKeypair } from '@/lib/delegateKeypair';
+
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const passwordSchema = z.object({
@@ -193,6 +195,12 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
     }
 
     setVaultKey(user.id, outcome.vaultKey);
+    // Fire-and-forget: ensure this user has a delegate keypair on file so
+    // they can later receive vault grants from other owners.
+    ensureDelegateKeypair().catch((e) =>
+      console.error('ensureDelegateKeypair failed:', e),
+    );
+
     setLocalSessionMasterPassword(password);
     setLocalIsUnlocked(true);
     setMasterPasswordModal({ isOpen: false, isSetup: false });
