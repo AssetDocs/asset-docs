@@ -4157,6 +4157,9 @@ export type Database = {
           duration: number | null
           file_size: number | null
           id: string
+          is_encrypted: boolean
+          legacy_locker_id: string | null
+          storage_bucket: string
           title: string
           updated_at: string | null
           user_id: string
@@ -4169,6 +4172,9 @@ export type Database = {
           duration?: number | null
           file_size?: number | null
           id?: string
+          is_encrypted?: boolean
+          legacy_locker_id?: string | null
+          storage_bucket?: string
           title: string
           updated_at?: string | null
           user_id: string
@@ -4181,11 +4187,22 @@ export type Database = {
           duration?: number | null
           file_size?: number | null
           id?: string
+          is_encrypted?: boolean
+          legacy_locker_id?: string | null
+          storage_bucket?: string
           title?: string
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "legacy_locker_voice_notes_legacy_locker_id_fkey"
+            columns: ["legacy_locker_id"]
+            isOneToOne: false
+            referencedRelation: "legacy_locker"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       legal_agreement_signatures: {
         Row: {
@@ -6400,6 +6417,9 @@ export type Database = {
           file_type: string
           file_url: string
           id: string
+          is_encrypted: boolean
+          legacy_locker_id: string | null
+          storage_bucket: string
           updated_at: string | null
           user_id: string
           voice_note_id: string
@@ -6412,6 +6432,9 @@ export type Database = {
           file_type: string
           file_url: string
           id?: string
+          is_encrypted?: boolean
+          legacy_locker_id?: string | null
+          storage_bucket?: string
           updated_at?: string | null
           user_id: string
           voice_note_id: string
@@ -6424,11 +6447,21 @@ export type Database = {
           file_type?: string
           file_url?: string
           id?: string
+          is_encrypted?: boolean
+          legacy_locker_id?: string | null
+          storage_bucket?: string
           updated_at?: string | null
           user_id?: string
           voice_note_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "voice_note_attachments_legacy_locker_id_fkey"
+            columns: ["legacy_locker_id"]
+            isOneToOne: false
+            referencedRelation: "legacy_locker"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "voice_note_attachments_voice_note_id_fkey"
             columns: ["voice_note_id"]
@@ -6515,6 +6548,10 @@ export type Database = {
         }[]
       }
       can_accept_au_invite: { Args: { _account_id: string }; Returns: boolean }
+      can_access_vault_path: {
+        Args: { _locker: string; _owner: string }
+        Returns: boolean
+      }
       can_send_au_invite: { Args: { _account_id: string }; Returns: boolean }
       cancel_closure: {
         Args: { _closure_id: string; _reason: string }
