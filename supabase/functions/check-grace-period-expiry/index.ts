@@ -120,8 +120,34 @@ const handler = async (req: Request): Promise<Response> => {
           if (!response.ok) {
             const errorText = await response.text();
             console.error(`Error sending access email for locker ${locker.id}:`, errorText);
+            // Leave statuses untouched so cron retries on the next tick.
           } else {
             console.log(`Access email sent to ${delegateEmail} for locker ${locker.id}`);
+
+            // Flip locker to grace_period_expired (idempotent: WHERE recovery_status='grace_period_active')
+            const { error: lockerErr } = await supabase
+              .from('legacy_locker')
+              .update({ recovery_status: 'grace_period_expired' })
+              .eq('id', locker.id)
+              .eq('recovery_status', 'grace_period_active');
+
+            if (lockerErr) {
+              console.error(`Failed to update legacy_locker ${locker.id} status:`, lockerErr);
+            }
+
+            // Mirror onto matching recovery_requests rows. Trigger guard allows
+            // service-role transitions pending|approved -> grace_period_expired.
+            const { error: rrErr } = await supabase
+              .from('recovery_requests')
+              .update({ status: 'grace_period_expired', updated_at: new Date().toISOString() })
+              .eq('legacy_locker_id', locker.id)
+              .eq('delegate_user_id', locker.delegate_user_id)
+              .in('status', ['pending', 'approved']);
+
+            if (rrErr) {
+              console.error(`Failed to update recovery_requests for locker ${locker.id}:`, rrErr);
+            }
+
             processedCount++;
           }
         } else {
