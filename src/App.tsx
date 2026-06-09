@@ -112,6 +112,8 @@ import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import CRM from "./pages/CRM";
 import AcknowledgeAccess from "./pages/AcknowledgeAccess";
+import DelegateVault from "./pages/DelegateVault";
+
 import ActivityLog from "./pages/ActivityLog";
 import ForgotPassword from "./pages/ForgotPassword";
 import LegacyLockerInfo from "./pages/LegacyLockerInfo";
