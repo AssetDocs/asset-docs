@@ -468,6 +468,8 @@ const AppContent = () => {
         <Route path="/admin/lender-partnership" element={<LenderPartnership />} />
         <Route path="/admin/dev-invite" element={<DevInviteAccept />} />
         <Route path="/acknowledge-access" element={<AcknowledgeAccess />} />
+        <Route path="/delegate-vault" element={<DelegateVault />} />
+
         
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
