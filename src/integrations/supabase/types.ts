@@ -6809,6 +6809,7 @@ export type Database = {
         Args: { _account_id: string; _user_id: string }
         Returns: boolean
       }
+      is_service_role: { Args: never; Returns: boolean }
       log_continuity_event: {
         Args: {
           _action_details?: Json
