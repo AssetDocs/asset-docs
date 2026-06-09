@@ -24,7 +24,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useAccount } from '@/contexts/AccountContext';
 import { useToast } from '@/hooks/use-toast';
 import MasterPasswordModal from './MasterPasswordModal';
-import { createPasswordVerificationHash, verifyMasterPassword } from '@/utils/encryption';
+import { unlockOrUpgradeVault, setVaultKey, clearVaultKey } from '@/lib/vaultKey';
 import { MASTER_PASSWORD_HASH_KEY } from './PasswordCatalog';
 import PasswordCatalog from './PasswordCatalog';
 import LegacyLocker from './LegacyLocker';
@@ -64,6 +64,7 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
   const [delegateRecoveryStatus, setDelegateRecoveryStatus] = useState<string | null>(null);
   const [showRecoveryRequestDialog, setShowRecoveryRequestDialog] = useState(false);
   const [existingEncrypted, setExistingEncrypted] = useState(false);
+  const [wrappedVaultKey, setWrappedVaultKey] = useState<string | null>(null);
   const [passwordCatalogOpen, setPasswordCatalogOpen] = useState(initialTab === 'passwords' || false);
   const [legacyLockerOpen, setLegacyLockerOpen] = useState(initialTab === 'legacy' || false);
   
@@ -117,7 +118,7 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
       if (contributorData && contributorData.role === 'administrator') {
         const { data: ownerVaultData, error: ownerError } = await supabase
           .from('legacy_locker')
-          .select('id, is_encrypted, allow_admin_access')
+          .select('id, is_encrypted, allow_admin_access, encryption_key_encrypted_for_user')
           .eq('user_id', contributorData.account_owner_id)
           .maybeSingle();
 
@@ -126,6 +127,7 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
           setIsEncrypted(ownerVaultData.is_encrypted);
           setExistingEncrypted(ownerVaultData.is_encrypted);
           setAllowAdminAccess(ownerVaultData.allow_admin_access ?? true);
+          setWrappedVaultKey(ownerVaultData.encryption_key_encrypted_for_user ?? null);
         }
         setLoading(false);
         return;
@@ -135,7 +137,7 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
       const [{ data, error }, { data: delegateRow }] = await Promise.all([
         supabase
           .from('legacy_locker')
-          .select('id, is_encrypted, delegate_user_id, recovery_grace_period_days, recovery_status, allow_admin_access')
+          .select('id, is_encrypted, delegate_user_id, recovery_grace_period_days, recovery_status, allow_admin_access, encryption_key_encrypted_for_user')
           .eq('user_id', user.id)
           .maybeSingle(),
         // Check if the current user is a designated delegate for someone else's vault
@@ -158,6 +160,7 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
         setOriginalGracePeriodDays(data.recovery_grace_period_days || 14);
         setHasPendingRequest(data.recovery_status === 'pending');
         setAllowAdminAccess(data.allow_admin_access ?? true);
+        setWrappedVaultKey((data as any).encryption_key_encrypted_for_user ?? null);
       }
 
       // Detect if this user is a recovery delegate for another user's vault
@@ -178,96 +181,106 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
     }
   };
 
+  // Determines whether the unlock modal should run in setup or unlock mode.
+  // Setup mode = we have no wrapped vault key AND no legacy localStorage hash.
+  const computeSetupMode = (): boolean => {
+    if (wrappedVaultKey) return false;
+    if (typeof localStorage !== 'undefined' && localStorage.getItem(MASTER_PASSWORD_HASH_KEY)) {
+      return false;
+    }
+    return true;
+  };
+
   const handleUnlockClick = () => {
-    // Require TOTP verification first
     if (!totpVerified) {
       setShowTOTPChallenge(true);
       return;
     }
-    
-    const storedHash = localStorage.getItem(MASTER_PASSWORD_HASH_KEY);
-    setIsSetupMode(!storedHash);
+    setIsSetupMode(computeSetupMode());
     setShowMasterPasswordModal(true);
   };
 
   const handleTOTPVerified = () => {
     setTotpVerified(true);
     setShowTOTPChallenge(false);
-    
-    // Now proceed to vault passphrase modal
-    const storedHash = localStorage.getItem(MASTER_PASSWORD_HASH_KEY);
-    setIsSetupMode(!storedHash);
+    setIsSetupMode(computeSetupMode());
     setShowMasterPasswordModal(true);
   };
 
   const handleMasterPasswordSubmit = async (password: string) => {
-    const storedHash = localStorage.getItem(MASTER_PASSWORD_HASH_KEY);
+    if (!user) throw new Error('Not authenticated');
 
-    if (isSetupMode) {
-      // Create and store the password hash locally
-      const hash = await createPasswordVerificationHash(password);
-      localStorage.setItem(MASTER_PASSWORD_HASH_KEY, hash);
-      
-      // Update the database to mark vault as encrypted
-      if (user) {
-        try {
-          // First check if legacy_locker record exists
-          const { data: existingRecord } = await supabase
-            .from('legacy_locker')
-            .select('id')
-            .eq('user_id', user.id)
-            .maybeSingle();
-          
-          if (existingRecord) {
-            // Update existing record
-            await supabase
-              .from('legacy_locker')
-              .update({ 
-                is_encrypted: true,
-                updated_at: new Date().toISOString()
-              })
-              .eq('user_id', user.id);
-          } else {
-            // Create new record with encryption enabled
-            await supabase
-              .from('legacy_locker')
-              .insert({ 
-                user_id: user.id,
-                is_encrypted: true
-              });
-          }
-          
-          setExistingEncrypted(true);
-        } catch (dbError) {
-          console.error('Error updating encryption status in database:', dbError);
+    const outcome = await unlockOrUpgradeVault({
+      passphrase: password,
+      wrappedKey: wrappedVaultKey,
+      setup: isSetupMode,
+      legacyLocalStorageKey: MASTER_PASSWORD_HASH_KEY,
+    });
+
+    // Persist the wrapped vault key on setup/upgrade. Field encryption itself
+    // is still keyed by `password` for legacy v1 ciphertext compatibility —
+    // ASV2-encrypted reads/writes added in later items use the vault key.
+    if (outcome.mode === 'setup' || outcome.mode === 'upgrade') {
+      try {
+        const { data: existingRecord } = await supabase
+          .from('legacy_locker')
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        const payload: any = {
+          encryption_key_encrypted_for_user: outcome.wrappedKey,
+          is_encrypted: true,
+          updated_at: new Date().toISOString(),
+        };
+
+        if (existingRecord) {
+          await supabase.from('legacy_locker').update(payload).eq('user_id', user.id);
+        } else {
+          await supabase.from('legacy_locker').insert({ user_id: user.id, ...payload });
         }
+
+        setWrappedVaultKey(outcome.wrappedKey);
+        setExistingEncrypted(true);
+        setIsEncrypted(true);
+
+        // Upgrade complete: drop the legacy localStorage verifier permanently.
+        try {
+          localStorage.removeItem(MASTER_PASSWORD_HASH_KEY);
+        } catch {
+          /* ignore */
+        }
+      } catch (dbError) {
+        console.error('Error persisting wrapped vault key:', dbError);
+        throw new Error('Could not save vault encryption settings.');
       }
-      
-      setSessionMasterPassword(password);
-      setIsUnlocked(true);
-      setIsEncrypted(true);
-      setShowMasterPasswordModal(false);
+    }
+
+    // Cache the vault key in memory for this session.
+    setVaultKey(user.id, outcome.vaultKey);
+
+    setSessionMasterPassword(password);
+    setIsUnlocked(true);
+    setShowMasterPasswordModal(false);
+
+    if (outcome.mode === 'setup') {
       toast({
-        title: "Secure Vault Encrypted",
-        description: "Your Digital Access and Legacy Locker are now protected with end-to-end encryption.",
+        title: 'Secure Vault Encrypted',
+        description: 'Your Digital Access and Legacy Locker are now protected with end-to-end encryption.',
+      });
+    } else if (outcome.mode === 'upgrade') {
+      toast({
+        title: 'Vault Upgraded',
+        description: 'Your vault is now protected with the new key model.',
       });
     } else {
-      if (storedHash && await verifyMasterPassword(password, storedHash)) {
-        setSessionMasterPassword(password);
-        setIsUnlocked(true);
-        setShowMasterPasswordModal(false);
-        
-        // Log vault access
-        logActivity({
-          action_type: 'access_vault',
-          action_category: 'vault',
-          resource_type: 'vault',
-          resource_name: 'Secure Vault',
-          details: { encrypted: true }
-        });
-      } else {
-        throw new Error('Incorrect vault passphrase');
-      }
+      logActivity({
+        action_type: 'access_vault',
+        action_category: 'vault',
+        resource_type: 'vault',
+        resource_name: 'Secure Vault',
+        details: { encrypted: true },
+      });
     }
   };
 
@@ -380,6 +393,8 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
           .update({
             ...decryptedLocker,
             is_encrypted: false,
+            encryption_key_encrypted_for_user: null,
+            encryption_key_encrypted_for_delegate: null,
             updated_at: new Date().toISOString(),
           })
           .eq('user_id', user.id);
@@ -399,6 +414,8 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
       setIsEncrypted(false);
       setIsUnlocked(false);
       setSessionMasterPassword(null);
+      setWrappedVaultKey(null);
+      clearVaultKey(user.id);
       localStorage.removeItem(MASTER_PASSWORD_HASH_KEY);
 
       setShowRemoveEncryptionDialog(false);
