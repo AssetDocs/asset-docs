@@ -241,38 +241,77 @@ const TrustInformation: React.FC<TrustInformationProps> = ({
     }
   };
 
+  const hasSensitiveContent = (): boolean => {
+    for (const f of ENCRYPTED_TEXT_FIELDS) {
+      if ((formData as any)[f] && String((formData as any)[f]).trim().length > 0) return true;
+    }
+    for (const f of ENCRYPTED_JSON_FIELDS) {
+      const arr = (formData as any)[f];
+      if (Array.isArray(arr) && arr.length > 0) return true;
+    }
+    return false;
+  };
+
   const handleSave = async () => {
     try {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const payload = {
+      const vk = getVaultKey(user.id);
+
+      // Hard guard: never write new plaintext sensitive data. If the user
+      // entered any sensitive content, the vault MUST be unlocked.
+      if (!vk && hasSensitiveContent()) {
+        toast({
+          title: 'Vault locked',
+          description:
+            'Unlock your Secure Vault before saving Trust Information. Sensitive fields will not be written in plaintext.',
+          variant: 'destructive',
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Encrypt sensitive fields when the vault is unlocked.
+      const encText = async (v: string) => {
+        if (!vk) return ''; // unreachable when sensitive content is present
+        if (!v || !v.trim()) return ''; // store empty as empty (not an envelope)
+        return await encryptField(v, vk, `trust:${user.id}`);
+      };
+      const encJson = async <T,>(v: T[]): Promise<any> => {
+        if (!vk) return [];
+        if (!Array.isArray(v) || v.length === 0) return [];
+        const env = await encryptField(JSON.stringify(v), vk, `trust:${user.id}`);
+        return { _asv2: env };
+      };
+
+      const payload: any = {
         user_id: user.id,
         trust_name: formData.trust_name,
         trust_type: formData.trust_type,
         effective_date: formData.effective_date || null,
         amendment_count: formData.amendment_count,
-        trust_purpose: formData.trust_purpose,
-        grantors: formData.grantors as unknown as Json,
-        current_trustees: formData.current_trustees as unknown as Json,
-        successor_trustees: formData.successor_trustees as unknown as Json,
-        attorney_name: formData.attorney_name,
-        attorney_firm: formData.attorney_firm,
-        attorney_phone: formData.attorney_phone,
-        attorney_email: formData.attorney_email,
-        cpa_name: formData.cpa_name,
-        cpa_firm: formData.cpa_firm,
-        cpa_phone: formData.cpa_phone,
-        cpa_email: formData.cpa_email,
-        beneficiaries: formData.beneficiaries as unknown as Json,
-        trust_assets: formData.trust_assets as unknown as Json,
-        originals_location: formData.originals_location,
-        physical_access_instructions: formData.physical_access_instructions,
-        keyholder_name: formData.keyholder_name,
-        keyholder_contact: formData.keyholder_contact,
-        trust_documents: formData.trust_documents as unknown as Json,
-        is_encrypted: formData.is_encrypted,
+        trust_purpose: vk ? await encText(formData.trust_purpose) : formData.trust_purpose || '',
+        grantors: vk ? await encJson(formData.grantors) : (formData.grantors as unknown as Json),
+        current_trustees: vk ? await encJson(formData.current_trustees) : (formData.current_trustees as unknown as Json),
+        successor_trustees: vk ? await encJson(formData.successor_trustees) : (formData.successor_trustees as unknown as Json),
+        attorney_name: vk ? await encText(formData.attorney_name) : formData.attorney_name || '',
+        attorney_firm: vk ? await encText(formData.attorney_firm) : formData.attorney_firm || '',
+        attorney_phone: vk ? await encText(formData.attorney_phone) : formData.attorney_phone || '',
+        attorney_email: vk ? await encText(formData.attorney_email) : formData.attorney_email || '',
+        cpa_name: vk ? await encText(formData.cpa_name) : formData.cpa_name || '',
+        cpa_firm: vk ? await encText(formData.cpa_firm) : formData.cpa_firm || '',
+        cpa_phone: vk ? await encText(formData.cpa_phone) : formData.cpa_phone || '',
+        cpa_email: vk ? await encText(formData.cpa_email) : formData.cpa_email || '',
+        beneficiaries: vk ? await encJson(formData.beneficiaries) : (formData.beneficiaries as unknown as Json),
+        trust_assets: vk ? await encJson(formData.trust_assets) : (formData.trust_assets as unknown as Json),
+        originals_location: vk ? await encText(formData.originals_location) : formData.originals_location || '',
+        physical_access_instructions: vk ? await encText(formData.physical_access_instructions) : formData.physical_access_instructions || '',
+        keyholder_name: vk ? await encText(formData.keyholder_name) : formData.keyholder_name || '',
+        keyholder_contact: vk ? await encText(formData.keyholder_contact) : formData.keyholder_contact || '',
+        trust_documents: vk ? await encJson(formData.trust_documents) : (formData.trust_documents as unknown as Json),
+        is_encrypted: !!vk,
       };
 
       if (existingData?.id) {
@@ -290,7 +329,9 @@ const TrustInformation: React.FC<TrustInformationProps> = ({
 
       toast({
         title: 'Success',
-        description: 'Trust information saved successfully',
+        description: vk
+          ? 'Trust information saved (encrypted)'
+          : 'Trust information saved',
       });
       fetchTrustInformation();
     } catch (error: any) {
