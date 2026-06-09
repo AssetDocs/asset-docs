@@ -195,6 +195,12 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
     }
 
     setVaultKey(user.id, outcome.vaultKey);
+    // Fire-and-forget: ensure this user has a delegate keypair on file so
+    // they can later receive vault grants from other owners.
+    ensureDelegateKeypair().catch((e) =>
+      console.error('ensureDelegateKeypair failed:', e),
+    );
+
     setLocalSessionMasterPassword(password);
     setLocalIsUnlocked(true);
     setMasterPasswordModal({ isOpen: false, isSetup: false });
