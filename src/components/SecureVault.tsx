@@ -393,6 +393,8 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
           .update({
             ...decryptedLocker,
             is_encrypted: false,
+            encryption_key_encrypted_for_user: null,
+            encryption_key_encrypted_for_delegate: null,
             updated_at: new Date().toISOString(),
           })
           .eq('user_id', user.id);
@@ -412,6 +414,8 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
       setIsEncrypted(false);
       setIsUnlocked(false);
       setSessionMasterPassword(null);
+      setWrappedVaultKey(null);
+      clearVaultKey(user.id);
       localStorage.removeItem(MASTER_PASSWORD_HASH_KEY);
 
       setShowRemoveEncryptionDialog(false);
