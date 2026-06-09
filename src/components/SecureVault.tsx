@@ -64,6 +64,7 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
   const [delegateRecoveryStatus, setDelegateRecoveryStatus] = useState<string | null>(null);
   const [showRecoveryRequestDialog, setShowRecoveryRequestDialog] = useState(false);
   const [existingEncrypted, setExistingEncrypted] = useState(false);
+  const [wrappedVaultKey, setWrappedVaultKey] = useState<string | null>(null);
   const [passwordCatalogOpen, setPasswordCatalogOpen] = useState(initialTab === 'passwords' || false);
   const [legacyLockerOpen, setLegacyLockerOpen] = useState(initialTab === 'legacy' || false);
   
