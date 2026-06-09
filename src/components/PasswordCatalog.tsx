@@ -124,16 +124,20 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
     notes: '',
   });
 
-  const handleUnlockClick = () => {
-    const storedHash = localStorage.getItem(MASTER_PASSWORD_HASH_KEY);
-    
-    if (!storedHash) {
-      // First time - need to setup vault passphrase
-      setMasterPasswordModal({ isOpen: true, isSetup: true });
-    } else {
-      // Already setup - need to enter password
-      setMasterPasswordModal({ isOpen: true, isSetup: false });
+  const handleUnlockClick = async () => {
+    // Setup vs unlock is decided server-side: presence of wrapped key OR a
+    // legacy localStorage verifier means we are not in setup mode.
+    let isSetup = true;
+    if (user) {
+      const { data } = await supabase
+        .from('legacy_locker')
+        .select('encryption_key_encrypted_for_user')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if ((data as any)?.encryption_key_encrypted_for_user) isSetup = false;
     }
+    if (isSetup && localStorage.getItem(MASTER_PASSWORD_HASH_KEY)) isSetup = false;
+    setMasterPasswordModal({ isOpen: true, isSetup });
   };
 
   // Fetch data when unlocked from parent
@@ -152,32 +156,59 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
   }, [isControlledByParent, isUnlocked, sessionMasterPassword, isVaultEncrypted]);
 
   const handleMasterPasswordSubmit = async (password: string) => {
-    const storedHash = localStorage.getItem(MASTER_PASSWORD_HASH_KEY);
+    if (!user) throw new Error('Not authenticated');
 
-    if (masterPasswordModal.isSetup) {
-      // Setup new vault passphrase
-      const hash = await createPasswordVerificationHash(password);
-      localStorage.setItem(MASTER_PASSWORD_HASH_KEY, hash);
-      setLocalSessionMasterPassword(password);
-      setLocalIsUnlocked(true);
-      setMasterPasswordModal({ isOpen: false, isSetup: false });
-      fetchPasswords(password);
-      fetchAccounts(password);
-      toast({
-        title: "Vault Passphrase Set",
-        description: "Your passwords will now be encrypted with client-side encryption.",
-      });
-    } else {
-      // Verify password
-      if (storedHash && await verifyMasterPassword(password, storedHash)) {
-        setLocalSessionMasterPassword(password);
-        setLocalIsUnlocked(true);
-        setMasterPasswordModal({ isOpen: false, isSetup: false });
-        fetchPasswords(password);
-        fetchAccounts(password);
+    // Pull the latest wrapped key so we don't race a recent setup/upgrade.
+    const { data: lockerRow } = await supabase
+      .from('legacy_locker')
+      .select('id, encryption_key_encrypted_for_user')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    const wrappedKey = ((lockerRow as any)?.encryption_key_encrypted_for_user as string | null) ?? null;
+
+    const outcome = await unlockOrUpgradeVault({
+      passphrase: password,
+      wrappedKey,
+      setup: masterPasswordModal.isSetup,
+      legacyLocalStorageKey: MASTER_PASSWORD_HASH_KEY,
+    });
+
+    if (outcome.mode === 'setup' || outcome.mode === 'upgrade') {
+      const payload: any = {
+        encryption_key_encrypted_for_user: outcome.wrappedKey,
+        is_encrypted: true,
+        updated_at: new Date().toISOString(),
+      };
+      if (lockerRow) {
+        await supabase.from('legacy_locker').update(payload).eq('user_id', user.id);
       } else {
-        throw new Error('Incorrect vault passphrase');
+        await supabase.from('legacy_locker').insert({ user_id: user.id, ...payload });
       }
+      try {
+        localStorage.removeItem(MASTER_PASSWORD_HASH_KEY);
+      } catch {
+        /* ignore */
+      }
+    }
+
+    setVaultKey(user.id, outcome.vaultKey);
+    setLocalSessionMasterPassword(password);
+    setLocalIsUnlocked(true);
+    setMasterPasswordModal({ isOpen: false, isSetup: false });
+    fetchPasswords(password);
+    fetchAccounts(password);
+
+    if (outcome.mode === 'setup') {
+      toast({
+        title: 'Vault Passphrase Set',
+        description: 'Your passwords will now be encrypted with client-side encryption.',
+      });
+    } else if (outcome.mode === 'upgrade') {
+      toast({
+        title: 'Vault Upgraded',
+        description: 'Your vault is now protected with the new key model.',
+      });
     }
   };
 
