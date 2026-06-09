@@ -160,6 +160,7 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
         setOriginalGracePeriodDays(data.recovery_grace_period_days || 14);
         setHasPendingRequest(data.recovery_status === 'pending');
         setAllowAdminAccess(data.allow_admin_access ?? true);
+        setWrappedVaultKey((data as any).encryption_key_encrypted_for_user ?? null);
       }
 
       // Detect if this user is a recovery delegate for another user's vault
