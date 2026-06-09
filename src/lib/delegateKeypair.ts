@@ -147,7 +147,7 @@ export async function unwrapVaultKeyAsDelegate(
   const user = auth?.user;
   if (!user) throw new Error("Not signed in");
 
-  const vaultKey = getVaultKey();
+  const vaultKey = getVaultKey(user.id);
   if (!vaultKey) throw new Error("Vault is locked");
 
   // @ts-ignore
