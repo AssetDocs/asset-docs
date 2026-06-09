@@ -99,21 +99,17 @@ export async function decryptPassword(encryptedPassword: string, masterPassword:
 }
 
 /**
- * Creates a verification hash of the master password
- * This is stored in localStorage to verify the master password on subsequent logins
+ * @deprecated Removed by Secure Vault hardening (item 3). The localStorage
+ * SHA-256 passphrase verifier is no longer written. Unlock proof is now the
+ * successful unwrap of the DB-stored wrapped vault key (see src/lib/vaultKey).
+ * Kept as exports only to avoid breaking any unforeseen importer at build
+ * time; do NOT introduce new callers.
  */
-export async function createPasswordVerificationHash(masterPassword: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(masterPassword);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+export async function createPasswordVerificationHash(_masterPassword: string): Promise<string> {
+  throw new Error('createPasswordVerificationHash is removed — use src/lib/vaultKey unlockOrUpgradeVault instead');
 }
 
-/**
- * Verifies if the provided master password matches the stored hash
- */
-export async function verifyMasterPassword(masterPassword: string, storedHash: string): Promise<boolean> {
-  const hash = await createPasswordVerificationHash(masterPassword);
-  return hash === storedHash;
+/** @deprecated See createPasswordVerificationHash. */
+export async function verifyMasterPassword(_masterPassword: string, _storedHash: string): Promise<boolean> {
+  throw new Error('verifyMasterPassword is removed — use src/lib/vaultKey unlockOrUpgradeVault instead');
 }
