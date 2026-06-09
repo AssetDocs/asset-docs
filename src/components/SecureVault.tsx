@@ -24,7 +24,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useAccount } from '@/contexts/AccountContext';
 import { useToast } from '@/hooks/use-toast';
 import MasterPasswordModal from './MasterPasswordModal';
-import { createPasswordVerificationHash, verifyMasterPassword } from '@/utils/encryption';
+import { unlockOrUpgradeVault, setVaultKey, clearVaultKey } from '@/lib/vaultKey';
 import { MASTER_PASSWORD_HASH_KEY } from './PasswordCatalog';
 import PasswordCatalog from './PasswordCatalog';
 import LegacyLocker from './LegacyLocker';
