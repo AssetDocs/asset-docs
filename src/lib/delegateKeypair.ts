@@ -99,7 +99,7 @@ export async function ensureDelegateKeypair(): Promise<JsonWebKey> {
     return existing.public_key_jwk as JsonWebKey;
   }
 
-  const vaultKey = getVaultKey();
+  const vaultKey = getVaultKey(user.id);
   if (!vaultKey) throw new Error("Vault is locked");
 
   const kp = await crypto.subtle.generateKey(RSA_PARAMS, true, [
@@ -112,14 +112,15 @@ export async function ensureDelegateKeypair(): Promise<JsonWebKey> {
   // @ts-ignore
   const { error } = await supabase.from("vault_delegate_keypairs").insert({
     user_id: user.id,
-    public_key_jwk: publicJwk,
+    public_key_jwk: publicJwk as any,
     wrapped_private_key: wrapped,
     wrap_iv: iv,
     key_version: 1,
-  });
+  } as any);
   if (error) throw error;
   return publicJwk;
 }
+
 
 /**
  * Wrap a raw vault key under a delegate's public key (for grant issuance).
