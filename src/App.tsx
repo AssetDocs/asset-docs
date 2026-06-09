@@ -112,6 +112,8 @@ import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import CRM from "./pages/CRM";
 import AcknowledgeAccess from "./pages/AcknowledgeAccess";
+import DelegateVault from "./pages/DelegateVault";
+
 import ActivityLog from "./pages/ActivityLog";
 import ForgotPassword from "./pages/ForgotPassword";
 import LegacyLockerInfo from "./pages/LegacyLockerInfo";
@@ -466,6 +468,8 @@ const AppContent = () => {
         <Route path="/admin/lender-partnership" element={<LenderPartnership />} />
         <Route path="/admin/dev-invite" element={<DevInviteAccept />} />
         <Route path="/acknowledge-access" element={<AcknowledgeAccess />} />
+        <Route path="/delegate-vault" element={<DelegateVault />} />
+
         
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
