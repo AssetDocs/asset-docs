@@ -16,6 +16,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import MasterPasswordModal from './MasterPasswordModal';
 import { encryptPassword, decryptPassword } from '@/utils/encryption';
 import { unlockOrUpgradeVault, setVaultKey } from '@/lib/vaultKey';
+import { ensureDelegateKeypair } from '@/lib/delegateKeypair';
+
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const passwordSchema = z.object({
