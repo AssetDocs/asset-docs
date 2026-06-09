@@ -17,7 +17,43 @@ import {
   AlertCircle, CheckCircle, Building, Briefcase, Shield, Scale
 } from 'lucide-react';
 import type { Json } from '@/integrations/supabase/types';
-import { encryptPassword, decryptPassword } from '@/utils/encryption';
+import { getVaultKey, encryptField, decryptField, isAsv2 } from '@/lib/vaultKey';
+
+// Text fields that must be encrypted at rest when the vault is unlocked.
+const ENCRYPTED_TEXT_FIELDS = [
+  'trust_purpose',
+  'attorney_name', 'attorney_firm', 'attorney_phone', 'attorney_email',
+  'cpa_name', 'cpa_firm', 'cpa_phone', 'cpa_email',
+  'originals_location', 'physical_access_instructions',
+  'keyholder_name', 'keyholder_contact',
+] as const;
+
+// JSONB fields that contain PII / sensitive structured data. When encrypted,
+// we store them as { _asv2: "ASV2.<envelope>" } so the column stays jsonb.
+const ENCRYPTED_JSON_FIELDS = [
+  'grantors', 'current_trustees', 'successor_trustees',
+  'beneficiaries', 'trust_assets', 'trust_documents',
+] as const;
+
+async function decryptTextIfNeeded(val: any, vk: CryptoKey | null): Promise<string> {
+  if (typeof val !== 'string' || !val) return val || '';
+  if (!isAsv2(val)) return val; // legacy plaintext — render as-is
+  if (!vk) return ''; // encrypted but locked — hide
+  try { return await decryptField(val, vk); } catch { return ''; }
+}
+
+async function decryptJsonIfNeeded<T>(val: any, vk: CryptoKey | null, fallback: T): Promise<T> {
+  if (val == null) return fallback;
+  if (Array.isArray(val)) return val as unknown as T; // legacy plaintext array
+  if (typeof val === 'object' && typeof (val as any)._asv2 === 'string') {
+    if (!vk) return fallback;
+    try {
+      const plain = await decryptField((val as any)._asv2, vk);
+      return JSON.parse(plain) as T;
+    } catch { return fallback; }
+  }
+  return (val as unknown as T) ?? fallback;
+}
 
 interface Grantor {
   name: string;
