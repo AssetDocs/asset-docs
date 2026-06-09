@@ -4157,6 +4157,9 @@ export type Database = {
           duration: number | null
           file_size: number | null
           id: string
+          is_encrypted: boolean
+          legacy_locker_id: string | null
+          storage_bucket: string
           title: string
           updated_at: string | null
           user_id: string
@@ -4169,6 +4172,9 @@ export type Database = {
           duration?: number | null
           file_size?: number | null
           id?: string
+          is_encrypted?: boolean
+          legacy_locker_id?: string | null
+          storage_bucket?: string
           title: string
           updated_at?: string | null
           user_id: string
@@ -4181,11 +4187,22 @@ export type Database = {
           duration?: number | null
           file_size?: number | null
           id?: string
+          is_encrypted?: boolean
+          legacy_locker_id?: string | null
+          storage_bucket?: string
           title?: string
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "legacy_locker_voice_notes_legacy_locker_id_fkey"
+            columns: ["legacy_locker_id"]
+            isOneToOne: false
+            referencedRelation: "legacy_locker"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       legal_agreement_signatures: {
         Row: {
@@ -6254,6 +6271,99 @@ export type Database = {
         }
         Relationships: []
       }
+      vault_delegate_grants: {
+        Row: {
+          created_at: string
+          delegate_key_version: number
+          delegate_user_id: string
+          id: string
+          issued_at: string
+          legacy_locker_id: string
+          owner_user_id: string
+          recovery_request_id: string | null
+          revoked_at: string | null
+          status: string
+          updated_at: string
+          wrapped_vault_key: string
+        }
+        Insert: {
+          created_at?: string
+          delegate_key_version?: number
+          delegate_user_id: string
+          id?: string
+          issued_at?: string
+          legacy_locker_id: string
+          owner_user_id: string
+          recovery_request_id?: string | null
+          revoked_at?: string | null
+          status?: string
+          updated_at?: string
+          wrapped_vault_key: string
+        }
+        Update: {
+          created_at?: string
+          delegate_key_version?: number
+          delegate_user_id?: string
+          id?: string
+          issued_at?: string
+          legacy_locker_id?: string
+          owner_user_id?: string
+          recovery_request_id?: string | null
+          revoked_at?: string | null
+          status?: string
+          updated_at?: string
+          wrapped_vault_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vault_delegate_grants_legacy_locker_id_fkey"
+            columns: ["legacy_locker_id"]
+            isOneToOne: false
+            referencedRelation: "legacy_locker"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vault_delegate_grants_recovery_request_id_fkey"
+            columns: ["recovery_request_id"]
+            isOneToOne: false
+            referencedRelation: "recovery_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vault_delegate_keypairs: {
+        Row: {
+          created_at: string
+          id: string
+          key_version: number
+          public_key_jwk: Json
+          updated_at: string
+          user_id: string
+          wrap_iv: string
+          wrapped_private_key: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key_version?: number
+          public_key_jwk: Json
+          updated_at?: string
+          user_id: string
+          wrap_iv: string
+          wrapped_private_key: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key_version?: number
+          public_key_jwk?: Json
+          updated_at?: string
+          user_id?: string
+          wrap_iv?: string
+          wrapped_private_key?: string
+        }
+        Relationships: []
+      }
       video_folders: {
         Row: {
           created_at: string
@@ -6400,6 +6510,9 @@ export type Database = {
           file_type: string
           file_url: string
           id: string
+          is_encrypted: boolean
+          legacy_locker_id: string | null
+          storage_bucket: string
           updated_at: string | null
           user_id: string
           voice_note_id: string
@@ -6412,6 +6525,9 @@ export type Database = {
           file_type: string
           file_url: string
           id?: string
+          is_encrypted?: boolean
+          legacy_locker_id?: string | null
+          storage_bucket?: string
           updated_at?: string | null
           user_id: string
           voice_note_id: string
@@ -6424,11 +6540,21 @@ export type Database = {
           file_type?: string
           file_url?: string
           id?: string
+          is_encrypted?: boolean
+          legacy_locker_id?: string | null
+          storage_bucket?: string
           updated_at?: string | null
           user_id?: string
           voice_note_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "voice_note_attachments_legacy_locker_id_fkey"
+            columns: ["legacy_locker_id"]
+            isOneToOne: false
+            referencedRelation: "legacy_locker"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "voice_note_attachments_voice_note_id_fkey"
             columns: ["voice_note_id"]
@@ -6515,6 +6641,10 @@ export type Database = {
         }[]
       }
       can_accept_au_invite: { Args: { _account_id: string }; Returns: boolean }
+      can_access_vault_path: {
+        Args: { _locker: string; _owner: string }
+        Returns: boolean
+      }
       can_send_au_invite: { Args: { _account_id: string }; Returns: boolean }
       cancel_closure: {
         Args: { _closure_id: string; _reason: string }
