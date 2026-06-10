@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -52,7 +52,10 @@ const Videos: React.FC = () => {
   const [showDeleteFolderDialog, setShowDeleteFolderDialog] = useState(false);
   const [folderToDelete, setFolderToDelete] = useState<string | null>(null);
 
+  const activeAccountRef = useRef<string | null>(accountId);
   useEffect(() => {
+    activeAccountRef.current = accountId;
+    setFolders([]);
     fetchVideos();
     fetchFolders();
   }, [accountId]);
@@ -76,17 +79,18 @@ const Videos: React.FC = () => {
 
   const fetchFolders = async () => {
     if (!user || !accountId) return;
-
+    const snapshot = accountId;
     try {
       const { data, error } = await supabase
         // Photo folders are shared for both photo + video organization
         .from('photo_folders')
         .select('*')
-        .eq('account_id', accountId)
+        .eq('account_id', snapshot)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      
+      if (activeAccountRef.current !== snapshot) return;
+
       const mappedFolders: Folder[] = data?.map(folder => ({
         id: folder.id,
         name: folder.folder_name,

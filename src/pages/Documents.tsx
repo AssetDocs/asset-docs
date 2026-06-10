@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -100,7 +100,10 @@ const Documents: React.FC = () => {
     }
   }, [searchParams, setSearchParams]);
 
+  const activeAccountRef = useRef<string | null>(accountId);
   useEffect(() => {
+    activeAccountRef.current = accountId;
+    setFolders([]);
     if (user?.id) {
       fetchDocuments();
       fetchFolders();
@@ -154,18 +157,20 @@ const Documents: React.FC = () => {
 
   const fetchFolders = async () => {
     if (!user || !accountId) return;
-
+    const snapshot = accountId;
     try {
       const { data, error } = await supabase
         .from('document_folders')
         .select('*')
-        .eq('account_id', accountId)
+        .eq('account_id', snapshot)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      if (activeAccountRef.current !== snapshot) return;
       setFolders(data || []);
     } catch (error) {
       console.error('Error fetching folders:', error);
+      if (activeAccountRef.current !== snapshot) return;
       toast({
         title: "Error",
         description: "Failed to load folders",
