@@ -6612,6 +6612,7 @@ export type Database = {
     }
     Functions: {
       _safe_uuid: { Args: { _text: string }; Returns: string }
+      _storage_path_owner: { Args: { _name: string }; Returns: string }
       accept_invite_atomic: {
         Args: { _token_hash: string; _user_email: string; _user_id: string }
         Returns: Json
