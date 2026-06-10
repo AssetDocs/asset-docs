@@ -73,18 +73,18 @@ const CombinedMediaUpload: React.FC = () => {
     if (user) {
       fetchFolders();
     }
-  }, [user, activeTab]);
+  }, [user?.id, activeTab, accountId]);
 
   const fetchFolders = async () => {
-    if (!user) return;
-    
+    if (!user || !accountId) return;
+
     try {
       // Photo folders are shared for both photo and video organization
       const tableName = 'photo_folders';
       const { data, error } = await supabase
         .from(tableName)
         .select('*')
-        .eq('user_id', user.id)
+        .eq('account_id', accountId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
