@@ -153,6 +153,20 @@ const NotesAndTraditions: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     try {
+      const note = notes.find(n => n.id === id);
+      if (note?.file_path) {
+        const { data, error } = await supabase.functions.invoke('secure-delete-file', {
+          body: { resource: 'notes_tradition_attachment', id },
+        });
+        if (error || (data as any)?.error) {
+          toast({
+            title: 'Attachment cleanup failed',
+            description: 'Note was not deleted. Retry from /account/cleanup.',
+            variant: 'destructive',
+          });
+          return;
+        }
+      }
       const { error } = await supabase.from('notes_traditions').delete().eq('id', id);
       if (error) throw error;
       toast({ title: 'Deleted', description: 'Note removed.' });
