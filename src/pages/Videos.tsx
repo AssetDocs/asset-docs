@@ -75,14 +75,14 @@ const Videos: React.FC = () => {
   };
 
   const fetchFolders = async () => {
-    if (!user) return;
-    
+    if (!user || !accountId) return;
+
     try {
       const { data, error } = await supabase
         // Photo folders are shared for both photo + video organization
         .from('photo_folders')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('account_id', accountId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
