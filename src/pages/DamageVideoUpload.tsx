@@ -80,21 +80,25 @@ const DamageVideoUpload: React.FC = () => {
 
     try {
       const uploadPromises = selectedFiles.map(async (file) => {
-        // Upload to videos bucket (damage videos stored there)
+        // Owner-only path: {userId}/{rand}.ext (sanitizeFileName randomizes).
         const uploadResult = await StorageService.uploadFile(file, 'videos', user.id);
         const filePath = typeof uploadResult === 'string' ? uploadResult : uploadResult.path;
-        const fileUrl = uploadResult.url; // Use the signed URL from upload result
+        const fileUrl = uploadResult.url;
 
-        // Add to property_files table
-        await PropertyService.addPropertyFile({
-          property_id: uploadData.propertyId,
-          file_name: file.name,
-          file_path: filePath,
-          file_url: fileUrl,
-          file_type: 'video',
-          file_size: file.size,
-          bucket_name: 'videos'
-        });
+        try {
+          await PropertyService.addPropertyFile({
+            property_id: uploadData.propertyId,
+            file_name: file.name, // original name preserved in DB metadata
+            file_path: filePath,
+            file_url: fileUrl,
+            file_type: 'video',
+            file_size: file.size,
+            bucket_name: 'videos'
+          });
+        } catch (dbError) {
+          await StorageService.tryCleanupObject('videos', filePath);
+          throw dbError;
+        }
       });
 
       await Promise.all(uploadPromises);

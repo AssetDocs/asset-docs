@@ -80,21 +80,25 @@ const DamagePhotoUpload: React.FC = () => {
 
     try {
       const uploadPromises = selectedFiles.map(async (file) => {
-        // Upload to photos bucket (damage photos stored there)
+        // Owner-only path: {userId}/{rand}.ext (sanitizeFileName randomizes).
         const uploadResult = await StorageService.uploadFile(file, 'photos', user.id);
         const filePath = typeof uploadResult === 'string' ? uploadResult : uploadResult.path;
-        const fileUrl = uploadResult.url; // Use the signed URL from upload result
+        const fileUrl = uploadResult.url;
 
-        // Add to property_files table
-        await PropertyService.addPropertyFile({
-          property_id: uploadData.propertyId,
-          file_name: file.name,
-          file_path: filePath,
-          file_url: fileUrl,
-          file_type: 'photo',
-          file_size: file.size,
-          bucket_name: 'photos'
-        });
+        try {
+          await PropertyService.addPropertyFile({
+            property_id: uploadData.propertyId,
+            file_name: file.name, // original name preserved in DB metadata
+            file_path: filePath,
+            file_url: fileUrl,
+            file_type: 'photo',
+            file_size: file.size,
+            bucket_name: 'photos'
+          });
+        } catch (dbError) {
+          await StorageService.tryCleanupObject('photos', filePath);
+          throw dbError;
+        }
       });
 
       await Promise.all(uploadPromises);
@@ -109,7 +113,7 @@ const DamagePhotoUpload: React.FC = () => {
       console.error('Error uploading damage photos:', error);
       toast({
         title: "Upload Failed",
-        description: "There was an error uploading your photos. Please try again.",
+        description: error instanceof Error ? error.message : "There was an error uploading your photos. Please try again.",
         variant: "destructive"
       });
     } finally {

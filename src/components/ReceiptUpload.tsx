@@ -11,19 +11,21 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { ItemService } from '@/services/ItemService';
 import { useToast } from '@/hooks/use-toast';
+import { useAccount } from '@/contexts/AccountContext';
 
 interface ReceiptUploadProps {
   itemId: string;
-  userId: string;
+  /** @deprecated kept for prop compatibility; account context now drives ownership */
+  userId?: string;
   onReceiptUploaded: () => void;
 }
 
 const ReceiptUpload: React.FC<ReceiptUploadProps> = ({
   itemId,
-  userId,
-  onReceiptUploaded
+  onReceiptUploaded,
 }) => {
   const { toast } = useToast();
+  const { accountId, ownerUserId } = useAccount();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -72,32 +74,44 @@ const ReceiptUpload: React.FC<ReceiptUploadProps> = ({
       return;
     }
 
+    if (!accountId || !ownerUserId) {
+      toast({
+        title: "Workspace not ready",
+        description: "Switch to an active account before uploading receipts.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsUploading(true);
     try {
-      await ItemService.uploadReceiptForItem(itemId, userId, selectedFile, {
-        purchase_date: purchaseDate?.toISOString().split('T')[0],
-        purchase_amount: purchaseAmount ? Number(purchaseAmount) : undefined,
-        merchant_name: merchantName,
-        notes: notes
-      });
+      await ItemService.uploadReceiptForItem(
+        { accountId, ownerUserId, itemId },
+        selectedFile,
+        {
+          purchase_date: purchaseDate?.toISOString().split('T')[0],
+          purchase_amount: purchaseAmount ? Number(purchaseAmount) : undefined,
+          merchant_name: merchantName,
+          notes: notes,
+        }
+      );
 
       toast({
         title: "Receipt uploaded",
         description: "Receipt has been successfully attached to the item.",
       });
 
-      // Reset form
       setSelectedFile(null);
       setPurchaseDate(undefined);
       setPurchaseAmount('');
       setMerchantName('');
       setNotes('');
-      
+
       onReceiptUploaded();
     } catch (error) {
       toast({
         title: "Upload failed",
-        description: "Failed to upload receipt. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to upload receipt. Please try again.",
         variant: "destructive",
       });
     } finally {

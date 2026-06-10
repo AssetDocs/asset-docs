@@ -139,9 +139,20 @@ export class ItemService {
     return true;
   }
 
+  /**
+   * Upload a receipt for an item.
+   *
+   * Receipts are SHARED workspace content (receipts.user_id is the account
+   * OWNER; RLS allows owner + full_access). Callers MUST pass an explicit
+   * upload context object derived from the active AccountContext rather than
+   * relying on the signed-in user's id. Read-only members will be rejected by
+   * RLS on both the table and storage policies.
+   *
+   * New path: accounts/{accountId}/items/{itemId}/receipts/{rand}.ext
+   * Legacy receipts continue to resolve via _storage_path_owner.
+   */
   static async uploadReceiptForItem(
-    itemId: string,
-    userId: string,
+    ctx: { accountId: string; ownerUserId: string; itemId: string },
     file: File,
     receiptData: {
       purchase_date?: string;
@@ -150,48 +161,80 @@ export class ItemService {
       notes?: string;
     }
   ): Promise<Receipt | null> {
-    try {
-      // Upload file to storage
-      const uploadResult = await StorageService.uploadFile(file, 'documents', userId);
+    const { accountId, ownerUserId, itemId } = ctx;
 
-      // Create receipt record
+    if (!accountId || !ownerUserId || !itemId) {
+      throw new Error('Receipt upload requires accountId, ownerUserId, and itemId.');
+    }
+
+    // Membership check: confirm the item actually belongs to the selected
+    // account's owner. This stops a stale itemId from a previous workspace
+    // from getting attached to the wrong account.
+    const { data: itemRow, error: itemErr } = await supabase
+      .from('items')
+      .select('id, user_id')
+      .eq('id', itemId)
+      .maybeSingle();
+
+    if (itemErr) {
+      throw new Error(`Item lookup failed: ${itemErr.message}`);
+    }
+    if (!itemRow || itemRow.user_id !== ownerUserId) {
+      throw new Error('Item does not belong to the active account.');
+    }
+
+    const rand = StorageService.randomizedFilename(file.name);
+    const fullPath = `accounts/${accountId}/items/${itemId}/receipts/${rand}`;
+
+    // Owner quota check (not the uploader's quota — AUs use the owner's quota).
+    const uploadResult = await StorageService.uploadFileToPath(
+      file,
+      'documents',
+      fullPath,
+      ownerUserId
+    );
+
+    let receiptInserted = false;
+    try {
       const { data, error } = await supabase
         .from('receipts')
         .insert([{
           item_id: itemId,
-          user_id: userId,
-          receipt_name: file.name,
+          user_id: ownerUserId, // owner-scoped row; RLS shares via has_account_access
+          receipt_name: file.name, // original name preserved only in DB metadata
           receipt_url: uploadResult.url,
           receipt_path: uploadResult.path,
           file_size: file.size,
-          ...receiptData
+          ...receiptData,
         }])
         .select()
         .single();
 
       if (error) {
-        console.error('Error creating receipt:', error);
         throw new Error(error.message);
       }
 
-      // Log activity
+      receiptInserted = true;
+
       logActivity({
         action_type: 'upload',
         action_category: 'upload',
         resource_type: 'receipt',
         resource_id: data.id,
         resource_name: file.name,
-        details: { 
+        details: {
           item_id: itemId,
+          account_id: accountId,
           merchant_name: receiptData.merchant_name,
-          purchase_amount: receiptData.purchase_amount
-        }
+          purchase_amount: receiptData.purchase_amount,
+        },
       });
 
       return data;
-    } catch (error) {
-      console.error('Error uploading receipt:', error);
-      throw error;
+    } finally {
+      if (!receiptInserted) {
+        await StorageService.tryCleanupObject('documents', uploadResult.path);
+      }
     }
   }
 
