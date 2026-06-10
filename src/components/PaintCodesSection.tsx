@@ -192,9 +192,20 @@ const PaintCodesSection: React.FC = () => {
 
   const handleDeleteEntry = async (id: string, swatchPath: string | null) => {
     try {
-      // Delete swatch image if exists
+      // Clean swatch image (if any) via secure-delete-file. The paint_code
+      // row remains intact through that call, then we delete it here.
       if (swatchPath) {
-        await supabase.storage.from('photos').remove([swatchPath]);
+        const { data, error } = await supabase.functions.invoke('secure-delete-file', {
+          body: { resource: 'paint_code_swatch', id },
+        });
+        if (error || (data as any)?.error) {
+          toast({
+            title: 'Swatch cleanup failed',
+            description: 'Paint code was not deleted. Retry from /account/cleanup.',
+            variant: 'destructive',
+          });
+          return;
+        }
       }
 
       const { error } = await supabase
