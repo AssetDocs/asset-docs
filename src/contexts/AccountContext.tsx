@@ -243,6 +243,7 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const accountRole = currentAccount?.role || null;
   const accountName = currentAccount?.accountName || '';
   const ownerName = currentAccount?.ownerName || '';
+  const ownerUserId = currentAccount?.ownerUserId || null;
 
   const isOwner = accountRole === 'owner';
   const isFullAccess = accountRole === 'full_access';
