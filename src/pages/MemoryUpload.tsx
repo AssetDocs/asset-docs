@@ -27,6 +27,7 @@ const MemoryUpload: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { subscriptionTier } = useSubscription();
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [title, setTitle] = useState('');
@@ -35,16 +36,10 @@ const MemoryUpload: React.FC = () => {
   const [selectedFolderId, setSelectedFolderId] = useState('');
   const [folders, setFolders] = useState<MemoryFolder[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
-
-  const { uploadSingleFile, isUploading } = useFileUpload({
-    bucket: 'memory-safe',
-    onError: (error) => {
-      toast({ title: 'Upload failed', description: error.message, variant: 'destructive' });
-    }
-  });
 
   useEffect(() => {
     if (user) fetchFolders();
