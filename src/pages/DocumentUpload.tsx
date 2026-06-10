@@ -46,6 +46,7 @@ const DocumentUpload: React.FC = () => {
   const TypeIcon = typeInfo.icon;
 
   const { user } = useAuth();
+  const { accountId } = useAccount();
   const { toast } = useToast();
   
   // Form state
