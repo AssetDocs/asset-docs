@@ -78,7 +78,7 @@ const PhotoGallery: React.FC = () => {
   useEffect(() => {
     fetchPhotos();
     fetchFolders();
-  }, []);
+  }, [accountId]);
 
   const fetchPhotos = async () => {
     setIsLoading(true);
