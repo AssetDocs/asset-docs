@@ -80,16 +80,16 @@ const DocumentUpload: React.FC = () => {
     if (user) {
       fetchFolders();
     }
-  }, [user]);
+  }, [user?.id, accountId]);
 
   const fetchFolders = async () => {
-    if (!user) return;
-    
+    if (!user || !accountId) return;
+
     try {
       const { data, error } = await supabase
         .from('document_folders')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('account_id', accountId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
