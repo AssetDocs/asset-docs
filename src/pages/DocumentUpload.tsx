@@ -16,7 +16,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useAccount } from '@/contexts/AccountContext';
 import { supabase } from '@/integrations/supabase/client';
 import { DocumentType } from '@/components/DocumentTypeSelector';
-import { useFileUpload } from '@/hooks/useFileUpload';
+import { StorageService, buildAssetDocPath } from '@/services/StorageService';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useToast } from '@/hooks/use-toast';
 
 interface DocumentFolder {
@@ -46,7 +47,8 @@ const DocumentUpload: React.FC = () => {
   const TypeIcon = typeInfo.icon;
 
   const { user } = useAuth();
-  const { accountId } = useAccount();
+  const { accountId, ownerUserId } = useAccount();
+  const { subscriptionTier } = useSubscription();
   const { toast } = useToast();
   
   // Form state
@@ -59,22 +61,11 @@ const DocumentUpload: React.FC = () => {
   const [selectedFolderId, setSelectedFolderId] = useState('');
   const [folders, setFolders] = useState<DocumentFolder[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
-
-  const { uploadSingleFile, isUploading } = useFileUpload({
-    bucket: 'documents',
-    onError: (error) => {
-      console.error('Upload error:', error);
-      toast({
-        title: "Upload failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  });
 
   useEffect(() => {
     if (user) {
@@ -130,16 +121,38 @@ const DocumentUpload: React.FC = () => {
       });
       return;
     }
+    if (!accountId || !ownerUserId) {
+      toast({
+        title: "Workspace not ready",
+        description: "Switch to an active account before uploading.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsSaving(true);
+    setIsUploading(true);
+
+    const fullPath = buildAssetDocPath({
+      accountId,
+      kind: 'documents',
+      propertyId: selectedPropertyId || null,
+      folderId: selectedFolderId || null,
+      file: selectedFile,
+    });
+
+    let uploadResult: { path: string; url: string } | null = null;
 
     try {
-      // 1. Upload file to storage
-      const uploadResult = await uploadSingleFile(selectedFile);
-      
-      if (!uploadResult) {
-        throw new Error('Failed to upload file');
+      // Quota check against account owner
+      const quotaCheck = await StorageService.canUploadFile(ownerUserId, selectedFile.size, subscriptionTier);
+      if (!quotaCheck.canUpload) {
+        throw new Error(quotaCheck.reason || 'Storage quota exceeded');
       }
+
+      // 1. Upload file to storage
+      uploadResult = await StorageService.uploadFileToPath(selectedFile, 'documents', fullPath, ownerUserId);
+      setIsUploading(false);
 
       // 2. Save document metadata to database
       const { error: dbError } = await supabase
@@ -161,7 +174,8 @@ const DocumentUpload: React.FC = () => {
         });
 
       if (dbError) {
-        console.error('Database error:', dbError);
+        console.error('[DocumentUpload] DB insert failed — cleaning up orphaned object', { path: uploadResult.path, error: dbError });
+        await StorageService.tryCleanupObject('documents', uploadResult.path);
         throw new Error('Failed to save document metadata');
       }
 
@@ -180,6 +194,7 @@ const DocumentUpload: React.FC = () => {
       });
     } finally {
       setIsSaving(false);
+      setIsUploading(false);
     }
   };
 

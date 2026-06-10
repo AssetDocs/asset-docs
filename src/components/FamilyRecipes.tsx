@@ -11,7 +11,7 @@ import { ChefHat, Plus, Trash2, Edit, Upload, FileText, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { StorageService } from '@/services/StorageService';
+import { StorageService, buildFamilyArchivePath } from '@/services/StorageService';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 
 interface RecipeEntry {
@@ -79,12 +79,15 @@ const FamilyRecipes: React.FC = () => {
     setIsSaving(true);
     try {
       let fileData: { file_path?: string; file_url?: string; file_name?: string; file_size?: number; bucket_name?: string } = {};
+      let uploadedPath: string | null = null;
 
       if (selectedFile) {
-        const result = await StorageService.uploadFileWithValidation(
-          selectedFile, 'documents', user.id, subscriptionTier,
-          `family-recipes/${Date.now()}-${selectedFile.name}`
-        );
+        const quotaCheck = await StorageService.canUploadFile(user.id, selectedFile.size, subscriptionTier);
+        if (!quotaCheck.canUpload) throw new Error(quotaCheck.reason || 'Storage quota exceeded');
+
+        const path = buildFamilyArchivePath({ userId: user.id, section: 'family-recipes', file: selectedFile });
+        const result = await StorageService.uploadFileToPath(selectedFile, 'documents', path, user.id);
+        uploadedPath = result.path;
         fileData = {
           file_path: result.path,
           file_url: result.url,
@@ -94,30 +97,38 @@ const FamilyRecipes: React.FC = () => {
         };
       }
 
-      if (editingRecipe) {
-        const { error } = await supabase
-          .from('family_recipes')
-          .update({
-            recipe_name: recipeName.trim(),
-            created_by_person: createdByPerson.trim() || null,
-            details: details.trim() || null,
-            ...fileData,
-          })
-          .eq('id', editingRecipe.id);
-        if (error) throw error;
-        toast({ title: 'Updated', description: 'Recipe updated successfully.' });
-      } else {
-        const { error } = await supabase
-          .from('family_recipes')
-          .insert({
-            user_id: user.id,
-            recipe_name: recipeName.trim(),
-            created_by_person: createdByPerson.trim() || null,
-            details: details.trim() || null,
-            ...fileData,
-          });
-        if (error) throw error;
-        toast({ title: 'Saved', description: 'Recipe added successfully.' });
+      try {
+        if (editingRecipe) {
+          const { error } = await supabase
+            .from('family_recipes')
+            .update({
+              recipe_name: recipeName.trim(),
+              created_by_person: createdByPerson.trim() || null,
+              details: details.trim() || null,
+              ...fileData,
+            })
+            .eq('id', editingRecipe.id);
+          if (error) throw error;
+          toast({ title: 'Updated', description: 'Recipe updated successfully.' });
+        } else {
+          const { error } = await supabase
+            .from('family_recipes')
+            .insert({
+              user_id: user.id,
+              recipe_name: recipeName.trim(),
+              created_by_person: createdByPerson.trim() || null,
+              details: details.trim() || null,
+              ...fileData,
+            });
+          if (error) throw error;
+          toast({ title: 'Saved', description: 'Recipe added successfully.' });
+        }
+      } catch (dbErr) {
+        if (uploadedPath) {
+          console.error('[FamilyRecipes] DB save failed — cleaning up orphaned object', { path: uploadedPath, error: dbErr });
+          await StorageService.tryCleanupObject('documents', uploadedPath);
+        }
+        throw dbErr;
       }
 
       resetForm();
