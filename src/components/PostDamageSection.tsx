@@ -371,29 +371,33 @@ const PostDamageSection: React.FC = () => {
           const isVideo = file.type.startsWith('video/');
           const bucketName = isVideo ? 'videos' : 'photos';
           const fileType = isVideo ? 'video' : 'photo';
-          
-          // Upload to storage
+
+          // Owner-only path: {userId}/{rand}.ext (sanitizeFileName randomizes).
           const uploadResult = await StorageService.uploadFile(file, bucketName, user.id);
           const filePath = typeof uploadResult === 'string' ? uploadResult : uploadResult.path;
           const fileUrl = uploadResult.url;
 
-          // Build file name with incident info
-          const incidentTypeLabels = incidentDetails.incidentTypes.map(id => 
+          // Build display name with incident info (DB metadata only).
+          const incidentTypeLabels = incidentDetails.incidentTypes.map(id =>
             INCIDENT_TYPES.find(t => t.id === id)?.label || id
           ).join(', ');
           const fileName = incidentTypeLabels ? `${incidentTypeLabels} - ${file.name}` : file.name;
 
-          // Save to database with damage_report source
-          await PropertyService.addPropertyFile({
-            property_id: incidentDetails.propertyId,
-            file_name: fileName,
-            file_path: filePath,
-            file_url: fileUrl,
-            file_type: fileType,
-            file_size: file.size,
-            bucket_name: bucketName,
-            source: 'damage_report',
-          });
+          try {
+            await PropertyService.addPropertyFile({
+              property_id: incidentDetails.propertyId,
+              file_name: fileName,
+              file_path: filePath,
+              file_url: fileUrl,
+              file_type: fileType,
+              file_size: file.size,
+              bucket_name: bucketName,
+              source: 'damage_report',
+            });
+          } catch (dbError) {
+            await StorageService.tryCleanupObject(bucketName, filePath);
+            throw dbError;
+          }
         }
       }
 
