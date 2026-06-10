@@ -78,6 +78,7 @@ import AccountSettings from "./pages/AccountSettings";
 import PhotoGallery from "./pages/PhotoGallery";
 import Videos from "./pages/Videos";
 import Documents from "./pages/Documents";
+import CleanupQueue from "./pages/CleanupQueue";
 
 import Insurance from "./pages/Insurance";
 import Claims from "./pages/Claims";
