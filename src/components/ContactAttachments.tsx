@@ -286,30 +286,39 @@ const ContactAttachments: React.FC<ContactAttachmentsProps> = ({
 
   const handleDelete = async (attachment: Attachment) => {
     try {
-      // Delete from storage
-      const filePath = `${userId}/${contactId}/${attachment.file_name}`;
-      await supabase.storage.from('contact-attachments').remove([filePath]);
+      // Route through secure-delete-file so the stored file_path is used
+      // (never reconstructed), owner-only authorization is enforced, and
+      // failed cleanups become retryable at /account/cleanup.
+      const { data, error } = await supabase.functions.invoke('secure-delete-file', {
+        body: { resource: 'contact_attachment', id: attachment.id },
+      });
 
-      // Delete from database
-      const { error } = await supabase
-        .from('vip_contact_attachments')
-        .delete()
-        .eq('id', attachment.id);
-
-      if (error) throw error;
+      const ok = !error && (data as any)?.ok === true;
+      if (!ok) {
+        const code = (data as any)?.code || (data as any)?.error;
+        toast({
+          title: 'Could not delete attachment',
+          description:
+            code === 'in_progress'
+              ? 'A cleanup attempt is already running. Please retry in a moment.'
+              : 'The attachment will appear in Items needing cleanup at /account/cleanup so you can retry.',
+          variant: 'destructive',
+        });
+        return;
+      }
 
       toast({
-        title: "Success",
-        description: "Attachment deleted."
+        title: 'Success',
+        description: 'Attachment deleted.',
       });
-      
+
       fetchAttachments();
     } catch (error) {
       console.error('Error deleting attachment:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete attachment.",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to delete attachment. Retry from /account/cleanup if it remains.',
+        variant: 'destructive',
       });
     }
   };
