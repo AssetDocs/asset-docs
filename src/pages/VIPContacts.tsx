@@ -247,13 +247,30 @@ const VIPContacts: React.FC = () => {
 
   const handleDelete = async (contactId: string) => {
     try {
-      const { error } = await supabase
-        .from('vip_contacts')
-        .delete()
-        .eq('id', contactId);
+      const { data, error } = await supabase.functions.invoke('secure-delete-contact', {
+        body: { id: contactId },
+      });
 
-      if (error) throw error;
-      
+      if (error || (data && (data as any).error)) {
+        const code = (data as any)?.error || (error as any)?.message || 'unknown_error';
+        if (code === 'attachment_cleanup_incomplete') {
+          toast({
+            title: "Cleanup incomplete",
+            description: "Some attached files couldn't be removed. Please try again.",
+            variant: "destructive",
+          });
+        } else if (code === 'forbidden') {
+          toast({
+            title: "Not allowed",
+            description: "You don't have permission to delete this contact.",
+            variant: "destructive",
+          });
+        } else {
+          throw new Error(code);
+        }
+        return;
+      }
+
       toast({
         title: "Success",
         description: "Contact deleted successfully."
