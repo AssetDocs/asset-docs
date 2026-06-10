@@ -220,27 +220,36 @@ export class PropertyService {
     }
   }
 
-  static async deletePropertyFile(fileId: string, filePath: string, bucketName: string): Promise<boolean> {
+  /**
+   * Delete a property_files row + its paired storage object via the
+   * secure-delete-file edge function. The function performs server-side
+   * authorization (account membership + Owner/Full Access role) and uses a
+   * recoverable pending_delete state so a storage failure leaves the row
+   * intact for retry instead of orphaning either side.
+   *
+   * Legacy callers pass (id, filePath, bucketName); those args are ignored —
+   * the edge function reads bucket + path from the DB row itself.
+   *
+   * Returns true on full success; false otherwise. Callers should surface a
+   * generic "could not be fully deleted" message on failure.
+   */
+  static async deletePropertyFile(
+    fileId: string,
+    _filePath?: string,
+    _bucketName?: string
+  ): Promise<boolean> {
     try {
-      // Delete from storage
-      const { error: storageError } = await supabase.storage
-        .from(bucketName)
-        .remove([filePath]);
-
-      if (storageError) {
-        console.error('Error deleting file from storage:', storageError);
+      const { data, error } = await supabase.functions.invoke('secure-delete-file', {
+        body: { resource: 'property_file', id: fileId },
+      });
+      if (error) {
+        const status = (error as any)?.context?.status ?? (error as any)?.status;
+        console.error('deletePropertyFile failed', { fileId, status, error });
+        return false;
       }
-
-      // Delete from database
-      const { error: dbError } = await supabase
-        .from('property_files')
-        .delete()
-        .eq('id', fileId);
-
-      if (dbError) throw dbError;
-      return true;
+      return !!(data as any)?.ok;
     } catch (error) {
-      console.error('Error deleting property file:', error);
+      console.error('deletePropertyFile threw', error);
       return false;
     }
   }
