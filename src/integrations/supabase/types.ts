@@ -3069,6 +3069,7 @@ export type Database = {
           created_by_person: string | null
           delete_attempts: number
           delete_error: string | null
+          delete_processing_at: string | null
           details: string | null
           file_name: string | null
           file_path: string | null
@@ -3087,6 +3088,7 @@ export type Database = {
           created_by_person?: string | null
           delete_attempts?: number
           delete_error?: string | null
+          delete_processing_at?: string | null
           details?: string | null
           file_name?: string | null
           file_path?: string | null
@@ -3105,6 +3107,7 @@ export type Database = {
           created_by_person?: string | null
           delete_attempts?: number
           delete_error?: string | null
+          delete_processing_at?: string | null
           details?: string | null
           file_name?: string | null
           file_path?: string | null
@@ -4513,6 +4516,7 @@ export type Database = {
           created_at: string
           delete_attempts: number
           delete_error: string | null
+          delete_processing_at: string | null
           description: string | null
           file_name: string
           file_path: string
@@ -4532,6 +4536,7 @@ export type Database = {
           created_at?: string
           delete_attempts?: number
           delete_error?: string | null
+          delete_processing_at?: string | null
           description?: string | null
           file_name: string
           file_path: string
@@ -4551,6 +4556,7 @@ export type Database = {
           created_at?: string
           delete_attempts?: number
           delete_error?: string | null
+          delete_processing_at?: string | null
           description?: string | null
           file_name?: string
           file_path?: string
@@ -4638,6 +4644,7 @@ export type Database = {
           created_at: string
           delete_attempts: number
           delete_error: string | null
+          delete_processing_at: string | null
           file_name: string | null
           file_path: string | null
           file_size: number | null
@@ -4657,6 +4664,7 @@ export type Database = {
           created_at?: string
           delete_attempts?: number
           delete_error?: string | null
+          delete_processing_at?: string | null
           file_name?: string | null
           file_path?: string | null
           file_size?: number | null
@@ -4676,6 +4684,7 @@ export type Database = {
           created_at?: string
           delete_attempts?: number
           delete_error?: string | null
+          delete_processing_at?: string | null
           file_name?: string | null
           file_path?: string | null
           file_size?: number | null
@@ -4795,6 +4804,7 @@ export type Database = {
           created_at: string
           delete_attempts: number
           delete_error: string | null
+          delete_processing_at: string | null
           id: string
           is_interior: boolean
           paint_brand: string
@@ -4813,6 +4823,7 @@ export type Database = {
           created_at?: string
           delete_attempts?: number
           delete_error?: string | null
+          delete_processing_at?: string | null
           id?: string
           is_interior?: boolean
           paint_brand: string
@@ -4831,6 +4842,7 @@ export type Database = {
           created_at?: string
           delete_attempts?: number
           delete_error?: string | null
+          delete_processing_at?: string | null
           id?: string
           is_interior?: boolean
           paint_brand?: string
@@ -5220,6 +5232,7 @@ export type Database = {
           damage_report_id: string | null
           delete_attempts: number
           delete_error: string | null
+          delete_processing_at: string | null
           description: string | null
           file_name: string
           file_path: string
@@ -5243,6 +5256,7 @@ export type Database = {
           damage_report_id?: string | null
           delete_attempts?: number
           delete_error?: string | null
+          delete_processing_at?: string | null
           description?: string | null
           file_name: string
           file_path: string
@@ -5266,6 +5280,7 @@ export type Database = {
           damage_report_id?: string | null
           delete_attempts?: number
           delete_error?: string | null
+          delete_processing_at?: string | null
           description?: string | null
           file_name?: string
           file_path?: string
@@ -6197,6 +6212,7 @@ export type Database = {
           created_at: string
           delete_attempts: number
           delete_error: string | null
+          delete_processing_at: string | null
           description: string | null
           document_name: string | null
           document_type: string
@@ -6219,6 +6235,7 @@ export type Database = {
           created_at?: string
           delete_attempts?: number
           delete_error?: string | null
+          delete_processing_at?: string | null
           description?: string | null
           document_name?: string | null
           document_type?: string
@@ -6241,6 +6258,7 @@ export type Database = {
           created_at?: string
           delete_attempts?: number
           delete_error?: string | null
+          delete_processing_at?: string | null
           description?: string | null
           document_name?: string | null
           document_type?: string
@@ -6495,6 +6513,7 @@ export type Database = {
           created_at: string
           delete_attempts: number
           delete_error: string | null
+          delete_processing_at: string | null
           description: string | null
           file_name: string
           file_path: string
@@ -6513,6 +6532,7 @@ export type Database = {
           created_at?: string
           delete_attempts?: number
           delete_error?: string | null
+          delete_processing_at?: string | null
           description?: string | null
           file_name: string
           file_path: string
@@ -6531,6 +6551,7 @@ export type Database = {
           created_at?: string
           delete_attempts?: number
           delete_error?: string | null
+          delete_processing_at?: string | null
           description?: string | null
           file_name?: string
           file_path?: string
