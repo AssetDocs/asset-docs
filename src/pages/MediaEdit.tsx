@@ -44,6 +44,7 @@ const MediaEdit: React.FC = () => {
   const [searchParams] = useSearchParams();
   const mediaType = searchParams.get('type') as 'photo' | 'video' || 'photo';
   const { user } = useAuth();
+  const { accountId } = useAccount();
   const { toast } = useToast();
   const attachmentInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(true);
