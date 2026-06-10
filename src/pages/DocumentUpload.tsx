@@ -13,6 +13,7 @@ import { ArrowLeft, Upload, FileText, Trash2, Shield, FileWarning, FileCheck, Re
 import ScanToPDF from '@/components/ScanToPDF';
 import PropertySelector from '@/components/PropertySelector';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAccount } from '@/contexts/AccountContext';
 import { supabase } from '@/integrations/supabase/client';
 import { DocumentType } from '@/components/DocumentTypeSelector';
 import { useFileUpload } from '@/hooks/useFileUpload';
