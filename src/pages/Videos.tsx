@@ -35,6 +35,7 @@ const Videos: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { accountId, ownerUserId, isReadOnly, showReadOnlyRestriction } = useAccount();
   const { properties } = useProperties();
   const [videos, setVideos] = useState<PropertyFile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
