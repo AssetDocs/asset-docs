@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { PropertyFile, PropertyService } from '@/services/PropertyService';
-import { StorageService } from '@/services/StorageService';
+import { StorageService, buildAssetDocPath } from '@/services/StorageService';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAccount } from '@/contexts/AccountContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { supabase } from '@/integrations/supabase/client';
 
