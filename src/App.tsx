@@ -406,6 +406,8 @@ const AppContent = () => {
         <Route path="/account/photos" element={<ProtectedRoute><PhotoGallery /></ProtectedRoute>} />
         <Route path="/account/videos" element={<ProtectedRoute><Videos /></ProtectedRoute>} />
         <Route path="/account/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
+        <Route path="/account/cleanup" element={<ProtectedRoute><CleanupQueue /></ProtectedRoute>} />
+
         <Route path="/account/media" element={<ProtectedRoute><CombinedMedia /></ProtectedRoute>} />
         <Route path="/account/media/upload" element={<ProtectedRoute><CombinedMediaUpload /></ProtectedRoute>} />
         <Route path="/account/media/:id/edit" element={<ProtectedRoute><MediaEdit /></ProtectedRoute>} />
