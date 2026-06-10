@@ -55,7 +55,7 @@ const Videos: React.FC = () => {
   useEffect(() => {
     fetchVideos();
     fetchFolders();
-  }, []);
+  }, [accountId]);
 
   const fetchVideos = async () => {
     setIsLoading(true);
