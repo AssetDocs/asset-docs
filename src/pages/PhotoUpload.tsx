@@ -44,7 +44,6 @@ const PhotoUpload: React.FC = () => {
   }, [user, properties, propertiesLoading]);
 
   React.useEffect(() => {
-  React.useEffect(() => {
     if (user) {
       fetchFolders();
     }
