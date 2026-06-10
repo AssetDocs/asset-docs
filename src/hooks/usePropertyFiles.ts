@@ -101,6 +101,14 @@ export const usePropertyFiles = (propertyId: string | null, fileType?: 'photo' |
       });
       return [];
     }
+    if (!accountId || !ownerUserId) {
+      toast({
+        title: 'Workspace not ready',
+        description: 'Switch to an active account before uploading.',
+        variant: 'destructive',
+      });
+      return [];
+    }
 
     setIsUploading(true);
     const uploadedFiles: PropertyFile[] = [];
@@ -114,30 +122,30 @@ export const usePropertyFiles = (propertyId: string | null, fileType?: 'photo' |
       };
       const bucket = fileType ? bucketMap[fileType] : 'documents' as const;
 
-      // Upload files to storage
+      // Quota validation up-front (uses account owner's quota, not the AU's)
       for (const file of filesToUpload) {
+        const quotaCheck = await StorageService.canUploadFile(ownerUserId, file.size, subscriptionTier);
+        if (!quotaCheck.canUpload) {
+          toast({ title: 'Upload blocked', description: quotaCheck.reason, variant: 'destructive' });
+          setIsUploading(false);
+          return [];
+        }
+      }
+
+      for (const file of filesToUpload) {
+        const fullPath = buildAssetDocPath({
+          accountId,
+          kind: bucket,
+          propertyId,
+          folderId: folderId || null,
+          file,
+        });
+
+        let uploaded = false;
         try {
-          console.log('[usePropertyFiles] Starting upload for:', file.name, {
-            bucket,
-            propertyId,
-            userId: user.id,
-            fileSize: file.size,
-          });
+          const result = await StorageService.uploadFileToPath(file, bucket, fullPath, ownerUserId);
+          uploaded = true;
 
-          const result = await StorageService.uploadFileWithValidation(
-            file,
-            bucket,
-            user.id,
-            subscriptionTier,
-            `${propertyId}/${Date.now()}-${file.name}`
-          );
-
-          console.log('[usePropertyFiles] Storage upload complete:', {
-            path: result.path,
-            url: result.url?.substring(0, 50) + '...',
-          });
-
-          // Add to property_files table
           try {
             const propertyFile = await PropertyService.addPropertyFile({
               property_id: propertyId,
@@ -154,21 +162,23 @@ export const usePropertyFiles = (propertyId: string | null, fileType?: 'photo' |
             });
 
             if (propertyFile) {
-              console.log('[usePropertyFiles] Database record created:', propertyFile.id);
               uploadedFiles.push(propertyFile);
             } else {
-              console.error('[usePropertyFiles] Database record creation returned null');
+              throw new Error('Database insert returned null');
             }
           } catch (dbError) {
-            console.error('[usePropertyFiles] Database insert failed:', dbError);
+            console.error('[usePropertyFiles] DB insert failed — cleaning up orphaned object', { path: result.path, bucket, error: dbError });
+            await StorageService.tryCleanupObject(bucket, result.path);
             toast({
-              title: 'Database Error',
-              description: `File uploaded to storage but failed to save record: ${dbError instanceof Error ? dbError.message : 'Unknown error'}`,
+              title: 'Save failed',
+              description: `Upload rolled back: ${dbError instanceof Error ? dbError.message : 'database error'}`,
               variant: 'destructive',
             });
           }
         } catch (error) {
-          console.error(`[usePropertyFiles] Error uploading ${file.name}:`, error);
+          if (!uploaded) {
+            console.error(`[usePropertyFiles] Storage upload failed for ${file.name}:`, error);
+          }
           toast({
             title: 'Upload Failed',
             description: `Failed to upload ${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`,
