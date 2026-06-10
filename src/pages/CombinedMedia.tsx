@@ -88,7 +88,7 @@ const CombinedMedia: React.FC = () => {
     fetchPhotos();
     fetchVideos();
     fetchFolders();
-  }, []);
+  }, [accountId]);
 
   const fetchPhotos = async () => {
     try {
