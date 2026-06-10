@@ -113,7 +113,7 @@ const DamagePhotoUpload: React.FC = () => {
       console.error('Error uploading damage photos:', error);
       toast({
         title: "Upload Failed",
-        description: error instanceof Error ? error.message : "There was an error uploading your photos. Please try again.",
+        description: "The file could not be saved. Please try again.",
         variant: "destructive"
       });
     } finally {
