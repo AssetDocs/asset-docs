@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Camera, Upload, Loader2, X, Image as ImageIcon, Home } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAccount } from '@/contexts/AccountContext';
 import { useToast } from '@/hooks/use-toast';
 import { useProperties } from '@/hooks/useProperties';
 import { usePropertyFiles } from '@/hooks/usePropertyFiles';
@@ -24,6 +25,7 @@ interface Folder {
 const PhotoUpload: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { accountId } = useAccount();
   const { toast } = useToast();
   const { properties, isLoading: propertiesLoading } = useProperties();
   const { subscriptionTier } = useSubscription();
@@ -45,16 +47,17 @@ const PhotoUpload: React.FC = () => {
     if (user) {
       fetchFolders();
     }
-  }, [user]);
+  }, [user?.id, accountId]);
+
 
   const fetchFolders = async () => {
-    if (!user) return;
-    
+    if (!user || !accountId) return;
+
     try {
       const { data, error } = await supabase
         .from('photo_folders')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('account_id', accountId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;

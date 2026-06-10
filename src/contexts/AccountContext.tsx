@@ -11,6 +11,7 @@ interface AccountInfo {
   accountName: string;
   role: AccountRole;
   ownerName: string;
+  ownerUserId: string;
 }
 
 interface AccountContextType {
@@ -19,6 +20,7 @@ interface AccountContextType {
   accountRole: AccountRole;
   accountName: string;
   ownerName: string;
+  ownerUserId: string | null;
   
   // All accessible accounts
   accounts: AccountInfo[];
@@ -126,6 +128,7 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
           accountName: m.accounts?.account_name || 'My Account',
           role: m.role as AccountRole,
           ownerName,
+          ownerUserId,
         };
       });
 
@@ -241,6 +244,7 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const accountRole = currentAccount?.role || null;
   const accountName = currentAccount?.accountName || '';
   const ownerName = currentAccount?.ownerName || '';
+  const ownerUserId = currentAccount?.ownerUserId || null;
 
   const isOwner = accountRole === 'owner';
   const isFullAccess = accountRole === 'full_access';
@@ -277,6 +281,7 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
         accountRole,
         accountName,
         ownerName,
+        ownerUserId,
         accounts,
         hasMultipleAccounts,
         switchAccount,

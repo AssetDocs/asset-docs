@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Save, Loader2, FileText } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAccount } from '@/contexts/AccountContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
@@ -26,6 +27,7 @@ const DocumentEdit: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const { accountId } = useAccount();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -70,11 +72,11 @@ const DocumentEdit: React.FC = () => {
           folderId: doc.folder_id || ''
         });
 
-        // Load folders
+        // Load folders for current workspace
         const { data: foldersData } = await supabase
           .from('document_folders')
           .select('id, folder_name')
-          .eq('user_id', user.id)
+          .eq('account_id', accountId as string)
           .order('folder_name');
 
         setFolders(foldersData || []);

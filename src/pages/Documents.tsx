@@ -42,6 +42,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useProperties } from '@/hooks/useProperties';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAccount } from '@/contexts/AccountContext';
 
 type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc';
 type ViewMode = 'grid' | 'list';
@@ -59,6 +60,7 @@ const Documents: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { accountId, ownerUserId, isReadOnly, showReadOnlyRestriction } = useAccount();
   const { properties } = useProperties();
   const [documents, setDocuments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -104,7 +106,7 @@ const Documents: React.FC = () => {
       fetchFolders();
       loadPolicies();
     }
-  }, [user]);
+  }, [user?.id, accountId]);
 
   const loadPolicies = async () => {
     if (!user?.id) return;
@@ -151,13 +153,13 @@ const Documents: React.FC = () => {
   };
 
   const fetchFolders = async () => {
-    if (!user) return;
-    
+    if (!user || !accountId) return;
+
     try {
       const { data, error } = await supabase
         .from('document_folders')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('account_id', accountId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -347,12 +349,18 @@ const Documents: React.FC = () => {
 
   const handleCreateFolder = async (name: string, description: string, gradientColor: string) => {
     if (!user) return;
-    
+    if (!accountId || !ownerUserId) {
+      toast({ title: "Error", description: "No active account selected.", variant: "destructive" });
+      return;
+    }
+    if (isReadOnly) { showReadOnlyRestriction(); return; }
+
     try {
       const { data, error } = await supabase
         .from('document_folders')
         .insert({
-          user_id: user.id,
+          account_id: accountId,
+          user_id: ownerUserId,
           folder_name: name,
           description: description || null,
           gradient_color: gradientColor

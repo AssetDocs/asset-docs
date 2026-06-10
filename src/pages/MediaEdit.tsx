@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowLeft, Save, Loader2, Camera, Video, Plus, X, Paperclip, Trash2, Star } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAccount } from '@/contexts/AccountContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
@@ -43,6 +44,7 @@ const MediaEdit: React.FC = () => {
   const [searchParams] = useSearchParams();
   const mediaType = searchParams.get('type') as 'photo' | 'video' || 'photo';
   const { user } = useAuth();
+  const { accountId } = useAccount();
   const { toast } = useToast();
   const attachmentInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(true);
@@ -114,7 +116,7 @@ const MediaEdit: React.FC = () => {
         const { data: foldersData } = await supabase
           .from('photo_folders')
           .select('id, folder_name')
-          .eq('user_id', user.id)
+          .eq('account_id', accountId as string)
           .order('folder_name');
 
         setFolders(foldersData || []);

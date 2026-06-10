@@ -13,6 +13,7 @@ import { ArrowLeft, Upload, FileText, Trash2, Shield, FileWarning, FileCheck, Re
 import ScanToPDF from '@/components/ScanToPDF';
 import PropertySelector from '@/components/PropertySelector';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAccount } from '@/contexts/AccountContext';
 import { supabase } from '@/integrations/supabase/client';
 import { DocumentType } from '@/components/DocumentTypeSelector';
 import { useFileUpload } from '@/hooks/useFileUpload';
@@ -45,6 +46,7 @@ const DocumentUpload: React.FC = () => {
   const TypeIcon = typeInfo.icon;
 
   const { user } = useAuth();
+  const { accountId } = useAccount();
   const { toast } = useToast();
   
   // Form state
@@ -78,16 +80,16 @@ const DocumentUpload: React.FC = () => {
     if (user) {
       fetchFolders();
     }
-  }, [user]);
+  }, [user?.id, accountId]);
 
   const fetchFolders = async () => {
-    if (!user) return;
-    
+    if (!user || !accountId) return;
+
     try {
       const { data, error } = await supabase
         .from('document_folders')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('account_id', accountId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;

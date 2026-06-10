@@ -12,6 +12,7 @@ import { usePropertyFiles } from '@/hooks/usePropertyFiles';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAccount } from '@/contexts/AccountContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface Folder {
@@ -24,6 +25,7 @@ const VideoUpload: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { accountId } = useAccount();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const [defaultPropertyId, setDefaultPropertyId] = useState('');
@@ -40,16 +42,16 @@ const VideoUpload: React.FC = () => {
     if (user) {
       fetchFolders();
     }
-  }, [user]);
+  }, [user?.id, accountId]);
 
   const fetchFolders = async () => {
-    if (!user) return;
+    if (!user || !accountId) return;
     try {
       const { data, error } = await supabase
         // Photo folders are shared for both photo + video organization
         .from('photo_folders')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('account_id', accountId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
