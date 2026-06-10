@@ -1,23 +1,28 @@
 /**
- * secure-delete-file — Recoverable, server-side deletion of a DB row + its
- * paired storage object. Uses a processing lease to serialize concurrent
+ * secure-delete-file — Recoverable server-side deletion of a storage object
+ * paired with a database row. Uses a processing lease to serialize concurrent
  * callers without blocking legitimate retries after a storage failure.
  *
- * Flow:
- *   1. Authenticate caller (JWT).
- *   2. Look up row by hard-coded resource → table mapping.
- *   3. Authorize:
- *        - Shared resources (property_file, user_document): owner-only via
- *          has_account_access(caller, row.user_id, 'owner').
- *        - Owner-only resources: caller must be row.user_id.
- *   4. Atomically claim the row by setting a processing lease.
- *        - Claim succeeds when not currently leased (or lease > 10 min old).
- *        - Loser receives 409 { code: 'in_progress', retryable: true }.
- *   5. Remove storage object using the path captured on the row.
- *        - "Not found" → idempotent success.
- *        - Failure → release lease, keep pending_delete + path + error,
- *          return 409 { code: 'storage_remove_failed', retryable: true }.
- *   6. Delete the DB row.
+ * Each resource declares its own finalize strategy:
+ *   - delete_row              : remove the DB row after storage cleanup
+ *                               (memory_safe_item, vip_contact_attachment,
+ *                                property_file, user_document)
+ *   - clear_attachment_fields : keep the parent row, null out attachment cols
+ *                               (family_recipe_attachment,
+ *                                notes_tradition_attachment)
+ *   - clear_optional_swatch   : keep the parent row, null out one image col
+ *                               (paint_code_swatch)
+ *
+ * Authorization:
+ *   - shared_owner resources require has_account_access(caller, row.user_id,
+ *     'owner'). Full Access / Read Only AUs are rejected.
+ *   - owner_only resources require caller === row.user_id.
+ *
+ * Failure handling:
+ *   - Missing storage object → treated as successful idempotent cleanup.
+ *   - Storage failure        → release lease, keep pending_delete + path +
+ *                              error, return 409 retryable.
+ *   - Concurrent claim       → loser receives 409 in_progress (retryable).
  */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.51.0";
@@ -30,16 +35,22 @@ const corsHeaders = {
 };
 
 type Ownership = "shared_owner" | "owner_only";
+type Finalize =
+  | "delete_row"
+  | "clear_attachment_fields"
+  | "clear_optional_swatch";
 
 interface ResourceDef {
   table: string;
   bucket: string | "from_row";
   pathColumn: string;
   ownership: Ownership;
+  finalize: Finalize;
+  /** When true, a missing path is acceptable (operation is a no-op cleanup). */
   pathNullable?: boolean;
-  /** Owner-facing label for the cleanup list. */
+  /** Columns to null out for clear_attachment_fields. */
+  attachmentColumns?: string[];
   label: string;
-  /** Column to read for a display name (best-effort). */
   labelColumn?: string;
 }
 
@@ -49,6 +60,7 @@ const RESOURCES: Record<string, ResourceDef> = {
     bucket: "from_row",
     pathColumn: "file_path",
     ownership: "shared_owner",
+    finalize: "delete_row",
     label: "Property file",
     labelColumn: "file_name",
   },
@@ -57,6 +69,7 @@ const RESOURCES: Record<string, ResourceDef> = {
     bucket: "documents",
     pathColumn: "file_path",
     ownership: "shared_owner",
+    finalize: "delete_row",
     label: "Document",
     labelColumn: "file_name",
   },
@@ -65,6 +78,7 @@ const RESOURCES: Record<string, ResourceDef> = {
     bucket: "memory-safe",
     pathColumn: "file_path",
     ownership: "owner_only",
+    finalize: "delete_row",
     label: "Memory Safe item",
     labelColumn: "file_name",
   },
@@ -73,16 +87,30 @@ const RESOURCES: Record<string, ResourceDef> = {
     bucket: "from_row",
     pathColumn: "file_path",
     ownership: "owner_only",
-    pathNullable: true,
+    finalize: "clear_attachment_fields",
+    attachmentColumns: [
+      "file_path",
+      "file_url",
+      "file_name",
+      "file_size",
+      "bucket_name",
+    ],
     label: "Recipe attachment",
-    labelColumn: "title",
+    labelColumn: "recipe_name",
   },
   notes_tradition_attachment: {
     table: "notes_traditions",
     bucket: "from_row",
     pathColumn: "file_path",
     ownership: "owner_only",
-    pathNullable: true,
+    finalize: "clear_attachment_fields",
+    attachmentColumns: [
+      "file_path",
+      "file_url",
+      "file_name",
+      "file_size",
+      "bucket_name",
+    ],
     label: "Notes / tradition attachment",
     labelColumn: "title",
   },
@@ -91,6 +119,7 @@ const RESOURCES: Record<string, ResourceDef> = {
     bucket: "contact-attachments",
     pathColumn: "file_path",
     ownership: "owner_only",
+    finalize: "delete_row",
     label: "Contact attachment",
     labelColumn: "file_name",
   },
@@ -99,7 +128,9 @@ const RESOURCES: Record<string, ResourceDef> = {
     bucket: "photos",
     pathColumn: "swatch_image_path",
     ownership: "owner_only",
+    finalize: "clear_optional_swatch",
     pathNullable: true,
+    attachmentColumns: ["swatch_image_path"],
     label: "Paint code swatch",
     labelColumn: "name",
   },
@@ -107,7 +138,7 @@ const RESOURCES: Record<string, ResourceDef> = {
 
 export { RESOURCES };
 
-const LEASE_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
+const LEASE_TIMEOUT_MS = 10 * 60 * 1000;
 
 const bodySchema = z.object({
   resource: z.string().min(1),
@@ -147,7 +178,7 @@ serve(async (req) => {
     const def = RESOURCES[resource];
     if (!def) return json(400, { error: "unknown_resource" });
 
-    // --- Authenticate caller ----------------------------------------------
+    // --- Authenticate caller --------------------------------------------
     const authHeader = req.headers.get("Authorization") || "";
     const jwt = authHeader.replace(/^Bearer\s+/i, "");
     if (!jwt) return json(401, { error: "missing_auth" });
@@ -165,7 +196,7 @@ serve(async (req) => {
 
     const admin = createClient(supabaseUrl, serviceKey);
 
-    // --- Fetch row (service role bypasses RLS / restrictive policies) -----
+    // --- Fetch row ------------------------------------------------------
     const { data: row, error: rowErr } = await admin
       .from(def.table)
       .select("*")
@@ -188,13 +219,10 @@ serve(async (req) => {
       return json(500, { error: "invalid_row" });
     }
 
-    // --- Authorize --------------------------------------------------------
+    // --- Authorize ------------------------------------------------------
     if (def.ownership === "owner_only") {
       if (rowUserId !== callerId) return json(403, { error: "forbidden" });
     } else {
-      // shared_owner: caller must hold the 'owner' role on the account that
-      // owns this row. Full Access and Read Only AUs are rejected. Reuses
-      // the project-standard helper for consistency with table RLS.
       const { data: allowed, error: rpcErr } = await admin.rpc(
         "has_account_access",
         {
@@ -214,11 +242,7 @@ serve(async (req) => {
       if (!allowed) return json(403, { error: "forbidden" });
     }
 
-    // --- Atomic claim via processing lease --------------------------------
-    // Allowed to claim when:
-    //   (a) not pending at all, OR
-    //   (b) pending but no active lease, OR
-    //   (c) lease is older than LEASE_TIMEOUT_MS (stale, presumed crashed).
+    // --- Atomic claim via processing lease ------------------------------
     const staleBefore = new Date(Date.now() - LEASE_TIMEOUT_MS).toISOString();
     const nowIso = new Date().toISOString();
     const nextAttempts = (row.delete_attempts ?? 0) + 1;
@@ -248,17 +272,15 @@ serve(async (req) => {
       return json(500, { error: "claim_failed" });
     }
     if (!claimed) {
-      // Another invocation holds an active lease.
       return json(409, { error: "in_progress", retryable: true });
     }
 
-    // --- Resolve bucket + path -------------------------------------------
+    // --- Resolve bucket + path -----------------------------------------
     const bucket =
       def.bucket === "from_row" ? (row.bucket_name as string | null) : def.bucket;
     const path = row[def.pathColumn] as string | null;
     const hasPath = !!path && !!bucket;
 
-    // Helper: release the lease so the row is immediately retryable.
     const releaseLease = async (errMessage: string | null) => {
       await admin
         .from(def.table)
@@ -269,7 +291,7 @@ serve(async (req) => {
         .eq("id", id);
     };
 
-    // --- Remove storage object -------------------------------------------
+    // --- Remove storage object -----------------------------------------
     if (hasPath) {
       const { error: storageErr } = await admin.storage
         .from(bucket!)
@@ -289,31 +311,66 @@ serve(async (req) => {
         });
       }
     } else if (!def.pathNullable) {
+      // Row has no path but the resource requires one — finalize anyway so
+      // the stuck pending row can be cleared.
       console.warn("secure-delete-file: missing path on non-nullable resource", {
         resource,
         id,
       });
     }
 
-    // --- Delete the DB row (must still be the leased pending row) --------
-    const { error: delErr, count } = await admin
-      .from(def.table)
-      .delete({ count: "exact" })
-      .eq("id", id)
-      .eq("pending_delete", true);
+    // --- Finalize per strategy -----------------------------------------
+    if (def.finalize === "delete_row") {
+      const { error: delErr, count } = await admin
+        .from(def.table)
+        .delete({ count: "exact" })
+        .eq("id", id)
+        .eq("pending_delete", true);
 
-    if (delErr) {
-      console.error("secure-delete-file: db delete failed", {
-        resource,
-        id,
-        err: delErr.message,
-      });
-      await releaseLease(`db_delete: ${delErr.message}`);
-      return json(409, { error: "db_delete_failed", retryable: true });
-    }
-    if (!count) {
-      // Row vanished or pending flag was cleared by another path.
-      console.warn("secure-delete-file: row not deleted (count=0)", { resource, id });
+      if (delErr) {
+        console.error("secure-delete-file: db delete failed", {
+          resource,
+          id,
+          err: delErr.message,
+        });
+        await releaseLease(`db_delete: ${delErr.message}`);
+        return json(409, { error: "db_delete_failed", retryable: true });
+      }
+      if (!count) {
+        console.warn("secure-delete-file: row not deleted (count=0)", {
+          resource,
+          id,
+        });
+      }
+    } else {
+      // clear_attachment_fields / clear_optional_swatch — keep parent row.
+      const clearPatch: Record<string, unknown> = {
+        pending_delete: false,
+        pending_delete_at: null,
+        delete_processing_at: null,
+        delete_error: null,
+      };
+      for (const col of def.attachmentColumns ?? [def.pathColumn]) {
+        clearPatch[col] = null;
+      }
+      const { error: updErr, count } = await admin
+        .from(def.table)
+        .update(clearPatch, { count: "exact" })
+        .eq("id", id)
+        .eq("pending_delete", true);
+
+      if (updErr) {
+        console.error("secure-delete-file: clear-fields failed", {
+          resource,
+          id,
+          err: updErr.message,
+        });
+        await releaseLease(`clear_fields: ${updErr.message}`);
+        return json(409, { error: "db_update_failed", retryable: true });
+      }
+      if (!count) {
+        console.warn("secure-delete-file: clear-fields count=0", { resource, id });
+      }
     }
 
     return json(200, { ok: true });
