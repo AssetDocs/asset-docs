@@ -72,11 +72,11 @@ const DocumentEdit: React.FC = () => {
           folderId: doc.folder_id || ''
         });
 
-        // Load folders
+        // Load folders for current workspace
         const { data: foldersData } = await supabase
           .from('document_folders')
           .select('id, folder_name')
-          .eq('user_id', user.id)
+          .eq('account_id', accountId as string)
           .order('folder_name');
 
         setFolders(foldersData || []);
