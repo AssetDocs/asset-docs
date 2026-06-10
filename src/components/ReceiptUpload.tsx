@@ -11,19 +11,21 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { ItemService } from '@/services/ItemService';
 import { useToast } from '@/hooks/use-toast';
+import { useAccount } from '@/contexts/AccountContext';
 
 interface ReceiptUploadProps {
   itemId: string;
-  userId: string;
+  /** @deprecated kept for prop compatibility; account context now drives ownership */
+  userId?: string;
   onReceiptUploaded: () => void;
 }
 
 const ReceiptUpload: React.FC<ReceiptUploadProps> = ({
   itemId,
-  userId,
-  onReceiptUploaded
+  onReceiptUploaded,
 }) => {
   const { toast } = useToast();
+  const { accountId, ownerUserId } = useAccount();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
