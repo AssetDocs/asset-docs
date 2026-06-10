@@ -111,12 +111,12 @@ const CombinedMedia: React.FC = () => {
   };
 
   const fetchFolders = async () => {
-    if (!user) return;
+    if (!user || !accountId) return;
     try {
       const { data, error } = await supabase
         .from('photo_folders')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('account_id', accountId)
 
         // NOTE: photo_folders currently does not have a display_order column.
         // Ordering by a non-existent column causes the request to fail and results
