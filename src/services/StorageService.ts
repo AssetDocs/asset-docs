@@ -433,9 +433,6 @@ export class StorageService {
 
 const FOLDER_ROOT = 'root';
 
-function ext(file: File): string {
-  return StorageService.randomizedFilename(file.name).split('.').pop() || 'bin';
-}
 
 /**
  * accounts/{accountId}/properties/{propertyId}/photos|videos/{folderIdOrRoot}/{rand}.ext
