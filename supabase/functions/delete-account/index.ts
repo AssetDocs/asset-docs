@@ -295,8 +295,8 @@ Deno.serve(async (req) => {
       'profiles',  // FK to auth.users - must be last before user deletion
       'entitlements',
       'account_verification',
-      'vip_contacts',
-      'vip_contact_attachments'
+      'vip_contact_attachments',  // must precede vip_contacts (FK RESTRICT)
+      'vip_contacts'
     ];
 
     // Delete from recovery_requests (uses owner_user_id and delegate_user_id)
