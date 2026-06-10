@@ -13,6 +13,7 @@ export const usePropertyFiles = (propertyId: string | null, fileType?: 'photo' |
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { accountId, ownerUserId } = useAccount();
   const { subscriptionTier } = useSubscription();
 
   const refreshSignedUrls = async (fileList: PropertyFile[]): Promise<PropertyFile[]> => {
