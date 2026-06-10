@@ -20,6 +20,7 @@ interface AccountContextType {
   accountRole: AccountRole;
   accountName: string;
   ownerName: string;
+  ownerUserId: string | null;
   
   // All accessible accounts
   accounts: AccountInfo[];
