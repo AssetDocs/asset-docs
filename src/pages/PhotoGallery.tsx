@@ -173,12 +173,18 @@ const PhotoGallery: React.FC = () => {
 
   const handleCreateFolder = async (name: string, description: string, gradientColor: string) => {
     if (!user) return;
-    
+    if (!accountId || !ownerUserId) {
+      toast({ title: "Error", description: "No active account selected.", variant: "destructive" });
+      return;
+    }
+    if (isReadOnly) { showReadOnlyRestriction(); return; }
+
     try {
       const { data, error } = await supabase
         .from('photo_folders')
         .insert({
-          user_id: user.id,
+          account_id: accountId,
+          user_id: ownerUserId,
           folder_name: name,
           description: description || null,
           gradient_color: gradientColor
