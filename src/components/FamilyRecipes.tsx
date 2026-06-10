@@ -144,6 +144,22 @@ const FamilyRecipes: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     try {
+      const recipe = recipes.find(r => r.id === id);
+      // If an attachment exists, clean storage + clear attachment fields first
+      // via secure-delete-file. The recipe row remains intact, then we delete it.
+      if (recipe?.file_path) {
+        const { data, error } = await supabase.functions.invoke('secure-delete-file', {
+          body: { resource: 'family_recipe_attachment', id },
+        });
+        if (error || (data as any)?.error) {
+          toast({
+            title: 'Attachment cleanup failed',
+            description: 'Recipe was not deleted. Retry from /account/cleanup.',
+            variant: 'destructive',
+          });
+          return;
+        }
+      }
       const { error } = await supabase.from('family_recipes').delete().eq('id', id);
       if (error) throw error;
       toast({ title: 'Deleted', description: 'Recipe removed.' });
