@@ -144,6 +144,75 @@ export class StorageService {
   }
 
   /**
+   * Generate a server-safe randomized filename preserving only the extension.
+   * Original filename is never embedded in the storage path.
+   */
+  static randomizedFilename(originalName: string): string {
+    return this.sanitizeFileName(originalName);
+  }
+
+  /**
+   * Upload a file to a specific, fully-qualified storage path.
+   * Caller is responsible for constructing the path (see buildAssetDocPath /
+   * buildFamilyArchivePath). Runs the same validation + rate-limiting as
+   * uploadFile, but never embeds the caller's user id into the path.
+   *
+   * `quotaUserId` is the user whose storage quota should be checked (the
+   * account owner, even when uploaded by an Authorized User).
+   */
+  static async uploadFileToPath(
+    file: File,
+    bucket: FileType,
+    fullPath: string,
+    quotaUserId: string
+  ): Promise<UploadResult> {
+    const rateLimitResult = RateLimiter.recordAttempt(quotaUserId, `upload-${bucket}`, 10, 1);
+    if (rateLimitResult.blocked) {
+      const resetTime = new Date(rateLimitResult.resetTime);
+      throw new Error(`Upload rate limit exceeded. Try again after ${resetTime.toLocaleTimeString()}`);
+    }
+
+    const validationOptions = this.FILE_VALIDATION_OPTIONS[bucket];
+    const validation = await FileValidator.validateFile(file, validationOptions);
+    if (!validation.isValid) {
+      throw new Error(`File validation failed: ${validation.errors.join(', ')}`);
+    }
+
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .upload(fullPath, file, { cacheControl: '3600', upsert: false });
+
+    if (error) {
+      throw new Error(`Upload failed: ${error.message}`);
+    }
+
+    const { data: signedData } = await supabase.storage
+      .from(bucket)
+      .createSignedUrl(fullPath, 86400);
+
+    return {
+      url: signedData?.signedUrl || fullPath,
+      path: data.path,
+      fullPath: data.fullPath,
+    };
+  }
+
+  /**
+   * Best-effort cleanup of an orphaned storage object after a DB insert failure.
+   * Never throws — always logs structured failures so they surface in observability.
+   */
+  static async tryCleanupObject(bucket: FileType, path: string): Promise<void> {
+    try {
+      const { error } = await supabase.storage.from(bucket).remove([path]);
+      if (error) {
+        console.error('[StorageService] orphan cleanup failed', { bucket, path, error: error.message });
+      }
+    } catch (e) {
+      console.error('[StorageService] orphan cleanup threw', { bucket, path, error: e instanceof Error ? e.message : String(e) });
+    }
+  }
+
+  /**
    * Upload multiple files to a specific bucket
    */
   static async uploadMultipleFiles(
