@@ -294,42 +294,52 @@ const Documents: React.FC = () => {
 
   const confirmDelete = async () => {
     try {
+      // Server-side secure-delete-file handles authorization, storage removal,
+      // and the recoverable pending_delete state. Failures keep the row
+      // around for retry rather than orphaning either side.
+      const deleteOne = async (documentId: string): Promise<boolean> => {
+        const { data, error } = await supabase.functions.invoke('secure-delete-file', {
+          body: { resource: 'user_document', id: documentId },
+        });
+        if (error) {
+          console.error('user_document delete failed', { documentId, error });
+          return false;
+        }
+        return !!(data as any)?.ok;
+      };
+
       if (bulkDeleteMode) {
-        const deletePromises = selectedDocuments.map(async (documentId) => {
-          const document = documents.find(d => d.id === documentId);
-          if (document) {
-            // Delete from storage first
-            if (document.file_path) {
-              await supabase.storage.from('documents').remove([document.file_path]);
-            }
-            // Delete from user_documents table
-            await supabase.from('user_documents').delete().eq('id', documentId);
-          }
-        });
-        
-        await Promise.all(deletePromises);
-        toast({
-          title: "Success",
-          description: `${selectedDocuments.length} document(s) deleted successfully`
-        });
+        const results = await Promise.all(selectedDocuments.map(deleteOne));
+        const okCount = results.filter(Boolean).length;
+        const failCount = results.length - okCount;
+        if (failCount === 0) {
+          toast({ title: "Success", description: `${okCount} document(s) deleted successfully` });
+        } else if (okCount === 0) {
+          toast({
+            title: "Error",
+            description: "The file could not be fully deleted. Please try again.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Partial delete",
+            description: `${okCount} deleted, ${failCount} could not be fully deleted. Please try again.`,
+            variant: "destructive",
+          });
+        }
       } else if (documentToDelete) {
-        const document = documents.find(d => d.id === documentToDelete);
-        if (document) {
-          // Delete from storage first
-          if (document.file_path) {
-            await supabase.storage.from('documents').remove([document.file_path]);
-          }
-          // Delete from user_documents table
-          const { error } = await supabase.from('user_documents').delete().eq('id', documentToDelete);
-          if (!error) {
-            toast({
-              title: "Success",
-              description: "Document deleted successfully"
-            });
-          }
+        const ok = await deleteOne(documentToDelete);
+        if (ok) {
+          toast({ title: "Success", description: "Document deleted successfully" });
+        } else {
+          toast({
+            title: "Error",
+            description: "The file could not be fully deleted. Please try again.",
+            variant: "destructive",
+          });
         }
       }
-      
+
       await fetchDocuments();
       setSelectedDocuments([]);
     } catch (error) {
