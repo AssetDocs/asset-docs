@@ -203,14 +203,33 @@ const MemorySafe: React.FC = () => {
   const confirmDelete = async () => {
     try {
       const idsToDelete = bulkDeleteMode ? selectedMemories : memoryToDelete ? [memoryToDelete] : [];
+      let okCount = 0;
+      const failures: string[] = [];
       for (const id of idsToDelete) {
-        const mem = memories.find(m => m.id === id);
-        if (mem?.file_path) {
-          await supabase.storage.from('memory-safe').remove([mem.file_path]);
+        const { data, error } = await supabase.functions.invoke('secure-delete-file', {
+          body: { resource: 'memory_safe_item', id },
+        });
+        if (error || (data as any)?.error) {
+          failures.push(id);
+        } else {
+          okCount++;
         }
-        await supabase.from('memory_safe_items').delete().eq('id', id);
       }
-      toast({ title: 'Success', description: `${idsToDelete.length} memory(ies) deleted successfully` });
+      if (failures.length === 0) {
+        toast({ title: 'Success', description: `${okCount} memory(ies) deleted successfully` });
+      } else if (okCount > 0) {
+        toast({
+          title: 'Partial delete',
+          description: `${okCount} removed, ${failures.length} need cleanup. Visit /account/cleanup to retry.`,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Delete failed',
+          description: 'Items remain pending. Retry from /account/cleanup.',
+          variant: 'destructive',
+        });
+      }
       await fetchMemories();
       setSelectedMemories([]);
     } catch (error) {
