@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { usePropertyFiles } from '@/hooks/usePropertyFiles';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAccount } from '@/contexts/AccountContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useVerification } from '@/hooks/useVerification';
 
