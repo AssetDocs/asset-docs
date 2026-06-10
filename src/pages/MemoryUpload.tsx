@@ -11,7 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowLeft, Upload, FileText, Trash2, Loader2, Camera } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { useFileUpload } from '@/hooks/useFileUpload';
+import { StorageService, buildFamilyArchivePath } from '@/services/StorageService';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useToast } from '@/hooks/use-toast';
 
 interface MemoryFolder {
