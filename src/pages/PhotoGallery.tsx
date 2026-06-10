@@ -57,6 +57,7 @@ const PhotoGallery: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { accountId, ownerUserId, isReadOnly, showReadOnlyRestriction } = useAccount();
   const { properties } = useProperties();
   const [photos, setPhotos] = useState<PropertyFile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
