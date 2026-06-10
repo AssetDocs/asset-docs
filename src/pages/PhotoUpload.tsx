@@ -25,6 +25,7 @@ interface Folder {
 const PhotoUpload: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { accountId } = useAccount();
   const { toast } = useToast();
   const { properties, isLoading: propertiesLoading } = useProperties();
   const { subscriptionTier } = useSubscription();
