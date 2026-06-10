@@ -75,7 +75,10 @@ const PhotoGallery: React.FC = () => {
   const [showDeleteFolderDialog, setShowDeleteFolderDialog] = useState(false);
   const [folderToDelete, setFolderToDelete] = useState<string | null>(null);
 
+  const activeAccountRef = useRef<string | null>(accountId);
   useEffect(() => {
+    activeAccountRef.current = accountId;
+    setFolders([]);
     fetchPhotos();
     fetchFolders();
   }, [accountId]);
@@ -99,18 +102,20 @@ const PhotoGallery: React.FC = () => {
 
   const fetchFolders = async () => {
     if (!user || !accountId) return;
-
+    const snapshot = accountId;
     try {
       const { data, error } = await supabase
         .from('photo_folders')
         .select('*')
-        .eq('account_id', accountId)
+        .eq('account_id', snapshot)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      if (activeAccountRef.current !== snapshot) return;
       setFolders(data || []);
     } catch (error) {
       console.error('Error fetching folders:', error);
+      if (activeAccountRef.current !== snapshot) return;
       toast({
         title: "Error",
         description: "Failed to load folders",
