@@ -25,6 +25,7 @@ const VideoUpload: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { accountId } = useAccount();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const [defaultPropertyId, setDefaultPropertyId] = useState('');
