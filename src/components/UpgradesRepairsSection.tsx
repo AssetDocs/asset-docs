@@ -257,8 +257,14 @@ const UpgradesRepairsSection: React.FC = () => {
 
       // Upload files if any
       if (selectedFiles.length > 0 && recordId) {
+        if (!user) {
+          toast({ title: 'Authentication required', description: 'Sign in to attach files.', variant: 'destructive' });
+          return;
+        }
         setUploading(true);
         for (const file of selectedFiles) {
+          let uploadedPath: string | null = null;
+          let uploadedBucket: FileType | null = null;
           try {
             const isVideo = file.type.startsWith('video/');
             const isDocument = file.type.includes('pdf') || file.type.includes('document');
@@ -272,19 +278,21 @@ const UpgradesRepairsSection: React.FC = () => {
               fileSize: file.size
             });
 
+            // Owner-only: uploadFileWithValidation normalizes to {userId}/{rand}.ext
             const uploadResult = await StorageService.uploadFileWithValidation(
               file,
               bucketName,
               user.id,
-              subscriptionTier,
-              `${formData.property_id}/${Date.now()}-${file.name}`
+              subscriptionTier
             );
+            uploadedPath = uploadResult.path;
+            uploadedBucket = bucketName;
 
             console.log('[UpgradesRepairs] Upload successful:', uploadResult.path);
 
             await PropertyService.addPropertyFile({
               property_id: formData.property_id,
-              file_name: `${formData.title} - ${file.name}`,
+              file_name: `${formData.title} - ${file.name}`, // display name in DB metadata
               file_path: uploadResult.path,
               file_url: uploadResult.url,
               file_type: fileType,
@@ -293,9 +301,13 @@ const UpgradesRepairsSection: React.FC = () => {
               source: 'upgrade_repair'
             });
 
+            uploadedPath = null; // committed
             console.log('[UpgradesRepairs] File record saved to database');
           } catch (fileError) {
             console.error('[UpgradesRepairs] File upload failed:', fileError);
+            if (uploadedPath && uploadedBucket) {
+              await StorageService.tryCleanupObject(uploadedBucket, uploadedPath);
+            }
             toast({
               title: "File Upload Error",
               description: `Failed to upload ${file.name}: ${fileError instanceof Error ? fileError.message : 'Unknown error'}`,
