@@ -101,7 +101,6 @@ const Documents: React.FC = () => {
   }, [searchParams, setSearchParams]);
 
   useEffect(() => {
-  useEffect(() => {
     if (user?.id) {
       fetchDocuments();
       fetchFolders();
