@@ -11,6 +11,7 @@ interface AccountInfo {
   accountName: string;
   role: AccountRole;
   ownerName: string;
+  ownerUserId: string;
 }
 
 interface AccountContextType {
