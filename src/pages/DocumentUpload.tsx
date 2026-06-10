@@ -16,7 +16,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useAccount } from '@/contexts/AccountContext';
 import { supabase } from '@/integrations/supabase/client';
 import { DocumentType } from '@/components/DocumentTypeSelector';
-import { useFileUpload } from '@/hooks/useFileUpload';
+import { StorageService, buildAssetDocPath } from '@/services/StorageService';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useToast } from '@/hooks/use-toast';
 
 interface DocumentFolder {
