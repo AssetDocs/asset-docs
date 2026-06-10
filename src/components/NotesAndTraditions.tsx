@@ -11,7 +11,7 @@ import { BookOpen, Plus, Trash2, Edit, Upload, FileText, X } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { StorageService } from '@/services/StorageService';
+import { StorageService, buildFamilyArchivePath } from '@/services/StorageService';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 
 interface NoteEntry {
