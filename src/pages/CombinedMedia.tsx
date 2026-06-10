@@ -84,7 +84,10 @@ const CombinedMedia: React.FC = () => {
   const [showEditFolder, setShowEditFolder] = useState(false);
   const [folderToEdit, setFolderToEdit] = useState<PhotoFolder | null>(null);
 
+  const activeAccountRef = useRef<string | null>(accountId);
   useEffect(() => {
+    activeAccountRef.current = accountId;
+    setFolders([]);
     fetchPhotos();
     fetchVideos();
     fetchFolders();
@@ -112,17 +115,18 @@ const CombinedMedia: React.FC = () => {
 
   const fetchFolders = async () => {
     if (!user || !accountId) return;
+    const snapshot = accountId;
     try {
       const { data, error } = await supabase
         .from('photo_folders')
         .select('*')
-        .eq('account_id', accountId)
-
+        .eq('account_id', snapshot)
         // NOTE: photo_folders currently does not have a display_order column.
         // Ordering by a non-existent column causes the request to fail and results
         // in rooms never displaying in the UI.
         .order('created_at', { ascending: false });
       if (error) throw error;
+      if (activeAccountRef.current !== snapshot) return;
       setFolders(data || []);
     } catch (error) {
       console.error('Error fetching folders:', error);
