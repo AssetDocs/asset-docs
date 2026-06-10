@@ -154,7 +154,8 @@ const FamilyRecipes: React.FC = () => {
         if (error || (data as any)?.error) {
           toast({
             title: 'Attachment cleanup failed',
-            description: 'Recipe was not deleted. Retry from /account/cleanup.',
+            description:
+              'The recipe was not deleted. Retry the cleanup from /account/cleanup, then delete this recipe again to finish.',
             variant: 'destructive',
           });
           return;
