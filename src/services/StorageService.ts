@@ -425,3 +425,55 @@ export class StorageService {
     }
   }
 }
+// ---------------------------------------------------------------------------
+// Path builders for the normalized Phase 2 storage layout.
+// Legacy paths ({ownerUserId}/...) continue to be served by RLS via
+// public._storage_path_owner — these builders are forward-only for NEW uploads.
+// ---------------------------------------------------------------------------
+
+const FOLDER_ROOT = 'root';
+
+function ext(file: File): string {
+  return StorageService.randomizedFilename(file.name).split('.').pop() || 'bin';
+}
+
+/**
+ * accounts/{accountId}/properties/{propertyId}/photos|videos/{folderIdOrRoot}/{rand}.ext
+ * accounts/{accountId}/documents/{folderIdOrRoot}/{rand}.ext   (no property)
+ */
+export function buildAssetDocPath(opts: {
+  accountId: string;
+  kind: 'photos' | 'videos' | 'documents';
+  propertyId?: string | null;
+  folderId?: string | null;
+  file: File;
+}): string {
+  const folderSeg = opts.folderId || FOLDER_ROOT;
+  const fileSeg = StorageService.randomizedFilename(opts.file.name);
+  if (opts.kind === 'documents' && !opts.propertyId) {
+    return `accounts/${opts.accountId}/documents/${folderSeg}/${fileSeg}`;
+  }
+  if (!opts.propertyId) {
+    throw new Error('propertyId required for property-scoped asset documentation paths');
+  }
+  return `accounts/${opts.accountId}/properties/${opts.propertyId}/${opts.kind}/${folderSeg}/${fileSeg}`;
+}
+
+/**
+ * {userId}/family-recipes|notes-traditions/{rand}.ext
+ * {userId}/memory-safe/{folderIdOrRoot}/{rand}.ext
+ * Family Archive remains owner-only — first path segment is the owner's user id.
+ */
+export function buildFamilyArchivePath(opts: {
+  userId: string;
+  section: 'family-recipes' | 'notes-traditions' | 'memory-safe';
+  folderId?: string | null;
+  file: File;
+}): string {
+  const fileSeg = StorageService.randomizedFilename(opts.file.name);
+  if (opts.section === 'memory-safe') {
+    const folderSeg = opts.folderId || FOLDER_ROOT;
+    return `${opts.userId}/memory-safe/${folderSeg}/${fileSeg}`;
+  }
+  return `${opts.userId}/${opts.section}/${fileSeg}`;
+}
