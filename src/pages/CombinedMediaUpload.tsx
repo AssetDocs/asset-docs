@@ -44,6 +44,7 @@ const CombinedMediaUpload: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { accountId } = useAccount();
   const { refreshVerification } = useVerification();
   const attachmentInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
