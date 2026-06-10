@@ -11,7 +11,7 @@ import { BookOpen, Plus, Trash2, Edit, Upload, FileText, X } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { StorageService } from '@/services/StorageService';
+import { StorageService, buildFamilyArchivePath } from '@/services/StorageService';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 
 interface NoteEntry {
@@ -80,18 +80,29 @@ const NotesAndTraditions: React.FC = () => {
       return;
     }
     setIsSaving(true);
+    let uploadedPath: string | null = null;
     try {
       let fileData: { file_path?: string; file_url?: string; file_name?: string; file_size?: number; bucket_name?: string } = {};
 
       if (selectedFile) {
-        const result = await StorageService.uploadFileWithValidation(
-          selectedFile, 'documents', user.id, subscriptionTier,
-          `notes-traditions/${Date.now()}-${selectedFile.name}`
-        );
+        // Quota check against owner (self, since Family Archive is owner-only)
+        const quota = await StorageService.canUploadFile(user.id, selectedFile.size, subscriptionTier);
+        if (!quota.canUpload) {
+          toast({ title: 'Upload blocked', description: quota.reason, variant: 'destructive' });
+          setIsSaving(false);
+          return;
+        }
+        const fullPath = buildFamilyArchivePath({
+          userId: user.id,
+          section: 'notes-traditions',
+          file: selectedFile,
+        });
+        const result = await StorageService.uploadFileToPath(selectedFile, 'documents', fullPath, user.id);
+        uploadedPath = result.path;
         fileData = {
           file_path: result.path,
           file_url: result.url,
-          file_name: selectedFile.name,
+          file_name: selectedFile.name, // original name preserved only in metadata
           file_size: selectedFile.size,
           bucket_name: 'documents',
         };
@@ -125,11 +136,15 @@ const NotesAndTraditions: React.FC = () => {
         toast({ title: 'Saved', description: 'Note added successfully.' });
       }
 
+      uploadedPath = null; // committed
       resetForm();
       setIsOpen(false);
       fetchNotes();
     } catch (error: any) {
       console.error('Error saving note:', error);
+      if (uploadedPath) {
+        await StorageService.tryCleanupObject('documents', uploadedPath);
+      }
       toast({ title: 'Error', description: error.message || 'Failed to save note.', variant: 'destructive' });
     } finally {
       setIsSaving(false);

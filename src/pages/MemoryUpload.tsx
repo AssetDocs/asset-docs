@@ -11,7 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowLeft, Upload, FileText, Trash2, Loader2, Camera } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { useFileUpload } from '@/hooks/useFileUpload';
+import { StorageService, buildFamilyArchivePath } from '@/services/StorageService';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useToast } from '@/hooks/use-toast';
 
 interface MemoryFolder {
@@ -26,6 +27,7 @@ const MemoryUpload: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { subscriptionTier } = useSubscription();
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [title, setTitle] = useState('');
@@ -34,16 +36,10 @@ const MemoryUpload: React.FC = () => {
   const [selectedFolderId, setSelectedFolderId] = useState('');
   const [folders, setFolders] = useState<MemoryFolder[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
-
-  const { uploadSingleFile, isUploading } = useFileUpload({
-    bucket: 'memory-safe',
-    onError: (error) => {
-      toast({ title: 'Upload failed', description: error.message, variant: 'destructive' });
-    }
-  });
 
   useEffect(() => {
     if (user) fetchFolders();
@@ -92,15 +88,30 @@ const MemoryUpload: React.FC = () => {
     }
 
     setIsSaving(true);
+    setIsUploading(true);
+    let uploadedPath: string | null = null;
     try {
-      const uploadResult = await uploadSingleFile(selectedFile);
-      if (!uploadResult) throw new Error('Failed to upload file');
+      const quota = await StorageService.canUploadFile(user.id, selectedFile.size, subscriptionTier);
+      if (!quota.canUpload) {
+        toast({ title: 'Upload blocked', description: quota.reason, variant: 'destructive' });
+        return;
+      }
+
+      const fullPath = buildFamilyArchivePath({
+        userId: user.id,
+        section: 'memory-safe',
+        folderId: selectedFolderId || null,
+        file: selectedFile,
+      });
+      const uploadResult = await StorageService.uploadFileToPath(selectedFile, 'memory-safe', fullPath, user.id);
+      uploadedPath = uploadResult.path;
+      setIsUploading(false);
 
       const { error: dbError } = await supabase
         .from('memory_safe_items')
         .insert({
           user_id: user.id,
-          file_name: selectedFile.name,
+          file_name: selectedFile.name, // original name preserved only in DB metadata
           file_path: uploadResult.path,
           file_url: uploadResult.url,
           file_size: selectedFile.size,
@@ -113,13 +124,18 @@ const MemoryUpload: React.FC = () => {
 
       if (dbError) throw new Error('Failed to save memory metadata');
 
+      uploadedPath = null; // committed
       toast({ title: 'Memory saved', description: 'Your memory has been uploaded successfully.' });
       navigate('/account?tab=memory-safe');
     } catch (error) {
       console.error('Save error:', error);
+      if (uploadedPath) {
+        await StorageService.tryCleanupObject('memory-safe', uploadedPath);
+      }
       toast({ title: 'Save failed', description: error instanceof Error ? error.message : 'Failed to save memory.', variant: 'destructive' });
     } finally {
       setIsSaving(false);
+      setIsUploading(false);
     }
   };
 

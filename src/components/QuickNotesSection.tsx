@@ -68,17 +68,24 @@ const QuickNotesSection: React.FC = () => {
   const handleSave = async () => {
     if (!user || !newNote.trim()) return;
     setIsSaving(true);
+    let uploadedPath: string | null = null;
     try {
       let fileData: { file_path?: string; file_name?: string; bucket_name?: string } = {};
 
       if (selectedFile) {
-        const result = await StorageService.uploadFileWithValidation(
-          selectedFile, 'documents', user.id, subscriptionTier,
-          `quick-notes/${Date.now()}-${selectedFile.name}`
-        );
+        const quota = await StorageService.canUploadFile(user.id, selectedFile.size, subscriptionTier);
+        if (!quota.canUpload) {
+          toast({ title: 'Upload blocked', description: quota.reason, variant: 'destructive' });
+          setIsSaving(false);
+          return;
+        }
+        const rand = StorageService.randomizedFilename(selectedFile.name);
+        const fullPath = `${user.id}/quick-notes/${rand}`;
+        const result = await StorageService.uploadFileToPath(selectedFile, 'documents', fullPath, user.id);
+        uploadedPath = result.path;
         fileData = {
           file_path: result.path,
-          file_name: selectedFile.name,
+          file_name: selectedFile.name, // original name preserved only in DB metadata
           bucket_name: 'documents',
         };
       }
@@ -92,10 +99,14 @@ const QuickNotesSection: React.FC = () => {
           ...fileData,
         });
       if (error) throw error;
+      uploadedPath = null; // committed
       toast({ title: 'Saved', description: 'Note added.' });
       resetForm();
       fetchNotes();
     } catch (error: any) {
+      if (uploadedPath) {
+        await StorageService.tryCleanupObject('documents', uploadedPath);
+      }
       toast({ title: 'Error', description: error.message || 'Failed to save note.', variant: 'destructive' });
     } finally {
       setIsSaving(false);
