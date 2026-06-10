@@ -127,6 +127,7 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
           accountName: m.accounts?.account_name || 'My Account',
           role: m.role as AccountRole,
           ownerName,
+          ownerUserId,
         };
       });
 
