@@ -47,7 +47,8 @@ const DocumentUpload: React.FC = () => {
   const TypeIcon = typeInfo.icon;
 
   const { user } = useAuth();
-  const { accountId } = useAccount();
+  const { accountId, ownerUserId } = useAccount();
+  const { subscriptionTier } = useSubscription();
   const { toast } = useToast();
   
   // Form state
@@ -60,22 +61,11 @@ const DocumentUpload: React.FC = () => {
   const [selectedFolderId, setSelectedFolderId] = useState('');
   const [folders, setFolders] = useState<DocumentFolder[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
-
-  const { uploadSingleFile, isUploading } = useFileUpload({
-    bucket: 'documents',
-    onError: (error) => {
-      console.error('Upload error:', error);
-      toast({
-        title: "Upload failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  });
 
   useEffect(() => {
     if (user) {
