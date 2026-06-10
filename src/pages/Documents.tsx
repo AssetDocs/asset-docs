@@ -60,6 +60,7 @@ const Documents: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { accountId, ownerUserId, isReadOnly, showReadOnlyRestriction } = useAccount();
   const { properties } = useProperties();
   const [documents, setDocuments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
