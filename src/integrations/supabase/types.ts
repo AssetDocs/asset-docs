@@ -3067,12 +3067,16 @@ export type Database = {
           bucket_name: string | null
           created_at: string
           created_by_person: string | null
+          delete_attempts: number
+          delete_error: string | null
           details: string | null
           file_name: string | null
           file_path: string | null
           file_size: number | null
           file_url: string | null
           id: string
+          pending_delete: boolean
+          pending_delete_at: string | null
           recipe_name: string
           updated_at: string
           user_id: string
@@ -3081,12 +3085,16 @@ export type Database = {
           bucket_name?: string | null
           created_at?: string
           created_by_person?: string | null
+          delete_attempts?: number
+          delete_error?: string | null
           details?: string | null
           file_name?: string | null
           file_path?: string | null
           file_size?: number | null
           file_url?: string | null
           id?: string
+          pending_delete?: boolean
+          pending_delete_at?: string | null
           recipe_name: string
           updated_at?: string
           user_id: string
@@ -3095,12 +3103,16 @@ export type Database = {
           bucket_name?: string | null
           created_at?: string
           created_by_person?: string | null
+          delete_attempts?: number
+          delete_error?: string | null
           details?: string | null
           file_name?: string | null
           file_path?: string | null
           file_size?: number | null
           file_url?: string | null
           id?: string
+          pending_delete?: boolean
+          pending_delete_at?: string | null
           recipe_name?: string
           updated_at?: string
           user_id?: string
@@ -4499,14 +4511,18 @@ export type Database = {
       memory_safe_items: {
         Row: {
           created_at: string
+          delete_attempts: number
+          delete_error: string | null
           description: string | null
           file_name: string
-          file_path: string | null
+          file_path: string
           file_size: number | null
           file_type: string | null
           file_url: string | null
           folder_id: string | null
           id: string
+          pending_delete: boolean
+          pending_delete_at: string | null
           tags: string[] | null
           title: string
           updated_at: string
@@ -4514,14 +4530,18 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          delete_attempts?: number
+          delete_error?: string | null
           description?: string | null
           file_name: string
-          file_path?: string | null
+          file_path: string
           file_size?: number | null
           file_type?: string | null
           file_url?: string | null
           folder_id?: string | null
           id?: string
+          pending_delete?: boolean
+          pending_delete_at?: string | null
           tags?: string[] | null
           title: string
           updated_at?: string
@@ -4529,14 +4549,18 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          delete_attempts?: number
+          delete_error?: string | null
           description?: string | null
           file_name?: string
-          file_path?: string | null
+          file_path?: string
           file_size?: number | null
           file_type?: string | null
           file_url?: string | null
           folder_id?: string | null
           id?: string
+          pending_delete?: boolean
+          pending_delete_at?: string | null
           tags?: string[] | null
           title?: string
           updated_at?: string
@@ -4612,12 +4636,16 @@ export type Database = {
           bucket_name: string | null
           content: string | null
           created_at: string
+          delete_attempts: number
+          delete_error: string | null
           file_name: string | null
           file_path: string | null
           file_size: number | null
           file_url: string | null
           holiday: string | null
           id: string
+          pending_delete: boolean
+          pending_delete_at: string | null
           subject: string | null
           title: string
           updated_at: string
@@ -4627,12 +4655,16 @@ export type Database = {
           bucket_name?: string | null
           content?: string | null
           created_at?: string
+          delete_attempts?: number
+          delete_error?: string | null
           file_name?: string | null
           file_path?: string | null
           file_size?: number | null
           file_url?: string | null
           holiday?: string | null
           id?: string
+          pending_delete?: boolean
+          pending_delete_at?: string | null
           subject?: string | null
           title: string
           updated_at?: string
@@ -4642,12 +4674,16 @@ export type Database = {
           bucket_name?: string | null
           content?: string | null
           created_at?: string
+          delete_attempts?: number
+          delete_error?: string | null
           file_name?: string | null
           file_path?: string | null
           file_size?: number | null
           file_url?: string | null
           holiday?: string | null
           id?: string
+          pending_delete?: boolean
+          pending_delete_at?: string | null
           subject?: string | null
           title?: string
           updated_at?: string
@@ -4757,11 +4793,15 @@ export type Database = {
       paint_codes: {
         Row: {
           created_at: string
+          delete_attempts: number
+          delete_error: string | null
           id: string
           is_interior: boolean
           paint_brand: string
           paint_code: string
           paint_name: string
+          pending_delete: boolean
+          pending_delete_at: string | null
           property_id: string | null
           room_location: string | null
           swatch_image_path: string | null
@@ -4771,11 +4811,15 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          delete_attempts?: number
+          delete_error?: string | null
           id?: string
           is_interior?: boolean
           paint_brand: string
           paint_code: string
           paint_name: string
+          pending_delete?: boolean
+          pending_delete_at?: string | null
           property_id?: string | null
           room_location?: string | null
           swatch_image_path?: string | null
@@ -4785,11 +4829,15 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          delete_attempts?: number
+          delete_error?: string | null
           id?: string
           is_interior?: boolean
           paint_brand?: string
           paint_code?: string
           paint_name?: string
+          pending_delete?: boolean
+          pending_delete_at?: string | null
           property_id?: string | null
           room_location?: string | null
           swatch_image_path?: string | null
@@ -5170,6 +5218,8 @@ export type Database = {
           bucket_name: string
           created_at: string | null
           damage_report_id: string | null
+          delete_attempts: number
+          delete_error: string | null
           description: string | null
           file_name: string
           file_path: string
@@ -5180,6 +5230,8 @@ export type Database = {
           id: string
           is_high_value: boolean
           item_values: Json | null
+          pending_delete: boolean
+          pending_delete_at: string | null
           property_id: string
           source: string | null
           tags: string[] | null
@@ -5189,6 +5241,8 @@ export type Database = {
           bucket_name: string
           created_at?: string | null
           damage_report_id?: string | null
+          delete_attempts?: number
+          delete_error?: string | null
           description?: string | null
           file_name: string
           file_path: string
@@ -5199,6 +5253,8 @@ export type Database = {
           id?: string
           is_high_value?: boolean
           item_values?: Json | null
+          pending_delete?: boolean
+          pending_delete_at?: string | null
           property_id: string
           source?: string | null
           tags?: string[] | null
@@ -5208,6 +5264,8 @@ export type Database = {
           bucket_name?: string
           created_at?: string | null
           damage_report_id?: string | null
+          delete_attempts?: number
+          delete_error?: string | null
           description?: string | null
           file_name?: string
           file_path?: string
@@ -5218,6 +5276,8 @@ export type Database = {
           id?: string
           is_high_value?: boolean
           item_values?: Json | null
+          pending_delete?: boolean
+          pending_delete_at?: string | null
           property_id?: string
           source?: string | null
           tags?: string[] | null
@@ -6135,6 +6195,8 @@ export type Database = {
         Row: {
           category: string
           created_at: string
+          delete_attempts: number
+          delete_error: string | null
           description: string | null
           document_name: string | null
           document_type: string
@@ -6145,6 +6207,8 @@ export type Database = {
           file_url: string
           folder_id: string | null
           id: string
+          pending_delete: boolean
+          pending_delete_at: string | null
           property_id: string | null
           tags: string | null
           updated_at: string
@@ -6153,6 +6217,8 @@ export type Database = {
         Insert: {
           category?: string
           created_at?: string
+          delete_attempts?: number
+          delete_error?: string | null
           description?: string | null
           document_name?: string | null
           document_type?: string
@@ -6163,6 +6229,8 @@ export type Database = {
           file_url: string
           folder_id?: string | null
           id?: string
+          pending_delete?: boolean
+          pending_delete_at?: string | null
           property_id?: string | null
           tags?: string | null
           updated_at?: string
@@ -6171,6 +6239,8 @@ export type Database = {
         Update: {
           category?: string
           created_at?: string
+          delete_attempts?: number
+          delete_error?: string | null
           description?: string | null
           document_name?: string | null
           document_type?: string
@@ -6181,6 +6251,8 @@ export type Database = {
           file_url?: string
           folder_id?: string | null
           id?: string
+          pending_delete?: boolean
+          pending_delete_at?: string | null
           property_id?: string | null
           tags?: string | null
           updated_at?: string
@@ -6421,6 +6493,8 @@ export type Database = {
           attachment_type: string
           contact_id: string
           created_at: string
+          delete_attempts: number
+          delete_error: string | null
           description: string | null
           file_name: string
           file_path: string
@@ -6428,6 +6502,8 @@ export type Database = {
           file_type: string
           file_url: string
           id: string
+          pending_delete: boolean
+          pending_delete_at: string | null
           updated_at: string
           user_id: string
         }
@@ -6435,6 +6511,8 @@ export type Database = {
           attachment_type?: string
           contact_id: string
           created_at?: string
+          delete_attempts?: number
+          delete_error?: string | null
           description?: string | null
           file_name: string
           file_path: string
@@ -6442,6 +6520,8 @@ export type Database = {
           file_type: string
           file_url: string
           id?: string
+          pending_delete?: boolean
+          pending_delete_at?: string | null
           updated_at?: string
           user_id: string
         }
@@ -6449,6 +6529,8 @@ export type Database = {
           attachment_type?: string
           contact_id?: string
           created_at?: string
+          delete_attempts?: number
+          delete_error?: string | null
           description?: string | null
           file_name?: string
           file_path?: string
@@ -6456,6 +6538,8 @@ export type Database = {
           file_type?: string
           file_url?: string
           id?: string
+          pending_delete?: boolean
+          pending_delete_at?: string | null
           updated_at?: string
           user_id?: string
         }
