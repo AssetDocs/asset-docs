@@ -161,7 +161,8 @@ const NotesAndTraditions: React.FC = () => {
         if (error || (data as any)?.error) {
           toast({
             title: 'Attachment cleanup failed',
-            description: 'Note was not deleted. Retry from /account/cleanup.',
+            description:
+              'The note was not deleted. Retry the cleanup from /account/cleanup, then delete this note again to finish.',
             variant: 'destructive',
           });
           return;
