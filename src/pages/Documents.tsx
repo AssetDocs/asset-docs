@@ -101,12 +101,13 @@ const Documents: React.FC = () => {
   }, [searchParams, setSearchParams]);
 
   useEffect(() => {
+  useEffect(() => {
     if (user?.id) {
       fetchDocuments();
       fetchFolders();
       loadPolicies();
     }
-  }, [user]);
+  }, [user?.id, accountId]);
 
   const loadPolicies = async () => {
     if (!user?.id) return;
