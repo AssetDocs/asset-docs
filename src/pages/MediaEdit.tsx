@@ -116,7 +116,7 @@ const MediaEdit: React.FC = () => {
         const { data: foldersData } = await supabase
           .from('photo_folders')
           .select('id, folder_name')
-          .eq('user_id', user.id)
+          .eq('account_id', accountId as string)
           .order('folder_name');
 
         setFolders(foldersData || []);
