@@ -74,32 +74,44 @@ const ReceiptUpload: React.FC<ReceiptUploadProps> = ({
       return;
     }
 
+    if (!accountId || !ownerUserId) {
+      toast({
+        title: "Workspace not ready",
+        description: "Switch to an active account before uploading receipts.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsUploading(true);
     try {
-      await ItemService.uploadReceiptForItem(itemId, userId, selectedFile, {
-        purchase_date: purchaseDate?.toISOString().split('T')[0],
-        purchase_amount: purchaseAmount ? Number(purchaseAmount) : undefined,
-        merchant_name: merchantName,
-        notes: notes
-      });
+      await ItemService.uploadReceiptForItem(
+        { accountId, ownerUserId, itemId },
+        selectedFile,
+        {
+          purchase_date: purchaseDate?.toISOString().split('T')[0],
+          purchase_amount: purchaseAmount ? Number(purchaseAmount) : undefined,
+          merchant_name: merchantName,
+          notes: notes,
+        }
+      );
 
       toast({
         title: "Receipt uploaded",
         description: "Receipt has been successfully attached to the item.",
       });
 
-      // Reset form
       setSelectedFile(null);
       setPurchaseDate(undefined);
       setPurchaseAmount('');
       setMerchantName('');
       setNotes('');
-      
+
       onReceiptUploaded();
     } catch (error) {
       toast({
         title: "Upload failed",
-        description: "Failed to upload receipt. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to upload receipt. Please try again.",
         variant: "destructive",
       });
     } finally {
