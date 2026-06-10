@@ -2541,6 +2541,7 @@ export type Database = {
       }
       document_folders: {
         Row: {
+          account_id: string
           created_at: string
           description: string | null
           folder_name: string
@@ -2550,6 +2551,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account_id: string
           created_at?: string
           description?: string | null
           folder_name: string
@@ -2559,6 +2561,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          account_id?: string
           created_at?: string
           description?: string | null
           folder_name?: string
@@ -2567,7 +2570,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "document_folders_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       email_change_requests: {
         Row: {
@@ -4879,6 +4890,7 @@ export type Database = {
       }
       photo_folders: {
         Row: {
+          account_id: string
           created_at: string
           description: string | null
           folder_name: string
@@ -4888,6 +4900,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account_id: string
           created_at?: string
           description?: string | null
           folder_name: string
@@ -4897,6 +4910,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          account_id?: string
           created_at?: string
           description?: string | null
           folder_name?: string
@@ -4905,7 +4919,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "photo_folders_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       photographer_interest: {
         Row: {
