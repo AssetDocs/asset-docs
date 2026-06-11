@@ -340,14 +340,27 @@ const PropertyForm: React.FC = () => {
                   />
                 </div>
 
+                {!canWrite && (
+                  <p className="text-sm text-destructive">
+                    Your role is read-only in this workspace — you cannot create properties here.
+                  </p>
+                )}
                 <div className="flex space-x-4">
-                  <Button type="submit" className="bg-brand-blue hover:bg-brand-lightBlue">
-                    <Save className="h-4 w-4 mr-2" />
-                    Save Property
+                  <Button
+                    type="submit"
+                    disabled={!canWrite || saving}
+                    className="bg-brand-blue hover:bg-brand-lightBlue"
+                  >
+                    {saving ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Save className="h-4 w-4 mr-2" />
+                    )}
+                    {saving ? 'Saving…' : 'Save Property'}
                   </Button>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
+                  <Button
+                    type="button"
+                    variant="outline"
                     onClick={() => navigate('/account')}
                   >
                     Cancel
