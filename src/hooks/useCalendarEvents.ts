@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -108,6 +108,91 @@ export const useCalendarEvents = (filters?: CalendarFilters) => {
     },
     enabled: !!user,
   });
+
+  // ---------------------------------------------------------------------------
+  // Realtime + bounded reconciliation (Phase C, item 3)
+  //
+  // Owner-calendar live updates only. Per Phase C v2:
+  //   - Subscribe ONLY to INSERT + UPDATE on calendar_events, filtered by
+  //     user_id=eq.<auth.uid()>. Supabase cannot filter Postgres-change DELETE
+  //     events and does NOT apply RLS to them, so we do NOT subscribe to DELETE.
+  //   - External deletions (and any missed events) are reconciled via a
+  //     bounded refetch on focus / visibilitychange / online (reconnect),
+  //     plus a coarse 60s poll while the tab is visible.
+  //   - Re-subscribe only on auth user-id change (NOT on every filter change),
+  //     so the channel does not churn while the user changes month/category.
+  //   - Contributor-shared events are intentionally OUT OF SCOPE for live
+  //     updates here — they would require a separate RLS-safe subscription
+  //     path keyed off membership, which is not part of Phase C.
+  // ---------------------------------------------------------------------------
+  const userId = user?.id;
+  useEffect(() => {
+    if (!userId) return;
+
+    let cancelled = false;
+    const invalidate = () => {
+      if (cancelled) return;
+      queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
+      queryClient.invalidateQueries({ queryKey: ['calendar-notifications'] });
+    };
+
+    // Filtered INSERT/UPDATE subscription. No DELETE — see note above.
+    const channel = supabase
+      .channel(`calendar-events:user:${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'calendar_events',
+          filter: `user_id=eq.${userId}`,
+        },
+        invalidate,
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'calendar_events',
+          filter: `user_id=eq.${userId}`,
+        },
+        invalidate,
+      )
+      .subscribe();
+
+    // Bounded reconciliation surfaces — catches anything realtime cannot
+    // deliver (notably DELETEs and any dropped messages).
+    const onFocus = () => invalidate();
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') invalidate();
+    };
+    const onOnline = () => invalidate();
+
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('online', onOnline);
+
+    // Coarse 60s poll, but only while the tab is visible — avoids burning
+    // requests on background tabs.
+    const pollMs = 60_000;
+    const pollId = window.setInterval(() => {
+      if (document.visibilityState === 'visible') invalidate();
+    }, pollMs);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('online', onOnline);
+      window.clearInterval(pollId);
+      supabase.removeChannel(channel);
+    };
+    // Only re-subscribe on auth user-id change. Filters/month do NOT belong
+    // here — they affect the query cache key, not the realtime channel.
+  }, [userId, queryClient]);
+
+
 
   const createEvent = useMutation({
     mutationFn: async (event: CalendarEventInsert) => {
