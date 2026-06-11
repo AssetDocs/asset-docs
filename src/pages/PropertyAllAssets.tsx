@@ -20,7 +20,6 @@ import {
   Camera,
   Video,
   FileText,
-  Mic,
   Paintbrush,
   AlertTriangle,
   Wrench,
