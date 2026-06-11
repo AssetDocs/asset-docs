@@ -9,10 +9,31 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { PropertyService } from '@/services/PropertyService';
+import { useCanWrite } from '@/hooks/useAccountStatus';
+import { useToast } from '@/hooks/use-toast';
+
+// Parse a possibly-formatted currency string like "$425,000" or "425000" → number | null.
+const parseCurrency = (value: string): number | null => {
+  if (!value) return null;
+  const cleaned = value.replace(/[^0-9.]/g, '');
+  if (!cleaned) return null;
+  const n = Number(cleaned);
+  return Number.isFinite(n) ? n : null;
+};
+
+const parseIntOrNull = (value: string): number | null => {
+  if (!value) return null;
+  const n = parseInt(value, 10);
+  return Number.isFinite(n) ? n : null;
+};
 
 const PropertyForm: React.FC = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const canWrite = useCanWrite();
+  const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     address: '',
@@ -30,11 +51,49 @@ const PropertyForm: React.FC = () => {
     description: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Property data:', formData);
-    // Here you would save to your backend/database
-    navigate('/account/properties');
+    if (!canWrite) {
+      toast({
+        title: 'Read-only access',
+        description: 'Your role does not allow creating properties in this workspace.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (saving) return;
+    setSaving(true);
+    try {
+      // Compose a single address line; the schema stores a flat `address` string.
+      const fullAddress = [
+        formData.address,
+        [formData.city, formData.state].filter(Boolean).join(', '),
+        formData.zipCode,
+      ].filter(Boolean).join(' ').trim();
+
+      const created = await PropertyService.createProperty({
+        name: formData.name.trim(),
+        address: fullAddress,
+        type: formData.propertyType,
+        square_footage: parseIntOrNull(formData.squareFootage),
+        year_built: parseIntOrNull(formData.yearBuilt),
+        estimated_value: parseCurrency(formData.currentValue),
+      } as any);
+
+      if (!created) {
+        toast({
+          title: 'Could not save property',
+          description: 'Please check your details and try again.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      toast({ title: 'Property saved', description: `${created.name} was added.` });
+      navigate('/account/properties');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -43,6 +102,7 @@ const PropertyForm: React.FC = () => {
       [e.target.name]: e.target.value
     });
   };
+
 
   const handleCurrencyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -280,14 +340,27 @@ const PropertyForm: React.FC = () => {
                   />
                 </div>
 
+                {!canWrite && (
+                  <p className="text-sm text-destructive">
+                    Your role is read-only in this workspace — you cannot create properties here.
+                  </p>
+                )}
                 <div className="flex space-x-4">
-                  <Button type="submit" className="bg-brand-blue hover:bg-brand-lightBlue">
-                    <Save className="h-4 w-4 mr-2" />
-                    Save Property
+                  <Button
+                    type="submit"
+                    disabled={!canWrite || saving}
+                    className="bg-brand-blue hover:bg-brand-lightBlue"
+                  >
+                    {saving ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Save className="h-4 w-4 mr-2" />
+                    )}
+                    {saving ? 'Saving…' : 'Save Property'}
                   </Button>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
+                  <Button
+                    type="button"
+                    variant="outline"
                     onClick={() => navigate('/account')}
                   >
                     Cancel
