@@ -49,13 +49,6 @@ interface PaintCode {
   is_interior: boolean;
 }
 
-interface VoiceNote {
-  id: string;
-  title: string;
-  description: string | null;
-  duration: number | null;
-  created_at: string;
-}
 
 interface ManualEntry {
   id: string;
