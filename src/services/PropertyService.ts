@@ -117,23 +117,35 @@ export class PropertyService {
     }
   }
 
+  /**
+   * Delete a property via the secure-delete-property edge function.
+   * Server-side performs owner authorization, atomic lease claim,
+   * best-effort storage cleanup of property_files, and a guarded
+   * row delete that triggers FK cascades. On failure the row remains
+   * pending_delete=true for the cleanup queue to retry.
+   */
   static async deleteProperty(propertyId: string): Promise<boolean> {
     try {
-      // Get property name before deletion for logging
+      // Snapshot name for activity log before the row disappears.
       const { data: property } = await supabase
         .from('properties')
         .select('name')
         .eq('id', propertyId)
-        .single();
+        .maybeSingle();
 
-      const { error } = await supabase
-        .from('properties')
-        .delete()
-        .eq('id', propertyId);
+      const { data, error } = await supabase.functions.invoke('secure-delete-property', {
+        body: { id: propertyId },
+      });
+      if (error) {
+        const status = (error as any)?.context?.status ?? (error as any)?.status;
+        console.error('deleteProperty failed', { propertyId, status, error });
+        return false;
+      }
+      if (!(data as any)?.ok) {
+        console.error('deleteProperty: edge function returned non-ok', data);
+        return false;
+      }
 
-      if (error) throw error;
-
-      // Log activity
       logActivity({
         action_type: 'delete',
         action_category: 'property',
