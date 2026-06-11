@@ -120,13 +120,15 @@ const PropertyAllAssets: React.FC = () => {
     setLoading(true);
     try {
       // Fetch all data in parallel
+      // NOTE: Secure Vault voice notes (legacy_locker_voice_notes) are intentionally
+      // NOT queried here. That table is vault-scoped and has no property linkage;
+      // returning them in a property profile leaks unrelated vault data across properties.
       const [
         photosData,
         videosData,
         documentsData,
         damageData,
         paintData,
-        voiceData,
         manualData,
         upgradeData
       ] = await Promise.all([
@@ -135,7 +137,6 @@ const PropertyAllAssets: React.FC = () => {
         PropertyService.getPropertyFiles(propertyId, 'document'),
         supabase.from('damage_reports').select('*').eq('property_id', propertyId).eq('user_id', user.id),
         supabase.from('paint_codes').select('*').eq('property_id', propertyId).eq('user_id', user.id),
-        supabase.from('legacy_locker_voice_notes').select('*').eq('user_id', user.id),
         supabase.from('items').select('*').eq('property_id', propertyId).eq('user_id', user.id),
         supabase.from('upgrade_repairs').select('*').eq('property_id', propertyId).eq('user_id', user.id)
       ]);
@@ -145,7 +146,6 @@ const PropertyAllAssets: React.FC = () => {
       setDocuments(documentsData || []);
       setDamageReports(damageData.data || []);
       setPaintCodes(paintData.data || []);
-      setVoiceNotes(voiceData.data || []);
       setManualEntries(manualData.data || []);
       setUpgradeRepairs(upgradeData.data || []);
     } catch (error) {
