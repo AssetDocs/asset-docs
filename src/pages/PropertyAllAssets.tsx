@@ -102,7 +102,7 @@ const PropertyAllAssets: React.FC = () => {
   const [documents, setDocuments] = useState<PropertyFile[]>([]);
   const [damageReports, setDamageReports] = useState<DamageReport[]>([]);
   const [paintCodes, setPaintCodes] = useState<PaintCode[]>([]);
-  const [voiceNotes, setVoiceNotes] = useState<VoiceNote[]>([]);
+  const [voiceNotes] = useState<never[]>([]);
   const [manualEntries, setManualEntries] = useState<ManualEntry[]>([]);
   const [upgradeRepairs, setUpgradeRepairs] = useState<UpgradeRepair[]>([]);
 
