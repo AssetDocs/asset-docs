@@ -1,6 +1,7 @@
 // @ts-nocheck
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAccount } from '@/contexts/AccountContext';
 
 export interface AssetEntry {
   id: string;
@@ -39,94 +40,82 @@ function getCategoryColor(category: string): string {
   return CATEGORY_COLORS[category] || CATEGORY_COLORS['Other'];
 }
 
+const PAGE_SIZE = 200;
+
 export function useAssetValues() {
+  const { activeAccountId } = (() => {
+    try { return useAccount(); } catch { return { activeAccountId: null } as any; }
+  })();
   const [entries, setEntries] = useState<AssetEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    loadAllAssetValues();
-  }, []);
-
-  const loadAllAssetValues = async () => {
+  const loadAllAssetValues = useCallback(async () => {
+    setIsLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        setIsLoading(false);
+        setEntries([]);
         return;
       }
 
-      // Fetch all value sources in parallel
-      const [propertiesRes, itemsRes, filesRes] = await Promise.all([
-        supabase.from('properties').select('id, name, address, estimated_value, created_at').eq('user_id', user.id),
-        supabase.from('items').select('id, name, estimated_value, category, created_at').eq('user_id', user.id),
-        supabase.from('property_files').select('id, file_name, item_values, created_at').eq('user_id', user.id).not('item_values', 'is', null),
-      ]);
-
-      const allEntries: AssetEntry[] = [];
-
-      // 1. Properties (Real Estate)
-      if (propertiesRes.data) {
-        for (const prop of propertiesRes.data) {
-          const val = Number(prop.estimated_value) || 0;
-          if (val > 0) {
-            allEntries.push({
-              id: `prop-${prop.id}`,
-              name: prop.name || prop.address || 'Unnamed Property',
-              value: val,
-              source: 'property',
-              category: 'Real Estate',
-              date: prop.created_at,
-            });
-          }
-        }
+      // Resolve account id (active context, else owner account)
+      let accountId: string | null = activeAccountId ?? null;
+      if (!accountId) {
+        const { data: a } = await supabase
+          .from('accounts').select('id').eq('owner_user_id', user.id).maybeSingle();
+        accountId = a?.id ?? null;
+      }
+      if (!accountId) {
+        setEntries([]);
+        return;
       }
 
-      // 2. Items (Inventory)
-      if (itemsRes.data) {
-        for (const item of itemsRes.data) {
-          const val = Number(item.estimated_value) || 0;
-          if (val > 0) {
-            allEntries.push({
-              id: `item-${item.id}`,
-              name: item.name,
-              value: val,
-              source: 'item',
-              category: item.category || 'Other',
-              date: item.created_at,
-            });
-          }
+      // Paginate the RPC using a deterministic 1-based ordinal cursor.
+      const all: AssetEntry[] = [];
+      let cursor = 0;
+      // Hard cap to avoid runaway loops.
+      for (let i = 0; i < 100; i++) {
+        const { data, error } = await supabase.rpc('get_asset_values_page', {
+          p_account_id: accountId,
+          p_limit: PAGE_SIZE,
+          p_cursor_ordinal: cursor,
+          p_cursor_id: null,
+        });
+        if (error) {
+          console.error('get_asset_values_page error', error);
+          break;
         }
+        const rows = (data ?? []) as Array<any>;
+        if (rows.length === 0) break;
+        for (const r of rows) {
+          all.push({
+            id: r.entry_id,
+            name: r.entry_name,
+            value: Number(r.value) || 0,
+            source: r.source,
+            category: r.category,
+            parentName: r.parent_name ?? undefined,
+            date: r.entry_date,
+          });
+        }
+        const last = rows[rows.length - 1];
+        const nextCursor = Number(last.item_ordinal);
+        if (!Number.isFinite(nextCursor) || nextCursor <= cursor) break;
+        cursor = nextCursor;
+        if (rows.length < PAGE_SIZE) break;
       }
 
-      // 3. Property Files item_values
-      if (filesRes.data) {
-        for (const file of filesRes.data) {
-          if (Array.isArray(file.item_values)) {
-            for (const iv of file.item_values as Array<{ name?: string; value?: number | string }>) {
-              const val = Number(iv.value) || 0;
-              if (val > 0) {
-                allEntries.push({
-                  id: `fv-${file.id}-${iv.name}`,
-                  name: iv.name || 'Unnamed Value',
-                  value: val,
-                  source: 'file_value',
-                  category: 'File Documented Values',
-                  parentName: file.file_name,
-                  date: file.created_at,
-                });
-              }
-            }
-          }
-        }
-      }
-
-      setEntries(allEntries);
+      setEntries(all);
     } catch (error) {
       console.error('Error loading asset values:', error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [activeAccountId]);
+
+  useEffect(() => {
+    loadAllAssetValues();
+  }, [loadAllAssetValues]);
 
   // Compute summaries
   const totalValue = entries.reduce((sum, e) => sum + e.value, 0);

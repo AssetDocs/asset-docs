@@ -6867,6 +6867,24 @@ export type Database = {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      get_asset_values_page: {
+        Args: {
+          p_account_id: string
+          p_cursor_id?: string
+          p_cursor_ordinal?: number
+          p_limit?: number
+        }
+        Returns: {
+          category: string
+          entry_date: string
+          entry_id: string
+          entry_name: string
+          item_ordinal: number
+          parent_name: string
+          source: string
+          value: number
+        }[]
+      }
       get_at_risk_customers: {
         Args: never
         Returns: {
