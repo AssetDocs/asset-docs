@@ -20,7 +20,6 @@ import {
   Camera,
   Video,
   FileText,
-  Mic,
   Paintbrush,
   AlertTriangle,
   Wrench,
@@ -50,13 +49,6 @@ interface PaintCode {
   is_interior: boolean;
 }
 
-interface VoiceNote {
-  id: string;
-  title: string;
-  description: string | null;
-  duration: number | null;
-  created_at: string;
-}
 
 interface ManualEntry {
   id: string;
@@ -110,7 +102,7 @@ const PropertyAllAssets: React.FC = () => {
   const [documents, setDocuments] = useState<PropertyFile[]>([]);
   const [damageReports, setDamageReports] = useState<DamageReport[]>([]);
   const [paintCodes, setPaintCodes] = useState<PaintCode[]>([]);
-  const [voiceNotes, setVoiceNotes] = useState<VoiceNote[]>([]);
+  
   const [manualEntries, setManualEntries] = useState<ManualEntry[]>([]);
   const [upgradeRepairs, setUpgradeRepairs] = useState<UpgradeRepair[]>([]);
 
@@ -128,13 +120,15 @@ const PropertyAllAssets: React.FC = () => {
     setLoading(true);
     try {
       // Fetch all data in parallel
+      // NOTE: Secure Vault voice notes (legacy_locker_voice_notes) are intentionally
+      // NOT queried here. That table is vault-scoped and has no property linkage;
+      // returning them in a property profile leaks unrelated vault data across properties.
       const [
         photosData,
         videosData,
         documentsData,
         damageData,
         paintData,
-        voiceData,
         manualData,
         upgradeData
       ] = await Promise.all([
@@ -143,7 +137,6 @@ const PropertyAllAssets: React.FC = () => {
         PropertyService.getPropertyFiles(propertyId, 'document'),
         supabase.from('damage_reports').select('*').eq('property_id', propertyId).eq('user_id', user.id),
         supabase.from('paint_codes').select('*').eq('property_id', propertyId).eq('user_id', user.id),
-        supabase.from('legacy_locker_voice_notes').select('*').eq('user_id', user.id),
         supabase.from('items').select('*').eq('property_id', propertyId).eq('user_id', user.id),
         supabase.from('upgrade_repairs').select('*').eq('property_id', propertyId).eq('user_id', user.id)
       ]);
@@ -153,7 +146,6 @@ const PropertyAllAssets: React.FC = () => {
       setDocuments(documentsData || []);
       setDamageReports(damageData.data || []);
       setPaintCodes(paintData.data || []);
-      setVoiceNotes(voiceData.data || []);
       setManualEntries(manualData.data || []);
       setUpgradeRepairs(upgradeData.data || []);
     } catch (error) {
@@ -204,8 +196,8 @@ const PropertyAllAssets: React.FC = () => {
     return new Date(dateStr).toLocaleDateString();
   };
 
-  const totalAssets = photos.length + videos.length + documents.length + 
-    damageReports.length + paintCodes.length + voiceNotes.length + 
+  const totalAssets = photos.length + videos.length + documents.length +
+    damageReports.length + paintCodes.length +
     manualEntries.length + upgradeRepairs.length;
 
   if (loading) {
@@ -528,38 +520,8 @@ const PropertyAllAssets: React.FC = () => {
               </AccordionContent>
             </AccordionItem>
 
-            {/* Voice Notes */}
-            <AccordionItem value="voice" className="border rounded-lg bg-white">
-              <AccordionTrigger className="px-4 hover:no-underline">
-                <div className="flex items-center gap-2">
-                  <Mic className="h-5 w-5 text-red-500" />
-                  <span className="font-semibold">Voice Notes</span>
-                  <Badge variant="outline">{voiceNotes.length}</Badge>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="px-4 pb-4">
-                {voiceNotes.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-4">No voice notes recorded</p>
-                ) : (
-                  <div className="space-y-2">
-                    {voiceNotes.map((note) => (
-                      <Card key={note.id} className="p-3">
-                        <div className="flex items-center gap-3">
-                          <Mic className="h-5 w-5 text-muted-foreground" />
-                          <div>
-                            <p className="font-medium">{note.title}</p>
-                            {note.description && (
-                              <p className="text-sm text-muted-foreground">{note.description}</p>
-                            )}
-                            <p className="text-xs text-muted-foreground">{formatDate(note.created_at)}</p>
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </AccordionContent>
-            </AccordionItem>
+            {/* Voice Notes section intentionally removed — Secure Vault voice notes
+                are not property-scoped and must not be surfaced in property profiles. */}
           </Accordion>
         </div>
       </div>
