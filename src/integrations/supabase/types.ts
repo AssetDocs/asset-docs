@@ -5187,10 +5187,16 @@ export type Database = {
         Row: {
           address: string
           created_at: string | null
+          delete_attempts: number
           estimated_value: number | null
           id: string
+          last_delete_error: string | null
           last_updated: string | null
+          lease_expires_at: string | null
+          lease_token: string | null
           name: string
+          pending_delete: boolean
+          pending_delete_at: string | null
           square_footage: number | null
           type: string
           updated_at: string | null
@@ -5200,10 +5206,16 @@ export type Database = {
         Insert: {
           address: string
           created_at?: string | null
+          delete_attempts?: number
           estimated_value?: number | null
           id?: string
+          last_delete_error?: string | null
           last_updated?: string | null
+          lease_expires_at?: string | null
+          lease_token?: string | null
           name: string
+          pending_delete?: boolean
+          pending_delete_at?: string | null
           square_footage?: number | null
           type: string
           updated_at?: string | null
@@ -5213,10 +5225,16 @@ export type Database = {
         Update: {
           address?: string
           created_at?: string | null
+          delete_attempts?: number
           estimated_value?: number | null
           id?: string
+          last_delete_error?: string | null
           last_updated?: string | null
+          lease_expires_at?: string | null
+          lease_token?: string | null
           name?: string
+          pending_delete?: boolean
+          pending_delete_at?: string | null
           square_footage?: number | null
           type?: string
           updated_at?: string | null
