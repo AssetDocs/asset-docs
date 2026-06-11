@@ -6801,6 +6801,14 @@ export type Database = {
         Returns: Json
       }
       claim_gift_subscription: { Args: { p_gift_code: string }; Returns: Json }
+      claim_property_deletion: {
+        Args: {
+          p_caller: string
+          p_lease_ttl_seconds?: number
+          p_property_id: string
+        }
+        Returns: string
+      }
       clear_last_used_account_if_revoked: {
         Args: { _account_id: string; _user_id: string }
         Returns: undefined
@@ -6872,6 +6880,10 @@ export type Database = {
         Returns: string
       }
       expire_grace_periods: { Args: never; Returns: number }
+      finalize_property_deletion: {
+        Args: { p_lease_token: string; p_property_id: string }
+        Returns: boolean
+      }
       get_activation_funnel: {
         Args: never
         Returns: {
@@ -7123,9 +7135,21 @@ export type Database = {
         }
         Returns: Json
       }
+      release_property_deletion_lease: {
+        Args: { p_error: string; p_lease_token: string; p_property_id: string }
+        Returns: boolean
+      }
       remove_account_freeze: {
         Args: { _freeze_id: string; _reason: string }
         Returns: undefined
+      }
+      renew_property_deletion_lease: {
+        Args: {
+          p_lease_token: string
+          p_lease_ttl_seconds?: number
+          p_property_id: string
+        }
+        Returns: boolean
       }
       revoke_continuity_access: {
         Args: { _grant_id: string; _grant_type: string; _reason: string }
