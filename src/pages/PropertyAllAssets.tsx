@@ -196,8 +196,8 @@ const PropertyAllAssets: React.FC = () => {
     return new Date(dateStr).toLocaleDateString();
   };
 
-  const totalAssets = photos.length + videos.length + documents.length + 
-    damageReports.length + paintCodes.length + voiceNotes.length + 
+  const totalAssets = photos.length + videos.length + documents.length +
+    damageReports.length + paintCodes.length +
     manualEntries.length + upgradeRepairs.length;
 
   if (loading) {
