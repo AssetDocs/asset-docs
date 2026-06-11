@@ -1,156 +1,51 @@
-## Corrected approach
 
-Acknowledged: client-side DB-row-first deletion is wrong. Two systems (Postgres + Storage) cannot be made atomic from the browser. The fix is a **server-controlled, recoverable deletion state** behind a single typed edge function. Phase 3A will not proceed until this architecture lands.
+# Phase A — Read-only audit (v7, approved)
 
----
+Phases B/C/D specs are locked per v7 and remain gated as previously agreed. This plan covers only Phase A execution.
 
-## Shared foundation (lands before 3A)
+## Scope
 
-### Migration 1 — `pending_delete` columns
+Read-only investigation. No schema changes, no code changes, no migrations, no edge function deploys. Deliverable is a single findings document at `/mnt/documents/Phase_A_Audit_Findings.md` that resolves the gating questions blocking B, C, and D.
 
-Add to each in-scope table (only these, no broader sweep):
+## Audit checklist
 
-```sql
-ALTER TABLE <t>
-  ADD COLUMN pending_delete       boolean NOT NULL DEFAULT false,
-  ADD COLUMN pending_delete_at    timestamptz,
-  ADD COLUMN delete_error         text,
-  ADD COLUMN delete_attempts      integer NOT NULL DEFAULT 0;
+1. **Calendar ownership model** — inspect `calendar_events`, `calendar_event_attachments`, and related RLS to determine owner-only vs workspace scope. Drives Phase B framing, C4 Realtime filter, and D-1 sync scope.
 
-CREATE INDEX <t>_pending_delete_idx
-  ON <t> (pending_delete) WHERE pending_delete = true;
-```
+2. **Asset Values ownership model** — confirm whether `properties`, `items`, and `property_files.item_values` are personal (`user_id`) or workspace (`account_id`). Drives the C5 RPC signature (always `SECURITY DEFINER`, `SET search_path = public, pg_temp`, `REVOKE EXECUTE ... FROM PUBLIC`, `GRANT EXECUTE ... TO authenticated`, cursor pagination, never accepts `target_user_id`).
 
-Tables touched (limited to current phase scope):
-- `property_files`, `user_documents` (3A)
-- `memory_safe_items`, `family_recipes` attachments, `notes_traditions` attachments (3B — only if they own a storage object; pure-text rows are skipped)
-- `vip_contact_attachments`, `paint_codes` (3C, contingent on audit)
+3. **Cascade map** — document FK and cascade behavior for `property_files`, `damage_reports`, `paint_codes`, `calendar_event_attachments` on property deletion, to size C6's `secure-delete-property` orchestration.
 
-Legacy Locker tables remain untouched (Secure Vault hardening owns them).
+4. **`PropertyAllAssets.tsx:146` voice-note leak** — confirm whether Secure Vault voice notes can surface in the property profile view, and the exact query path.
 
-### Migration 2 — `NOT NULL` guardrails
+5. **`PropertyForm.tsx` stub** — confirm current state and any unreachable branches.
 
-Run only after read-query confirms zero NULLs (backfill the handful if needed):
-- `property_files.bucket_name`, `property_files.file_path` → NOT NULL
-- `user_documents.file_path` → NOT NULL
-- `memory_safe_items.file_path` → NOT NULL (if clean)
-- `vip_contact_attachments.file_path` → NOT NULL (if clean)
-- `paint_codes.swatch_image_path` stays nullable (optional swatch)
+6. **Per-tool RLS classification** — list each Insights & Tools surface and classify its RLS model (owner-only vs workspace, anon exposure, service-role usage).
 
-### Edge function — `secure-delete-file`
+7. **`useAssetValues` query cost** — measure representative-account behavior of the three parallel `.select(...).eq('user_id', ...)` calls in `src/hooks/useAssetValues.ts` to size C5 (pagination, RPC).
 
-Single entry point for all in-scope deletions. Client never names a table or bucket.
+8. **`video_folders` usage** — confirm whether anything subscribes Realtime to it and what the real ownership column is, so C4 uses a real predicate.
 
-Input contract:
-```ts
-{ resource: ResourceKind, id: string }
+## Deliverable
 
-type ResourceKind =
-  | 'property_file'
-  | 'user_document'
-  | 'memory_safe_item'
-  | 'family_recipe_attachment'
-  | 'notes_tradition_attachment'
-  | 'contact_attachment'
-  | 'paint_code_swatch'
-```
+`/mnt/documents/Phase_A_Audit_Findings.md` with one section per item above, each containing:
 
-Server-side map (hard-coded, never client-supplied):
-```
-property_file              → property_files,            bucket from row, path: file_path
-user_document              → user_documents,            bucket: documents, path: file_path
-memory_safe_item           → memory_safe_items,         bucket: memory-safe, path: file_path
-family_recipe_attachment   → <recipe attach table>,     bucket: documents,  path: file_path
-notes_tradition_attachment → <notes attach table>,      bucket: documents,  path: file_path
-contact_attachment         → vip_contact_attachments,   bucket: contact-attachments, path: file_path
-paint_code_swatch          → paint_codes,               bucket: photos, path: swatch_image_path (nullable)
-```
+- the question,
+- evidence (file paths + line numbers, table/policy/FK names, query plans where relevant),
+- the answer,
+- the downstream decision it unblocks in B/C/D.
 
-Flow per call:
-1. Authenticate caller via `getClaims(token)`; reject if missing/invalid.
-2. Look up resource by hard-coded table + `id` using a service-role client.
-3. Authorize:
-   - **Shared (3A):** require active membership in the row's `account_id` and a role of Owner or Full Access (Read Only rejected with 403).
-   - **Owner-only (3B + paint_code_swatch + contact_attachment):** require `row.user_id === claims.sub`.
-4. If row already `pending_delete=true`, skip ahead to step 6 (idempotent retry).
-5. Mark `pending_delete=true`, `pending_delete_at=now()`, increment `delete_attempts`.
-6. Read `bucket`, `path` from the now-pending row. If `path` is null/empty (e.g. paint code with no swatch), skip step 7.
-7. `storage.remove([path])`:
-   - Success → continue.
-   - "Not found" / "Object does not exist" → treat as successful idempotent cleanup, continue.
-   - Other failure → write `delete_error = <message>`, return HTTP 409 `{ retryable: true, code: 'storage_remove_failed' }`. Row stays as `pending_delete` with its path intact.
-8. Delete the DB row (`DELETE … WHERE id = $1 AND pending_delete = true`).
-9. Return `{ ok: true }`.
+## Out of scope for Phase A
 
-Authorization helpers reused from existing project patterns (`account_memberships` membership lookup, `has_role`-style checks). No new RLS policies are widened.
+- No file edits.
+- No migrations.
+- No edge function deploys.
+- No RLS or grant changes.
+- No vault/MFA changes, no Legacy Locker / Digital Access / Recovery Delegate changes, no AU permission changes.
 
-### RLS update
+## Locked specs carried into later phases (for reference only — not executed here)
 
-Add to every in-scope table's SELECT policies:
-```
-AND pending_delete = false
-```
-So list/detail UI never shows rows mid-deletion. Owner-only tables get the same predicate. Service role (used by the edge function) is unaffected.
+- **Phase B** (post-A): `src/lib/calendarExport.ts` with CRLF, RFC 5545 escaping, 75-octet folding, UTC `DTSTAMP`, stable opaque UID `<eventId>@assetsafe.net`, exclusive multi-day all-day `DTEND = finalDay + 1`, no HTML, no account/billing/vault data, every provider URL param encoded, Yahoo falls back to `.ics`, no ORGANIZER unless a verified organizer email exists.
+- **Phase C** (item-by-item, C5 finalized post-A): C1–C9 per v3; C4 Realtime filter uses real ownership column; C6 ships `secure-delete-property` orchestration + shared `secureDeleteFileById` + `REVOKE DELETE ON public.properties FROM authenticated`; FK flip to RESTRICT deferred.
+- **Phase D** (gated): RESTRICT + transactional delete-and-enqueue; `get_my_calendar_connections()` returns no token bytes; Google `…/calendar.events` + `access_type=offline` + `prompt=consent`; Microsoft `offline_access`; revocation parity; canonical AES-GCM envelope (`ciphertext ‖ 16-byte auth tag` in one bytea per token + separate `_iv bytea`, AAD = `(user_id, provider, connection_id, token_kind)`, `encryption_version` + `encryption_key_version` always populated); hardened `enqueue_calendar_sync`; provider 404 = idempotent success + audit row (90-day retention); Realtime uses real ownership column; `calendar_sync_queue`, D-0 `timestamptz` migration, PKCE + bound state, save never blocks on provider; per-token co-presence + status-tied envelope + refresh-token preservation; pre-call status re-check + best-effort in-memory token zeroing; `connection_status NOT NULL` + allowed-status `CHECK` constraint; **status set is `pending` / `active` / `reauth_required` / `revoked` only — no `error`**; transient network / rate-limit / 5xx failures live on `calendar_sync_queue` job `status` / `retry_count` / `next_attempt_at` / `last_error_class` / `last_error_at`; connection stays `active` while a usable token envelope remains; workers may call providers only for `active` connections; `invalid_grant` → `reauth_required` (token envelopes cleared in the same UPDATE); `revoked` reserved for explicit disconnect or confirmed provider revocation; TOCTOU language honest — local `revoked`/`reauth_required` does not by itself invalidate the provider token, the pre-call re-check minimizes but cannot eliminate the database-to-provider race, provider rejection is a possible outcome not a guaranteed compensating control; token zeroization is best-effort defense-in-depth; any future status constraint / enum change / `NOT NULL` on `connection_status` must run a preflight `SELECT connection_status, count(*) ... GROUP BY 1`, include an explicit data-fix step for any out-of-set or NULL values, and document both before applying.
 
----
-
-## Phase 3A — Shared Asset Documentation
-
-After the foundation lands:
-
-- `PropertyService.deletePropertyFile` → calls `supabase.functions.invoke('secure-delete-file', { body: { resource: 'property_file', id } })`. Removes the storage call from client code entirely.
-- `Documents.tsx` `confirmDelete` (single + bulk) → same call with `resource: 'user_document'`. Bulk path invokes per id and aggregates results.
-- `usePropertyFiles.deleteFile` → same call; returns ok/retryable to caller.
-
-User-facing messages (generic only):
-- success → "File deleted."
-- 409 retryable → "The file could not be fully deleted. Please try again."
-- 403 → "You don't have permission to delete this file."
-- other → "Something went wrong. Please try again."
-
-No bucket name, no path, no provider error text reaches the toast.
-
-## Phase 3B — Family Archive owner-only
-
-Same pattern, owner-only authorization branch:
-- `MemorySafe.tsx` → `resource: 'memory_safe_item'`
-- `FamilyRecipes.tsx` attachment delete → `resource: 'family_recipe_attachment'` (only if it has a stored object)
-- `NotesAndTraditions.tsx` attachment delete → `resource: 'notes_tradition_attachment'`
-- `QuickNotesSection.tsx` → text-only rows; no edge function needed, plain DB delete kept (no storage object exists).
-
-Owner-only RLS preserved. No cross-account access introduced.
-
-## Phase 3C — Paint Codes & Contact Attachments (audit-then-wire)
-
-Audit (read-only) before wiring:
-- Paint codes: confirm `swatch_image_path` nullability, bucket path prefix, owner-only model.
-- Contact attachments: confirm `file_path` column is reliably populated for both legacy and new rows; if not, plan a one-time backfill (separate, explicit) before switching the delete site.
-
-Then:
-- `PaintCodesSection.tsx` → `resource: 'paint_code_swatch'`. Null `swatch_image_path` skips storage step cleanly.
-- `ContactAttachments.tsx` → `resource: 'contact_attachment'`. **Fix existing bug:** stop reconstructing path from `userId/contactId/file_name`; the edge function uses the row's stored `file_path`.
-
-## Explicitly excluded
-
-- Legacy Locker (governed by Secure Vault hardening).
-- File registry table joining all DB rows ↔ storage objects.
-- Quota reservation / two-phase upload commit.
-- Background orphan sweeper (the pending_delete index supports a future retry job, but no scheduler is added now).
-- Migrating existing storage paths.
-- Any RLS broadening.
-
-## Verification matrix (per resource, before closing each phase)
-
-1. **Happy path** — row gone, object gone, success toast, no `pending_delete` rows left behind.
-2. **Storage failure (controlled mock)** — inject a temporary deny via a service-role wrapper or a test-only bucket policy; expect:
-   - row remains with `pending_delete=true`, `delete_error` populated, `delete_attempts=1`, `file_path` intact
-   - generic retryable toast
-   - list views hide the row
-3. **Retry after storage recovers** — second invoke finalizes deletion; `delete_attempts=2`; row gone.
-4. **Object already missing** — pre-delete the object out-of-band, then invoke; treated as success; row removed; no error.
-5. **DB authorization denied** — Read Only AU (3A) or non-owner user (3B/3C) → 403, no storage call made, no `pending_delete` mutation.
-6. **Bad input** — unknown `resource` or unknown `id` → 400/404, no side effects.
-7. **Auth missing** — 401, no side effects.
-8. **Account switch mid-flow** — resource lookup is keyed by row id; authorization re-checks current membership server-side; stale client account context cannot escalate.
-
-Phase 3A begins only after the foundation migrations, the edge function, and its verification matrix pass.
+Once the user clicks "Implement plan", the agent will switch to build mode and execute Phase A only.
