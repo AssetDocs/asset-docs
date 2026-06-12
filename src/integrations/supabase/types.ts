@@ -4606,31 +4606,43 @@ export type Database = {
       }
       mfa_step_up_sessions: {
         Row: {
+          action: string | null
+          consumed_at: string | null
+          consumed_by: string | null
           created_at: string
           id: string
           ip: string | null
           last_step_up_at: string
           method: string
+          nonce: string | null
           stepped_up_until: string
           user_agent: string | null
           user_id: string
         }
         Insert: {
+          action?: string | null
+          consumed_at?: string | null
+          consumed_by?: string | null
           created_at?: string
           id?: string
           ip?: string | null
           last_step_up_at?: string
           method: string
+          nonce?: string | null
           stepped_up_until: string
           user_agent?: string | null
           user_id: string
         }
         Update: {
+          action?: string | null
+          consumed_at?: string | null
+          consumed_by?: string | null
           created_at?: string
           id?: string
           ip?: string | null
           last_step_up_at?: string
           method?: string
+          nonce?: string | null
           stepped_up_until?: string
           user_agent?: string | null
           user_id?: string
