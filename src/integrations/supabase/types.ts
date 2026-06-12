@@ -6763,6 +6763,10 @@ export type Database = {
         Args: { _reason?: string; _request_id: string; _waiting_days?: number }
         Returns: string
       }
+      assert_columns_in_diff_subset: {
+        Args: { p_allowed: string[]; p_new: Json; p_old: Json }
+        Returns: undefined
+      }
       authorize_continuity_export: {
         Args: {
           _download_limit?: number
@@ -6817,6 +6821,7 @@ export type Database = {
         Args: { _closure_id: string; _override?: boolean }
         Returns: string
       }
+      complete_phone_verification: { Args: never; Returns: undefined }
       compute_continuity_readiness: {
         Args: { _user_id: string }
         Returns: Json
@@ -7116,6 +7121,7 @@ export type Database = {
         Returns: boolean
       }
       is_service_role: { Args: never; Returns: boolean }
+      is_trusted_db_writer: { Args: never; Returns: boolean }
       log_continuity_event: {
         Args: {
           _action_details?: Json
@@ -7159,9 +7165,26 @@ export type Database = {
         Args: { _account_id: string; _reason: string; _request_id?: string }
         Returns: undefined
       }
+      set_my_last_used_account: {
+        Args: { p_account_id: string }
+        Returns: undefined
+      }
       submit_continuity_dispute: {
         Args: { _reason: string; _token: string }
         Returns: Json
+      }
+      update_my_household_income: {
+        Args: { p_household_income: number }
+        Returns: undefined
+      }
+      update_my_profile: {
+        Args: {
+          p_bio?: string
+          p_first_name?: string
+          p_last_name?: string
+          p_phone?: string
+        }
+        Returns: undefined
       }
       update_user_storage_usage: {
         Args: { target_user_id: string }
