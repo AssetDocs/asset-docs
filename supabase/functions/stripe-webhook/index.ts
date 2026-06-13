@@ -91,26 +91,22 @@ serve(async (req) => {
       return new Response('Invalid signature', { status: 400, headers: corsHeaders });
     }
 
-    // IDEMPOTENCY CHECK
-    const { data: existingEvent } = await supabase
-      .from('stripe_events')
-      .select('id, processed_at')
-      .eq('stripe_event_id', event.id)
-      .maybeSingle();
-
-    if (existingEvent?.processed_at) {
-      logStep('Event already processed, skipping', { eventId: event.id });
-      return new Response(JSON.stringify({ received: true, skipped: true }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    await supabase.from('stripe_events').upsert({
+    // Atomically claim the Stripe event before running any handlers. A duplicate
+    // insert means another delivery already processed or is currently processing it.
+    const { error: claimError } = await supabase.from('stripe_events').insert({
       stripe_event_id: event.id,
       event_type: event.type,
       payload: event.data,
       outcome: 'received'
-    }, { onConflict: 'stripe_event_id' });
+    });
+
+    if (claimError?.code === '23505') {
+      logStep('Event already claimed, skipping', { eventId: event.id });
+      return new Response(JSON.stringify({ received: true, skipped: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    if (claimError) throw claimError;
 
     logStep('Processing event', { type: event.type, id: event.id });
 
