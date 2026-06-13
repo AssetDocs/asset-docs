@@ -55,23 +55,29 @@ export const StripeTestPanel = () => {
       });
     }
 
-    // Test 2: Customer portal access
+    // Test 2: Customer portal access — via centralized hook.
+    // The hook returns a typed result and owns its own sanitized toasts.
+    // We never inspect the toast surface, never see the portal URL, and
+    // never call `customer-portal` directly from this panel.
     try {
-      const { data, error } = await supabase.functions.invoke('customer-portal');
+      const result = await openCustomerPortal();
       results.push({
         test: 'Customer Portal Access',
-        status: error ? 'failed' : 'passed',
-        data: data || error,
-        details: error ? `Error: ${error.message}` : 'Portal URL generated successfully'
+        status: result.ok ? 'passed' : 'failed',
+        data: result.ok ? null : { reason: result.reason },
+        details: result.ok
+          ? 'Portal opened in new tab'
+          : `Portal not opened (${result.reason})`,
       });
-    } catch (error) {
+    } catch {
       results.push({
         test: 'Customer Portal Access',
         status: 'failed',
         data: null,
-        details: `Error: ${error.message}`
+        details: 'Portal not opened (unexpected error)',
       });
     }
+
 
     // Test 3: Payment history retrieval
     try {
