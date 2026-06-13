@@ -1,3 +1,15 @@
+/**
+ * MfaStepUpDialog — TOTP + backup-code verification UI for sensitive actions.
+ *
+ * Freshness is written server-side to `mfa_step_up_sessions` by the
+ * `mfa-step-up` edge function. The TOTP path may rotate the Supabase auth
+ * session (forwarded `session` from `challengeAndVerify`); the backup-code
+ * path does NOT — it relies solely on the step-up row.
+ *
+ * `onVerified` MUST only be invoked after any required `setSession()` call
+ * has resolved, so callers (via `StepUpProvider` + `invokeWithStepUp`) can
+ * safely retry the gated request exactly once.
+ */
 import React, { useState } from 'react';
 import {
   Dialog,

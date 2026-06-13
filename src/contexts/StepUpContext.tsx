@@ -1,3 +1,15 @@
+/**
+ * StepUpProvider — global MFA step-up prompt.
+ *
+ * Contract used by `invokeWithStepUp`:
+ *  - `promptStepUp()` resolves `true` only AFTER the underlying verification
+ *    flow has completed (including any required `supabase.auth.setSession()`
+ *    for the TOTP path). The Asset Safe backup-code path does NOT replace
+ *    the auth session — freshness lives server-side in the
+ *    `mfa_step_up_sessions` table.
+ *  - Resolves `false` when the user cancels / closes the dialog.
+ *  - `handleOpenChange` must resolve the pending resolver exactly once.
+ */
 import React, { createContext, useCallback, useContext, useRef, useState } from 'react';
 import MfaStepUpDialog from '@/components/MfaStepUpDialog';
 
