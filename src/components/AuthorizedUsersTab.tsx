@@ -18,7 +18,7 @@ import { logActivity } from '@/hooks/useActivityLog';
 import { PremiumFeatureGate } from '@/components/PremiumFeatureGate';
 import LegacyAdminAssignment from '@/components/LegacyAdminAssignment';
 import LegacyContinuitySection from '@/components/legacy-continuity/LegacyContinuitySection';
-import { invokeWithStepUp, isStepUpRequired } from '@/lib/invokeWithStepUp';
+import { invokeWithStepUp, isStepUpCancelled, isStepUpPromptFailed } from '@/lib/invokeWithStepUp';
 import { useStepUpPrompt } from '@/contexts/StepUpContext';
 
 interface Member {
@@ -217,7 +217,14 @@ const AuthorizedUsersTab: React.FC = () => {
       : await supabase.functions.invoke(fn, invokeOpts);
 
     const { data, error } = result as any;
-    if (error && !isStepUpRequired(result as any)) throw error;
+    if (error) {
+      if (isStepUpCancelled(error) || isStepUpPromptFailed(error)) {
+        // User cancelled or prompt failed — surface as a soft no-op; the
+        // wrapper / hook already toasts sanitized messaging where relevant.
+        return null;
+      }
+      throw error;
+    }
     if (data?.success === false) throw new Error(data.error || 'Request failed.');
     return data;
   };
