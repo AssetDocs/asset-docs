@@ -1,6 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useStepUpPrompt } from '@/contexts/StepUpContext';
+import {
+  invokeWithStepUp,
+  isStepUpCancelled,
+  isStepUpPromptFailed,
+} from '@/lib/invokeWithStepUp';
 
 interface TOTPFactor {
   id: string;
@@ -19,8 +25,13 @@ interface EnrollmentData {
   };
 }
 
+export type UnenrollResult =
+  | { ok: true }
+  | { ok: false; reason: 'cancelled' | 'prompt_failed' | 'error' };
+
 export const useTOTP = () => {
   const { user } = useAuth();
+  const { promptStepUp } = useStepUpPrompt();
   const [factors, setFactors] = useState<TOTPFactor[]>([]);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -138,31 +149,40 @@ export const useTOTP = () => {
     }
   };
 
-  const unenroll = async (factorId: string): Promise<boolean> => {
+  const unenroll = useCallback(async (factorId: string): Promise<UnenrollResult> => {
     try {
-      // Route through mfa-unenroll edge function so backup codes and step-up
-      // sessions are wiped server-side. Requires a fresh step-up (last 60s).
-      const { data, error } = await supabase.functions.invoke('mfa-unenroll', {
-        body: { factorId },
-      });
+      const result = await invokeWithStepUp<{ success?: boolean; error?: string }>(
+        'mfa-unenroll',
+        { body: { factorId } },
+        () =>
+          promptStepUp({
+            title: 'Verify to disable MFA',
+            description:
+              'Confirm your authenticator before removing two-factor authentication.',
+          }),
+      );
 
-      if (error) throw error;
-      if (!data?.success) {
-        if (data?.code === 'step_up_required') {
-          const err: any = new Error('Fresh MFA step-up required');
-          err.code = 'step_up_required';
-          throw err;
-        }
-        throw new Error(data?.error || 'Failed to disable MFA');
+      if (isStepUpCancelled(result.error)) {
+        return { ok: false, reason: 'cancelled' };
+      }
+      if (isStepUpPromptFailed(result.error)) {
+        return { ok: false, reason: 'prompt_failed' };
+      }
+      if (result.error || !result.data?.success) {
+        console.error(
+          'Error unenrolling TOTP factor:',
+          result.error ?? result.data?.error,
+        );
+        return { ok: false, reason: 'error' };
       }
 
       await fetchFactors();
-      return true;
+      return { ok: true };
     } catch (error) {
       console.error('Error unenrolling TOTP factor:', error);
-      throw error;
+      return { ok: false, reason: 'error' };
     }
-  };
+  }, [fetchFactors, promptStepUp]);
 
   return {
     factors,

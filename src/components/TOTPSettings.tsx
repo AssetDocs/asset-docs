@@ -35,13 +35,38 @@ const TOTPSettings: React.FC = () => {
     
     setDisabling(true);
     try {
-      await unenroll(verifiedFactor.id);
+      const result = await unenroll(verifiedFactor.id);
+      if (!result.ok) {
+        if (result.reason === 'cancelled') {
+          toast({
+            title: 'Verification cancelled',
+            description: 'MFA was not removed.',
+          });
+          setShowDisableConfirm(false);
+          return;
+        }
+        if (result.reason === 'prompt_failed') {
+          toast({
+            title: 'Verification failed',
+            description: 'Could not complete verification. Please try again.',
+            variant: 'destructive',
+          });
+          return;
+        }
+        toast({
+          title: 'Error',
+          description: 'Could not disable two-factor authentication. Please try again.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       // Refresh verification status to update Verified+ badge
       await refreshVerification();
-        toast({
-          title: "MFA Disabled",
-          description: "Authenticator has been removed from your account. Verified+ status removed.",
-        });
+      toast({
+        title: "MFA Disabled",
+        description: "Authenticator has been removed from your account. Verified+ status removed.",
+      });
       
       // Log activity
       logActivity({
@@ -53,12 +78,6 @@ const TOTPSettings: React.FC = () => {
       });
       
       setShowDisableConfirm(false);
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to disable two-factor authentication.",
-        variant: "destructive",
-      });
     } finally {
       setDisabling(false);
     }
