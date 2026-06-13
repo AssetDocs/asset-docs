@@ -6,14 +6,22 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useOpenCustomerPortal } from '@/hooks/useOpenCustomerPortal';
 import { CreditCard, CheckCircle, XCircle, Clock } from 'lucide-react';
 
 export const StripeTestPanel = () => {
   const { user } = useAuth();
   const { subscriptionStatus, refreshSubscription } = useSubscription();
   const { toast } = useToast();
+  // Use the centralized portal opener so this panel inherits the same MFA
+  // step-up, sanitized toasts, popup-blocker handling, and module-level
+  // concurrency lock as every other billing entry point. `newTab: true`
+  // keeps the panel page in place so it can still render the pass/fail
+  // result (same-tab navigation would unload us before recording).
+  const { open: openCustomerPortal } = useOpenCustomerPortal({ newTab: true });
   const [testing, setTesting] = useState(false);
   const [testResults, setTestResults] = useState<any[]>([]);
+
 
   const runStripeTests = async () => {
     if (!user) {
