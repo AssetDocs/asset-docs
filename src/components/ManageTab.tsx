@@ -507,9 +507,9 @@ const ManageTab: React.FC = () => {
               )}
             </div>
 
-            <Button onClick={handleManageBilling} disabled={isLoading} variant="outline" className="mt-4">
+            <Button onClick={handleManageBilling} disabled={portalLoading} variant="outline" className="mt-4">
               <ExternalLink className="h-4 w-4 mr-2" />
-              {isLoading ? 'Opening...' : 'Manage Payment Methods & Invoices'}
+              {portalLoading ? 'Opening...' : 'Manage Payment Methods & Invoices'}
             </Button>
             <p className="text-xs text-muted-foreground mt-2">Payment methods, billing address updates, and invoice history. Plan changes and cancellations are handled in Account Settings.</p>
           </div>
