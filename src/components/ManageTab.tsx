@@ -9,9 +9,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { invokeWithStepUp, isStepUpRequired } from '@/lib/invokeWithStepUp';
+import { invokeWithStepUp } from '@/lib/invokeWithStepUp';
+import { useOpenCustomerPortal } from '@/hooks/useOpenCustomerPortal';
 import { useStepUpPrompt } from '@/contexts/StepUpContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import {
   CheckIcon, ExternalLink, CreditCard, Shield, Trash2, Clock,
@@ -98,6 +100,8 @@ const ManageTab: React.FC = () => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingSubscription, setIsCheckingSubscription] = useState(true);
+  const { open: openCustomerPortal, loading: portalLoading } = useOpenCustomerPortal();
   const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('month');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showNewDeleteDialog, setShowNewDeleteDialog] = useState(false);
@@ -178,6 +182,8 @@ const ManageTab: React.FC = () => {
       setSubscriptionStatus(data);
     } catch (error) {
       console.error('Error checking subscription:', error);
+    } finally {
+      setIsCheckingSubscription(false);
     }
   };
 
@@ -195,27 +201,9 @@ const ManageTab: React.FC = () => {
   }, [user]);
 
   const handleManageBilling = async () => {
-    setIsLoading(true);
-    try {
-      const result = await invokeWithStepUp<{ url?: string }>(
-        'customer-portal',
-        {},
-        () => promptStepUp({
-          title: 'Open billing portal',
-          description: 'Verify with your authenticator to manage billing.',
-        }),
-      );
-      if (isStepUpRequired(result)) {
-        toast({ title: 'MFA verification required', description: 'Please verify to open billing.', variant: 'destructive' });
-        return;
-      }
-      if (result.error) throw result.error;
-      window.location.href = result.data!.url!;
-    } catch (error) {
-      toast({ title: "Error", description: "Failed to open billing management. Please try again.", variant: "destructive" });
-    } finally {
-      setIsLoading(false);
-    }
+    // Centralized: same MFA prompt, retry, and sanitized toast behavior
+    // as everywhere else billing is opened.
+    await openCustomerPortal();
   };
 
   const handleStartSubscription = async () => {
