@@ -159,6 +159,7 @@ export const useTOTP = () => {
             title: 'Verify to disable MFA',
             description:
               'Confirm your authenticator before removing two-factor authentication.',
+            requireAal2: true,
           }),
       );
 

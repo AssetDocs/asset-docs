@@ -35,6 +35,7 @@ interface Props {
   onVerified: () => void;
   title?: string;
   description?: string;
+  requireAal2?: boolean;
 }
 
 const MfaStepUpDialog: React.FC<Props> = ({
@@ -43,6 +44,7 @@ const MfaStepUpDialog: React.FC<Props> = ({
   onVerified,
   title = 'Confirm with your authenticator',
   description = 'For your security, please re-verify before continuing.',
+  requireAal2 = false,
 }) => {
   const { factors } = useTOTP();
   const { isVerifying, stepUpWithTotp, stepUpWithBackupCode } = useMfaStepUp();
@@ -99,10 +101,12 @@ const MfaStepUpDialog: React.FC<Props> = ({
         </DialogHeader>
 
         <Tabs defaultValue="totp" className="mt-2">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="totp">Authenticator</TabsTrigger>
-            <TabsTrigger value="backup">Backup code</TabsTrigger>
-          </TabsList>
+          {!requireAal2 && (
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="totp">Authenticator</TabsTrigger>
+              <TabsTrigger value="backup">Backup code</TabsTrigger>
+            </TabsList>
+          )}
 
           <TabsContent value="totp" className="space-y-3 pt-3">
             <Label htmlFor="step-up-totp">6-digit code</Label>
@@ -127,28 +131,30 @@ const MfaStepUpDialog: React.FC<Props> = ({
             </DialogFooter>
           </TabsContent>
 
-          <TabsContent value="backup" className="space-y-3 pt-3">
-            <Label htmlFor="step-up-backup">Backup code</Label>
-            <Input
-              id="step-up-backup"
-              autoComplete="one-time-code"
-              value={backup}
-              onChange={(e) => setBackup(e.target.value.toUpperCase())}
-              placeholder="XXXX-XXXX"
-            />
-            <p className="text-xs text-muted-foreground">
-              Each backup code works only once. We'll mark it used.
-            </p>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isVerifying}>
-                Cancel
-              </Button>
-              <Button onClick={handleBackup} disabled={isVerifying || backup.replace(/-/g, '').length < 8}>
-                {isVerifying ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Key className="h-4 w-4 mr-2" />}
-                Use code
-              </Button>
-            </DialogFooter>
-          </TabsContent>
+          {!requireAal2 && (
+            <TabsContent value="backup" className="space-y-3 pt-3">
+              <Label htmlFor="step-up-backup">Backup code</Label>
+              <Input
+                id="step-up-backup"
+                autoComplete="one-time-code"
+                value={backup}
+                onChange={(e) => setBackup(e.target.value.toUpperCase())}
+                placeholder="XXXX-XXXX"
+              />
+              <p className="text-xs text-muted-foreground">
+                Each backup code works only once. We'll mark it used.
+              </p>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isVerifying}>
+                  Cancel
+                </Button>
+                <Button onClick={handleBackup} disabled={isVerifying || backup.replace(/-/g, '').length < 8}>
+                  {isVerifying ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Key className="h-4 w-4 mr-2" />}
+                  Use code
+                </Button>
+              </DialogFooter>
+            </TabsContent>
+          )}
         </Tabs>
       </DialogContent>
     </Dialog>

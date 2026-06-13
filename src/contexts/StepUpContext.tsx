@@ -20,7 +20,11 @@ interface StepUpContextValue {
    * Open the step-up dialog and resolve once the user verifies (true) or
    * cancels (false). Safe to call from anywhere inside <StepUpProvider />.
    */
-  promptStepUp: (opts?: { title?: string; description?: string }) => Promise<boolean>;
+  promptStepUp: (opts?: {
+    title?: string;
+    description?: string;
+    requireAal2?: boolean;
+  }) => Promise<boolean>;
 }
 
 const StepUpContext = createContext<StepUpContextValue | null>(null);
@@ -29,18 +33,20 @@ export const StepUpProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState<string | undefined>();
   const [description, setDescription] = useState<string | undefined>();
+  const [requireAal2, setRequireAal2] = useState(false);
   const resolverRef = useRef<Resolver | null>(null);
 
   const promptStepUp = useCallback(
-    (opts?: { title?: string; description?: string }) =>
+    (opts?: { title?: string; description?: string; requireAal2?: boolean }) =>
       new Promise<boolean>((resolve) => {
         // If a previous prompt is somehow still open, reject it as a cancel.
         if (resolverRef.current) {
-          try { resolverRef.current(false); } catch {}
+          resolverRef.current(false);
         }
         resolverRef.current = resolve;
         setTitle(opts?.title);
         setDescription(opts?.description);
+        setRequireAal2(opts?.requireAal2 ?? false);
         setOpen(true);
       }),
     [],
@@ -72,6 +78,7 @@ export const StepUpProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         onVerified={handleVerified}
         title={title}
         description={description}
+        requireAal2={requireAal2}
       />
     </StepUpContext.Provider>
   );

@@ -10,6 +10,12 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import HouseholdIncomeSection from '@/components/HouseholdIncomeSection';
+import { useStepUpPrompt } from '@/contexts/StepUpContext';
+import {
+  invokeWithStepUp,
+  isStepUpCancelled,
+  isStepUpPromptFailed,
+} from '@/lib/invokeWithStepUp';
 
 interface ProfileTabProps {
   viewerMode?: boolean;
@@ -18,6 +24,7 @@ interface ProfileTabProps {
 const ProfileTab: React.FC<ProfileTabProps> = ({ viewerMode = false }) => {
   const { toast } = useToast();
   const { user, refreshProfile } = useAuth();
+  const { promptStepUp } = useStepUpPrompt();
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
   
@@ -92,16 +99,36 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ viewerMode = false }) => {
     
     try {
       // Check if email has changed
-      const emailChanged = email !== user.email;
+      const normalizedEmail = email.trim().toLowerCase();
+      const emailChanged = normalizedEmail !== user.email?.toLowerCase();
       
       if (emailChanged) {
-        // Update email via Supabase auth (requires verification)
-        const { error: emailError } = await supabase.auth.updateUser({
-          email: email,
-        });
+        const result = await invokeWithStepUp<{ success?: boolean }>(
+          'request-email-change',
+          { body: { newEmail: normalizedEmail } },
+          () => promptStepUp({
+            title: 'Verify before changing your email',
+            description: 'For security, confirm your authenticator to start an email change.',
+          }),
+        );
 
-        if (emailError) {
-          throw emailError;
+        if (isStepUpCancelled(result.error)) {
+          toast({
+            title: 'Verification cancelled',
+            description: 'Your email and profile were not changed.',
+          });
+          return;
+        }
+        if (isStepUpPromptFailed(result.error)) {
+          toast({
+            title: 'Verification failed',
+            description: 'Could not complete verification. Please try again.',
+            variant: 'destructive',
+          });
+          return;
+        }
+        if (result.error || !result.data?.success) {
+          throw new Error('Email change request failed');
         }
       }
 
@@ -138,7 +165,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ viewerMode = false }) => {
       console.error('Error updating profile:', error);
       toast({
         title: "Update failed",
-        description: error instanceof Error ? error.message : "Failed to update your profile. Please try again.",
+        description: "Failed to update your profile. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -147,6 +174,8 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ viewerMode = false }) => {
   };
 
   const handlePasswordUpdate = async () => {
+    if (isUpdatingPassword) return;
+
     if (!user?.id) {
       toast({
         title: "Authentication required",
@@ -177,6 +206,27 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ viewerMode = false }) => {
     setIsUpdatingPassword(true);
     
     try {
+      const { data: factors, error: factorsError } = await supabase.auth.mfa.listFactors();
+      if (factorsError) throw factorsError;
+
+      const hasVerifiedTotp = (factors?.totp ?? []).some(
+        (factor) => factor.status === 'verified',
+      );
+      if (hasVerifiedTotp) {
+        const verified = await promptStepUp({
+          title: 'Verify before changing your password',
+          description: 'Confirm your authenticator before updating your password.',
+          requireAal2: true,
+        });
+        if (!verified) {
+          toast({
+            title: 'Verification cancelled',
+            description: 'Your password was not changed.',
+          });
+          return;
+        }
+      }
+
       const { error } = await supabase.auth.updateUser({
         password: newPassword,
       });
@@ -197,7 +247,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ viewerMode = false }) => {
       console.error('Error updating password:', error);
       toast({
         title: "Update Failed",
-        description: error instanceof Error ? error.message : "Failed to update password. Please try again.",
+        description: "Could not update your password. Please try again.",
         variant: "destructive",
       });
     } finally {
