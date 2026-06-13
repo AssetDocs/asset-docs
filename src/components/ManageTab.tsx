@@ -414,8 +414,53 @@ const ManageTab: React.FC = () => {
     );
   }
 
+  // ===== SIGNED-OUT VIEW =====
+  // The session was missing on the server-trip. Do NOT render a checkout
+  // CTA — we can't authenticate this user; redirect them to sign in.
+  if (isSignedOut) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Subscription</CardTitle>
+            <CardDescription>Sign in to manage your plan.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => navigate('/login')} className="w-full">
+              Sign in
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // ===== ERROR / RETRY VIEW =====
+  // The subscription check failed (network/edge/invalid shape). Never
+  // assume "unsubscribed" — give the user a retry instead.
+  if (subscriptionCheckError) {
+    return (
+      <div className="space-y-6">
+        <Card className="border-destructive/30">
+          <CardHeader>
+            <CardTitle>Couldn't load your plan</CardTitle>
+            <CardDescription>{subscriptionCheckError}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => checkSubscription()} disabled={isCheckingSubscription} variant="outline">
+              Try again
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   // ===== NOT SUBSCRIBED VIEW =====
-  if (!hasActivePlan) {
+  // Only render this branch when the most recent response was an
+  // authoritative `{subscribed: false}` — never on the default placeholder
+  // value, never on a transient/loading state.
+  if (lastResponseWasAuthoritative && !hasActivePlan) {
     const displayPrice = billingInterval === 'year' ? planConfig.yearlyPrice : planConfig.monthlyPrice;
     const priceLabel = billingInterval === 'year' ? '/year' : '/month';
 
