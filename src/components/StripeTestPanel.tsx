@@ -61,14 +61,21 @@ export const StripeTestPanel = () => {
     // never call `customer-portal` directly from this panel.
     try {
       const result = await openCustomerPortal();
-      results.push({
-        test: 'Customer Portal Access',
-        status: result.ok ? 'passed' : 'failed',
-        data: result.ok ? null : { reason: result.reason },
-        details: result.ok
-          ? 'Portal opened in new tab'
-          : `Portal not opened (${result.reason})`,
-      });
+      if (result.ok) {
+        results.push({
+          test: 'Customer Portal Access',
+          status: 'passed',
+          data: null,
+          details: 'Portal opened in new tab',
+        });
+      } else {
+        results.push({
+          test: 'Customer Portal Access',
+          status: 'failed',
+          data: { reason: result.reason },
+          details: `Portal not opened (${result.reason})`,
+        });
+      }
     } catch {
       results.push({
         test: 'Customer Portal Access',
