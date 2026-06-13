@@ -84,8 +84,11 @@ Deno.serve(async (req) => {
     const steppedUpUntil = await recordStepUp(svc, user.id, 'totp', ip ?? undefined, ua);
     await logMfaAttempt(svc, { userId: user.id, ip, kind: 'step_up_totp', outcome: 'success' });
 
-    // Forward refreshed session if Supabase returned one (shape varies by version).
-    const refreshedSession = (verifyData as any)?.session ?? null;
+    // Forward the refreshed tokens so the browser can adopt the AAL2 session.
+    const refreshedSession = {
+      access_token: verifyData.access_token,
+      refresh_token: verifyData.refresh_token,
+    };
 
     return json({
       success: true,

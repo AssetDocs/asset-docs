@@ -62,8 +62,12 @@ const MfaStepUpDialog: React.FC<Props> = ({
       setTotp('');
       onVerified();
       onOpenChange(false);
-    } catch (e: any) {
-      toast({ title: 'Verification failed', description: e?.message ?? 'Invalid code', variant: 'destructive' });
+    } catch {
+      toast({
+        title: 'Verification failed',
+        description: 'The code was invalid or expired. Enter the newest code and try again.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -74,8 +78,12 @@ const MfaStepUpDialog: React.FC<Props> = ({
       onVerified();
       onOpenChange(false);
       toast({ title: 'Backup code accepted', description: 'That code has been used.' });
-    } catch (e: any) {
-      toast({ title: 'Verification failed', description: e?.message ?? 'Invalid backup code', variant: 'destructive' });
+    } catch {
+      toast({
+        title: 'Verification failed',
+        description: 'The backup code was invalid or could not be verified.',
+        variant: 'destructive',
+      });
     }
   };
 

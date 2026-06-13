@@ -28,19 +28,17 @@ export const useMfaStepUp = () => {
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || 'Step-up failed');
 
-      // Best-effort: if the edge function returned a refreshed session, update
-      // the browser client. Failures here are non-fatal — server enforcement
-      // already happened via the mfa_step_up_sessions row.
-      if (data.session?.access_token && data.session?.refresh_token) {
-        try {
-          await supabase.auth.setSession({
-            access_token: data.session.access_token,
-            refresh_token: data.session.refresh_token,
-          });
-        } catch (e) {
-          console.warn('Could not apply refreshed session from step-up:', e);
-        }
+      // The retry may call Supabase Auth directly (for example MFA unenroll),
+      // so the browser must adopt the refreshed AAL2 session first.
+      if (!data.session?.access_token || !data.session?.refresh_token) {
+        throw new Error('Step-up session was not returned');
       }
+
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+      });
+      if (sessionError) throw sessionError;
 
       return { success: true, method: data.method, stepped_up_until: data.stepped_up_until };
     } finally {
