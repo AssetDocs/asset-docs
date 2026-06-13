@@ -317,6 +317,27 @@ const ManageTab: React.FC = () => {
   const hasStorageAddOn = addOnStorageGb > 0;
   const isCancelAtPeriodEnd = subscriptionStatus.cancel_at_period_end || false;
 
+  // ===== LOADING VIEW =====
+  // Avoid a flash of the unsubscribed "Complete Your Subscription" card
+  // while `check-subscription` is still in flight on first paint.
+  if (isCheckingSubscription) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Subscription</CardTitle>
+            <CardDescription>Loading your current plan…</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-center py-10">
+              <Clock className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   // ===== NOT SUBSCRIBED VIEW =====
   if (!hasActivePlan) {
     const displayPrice = billingInterval === 'year' ? planConfig.yearlyPrice : planConfig.monthlyPrice;
@@ -546,9 +567,9 @@ const ManageTab: React.FC = () => {
                 Upgrade or remove storage anytime
               </li>
             </ul>
-            <Button onClick={handleManageBilling} disabled={isLoading} variant="outline" className="w-full">
+            <Button onClick={handleManageBilling} disabled={portalLoading} variant="outline" className="w-full">
               <HardDrive className="h-4 w-4 mr-2" />
-              {isLoading ? 'Opening...' : 'Add or Adjust Storage'}
+              {portalLoading ? 'Opening...' : 'Add or Adjust Storage'}
             </Button>
             <p className="text-xs text-muted-foreground text-center mt-3">25GB ≈ ~1,500 photos + documents</p>
           </div>
