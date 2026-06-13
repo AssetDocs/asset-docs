@@ -9,9 +9,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { invokeWithStepUp, isStepUpRequired } from '@/lib/invokeWithStepUp';
+import { invokeWithStepUp } from '@/lib/invokeWithStepUp';
+import { useOpenCustomerPortal } from '@/hooks/useOpenCustomerPortal';
 import { useStepUpPrompt } from '@/contexts/StepUpContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import {
   CheckIcon, ExternalLink, CreditCard, Shield, Trash2, Clock,
@@ -98,6 +100,8 @@ const ManageTab: React.FC = () => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingSubscription, setIsCheckingSubscription] = useState(true);
+  const { open: openCustomerPortal, loading: portalLoading } = useOpenCustomerPortal();
   const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('month');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showNewDeleteDialog, setShowNewDeleteDialog] = useState(false);
@@ -178,6 +182,8 @@ const ManageTab: React.FC = () => {
       setSubscriptionStatus(data);
     } catch (error) {
       console.error('Error checking subscription:', error);
+    } finally {
+      setIsCheckingSubscription(false);
     }
   };
 
@@ -195,27 +201,9 @@ const ManageTab: React.FC = () => {
   }, [user]);
 
   const handleManageBilling = async () => {
-    setIsLoading(true);
-    try {
-      const result = await invokeWithStepUp<{ url?: string }>(
-        'customer-portal',
-        {},
-        () => promptStepUp({
-          title: 'Open billing portal',
-          description: 'Verify with your authenticator to manage billing.',
-        }),
-      );
-      if (isStepUpRequired(result)) {
-        toast({ title: 'MFA verification required', description: 'Please verify to open billing.', variant: 'destructive' });
-        return;
-      }
-      if (result.error) throw result.error;
-      window.location.href = result.data!.url!;
-    } catch (error) {
-      toast({ title: "Error", description: "Failed to open billing management. Please try again.", variant: "destructive" });
-    } finally {
-      setIsLoading(false);
-    }
+    // Centralized: same MFA prompt, retry, and sanitized toast behavior
+    // as everywhere else billing is opened.
+    await openCustomerPortal();
   };
 
   const handleStartSubscription = async () => {
@@ -328,6 +316,27 @@ const ManageTab: React.FC = () => {
   const addOnStorageGb = addOnBlocks * 25;
   const hasStorageAddOn = addOnStorageGb > 0;
   const isCancelAtPeriodEnd = subscriptionStatus.cancel_at_period_end || false;
+
+  // ===== LOADING VIEW =====
+  // Avoid a flash of the unsubscribed "Complete Your Subscription" card
+  // while `check-subscription` is still in flight on first paint.
+  if (isCheckingSubscription) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Subscription</CardTitle>
+            <CardDescription>Loading your current plan…</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-center py-10">
+              <Clock className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // ===== NOT SUBSCRIBED VIEW =====
   if (!hasActivePlan) {
@@ -498,9 +507,9 @@ const ManageTab: React.FC = () => {
               )}
             </div>
 
-            <Button onClick={handleManageBilling} disabled={isLoading} variant="outline" className="mt-4">
+            <Button onClick={handleManageBilling} disabled={portalLoading} variant="outline" className="mt-4">
               <ExternalLink className="h-4 w-4 mr-2" />
-              {isLoading ? 'Opening...' : 'Manage Payment Methods & Invoices'}
+              {portalLoading ? 'Opening...' : 'Manage Payment Methods & Invoices'}
             </Button>
             <p className="text-xs text-muted-foreground mt-2">Payment methods, billing address updates, and invoice history. Plan changes and cancellations are handled in Account Settings.</p>
           </div>
@@ -558,9 +567,9 @@ const ManageTab: React.FC = () => {
                 Upgrade or remove storage anytime
               </li>
             </ul>
-            <Button onClick={handleManageBilling} disabled={isLoading} variant="outline" className="w-full">
+            <Button onClick={handleManageBilling} disabled={portalLoading} variant="outline" className="w-full">
               <HardDrive className="h-4 w-4 mr-2" />
-              {isLoading ? 'Opening...' : 'Add or Adjust Storage'}
+              {portalLoading ? 'Opening...' : 'Add or Adjust Storage'}
             </Button>
             <p className="text-xs text-muted-foreground text-center mt-3">25GB ≈ ~1,500 photos + documents</p>
           </div>

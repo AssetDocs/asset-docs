@@ -4,7 +4,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, CheckCircle, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { invokeWithStepUp, isStepUpRequired } from "@/lib/invokeWithStepUp";
+import { invokeWithStepUp, isStepUpCancelled, isStepUpPromptFailed } from "@/lib/invokeWithStepUp";
 import { useStepUpPrompt } from "@/contexts/StepUpContext";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -82,8 +82,12 @@ export const RecoveryRequestAlert: React.FC<RecoveryRequestAlertProps> = ({
         }),
       );
 
-      if (isStepUpRequired(result)) {
-        toast.error('MFA verification required to respond to recovery requests.');
+      if (isStepUpCancelled(result.error)) {
+        toast.message('Verification cancelled.');
+        return;
+      }
+      if (isStepUpPromptFailed(result.error)) {
+        toast.error('Could not complete verification. Please try again.');
         return;
       }
       if (result.error) throw result.error;
