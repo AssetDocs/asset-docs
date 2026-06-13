@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +13,6 @@ import { invokeWithStepUp } from '@/lib/invokeWithStepUp';
 import { useOpenCustomerPortal } from '@/hooks/useOpenCustomerPortal';
 import { useStepUpPrompt } from '@/contexts/StepUpContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import {
   CheckIcon, ExternalLink, CreditCard, Shield, Trash2, Clock,
@@ -98,9 +97,16 @@ const ManageTab: React.FC = () => {
   const { toast } = useToast();
   const { promptStepUp } = useStepUpPrompt();
   const { user, profile, signOut } = useAuth();
+  // Derive a stable primitive identity so the useCallback below does not
+  // re-create on every auth-object refresh (TOKEN_REFRESHED loops).
+  const userId = user?.id;
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckingSubscription, setIsCheckingSubscription] = useState(true);
+  const [subscriptionCheckError, setSubscriptionCheckError] = useState<string | null>(null);
+  const [isSignedOut, setIsSignedOut] = useState(false);
+  const [lastResponseWasAuthoritative, setLastResponseWasAuthoritative] = useState(false);
+  // Same-tab navigation — no popup-blocker risk for the subscribed branch.
   const { open: openCustomerPortal, loading: portalLoading } = useOpenCustomerPortal();
   const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('month');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -129,15 +135,21 @@ const ManageTab: React.FC = () => {
     cancel_at_period_end?: boolean;
   }>({ subscribed: false });
 
+  // Monotonically increasing token — independent of user/account keys.
+  // Guarantees that only the latest in-flight request can update state,
+  // regardless of who/what triggered earlier requests.
+  const requestIdRef = useRef(0);
+  const isMountedRef = useRef(true);
+
   const checkIfContributor = async () => {
-    if (!user) return;
+    if (!userId) return;
     try {
       const { data, error } = await supabase
         .from('contributors')
         .select('account_owner_id, role, status')
-        .eq('contributor_user_id', user.id)
+        .eq('contributor_user_id', userId)
         .eq('status', 'accepted')
-        .neq('account_owner_id', user.id);
+        .neq('account_owner_id', userId);
       if (error) return;
       if (data && data.length > 0) {
         setIsContributor(true);
@@ -147,7 +159,7 @@ const ManageTab: React.FC = () => {
             .from('account_deletion_requests')
             .select('*')
             .eq('account_owner_id', data[0].account_owner_id)
-            .eq('requester_user_id', user.id)
+            .eq('requester_user_id', userId)
             .order('created_at', { ascending: false })
             .limit(1);
           if (requestData && requestData.length > 0) {
@@ -161,12 +173,12 @@ const ManageTab: React.FC = () => {
   };
 
   const checkIncomingDeletionRequests = async () => {
-    if (!user) return;
+    if (!userId) return;
     try {
       const { data, error } = await supabase
         .from('account_deletion_requests')
         .select('*')
-        .eq('account_owner_id', user.id)
+        .eq('account_owner_id', userId)
         .eq('status', 'pending');
       if (!error) setIncomingDeletionRequests((data || []) as DeletionRequest[]);
     } catch (error) {
@@ -174,22 +186,77 @@ const ManageTab: React.FC = () => {
     }
   };
 
-  const checkSubscription = async () => {
-    if (!user) return;
+  // Full loading-state safeguards:
+  //   - request-generation token guards against stale responses overwriting
+  //     newer ones (overlapping refreshes for the same or different account)
+  //   - isMountedRef guards against post-unmount setState
+  //   - whole flow (including getSession) sits inside try/finally so a
+  //     thrown session retrieval cannot leave loading=true forever
+  //   - strict response-shape validation — only a 2xx with a real boolean
+  //     `subscribed` is treated as authoritative; anything else surfaces as
+  //     the error/retry state (never as "unsubscribed")
+  //   - lastResponseWasAuthoritative is the only path that may render the
+  //     "Complete Your Subscription" branch
+  const checkSubscription = useCallback(async () => {
+    const myId = ++requestIdRef.current;
+    setIsCheckingSubscription(true);
+    setSubscriptionCheckError(null);
+    setIsSignedOut(false);
+    setLastResponseWasAuthoritative(false);
+
     try {
+      if (!userId) {
+        if (!isMountedRef.current || myId !== requestIdRef.current) return;
+        setIsSignedOut(true);
+        return;
+      }
+
+      const { data: sessionData } = await supabase.auth.getSession();
+
+      // Stale/unmount guard BEFORE any signed-out write.
+      if (!isMountedRef.current || myId !== requestIdRef.current) return;
+
+      if (!sessionData?.session) {
+        setIsSignedOut(true);
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('check-subscription');
-      if (error) throw error;
+
+      if (!isMountedRef.current || myId !== requestIdRef.current) return;
+
+      if (error) {
+        setSubscriptionCheckError("Couldn't load your plan.");
+        return;
+      }
+
+      // Strict shape validation — never trust an arbitrary 2xx payload.
+      const valid =
+        data !== null &&
+        typeof data === 'object' &&
+        typeof (data as { subscribed?: unknown }).subscribed === 'boolean';
+
+      if (!valid) {
+        setSubscriptionCheckError("Couldn't load your plan.");
+        return;
+      }
+
       setSubscriptionStatus(data);
-    } catch (error) {
-      console.error('Error checking subscription:', error);
+      setLastResponseWasAuthoritative(true);
+    } catch {
+      if (!isMountedRef.current || myId !== requestIdRef.current) return;
+      setSubscriptionCheckError("Couldn't load your plan.");
     } finally {
-      setIsCheckingSubscription(false);
+      if (isMountedRef.current && myId === requestIdRef.current) {
+        setIsCheckingSubscription(false);
+      }
     }
-  };
+  }, [userId]);
 
   useEffect(() => {
-    if (user) {
-      checkSubscription();
+    isMountedRef.current = true;
+    checkSubscription();
+    if (userId) {
       checkIfContributor();
       checkIncomingDeletionRequests();
       const urlParams = new URLSearchParams(window.location.search);
@@ -198,11 +265,20 @@ const ManageTab: React.FC = () => {
         window.history.replaceState({}, '', window.location.pathname + '?tab=manage');
       }
     }
-  }, [user]);
+    return () => {
+      isMountedRef.current = false;
+      // Invalidate any still-in-flight request so its delayed response
+      // cannot overwrite state in a remounted component.
+      requestIdRef.current += 1;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checkSubscription]);
 
   const handleManageBilling = async () => {
-    // Centralized: same MFA prompt, retry, and sanitized toast behavior
-    // as everywhere else billing is opened.
+    // Centralized: same MFA prompt, retry, sanitized toast behavior,
+    // module-level concurrency lock as everywhere else billing is opened.
+    // `busy` results are silently discarded — the button is also
+    // disabled while portalLoading as UX defense.
     await openCustomerPortal();
   };
 
@@ -338,8 +414,53 @@ const ManageTab: React.FC = () => {
     );
   }
 
+  // ===== SIGNED-OUT VIEW =====
+  // The session was missing on the server-trip. Do NOT render a checkout
+  // CTA — we can't authenticate this user; redirect them to sign in.
+  if (isSignedOut) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Subscription</CardTitle>
+            <CardDescription>Sign in to manage your plan.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => navigate('/login')} className="w-full">
+              Sign in
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // ===== ERROR / RETRY VIEW =====
+  // The subscription check failed (network/edge/invalid shape). Never
+  // assume "unsubscribed" — give the user a retry instead.
+  if (subscriptionCheckError) {
+    return (
+      <div className="space-y-6">
+        <Card className="border-destructive/30">
+          <CardHeader>
+            <CardTitle>Couldn't load your plan</CardTitle>
+            <CardDescription>{subscriptionCheckError}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => checkSubscription()} disabled={isCheckingSubscription} variant="outline">
+              Try again
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   // ===== NOT SUBSCRIBED VIEW =====
-  if (!hasActivePlan) {
+  // Only render this branch when the most recent response was an
+  // authoritative `{subscribed: false}` — never on the default placeholder
+  // value, never on a transient/loading state.
+  if (lastResponseWasAuthoritative && !hasActivePlan) {
     const displayPrice = billingInterval === 'year' ? planConfig.yearlyPrice : planConfig.monthlyPrice;
     const priceLabel = billingInterval === 'year' ? '/year' : '/month';
 
@@ -439,6 +560,29 @@ const ManageTab: React.FC = () => {
           title="Delete Account"
           description="Are you sure you want to delete your account? All your data will be permanently removed and this action cannot be undone."
         />
+      </div>
+    );
+  }
+
+  // ===== DEFENSIVE FALLBACK =====
+  // We have no authoritative response yet and no error. Should be
+  // unreachable in practice (the loading/error/signed-out branches above
+  // cover every code path), but render a neutral skeleton rather than
+  // defaulting to the subscribed UI with placeholder data.
+  if (!lastResponseWasAuthoritative) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Subscription</CardTitle>
+            <CardDescription>Loading your current plan…</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-center py-10">
+              <Clock className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }

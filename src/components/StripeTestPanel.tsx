@@ -6,14 +6,22 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useOpenCustomerPortal } from '@/hooks/useOpenCustomerPortal';
 import { CreditCard, CheckCircle, XCircle, Clock } from 'lucide-react';
 
 export const StripeTestPanel = () => {
   const { user } = useAuth();
   const { subscriptionStatus, refreshSubscription } = useSubscription();
   const { toast } = useToast();
+  // Use the centralized portal opener so this panel inherits the same MFA
+  // step-up, sanitized toasts, popup-blocker handling, and module-level
+  // concurrency lock as every other billing entry point. `newTab: true`
+  // keeps the panel page in place so it can still render the pass/fail
+  // result (same-tab navigation would unload us before recording).
+  const { open: openCustomerPortal } = useOpenCustomerPortal({ newTab: true });
   const [testing, setTesting] = useState(false);
   const [testResults, setTestResults] = useState<any[]>([]);
+
 
   const runStripeTests = async () => {
     if (!user) {
@@ -47,23 +55,37 @@ export const StripeTestPanel = () => {
       });
     }
 
-    // Test 2: Customer portal access
+    // Test 2: Customer portal access — via centralized hook.
+    // The hook returns a typed result and owns its own sanitized toasts.
+    // We never inspect the toast surface, never see the portal URL, and
+    // never call `customer-portal` directly from this panel.
     try {
-      const { data, error } = await supabase.functions.invoke('customer-portal');
-      results.push({
-        test: 'Customer Portal Access',
-        status: error ? 'failed' : 'passed',
-        data: data || error,
-        details: error ? `Error: ${error.message}` : 'Portal URL generated successfully'
-      });
-    } catch (error) {
+      const result = await openCustomerPortal();
+      if (result.ok === true) {
+        results.push({
+          test: 'Customer Portal Access',
+          status: 'passed',
+          data: null,
+          details: 'Portal opened in new tab',
+        });
+      } else {
+        const reason = (result as { ok: false; reason: string }).reason;
+        results.push({
+          test: 'Customer Portal Access',
+          status: 'failed',
+          data: { reason },
+          details: `Portal not opened (${reason})`,
+        });
+      }
+    } catch {
       results.push({
         test: 'Customer Portal Access',
         status: 'failed',
         data: null,
-        details: `Error: ${error.message}`
+        details: 'Portal not opened (unexpected error)',
       });
     }
+
 
     // Test 3: Payment history retrieval
     try {
