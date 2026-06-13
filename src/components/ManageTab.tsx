@@ -564,6 +564,29 @@ const ManageTab: React.FC = () => {
     );
   }
 
+  // ===== DEFENSIVE FALLBACK =====
+  // We have no authoritative response yet and no error. Should be
+  // unreachable in practice (the loading/error/signed-out branches above
+  // cover every code path), but render a neutral skeleton rather than
+  // defaulting to the subscribed UI with placeholder data.
+  if (!lastResponseWasAuthoritative) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Subscription</CardTitle>
+            <CardDescription>Loading your current plan…</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-center py-10">
+              <Clock className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   // ===== SUBSCRIBED VIEW =====
   return (
     <div className="space-y-6">
