@@ -444,31 +444,31 @@ async function handlePaymentSucceeded(
   supabase: any, stripe: Stripe, invoice: Stripe.Invoice, sourceEventId: string
 ) {
   logStep('Handling payment success', { invoiceId: invoice.id });
-  
+
   if (invoice.customer) {
-    const customer = await getCustomerEmail(stripe, invoice.customer as string);
-    if (customer?.email) {
-      const { data: usersData } = await supabase.auth.admin.listUsers();
-      const user = usersData?.users?.find((u: any) => u.email === customer.email);
-      
-      if (user) {
-        const { data: entitlement } = await supabase
-          .from('entitlements')
-          .select('status')
-          .eq('user_id', user.id)
-          .maybeSingle();
+    const user = await findUserForStripeCustomer(supabase, stripe, invoice.customer as string);
+    if (user) {
+      const { data: entitlement } = await supabase
+        .from('entitlements')
+        .select('status')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-        if (entitlement && entitlement.status !== 'active') {
-          await supabase.from('entitlements').update({
-            status: 'active',
-            subscription_status: 'active',
-            source_event_id: sourceEventId,
-            updated_at: new Date().toISOString()
-          }).eq('user_id', user.id);
-        }
-
-        await applyAccountStatusFromStripe(supabase, user.id, 'active');
+      if (entitlement && entitlement.status !== 'active') {
+        await supabase.from('entitlements').update({
+          status: 'active',
+          subscription_status: 'active',
+          source_event_id: sourceEventId,
+          updated_at: new Date().toISOString()
+        }).eq('user_id', user.id);
       }
+
+      await supabase.from('profiles').update({
+        plan_status: 'active',
+        updated_at: new Date().toISOString()
+      }).eq('user_id', user.id);
+
+      await applyAccountStatusFromStripe(supabase, user.id, 'active');
     }
   }
 
@@ -484,32 +484,26 @@ async function handlePaymentFailed(
   supabase: any, stripe: Stripe, invoice: Stripe.Invoice, sourceEventId: string
 ) {
   logStep('Handling payment failure', { invoiceId: invoice.id });
-  
-  if (invoice.customer) {
-    const customer = await getCustomerEmail(stripe, invoice.customer as string);
-    if (customer?.email) {
-      const { data: usersData } = await supabase.auth.admin.listUsers();
-      const user = usersData?.users?.find((u: any) => u.email === customer.email);
-      
-      if (user) {
-        await supabase.from('entitlements').update({
-          status: 'past_due',
-          subscription_status: 'past_due',
-          source_event_id: sourceEventId,
-          updated_at: new Date().toISOString()
-        }).eq('user_id', user.id);
 
-        // Start (or update) the 7-day grace period — does NOT flip to read-only yet.
-        await applyAccountStatusFromStripe(supabase, user.id, 'past_due');
-      }
+  if (invoice.customer) {
+    const user = await findUserForStripeCustomer(supabase, stripe, invoice.customer as string);
+    if (user) {
+      await supabase.from('entitlements').update({
+        status: 'past_due',
+        subscription_status: 'past_due',
+        source_event_id: sourceEventId,
+        updated_at: new Date().toISOString()
+      }).eq('user_id', user.id);
+
+      await supabase.from('profiles').update({
+        plan_status: 'past_due',
+        updated_at: new Date().toISOString()
+      }).eq('user_id', user.id);
+
+      // Start (or update) the 7-day grace period - does NOT flip to read-only yet.
+      await applyAccountStatusFromStripe(supabase, user.id, 'past_due');
     }
   }
-
-
-  await supabase.from('profiles').update({
-    plan_status: 'past_due',
-    updated_at: new Date().toISOString()
-  }).eq('stripe_customer_id', invoice.customer);
 
   await supabase.from('subscribers').update({
     last_payment_failure_check: new Date().toISOString(),
@@ -675,6 +669,43 @@ async function getCustomerEmail(stripe: Stripe, customerId: string): Promise<Str
     logStep('Error retrieving customer', error);
     return null;
   }
+}
+
+async function findUserForStripeCustomer(
+  supabase: any,
+  stripe: Stripe,
+  customerId: string,
+): Promise<{ id: string; email?: string } | null> {
+  const { data: entitlement } = await supabase
+    .from('entitlements')
+    .select('user_id')
+    .eq('stripe_customer_id', customerId)
+    .limit(1)
+    .maybeSingle();
+  if (entitlement?.user_id) return { id: entitlement.user_id };
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('user_id')
+    .eq('stripe_customer_id', customerId)
+    .limit(1)
+    .maybeSingle();
+  if (profile?.user_id) return { id: profile.user_id };
+
+  const customer = await getCustomerEmail(stripe, customerId);
+  if (!customer?.email) {
+    logStep('No user found for Stripe customer', { customerId });
+    return null;
+  }
+
+  const { data: usersData } = await supabase.auth.admin.listUsers();
+  const user = usersData?.users?.find((u: any) => u.email === customer.email);
+  if (!user) {
+    logStep('No user found for Stripe customer email', { customerId, email: customer.email });
+    return null;
+  }
+
+  return { id: user.id, email: user.email };
 }
 
 async function sendPaymentReceipt(supabase: any, session: Stripe.Checkout.Session) {
