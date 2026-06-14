@@ -95,6 +95,7 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [activeAccountId, setActiveAccountId] = useState<string | null>(null);
   const [ownerAccountStatus, setOwnerAccountStatus] = useState<OwnerAccountStatus>('active');
   const [isAccountReadOnly, setIsAccountReadOnly] = useState(false);
+  const [writeStateRefreshKey, setWriteStateRefreshKey] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const fetchAllMemberships = useCallback(async () => {
@@ -351,7 +352,35 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return () => {
       cancelled = true;
     };
-  }, [user?.id, activeAccountId, currentAccount?.ownerUserId]);
+  }, [user?.id, activeAccountId, currentAccount?.ownerUserId, writeStateRefreshKey]);
+
+  useEffect(() => {
+    if (!ownerUserId) return;
+
+    const channel = supabase
+      .channel(`owner-profile-status-${ownerUserId}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `user_id=eq.${ownerUserId}` },
+        (payload: { new?: { account_status?: OwnerAccountStatus }; old?: { account_status?: OwnerAccountStatus } }) => {
+          const nextStatus = payload.new?.account_status;
+          const previousStatus = payload.old?.account_status;
+
+          if (nextStatus && nextStatus !== previousStatus) {
+            setOwnerAccountStatus(nextStatus);
+            setIsAccountReadOnly(READ_ONLY_ACCOUNT_STATUSES.has(nextStatus));
+            return;
+          }
+
+          setWriteStateRefreshKey((key) => key + 1);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [ownerUserId]);
 
   const showReadOnlyRestriction = () => {
     if (isAccountReadOnly) {
