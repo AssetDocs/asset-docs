@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield, Database, Users, Clock, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { invokeWithStepUp } from '@/lib/invokeWithStepUp';
+import { invokeWithStepUp, isStepUpCancelled, isStepUpPromptFailed } from '@/lib/invokeWithStepUp';
 import { useStepUpPrompt } from '@/contexts/StepUpContext';
 
 interface Props {
@@ -65,6 +64,23 @@ const CancelSubscriptionDialog: React.FC<Props> = ({ open, onClose, onCancelled,
           description: 'For security, confirm your authenticator before cancelling your subscription.',
         }),
       );
+      if (isStepUpCancelled(error)) {
+        toast({
+          title: 'Verification cancelled',
+          description: 'Your subscription was not cancelled.',
+        });
+        setSubmitting(false);
+        return;
+      }
+      if (isStepUpPromptFailed(error)) {
+        toast({
+          title: 'Verification failed',
+          description: 'Could not complete verification. Please try again.',
+          variant: 'destructive',
+        });
+        setSubmitting(false);
+        return;
+      }
       if (error) throw error;
       toast({
         title: 'Cancellation confirmed',
@@ -73,10 +89,11 @@ const CancelSubscriptionDialog: React.FC<Props> = ({ open, onClose, onCancelled,
       });
       onCancelled?.();
       handleClose();
-    } catch (e: any) {
+    } catch (e: unknown) {
+      console.error('[CancelSubscriptionDialog] cancel failed:', e);
       toast({
         title: 'Could not cancel subscription',
-        description: e?.message || 'Please try again or contact support.',
+        description: 'Please try again or contact support.',
         variant: 'destructive',
       });
       setSubmitting(false);

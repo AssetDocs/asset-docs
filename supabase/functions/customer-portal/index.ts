@@ -49,19 +49,38 @@ serve(async (req) => {
 
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+
+    const { data: entitlement } = await supabaseClient
+      .from("entitlements")
+      .select("stripe_customer_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    const { data: profile } = await supabaseClient
+      .from("profiles")
+      .select("stripe_customer_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
     
+    const storedCustomerId = entitlement?.stripe_customer_id || profile?.stripe_customer_id || null;
+
     let customerId: string;
-    if (customers.data.length === 0) {
-      const newCustomer = await stripe.customers.create({
-        email: user.email,
-        metadata: { user_id: user.id }
-      });
-      customerId = newCustomer.id;
-      logStep("Created new Stripe customer", { customerId });
+    if (storedCustomerId) {
+      customerId = storedCustomerId;
+      logStep("Using stored Stripe customer", { customerId });
     } else {
-      customerId = customers.data[0].id;
-      logStep("Found existing Stripe customer", { customerId });
+      const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+      if (customers.data.length > 0) {
+        customerId = customers.data[0].id;
+        logStep("Found existing Stripe customer by email", { customerId });
+      } else {
+        const newCustomer = await stripe.customers.create({
+          email: user.email,
+          metadata: { user_id: user.id }
+        });
+        customerId = newCustomer.id;
+        logStep("Created new Stripe customer", { customerId });
+      }
     }
 
     const origin = req.headers.get("origin") || "https://www.getassetsafe.com";
