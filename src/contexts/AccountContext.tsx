@@ -5,6 +5,23 @@ import { useAuth } from './AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 type AccountRole = 'owner' | 'full_access' | 'read_only' | null;
+type OwnerAccountStatus =
+  | 'active'
+  | 'cancelled_billing_active'
+  | 'expired_read_only'
+  | 'deletion_requested'
+  | 'scheduled_for_deletion'
+  | 'deleted'
+  | 'inactive'
+  | string;
+
+const READ_ONLY_ACCOUNT_STATUSES = new Set([
+  'expired_read_only',
+  'deletion_requested',
+  'scheduled_for_deletion',
+  'deleted',
+  'inactive',
+]);
 
 interface AccountInfo {
   accountId: string;
@@ -45,6 +62,8 @@ interface AccountContextType {
   canManageBilling: boolean;
   canAccessSettings: boolean;
   canAccessEncryptedVault: boolean;
+  ownerAccountStatus: OwnerAccountStatus;
+  isAccountReadOnly: boolean;
   loading: boolean;
 
   // Member status
@@ -74,12 +93,16 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const { toast } = useToast();
   const [accounts, setAccounts] = useState<AccountInfo[]>([]);
   const [activeAccountId, setActiveAccountId] = useState<string | null>(null);
+  const [ownerAccountStatus, setOwnerAccountStatus] = useState<OwnerAccountStatus>('active');
+  const [isAccountReadOnly, setIsAccountReadOnly] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const fetchAllMemberships = useCallback(async () => {
     if (!user) {
       setAccounts([]);
       setActiveAccountId(null);
+      setOwnerAccountStatus('active');
+      setIsAccountReadOnly(false);
       setLoading(false);
       return;
     }
@@ -100,6 +123,8 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (!memberships || memberships.length === 0) {
         setAccounts([]);
         setActiveAccountId(null);
+        setOwnerAccountStatus('active');
+        setIsAccountReadOnly(false);
         setLoading(false);
         return;
       }
@@ -248,9 +273,10 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const isOwner = accountRole === 'owner';
   const isFullAccess = accountRole === 'full_access';
-  const isReadOnly = accountRole === 'read_only';
-  const canEdit = isOwner || isFullAccess;
-  const canDelete = isOwner;
+  const isRoleReadOnly = accountRole === 'read_only';
+  const isReadOnly = isRoleReadOnly || isAccountReadOnly;
+  const canEdit = !isAccountReadOnly && (isOwner || isFullAccess);
+  const canDelete = !isAccountReadOnly && isOwner;
   const canManageBilling = isOwner;
   const canAccessSettings = isOwner;
   const canAccessEncryptedVault = isOwner || isFullAccess;
@@ -266,7 +292,77 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const ownedWorkspaceId = ownedAccounts[0]?.accountId || null;
   const sharedWorkspaceIds = sharedAccounts.map(a => a.accountId);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const reset = () => {
+      if (cancelled) return;
+      setOwnerAccountStatus('active');
+      setIsAccountReadOnly(false);
+    };
+
+    const loadWriteState = async () => {
+      if (!user?.id || !activeAccountId) {
+        reset();
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .rpc('get_account_write_state' as any, { p_account_id: activeAccountId } as any)
+          .maybeSingle();
+
+        if (!cancelled && !error && data) {
+          const status = data.owner_account_status || 'active';
+          setOwnerAccountStatus(status);
+          setIsAccountReadOnly(!!data.is_read_only);
+          return;
+        }
+
+        if (error) {
+          console.error('Error fetching account write state:', error);
+        }
+
+        // Fallback for the owner if the RPC has not been applied yet.
+        if (currentAccount?.ownerUserId === user.id) {
+          const { data: ownProfile } = await supabase
+            .from('profiles')
+            .select('account_status')
+            .eq('user_id', user.id)
+            .maybeSingle();
+
+          if (!cancelled) {
+            const status = ownProfile?.account_status || 'active';
+            setOwnerAccountStatus(status);
+            setIsAccountReadOnly(READ_ONLY_ACCOUNT_STATUSES.has(status));
+          }
+          return;
+        }
+
+        reset();
+      } catch (error) {
+        console.error('Error loading account write state:', error);
+        reset();
+      }
+    };
+
+    loadWriteState();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, activeAccountId, currentAccount?.ownerUserId]);
+
   const showReadOnlyRestriction = () => {
+    if (isAccountReadOnly) {
+      toast({
+        title: "Account is read-only",
+        description: "This account is currently read-only. Reactivate billing or resolve the account status before making changes.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     toast({
       title: "Access Restricted",
       description: "Authorized users with Read Only access are not allowed to make changes to this account.",
@@ -298,6 +394,8 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
         canManageBilling,
         canAccessSettings,
         canAccessEncryptedVault,
+        ownerAccountStatus,
+        isAccountReadOnly,
         loading,
         isContributor,
         isMember,

@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { PropertyService } from '@/services/PropertyService';
-import { useCanWrite } from '@/hooks/useAccountStatus';
+import { useAccount } from '@/contexts/AccountContext';
 import { useToast } from '@/hooks/use-toast';
 
 // Parse a possibly-formatted currency string like "$425,000" or "425000" → number | null.
@@ -32,7 +32,7 @@ const parseIntOrNull = (value: string): number | null => {
 const PropertyForm: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const canWrite = useCanWrite();
+  const { canEdit: canWrite, showReadOnlyRestriction } = useAccount();
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -54,11 +54,7 @@ const PropertyForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canWrite) {
-      toast({
-        title: 'Read-only access',
-        description: 'Your role does not allow creating properties in this workspace.',
-        variant: 'destructive',
-      });
+      showReadOnlyRestriction();
       return;
     }
     if (saving) return;
