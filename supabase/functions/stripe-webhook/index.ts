@@ -97,7 +97,7 @@ serve(async (req) => {
       stripe_event_id: event.id,
       event_type: event.type,
       payload: event.data,
-      outcome: 'received'
+      outcome: 'pending'
     });
 
     if (claimError?.code === '23505') {
@@ -127,7 +127,7 @@ serve(async (req) => {
       currency: eventObject.currency || 'usd'
     });
 
-    let outcome = 'processed';
+    let outcome = 'success';
     try {
       switch (event.type) {
         case 'customer.subscription.created':
@@ -165,7 +165,7 @@ serve(async (req) => {
         }
         default:
           logStep('Unhandled event type', { type: event.type });
-          outcome = 'unhandled';
+          outcome = 'skipped';
       }
     } catch (processingError) {
       outcome = 'error';
