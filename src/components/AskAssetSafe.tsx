@@ -26,7 +26,7 @@ const WELCOME_MESSAGE = "Hi! I can help you understand how Asset Safe works, cho
 const KNOWLEDGE_BASE = {
   plans: {
     keywords: ['plan', 'pricing', 'cost', 'subscription', 'price', 'tier', 'monthly', 'annual', 'right for me'],
-    response: `Asset Safe offers two main plans:\n\n**Standard (Homeowner) - $12.99/month**\n• Up to 3 properties\n• 20GB storage\n• Photo, video, and document uploads\n• Legacy Locker access\n\n**Premium (Professional) - $18.99/month**\n• Unlimited properties\n• 100GB storage\n• Priority support\n• Advanced sharing features\n\nBoth plans include all core features. If you have multiple properties or need more storage, Premium is recommended. Visit our [Pricing page](/pricing) for full details.`
+    response: `Asset Safe is one simple plan that covers everything:\n\n**Asset Safe Plan**\n• Unlimited properties\n• 50GB secure cloud storage (+25GB add-on available)\n• Photo, video, and document uploads\n• Legacy Locker, Authorized Users, and shared vault access\n• Priority support\n\nNeed more space? You can add a 25GB storage block at any time from your account. Visit our [Pricing page](/pricing) for full details.`
   },
   insurance: {
     keywords: ['insurance', 'claim', 'coverage', 'damage', 'loss', 'proof', 'documentation for insurance'],

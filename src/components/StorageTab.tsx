@@ -2,39 +2,41 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, ArrowUp, HardDrive } from 'lucide-react';
+import { AlertTriangle, HardDrive, Plus, Loader2 } from 'lucide-react';
 import StorageDashboard from './StorageDashboard';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { getStorageLimit, formatStorageSize } from '@/config/subscriptionFeatures';
 import { FeatureGuard } from './FeatureGuard';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const StorageTab: React.FC = () => {
-  const { subscriptionTier, hasFeature, billingStatus } = useSubscription();
-  const [showUpgradeOptions, setShowUpgradeOptions] = useState(false);
+  const { subscriptionTier, billingStatus } = useSubscription();
+  const { toast } = useToast();
+  const [addingStorage, setAddingStorage] = useState(false);
 
   const storageLimit = getStorageLimit(subscriptionTier);
   const isUnlimited = storageLimit === null;
 
-  const getUpgradeRecommendation = () => {
-    switch (subscriptionTier) {
-      case 'standard':
-        return {
-          tier: 'Premium',
-          storage: '100GB',
-          price: '$18.99/month',
-          benefits: ['100GB storage', 'Unlimited properties', 'Priority support']
-        };
-      default:
-        return {
-          tier: 'Premium',
-          storage: '100GB',
-          price: '$18.99/month',
-          benefits: ['100GB storage', 'Unlimited properties', 'Priority support']
-        };
+  const handleAddStorage = async () => {
+    setAddingStorage(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('add-storage-25gb');
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL returned');
+      }
+    } catch (err: any) {
+      toast({
+        title: 'Could not start storage add-on checkout',
+        description: err?.message || 'Please try again in a moment.',
+        variant: 'destructive',
+      });
+      setAddingStorage(false);
     }
   };
-
-  const upgradeOption = getUpgradeRecommendation();
 
   return (
     <div className="space-y-6">
@@ -50,16 +52,12 @@ const StorageTab: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-semibold">
-                {subscriptionTier ? 
-                  `${subscriptionTier.charAt(0).toUpperCase() + subscriptionTier.slice(1)} Plan` : 
-                  'Free Plan'
-                }
+                {subscriptionTier ? 'Asset Safe Plan' : 'Free Plan'}
               </h3>
               <p className="text-sm text-muted-foreground">
-                {isUnlimited ? 
-                  'Unlimited storage space' : 
-                  `${formatStorageSize(storageLimit || 0)} storage limit`
-                }
+                {isUnlimited
+                  ? 'Unlimited storage space'
+                  : `${formatStorageSize(storageLimit || 0)} storage limit`}
               </p>
             </div>
             <Badge variant={isUnlimited ? 'default' : 'secondary'}>
@@ -67,50 +65,36 @@ const StorageTab: React.FC = () => {
             </Badge>
           </div>
 
-          {!isUnlimited && upgradeOption && billingStatus !== 'gifted' && (
+          {!isUnlimited && billingStatus !== 'gifted' && (
             <div className="border rounded-lg p-4 bg-muted/50">
-              <div className="flex items-start justify-between mb-3">
+              <div className="flex items-start justify-between gap-3">
                 <div>
-                  <h4 className="font-medium text-sm">Need more storage?</h4>
-                  <p className="text-xs text-muted-foreground">
-                    Upgrade to {upgradeOption.tier} for {upgradeOption.storage}
+                  <h4 className="font-medium text-sm">Need more space?</h4>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Add a 25GB storage block to your current plan. Billed monthly via Stripe.
                   </p>
                 </div>
                 <Button
                   size="sm"
-                  onClick={() => setShowUpgradeOptions(!showUpgradeOptions)}
-                  variant="outline"
+                  onClick={handleAddStorage}
+                  disabled={addingStorage}
                 >
-                  <ArrowUp className="h-4 w-4 mr-1" />
-                  Upgrade
+                  {addingStorage ? (
+                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                  ) : (
+                    <Plus className="h-4 w-4 mr-1" />
+                  )}
+                  Add 25GB
                 </Button>
               </div>
-              
-              {showUpgradeOptions && (
-                <div className="border-t pt-3 mt-3">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>{upgradeOption.tier} Plan</span>
-                      <span className="font-medium">{upgradeOption.price}</span>
-                    </div>
-                    <ul className="text-xs text-muted-foreground space-y-1">
-                      {upgradeOption.benefits.map((benefit, index) => (
-                        <li key={index} className="flex items-center gap-1">
-                          <span className="w-1 h-1 bg-current rounded-full"></span>
-                          {benefit}
-                        </li>
-                      ))}
-                    </ul>
-                    <Button 
-                      size="sm" 
-                      className="w-full mt-3"
-                      onClick={() => window.open('/pricing', '_blank')}
-                    >
-                      View Pricing Plans
-                    </Button>
-                  </div>
-                </div>
-              )}
+              <div className="mt-3">
+                <a
+                  href="/pricing"
+                  className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
+                >
+                  View Pricing
+                </a>
+              </div>
             </div>
           )}
         </CardContent>

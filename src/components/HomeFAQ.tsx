@@ -30,7 +30,7 @@ const HomeFAQ: React.FC = () => {
     },
     {
       question: "How many properties can I document?",
-      answer: "Our Standard plan supports up to 3 properties with 25GB storage, perfect for most homeowners. The Premium plan offers unlimited properties with 100GB storage, ideal for landlords, estate managers, or multi-property owners."
+      answer: "The Asset Safe plan includes unlimited properties and 50GB of secure cloud storage, with an optional 25GB add-on if you need more space — ideal for homeowners, landlords, estate managers, and multi-property owners alike."
     },
     {
       question: "Can I share access with family members or professionals?",
