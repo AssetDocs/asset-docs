@@ -11,7 +11,16 @@ interface PropertyPhotosProps {
 }
 
 const PropertyPhotos: React.FC<PropertyPhotosProps> = ({ propertyId, onViewPhotoGallery }) => {
-  const { files: photos, isLoading, isUploading, uploadFiles, deleteFile } = usePropertyFiles(propertyId, 'photo');
+  const {
+    files: photos,
+    isLoading,
+    isUploading,
+    uploadFiles,
+    deleteFile,
+    canUpload,
+    isAccountReadOnly,
+    showReadOnlyRestriction,
+  } = usePropertyFiles(propertyId, 'photo');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const formatDate = (dateString: string) => {
@@ -23,6 +32,12 @@ const PropertyPhotos: React.FC<PropertyPhotosProps> = ({ propertyId, onViewPhoto
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!canUpload) {
+      showReadOnlyRestriction();
+      e.target.value = '';
+      return;
+    }
+
     const files = e.target.files;
     if (files && files.length > 0) {
       await uploadFiles(Array.from(files));
@@ -53,15 +68,15 @@ const PropertyPhotos: React.FC<PropertyPhotosProps> = ({ propertyId, onViewPhoto
           <Button 
             variant="outline" 
             size="sm"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading}
+            onClick={() => canUpload ? fileInputRef.current?.click() : showReadOnlyRestriction()}
+            disabled={isUploading || !canUpload}
           >
             {isUploading ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
             ) : (
               <Upload className="h-4 w-4 mr-2" />
             )}
-            Upload Photos
+            {isAccountReadOnly ? 'Reactivate to upload files' : 'Upload Photos'}
           </Button>
           <Button 
             variant="outline" 
@@ -91,9 +106,12 @@ const PropertyPhotos: React.FC<PropertyPhotosProps> = ({ propertyId, onViewPhoto
         <div className="text-center text-gray-500 p-8 border border-dashed rounded-lg">
           <Camera className="h-12 w-12 mx-auto text-gray-300 mb-2" />
           <p className="mb-4">No photos uploaded yet</p>
-          <Button onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
+          <Button
+            onClick={() => canUpload ? fileInputRef.current?.click() : showReadOnlyRestriction()}
+            disabled={isUploading || !canUpload}
+          >
             <Upload className="h-4 w-4 mr-2" />
-            Upload First Photo
+            {isAccountReadOnly ? 'Reactivate to upload files' : 'Upload First Photo'}
           </Button>
         </div>
       ) : (

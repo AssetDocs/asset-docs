@@ -11,7 +11,16 @@ interface PropertyVideosProps {
 }
 
 const PropertyVideos: React.FC<PropertyVideosProps> = ({ propertyId }) => {
-  const { files: videos, isLoading, isUploading, uploadFiles, deleteFile } = usePropertyFiles(propertyId, 'video');
+  const {
+    files: videos,
+    isLoading,
+    isUploading,
+    uploadFiles,
+    deleteFile,
+    canUpload,
+    isAccountReadOnly,
+    showReadOnlyRestriction,
+  } = usePropertyFiles(propertyId, 'video');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [videoToDelete, setVideoToDelete] = useState<{id: string, path: string, bucket: string} | null>(null);
@@ -25,6 +34,12 @@ const PropertyVideos: React.FC<PropertyVideosProps> = ({ propertyId }) => {
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!canUpload) {
+      showReadOnlyRestriction();
+      e.target.value = '';
+      return;
+    }
+
     const files = e.target.files;
     if (files && files.length > 0) {
       await uploadFiles(Array.from(files));
@@ -67,15 +82,15 @@ const PropertyVideos: React.FC<PropertyVideosProps> = ({ propertyId }) => {
         <Button 
           variant="outline" 
           size="sm"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={isUploading}
+          onClick={() => canUpload ? fileInputRef.current?.click() : showReadOnlyRestriction()}
+          disabled={isUploading || !canUpload}
         >
           {isUploading ? (
             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
           ) : (
             <Upload className="h-4 w-4 mr-2" />
           )}
-          Upload Videos
+          {isAccountReadOnly ? 'Reactivate to upload files' : 'Upload Videos'}
         </Button>
       </div>
       
@@ -96,9 +111,12 @@ const PropertyVideos: React.FC<PropertyVideosProps> = ({ propertyId }) => {
         <div className="text-center text-gray-500 p-8 border border-dashed rounded-lg">
           <Video className="h-12 w-12 mx-auto text-gray-300 mb-2" />
           <p className="mb-4">No videos uploaded yet</p>
-          <Button onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
+          <Button
+            onClick={() => canUpload ? fileInputRef.current?.click() : showReadOnlyRestriction()}
+            disabled={isUploading || !canUpload}
+          >
             <Upload className="h-4 w-4 mr-2" />
-            Upload First Video
+            {isAccountReadOnly ? 'Reactivate to upload files' : 'Upload First Video'}
           </Button>
         </div>
       ) : null}

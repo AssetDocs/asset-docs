@@ -3,11 +3,13 @@ import { Property, PropertyService } from '@/services/PropertyService';
 import { PropertyNotificationService } from '@/services/PropertyNotificationService';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useAccount } from '@/contexts/AccountContext';
 
 export const useProperties = () => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { canEdit, canDelete, showReadOnlyRestriction } = useAccount();
 
   const fetchProperties = async () => {
     setIsLoading(true);
@@ -39,6 +41,11 @@ export const useProperties = () => {
   }, []);
 
   const addProperty = async (propertyData: Omit<Property, 'id' | 'created_at' | 'updated_at' | 'last_updated' | 'user_id'>) => {
+    if (!canEdit) {
+      showReadOnlyRestriction();
+      return null;
+    }
+
     const newProperty = await PropertyService.createProperty(propertyData);
     if (newProperty) {
       setProperties(prev => [newProperty, ...prev]);
@@ -66,6 +73,11 @@ export const useProperties = () => {
   };
 
   const updateProperty = async (propertyId: string, updates: Partial<Property>) => {
+    if (!canEdit) {
+      showReadOnlyRestriction();
+      return null;
+    }
+
     const existingProperty = properties.find(p => p.id === propertyId);
     const updatedProperty = await PropertyService.updateProperty(propertyId, updates);
     if (updatedProperty) {
@@ -93,6 +105,11 @@ export const useProperties = () => {
   };
 
   const deleteProperty = async (propertyId: string) => {
+    if (!canDelete) {
+      showReadOnlyRestriction();
+      return false;
+    }
+
     const propertyToDelete = properties.find(p => p.id === propertyId);
     const success = await PropertyService.deleteProperty(propertyId);
     if (success) {

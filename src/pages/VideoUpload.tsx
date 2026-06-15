@@ -32,7 +32,7 @@ const VideoUpload: React.FC = () => {
   const [selectedFolderId, setSelectedFolderId] = useState<string>('');
   const [folders, setFolders] = useState<Folder[]>([]);
   
-  const { uploadFiles, isUploading } = usePropertyFiles(defaultPropertyId, 'video');
+  const { uploadFiles, isUploading, canUpload, isAccountReadOnly, showReadOnlyRestriction } = usePropertyFiles(defaultPropertyId, 'video');
 
   useEffect(() => {
     console.log('VideoUpload mounted, user:', user?.id);
@@ -63,6 +63,12 @@ const VideoUpload: React.FC = () => {
 
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!canUpload) {
+      showReadOnlyRestriction();
+      e.target.value = '';
+      return;
+    }
+
     if (e.target.files && fileInputRef.current) {
       handleUpload(Array.from(e.target.files));
       fileInputRef.current.value = '';
@@ -70,6 +76,11 @@ const VideoUpload: React.FC = () => {
   };
 
   const handleUpload = async (files: File[]) => {
+    if (!canUpload) {
+      showReadOnlyRestriction();
+      return;
+    }
+
     if (!defaultPropertyId) {
       toast({
         title: 'Property Required',
@@ -185,27 +196,27 @@ const VideoUpload: React.FC = () => {
               {/* Upload Options */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Button
-                  onClick={() => cameraInputRef.current?.click()}
+                  onClick={() => canUpload ? cameraInputRef.current?.click() : showReadOnlyRestriction()}
                   variant="outline"
                   className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-dashed border-brand-blue/30 hover:border-brand-blue/50 hover:bg-brand-blue/5"
-                  disabled={!defaultPropertyId || isUploading}
+                  disabled={!defaultPropertyId || isUploading || !canUpload}
                 >
                   <Camera className="h-6 w-6 text-brand-blue" />
                   <div className="text-center">
-                    <div className="font-medium text-sm">Record Video</div>
+                    <div className="font-medium text-sm">{isAccountReadOnly ? 'Reactivate to upload files' : 'Record Video'}</div>
                     <div className="text-xs text-gray-500">Use camera</div>
                   </div>
                 </Button>
 
                 <Button
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => canUpload ? fileInputRef.current?.click() : showReadOnlyRestriction()}
                   variant="outline"
                   className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-dashed border-brand-blue/30 hover:border-brand-blue/50 hover:bg-brand-blue/5"
-                  disabled={!defaultPropertyId || isUploading}
+                  disabled={!defaultPropertyId || isUploading || !canUpload}
                 >
                   <Video className="h-6 w-6 text-brand-blue" />
                   <div className="text-center">
-                    <div className="font-medium text-sm">Choose Videos</div>
+                    <div className="font-medium text-sm">{isAccountReadOnly ? 'Reactivate to upload files' : 'Choose Videos'}</div>
                     <div className="text-xs text-gray-500">From gallery</div>
                   </div>
                 </Button>

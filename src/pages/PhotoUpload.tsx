@@ -37,7 +37,7 @@ const PhotoUpload: React.FC = () => {
   
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const cameraInputRef = React.useRef<HTMLInputElement>(null);
-  const { uploadFiles, isUploading } = usePropertyFiles(selectedPropertyId || null, 'photo');
+  const { uploadFiles, isUploading, canUpload, isAccountReadOnly, showReadOnlyRestriction } = usePropertyFiles(selectedPropertyId || null, 'photo');
 
   React.useEffect(() => {
     console.log('PhotoUpload mounted, user:', user?.id, 'properties:', properties.length, 'propertiesLoading:', propertiesLoading);
@@ -81,6 +81,12 @@ const PhotoUpload: React.FC = () => {
   }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!canUpload) {
+      showReadOnlyRestriction();
+      e.target.value = '';
+      return;
+    }
+
     if (e.target.files) {
       const files = Array.from(e.target.files);
       setSelectedFiles([...selectedFiles, ...files]);
@@ -98,6 +104,11 @@ const PhotoUpload: React.FC = () => {
   };
 
   const handleUpload = async () => {
+    if (!canUpload) {
+      showReadOnlyRestriction();
+      return;
+    }
+
     if (!selectedPropertyId) {
       toast({
         title: "Select a property",
@@ -260,27 +271,27 @@ const PhotoUpload: React.FC = () => {
               {/* Upload Options */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Button
-                  onClick={() => cameraInputRef.current?.click()}
+                  onClick={() => canUpload ? cameraInputRef.current?.click() : showReadOnlyRestriction()}
                   variant="outline"
                   className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-dashed border-brand-blue/30 hover:border-brand-blue/50 hover:bg-brand-blue/5"
-                  disabled={!selectedPropertyId}
+                  disabled={!selectedPropertyId || !canUpload}
                 >
                   <Camera className="h-6 w-6 text-brand-blue" />
                   <div className="text-center">
-                    <div className="font-medium text-sm">Take Photo</div>
+                    <div className="font-medium text-sm">{isAccountReadOnly ? 'Reactivate to upload files' : 'Take Photo'}</div>
                     <div className="text-xs text-gray-500">Use camera</div>
                   </div>
                 </Button>
 
                 <Button
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => canUpload ? fileInputRef.current?.click() : showReadOnlyRestriction()}
                   variant="outline"
                   className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-dashed border-brand-blue/30 hover:border-brand-blue/50 hover:bg-brand-blue/5"
-                  disabled={!selectedPropertyId}
+                  disabled={!selectedPropertyId || !canUpload}
                 >
                   <ImageIcon className="h-6 w-6 text-brand-blue" />
                   <div className="text-center">
-                    <div className="font-medium text-sm">Choose Photos</div>
+                    <div className="font-medium text-sm">{isAccountReadOnly ? 'Reactivate to upload files' : 'Choose Photos'}</div>
                     <div className="text-xs text-gray-500">From gallery</div>
                   </div>
                 </Button>
@@ -315,7 +326,7 @@ const PhotoUpload: React.FC = () => {
                   
                   <Button 
                     onClick={handleUpload}
-                    disabled={isUploading || !selectedPropertyId}
+                    disabled={isUploading || !selectedPropertyId || !canUpload}
                     className="w-full bg-brand-orange hover:bg-brand-orange/90"
                   >
                     {isUploading ? (

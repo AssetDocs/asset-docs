@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useProperties } from '@/hooks/useProperties';
 import { Property } from '@/services/PropertyService';
+import { useAccount } from '@/contexts/AccountContext';
 
 interface PropertyFormData {
   name: string;
@@ -37,6 +38,7 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
 }) => {
   const { properties, isLoading, addProperty, updateProperty, deleteProperty } = useProperties();
   const { subscriptionStatus, isInTrial, propertyLimit } = useSubscription();
+  const { canEdit, canDelete, isAccountReadOnly, showReadOnlyRestriction } = useAccount();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
@@ -101,6 +103,11 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
   };
 
   const handleEdit = (property: Property) => {
+    if (!canEdit) {
+      showReadOnlyRestriction();
+      return;
+    }
+
     setEditingProperty(property);
     setFormData({
       name: property.name,
@@ -113,6 +120,11 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
   };
 
   const handleDelete = async (propertyId: string) => {
+    if (!canDelete) {
+      showReadOnlyRestriction();
+      return;
+    }
+
     const success = await deleteProperty(propertyId);
     
     // If the deleted property was selected, clear selection
@@ -122,6 +134,11 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
   };
 
   const handleAddProperty = () => {
+    if (!canEdit) {
+      showReadOnlyRestriction();
+      return;
+    }
+
     setIsAddDialogOpen(true);
   };
 
@@ -167,9 +184,10 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
             <Button 
               className="bg-primary hover:bg-primary/90"
               onClick={handleAddProperty}
+              disabled={!canEdit}
             >
               <Plus className="h-4 w-4 mr-2" />
-              Add Property
+              {isAccountReadOnly ? 'Reactivate to add property' : 'Add Property'}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md">
@@ -292,9 +310,10 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
               <Button 
                 onClick={handleAddProperty}
                 className="bg-primary hover:bg-primary/90"
+                disabled={!canEdit}
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Add Your First Property
+                {isAccountReadOnly ? 'Reactivate to add property' : 'Add Your First Property'}
               </Button>
             </div>
           </div>
@@ -328,6 +347,7 @@ const PropertyManagement: React.FC<PropertyManagementProps> = ({
                       variant="outline"
                       size="sm"
                       onClick={() => handleEdit(property)}
+                      disabled={!canEdit}
                     >
                       <Edit3 className="h-4 w-4" />
                     </Button>

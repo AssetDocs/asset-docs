@@ -23,6 +23,8 @@ const READ_ONLY_ACCOUNT_STATUSES = new Set([
   'inactive',
 ]);
 
+const READ_ONLY_ACCOUNT_MESSAGE = 'Your account is currently read-only. Reactivate your subscription to add new properties or upload files.';
+
 interface AccountInfo {
   accountId: string;
   accountName: string;
@@ -386,7 +388,7 @@ export const AccountProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (isAccountReadOnly) {
       toast({
         title: "Account is read-only",
-        description: "This account is currently read-only. Reactivate billing or resolve the account status before making changes.",
+        description: READ_ONLY_ACCOUNT_MESSAGE,
         variant: "destructive",
       });
       return;

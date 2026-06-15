@@ -5,6 +5,7 @@ import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useToast } from '@/hooks/use-toast';
 import RateLimiter from '@/utils/rateLimiter';
 import { logActivity } from '@/hooks/useActivityLog';
+import { useAccount } from '@/contexts/AccountContext';
 
 export interface UseFileUploadOptions {
   bucket: FileType;
@@ -16,6 +17,7 @@ export const useFileUpload = (options: UseFileUploadOptions) => {
   const { user } = useAuth();
   const { subscriptionTier } = useSubscription();
   const { toast } = useToast();
+  const { canEdit, showReadOnlyRestriction } = useAccount();
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
 
@@ -26,6 +28,10 @@ export const useFileUpload = (options: UseFileUploadOptions) => {
         description: "Please log in to upload files.",
         variant: "destructive",
       });
+      return [];
+    }
+    if (!canEdit) {
+      showReadOnlyRestriction();
       return [];
     }
 

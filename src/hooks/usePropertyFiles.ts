@@ -13,7 +13,7 @@ export const usePropertyFiles = (propertyId: string | null, fileType?: 'photo' |
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
-  const { accountId, ownerUserId } = useAccount();
+  const { accountId, ownerUserId, canEdit, isAccountReadOnly, showReadOnlyRestriction } = useAccount();
   const { subscriptionTier } = useSubscription();
 
   const refreshSignedUrls = async (fileList: PropertyFile[]): Promise<PropertyFile[]> => {
@@ -99,6 +99,10 @@ export const usePropertyFiles = (propertyId: string | null, fileType?: 'photo' |
         description: 'Property or user not found',
         variant: 'destructive',
       });
+      return [];
+    }
+    if (!canEdit) {
+      showReadOnlyRestriction();
       return [];
     }
     if (!accountId || !ownerUserId) {
@@ -234,5 +238,8 @@ export const usePropertyFiles = (propertyId: string | null, fileType?: 'photo' |
     uploadFiles,
     deleteFile,
     refetch: fetchFiles,
+    canUpload: canEdit,
+    isAccountReadOnly,
+    showReadOnlyRestriction,
   };
 };
