@@ -20,7 +20,7 @@ const DownloadAllFilesButton: React.FC = () => {
   const handleDownloadAll = async () => {
     const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
     if (isOnSampleDashboard) {
-      alert('AssetSafe.net says\n\nDemo: This would download all your uploaded photos, videos, and documents as a ZIP file for backup or data portability.');
+      alert('AssetSafe.net says\n\nDemo: This would download all uploaded dashboard files and attachments as a ZIP file for backup or data portability.');
       return;
     }
 
@@ -44,7 +44,13 @@ const DownloadAllFilesButton: React.FC = () => {
       // Get real user assets from database
       const assets = await ExportService.getUserAssets(user.id);
       
-      const totalFiles = assets.photos.length + assets.videos.length + assets.documents.length;
+      const totalFiles =
+        assets.photos.length +
+        assets.videos.length +
+        assets.documents.length +
+        assets.voiceNotes.filter(note => note.audioUrl).length +
+        assets.familyRecipes.filter(recipe => recipe.fileUrl).length +
+        assets.archiveFiles.length;
       
       if (totalFiles === 0) {
         toast({
@@ -78,7 +84,7 @@ const DownloadAllFilesButton: React.FC = () => {
           Download All Files
         </CardTitle>
         <CardDescription>
-          Download all your uploaded photos, videos, and documents as a ZIP file
+          Download uploaded dashboard files and attachments as a ZIP file
         </CardDescription>
       </CardHeader>
       <CardContent>

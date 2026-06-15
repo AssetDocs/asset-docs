@@ -29,10 +29,10 @@ export const SUBSCRIPTION_FEATURES: Record<string, FeatureConfig> = {
     fallbackMessage: 'Subscribe to access cloud storage'
   },
   export_assets: {
-    name: 'Export Assets',
-    description: 'Export your asset inventory to various formats (CSV, PDF, etc.)',
+    name: 'Export Account Archive',
+    description: 'Export your account records and uploaded files as a PDF summary and ZIP archive',
     requiredTier: 'standard',
-    fallbackMessage: 'Subscribe to export your asset inventory.',
+    fallbackMessage: 'Subscribe to export your account archive.',
   },
   download_all_files: {
     name: 'Download All Files',

@@ -169,7 +169,7 @@ const PropertyAllAssets: React.FC = () => {
       await ExportService.exportCompleteAssetSummary(user.id);
       toast({
         title: "Export Started",
-        description: "Your property assets are being compiled for download."
+        description: "Your account archive is being compiled for download."
       });
     } catch (error) {
       console.error('Export error:', error);
@@ -266,17 +266,22 @@ const PropertyAllAssets: React.FC = () => {
                     <Badge variant="secondary" className="text-lg px-4 py-1">
                       {totalAssets} Total Assets
                     </Badge>
-                    <Button 
-                      onClick={handleExportAll}
-                      disabled={exporting}
-                      className="bg-white text-brand-blue hover:bg-white/90"
-                    >
-                      {exporting ? (
-                        <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Exporting...</>
-                      ) : (
-                        <><FileDown className="h-4 w-4 mr-2" /> Export PDF + ZIP</>
-                      )}
-                    </Button>
+                    <div className="text-right">
+                      <Button
+                        onClick={handleExportAll}
+                        disabled={exporting}
+                        className="bg-white text-brand-blue hover:bg-white/90"
+                      >
+                        {exporting ? (
+                          <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Exporting...</>
+                        ) : (
+                          <><FileDown className="h-4 w-4 mr-2" /> Export Account Archive</>
+                        )}
+                      </Button>
+                      <p className="mt-1 text-xs text-white/80">
+                        Includes account records, vault entries, and uploaded files.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </CardContent>

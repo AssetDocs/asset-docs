@@ -2,8 +2,38 @@ import jsPDF from 'jspdf';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { supabase } from '@/integrations/supabase/client';
-import { StorageService, FileType } from './StorageService';
 import { toast } from '@/hooks/use-toast';
+
+interface ArchiveFile {
+  id: string;
+  name: string;
+  url: string;
+  folder: string;
+  uploadDate?: string;
+  type?: string;
+}
+
+interface ExportFileRow {
+  id: string;
+  file_path?: string | null;
+  file_url?: string | null;
+  file_name?: string | null;
+  file_type?: string | null;
+  created_at?: string | null;
+  bucket_name?: string | null;
+  storage_bucket?: string | null;
+}
+
+interface ExportUserProfile {
+  account_number?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+}
+
+interface ExportVerificationData {
+  is_verified?: boolean | null;
+  is_verified_plus?: boolean | null;
+}
 
 export interface AssetSummary {
   photos: Array<{
@@ -41,9 +71,11 @@ export interface AssetSummary {
     title: string;
     description?: string;
     audioUrl?: string;
+    audioFileName?: string;
     duration?: number;
     createdAt: string;
   }>;
+  archiveFiles: ArchiveFile[];
   paintCodes: Array<{
     id: string;
     brand: string;
@@ -146,7 +178,11 @@ export class ExportService {
   /**
    * Generate a comprehensive PDF summary of all assets
    */
-  static async generateAssetSummaryPDF(assets: AssetSummary, userProfile?: any, verificationData?: any): Promise<void> {
+  static async generateAssetSummaryPDF(
+    assets: AssetSummary,
+    userProfile?: ExportUserProfile | null,
+    verificationData?: ExportVerificationData | null
+  ): Promise<void> {
     const pdf = new jsPDF();
     let yPosition = 20;
     const pageHeight = pdf.internal.pageSize.height;
@@ -675,7 +711,13 @@ export class ExportService {
     const zip = new JSZip();
     let downloadedCount = 0;
     const recipeFiles = assets.familyRecipes.filter(r => r.fileUrl);
-    const totalFiles = assets.photos.length + assets.videos.length + assets.documents.length + assets.voiceNotes.filter(n => n.audioUrl).length + recipeFiles.length;
+    const totalFiles =
+      assets.photos.length +
+      assets.videos.length +
+      assets.documents.length +
+      assets.voiceNotes.filter(n => n.audioUrl).length +
+      recipeFiles.length +
+      assets.archiveFiles.length;
 
     if (totalFiles === 0) {
       toast({
@@ -707,35 +749,53 @@ export class ExportService {
     const documentsFolder = zip.folder('documents');
     const voiceNotesFolder = zip.folder('voice-notes');
     const recipesFolder = zip.folder('family-recipes');
+    const archiveFolders: Record<string, JSZip> = {};
+
+    const sanitizeFolderName = (folder: string) =>
+      folder.replace(/[^a-zA-Z0-9/_-]/g, '-').replace(/\/+/g, '/').replace(/^\/|\/$/g, '') || 'other-files';
+
+    const sanitizeFileName = (fileName: string) =>
+      Array.from(fileName.replace(/[<>:"/\\|?*]/g, '_'))
+        .map(char => char.charCodeAt(0) < 32 ? '_' : char)
+        .join('')
+        .trim() || 'file';
+
+    const getArchiveFolder = (folder: string) => {
+      const cleanFolder = sanitizeFolderName(folder);
+      if (!archiveFolders[cleanFolder]) {
+        archiveFolders[cleanFolder] = zip.folder(cleanFolder) || zip;
+      }
+      return archiveFolders[cleanFolder];
+    };
 
     const downloadPromises: Promise<void>[] = [];
 
     // Download photos
     assets.photos.forEach((photo) => {
       if (photosFolder) {
-        downloadPromises.push(downloadFile(photo.url, photosFolder, photo.name));
+        downloadPromises.push(downloadFile(photo.url, photosFolder, sanitizeFileName(photo.name)));
       }
     });
 
     // Download videos
     assets.videos.forEach((video) => {
       if (videosFolder) {
-        downloadPromises.push(downloadFile(video.url, videosFolder, video.name));
+        downloadPromises.push(downloadFile(video.url, videosFolder, sanitizeFileName(video.name)));
       }
     });
 
     // Download documents
     assets.documents.forEach((doc) => {
       if (documentsFolder) {
-        downloadPromises.push(downloadFile(doc.url, documentsFolder, doc.name));
+        downloadPromises.push(downloadFile(doc.url, documentsFolder, sanitizeFileName(doc.name)));
       }
     });
 
     // Download voice notes
     assets.voiceNotes.forEach((note) => {
       if (voiceNotesFolder && note.audioUrl) {
-        const fileName = `${note.title.replace(/[^a-zA-Z0-9]/g, '_')}.mp3`;
-        downloadPromises.push(downloadFile(note.audioUrl, voiceNotesFolder, fileName));
+        const fileName = note.audioFileName || `${note.title.replace(/[^a-zA-Z0-9]/g, '_')}.webm`;
+        downloadPromises.push(downloadFile(note.audioUrl, voiceNotesFolder, sanitizeFileName(fileName)));
       }
     });
 
@@ -743,8 +803,15 @@ export class ExportService {
     recipeFiles.forEach((recipe) => {
       if (recipesFolder && recipe.fileUrl) {
         const fileName = recipe.fileName || `${recipe.recipeName.replace(/[^a-zA-Z0-9]/g, '_')}`;
-        downloadPromises.push(downloadFile(recipe.fileUrl, recipesFolder, fileName));
+        downloadPromises.push(downloadFile(recipe.fileUrl, recipesFolder, sanitizeFileName(fileName)));
       }
+    });
+
+    // Download dashboard attachment tables that are not represented by the
+    // core photo/video/document arrays.
+    assets.archiveFiles.forEach((file) => {
+      const folder = getArchiveFolder(file.folder);
+      downloadPromises.push(downloadFile(file.url, folder, sanitizeFileName(file.name)));
     });
 
     try {
@@ -780,6 +847,7 @@ export class ExportService {
       documents: [],
       properties: [],
       voiceNotes: [],
+      archiveFiles: [],
       paintCodes: [],
       sourceWebsites: [],
       items: [],
@@ -791,6 +859,85 @@ export class ExportService {
     };
 
     try {
+      const fileNameFromPath = (path?: string | null) => {
+        if (!path) return null;
+        const cleanPath = path.split('?')[0];
+        return cleanPath.split('/').filter(Boolean).pop() || null;
+      };
+
+      const archiveFileName = (name?: string | null, path?: string | null, fallback = 'file') =>
+        name || fileNameFromPath(path) || fallback;
+
+      const signStoragePaths = async (bucket: string, paths: string[]) => {
+        const uniquePaths = Array.from(new Set(paths.filter(Boolean)));
+        const signedMap: Record<string, string> = {};
+        if (uniquePaths.length === 0) return signedMap;
+
+        try {
+          const { data: signedUrls } = await supabase.storage
+            .from(bucket)
+            .createSignedUrls(uniquePaths, 3600);
+
+          if (signedUrls) {
+            for (const signed of signedUrls) {
+              if (signed.signedUrl && signed.path) {
+                signedMap[signed.path] = signed.signedUrl;
+              }
+            }
+          }
+        } catch (err) {
+          console.error(`Error signing archive URLs for bucket ${bucket}:`, err);
+        }
+
+        return signedMap;
+      };
+
+      const addStorageRowsToArchive = async <T extends ExportFileRow>(
+        rows: T[] | null | undefined,
+        options: {
+          folder: string;
+          fallbackName: string;
+          bucketForRow: (row: T) => string;
+          nameForRow?: (row: T) => string;
+          typeForRow?: (row: T) => string | undefined;
+        }
+      ) => {
+        const fileRows = (rows || []).filter(row => row.file_path || row.file_url);
+        if (fileRows.length === 0) return;
+
+        const bucketGroups: Record<string, string[]> = {};
+        for (const row of fileRows) {
+          if (!row.file_path) continue;
+          const bucket = options.bucketForRow(row);
+          if (!bucketGroups[bucket]) bucketGroups[bucket] = [];
+          bucketGroups[bucket].push(row.file_path);
+        }
+
+        const signedUrlMap: Record<string, string> = {};
+        for (const [bucket, paths] of Object.entries(bucketGroups)) {
+          const signedPaths = await signStoragePaths(bucket, paths);
+          for (const [path, signedUrl] of Object.entries(signedPaths)) {
+            signedUrlMap[`${bucket}:${path}`] = signedUrl;
+          }
+        }
+
+        for (const row of fileRows) {
+          const bucket = options.bucketForRow(row);
+          const signedUrl = row.file_path ? signedUrlMap[`${bucket}:${row.file_path}`] : null;
+          const url = signedUrl || row.file_url;
+          if (!url) continue;
+
+          assets.archiveFiles.push({
+            id: row.id,
+            name: options.nameForRow?.(row) || archiveFileName(row.file_name, row.file_path, `${options.fallbackName}-${row.id}`),
+            url,
+            folder: options.folder,
+            uploadDate: row.created_at || new Date().toISOString(),
+            type: options.typeForRow?.(row) || row.file_type || undefined
+          });
+        }
+      };
+
       // Fetch properties
       const { data: properties, error: propertiesError } = await supabase
         .from('properties')
@@ -1057,6 +1204,67 @@ export class ExportService {
         });
       }
 
+      // Fetch Quick Notes attachments
+      const { data: quickNotes, error: quickNotesError } = await supabase
+        .from('user_notes')
+        .select('id, title, file_name, file_path, bucket_name, created_at')
+        .eq('user_id', userId);
+
+      if (!quickNotesError && quickNotes) {
+        await addStorageRowsToArchive(quickNotes, {
+          folder: 'quick-notes',
+          fallbackName: 'quick-note',
+          bucketForRow: row => row.bucket_name || 'documents',
+          nameForRow: row => archiveFileName(row.file_name, row.file_path, `${row.title || 'quick-note'}-${row.id}`)
+        });
+      }
+
+      // Fetch Notes & Traditions attachments
+      const { data: notesTraditions, error: notesTraditionsError } = await supabase
+        .from('notes_traditions')
+        .select('id, title, file_name, file_path, file_url, bucket_name, created_at')
+        .eq('user_id', userId);
+
+      if (!notesTraditionsError && notesTraditions) {
+        await addStorageRowsToArchive(notesTraditions, {
+          folder: 'notes-traditions',
+          fallbackName: 'note-tradition',
+          bucketForRow: row => row.bucket_name || 'documents',
+          nameForRow: row => archiveFileName(row.file_name, row.file_path, `${row.title || 'note-tradition'}-${row.id}`)
+        });
+      }
+
+      // Fetch Memory Safe files
+      const { data: memorySafeItems, error: memorySafeError } = await supabase
+        .from('memory_safe_items')
+        .select('id, title, file_name, file_path, file_url, file_type, created_at')
+        .eq('user_id', userId);
+
+      if (!memorySafeError && memorySafeItems) {
+        await addStorageRowsToArchive(memorySafeItems, {
+          folder: 'memory-safe',
+          fallbackName: 'memory',
+          bucketForRow: () => 'memory-safe',
+          nameForRow: row => archiveFileName(row.file_name, row.file_path, `${row.title || 'memory'}-${row.id}`),
+          typeForRow: row => row.file_type || undefined
+        });
+      }
+
+      // Fetch Calendar attachment rows if any exist in production
+      const { data: calendarAttachments, error: calendarAttachmentsError } = await supabase
+        .from('calendar_event_attachments')
+        .select('id, file_name, file_path, file_type, created_at')
+        .eq('user_id', userId);
+
+      if (!calendarAttachmentsError && calendarAttachments) {
+        await addStorageRowsToArchive(calendarAttachments, {
+          folder: 'calendar-attachments',
+          fallbackName: 'calendar-attachment',
+          bucketForRow: () => 'documents',
+          typeForRow: row => row.file_type || undefined
+        });
+      }
+
       // Fetch voice notes
       const { data: voiceNotes, error: voiceNotesError } = await supabase
         .from('legacy_locker_voice_notes')
@@ -1071,7 +1279,7 @@ export class ExportService {
           const paths = notesWithPaths.map(n => n.audio_path!);
           try {
             const { data: signedUrls } = await supabase.storage
-              .from('memory-safe')
+              .from('documents')
               .createSignedUrls(paths, 3600);
             if (signedUrls) {
               for (const s of signedUrls) {
@@ -1088,9 +1296,25 @@ export class ExportService {
           title: note.title,
           description: note.description || undefined,
           audioUrl: (note.audio_path ? voiceSignedMap[note.audio_path] : null) || note.audio_url || undefined,
+          audioFileName: archiveFileName(null, note.audio_path, `${note.title || 'voice-note'}-${note.id}.webm`),
           duration: note.duration || undefined,
           createdAt: note.created_at || new Date().toISOString()
         }));
+      }
+
+      // Fetch files attached to voice notes
+      const { data: voiceNoteAttachments, error: voiceNoteAttachmentsError } = await supabase
+        .from('voice_note_attachments')
+        .select('id, file_name, file_path, file_url, file_type, storage_bucket, created_at')
+        .eq('user_id', userId);
+
+      if (!voiceNoteAttachmentsError && voiceNoteAttachments) {
+        await addStorageRowsToArchive(voiceNoteAttachments, {
+          folder: 'voice-note-attachments',
+          fallbackName: 'voice-note-attachment',
+          bucketForRow: row => row.storage_bucket || 'documents',
+          typeForRow: row => row.file_type || undefined
+        });
       }
 
       // Fetch paint codes with property names
@@ -1107,8 +1331,30 @@ export class ExportService {
           code: paint.paint_code,
           roomLocation: paint.room_location || undefined,
           isInterior: paint.is_interior,
-          propertyName: (paint.properties as any)?.name || undefined
+          propertyName: (paint.properties as { name?: string | null } | null)?.name || undefined
         }));
+
+        const paintSwatches = paintCodes
+          .filter(paint => paint.swatch_image_path || paint.swatch_image_url)
+          .map(paint => ({
+            id: paint.id,
+            file_path: paint.swatch_image_path,
+            file_url: paint.swatch_image_url,
+            file_name: archiveFileName(
+              null,
+              paint.swatch_image_path,
+              `${paint.paint_name || paint.paint_brand || 'paint'}-swatch`
+            ),
+            created_at: paint.created_at,
+            file_type: 'image'
+          }));
+
+        await addStorageRowsToArchive(paintSwatches, {
+          folder: 'paint-swatches',
+          fallbackName: 'paint-swatch',
+          bucketForRow: () => 'photos',
+          typeForRow: row => row.file_type || undefined
+        });
       }
 
       // Fetch source websites
@@ -1140,6 +1386,13 @@ export class ExportService {
           .select('*')
           .eq('user_id', userId);
 
+        await addStorageRowsToArchive(allAttachments, {
+          folder: 'vip-contact-attachments',
+          fallbackName: 'vip-contact-attachment',
+          bucketForRow: () => 'contact-attachments',
+          typeForRow: row => row.file_type || undefined
+        });
+
         assets.vipContacts = vipContacts.map(contact => ({
           id: contact.id,
           name: contact.name,
@@ -1152,7 +1405,7 @@ export class ExportService {
           zipCode: contact.zip_code || undefined,
           notes: contact.notes || undefined,
           priority: contact.priority,
-          isEmergencyContact: (contact as any).is_emergency_contact || false,
+          isEmergencyContact: contact.is_emergency_contact || false,
           attachments: (allAttachments || [])
             .filter(att => att.contact_id === contact.id)
             .map(att => ({
@@ -1173,7 +1426,7 @@ export class ExportService {
       if (!damageReportsError && damageReports) {
         assets.damageReports = damageReports.map(report => ({
           id: report.id,
-          propertyName: (report.properties as any)?.name || undefined,
+          propertyName: (report.properties as { name?: string | null } | null)?.name || undefined,
           dateOfDamage: report.date_of_damage || undefined,
           incidentTypes: report.incident_types || [],
           areasAffected: report.areas_affected || [],
@@ -1284,7 +1537,7 @@ export class ExportService {
     try {
       toast({
         title: "Preparing Export",
-        description: "Gathering your assets for export...",
+        description: "Gathering your account archive for export...",
       });
 
       // Get user profile and verification status in parallel
@@ -1307,7 +1560,7 @@ export class ExportService {
 
       toast({
         title: "Export Complete",
-        description: "Your asset summary and backup files have been downloaded.",
+        description: "Your account archive PDF and ZIP have been downloaded.",
       });
     } catch (error) {
       console.error('Export failed:', error);

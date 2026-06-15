@@ -9,9 +9,7 @@ import { ExportAssetsButton } from './ExportAssetsButton';
 import { FeatureButton } from '@/components/FeatureGuard';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 
-interface AccountActionsProps {}
-
-const AccountActions: React.FC<AccountActionsProps> = () => {
+const AccountActions: React.FC = () => {
   const { subscriptionTier } = useSubscription();
 
   return (
@@ -201,10 +199,10 @@ const AccountActions: React.FC<AccountActionsProps> = () => {
         <CardHeader>
           <CardTitle className="flex items-center">
             <FileText className="h-6 w-6 mr-2 text-brand-blue" />
-            Export Assets
+            Export Account Archive
           </CardTitle>
           <CardDescription>
-            Generate a comprehensive PDF summary and download all your assets in a zip file
+            Generate a comprehensive PDF summary and ZIP of account records, vault entries, and uploaded files
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -213,7 +211,7 @@ const AccountActions: React.FC<AccountActionsProps> = () => {
               // Mock export for sample dashboard
               const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
               if (isOnSampleDashboard) {
-                alert('Asset Safe says\n\nDemo: This would export your complete asset summary as a PDF and ZIP file.');
+                alert('Asset Safe says\n\nDemo: This would export your complete account archive as a PDF summary and ZIP file.');
                 return;
               }
             }}
@@ -221,7 +219,7 @@ const AccountActions: React.FC<AccountActionsProps> = () => {
             className="w-full bg-brand-green hover:bg-brand-green/90"
           >
             <FileText className="mr-2 h-4 w-4" />
-            Export Assets
+            Export Account Archive
           </Button>
         </CardContent>
       </Card>

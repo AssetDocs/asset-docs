@@ -29,7 +29,7 @@ export const ExportAssetsButton: React.FC<ExportAssetsButtonProps> = ({
     // Handle demo mode
     const isOnSampleDashboard = window.location.pathname === '/sample-dashboard';
     if (isOnSampleDashboard) {
-      alert('Asset Safe says\n\nDemo: This would export your complete asset summary as a PDF and ZIP file.');
+      alert('Asset Safe says\n\nDemo: This would export your complete account archive as a PDF summary and ZIP file.');
       return;
     }
 
@@ -70,7 +70,7 @@ export const ExportAssetsButton: React.FC<ExportAssetsButtonProps> = ({
       ) : (
         <FileDown className="mr-2 h-4 w-4" />
       )}
-      {isExporting ? 'Exporting...' : 'Export Assets'}
+      {isExporting ? 'Exporting...' : 'Export Account Archive'}
     </Button>
   );
 };

@@ -82,7 +82,13 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
     try {
       toast({ title: 'Preparing Download', description: 'Collecting all your files and creating ZIP archive...' });
       const assets = await ExportService.getUserAssets(user.id);
-      const totalFiles = assets.photos.length + assets.videos.length + assets.documents.length;
+      const totalFiles =
+        assets.photos.length +
+        assets.videos.length +
+        assets.documents.length +
+        assets.voiceNotes.filter(note => note.audioUrl).length +
+        assets.familyRecipes.filter(recipe => recipe.fileUrl).length +
+        assets.archiveFiles.length;
       if (totalFiles === 0) {
         toast({ title: 'No Files Found', description: "You haven't uploaded any files yet.", variant: 'destructive' });
         return;
@@ -262,7 +268,7 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
 
       {/* Bottom Utility Row - 3 columns (orange) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Export Assets */}
+        {/* Export Account Archive */}
         <Card className="border-l-4 border-l-orange-500 bg-white hover:shadow-lg transition-all">
           <CardContent className="pt-5 pb-5">
             <div className="flex items-start gap-3 mb-4">
@@ -270,9 +276,9 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
                 <FileDown className="h-5 w-5 text-orange-600" />
               </div>
               <div>
-                <h3 className="font-bold text-sm text-foreground">Export Assets</h3>
+                <h3 className="font-bold text-sm text-foreground">Export Account Archive</h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Generate a PDF summary of your assets.
+                  PDF summary plus ZIP of account records and files.
                 </p>
               </div>
             </div>
