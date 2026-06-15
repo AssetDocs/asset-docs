@@ -80,7 +80,7 @@ const SubscriptionCheckout: React.FC = () => {
       description: "Best suited for estate managers, multiple-property owners, or businesses",
       features: [
         "Unlimited properties",
-        "100GB secure cloud storage"
+        "50GB secure cloud storage (+25GB add-on available)"
       ],
       icon: <Star className="h-6 w-6 text-purple-600" />
     }

@@ -65,7 +65,7 @@ const ChatbotInterface: React.FC = () => {
     
     // Simple response logic based on keywords
     if (normalizedInput.includes('pricing') || normalizedInput.includes('cost') || normalizedInput.includes('price')) {
-      return "Asset Safe offers two pricing tiers: our Standard (Homeowner) plan at $12.99/month for up to 3 properties with 20GB storage, and our Premium (Professional) plan at $18.99/month for unlimited properties with 100GB storage. Both plans include comprehensive asset documentation features. You can view all pricing details on our Pricing page.";
+      return "Asset Safe is one simple plan that includes unlimited properties and 50GB of secure cloud storage, with an optional 25GB add-on if you need more space. You can view full pricing details on our Pricing page.";
     }
     
     if (normalizedInput.includes('value') || normalizedInput.includes('valuation')) {

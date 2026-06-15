@@ -175,8 +175,8 @@ const Pricing: React.FC = () => {
 
   const StorageNotation = () => (
     <div className="text-center text-sm text-muted-foreground mt-4 space-y-1">
-      <p>25GB ≈ ~1,500 photos + documents</p>
-      <p>100GB ≈ ~6,000 photos or extensive video</p>
+      <p>50GB ≈ ~3,000 photos or substantial video</p>
+      <p>+25GB add-on available anytime from your account</p>
     </div>
   );
 
