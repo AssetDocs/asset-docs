@@ -35,6 +35,16 @@ interface ExportVerificationData {
   is_verified_plus?: boolean | null;
 }
 
+interface AssetValueEntry {
+  id: string;
+  name: string;
+  value: number;
+  source: 'property' | 'item' | 'file_value';
+  category: string;
+  parentName?: string;
+  date?: string | null;
+}
+
 export interface AssetSummary {
   photos: Array<{
     id: string;
@@ -75,6 +85,7 @@ export interface AssetSummary {
     duration?: number;
     createdAt: string;
   }>;
+  assetValueEntries: AssetValueEntry[];
   archiveFiles: ArchiveFile[];
   paintCodes: Array<{
     id: string;
@@ -175,6 +186,71 @@ export interface AssetSummary {
 }
 
 export class ExportService {
+  private static csvEscape(value: string | number | null | undefined): string {
+    const text = String(value ?? '');
+    return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+  }
+
+  private static assetValueSourceLabel(source: AssetValueEntry['source']): string {
+    switch (source) {
+      case 'property':
+        return 'Real Estate';
+      case 'item':
+        return 'Inventory Item';
+      case 'file_value':
+        return 'Documented File Value';
+    }
+  }
+
+  private static buildAssetValuesSummaryCsv(entries: AssetValueEntry[]): string {
+    const summary = new Map<string, { count: number; total: number }>();
+    const grandTotal = entries.reduce((sum, entry) => sum + entry.value, 0);
+
+    for (const entry of entries) {
+      const existing = summary.get(entry.category) || { count: 0, total: 0 };
+      existing.count += 1;
+      existing.total += entry.value;
+      summary.set(entry.category, existing);
+    }
+
+    const rows = [
+      ['Category', 'Entries', 'Total Value', 'Percent of Total'],
+      ...Array.from(summary.entries())
+        .sort((a, b) => b[1].total - a[1].total)
+        .map(([category, data]) => [
+          category,
+          data.count,
+          data.total.toFixed(2),
+          grandTotal > 0 ? `${((data.total / grandTotal) * 100).toFixed(1)}%` : '0%'
+        ]),
+      ['Grand Total', entries.length, grandTotal.toFixed(2), '100%']
+    ];
+
+    return rows
+      .map(row => row.map(value => this.csvEscape(value)).join(','))
+      .join('\n');
+  }
+
+  private static buildAssetValuesItemizedCsv(entries: AssetValueEntry[]): string {
+    const rows = [
+      ['Asset Name', 'Parent', 'Category', 'Source', 'Value', 'Date'],
+      ...[...entries]
+        .sort((a, b) => b.value - a.value)
+        .map(entry => [
+          entry.name,
+          entry.parentName || '',
+          entry.category,
+          this.assetValueSourceLabel(entry.source),
+          entry.value.toFixed(2),
+          entry.date ? new Date(entry.date).toLocaleDateString() : ''
+        ])
+    ];
+
+    return rows
+      .map(row => row.map(value => this.csvEscape(value)).join(','))
+      .join('\n');
+  }
+
   /**
    * Generate a comprehensive PDF summary of all assets
    */
@@ -711,13 +787,15 @@ export class ExportService {
     const zip = new JSZip();
     let downloadedCount = 0;
     const recipeFiles = assets.familyRecipes.filter(r => r.fileUrl);
+    const assetValueFileCount = assets.assetValueEntries.length > 0 ? 2 : 0;
     const totalFiles =
       assets.photos.length +
       assets.videos.length +
       assets.documents.length +
       assets.voiceNotes.filter(n => n.audioUrl).length +
       recipeFiles.length +
-      assets.archiveFiles.length;
+      assets.archiveFiles.length +
+      assetValueFileCount;
 
     if (totalFiles === 0) {
       toast({
@@ -749,6 +827,7 @@ export class ExportService {
     const documentsFolder = zip.folder('documents');
     const voiceNotesFolder = zip.folder('voice-notes');
     const recipesFolder = zip.folder('family-recipes');
+    const assetValuesFolder = zip.folder('asset-values');
     const archiveFolders: Record<string, JSZip> = {};
 
     const sanitizeFolderName = (folder: string) =>
@@ -807,6 +886,13 @@ export class ExportService {
       }
     });
 
+    // Include read-only Asset Values rollups as generated CSV files.
+    if (assetValuesFolder && assets.assetValueEntries.length > 0) {
+      assetValuesFolder.file('asset-values-summary.csv', this.buildAssetValuesSummaryCsv(assets.assetValueEntries));
+      assetValuesFolder.file('asset-values-itemized.csv', this.buildAssetValuesItemizedCsv(assets.assetValueEntries));
+      downloadedCount += assetValueFileCount;
+    }
+
     // Download dashboard attachment tables that are not represented by the
     // core photo/video/document arrays.
     assets.archiveFiles.forEach((file) => {
@@ -847,6 +933,7 @@ export class ExportService {
       documents: [],
       properties: [],
       voiceNotes: [],
+      assetValueEntries: [],
       archiveFiles: [],
       paintCodes: [],
       sourceWebsites: [],
@@ -867,6 +954,17 @@ export class ExportService {
 
       const archiveFileName = (name?: string | null, path?: string | null, fallback = 'file') =>
         name || fileNameFromPath(path) || fallback;
+
+      const addAssetValueEntry = (entry: AssetValueEntry) => {
+        if (entry.value > 0) {
+          assets.assetValueEntries.push(entry);
+        }
+      };
+
+      const getFileItemValues = (itemValues: unknown): Array<{ name?: unknown; value?: unknown }> => {
+        if (!Array.isArray(itemValues)) return [];
+        return itemValues.filter(value => value && typeof value === 'object') as Array<{ name?: unknown; value?: unknown }>;
+      };
 
       const signStoragePaths = async (bucket: string, paths: string[]) => {
         const uniquePaths = Array.from(new Set(paths.filter(Boolean)));
@@ -954,6 +1052,17 @@ export class ExportService {
           squareFootage: p.square_footage || undefined,
           yearBuilt: p.year_built || undefined
         }));
+
+        properties.forEach(property => {
+          addAssetValueEntry({
+            id: `prop-${property.id}`,
+            name: property.name || property.address || 'Unnamed Property',
+            value: Number(property.estimated_value) || 0,
+            source: 'property',
+            category: 'Real Estate',
+            date: property.created_at
+          });
+        });
       }
 
       // Fetch property files (photos, videos, documents, floor-plans)
@@ -1024,6 +1133,22 @@ export class ExportService {
               });
               break;
           }
+
+          getFileItemValues(file.item_values).forEach((itemValue, index) => {
+            const value = Number(itemValue.value) || 0;
+            const name = typeof itemValue.name === 'string' && itemValue.name.trim()
+              ? itemValue.name.trim()
+              : 'Unnamed Value';
+            addAssetValueEntry({
+              id: `fv-${file.id}-${index + 1}`,
+              name,
+              value,
+              source: 'file_value',
+              category: 'File Documented Values',
+              parentName: file.file_name,
+              date: file.created_at
+            });
+          });
         });
       }
 
@@ -1099,6 +1224,17 @@ export class ExportService {
           condition: item.condition || undefined,
           createdAt: item.created_at || new Date().toISOString()
         }));
+
+        items.forEach(item => {
+          addAssetValueEntry({
+            id: `item-${item.id}`,
+            name: item.name || 'Unnamed Item',
+            value: Number(item.estimated_value) || 0,
+            source: 'item',
+            category: item.category || 'Other',
+            date: item.created_at
+          });
+        });
 
         // Also add item photos with fresh signed URLs
         const itemsWithPhotos = items.filter(item => item.photo_path);

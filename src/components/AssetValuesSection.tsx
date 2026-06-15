@@ -142,7 +142,7 @@ const AssetValuesSection: React.FC = () => {
           <CardHeader>
             <CardTitle>Asset Breakdown by Category</CardTitle>
             <CardDescription>
-              Accumulated values across all properties, inventory items, and documented file values
+              User-entered estimates across properties, inventory items, and documented file values.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -204,7 +204,7 @@ const AssetValuesSection: React.FC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {entries
+                    {[...entries]
                       .sort((a, b) => b.value - a.value)
                       .map((entry) => (
                         <TableRow key={entry.id}>
