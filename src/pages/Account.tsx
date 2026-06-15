@@ -19,8 +19,10 @@ import SecureVault from '@/components/SecureVault';
 import FeedbackSection from '@/components/FeedbackSection';
 import AdminContributorPlanInfo from '@/components/AdminContributorPlanInfo';
 import WelcomeBanner from '@/components/WelcomeBanner';
+import SubscriptionEndingBanner from '@/components/SubscriptionEndingBanner';
 import ExpiredSubscriptionBanner from '@/components/ExpiredSubscriptionBanner';
 import GracePeriodBanner from '@/components/GracePeriodBanner';
+import ScheduledDeletionBanner from '@/components/account/ScheduledDeletionBanner';
 import SecurityProgress from '@/components/SecurityProgress';
 import MFADropdown from '@/components/MFADropdown';
 import DashboardGrid from '@/components/DashboardGrid';
@@ -52,11 +54,12 @@ const Account: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const navigationState = location.state as { tab?: string } | null;
   const [showTour, setShowTour] = useState(false);
   const [activeTab, setActiveTab] = useState(() => {
     // Check query param first (e.g., from breadcrumb links), then navigation state
     const queryTab = searchParams.get('tab');
-    const stateTab = (location.state as any)?.tab;
+    const stateTab = navigationState?.tab;
     return queryTab || stateTab || 'overview';
   });
   const { subscriptionTier } = useSubscription();
@@ -73,7 +76,7 @@ const Account: React.FC = () => {
     if (queryTab && queryTab !== activeTab) {
       setActiveTab(queryTab);
     }
-  }, [searchParams]);
+  }, [searchParams, activeTab]);
 
   // Sync activeTab → URL so browser tab switches don't reset the view
   useEffect(() => {
@@ -166,9 +169,9 @@ const Account: React.FC = () => {
           <ViewerRestrictionBanner />
           <GracePeriodBanner />
           <ExpiredSubscriptionBanner
-            onReactivate={() => setActiveTab('manage')}
+            onReactivate={() => navigate('/account/settings?tab=manage')}
             onExport={() => setActiveTab('export')}
-            onDelete={() => setActiveTab('manage')}
+            onDelete={() => navigate('/account/settings?tab=manage')}
           />
 
 
@@ -178,6 +181,8 @@ const Account: React.FC = () => {
               <div className="mb-4">
                 <WelcomeBanner onTabChange={setActiveTab} />
               </div>
+              <SubscriptionEndingBanner />
+              <ScheduledDeletionBanner />
               <div className="mb-4">
                 <SecurityProgress hideChecklist />
               </div>
