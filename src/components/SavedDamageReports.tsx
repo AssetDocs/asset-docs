@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAccount } from '@/contexts/AccountContext';
 import { supabase } from '@/integrations/supabase/client';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import jsPDF from 'jspdf';
@@ -116,17 +117,32 @@ interface SavedDamageReportsProps {
 const SavedDamageReports: React.FC<SavedDamageReportsProps> = ({ onEditReport, refreshTrigger }) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { isOwner, isAccountReadOnly, showReadOnlyRestriction } = useAccount();
   const [reports, setReports] = useState<DamageReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [reportToDelete, setReportToDelete] = useState<DamageReport | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const canModifyDamageReports = isOwner && !isAccountReadOnly;
 
   useEffect(() => {
     if (user) {
       fetchReports();
     }
   }, [user, refreshTrigger]);
+
+  const showDamageReportRestriction = () => {
+    if (isAccountReadOnly) {
+      showReadOnlyRestriction();
+      return;
+    }
+
+    toast({
+      title: "Owner access required",
+      description: "Damage reports are owner-only for launch. Authorized users can still view shared account records.",
+      variant: "destructive",
+    });
+  };
 
   const fetchReports = async () => {
     if (!user) return;
@@ -149,6 +165,11 @@ const SavedDamageReports: React.FC<SavedDamageReportsProps> = ({ onEditReport, r
   };
 
   const handleDeleteClick = (report: DamageReport) => {
+    if (!canModifyDamageReports) {
+      showDamageReportRestriction();
+      return;
+    }
+
     setReportToDelete(report);
     setDeleteDialogOpen(true);
   };
@@ -466,7 +487,14 @@ const SavedDamageReports: React.FC<SavedDamageReportsProps> = ({ onEditReport, r
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => onEditReport(report.id, report.property_id)}
+                onClick={() => {
+                  if (!canModifyDamageReports) {
+                    showDamageReportRestriction();
+                    return;
+                  }
+                  onEditReport(report.id, report.property_id);
+                }}
+                disabled={!canModifyDamageReports}
                 className="flex-1 text-xs"
               >
                 <Edit2 className="h-3 w-3 mr-1" />
@@ -485,6 +513,7 @@ const SavedDamageReports: React.FC<SavedDamageReportsProps> = ({ onEditReport, r
                 variant="outline"
                 size="sm"
                 onClick={() => handleDeleteClick(report)}
+                disabled={!canModifyDamageReports}
                 className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
               >
                 <Trash2 className="h-3 w-3" />
@@ -508,7 +537,7 @@ const SavedDamageReports: React.FC<SavedDamageReportsProps> = ({ onEditReport, r
             Your Saved Damage Reports
           </h3>
           <p className="text-sm text-gray-500 mb-4">
-            All your damage reports are saved here. Click to edit or download as PDF.
+            All your damage reports are saved here. Owners can edit them; anyone with access can download a PDF.
           </p>
 
           <div className="space-y-3">

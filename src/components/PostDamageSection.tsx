@@ -12,6 +12,7 @@ import PropertySelector from '@/components/PropertySelector';
 import SavedDamageReports from '@/components/SavedDamageReports';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAccount } from '@/contexts/AccountContext';
 import { StorageService } from '@/services/StorageService';
 import { PropertyService } from '@/services/PropertyService';
 import { supabase } from '@/integrations/supabase/client';
@@ -170,6 +171,7 @@ const defaultIncidentDetails: IncidentDetails = {
 const PostDamageSection: React.FC = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { isOwner, isAccountReadOnly, showReadOnlyRestriction } = useAccount();
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loadingReport, setLoadingReport] = useState(false);
@@ -203,6 +205,28 @@ const PostDamageSection: React.FC = () => {
   // Calculate progress
   const totalSteps = 6;
   const progressPercent = (completedSteps.length / totalSteps) * 100;
+  const canModifyDamageReports = isOwner && !isAccountReadOnly;
+
+  const showDamageReportRestriction = () => {
+    if (isAccountReadOnly) {
+      showReadOnlyRestriction();
+      return;
+    }
+
+    toast({
+      title: "Owner access required",
+      description: "Damage reports are owner-only for launch. Authorized users can still view shared account records.",
+      variant: "destructive",
+    });
+  };
+
+  const handleStartNewReport = () => {
+    if (!canModifyDamageReports) {
+      showDamageReportRestriction();
+      return;
+    }
+    setIsEditing(true);
+  };
 
   // Load specific report by ID for editing
   const loadReportById = async (reportId: string) => {
@@ -276,6 +300,10 @@ const PostDamageSection: React.FC = () => {
 
   // Handler for editing a report from the SavedDamageReports component
   const handleEditReport = (reportId: string, propertyId: string) => {
+    if (!canModifyDamageReports) {
+      showDamageReportRestriction();
+      return;
+    }
     setIsEditing(true);
     loadReportById(reportId);
     // Scroll to the top of the form
@@ -343,6 +371,11 @@ const PostDamageSection: React.FC = () => {
   };
 
   const handleUploadAndSave = async () => {
+    if (!canModifyDamageReports) {
+      showDamageReportRestriction();
+      return;
+    }
+
     if (!user) {
       toast({
         title: "Authentication Required",
@@ -509,12 +542,19 @@ const PostDamageSection: React.FC = () => {
         {!isEditing && !incidentDetails.propertyId && (
           <div className="mb-6">
             <Button 
-              onClick={() => setIsEditing(true)}
+              onClick={handleStartNewReport}
               className="w-full bg-amber-500 hover:bg-amber-600 h-14 text-base rounded-xl"
             >
               <AlertTriangle className="h-5 w-5 mr-2" />
-              Start New Damage Report
+              {isAccountReadOnly ? 'Reactivate to create damage report' : 'Start New Damage Report'}
             </Button>
+            {!canModifyDamageReports && (
+              <p className="mt-2 text-center text-sm text-muted-foreground">
+                {isAccountReadOnly
+                  ? 'Damage reports are unavailable while an account is read-only.'
+                  : 'Damage reports are currently owner-only for launch.'}
+              </p>
+            )}
           </div>
         )}
 
@@ -611,19 +651,19 @@ const PostDamageSection: React.FC = () => {
                           variant="outline"
                           onClick={() => cameraInputRef.current?.click()}
                           className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-dashed hover:border-brand-green hover:bg-green-50"
-                          disabled={uploading}
+                          disabled={uploading || !canModifyDamageReports}
                         >
                           <Camera className="h-6 w-6 text-brand-green" />
-                          <span className="text-sm">Take Photo</span>
+                          <span className="text-sm">{isAccountReadOnly ? 'Reactivate to add photos' : 'Take Photo'}</span>
                         </Button>
                         <Button 
                           variant="outline"
                           onClick={() => fileInputRef.current?.click()}
                           className="h-20 flex flex-col items-center justify-center gap-2 border-2 border-dashed hover:border-brand-green hover:bg-green-50"
-                          disabled={uploading}
+                          disabled={uploading || !canModifyDamageReports}
                         >
                           <Upload className="h-6 w-6 text-brand-green" />
-                          <span className="text-sm">Upload Files</span>
+                          <span className="text-sm">{isAccountReadOnly ? 'Reactivate to upload files' : 'Upload Files'}</span>
                         </Button>
                       </div>
                     </div>
@@ -1163,7 +1203,7 @@ const PostDamageSection: React.FC = () => {
           <Button 
             onClick={handleUploadAndSave}
             className="w-full bg-brand-green hover:bg-brand-green/90 h-14 text-lg rounded-xl"
-            disabled={uploading || saving || !incidentDetails.propertyId}
+            disabled={uploading || saving || !incidentDetails.propertyId || !canModifyDamageReports}
           >
             {(uploading || saving) ? (
               <>
@@ -1190,7 +1230,7 @@ const PostDamageSection: React.FC = () => {
             <Button 
               onClick={handleUploadAndSave}
               className="w-full bg-brand-green hover:bg-brand-green/90 h-12 text-base rounded-xl"
-              disabled={uploading || saving || !incidentDetails.propertyId}
+              disabled={uploading || saving || !incidentDetails.propertyId || !canModifyDamageReports}
             >
               {(uploading || saving) ? (
                 <>
