@@ -15,7 +15,7 @@ export interface UseFileUploadOptions {
 
 export const useFileUpload = (options: UseFileUploadOptions) => {
   const { user } = useAuth();
-  const { subscriptionTier } = useSubscription();
+  const { subscriptionTier, storageQuotaGb } = useSubscription();
   const { toast } = useToast();
   const { canEdit, showReadOnlyRestriction } = useAccount();
   const [isUploading, setIsUploading] = useState(false);
@@ -60,7 +60,9 @@ export const useFileUpload = (options: UseFileUploadOptions) => {
             file,
             options.bucket,
             user.id,
-            subscriptionTier
+            subscriptionTier,
+            undefined,
+            storageQuotaGb
           );
 
           setUploadProgress(prev => ({ ...prev, [fileKey]: 100 }));

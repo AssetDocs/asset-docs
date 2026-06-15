@@ -14,7 +14,7 @@ export const usePropertyFiles = (propertyId: string | null, fileType?: 'photo' |
   const { toast } = useToast();
   const { user } = useAuth();
   const { accountId, ownerUserId, canEdit, isAccountReadOnly, showReadOnlyRestriction } = useAccount();
-  const { subscriptionTier } = useSubscription();
+  const { subscriptionTier, storageQuotaGb } = useSubscription();
 
   const refreshSignedUrls = async (fileList: PropertyFile[]): Promise<PropertyFile[]> => {
     // Group files by bucket for batch signing
@@ -128,7 +128,7 @@ export const usePropertyFiles = (propertyId: string | null, fileType?: 'photo' |
 
       // Quota validation up-front (uses account owner's quota, not the AU's)
       for (const file of filesToUpload) {
-        const quotaCheck = await StorageService.canUploadFile(ownerUserId, file.size, subscriptionTier);
+        const quotaCheck = await StorageService.canUploadFile(ownerUserId, file.size, subscriptionTier, storageQuotaGb);
         if (!quotaCheck.canUpload) {
           toast({ title: 'Upload blocked', description: quotaCheck.reason, variant: 'destructive' });
           setIsUploading(false);

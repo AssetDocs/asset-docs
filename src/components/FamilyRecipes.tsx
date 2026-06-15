@@ -29,7 +29,7 @@ interface RecipeEntry {
 const FamilyRecipes: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { subscriptionTier } = useSubscription();
+  const { subscriptionTier, storageQuotaGb } = useSubscription();
   const [recipes, setRecipes] = useState<RecipeEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
@@ -82,7 +82,7 @@ const FamilyRecipes: React.FC = () => {
       let uploadedPath: string | null = null;
 
       if (selectedFile) {
-        const quotaCheck = await StorageService.canUploadFile(user.id, selectedFile.size, subscriptionTier);
+        const quotaCheck = await StorageService.canUploadFile(user.id, selectedFile.size, subscriptionTier, storageQuotaGb);
         if (!quotaCheck.canUpload) throw new Error(quotaCheck.reason || 'Storage quota exceeded');
 
         const path = buildFamilyArchivePath({ userId: user.id, section: 'family-recipes', file: selectedFile });

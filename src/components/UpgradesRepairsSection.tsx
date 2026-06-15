@@ -92,7 +92,7 @@ const defaultVendor: Vendor = {
 const UpgradesRepairsSection: React.FC = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { subscriptionTier } = useSubscription();
+  const { subscriptionTier, storageQuotaGb } = useSubscription();
   const [isAdding, setIsAdding] = useState(false);
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -283,7 +283,9 @@ const UpgradesRepairsSection: React.FC = () => {
               file,
               bucketName,
               user.id,
-              subscriptionTier
+              subscriptionTier,
+              undefined,
+              storageQuotaGb
             );
             uploadedPath = uploadResult.path;
             uploadedBucket = bucketName;

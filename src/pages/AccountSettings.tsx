@@ -123,10 +123,11 @@ const AccountSettings: React.FC = () => {
 
           <ViewerRestrictionBanner />
 
-          {/* Storage Dashboard at top */}
-          <div className="mb-6">
-            <StorageDashboard />
-          </div>
+          {!hasRestrictedAccess && (
+            <div className="mb-6">
+              <StorageDashboard />
+            </div>
+          )}
 
           <div className="mb-6">
             <h1 className="text-3xl font-bold text-brand-blue">Account Settings</h1>

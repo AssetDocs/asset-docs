@@ -372,9 +372,12 @@ export class StorageService {
   static async canUploadFile(
     userId: string, 
     fileSize: number, 
-    subscriptionTier: SubscriptionTier | null
+    subscriptionTier: SubscriptionTier | null,
+    storageQuotaGb?: number
   ): Promise<{ canUpload: boolean; reason?: string }> {
-    const quota = await this.getStorageQuota(userId, subscriptionTier);
+    const quota = storageQuotaGb && storageQuotaGb > 0
+      ? await this.getStorageQuotaWithLimit(userId, storageQuotaGb)
+      : await this.getStorageQuota(userId, subscriptionTier);
     
     if (!quota.limit) {
       return { 
@@ -401,9 +404,10 @@ export class StorageService {
     bucket: FileType,
     userId: string,
     subscriptionTier: SubscriptionTier | null,
-    fileName?: string
+    fileName?: string,
+    storageQuotaGb?: number
   ): Promise<UploadResult> {
-    const validation = await this.canUploadFile(userId, file.size, subscriptionTier);
+    const validation = await this.canUploadFile(userId, file.size, subscriptionTier, storageQuotaGb);
     
     if (!validation.canUpload) {
       throw new Error(validation.reason || 'Upload not allowed');

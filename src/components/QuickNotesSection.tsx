@@ -26,7 +26,7 @@ interface QuickNote {
 const QuickNotesSection: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { subscriptionTier } = useSubscription();
+  const { subscriptionTier, storageQuotaGb } = useSubscription();
   const [notes, setNotes] = useState<QuickNote[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [title, setTitle] = useState('');
@@ -73,7 +73,7 @@ const QuickNotesSection: React.FC = () => {
       let fileData: { file_path?: string; file_name?: string; bucket_name?: string } = {};
 
       if (selectedFile) {
-        const quota = await StorageService.canUploadFile(user.id, selectedFile.size, subscriptionTier);
+        const quota = await StorageService.canUploadFile(user.id, selectedFile.size, subscriptionTier, storageQuotaGb);
         if (!quota.canUpload) {
           toast({ title: 'Upload blocked', description: quota.reason, variant: 'destructive' });
           setIsSaving(false);

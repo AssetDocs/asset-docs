@@ -48,7 +48,7 @@ const DocumentUpload: React.FC = () => {
 
   const { user } = useAuth();
   const { accountId, ownerUserId } = useAccount();
-  const { subscriptionTier } = useSubscription();
+  const { subscriptionTier, storageQuotaGb } = useSubscription();
   const { toast } = useToast();
   
   // Form state
@@ -145,7 +145,7 @@ const DocumentUpload: React.FC = () => {
 
     try {
       // Quota check against account owner
-      const quotaCheck = await StorageService.canUploadFile(ownerUserId, selectedFile.size, subscriptionTier);
+      const quotaCheck = await StorageService.canUploadFile(ownerUserId, selectedFile.size, subscriptionTier, storageQuotaGb);
       if (!quotaCheck.canUpload) {
         throw new Error(quotaCheck.reason || 'Storage quota exceeded');
       }

@@ -27,7 +27,7 @@ const MemoryUpload: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  const { subscriptionTier } = useSubscription();
+  const { subscriptionTier, storageQuotaGb } = useSubscription();
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [title, setTitle] = useState('');
@@ -91,7 +91,7 @@ const MemoryUpload: React.FC = () => {
     setIsUploading(true);
     let uploadedPath: string | null = null;
     try {
-      const quota = await StorageService.canUploadFile(user.id, selectedFile.size, subscriptionTier);
+      const quota = await StorageService.canUploadFile(user.id, selectedFile.size, subscriptionTier, storageQuotaGb);
       if (!quota.canUpload) {
         toast({ title: 'Upload blocked', description: quota.reason, variant: 'destructive' });
         return;

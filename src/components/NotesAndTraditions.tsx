@@ -30,7 +30,7 @@ interface NoteEntry {
 const NotesAndTraditions: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { subscriptionTier } = useSubscription();
+  const { subscriptionTier, storageQuotaGb } = useSubscription();
   const [notes, setNotes] = useState<NoteEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
@@ -86,7 +86,7 @@ const NotesAndTraditions: React.FC = () => {
 
       if (selectedFile) {
         // Quota check against owner (self, since Family Archive is owner-only)
-        const quota = await StorageService.canUploadFile(user.id, selectedFile.size, subscriptionTier);
+        const quota = await StorageService.canUploadFile(user.id, selectedFile.size, subscriptionTier, storageQuotaGb);
         if (!quota.canUpload) {
           toast({ title: 'Upload blocked', description: quota.reason, variant: 'destructive' });
           setIsSaving(false);
