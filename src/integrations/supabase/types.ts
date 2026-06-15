@@ -6901,6 +6901,15 @@ export type Database = {
         Args: { p_lease_token: string; p_property_id: string }
         Returns: boolean
       }
+      get_account_write_state: {
+        Args: { p_account_id: string }
+        Returns: {
+          account_id: string
+          is_read_only: boolean
+          owner_account_status: string
+          owner_user_id: string
+        }[]
+      }
       get_activation_funnel: {
         Args: never
         Returns: {
