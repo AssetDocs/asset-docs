@@ -2,14 +2,15 @@
  * Delegate keypair model for the encrypted Legacy Locker.
  *
  * Each user has an RSA-OAEP-256 keypair:
- *  - public key (JWK) — stored in plaintext, readable by any signed-in user
- *  - private key — wrapped (AES-GCM) by the user's own vault key
+ *  - public key (JWK) - stored in plaintext, readable through a scoped RPC
+ *  - private key - wrapped (AES-GCM) by the user's own vault key
  *
  * Owners use a delegate's public key to wrap the vault key into a
  * `vault_delegate_grants` row. The delegate later unwraps it with their
  * private key (which they unlock via their own vault key).
  */
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { getVaultKey } from "@/lib/vaultKey";
 
 const RSA_PARAMS: RsaHashedKeyGenParams = {
@@ -27,6 +28,21 @@ const b64 = {
     return btoa(s);
   },
   dec: (s: string) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0)),
+};
+
+type DelegatePublicKeyRow = {
+  public_key_jwk: Json;
+  key_version: number | null;
+};
+
+type DelegatePublicKeyRpc = (
+  fn: "get_vault_delegate_public_key",
+  args: { p_delegate_user_id: string },
+) => {
+  maybeSingle: () => Promise<{
+    data: DelegatePublicKeyRow | null;
+    error: { message: string } | null;
+  }>;
 };
 
 async function exportPublicJwk(key: CryptoKey): Promise<JsonWebKey> {
@@ -83,7 +99,6 @@ export async function ensureDelegateKeypair(): Promise<JsonWebKey> {
   const user = auth?.user;
   if (!user) throw new Error("Not signed in");
 
-  // @ts-ignore - table is in generated types after migration
   const { data: existing } = await supabase
     .from("vault_delegate_keypairs")
     .select("public_key_jwk")
@@ -104,14 +119,13 @@ export async function ensureDelegateKeypair(): Promise<JsonWebKey> {
   const publicJwk = await exportPublicJwk(kp.publicKey);
   const { wrapped, iv } = await wrapPrivateKey(kp.privateKey, vaultKey);
 
-  // @ts-ignore
   const { error } = await supabase.from("vault_delegate_keypairs").insert({
     user_id: user.id,
-    public_key_jwk: publicJwk as any,
+    public_key_jwk: publicJwk as unknown as Json,
     wrapped_private_key: wrapped,
     wrap_iv: iv,
     key_version: 1,
-  } as any);
+  });
   if (error) throw error;
   return publicJwk;
 }
@@ -136,7 +150,6 @@ export async function unwrapVaultKeyAsDelegate(
   const vaultKey = getVaultKey(user.id);
   if (!vaultKey) throw new Error("Vault is locked");
 
-  // @ts-ignore
   const { data: row, error } = await supabase
     .from("vault_delegate_keypairs")
     .select("wrapped_private_key, wrap_iv")
@@ -163,12 +176,10 @@ export async function unwrapVaultKeyAsDelegate(
 export async function fetchDelegatePublicKey(
   delegateUserId: string,
 ): Promise<{ jwk: JsonWebKey; keyVersion: number } | null> {
-  // @ts-ignore
-  const { data, error } = await supabase
-    .from("vault_delegate_keypairs")
-    .select("public_key_jwk, key_version")
-    .eq("user_id", delegateUserId)
-    .maybeSingle();
+  const rpc = supabase.rpc as unknown as DelegatePublicKeyRpc;
+  const { data, error } = await rpc("get_vault_delegate_public_key", {
+    p_delegate_user_id: delegateUserId,
+  }).maybeSingle();
   if (error || !data) return null;
   return {
     jwk: data.public_key_jwk as JsonWebKey,

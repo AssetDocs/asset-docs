@@ -34,7 +34,20 @@ const DOC_CATEGORIES = [
   "Court document", "Billing statement", "Other supporting documentation",
 ];
 
+type PendingDoc = { file: File; document_category: string };
 type UploadedDoc = { file_name: string; file_path: string; file_size: number; file_type: string; document_category: string };
+type AcknowledgementKey = "manual_review" | "no_access_granted" | "no_confirmation" | "accurate";
+
+const ACKNOWLEDGEMENTS: Array<[AcknowledgementKey, string]> = [
+  ["manual_review", "I understand this request will be manually reviewed by Asset Safe."],
+  ["no_access_granted", "I understand this form does not grant account access, export access, or closure authority."],
+  ["no_confirmation", "I understand Asset Safe cannot confirm account existence through this form."],
+  ["accurate", "I confirm the information submitted is accurate to the best of my knowledge."],
+];
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "Please try again.";
+}
 
 const AccountAssistance: React.FC = () => {
   const { toast } = useToast();
@@ -47,7 +60,7 @@ const AccountAssistance: React.FC = () => {
     reason_for_contact: "", explanation: "",
   });
   const [ack, setAck] = useState({ manual_review: false, no_access_granted: false, no_confirmation: false, accurate: false });
-  const [docs, setDocs] = useState<UploadedDoc[]>([]);
+  const [docs, setDocs] = useState<PendingDoc[]>([]);
   const [uploading, setUploading] = useState(false);
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -62,13 +75,9 @@ const AccountAssistance: React.FC = () => {
     }
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop() || "bin";
-      const path = `submission/${crypto.randomUUID()}/${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from("external-assistance-docs").upload(path, file, { contentType: file.type });
-      if (error) throw error;
-      setDocs((p) => [...p, { file_name: file.name, file_path: path, file_size: file.size, file_type: file.type, document_category: category }]);
-    } catch (err: any) {
-      toast({ title: "Upload failed", description: err.message || "Please try again.", variant: "destructive" });
+      setDocs((p) => [...p, { file, document_category: category }]);
+    } catch (err: unknown) {
+      toast({ title: "File could not be added", description: getErrorMessage(err), variant: "destructive" });
     } finally {
       setUploading(false);
       e.target.value = "";
@@ -83,13 +92,52 @@ const AccountAssistance: React.FC = () => {
     e.preventDefault();
     if (!canSubmit || submitting) return;
     setSubmitting(true);
+    let requestId: string | null = null;
     try {
       const { data, error } = await supabase.functions.invoke("submit-account-assistance", {
-        body: { ...form, acknowledgements: ack, documents: docs },
+        body: { ...form, acknowledgements: ack, documents: [] },
       });
       if (error) throw error;
-      setSubmitted(data?.reference || "received");
-    } catch (err: any) {
+      requestId = data?.reference || null;
+
+      if (requestId && docs.length > 0) {
+        const uploadedDocs: UploadedDoc[] = [];
+
+        for (const doc of docs.slice(0, 10)) {
+          const ext = doc.file.name.split(".").pop() || "bin";
+          const path = `submission/${requestId}/${crypto.randomUUID()}.${ext}`;
+          const { error: uploadError } = await supabase.storage
+            .from("external-assistance-docs")
+            .upload(path, doc.file, { contentType: doc.file.type });
+          if (uploadError) throw uploadError;
+
+          uploadedDocs.push({
+            file_name: doc.file.name,
+            file_path: path,
+            file_size: doc.file.size,
+            file_type: doc.file.type,
+            document_category: doc.document_category,
+          });
+        }
+
+        if (uploadedDocs.length > 0) {
+          const { error: docError } = await supabase
+            .from("external_assistance_documents")
+            .insert(uploadedDocs.map((doc) => ({ ...doc, request_id: requestId })));
+          if (docError) throw docError;
+        }
+      }
+
+      setSubmitted(requestId || "received");
+    } catch (err: unknown) {
+      if (requestId) {
+        toast({
+          title: "Request received",
+          description: "Your request was submitted, but one or more documents could not be attached. Support may contact you if needed.",
+        });
+        setSubmitted(requestId);
+        return;
+      }
       toast({ title: "Submission failed", description: "Please try again or email support@assetsafe.net.", variant: "destructive" });
     } finally {
       setSubmitting(false);
@@ -228,12 +276,12 @@ const AccountAssistance: React.FC = () => {
                   </label>
                 ))}
               </div>
-              {uploading && <p className="text-xs text-muted-foreground">Uploading…</p>}
+              {uploading && <p className="text-xs text-muted-foreground">Adding file...</p>}
               {docs.length > 0 && (
                 <ul className="space-y-1">
                   {docs.map((d, i) => (
                     <li key={i} className="flex items-center justify-between text-sm border border-border rounded-md px-3 py-2">
-                      <span className="truncate">{d.document_category}: {d.file_name}</span>
+                      <span className="truncate">{d.document_category}: {d.file.name}</span>
                       <button type="button" onClick={() => setDocs((p) => p.filter((_, idx) => idx !== i))} className="text-muted-foreground hover:text-foreground">
                         <X className="h-4 w-4" />
                       </button>
@@ -252,14 +300,9 @@ const AccountAssistance: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {[
-                ["manual_review", "I understand this request will be manually reviewed by Asset Safe."],
-                ["no_access_granted", "I understand this form does not grant account access, export access, or closure authority."],
-                ["no_confirmation", "I understand Asset Safe cannot confirm account existence through this form."],
-                ["accurate", "I confirm the information submitted is accurate to the best of my knowledge."],
-              ].map(([k, l]) => (
+              {ACKNOWLEDGEMENTS.map(([k, l]) => (
                 <label key={k} className="flex items-start gap-3 text-sm">
-                  <Checkbox checked={(ack as any)[k]} onCheckedChange={(v) => setAck((p) => ({ ...p, [k]: !!v }))} />
+                  <Checkbox checked={ack[k]} onCheckedChange={(v) => setAck((p) => ({ ...p, [k]: !!v }))} />
                   <span>{l}</span>
                 </label>
               ))}
@@ -267,7 +310,7 @@ const AccountAssistance: React.FC = () => {
           </Card>
 
           <Button type="submit" disabled={!canSubmit || submitting} className="w-full bg-brand-blue hover:bg-brand-blue/90 text-white">
-            {submitting ? "Submitting…" : "Submit Assistance Request"}
+            {submitting ? "Submitting..." : "Submit Assistance Request"}
           </Button>
         </form>
       </main>
