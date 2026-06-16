@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -79,7 +78,7 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange }) => {
   const showMobileInstallPrompt = isMobile && !isAppInstalled && !hideInstallPrompt;
 
   return (
-    <div className="space-y-3 mb-6">
+    <div className="space-y-3 h-full">
       <div className="bg-gradient-to-r from-brand-blue to-brand-lightBlue p-6 rounded-lg text-white">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div className="flex-1">

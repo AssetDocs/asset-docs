@@ -19,6 +19,7 @@ import SecureVault from '@/components/SecureVault';
 import FeedbackSection from '@/components/FeedbackSection';
 import AdminContributorPlanInfo from '@/components/AdminContributorPlanInfo';
 import WelcomeBanner from '@/components/WelcomeBanner';
+import DashboardAtAGlanceCard from '@/components/DashboardAtAGlanceCard';
 import SubscriptionEndingBanner from '@/components/SubscriptionEndingBanner';
 import ExpiredSubscriptionBanner from '@/components/ExpiredSubscriptionBanner';
 import GracePeriodBanner from '@/components/GracePeriodBanner';
@@ -178,8 +179,9 @@ const Account: React.FC = () => {
           {/* Welcome Banner + Security Progress - ONLY on overview */}
           {isOverview && (
             <>
-              <div className="mb-4">
+              <div className="mb-4 grid gap-4 lg:grid-cols-[2fr_1fr] items-stretch">
                 <WelcomeBanner onTabChange={setActiveTab} />
+                <DashboardAtAGlanceCard onTabChange={setActiveTab} />
               </div>
               <SubscriptionEndingBanner />
               <ScheduledDeletionBanner />
