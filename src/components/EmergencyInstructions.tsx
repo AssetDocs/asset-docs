@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAccount } from '@/contexts/AccountContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -120,6 +121,7 @@ interface EmergencyInstructionsProps {
 
 const EmergencyInstructions: React.FC<EmergencyInstructionsProps> = ({ onNavigate, standalone = false }) => {
   const { user } = useAuth();
+  const { accountId, isOwner, ownerUserId, ownerName } = useAccount();
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(standalone);
   const [isSaving, setIsSaving] = useState(false);
@@ -145,24 +147,36 @@ const EmergencyInstructions: React.FC<EmergencyInstructionsProps> = ({ onNavigat
   }, [primaryContact, secondaryContact, firstActions, accessNotes, propertyAssets, professionals, familyNotes]);
 
   const savedSummary = buildSavedSummary(primaryContact, secondaryContact, firstActions, accessNotes, propertyAssets, professionals, familyNotes);
+  const targetUserId = ownerUserId || user?.id;
+  const canEditInstructions = isOwner;
+
+  const resetInstructions = () => {
+    setPrimaryContact({ ...emptyContact, notify_first: true });
+    setSecondaryContact({ ...emptyContact });
+    setFirstActions({ ...emptyFirstActions });
+    setAccessNotes({ ...emptyAccessNotes });
+    setPropertyAssets({ ...emptyPropertyAssets });
+    setProfessionals(DEFAULT_PROFESSIONALS.map(p => ({ ...p })));
+    setFamilyNotes('');
+    setHasSavedData(false);
+  };
 
   // Load data
   useEffect(() => {
-    if (!user) return;
+    if (!user || !targetUserId) return;
     const load = async () => {
       setIsLoading(true);
       try {
         // Check for authorized users via accounts/memberships
-        const accountRes = await supabase.from('accounts').select('id').eq('owner_user_id', user.id).maybeSingle();
         let hasUsers = false;
-        if (accountRes.data) {
-          const membersRes = await supabase.from('account_memberships').select('id').eq('account_id', accountRes.data.id).neq('role', 'owner').eq('status', 'active').limit(1);
+        if (isOwner && accountId) {
+          const membersRes = await supabase.from('account_memberships').select('id').eq('account_id', accountId).neq('role', 'owner').eq('status', 'active').limit(1);
           hasUsers = (membersRes.data?.length ?? 0) > 0;
         }
         const [instrRes] = await Promise.all([
-          supabase.from('emergency_instructions').select('*').eq('user_id', user.id).maybeSingle(),
+          supabase.from('emergency_instructions').select('*').eq('user_id', targetUserId).maybeSingle(),
         ]);
-        setHasContributors(hasUsers);
+        setHasContributors(isOwner ? hasUsers : true);
         if (instrRes.data) {
           const d = instrRes.data;
           setHasSavedData(true);
@@ -173,6 +187,8 @@ const EmergencyInstructions: React.FC<EmergencyInstructionsProps> = ({ onNavigat
           if (d.property_assets && typeof d.property_assets === 'object') setPropertyAssets(d.property_assets as any);
           if (Array.isArray(d.professionals) && d.professionals.length > 0) setProfessionals(d.professionals as any);
           if (d.family_notes) setFamilyNotes(d.family_notes);
+        } else {
+          resetInstructions();
         }
       } catch (e) {
         console.error('Error loading emergency instructions:', e);
@@ -181,10 +197,10 @@ const EmergencyInstructions: React.FC<EmergencyInstructionsProps> = ({ onNavigat
       }
     };
     load();
-  }, [user]);
+  }, [user, targetUserId, accountId, isOwner]);
 
   const handleSave = async () => {
-    if (!user) return;
+    if (!user || !canEditInstructions) return;
     setIsSaving(true);
     try {
       const payload = {
@@ -218,6 +234,15 @@ const EmergencyInstructions: React.FC<EmergencyInstructionsProps> = ({ onNavigat
   const formContent = (
     <div className="space-y-6">
       <p className="text-xs text-muted-foreground">Clear guidance that brings clarity during unexpected situations.</p>
+
+      {!canEditInstructions && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h4 className="text-sm font-bold text-blue-900">View-only emergency guidance</h4>
+          <p className="text-xs text-blue-700 mt-1">
+            These instructions are shared by {ownerName || 'the account owner'} to help Authorized Users know what to do in an emergency.
+          </p>
+        </div>
+      )}
 
       {hasContributors === false && (
         <div className="sticky top-0 z-10 bg-amber-50 border border-amber-200 rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
@@ -257,20 +282,20 @@ const EmergencyInstructions: React.FC<EmergencyInstructionsProps> = ({ onNavigat
               <p className="text-[11px] text-muted-foreground -mt-3">The person who should be contacted first in an urgent or unexpected situation.</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Field label="Name">
-                  <Input className="h-8 text-xs" value={primaryContact.name} onChange={e => setPrimaryContact(p => ({ ...p, name: e.target.value }))} placeholder="Full name" />
+                  <Input disabled={!canEditInstructions} className="h-8 text-xs" value={primaryContact.name} onChange={e => setPrimaryContact(p => ({ ...p, name: e.target.value }))} placeholder="Full name" />
                 </Field>
                 <Field label="Relationship" helper="Example: Spouse, sibling, close friend">
-                  <Input className="h-8 text-xs" value={primaryContact.relationship} onChange={e => setPrimaryContact(p => ({ ...p, relationship: e.target.value }))} placeholder="Relationship" />
+                  <Input disabled={!canEditInstructions} className="h-8 text-xs" value={primaryContact.relationship} onChange={e => setPrimaryContact(p => ({ ...p, relationship: e.target.value }))} placeholder="Relationship" />
                 </Field>
                 <Field label="Phone Number" helper="A number that can be reached quickly.">
-                  <Input className="h-8 text-xs" value={primaryContact.phone} onChange={e => setPrimaryContact(p => ({ ...p, phone: e.target.value }))} placeholder="Phone" />
+                  <Input disabled={!canEditInstructions} className="h-8 text-xs" value={primaryContact.phone} onChange={e => setPrimaryContact(p => ({ ...p, phone: e.target.value }))} placeholder="Phone" />
                 </Field>
                 <Field label="Email Address" helper="Optional, but helpful if phone contact isn't possible.">
-                  <Input className="h-8 text-xs" value={primaryContact.email} onChange={e => setPrimaryContact(p => ({ ...p, email: e.target.value }))} placeholder="Email" />
+                  <Input disabled={!canEditInstructions} className="h-8 text-xs" value={primaryContact.email} onChange={e => setPrimaryContact(p => ({ ...p, email: e.target.value }))} placeholder="Email" />
                 </Field>
               </div>
               <div className="flex items-center gap-2">
-                <Switch checked={primaryContact.notify_first ?? false} onCheckedChange={v => setPrimaryContact(p => ({ ...p, notify_first: v }))} />
+                <Switch disabled={!canEditInstructions} checked={primaryContact.notify_first ?? false} onCheckedChange={v => setPrimaryContact(p => ({ ...p, notify_first: v }))} />
                 <div>
                   <Label className="text-xs font-medium">Notify First</Label>
                   <p className="text-[11px] text-muted-foreground">Mark this person as the first point of contact.</p>
@@ -282,16 +307,16 @@ const EmergencyInstructions: React.FC<EmergencyInstructionsProps> = ({ onNavigat
                 <p className="text-[11px] text-muted-foreground mb-3">Backup contact if the primary person cannot be reached.</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Field label="Name">
-                    <Input className="h-8 text-xs" value={secondaryContact.name} onChange={e => setSecondaryContact(p => ({ ...p, name: e.target.value }))} placeholder="Full name" />
+                    <Input disabled={!canEditInstructions} className="h-8 text-xs" value={secondaryContact.name} onChange={e => setSecondaryContact(p => ({ ...p, name: e.target.value }))} placeholder="Full name" />
                   </Field>
                   <Field label="Relationship">
-                    <Input className="h-8 text-xs" value={secondaryContact.relationship} onChange={e => setSecondaryContact(p => ({ ...p, relationship: e.target.value }))} placeholder="Relationship" />
+                    <Input disabled={!canEditInstructions} className="h-8 text-xs" value={secondaryContact.relationship} onChange={e => setSecondaryContact(p => ({ ...p, relationship: e.target.value }))} placeholder="Relationship" />
                   </Field>
                   <Field label="Phone Number">
-                    <Input className="h-8 text-xs" value={secondaryContact.phone} onChange={e => setSecondaryContact(p => ({ ...p, phone: e.target.value }))} placeholder="Phone" />
+                    <Input disabled={!canEditInstructions} className="h-8 text-xs" value={secondaryContact.phone} onChange={e => setSecondaryContact(p => ({ ...p, phone: e.target.value }))} placeholder="Phone" />
                   </Field>
                   <Field label="Email Address">
-                    <Input className="h-8 text-xs" value={secondaryContact.email} onChange={e => setSecondaryContact(p => ({ ...p, email: e.target.value }))} placeholder="Email" />
+                    <Input disabled={!canEditInstructions} className="h-8 text-xs" value={secondaryContact.email} onChange={e => setSecondaryContact(p => ({ ...p, email: e.target.value }))} placeholder="Email" />
                   </Field>
                 </div>
               </div>
@@ -302,13 +327,13 @@ const EmergencyInstructions: React.FC<EmergencyInstructionsProps> = ({ onNavigat
           <SectionCollapsible number={2} title="What To Do First" description="Simple instructions that help reduce confusion and stress.">
             <div className="space-y-3">
               <Field label="The first action to take in a time-sensitive situation is…" helper="Example: Contact our insurance agent and document any visible damage.">
-                <Textarea className="text-xs min-h-[60px]" value={firstActions.first_action} onChange={e => setFirstActions(p => ({ ...p, first_action: e.target.value }))} />
+                <Textarea disabled={!canEditInstructions} className="text-xs min-h-[60px]" value={firstActions.first_action} onChange={e => setFirstActions(p => ({ ...p, first_action: e.target.value }))} />
               </Field>
               <Field label="The most important thing to protect right now is…" helper="Example: Prevent water damage from spreading or secure the property.">
-                <Textarea className="text-xs min-h-[60px]" value={firstActions.most_important} onChange={e => setFirstActions(p => ({ ...p, most_important: e.target.value }))} />
+                <Textarea disabled={!canEditInstructions} className="text-xs min-h-[60px]" value={firstActions.most_important} onChange={e => setFirstActions(p => ({ ...p, most_important: e.target.value }))} />
               </Field>
               <Field label="Do NOT do the following…" helper="Example: Do not approve repairs before insurance documentation is complete.">
-                <Textarea className="text-xs min-h-[60px]" value={firstActions.do_not_do} onChange={e => setFirstActions(p => ({ ...p, do_not_do: e.target.value }))} />
+                <Textarea disabled={!canEditInstructions} className="text-xs min-h-[60px]" value={firstActions.do_not_do} onChange={e => setFirstActions(p => ({ ...p, do_not_do: e.target.value }))} />
               </Field>
             </div>
           </SectionCollapsible>
@@ -317,13 +342,13 @@ const EmergencyInstructions: React.FC<EmergencyInstructionsProps> = ({ onNavigat
           <SectionCollapsible number={3} title="Access & Information Notes" description="Where trusted people can find critical information without sharing access.">
             <div className="space-y-3">
               <Field label="Insurance Information Location" helper="Example: Insurance policies are saved in the Insurance Documents section.">
-                <Input className="h-8 text-xs" value={accessNotes.insurance_location} onChange={e => setAccessNotes(p => ({ ...p, insurance_location: e.target.value }))} />
+                <Input disabled={!canEditInstructions} className="h-8 text-xs" value={accessNotes.insurance_location} onChange={e => setAccessNotes(p => ({ ...p, insurance_location: e.target.value }))} />
               </Field>
               <Field label="Important Documents Location" helper="Example: Legal and financial documents are stored in the Secure Vault.">
-                <Input className="h-8 text-xs" value={accessNotes.documents_location} onChange={e => setAccessNotes(p => ({ ...p, documents_location: e.target.value }))} />
+                <Input disabled={!canEditInstructions} className="h-8 text-xs" value={accessNotes.documents_location} onChange={e => setAccessNotes(p => ({ ...p, documents_location: e.target.value }))} />
               </Field>
               <Field label="Password Access Notes" helper="Example: Login credentials are stored in the Password Catalog.">
-                <Input className="h-8 text-xs" value={accessNotes.password_notes} onChange={e => setAccessNotes(p => ({ ...p, password_notes: e.target.value }))} />
+                <Input disabled={!canEditInstructions} className="h-8 text-xs" value={accessNotes.password_notes} onChange={e => setAccessNotes(p => ({ ...p, password_notes: e.target.value }))} />
               </Field>
             </div>
           </SectionCollapsible>
@@ -332,13 +357,13 @@ const EmergencyInstructions: React.FC<EmergencyInstructionsProps> = ({ onNavigat
           <SectionCollapsible number={4} title="Property & Asset Priorities" description="Guidance for protecting property and documenting assets.">
             <div className="space-y-3">
               <Field label="If there is property damage, focus on…" helper="Example: Photograph each room before moving or cleaning anything.">
-                <Textarea className="text-xs min-h-[60px]" value={propertyAssets.focus_on} onChange={e => setPropertyAssets(p => ({ ...p, focus_on: e.target.value }))} />
+                <Textarea disabled={!canEditInstructions} className="text-xs min-h-[60px]" value={propertyAssets.focus_on} onChange={e => setPropertyAssets(p => ({ ...p, focus_on: e.target.value }))} />
               </Field>
               <Field label="Items that should be documented before moving or discarding" helper="Example: Furniture, electronics, appliances, or high-value items.">
-                <Textarea className="text-xs min-h-[60px]" value={propertyAssets.document_before_moving} onChange={e => setPropertyAssets(p => ({ ...p, document_before_moving: e.target.value }))} />
+                <Textarea disabled={!canEditInstructions} className="text-xs min-h-[60px]" value={propertyAssets.document_before_moving} onChange={e => setPropertyAssets(p => ({ ...p, document_before_moving: e.target.value }))} />
               </Field>
               <Field label="Items that should not be discarded" helper="Example: Damaged materials until insurance documentation is complete.">
-                <Textarea className="text-xs min-h-[60px]" value={propertyAssets.do_not_discard} onChange={e => setPropertyAssets(p => ({ ...p, do_not_discard: e.target.value }))} />
+                <Textarea disabled={!canEditInstructions} className="text-xs min-h-[60px]" value={propertyAssets.do_not_discard} onChange={e => setPropertyAssets(p => ({ ...p, do_not_discard: e.target.value }))} />
               </Field>
             </div>
           </SectionCollapsible>
@@ -350,45 +375,50 @@ const EmergencyInstructions: React.FC<EmergencyInstructionsProps> = ({ onNavigat
                 <div key={i} className="border border-border rounded-lg p-3 space-y-3 bg-muted/20">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold text-foreground">{pro.role || `Professional ${i + 1}`}</span>
-                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive" onClick={() => removeProfessional(i)}>
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
+                    {canEditInstructions && (
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive" onClick={() => removeProfessional(i)}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <Field label="Name" helper="The professional or company name.">
-                      <Input className="h-8 text-xs" value={pro.name} onChange={e => updateProfessional(i, 'name', e.target.value)} placeholder="Name" />
+                      <Input disabled={!canEditInstructions} className="h-8 text-xs" value={pro.name} onChange={e => updateProfessional(i, 'name', e.target.value)} placeholder="Name" />
                     </Field>
                     <Field label="Role" helper="Example: Insurance Agent, Restoration Contractor">
-                      <Input className="h-8 text-xs" value={pro.role} onChange={e => updateProfessional(i, 'role', e.target.value)} placeholder="Role" />
+                      <Input disabled={!canEditInstructions} className="h-8 text-xs" value={pro.role} onChange={e => updateProfessional(i, 'role', e.target.value)} placeholder="Role" />
                     </Field>
                     <Field label="Phone Number" helper="Best number to reach them quickly.">
-                      <Input className="h-8 text-xs" value={pro.phone} onChange={e => updateProfessional(i, 'phone', e.target.value)} placeholder="Phone" />
+                      <Input disabled={!canEditInstructions} className="h-8 text-xs" value={pro.phone} onChange={e => updateProfessional(i, 'phone', e.target.value)} placeholder="Phone" />
                     </Field>
                     <Field label="Email Address" helper="Optional, but useful for documentation and follow-up.">
-                      <Input className="h-8 text-xs" value={pro.email} onChange={e => updateProfessional(i, 'email', e.target.value)} placeholder="Email" />
+                      <Input disabled={!canEditInstructions} className="h-8 text-xs" value={pro.email} onChange={e => updateProfessional(i, 'email', e.target.value)} placeholder="Email" />
                     </Field>
                   </div>
                   <Field label="Notes" helper="Example: Call before approving any work.">
-                    <Input className="h-8 text-xs" value={pro.notes} onChange={e => updateProfessional(i, 'notes', e.target.value)} placeholder="Notes" />
+                    <Input disabled={!canEditInstructions} className="h-8 text-xs" value={pro.notes} onChange={e => updateProfessional(i, 'notes', e.target.value)} placeholder="Notes" />
                   </Field>
                 </div>
               ))}
-              <Button variant="outline" size="sm" className="text-xs" onClick={addProfessional}>
-                <Plus className="h-3.5 w-3.5 mr-1" />
-                Add Another Professional
-              </Button>
+              {canEditInstructions && (
+                <Button variant="outline" size="sm" className="text-xs" onClick={addProfessional}>
+                  <Plus className="h-3.5 w-3.5 mr-1" />
+                  Add Another Professional
+                </Button>
+              )}
             </div>
           </SectionCollapsible>
 
           {/* SECTION 6 */}
           <SectionCollapsible number={6} title="Notes for Family" description="Optional notes meant to provide clarity or reassurance.">
             <Field label="Additional Notes" helper="Anything you want your family or trusted people to know in this situation.">
-              <Textarea className="text-xs min-h-[80px]" value={familyNotes} onChange={e => setFamilyNotes(e.target.value)} />
+              <Textarea disabled={!canEditInstructions} className="text-xs min-h-[80px]" value={familyNotes} onChange={e => setFamilyNotes(e.target.value)} />
             </Field>
           </SectionCollapsible>
 
           {/* Footer */}
-          <div className="border-t border-border pt-4 space-y-3">
+          {canEditInstructions && (
+            <div className="border-t border-border pt-4 space-y-3">
             <p className="text-xs text-muted-foreground text-center">
               {isFormEmpty()
                 ? "Emergency Instructions help trusted people act quickly and correctly. You don't need to cover everything — a few notes can make a big difference."
@@ -401,7 +431,8 @@ const EmergencyInstructions: React.FC<EmergencyInstructionsProps> = ({ onNavigat
                 <><Save className="h-4 w-4 mr-2" />Save Instructions</>
               )}
             </Button>
-          </div>
+            </div>
+          )}
         </>
       )}
     </div>
