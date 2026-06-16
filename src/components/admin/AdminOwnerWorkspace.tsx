@@ -12,6 +12,7 @@ import AdminLegalAgreements from '@/pages/AdminLegalAgreements';
 import DevTeamManagement from './DevTeamManagement';
 import MarketSizing from './MarketSizing';
 import AdminDocuments from './AdminDocuments';
+import AdminContactSubmissions from './AdminContactSubmissions';
 import LegacyContinuityWorkspace from './legacy-continuity/LegacyContinuityWorkspace';
 import AdminCancellations from './AdminCancellations';
 import AdminBillingManualReview from './AdminBillingManualReview';
@@ -27,6 +28,7 @@ import {
   TrendingUp,
   FolderOpen,
   ShieldCheck,
+  Mail,
 } from 'lucide-react';
 
 const AdminOwnerWorkspace: React.FC = () => {
@@ -59,6 +61,10 @@ const AdminOwnerWorkspace: React.FC = () => {
         <TabsTrigger value="manual-review" className="flex items-center gap-2">
           <ShieldCheck className="w-4 h-4" />
           Manual Review
+        </TabsTrigger>
+        <TabsTrigger value="contact-intake" className="flex items-center gap-2">
+          <Mail className="w-4 h-4" />
+          Contact Intake
         </TabsTrigger>
         <TabsTrigger value="crm" className="flex items-center gap-2">
           <Users className="w-4 h-4" />
@@ -249,6 +255,10 @@ const AdminOwnerWorkspace: React.FC = () => {
 
       <TabsContent value="manual-review">
         <AdminBillingManualReview />
+      </TabsContent>
+
+      <TabsContent value="contact-intake">
+        <AdminContactSubmissions />
       </TabsContent>
 
       <TabsContent value="crm">

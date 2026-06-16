@@ -1,8 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+  auth: { persistSession: false },
+});
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -62,6 +68,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Validate input data
     const validatedData = contactEmailSchema.parse(body);
     const { name, email, telephone, message, hearAboutUs } = validatedData;
+    const userAgent = req.headers.get("user-agent") || null;
     
     // Escape HTML for safe email rendering
     const safeName = escapeHtml(name);
@@ -70,6 +77,30 @@ const handler = async (req: Request): Promise<Response> => {
     const safeTelephone = escapeHtml(telephone);
 
     console.log("Sending contact email for:", { email });
+
+    let submissionId: string | null = null;
+    const { data: submission, error: submissionError } = await supabaseAdmin
+      .from("contact_submissions")
+      .insert({
+        name,
+        email,
+        telephone: telephone || null,
+        hear_about_us: hearAboutUs || null,
+        message,
+        source: "contact_page",
+        status: "new",
+        email_status: "pending",
+        ip_address: ip === "unknown" ? null : ip,
+        user_agent: userAgent,
+      })
+      .select("id")
+      .maybeSingle();
+
+    if (submissionError) {
+      console.error("Failed to catalog contact submission:", submissionError);
+    } else {
+      submissionId = submission?.id ?? null;
+    }
 
     // Send email to your business address
     const emailResponse = await resend.emails.send({
@@ -97,12 +128,32 @@ const handler = async (req: Request): Promise<Response> => {
     // Log the response for debugging
     if (emailResponse.error) {
       console.error("Resend API error:", emailResponse.error);
+      if (submissionId) {
+        await supabaseAdmin
+          .from("contact_submissions")
+          .update({
+            email_status: "failed",
+            email_error: emailResponse.error.message,
+          })
+          .eq("id", submissionId);
+      }
       throw new Error(emailResponse.error.message);
+    }
+
+    if (submissionId) {
+      await supabaseAdmin
+        .from("contact_submissions")
+        .update({
+          email_status: "sent",
+          resend_id: emailResponse.data?.id ?? null,
+          email_error: null,
+        })
+        .eq("id", submissionId);
     }
 
     console.log("Contact email sent successfully:", emailResponse);
 
-    return new Response(JSON.stringify({ success: true, message: "Emails sent successfully" }), {
+    return new Response(JSON.stringify({ success: true, message: "Emails sent successfully", submissionId }), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
