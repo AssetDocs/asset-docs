@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
 
-    // Validate caller is the account owner
+    // Validate caller is the account owner.
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Look up designated user's email
+    // Look up designated user's email.
     const { data: designated } = await admin.auth.admin.getUserById(legacy_admin_user_id);
     const toEmail = designated?.user?.email;
     if (!toEmail) {
@@ -78,7 +78,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Owner display name
     const { data: ownerProfile } = await admin
       .from('profiles')
       .select('first_name, last_name')
@@ -89,7 +88,6 @@ Deno.serve(async (req) => {
       userData.user.email ||
       'The account owner';
 
-    // Designated user display name
     const { data: designatedProfile } = await admin
       .from('profiles')
       .select('first_name')
@@ -106,17 +104,20 @@ Deno.serve(async (req) => {
       });
     }
 
-    const subject = "You've been designated as a Continuity Steward on Asset Safe";
+    const subject = "You've been designated as a Legacy Admin on Asset Safe";
+
+    const designationCopy =
+      'A Legacy Admin is the trusted person designated to help preserve and manage an Asset Safe account if the account holder becomes temporarily unavailable or unable to manage it themselves.';
 
     const html = `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1f2937; line-height: 1.55;">
-        <h2 style="color: #111827; margin: 0 0 16px;">You're now a Continuity Steward</h2>
+        <h2 style="color: #111827; margin: 0 0 16px;">You're now a Legacy Admin</h2>
 
         <p>Hi ${escapeHtml(greetingName)},</p>
 
-        <p><strong>${escapeHtml(ownerName)}</strong> has designated you as a <strong>Continuity Steward</strong> for their Asset Safe account.</p>
+        <p><strong>${escapeHtml(ownerName)}</strong> has designated you as a <strong>Legacy Admin</strong> for their Asset Safe account.</p>
 
-        <p>This is a <em>designation</em> — not a change to your day-to-day role. Asset Safe focuses on emergency access, stewardship, and preservation. We do not handle ownership transfer, inheritance, succession, or estate adjudication.</p>
+        <p>${designationCopy} This is a <em>designation</em>, not a change to your day-to-day access level.</p>
 
         <h3 style="color: #111827; margin: 24px 0 8px;">What stays the same</h3>
         <ul style="padding-left: 20px; margin: 0 0 16px;">
@@ -128,8 +129,8 @@ Deno.serve(async (req) => {
 
         <h3 style="color: #111827; margin: 24px 0 8px;">What's new</h3>
         <ul style="padding-left: 20px; margin: 0 0 16px;">
-          <li>You are on record as ${escapeHtml(ownerName)}'s trusted steward for future continuity.</li>
-          <li>If they ever become unable to manage their account, you can submit a <strong>continuity request</strong> for review — for temporary stewardship, a controlled export, preservation, memorialization, or a reviewed account closure.</li>
+          <li>You are on record as ${escapeHtml(ownerName)}'s Legacy Admin for future continuity planning.</li>
+          <li>If they ever become unable to manage their account, you can submit a <strong>continuity request</strong> for review, such as ownership transfer, data export, preservation, memorialization, or account closure.</li>
           <li>Every continuity request is manually reviewed by the Asset Safe team. Nothing happens automatically.</li>
         </ul>
 
@@ -139,16 +140,16 @@ Deno.serve(async (req) => {
 
         <p>Questions? Reply to this email or reach us at <a href="mailto:${SUPPORT_EMAIL}" style="color: #2563eb;">${SUPPORT_EMAIL}</a>.</p>
 
-        <p style="margin-top: 24px;">— The Asset Safe Team</p>
+        <p style="margin-top: 24px;">- The Asset Safe Team</p>
       </div>
     `;
 
     const text = [
       `Hi ${greetingName},`,
       ``,
-      `${ownerName} has designated you as a Continuity Steward for their Asset Safe account.`,
+      `${ownerName} has designated you as a Legacy Admin for their Asset Safe account.`,
       ``,
-      `This is a designation — not a change to your day-to-day role. Asset Safe focuses on emergency access, stewardship, and preservation. We do not handle ownership transfer, inheritance, succession, or estate adjudication.`,
+      `${designationCopy} This is a designation, not a change to your day-to-day access level.`,
       ``,
       `WHAT STAYS THE SAME:`,
       `- Your existing access level (Read Only or Full Access) is unchanged.`,
@@ -157,15 +158,15 @@ Deno.serve(async (req) => {
       `- ${ownerName} remains in full control of their account.`,
       ``,
       `WHAT'S NEW:`,
-      `- You are on record as ${ownerName}'s trusted steward for future continuity.`,
-      `- If they ever become unable to manage their account, you can submit a continuity request (temporary stewardship, controlled export, preservation, memorialization, or reviewed closure).`,
+      `- You are on record as ${ownerName}'s Legacy Admin for future continuity planning.`,
+      `- If they ever become unable to manage their account, you can submit a continuity request for review, such as ownership transfer, data export, preservation, memorialization, or account closure.`,
       `- Every continuity request is manually reviewed by Asset Safe. Nothing happens automatically.`,
       ``,
       `You don't need to do anything right now. This designation is simply on file. ${ownerName} can change or remove it at any time.`,
       ``,
       `Questions? Reach us at ${SUPPORT_EMAIL}.`,
       ``,
-      `— The Asset Safe Team`,
+      `- The Asset Safe Team`,
     ].join('\n');
 
     const res = await fetch('https://api.resend.com/emails', {

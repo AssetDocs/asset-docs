@@ -46,7 +46,7 @@ const MemorializationForm: React.FC<Props> = ({ caseData, disabled, disabledReas
           protected read-only state. Ownership is not transferred.
         </p>
         <div>
-          <Label className="text-sm">Continuity Steward access level</Label>
+          <Label className="text-sm">Continuity access level</Label>
           <Select value={access} onValueChange={setAccess} disabled={disabled}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -91,7 +91,7 @@ const MemorializationForm: React.FC<Props> = ({ caseData, disabled, disabledReas
             </DialogDescription>
           </DialogHeader>
           <div className="text-sm space-y-1">
-            <div>Steward access: <strong>{access}</strong></div>
+            <div>Continuity access: <strong>{access}</strong></div>
             <div>Exports allowed: <strong>{exportAllowed ? 'Yes' : 'No'}</strong></div>
             <div>Billing: <strong>{billing}</strong></div>
           </div>

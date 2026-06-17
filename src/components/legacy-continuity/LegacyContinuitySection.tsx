@@ -36,7 +36,10 @@ const LegacyContinuitySection: React.FC = () => {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      if (!user?.id || !accountId) { setLoading(false); return; }
+      if (!user?.id || !accountId) {
+        setLoading(false);
+        return;
+      }
       const { data: la } = await supabase
         .from('legacy_admins')
         .select('id, legacy_admin_user_id')
@@ -69,15 +72,15 @@ const LegacyContinuitySection: React.FC = () => {
           <CardTitle className="flex items-center gap-2 text-base">
             <ShieldCheck className="h-5 w-5 text-muted-foreground" />
             Continuity Request
-            <Badge variant="outline" className="ml-1 text-xs font-normal">Continuity Steward</Badge>
+            <Badge variant="outline" className="ml-1 text-xs font-normal">Legacy Admin</Badge>
           </CardTitle>
           <CardDescription className="text-sm leading-relaxed pt-1 space-y-2">
-            <p>You have been designated as a Continuity Steward for this account.</p>
+            <p>You have been designated as the Legacy Admin for this account.</p>
             <p>
               If the account holder becomes temporarily unavailable, incapacitated, or has passed,
-              you may submit a continuity request — for emergency access, stewardship, or
-              preservation. Asset Safe does not handle ownership transfer, inheritance,
-              succession, or estate adjudication.
+              you may submit a continuity request for review, such as ownership transfer,
+              data export, preservation, or account closure as part of the account holder&apos;s
+              continuity plan.
             </p>
             <p>
               Requests are manually reviewed and may require supporting documentation before any
@@ -107,7 +110,7 @@ const LegacyContinuitySection: React.FC = () => {
                   <div className="text-xs text-muted-foreground">
                     Submitted {new Date(r.created_at).toLocaleDateString()}
                     {r.updated_at && r.updated_at !== r.created_at && (
-                      <> · Updated {new Date(r.updated_at).toLocaleDateString()}</>
+                      <> - Updated {new Date(r.updated_at).toLocaleDateString()}</>
                     )}
                   </div>
                 </div>

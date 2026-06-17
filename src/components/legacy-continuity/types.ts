@@ -28,7 +28,7 @@ export const REQUEST_TYPE_OPTIONS: {
 }[] = [
   {
     value: 'temporary_assistance',
-    label: 'Temporary Stewardship Access',
+    label: 'Temporary Continuity Access',
     description:
       'Time-bound assistance access while the account holder is temporarily unable to manage their account.',
   },
@@ -59,13 +59,13 @@ export const REQUEST_TYPE_OPTIONS: {
 ];
 
 export const REQUEST_TYPE_LABEL: Record<string, string> = {
-  temporary_assistance: 'Temporary Stewardship Access',
+  temporary_assistance: 'Temporary Continuity Access',
   data_export: 'Continuity Export Request',
   preservation: 'Preservation Mode',
   memorialization: 'Account Memorialization',
   account_closure: 'Account Closure Review',
   // legacy values
-  ownership_transfer: 'Stewardship Access (legacy)',
+  ownership_transfer: 'Legacy Admin Access (legacy)',
   closure: 'Account Closure Review',
   export: 'Continuity Export Request',
 };
@@ -126,7 +126,7 @@ export const DOCUMENT_CATEGORIES = [
 ];
 
 export const REQUESTED_OUTCOMES = [
-  { value: 'temporary_access', label: 'Temporary stewardship assistance' },
+  { value: 'temporary_access', label: 'Temporary continuity access' },
   { value: 'export_contents', label: 'Continuity export of account contents' },
   { value: 'preserve_as_is', label: 'Preserve account in read-only state' },
   { value: 'memorialize', label: 'Memorialize the account' },

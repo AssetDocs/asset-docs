@@ -21,7 +21,7 @@ const ExecutionCompletionScreen: React.FC<{ caseData: any; history: any; snapsho
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
           <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-          {isTransfer ? 'Ownership Transfer Completed' : activeArchive ? 'Archive Custodian Access Granted' : 'Temporary Stewardship Granted'}
+          {isTransfer ? 'Ownership Transfer Completed' : activeArchive ? 'Archive Custodian Access Granted' : 'Temporary Continuity Access Granted'}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-1">
@@ -46,7 +46,7 @@ const ExecutionCompletionScreen: React.FC<{ caseData: any; history: any; snapsho
         )}
         {activeTemp && !isTransfer && (
           <>
-            <Row label="Grant" value="Temporary Stewardship" />
+            <Row label="Grant" value="Temporary Continuity Access" />
             <Row label="Expires" value={activeTemp.expires_at ? new Date(activeTemp.expires_at).toLocaleString() : '—'} />
           </>
         )}

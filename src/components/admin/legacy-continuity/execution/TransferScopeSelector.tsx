@@ -26,8 +26,8 @@ const TransferScopeSelector: React.FC<{
     <CardContent>
       <p className="text-xs text-muted-foreground mb-3">
         Choose the continuity action to apply. Asset Safe does not provide ownership transfer,
-        inheritance, succession, or estate adjudication. All actions emphasize stewardship and
-        preservation.
+        inheritance, succession, or estate adjudication. All actions emphasize continuity planning
+        and preservation.
       </p>
       <RadioGroup
         value={value || ''}

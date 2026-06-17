@@ -11,7 +11,7 @@ export const STATUS_LABEL: Record<string, string> = {
   escalated: 'Escalated',
   approved: 'Approved',
   denied: 'Denied',
-  temporary_access_granted: 'Temporary Stewardship Active',
+  temporary_access_granted: 'Temporary Continuity Access Active',
   ownership_transfer_pending: 'Continuity Action Pending',
   completed: 'Completed',
   completed_memorialization: 'Memorialization Activated',
@@ -52,13 +52,13 @@ export const RISK_BADGE_CLASS: Record<string, string> = {
 };
 
 export const REQUEST_TYPE_LABEL: Record<string, string> = {
-  temporary_assistance: 'Temporary Stewardship Access',
+  temporary_assistance: 'Temporary Continuity Access',
   data_export: 'Continuity Export',
   preservation: 'Preservation Mode',
   memorialization: 'Account Memorialization',
   account_closure: 'Account Closure Review',
   // legacy
-  ownership_transfer: 'Stewardship Access (legacy)',
+  ownership_transfer: 'Legacy Admin Access (legacy)',
   closure: 'Account Closure Review',
   export: 'Continuity Export',
 };
@@ -83,7 +83,7 @@ export const DOC_VERIFICATION_BADGE: Record<string, string> = {
 
 export const CHECKLIST_DEFINITION: { category: string; items: { key: string; label: string }[] }[] = [
   {
-    category: 'Continuity Steward Identity',
+    category: 'Legacy Admin Identity',
     items: [
       { key: 'identity_email', label: 'Email verified' },
       { key: 'identity_phone', label: 'Phone verified' },

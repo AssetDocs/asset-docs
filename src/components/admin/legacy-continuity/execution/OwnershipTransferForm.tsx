@@ -9,7 +9,7 @@ import { ShieldOff } from 'lucide-react';
  *
  * Under the Continuity & Preservation framework, Asset Safe no longer offers
  * ownership transfer, inheritance, succession, or estate adjudication. Use
- * Temporary Stewardship, Archive Custodian Access, Memorialization,
+ * Temporary Continuity Access, Archive Custodian Access, Memorialization,
  * Preservation Mode, Approved Closure, or Authorized Export instead.
  *
  * This component is retained only to keep historical references intact and
@@ -27,8 +27,8 @@ const OwnershipTransferForm: React.FC<any> = () => (
       <Alert>
         <AlertDescription className="text-sm">
           Ownership transfer is no longer available. Asset Safe focuses on emergency
-          access, stewardship, and preservation. Choose Memorialization, Preservation
-          Mode, Archive Custodian Access, Temporary Stewardship, Authorized Export, or
+          access and preservation. Choose Memorialization, Preservation
+          Mode, Archive Custodian Access, Temporary Continuity Access, Authorized Export, or
           Approved Closure from the Continuity Action selector instead.
         </AlertDescription>
       </Alert>

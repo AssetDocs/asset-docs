@@ -40,7 +40,7 @@ const ApproveClosureForm: React.FC<Props> = ({ caseData, disabled, disabledReaso
         <Alert>
           <AlertDescription className="text-xs">
             Closure cannot be completed immediately. A waiting period gives the account holder
-            and stewards an opportunity to dispute or pause the closure. A pre-closure snapshot
+            and any designated Legacy Admin an opportunity to dispute or pause the closure. A pre-closure snapshot
             is captured automatically when closure is completed.
           </AlertDescription>
         </Alert>

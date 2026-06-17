@@ -14,7 +14,7 @@ import { DEFAULT_TEMP_PERMISSIONS, TEMP_PERMISSION_LABEL } from './executionCons
 
 interface Props { caseData: any; disabled: boolean; disabledReason?: string; onDone: () => void; }
 
-const TemporaryStewardshipForm: React.FC<Props> = ({ caseData, disabled, disabledReason, onDone }) => {
+const TemporaryContinuityAccessForm: React.FC<Props> = ({ caseData, disabled, disabledReason, onDone }) => {
   const [perms, setPerms] = useState({ ...DEFAULT_TEMP_PERMISSIONS });
   const [expires, setExpires] = useState('');
   const [reason, setReason] = useState('');
@@ -34,13 +34,13 @@ const TemporaryStewardshipForm: React.FC<Props> = ({ caseData, disabled, disable
     });
     setBusy(false);
     if (error) { toast.error(error.message); return; }
-    toast.success('Temporary stewardship granted');
+    toast.success('Temporary continuity access granted');
     setOpen(false); onDone();
   };
 
   return (
     <Card>
-      <CardHeader className="pb-3"><CardTitle className="text-base">Temporary Stewardship Settings</CardTitle></CardHeader>
+      <CardHeader className="pb-3"><CardTitle className="text-base">Temporary Continuity Access Settings</CardTitle></CardHeader>
       <CardContent className="space-y-3">
         <div className="space-y-2">
           {Object.entries(perms).map(([k, v]) => (
@@ -56,10 +56,10 @@ const TemporaryStewardshipForm: React.FC<Props> = ({ caseData, disabled, disable
         </div>
         <div>
           <Label className="text-sm">Internal reason <span className="text-rose-600">*</span></Label>
-          <Textarea value={reason} onChange={(e) => setReason(e.target.value)} disabled={disabled} placeholder="Why is this stewardship being granted?" rows={3} />
+          <Textarea value={reason} onChange={(e) => setReason(e.target.value)} disabled={disabled} placeholder="Why is this temporary continuity access being granted?" rows={3} />
         </div>
         <Button onClick={() => setOpen(true)} disabled={disabled || !expires || !reason.trim()} className="w-full">
-          Review & Grant Temporary Stewardship
+          Review & Grant Temporary Continuity Access
         </Button>
         {disabled && disabledReason && <p className="text-xs text-muted-foreground">{disabledReason}</p>}
       </CardContent>
@@ -67,7 +67,7 @@ const TemporaryStewardshipForm: React.FC<Props> = ({ caseData, disabled, disable
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirm Temporary Stewardship Access</DialogTitle>
+            <DialogTitle>Confirm Temporary Continuity Access</DialogTitle>
             <DialogDescription>
               You are about to grant time-bound access to this account. Ownership will not change. Access will expire automatically on the selected expiration date.
             </DialogDescription>
@@ -82,7 +82,7 @@ const TemporaryStewardshipForm: React.FC<Props> = ({ caseData, disabled, disable
           </label>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button onClick={execute} disabled={!valid || busy}>{busy ? 'Granting…' : 'Grant Stewardship'}</Button>
+            <Button onClick={execute} disabled={!valid || busy}>{busy ? 'Granting...' : 'Grant Access'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -90,4 +90,4 @@ const TemporaryStewardshipForm: React.FC<Props> = ({ caseData, disabled, disable
   );
 };
 
-export default TemporaryStewardshipForm;
+export default TemporaryContinuityAccessForm;

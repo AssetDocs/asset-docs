@@ -37,7 +37,7 @@ export type TransferScope =
   | 'export';
 
 export const SCOPE_LABEL: Record<TransferScope, string> = {
-  temporary: 'Temporary Stewardship',
+  temporary: 'Temporary Continuity Access',
   archive: 'Archive Custodian Access',
   memorialization: 'Memorialize Account',
   preservation: 'Activate Preservation Mode',
@@ -67,7 +67,7 @@ export interface ChecklistItem {
 }
 
 export const PRE_EXECUTION_CHECKLIST: ChecklistItem[] = [
-  { key: 'identity_verified', label: 'Continuity Steward identity verified', required: true },
+  { key: 'identity_verified', label: 'Legacy Admin identity verified', required: true },
   { key: 'legal_docs_reviewed', label: 'Supporting documentation reviewed', required: true },
   { key: 'reviewer_approval', label: 'Reviewer approval completed', required: true },
   { key: 'secondary_approval', label: 'Secondary approval completed', required: true },

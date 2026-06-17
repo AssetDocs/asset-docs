@@ -89,7 +89,7 @@ const AuthorizeExportForm: React.FC<Props> = ({ caseData, disabled, disabledReas
           <DialogHeader>
             <DialogTitle>Confirm Continuity Export Authorization</DialogTitle>
             <DialogDescription>
-              The Continuity Steward will be able to download the selected content until the
+              The Legacy Admin will be able to download the selected content until the
               expiration date or the download limit is reached. {sensitive ? 'Sensitive areas are included — handle with care.' : 'Sensitive areas are excluded.'}
             </DialogDescription>
           </DialogHeader>

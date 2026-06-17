@@ -13,7 +13,7 @@ import CurrentOwnershipSummary from './CurrentOwnershipSummary';
 import ProposedSuccessorSummary from './ProposedSuccessorSummary';
 import PreTransferChecklist, { computeCanExecute } from './PreTransferChecklist';
 import TransferScopeSelector from './TransferScopeSelector';
-import TemporaryStewardshipForm from './TemporaryStewardshipForm';
+import TemporaryContinuityAccessForm from './TemporaryContinuityAccessForm';
 import ArchiveCustodianForm from './ArchiveCustodianForm';
 import MemorializationForm from './MemorializationForm';
 import PreservationForm from './PreservationForm';
@@ -85,8 +85,8 @@ const ContinuityExecutionPanel: React.FC<{ caseData: any; onChange: () => void }
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
-            Asset Safe focuses on emergency access, stewardship, and preservation —
-            not ownership transfer, inheritance, or estate adjudication. Every action
+            Asset Safe focuses on continuity access and preservation, with manual review before
+            ownership transfer, export, or account closure. Every action
             here is logged and permissioned and may affect access, billing, and the
             account's continuity state.
           </p>
@@ -107,7 +107,7 @@ const ContinuityExecutionPanel: React.FC<{ caseData: any; onChange: () => void }
       )}
 
       {scope === 'temporary' && (
-        <TemporaryStewardshipForm
+        <TemporaryContinuityAccessForm
           caseData={caseData}
           disabled={!checklistOk || !canApproveAccess}
           disabledReason={!canApproveAccess ? CAP_REQUIREMENT_HELP.approve_temp_access : EXECUTION_DISABLED_HELP}

@@ -55,8 +55,8 @@ const TransferPreviewDialog: React.FC<Props> = ({ open, onClose, scope, caseData
     },
     temporary: {
       before: [{ label: 'Owner', value: 'Unchanged' }, { label: 'Access', value: 'Owner only' }],
-      after: [{ label: 'Owner', value: 'Unchanged' }, { label: 'Legacy Admin access', value: 'Time-bound' }],
-      changed: [{ label: 'Legacy Admin permissions', value: 'Limited stewardship' }],
+      after: [{ label: 'Owner', value: 'Unchanged' }, { label: 'Continuity access', value: 'Time-bound' }],
+      changed: [{ label: 'Continuity access', value: 'Limited, time-bound' }],
       restricted: [{ label: 'Ownership changes', value: 'Blocked' }, { label: 'Deletion', value: 'Blocked' }],
     },
     archive: {

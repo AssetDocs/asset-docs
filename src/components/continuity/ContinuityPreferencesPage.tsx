@@ -16,7 +16,7 @@ import { toast } from 'sonner';
 import { Crown, ShieldCheck, Heart, Lock } from 'lucide-react';
 
 const INCAPACITY_OPTIONS = [
-  { key: 'allow_temporary_stewardship', label: 'Allow Temporary Stewardship' },
+  { key: 'allow_temporary_stewardship', label: 'Allow temporary continuity access' },
   { key: 'allow_view', label: 'Allow limited account viewing' },
   { key: 'allow_upload_download', label: 'Allow document upload/download' },
   { key: 'allow_billing_visibility', label: 'Allow billing visibility' },
@@ -26,7 +26,7 @@ const INCAPACITY_OPTIONS = [
 ];
 
 const PERMANENT_INCAPACITY_OPTIONS = [
-  { key: 'allow_temporary_stewardship', label: 'Allow Temporary Stewardship' },
+  { key: 'allow_temporary_stewardship', label: 'Allow temporary continuity access' },
   { key: 'allow_archive_custodian', label: 'Allow Archive Custodian Mode' },
   { key: 'allow_full_transfer', label: 'Allow Full Ownership Transfer' },
   { key: 'allow_data_export', label: 'Allow data export' },
