@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, CheckCircle2, HardDrive, ShieldCheck, UserCog, Users } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { ArrowRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAccount } from '@/contexts/AccountContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
@@ -34,7 +33,7 @@ const initialState: AtAGlanceState = {
 const bytesToGb = (bytes: number) => bytes / 1024 / 1024 / 1024;
 
 const formatGb = (value: number | null) => {
-  if (value === null || Number.isNaN(value)) return '—';
+  if (value === null || Number.isNaN(value)) return '-';
   if (value < 0.1 && value > 0) return '<0.1';
   return value.toFixed(value >= 10 ? 0 : 1);
 };
@@ -131,34 +130,30 @@ const DashboardAtAGlanceCard: React.FC<DashboardAtAGlanceCardProps> = ({ onTabCh
   const rows = [
     {
       label: 'Protection Status',
-      value: state.protectionStatus ?? '—',
-      icon: ShieldCheck,
+      value: state.protectionStatus ?? '-',
       action: protectionNeedsAction
-        ? { label: 'Go', onClick: () => onTabChange('protection-progress') }
+        ? { label: 'Complete', onClick: () => onTabChange('protection-progress') }
         : null,
     },
     {
       label: 'Authorized Users',
-      value: state.authorizedUserCount === null ? '—' : String(state.authorizedUserCount),
-      icon: Users,
+      value: state.authorizedUserCount === null ? '-' : String(state.authorizedUserCount),
       action: usersNeedAction
-        ? { label: 'Go', onClick: () => onTabChange('access-activity') }
+        ? { label: 'Add', onClick: () => onTabChange('access-activity') }
         : null,
     },
     {
       label: 'Legacy Admin',
-      value: state.legacyAdminAssigned === null ? '—' : state.legacyAdminAssigned ? 'Assigned' : 'Not Assigned',
-      icon: UserCog,
+      value: state.legacyAdminAssigned === null ? '-' : state.legacyAdminAssigned ? 'Assigned' : 'Not Assigned',
       action: legacyNeedsAction
-        ? { label: 'Go', onClick: () => onTabChange('access-activity') }
+        ? { label: 'Assign', onClick: () => onTabChange('access-activity') }
         : null,
     },
     {
       label: 'Storage Used',
       value: state.storageUsedGb === null || state.storageQuotaGb === null
-        ? '—'
+        ? '-'
         : `${formatGb(state.storageUsedGb)} GB / ${formatGb(state.storageQuotaGb)} GB`,
-      icon: HardDrive,
       action: storageNeedsAction
         ? { label: 'Manage', onClick: () => navigate('/account/settings?tab=manage') }
         : null,
@@ -166,46 +161,34 @@ const DashboardAtAGlanceCard: React.FC<DashboardAtAGlanceCardProps> = ({ onTabCh
   ];
 
   return (
-    <Card className="h-full border-blue-100/80 bg-gradient-to-br from-blue-50/90 via-cyan-50/70 to-teal-50/80 shadow-sm">
-      <CardContent className="p-5 h-full">
-        <div className="flex items-center justify-between gap-3 mb-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-blue/70">
-              Readiness
-            </p>
-            <h2 className="text-lg font-bold text-brand-blue">At a Glance</h2>
-          </div>
-          <div className="h-9 w-9 rounded-full bg-white/70 border border-white/80 flex items-center justify-center text-brand-blue">
-            <CheckCircle2 className="h-5 w-5" />
-          </div>
-        </div>
+    <section className="h-full text-white">
+      <div className="mb-3">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/60">
+          Readiness
+        </p>
+      </div>
 
-        <div className="space-y-2.5">
-          {rows.map((row) => {
-            const Icon = row.icon;
-            return (
-              <div key={row.label} className="flex items-center gap-2.5 rounded-lg bg-white/55 border border-white/70 px-3 py-2">
-                <Icon className="h-4 w-4 text-brand-blue/70 flex-shrink-0" />
-                <div className="min-w-0 flex-1">
-                  <p className="text-[11px] leading-tight text-slate-500">{row.label}</p>
-                  <p className="text-sm font-semibold text-slate-800 truncate">{row.value}</p>
-                </div>
-                {row.action && (
-                  <button
-                    type="button"
-                    onClick={row.action.onClick}
-                    className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-brand-blue/75 hover:text-brand-blue transition-colors"
-                  >
-                    {row.action.label}
-                    <ArrowRight className="h-3 w-3" />
-                  </button>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </CardContent>
-    </Card>
+      <div className="space-y-2.5">
+        {rows.map((row) => (
+          <div key={row.label} className="flex items-baseline gap-3 border-b border-white/10 pb-2 last:border-0 last:pb-0">
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] leading-tight text-white/55">{row.label}</p>
+              <p className="text-sm font-semibold text-white truncate">{row.value}</p>
+            </div>
+            {row.action && (
+              <button
+                type="button"
+                onClick={row.action.onClick}
+                className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-white/70 hover:text-white transition-colors"
+              >
+                {row.action.label}
+                <ArrowRight className="h-3 w-3" />
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
   );
 };
 

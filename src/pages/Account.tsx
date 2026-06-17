@@ -179,9 +179,11 @@ const Account: React.FC = () => {
           {/* Welcome Banner + Security Progress - ONLY on overview */}
           {isOverview && (
             <>
-              <div className="mb-4 grid gap-4 lg:grid-cols-[2fr_1fr] items-stretch">
-                <WelcomeBanner onTabChange={setActiveTab} />
-                <DashboardAtAGlanceCard onTabChange={setActiveTab} />
+              <div className="mb-4">
+                <WelcomeBanner
+                  onTabChange={setActiveTab}
+                  readinessContent={<DashboardAtAGlanceCard onTabChange={setActiveTab} />}
+                />
               </div>
               <SubscriptionEndingBanner />
               <ScheduledDeletionBanner />
