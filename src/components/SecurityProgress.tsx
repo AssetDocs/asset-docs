@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useVerification } from '@/hooks/useVerification';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAccount } from '@/contexts/AccountContext';
+import { useSubscription } from '@/contexts/SubscriptionContext';
+import { StorageService } from '@/services/StorageService';
+import { supabase } from '@/integrations/supabase/client';
 import { Check, ChevronDown, Shield, ClipboardList, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import UserStatusBadge from '@/components/UserStatusBadge';
