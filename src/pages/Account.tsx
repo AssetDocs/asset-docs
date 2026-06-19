@@ -196,7 +196,10 @@ const Account: React.FC = () => {
             {!isOverview && (
               <div className="w-full flex flex-wrap gap-2">
                 <Button
-                  onClick={() => setActiveTab('overview')}
+                  onClick={() => {
+                    setActiveTab('overview');
+                    navigate('/account', { replace: true });
+                  }}
                   variant="outline"
                   size="sm"
                   className="bg-white text-brand-orange border-brand-orange hover:bg-brand-orange/10"
@@ -207,7 +210,10 @@ const Account: React.FC = () => {
 
                 {['voice-notes', 'service-pros', 'notes-traditions', 'family-recipes', 'memory-safe'].includes(activeTab) && (
                   <Button
-                    onClick={() => setActiveTab('life-hub')}
+                    onClick={() => {
+                      setActiveTab('life-hub');
+                      navigate('/account?tab=life-hub', { replace: true });
+                    }}
                     variant="outline"
                     size="sm"
                     className="bg-white text-brand-orange border-brand-orange hover:bg-brand-orange/10"
@@ -219,7 +225,10 @@ const Account: React.FC = () => {
 
                 {['source-websites', 'paint-codes', 'upgrades-repairs', 'smart-calendar'].includes(activeTab) && (
                   <Button
-                    onClick={() => setActiveTab('insights-tools')}
+                    onClick={() => {
+                      setActiveTab('insights-tools');
+                      navigate('/account?tab=insights-tools', { replace: true });
+                    }}
                     variant="outline"
                     size="sm"
                     className="bg-white text-brand-orange border-brand-orange hover:bg-brand-orange/10"
