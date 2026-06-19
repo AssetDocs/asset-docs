@@ -1,52 +1,53 @@
 ## Goal
-Eliminate every stale "100GB" mention in the codebase. Standardize on **"50GB storage (+25GB add-on available)"** to match the Pricing page and the real product (single Asset Safe plan + optional 25GB add-on).
 
-## Files to update (10 files, 14 occurrences)
+1. Eliminate the `/account?tab=protection-progress` page.
+2. Revert the blue welcome banner to its pre-Readiness state (no right-side column).
+3. Re-home the "Readiness" metrics inside the existing "Security Progress" card, styled like the existing "Next step to reach Verified status" strip — same font size and orientation — to minimize added height.
+4. Show only three rows (omit Protection Status): Authorized Users, Legacy Admin, Storage Used.
 
-### 1. `src/components/StorageTab.tsx` — Upgrade card rework
-Currently shows an "Upgrade to Premium / 100GB" recommendation. Since there is only one paid plan, replace the upsell with an **"Add 25GB" add-on CTA** that calls the existing `add-storage-25gb` edge flow (same path the Billing/Manage tab uses).
+## Changes
 
-- Remove `getUpgradeRecommendation()` (premium-tier logic is obsolete).
-- Replace the "Upgrade your storage" panel with a single "Add 25GB to your plan" panel:
-  - Headline: "Need more space?"
-  - Body: "Add a 25GB storage block to your current plan."
-  - Primary button: "Add 25GB" → invokes existing add-storage flow (mirror the call site used in `BillingTab`/Manage tab).
-  - Secondary link: "View Pricing" → `/pricing`.
-- Drop the "Recommended" badge and the "View Pricing Plans" upsell button.
-- Keep the existing plan summary header and the `StorageDashboard` block unchanged.
+### 1. `src/pages/Account.tsx`
 
-### 2. Marketing / FAQ / Chatbot copy → "50GB storage (+25GB add-on available)"
-- `src/components/AskAssetSafe.tsx` (line 29) — rewrite the canned pricing answer to reflect the single Asset Safe plan, 50GB base + 25GB add-on. Remove the obsolete "Standard vs Premium" two-tier framing.
-- `src/components/ChatbotInterface.tsx` (line 68) — same rewrite as above, single-plan language.
-- `src/components/HomeFAQ.tsx` (line 33) — rewrite the storage FAQ answer to single plan, "50GB storage with an optional 25GB add-on".
+- Remove the `protection-progress` entry from `getSectionConfig()` (line 141).
+- Remove the entire `<TabsContent value="protection-progress">` block (lines 273–282), including the `<ProtectionScore defaultOpen />` and inline `<DocumentationChecklist />` it renders.
+- Remove the now-unused `ProtectionScore` import (line 38).
+- In the overview render (lines 180–195):
+  - Remove the `readinessContent={<DashboardAtAGlanceCard … />}` prop so the banner returns to its original single-column layout.
+  - Remove the `DashboardAtAGlanceCard` import.
 
-### 3. Public pages
-- `src/pages/CompletePricing.tsx` (line 76) — feature bullet: `"50GB secure cloud storage (+25GB add-on available)"`.
-- `src/pages/SubscriptionCheckout.tsx` (line 83) — same bullet text.
-- `src/pages/Pricing.tsx` (line 179) — helper line currently "100GB ≈ ~6,000 photos…". Change to "50GB ≈ ~3,000 photos or substantial video".
-- `src/pages/CompassPartnership.tsx` (line 89) — change "Subscription tiers with scalable storage (25GB–100GB+)" to "50GB base storage with optional 25GB add-ons".
+### 2. `src/components/WelcomeBanner.tsx`
 
-### 4. Admin reference doc
-- `src/components/admin/SystemInfrastructure.tsx`
-  - Line 420 — list item "100GB storage" → "50GB storage (+25GB add-on)".
-  - Line 476 — table cell "Standard: 25GB, Premium: 100GB — enforced at upload" → "Asset Safe plan: 50GB base, +25GB add-on — enforced at upload".
+- Drop the `readinessContent` prop and its render block (lines 11–16, 152–156).
+- Restore the outer grid to a single column: change `<div className="grid gap-5 lg:grid-cols-[2.5fr_1fr] lg:items-stretch">` (line 88) back to a plain `<div>` (or remove the grid wrapper entirely so the inner flex row is the only child).
 
-## Stripe manual checklist (for you to verify in dashboard — cannot read from here)
-Please confirm in the live Stripe dashboard that none of these still say "100GB":
+### 3. `src/components/SecurityProgress.tsx`
 
-1. **Product → "Asset Safe" (or equivalent)** description and statement descriptor.
-2. **Price object metadata** for the main subscription price (look for `storage_quota_gb` / `total_storage_gb` keys — should read `50`, not `100`).
-3. **Add-on price** (`add-storage-25gb` lookup_key) — confirm description and metadata reference 25GB.
-4. **Stripe Tax / product tax code descriptions** — usually unaffected, but skim.
-5. **Customer Portal configuration → Products** — the plan card shown to customers (description text often duplicates "100GB").
-6. **Any active coupon / promo descriptions** mentioning storage.
-7. **Stripe-hosted invoice & receipt line-item descriptions** — verify on the next real invoice.
+- Below the existing "Next step…" strip (the block at lines 117–134) add a sibling strip with the same container styling (`px-4 py-2.5 border-t border-border bg-muted/20`) and the same row layout used for the Next Step row:
+  - `flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-3`
+  - Left label uses `text-[11px] text-muted-foreground`; right value uses `text-[11px] font-medium text-foreground`; action uses the existing `Go → ` style (`text-[11px] font-semibold text-primary` with `ArrowRight h-3 w-3`).
+- Render three rows stacked, each matching that pattern (no Protection Status row):
+  - **Authorized Users** — value = count (e.g. `0`); action: `Add →` → `setActiveTab('access-activity')` via `navigate('/account?tab=access-activity')`.
+  - **Legacy Admin** — value = `Assigned` or `Not Assigned`; action when not assigned: `Add →` → `/account?tab=access-activity`.
+  - **Storage Used** — value = `X.X GB / Y GB`; no action button unless > 85 % used (keep current threshold; action `Manage →` to `/account/settings?tab=manage`).
+- Source the data inside `SecurityProgress` (owner-only, gated by `useAccount().isOwner`) by porting the Supabase queries currently in `DashboardAtAGlanceCard`:
+  - `account_memberships` count (non-owner, active) → Authorized Users.
+  - `legacy_admins` lookup by `account_id` + active → Legacy Admin.
+  - `StorageService.getStorageQuotaWithLimit(ownerUserId, storageQuotaGb)` (with `useSubscription().storageQuotaGb`) → Storage Used.
+- Skip the new strip for non-owners or while data is loading (render nothing rather than `-` placeholders to avoid flicker / added height).
 
-## Out of scope
-- No schema, RLS, edge function, or entitlement changes — `STORAGE_LIMITS` and `getStorageLimit()` already enforce 50GB; we are only fixing display copy and the upgrade card's CTA target.
-- No changes to the `add-storage-25gb` edge function itself — we just wire the existing flow into the new StorageTab CTA.
+### 4. `src/components/DashboardAtAGlanceCard.tsx`
 
-## Verification after build
-- Visit `/account?tab=storage`: card shows "Add 25GB" CTA, no "100GB" anywhere.
-- Visit `/pricing`, `/checkout`, homepage FAQ, chatbot panel: all say 50GB (+25GB add-on).
-- `grep -rni "100gb" src/` returns zero matches.
+- File no longer referenced. Delete it.
+
+### 5. (No DB / route changes)
+
+The `protection-progress` value was only addressable via the in-page `<Tabs>` — there is no router entry, sidebar link, or sitemap entry to update. Existing deep links to `?tab=protection-progress` will simply fall through to the default overview tab.
+
+## Acceptance
+
+- Visiting `/account?tab=protection-progress` shows the overview, not a dedicated page.
+- The blue welcome banner looks identical to its pre-Readiness layout (no right-side column, no extra height beyond original).
+- The "Security Progress" bar shows the existing Next Step row plus three new compact rows (Authorized Users / Legacy Admin / Storage Used) using the same 11 px type and inline `Add →` / `Manage →` actions.
+- No "Protection Status" row appears anywhere in the new strip.
+- No console warnings about unused imports; no references to `DashboardAtAGlanceCard` or `ProtectionScore` (in Account.tsx) remain.

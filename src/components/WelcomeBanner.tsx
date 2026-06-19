@@ -1,4 +1,4 @@
-import React, { useEffect, useState, type ReactNode } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp, Home, Settings, Smartphone, Users, X } from 'lucide-react';
@@ -10,10 +10,9 @@ import AccountSwitcher from '@/components/AccountSwitcher';
 
 interface WelcomeBannerProps {
   onTabChange?: (tab: string) => void;
-  readinessContent?: ReactNode;
 }
 
-const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange, readinessContent }) => {
+const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange }) => {
   const { profile, user } = useAuth();
   const { accountName, ownerName, isOwner, accountRole, hasMultipleAccounts } = useAccount();
   const navigate = useNavigate();
@@ -85,7 +84,7 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange, readinessCon
   return (
     <div className="space-y-3 h-full">
       <div className="bg-gradient-to-r from-brand-blue to-brand-lightBlue p-6 rounded-lg text-white">
-        <div className="grid gap-5 lg:grid-cols-[2.5fr_1fr] lg:items-stretch">
+        <div>
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div className="flex-1">
               <p className="text-white/80 text-sm font-medium">
@@ -149,11 +148,6 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange, readinessCon
             </div>
           </div>
 
-          {readinessContent && (
-            <div className="border-t border-white/20 pt-4 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
-              {readinessContent}
-            </div>
-          )}
         </div>
       </div>
 

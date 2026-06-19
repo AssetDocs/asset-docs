@@ -138,7 +138,7 @@ const Account: React.FC = () => {
       'legacy-locker': { title: 'Legacy Locker', subtitle: 'Guidance and access when you can\'t be there.' },
       'insights-tools': { title: 'Insights & Tools', subtitle: 'Track values, manage repairs, and organize property details.' },
       'life-hub': { title: 'Family Archive', subtitle: 'Everyday life, organized and protected.' },
-      'protection-progress': { title: 'Protection Progress', subtitle: 'Track your documentation checklist and protection score in one place.' },
+      
       'asset-values': { title: 'Asset Values', subtitle: 'Track the estimated value of your documented assets.' },
       'source-websites': { title: 'Source Websites', subtitle: 'Save product sources and reference links.' },
       'damage': { title: 'Post Damage Report', subtitle: 'Document damage and submit post-incident details.' },
@@ -180,10 +180,7 @@ const Account: React.FC = () => {
           {isOverview && (
             <>
               <div className="mb-4">
-                <WelcomeBanner
-                  onTabChange={setActiveTab}
-                  readinessContent={<DashboardAtAGlanceCard onTabChange={setActiveTab} />}
-                />
+                <WelcomeBanner onTabChange={setActiveTab} />
               </div>
               <SubscriptionEndingBanner />
               <ScheduledDeletionBanner />
@@ -269,17 +266,6 @@ const Account: React.FC = () => {
               </div>
             </TabsContent>
 
-            {/* Protection Progress (merged Checklist + Score) */}
-            <TabsContent value="protection-progress">
-              <div className="space-y-4">
-                <div>
-                  <h2 className="text-2xl font-bold text-foreground">{getSectionConfig().title}</h2>
-                  <p className="text-muted-foreground text-sm mt-1">{getSectionConfig().subtitle}</p>
-                </div>
-                <ProtectionScore defaultOpen />
-                <DocumentationChecklist />
-              </div>
-            </TabsContent>
 
             {/* Insights & Tools Sub-Grid */}
             <TabsContent value="insights-tools">
