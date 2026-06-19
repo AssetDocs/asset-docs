@@ -181,6 +181,69 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
         </div>
       )}
 
+      {isOwner && (
+        <>
+          {authorizedUserCount !== null && (
+            <div className="px-4 py-2 border-t border-border bg-muted/20">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-3">
+                <span className="text-[11px] text-muted-foreground">Authorized Users</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-[11px] font-medium text-foreground">{authorizedUserCount}</span>
+                  <button
+                    onClick={() => navigate('/account?tab=access-activity')}
+                    className="flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors whitespace-nowrap ml-1"
+                  >
+                    Add <ArrowRight className="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {legacyAdminAssigned !== null && (
+            <div className="px-4 py-2 border-t border-border bg-muted/20">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-3">
+                <span className="text-[11px] text-muted-foreground">Legacy Admin</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-[11px] font-medium text-foreground">
+                    {legacyAdminAssigned ? 'Assigned' : '(not assigned)'}
+                  </span>
+                  {!legacyAdminAssigned && (
+                    <button
+                      onClick={() => navigate('/account?tab=access-activity')}
+                      className="flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors whitespace-nowrap ml-1"
+                    >
+                      Add <ArrowRight className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {storageUsedGb !== null && storageQuotaDisplay !== null && (
+            <div className="px-4 py-2 border-t border-border bg-muted/20">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-3">
+                <span className="text-[11px] text-muted-foreground">Storage Used</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-[11px] font-medium text-foreground">
+                    {storageUsedGb.toFixed(1)} GB / {storageQuotaDisplay} GB
+                  </span>
+                  {(storagePercentage ?? 0) > 85 && (
+                    <button
+                      onClick={() => navigate('/account/settings?tab=manage')}
+                      className="flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors whitespace-nowrap ml-1"
+                    >
+                      Manage <ArrowRight className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
       {isProgressOpen && (
         <div className="px-4 pb-4 pt-1 border-t border-border">
           {/* ── Verified section ─────────────────────────────────── */}
