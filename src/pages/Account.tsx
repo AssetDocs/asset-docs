@@ -19,7 +19,7 @@ import SecureVault from '@/components/SecureVault';
 import FeedbackSection from '@/components/FeedbackSection';
 import AdminContributorPlanInfo from '@/components/AdminContributorPlanInfo';
 import WelcomeBanner from '@/components/WelcomeBanner';
-import DashboardAtAGlanceCard from '@/components/DashboardAtAGlanceCard';
+
 import SubscriptionEndingBanner from '@/components/SubscriptionEndingBanner';
 import ExpiredSubscriptionBanner from '@/components/ExpiredSubscriptionBanner';
 import GracePeriodBanner from '@/components/GracePeriodBanner';
@@ -35,7 +35,7 @@ import QuickNotesSection from '@/components/QuickNotesSection';
 import FamilyRecipes from '@/components/FamilyRecipes';
 import MemorySafe from '@/components/MemorySafe';
 import AssetDocumentationGrid from '@/components/AssetDocumentationGrid';
-import ProtectionScore from '@/components/ProtectionScore';
+
 import { supabase } from '@/integrations/supabase/client';
 import SmartCalendar from '@/components/SmartCalendar';
 import UpgradesRepairsSection from '@/components/UpgradesRepairsSection';
