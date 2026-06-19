@@ -174,7 +174,7 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
                 onClick={() => navigate(getNextTaskRoute(nextTask.label))}
                 className="flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors whitespace-nowrap ml-1"
               >
-                Go <ArrowRight className="h-3 w-3" />
+                Add <ArrowRight className="h-3 w-3" />
               </button>
             </div>
           </div>
@@ -188,7 +188,7 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-3">
                 <span className="text-[11px] text-muted-foreground">Authorized Users</span>
                 <div className="flex items-center gap-1">
-                  <span className="text-[11px] font-medium text-foreground">{authorizedUserCount}</span>
+                  <span className="text-[11px] font-medium text-foreground">{authorizedUserCount === 0 ? 'not assigned' : authorizedUserCount}</span>
                   <button
                     onClick={() => navigate('/account?tab=access-activity')}
                     className="flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors whitespace-nowrap ml-1"
@@ -206,7 +206,7 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
                 <span className="text-[11px] text-muted-foreground">Legacy Admin</span>
                 <div className="flex items-center gap-1">
                   <span className="text-[11px] font-medium text-foreground">
-                    {legacyAdminAssigned ? 'Assigned' : '(not assigned)'}
+                    {legacyAdminAssigned ? 'Assigned' : 'not assigned'}
                   </span>
                   {!legacyAdminAssigned && (
                     <button
