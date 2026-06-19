@@ -36,7 +36,7 @@ const TOTPSettings: React.FC = () => {
     setDisabling(true);
     try {
       const result = await unenroll(verifiedFactor.id);
-      if (!result.ok) {
+      if (result.ok === false) {
         if (result.reason === 'cancelled') {
           toast({
             title: 'Verification cancelled',
