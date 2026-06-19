@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useVerification } from '@/hooks/useVerification';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAccount } from '@/contexts/AccountContext';
+import { useSubscription } from '@/contexts/SubscriptionContext';
+import { StorageService } from '@/services/StorageService';
+import { supabase } from '@/integrations/supabase/client';
 import { Check, ChevronDown, Shield, ClipboardList, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import UserStatusBadge from '@/components/UserStatusBadge';
@@ -15,13 +19,57 @@ interface SecurityProgressProps {
 const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = false }) => {
   const { status, loading, refreshVerification } = useVerification();
   const { profile } = useAuth();
+  const { accountId, ownerUserId, isOwner } = useAccount();
+  const { storageQuotaGb } = useSubscription();
   const navigate = useNavigate();
   const [isProgressOpen, setIsProgressOpen] = useState(false);
   const [isChecklistOpen, setIsChecklistOpen] = useState(false);
+  const [authorizedUserCount, setAuthorizedUserCount] = useState<number | null>(null);
+  const [legacyAdminAssigned, setLegacyAdminAssigned] = useState<boolean | null>(null);
+  const [storageUsedGb, setStorageUsedGb] = useState<number | null>(null);
+  const [storageQuotaDisplay, setStorageQuotaDisplay] = useState<number | null>(null);
+  const [storagePercentage, setStoragePercentage] = useState<number | null>(null);
 
   useEffect(() => {
     refreshVerification();
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      if (!isOwner || !accountId || !ownerUserId) return;
+      try {
+        const { count } = await supabase
+          .from('account_memberships')
+          .select('id', { count: 'exact', head: true })
+          .eq('account_id', accountId)
+          .eq('status', 'active')
+          .neq('role', 'owner');
+        if (!cancelled) setAuthorizedUserCount(count ?? 0);
+      } catch { /* ignore */ }
+      try {
+        const { data } = await supabase
+          .from('legacy_admins')
+          .select('id')
+          .eq('account_id', accountId)
+          .eq('status', 'active')
+          .maybeSingle();
+        if (!cancelled) setLegacyAdminAssigned(!!data);
+      } catch { /* ignore */ }
+      try {
+        if (storageQuotaGb > 0) {
+          const quota = await StorageService.getStorageQuotaWithLimit(ownerUserId, storageQuotaGb);
+          if (!cancelled) {
+            setStorageUsedGb(quota.used / 1024 / 1024 / 1024);
+            setStorageQuotaDisplay(storageQuotaGb);
+            setStoragePercentage(quota.percentage);
+          }
+        }
+      } catch { /* ignore */ }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [accountId, ownerUserId, isOwner, storageQuotaGb]);
 
   if (loading && !status) return null;
 
@@ -131,6 +179,69 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
             </div>
           </div>
         </div>
+      )}
+
+      {isOwner && (
+        <>
+          {authorizedUserCount !== null && (
+            <div className="px-4 py-2 border-t border-border bg-muted/20">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-3">
+                <span className="text-[11px] text-muted-foreground">Authorized Users</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-[11px] font-medium text-foreground">{authorizedUserCount}</span>
+                  <button
+                    onClick={() => navigate('/account?tab=access-activity')}
+                    className="flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors whitespace-nowrap ml-1"
+                  >
+                    Add <ArrowRight className="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {legacyAdminAssigned !== null && (
+            <div className="px-4 py-2 border-t border-border bg-muted/20">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-3">
+                <span className="text-[11px] text-muted-foreground">Legacy Admin</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-[11px] font-medium text-foreground">
+                    {legacyAdminAssigned ? 'Assigned' : '(not assigned)'}
+                  </span>
+                  {!legacyAdminAssigned && (
+                    <button
+                      onClick={() => navigate('/account?tab=access-activity')}
+                      className="flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors whitespace-nowrap ml-1"
+                    >
+                      Add <ArrowRight className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {storageUsedGb !== null && storageQuotaDisplay !== null && (
+            <div className="px-4 py-2 border-t border-border bg-muted/20">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-3">
+                <span className="text-[11px] text-muted-foreground">Storage Used</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-[11px] font-medium text-foreground">
+                    {storageUsedGb.toFixed(1)} GB / {storageQuotaDisplay} GB
+                  </span>
+                  {(storagePercentage ?? 0) > 85 && (
+                    <button
+                      onClick={() => navigate('/account/settings?tab=manage')}
+                      className="flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors whitespace-nowrap ml-1"
+                    >
+                      Manage <ArrowRight className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {isProgressOpen && (
