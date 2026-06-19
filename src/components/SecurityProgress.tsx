@@ -19,13 +19,57 @@ interface SecurityProgressProps {
 const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = false }) => {
   const { status, loading, refreshVerification } = useVerification();
   const { profile } = useAuth();
+  const { accountId, ownerUserId, isOwner } = useAccount();
+  const { storageQuotaGb } = useSubscription();
   const navigate = useNavigate();
   const [isProgressOpen, setIsProgressOpen] = useState(false);
   const [isChecklistOpen, setIsChecklistOpen] = useState(false);
+  const [authorizedUserCount, setAuthorizedUserCount] = useState<number | null>(null);
+  const [legacyAdminAssigned, setLegacyAdminAssigned] = useState<boolean | null>(null);
+  const [storageUsedGb, setStorageUsedGb] = useState<number | null>(null);
+  const [storageQuotaDisplay, setStorageQuotaDisplay] = useState<number | null>(null);
+  const [storagePercentage, setStoragePercentage] = useState<number | null>(null);
 
   useEffect(() => {
     refreshVerification();
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      if (!isOwner || !accountId || !ownerUserId) return;
+      try {
+        const { count } = await supabase
+          .from('account_memberships')
+          .select('id', { count: 'exact', head: true })
+          .eq('account_id', accountId)
+          .eq('status', 'active')
+          .neq('role', 'owner');
+        if (!cancelled) setAuthorizedUserCount(count ?? 0);
+      } catch { /* ignore */ }
+      try {
+        const { data } = await supabase
+          .from('legacy_admins')
+          .select('id')
+          .eq('account_id', accountId)
+          .eq('status', 'active')
+          .maybeSingle();
+        if (!cancelled) setLegacyAdminAssigned(!!data);
+      } catch { /* ignore */ }
+      try {
+        if (storageQuotaGb > 0) {
+          const quota = await StorageService.getStorageQuotaWithLimit(ownerUserId, storageQuotaGb);
+          if (!cancelled) {
+            setStorageUsedGb(quota.used / 1024 / 1024 / 1024);
+            setStorageQuotaDisplay(storageQuotaGb);
+            setStoragePercentage(quota.percentage);
+          }
+        }
+      } catch { /* ignore */ }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [accountId, ownerUserId, isOwner, storageQuotaGb]);
 
   if (loading && !status) return null;
 
