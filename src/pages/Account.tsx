@@ -72,10 +72,13 @@ const Account: React.FC = () => {
   }, [activeTab]);
 
   // Sync URL → activeTab when navigating here with a ?tab= param (e.g. from SecurityProgress "Go" CTA)
+  // Also reset to overview when the tab param is removed (e.g. clicking Dashboard nav link)
   useEffect(() => {
     const queryTab = searchParams.get('tab');
     if (queryTab && queryTab !== activeTab) {
       setActiveTab(queryTab);
+    } else if (!queryTab && activeTab !== 'overview') {
+      setActiveTab('overview');
     }
   }, [searchParams, activeTab]);
 
