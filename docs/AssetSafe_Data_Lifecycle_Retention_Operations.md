@@ -105,22 +105,24 @@ USER ──"delete"─▶ │ submit-deletion-request       │  account_closure
 | Continuity-triggered freeze | per `continuity_account_freezes` | keep | Legacy Admin dispute |
 
 ### 3.3 Backing tables
-- `account_closure_requests` — soft-close intent, 14 cols.
-- `account_deletion_requests` — hard-delete intent, 11 cols.
-- `closure_requests` — duplicate/legacy? **Audit needed.**
-- `deleted_accounts` — tombstone (5 cols).
-- `memorialized_accounts` — continuity end-state.
+Decision record: `docs/AssetSafe_Closure_Deletion_Table_Matrix.md`.
+
+- `account_closure_requests` - owner self-service closure schedule; swept by `process-account-closures`.
+- `account_deletion_requests` - authorized-user/admin-reviewed deletion request evidence.
+- `closure_requests` - continuity/preservation closure workflow; not used by the self-service closure sweeper.
+- `deleted_accounts` - retained tombstone anchor for anonymized rows and signup guard.
+- `memorialized_accounts` - continuity end-state.
 
 ### 3.4 Edge functions
 - `request-account-closure`, `reverse-account-closure`
 - `submit-deletion-request`, `respond-deletion-request`
-- `delete-account` — orchestrator (must run with service role)
+- `delete-account` - orchestrator (must run with service role)
 - `send-deletion-confirmation`
 
 ### 3.5 Launch gaps
-- Three overlapping tables (`closure_requests`, `account_closure_requests`, `account_deletion_requests`) need consolidation or a documented decision matrix.
-- No cron sweeper that flips `closure_pending` → `delete-account` after grace.
-- No re-signup conflict handling beyond the memory note (`deleted-accounts-table-conflict`) — should be codified as an edge guard.
+- Owner closure sweeper exists as `process-account-closures`; verify production cron is installed from the runbook.
+- Deletion request review remains manual; approved requests invoke `delete-account`.
+- Table decision matrix is documented; revisit consolidation after launch only if the workflows converge.
 
 ---
 
@@ -257,8 +259,8 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 ## 10. Prioritized Launch Gaps
 
 **P0 (blocking launch)**
-1. Sweepers: `sweep-closure-pending`, `sweep-deletion-pending`, `sweep-expired-exports`.
-2. Consolidate the three closure/deletion tables or document the matrix.
+1. Sweepers: `process-account-closures`, `process-expired-exports`; deletion request review remains manual unless approved flow invokes `delete-account`.
+2. Closure/deletion table matrix documented; consolidation deferred until workflows converge.
 3. Restore runbook + one rehearsed drill, logged.
 4. Re-signup conflict guard codified in signup/auth creation paths.
 
@@ -277,7 +279,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 ---
 
 ## 11. Open Questions for Developer Review
-1. Are `closure_requests` and `account_closure_requests` truly distinct, or is one deprecated?
+1. Confirm post-launch whether the documented closure/deletion table boundaries still hold after real admin usage.
 2. Does `delete-account` today purge storage objects, or only DB rows?
 3. Where is the canonical list of buckets and their per-bucket lifecycle rules (if any)?
 4. Confirm `deleted_accounts` retention satisfies CCPA/CPRA "right to delete" — tombstone fields must be minimized (email hash vs plaintext).
