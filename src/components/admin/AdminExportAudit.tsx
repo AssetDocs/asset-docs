@@ -1,0 +1,185 @@
+// @ts-nocheck
+import React, { useEffect, useMemo, useState } from 'react';
+import { format } from 'date-fns';
+import { AlertTriangle, Download, RefreshCw } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { supabase } from '@/integrations/supabase/client';
+
+type AccountExportAuditRow = {
+  id: string;
+  account_id: string | null;
+  completed_at: string | null;
+  error_message: string | null;
+  export_type: string;
+  file_count: number | null;
+  metadata: Record<string, unknown> | null;
+  signed_url_ttl_seconds: number | null;
+  started_at: string;
+  status: string;
+  user_id: string | null;
+};
+
+const statusVariant = (status: string) => {
+  if (status === 'completed') return 'default';
+  if (status === 'failed') return 'destructive';
+  return 'secondary';
+};
+
+const formatDuration = (start?: string | null, end?: string | null) => {
+  if (!start || !end) return '-';
+  const durationMs = new Date(end).getTime() - new Date(start).getTime();
+  if (!Number.isFinite(durationMs) || durationMs < 0) return '-';
+  if (durationMs < 1000) return '<1s';
+  return `${Math.round(durationMs / 1000)}s`;
+};
+
+const formatTtl = (seconds?: number | null) => {
+  if (!seconds) return '-';
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.round(seconds / 60);
+  return `${minutes}m`;
+};
+
+const AdminExportAudit: React.FC = () => {
+  const [rows, setRows] = useState<AccountExportAuditRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadRows = async () => {
+    setLoading(true);
+    setError(null);
+    const { data, error: queryError } = await supabase
+      .from('account_export_audit')
+      .select('id,account_id,completed_at,error_message,export_type,file_count,metadata,signed_url_ttl_seconds,started_at,status,user_id')
+      .order('started_at', { ascending: false })
+      .limit(100);
+
+    if (queryError) {
+      setError(queryError.message);
+      setRows([]);
+    } else {
+      setRows((data || []) as AccountExportAuditRow[]);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadRows();
+  }, []);
+
+  const stats = useMemo(() => {
+    const completed = rows.filter((row) => row.status === 'completed').length;
+    const failed = rows.filter((row) => row.status === 'failed').length;
+    const totalFiles = rows.reduce((sum, row) => sum + (row.file_count || 0), 0);
+    return { completed, failed, totalFiles };
+  }, [rows]);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-semibold">Export Audit</h2>
+          <p className="text-sm text-muted-foreground">Recent user/browser export assemblies recorded in account_export_audit.</p>
+        </div>
+        <Button variant="outline" onClick={loadRows} disabled={loading}>
+          <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Recent Exports</CardTitle>
+          </CardHeader>
+          <CardContent className="flex items-center gap-2">
+            <Download className="h-5 w-5 text-primary" />
+            <span className="text-3xl font-bold">{rows.length}</span>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Completed</CardTitle>
+          </CardHeader>
+          <CardContent className="text-3xl font-bold">{stats.completed}</CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Failed</CardTitle>
+          </CardHeader>
+          <CardContent className="text-3xl font-bold">{stats.failed}</CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Files Exported</CardTitle>
+          </CardHeader>
+          <CardContent className="text-3xl font-bold">{stats.totalFiles}</CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Account Export Audit</CardTitle>
+          <CardDescription>Shows the latest 100 export audit records, including errors and signed URL TTLs.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {error && (
+            <div className="mb-4 flex items-center gap-2 rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
+              <AlertTriangle className="h-4 w-4" />
+              {error}
+            </div>
+          )}
+          {loading ? (
+            <p>Loading...</p>
+          ) : rows.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Started</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>User</TableHead>
+                  <TableHead>Account</TableHead>
+                  <TableHead className="text-right">Files</TableHead>
+                  <TableHead className="text-right">TTL</TableHead>
+                  <TableHead className="text-right">Duration</TableHead>
+                  <TableHead>Error</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {rows.map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell className="whitespace-nowrap">{format(new Date(row.started_at), 'PP p')}</TableCell>
+                    <TableCell>
+                      <Badge variant={statusVariant(row.status)}>{row.status}</Badge>
+                    </TableCell>
+                    <TableCell>{row.export_type}</TableCell>
+                    <TableCell className="max-w-[180px] truncate font-mono text-xs" title={row.user_id || ''}>
+                      {row.user_id || '-'}
+                    </TableCell>
+                    <TableCell className="max-w-[180px] truncate font-mono text-xs" title={row.account_id || ''}>
+                      {row.account_id || '-'}
+                    </TableCell>
+                    <TableCell className="text-right">{row.file_count ?? '-'}</TableCell>
+                    <TableCell className="text-right">{formatTtl(row.signed_url_ttl_seconds)}</TableCell>
+                    <TableCell className="text-right">{formatDuration(row.started_at, row.completed_at)}</TableCell>
+                    <TableCell className="max-w-[260px] truncate" title={row.error_message || ''}>
+                      {row.error_message || '-'}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <p className="py-8 text-center text-muted-foreground">No export audit records yet</p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default AdminExportAudit;

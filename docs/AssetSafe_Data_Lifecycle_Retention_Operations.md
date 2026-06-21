@@ -171,7 +171,7 @@ Daily job `process-storage-orphans` calls `reconcile_storage_orphans`:
 | Audit | Row in `continuity_export_forensics` (continuity) or `account_export_audit` (user/browser exports) |
 
 ### 5.3 Launch gaps
-- `account_export_audit` exists for non-continuity browser export assemblies.
+- `account_export_audit` exists for non-continuity browser export assemblies, with a basic Admin Export Audit view.
 - Browser-built exports cannot enforce a true server-side download cap; server-managed export bundles are still needed for strict caps.
 - `process-expired-exports` sweeps the `exports` bucket; confirm production cron is installed from the runbook.
 
@@ -251,7 +251,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 |---|---|---|
 | Pending file/property deletions | `list-pending-file-deletions`, `list-pending-property-deletions` | Pair with bulk approve/deny |
 | Closure / deletion requests | Partially in Admin | Unified queue with grace clock |
-| Export audit | `continuity_export_forensics`, `account_export_audit` | Add user-export audit view |
+| Export audit | Admin Export Audit view for `account_export_audit`; continuity forensics remain in continuity surfaces | Add server-managed export bundle lifecycle for strict download caps |
 | Storage drift | Admin Database panel reads `storage_usage_reconciliation_state` | Add richer alerting/reporting if drift stays noisy |
 | Legal hold | Admin Cancellations controls backed by DB flags/RPCs on closure requests and tombstones | Add formal legal review workflow/assignment if volume warrants |
 | Restore drill log | `restore_drill_runs` | Add admin panel when needed |
