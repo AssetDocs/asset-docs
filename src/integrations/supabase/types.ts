@@ -17,13 +17,21 @@ export type Database = {
       account_closure_requests: {
         Row: {
           account_id: string | null
+          anonymized_at: string | null
           comments: string | null
           completed_at: string | null
           created_at: string
           current_period_end: string | null
           deleted_account_id: string | null
           deletion_scheduled_date: string | null
+          email_hash: string | null
           id: string
+          legal_hold: boolean
+          legal_hold_applied_at: string | null
+          legal_hold_applied_by: string | null
+          legal_hold_reason: string | null
+          legal_hold_released_at: string | null
+          legal_hold_released_by: string | null
           owner_user_id: string | null
           reason: string | null
           request_date: string
@@ -34,13 +42,21 @@ export type Database = {
         }
         Insert: {
           account_id?: string | null
+          anonymized_at?: string | null
           comments?: string | null
           completed_at?: string | null
           created_at?: string
           current_period_end?: string | null
           deleted_account_id?: string | null
           deletion_scheduled_date?: string | null
+          email_hash?: string | null
           id?: string
+          legal_hold?: boolean
+          legal_hold_applied_at?: string | null
+          legal_hold_applied_by?: string | null
+          legal_hold_reason?: string | null
+          legal_hold_released_at?: string | null
+          legal_hold_released_by?: string | null
           owner_user_id?: string | null
           reason?: string | null
           request_date?: string
@@ -51,13 +67,21 @@ export type Database = {
         }
         Update: {
           account_id?: string | null
+          anonymized_at?: string | null
           comments?: string | null
           completed_at?: string | null
           created_at?: string
           current_period_end?: string | null
           deleted_account_id?: string | null
           deletion_scheduled_date?: string | null
+          email_hash?: string | null
           id?: string
+          legal_hold?: boolean
+          legal_hold_applied_at?: string | null
+          legal_hold_applied_by?: string | null
+          legal_hold_reason?: string | null
+          legal_hold_released_at?: string | null
+          legal_hold_released_by?: string | null
           owner_user_id?: string | null
           reason?: string | null
           request_date?: string
@@ -241,8 +265,10 @@ export type Database = {
       account_deletion_requests: {
         Row: {
           account_owner_id: string | null
+          anonymized_at: string | null
           created_at: string
           deleted_account_id: string | null
+          email_hash: string | null
           grace_period_days: number
           grace_period_ends_at: string
           id: string
@@ -255,8 +281,10 @@ export type Database = {
         }
         Insert: {
           account_owner_id?: string | null
+          anonymized_at?: string | null
           created_at?: string
           deleted_account_id?: string | null
+          email_hash?: string | null
           grace_period_days?: number
           grace_period_ends_at: string
           id?: string
@@ -269,8 +297,10 @@ export type Database = {
         }
         Update: {
           account_owner_id?: string | null
+          anonymized_at?: string | null
           created_at?: string
           deleted_account_id?: string | null
+          email_hash?: string | null
           grace_period_days?: number
           grace_period_ends_at?: string
           id?: string
@@ -290,6 +320,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      account_export_audit: {
+        Row: {
+          account_id: string | null
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          export_type: string
+          file_count: number | null
+          id: string
+          metadata: Json
+          signed_url_ttl_seconds: number | null
+          started_at: string
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          export_type?: string
+          file_count?: number | null
+          id?: string
+          metadata?: Json
+          signed_url_ttl_seconds?: number | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          export_type?: string
+          file_count?: number | null
+          id?: string
+          metadata?: Json
+          signed_url_ttl_seconds?: number | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
       }
       account_memberships: {
         Row: {
@@ -607,7 +685,10 @@ export type Database = {
       audit_logs: {
         Row: {
           action: string
+          anonymized_at: string | null
           created_at: string | null
+          deleted_account_id: string | null
+          email_hash: string | null
           id: string
           ip_address: unknown
           new_values: Json | null
@@ -619,7 +700,10 @@ export type Database = {
         }
         Insert: {
           action: string
+          anonymized_at?: string | null
           created_at?: string | null
+          deleted_account_id?: string | null
+          email_hash?: string | null
           id?: string
           ip_address?: unknown
           new_values?: Json | null
@@ -631,7 +715,10 @@ export type Database = {
         }
         Update: {
           action?: string
+          anonymized_at?: string | null
           created_at?: string | null
+          deleted_account_id?: string | null
+          email_hash?: string | null
           id?: string
           ip_address?: unknown
           new_values?: Json | null
@@ -641,7 +728,15 @@ export type Database = {
           user_agent?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_deleted_account_id_fkey"
+            columns: ["deleted_account_id"]
+            isOneToOne: false
+            referencedRelation: "deleted_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       backup_codes: {
         Row: {
@@ -812,10 +907,12 @@ export type Database = {
       }
       checkout_fulfillments: {
         Row: {
+          anonymized_at: string | null
           completed_at: string | null
           created_at: string
           deleted_account_id: string | null
           email: string | null
+          email_hash: string | null
           fulfillment_source: string | null
           id: string
           last_email_error: string | null
@@ -835,10 +932,12 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          anonymized_at?: string | null
           completed_at?: string | null
           created_at?: string
           deleted_account_id?: string | null
           email?: string | null
+          email_hash?: string | null
           fulfillment_source?: string | null
           id?: string
           last_email_error?: string | null
@@ -858,10 +957,12 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          anonymized_at?: string | null
           completed_at?: string | null
           created_at?: string
           deleted_account_id?: string | null
           email?: string | null
+          email_hash?: string | null
           fulfillment_source?: string | null
           id?: string
           last_email_error?: string | null
@@ -892,9 +993,11 @@ export type Database = {
       }
       checkout_session_audit: {
         Row: {
+          anonymized_at: string | null
           created_at: string
           deleted_account_id: string | null
           email: string | null
+          email_hash: string | null
           error_message: string | null
           id: string
           ip: string | null
@@ -904,9 +1007,11 @@ export type Database = {
           user_agent: string | null
         }
         Insert: {
+          anonymized_at?: string | null
           created_at?: string
           deleted_account_id?: string | null
           email?: string | null
+          email_hash?: string | null
           error_message?: string | null
           id?: string
           ip?: string | null
@@ -916,9 +1021,11 @@ export type Database = {
           user_agent?: string | null
         }
         Update: {
+          anonymized_at?: string | null
           created_at?: string
           deleted_account_id?: string | null
           email?: string | null
+          email_hash?: string | null
           error_message?: string | null
           id?: string
           ip?: string | null
@@ -2089,6 +2196,60 @@ export type Database = {
         }
         Relationships: []
       }
+      cron_job_health: {
+        Row: {
+          consecutive_failures: number
+          created_at: string
+          description: string | null
+          expected_interval_minutes: number
+          job_name: string
+          last_duration_ms: number | null
+          last_error: string | null
+          last_failed_at: string | null
+          last_result: Json
+          last_started_at: string | null
+          last_status: string
+          last_succeeded_at: string | null
+          page_after_minutes: number
+          updated_at: string
+          warn_after_minutes: number
+        }
+        Insert: {
+          consecutive_failures?: number
+          created_at?: string
+          description?: string | null
+          expected_interval_minutes: number
+          job_name: string
+          last_duration_ms?: number | null
+          last_error?: string | null
+          last_failed_at?: string | null
+          last_result?: Json
+          last_started_at?: string | null
+          last_status?: string
+          last_succeeded_at?: string | null
+          page_after_minutes: number
+          updated_at?: string
+          warn_after_minutes: number
+        }
+        Update: {
+          consecutive_failures?: number
+          created_at?: string
+          description?: string | null
+          expected_interval_minutes?: number
+          job_name?: string
+          last_duration_ms?: number | null
+          last_error?: string | null
+          last_failed_at?: string | null
+          last_result?: Json
+          last_started_at?: string | null
+          last_status?: string
+          last_succeeded_at?: string | null
+          page_after_minutes?: number
+          updated_at?: string
+          warn_after_minutes?: number
+        }
+        Relationships: []
+      }
       damage_reports: {
         Row: {
           actions_taken: string[] | null
@@ -2239,26 +2400,50 @@ export type Database = {
         Row: {
           deleted_at: string
           deleted_by: string | null
+          deletion_reason: string | null
+          deletion_status: string
           email: string
           email_hash: string | null
+          former_user_id_hash: string | null
           id: string
+          legal_hold: boolean
           original_user_id: string | null
+          retention_expires_at: string | null
+          retention_purge_status: string
+          retention_purged_at: string | null
+          stripe_customer_id: string | null
         }
         Insert: {
           deleted_at?: string
           deleted_by?: string | null
+          deletion_reason?: string | null
+          deletion_status?: string
           email: string
           email_hash?: string | null
+          former_user_id_hash?: string | null
           id?: string
+          legal_hold?: boolean
           original_user_id?: string | null
+          retention_expires_at?: string | null
+          retention_purge_status?: string
+          retention_purged_at?: string | null
+          stripe_customer_id?: string | null
         }
         Update: {
           deleted_at?: string
           deleted_by?: string | null
+          deletion_reason?: string | null
+          deletion_status?: string
           email?: string
           email_hash?: string | null
+          former_user_id_hash?: string | null
           id?: string
+          legal_hold?: boolean
           original_user_id?: string | null
+          retention_expires_at?: string | null
+          retention_purge_status?: string
+          retention_purged_at?: string | null
+          stripe_customer_id?: string | null
         }
         Relationships: []
       }
@@ -2476,6 +2661,8 @@ export type Database = {
           created_by: string | null
           description: string | null
           id: string
+          pii_scrub_metadata: Json
+          pii_scrubbed_at: string | null
           priority: Database["public"]["Enums"]["dev_support_priority"]
           reported_by: string | null
           resolution: string | null
@@ -2490,6 +2677,8 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           id?: string
+          pii_scrub_metadata?: Json
+          pii_scrubbed_at?: string | null
           priority?: Database["public"]["Enums"]["dev_support_priority"]
           reported_by?: string | null
           resolution?: string | null
@@ -2504,6 +2693,8 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           id?: string
+          pii_scrub_metadata?: Json
+          pii_scrubbed_at?: string | null
           priority?: Database["public"]["Enums"]["dev_support_priority"]
           reported_by?: string | null
           resolution?: string | null
@@ -3354,13 +3545,16 @@ export type Database = {
       gift_subscriptions: {
         Row: {
           amount: number | null
+          anonymized_at: string | null
           claim_token_hash: string | null
           created_at: string
           currency: string | null
+          deleted_account_id: string | null
           delivered_at: string | null
           delivery_attempted_at: string | null
           delivery_date: string
           delivery_status: string
+          email_hash: string | null
           expires_at: string | null
           first_login_at: string | null
           gift_code: string
@@ -3400,13 +3594,16 @@ export type Database = {
         }
         Insert: {
           amount?: number | null
+          anonymized_at?: string | null
           claim_token_hash?: string | null
           created_at?: string
           currency?: string | null
+          deleted_account_id?: string | null
           delivered_at?: string | null
           delivery_attempted_at?: string | null
           delivery_date: string
           delivery_status?: string
+          email_hash?: string | null
           expires_at?: string | null
           first_login_at?: string | null
           gift_code: string
@@ -3446,13 +3643,16 @@ export type Database = {
         }
         Update: {
           amount?: number | null
+          anonymized_at?: string | null
           claim_token_hash?: string | null
           created_at?: string
           currency?: string | null
+          deleted_account_id?: string | null
           delivered_at?: string | null
           delivery_attempted_at?: string | null
           delivery_date?: string
           delivery_status?: string
+          email_hash?: string | null
           expires_at?: string | null
           first_login_at?: string | null
           gift_code?: string
@@ -3491,6 +3691,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "gift_subscriptions_deleted_account_id_fkey"
+            columns: ["deleted_account_id"]
+            isOneToOne: false
+            referencedRelation: "deleted_accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "gift_subscriptions_purchaser_deleted_account_id_fkey"
             columns: ["purchaser_deleted_account_id"]
@@ -4302,7 +4509,10 @@ export type Database = {
         Row: {
           acknowledgments: Json | null
           agreement_type: string
+          anonymized_at: string | null
           created_at: string
+          deleted_account_id: string | null
+          email_hash: string | null
           id: string
           ip_address: string | null
           signature_date: string | null
@@ -4318,7 +4528,10 @@ export type Database = {
         Insert: {
           acknowledgments?: Json | null
           agreement_type: string
+          anonymized_at?: string | null
           created_at?: string
+          deleted_account_id?: string | null
+          email_hash?: string | null
           id?: string
           ip_address?: string | null
           signature_date?: string | null
@@ -4334,7 +4547,10 @@ export type Database = {
         Update: {
           acknowledgments?: Json | null
           agreement_type?: string
+          anonymized_at?: string | null
           created_at?: string
+          deleted_account_id?: string | null
+          email_hash?: string | null
           id?: string
           ip_address?: string | null
           signature_date?: string | null
@@ -4347,7 +4563,15 @@ export type Database = {
           updated_at?: string
           user_agent?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "legal_agreement_signatures_deleted_account_id_fkey"
+            columns: ["deleted_account_id"]
+            isOneToOne: false
+            referencedRelation: "deleted_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       legal_terms_versions: {
         Row: {
@@ -4986,10 +5210,12 @@ export type Database = {
       payment_events: {
         Row: {
           amount: number | null
+          anonymized_at: string | null
           created_at: string
           currency: string | null
           customer_id: string | null
           deleted_account_id: string | null
+          email_hash: string | null
           event_data: Json | null
           event_type: string
           id: string
@@ -5001,10 +5227,12 @@ export type Database = {
         }
         Insert: {
           amount?: number | null
+          anonymized_at?: string | null
           created_at?: string
           currency?: string | null
           customer_id?: string | null
           deleted_account_id?: string | null
+          email_hash?: string | null
           event_data?: Json | null
           event_type: string
           id?: string
@@ -5016,10 +5244,12 @@ export type Database = {
         }
         Update: {
           amount?: number | null
+          anonymized_at?: string | null
           created_at?: string
           currency?: string | null
           customer_id?: string | null
           deleted_account_id?: string | null
+          email_hash?: string | null
           event_data?: Json | null
           event_type?: string
           id?: string
@@ -5566,6 +5796,87 @@ export type Database = {
           },
         ]
       }
+      restore_drill_runs: {
+        Row: {
+          approved_by_user_id: string | null
+          auth_smoke_passed: boolean
+          completed_at: string | null
+          created_at: string
+          db_smoke_passed: boolean
+          drill_type: string
+          edge_smoke_passed: boolean
+          environment: string
+          findings: string[]
+          follow_up_actions: string[]
+          id: string
+          notes: string | null
+          operator_user_id: string | null
+          restore_point_at: string | null
+          rpo_minutes: number | null
+          rto_minutes: number | null
+          runbook_version: string
+          signed_url_smoke_passed: boolean
+          source_project_ref: string | null
+          started_at: string | null
+          status: string
+          storage_smoke_passed: boolean
+          target_project_ref: string | null
+          updated_at: string
+        }
+        Insert: {
+          approved_by_user_id?: string | null
+          auth_smoke_passed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          db_smoke_passed?: boolean
+          drill_type?: string
+          edge_smoke_passed?: boolean
+          environment?: string
+          findings?: string[]
+          follow_up_actions?: string[]
+          id?: string
+          notes?: string | null
+          operator_user_id?: string | null
+          restore_point_at?: string | null
+          rpo_minutes?: number | null
+          rto_minutes?: number | null
+          runbook_version?: string
+          signed_url_smoke_passed?: boolean
+          source_project_ref?: string | null
+          started_at?: string | null
+          status?: string
+          storage_smoke_passed?: boolean
+          target_project_ref?: string | null
+          updated_at?: string
+        }
+        Update: {
+          approved_by_user_id?: string | null
+          auth_smoke_passed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          db_smoke_passed?: boolean
+          drill_type?: string
+          edge_smoke_passed?: boolean
+          environment?: string
+          findings?: string[]
+          follow_up_actions?: string[]
+          id?: string
+          notes?: string | null
+          operator_user_id?: string | null
+          restore_point_at?: string | null
+          rpo_minutes?: number | null
+          rto_minutes?: number | null
+          runbook_version?: string
+          signed_url_smoke_passed?: boolean
+          source_project_ref?: string | null
+          started_at?: string | null
+          status?: string
+          storage_smoke_passed?: boolean
+          target_project_ref?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       service_provider_contacts: {
         Row: {
           contact_email: string | null
@@ -5725,6 +6036,128 @@ export type Database = {
         }
         Relationships: []
       }
+      storage_deletion_jobs: {
+        Row: {
+          account_id: string | null
+          attempt_count: number
+          bucket: string
+          completed_at: string | null
+          created_at: string
+          deleted_account_id: string | null
+          id: string
+          last_attempt_at: string | null
+          last_error: string | null
+          next_attempt_at: string
+          object_path: string
+          owner_user_id: string | null
+          processing_started_at: string | null
+          source: string | null
+          source_table: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          account_id?: string | null
+          attempt_count?: number
+          bucket: string
+          completed_at?: string | null
+          created_at?: string
+          deleted_account_id?: string | null
+          id?: string
+          last_attempt_at?: string | null
+          last_error?: string | null
+          next_attempt_at?: string
+          object_path: string
+          owner_user_id?: string | null
+          processing_started_at?: string | null
+          source?: string | null
+          source_table?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string | null
+          attempt_count?: number
+          bucket?: string
+          completed_at?: string | null
+          created_at?: string
+          deleted_account_id?: string | null
+          id?: string
+          last_attempt_at?: string | null
+          last_error?: string | null
+          next_attempt_at?: string
+          object_path?: string
+          owner_user_id?: string | null
+          processing_started_at?: string | null
+          source?: string | null
+          source_table?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "storage_deletion_jobs_deleted_account_id_fkey"
+            columns: ["deleted_account_id"]
+            isOneToOne: false
+            referencedRelation: "deleted_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      storage_orphan_candidates: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          bucket: string
+          created_at: string
+          first_seen_at: string
+          id: string
+          last_seen_at: string
+          notes: string | null
+          object_created_at: string | null
+          object_path: string
+          object_size_bytes: number | null
+          queued_at: string | null
+          resolved_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          bucket: string
+          created_at?: string
+          first_seen_at?: string
+          id?: string
+          last_seen_at?: string
+          notes?: string | null
+          object_created_at?: string | null
+          object_path: string
+          object_size_bytes?: number | null
+          queued_at?: string | null
+          resolved_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          bucket?: string
+          created_at?: string
+          first_seen_at?: string
+          id?: string
+          last_seen_at?: string
+          notes?: string | null
+          object_created_at?: string | null
+          object_path?: string
+          object_size_bytes?: number | null
+          queued_at?: string | null
+          resolved_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       storage_usage: {
         Row: {
           bucket_name: string
@@ -5753,6 +6186,33 @@ export type Database = {
           id?: string
           last_calculated_at?: string
           total_size_bytes?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      storage_usage_reconciliation_state: {
+        Row: {
+          last_corrected: boolean
+          last_drift_bytes: number
+          last_drift_ratio: number
+          last_reconciled_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          last_corrected?: boolean
+          last_drift_bytes?: number
+          last_drift_ratio?: number
+          last_reconciled_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          last_corrected?: boolean
+          last_drift_bytes?: number
+          last_drift_ratio?: number
+          last_reconciled_at?: string
           updated_at?: string
           user_id?: string
         }
@@ -5796,9 +6256,11 @@ export type Database = {
       }
       subscribers: {
         Row: {
+          anonymized_at: string | null
           created_at: string
           deleted_account_id: string | null
           email: string | null
+          email_hash: string | null
           id: string
           last_payment_failure_check: string | null
           payment_failure_reminder_sent: boolean | null
@@ -5814,9 +6276,11 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          anonymized_at?: string | null
           created_at?: string
           deleted_account_id?: string | null
           email?: string | null
+          email_hash?: string | null
           id?: string
           last_payment_failure_check?: string | null
           payment_failure_reminder_sent?: boolean | null
@@ -5832,9 +6296,11 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          anonymized_at?: string | null
           created_at?: string
           deleted_account_id?: string | null
           email?: string | null
+          email_hash?: string | null
           id?: string
           last_payment_failure_check?: string | null
           payment_failure_reminder_sent?: boolean | null
@@ -5862,10 +6328,12 @@ export type Database = {
       subscription_cancellations: {
         Row: {
           account_id: string | null
+          anonymized_at: string | null
           cancelled_at: string
           comments: string | null
           created_at: string
           deleted_account_id: string | null
+          email_hash: string | null
           id: string
           owner_user_id: string | null
           period_end: string | null
@@ -5875,10 +6343,12 @@ export type Database = {
         }
         Insert: {
           account_id?: string | null
+          anonymized_at?: string | null
           cancelled_at?: string
           comments?: string | null
           created_at?: string
           deleted_account_id?: string | null
+          email_hash?: string | null
           id?: string
           owner_user_id?: string | null
           period_end?: string | null
@@ -5888,10 +6358,12 @@ export type Database = {
         }
         Update: {
           account_id?: string | null
+          anonymized_at?: string | null
           cancelled_at?: string
           comments?: string | null
           created_at?: string
           deleted_account_id?: string | null
+          email_hash?: string | null
           id?: string
           owner_user_id?: string | null
           period_end?: string | null
@@ -5942,6 +6414,48 @@ export type Database = {
           sent_at?: string
           status?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      system_maintenance_windows: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          ended_by: string | null
+          ends_at: string | null
+          id: string
+          message: string | null
+          metadata: Json
+          reason: string
+          starts_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          ended_by?: string | null
+          ends_at?: string | null
+          id?: string
+          message?: string | null
+          metadata?: Json
+          reason: string
+          starts_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          ended_by?: string | null
+          ends_at?: string | null
+          id?: string
+          message?: string | null
+          metadata?: Json
+          reason?: string
+          starts_at?: string
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -6270,9 +6784,11 @@ export type Database = {
           action_category: string
           action_type: string
           actor_user_id: string | null
+          anonymized_at: string | null
           created_at: string
           deleted_account_id: string | null
           details: Json | null
+          email_hash: string | null
           id: string
           ip_address: unknown
           resource_id: string | null
@@ -6285,9 +6801,11 @@ export type Database = {
           action_category: string
           action_type: string
           actor_user_id?: string | null
+          anonymized_at?: string | null
           created_at?: string
           deleted_account_id?: string | null
           details?: Json | null
+          email_hash?: string | null
           id?: string
           ip_address?: unknown
           resource_id?: string | null
@@ -6300,9 +6818,11 @@ export type Database = {
           action_category?: string
           action_type?: string
           actor_user_id?: string | null
+          anonymized_at?: string | null
           created_at?: string
           deleted_account_id?: string | null
           details?: Json | null
+          email_hash?: string | null
           id?: string
           ip_address?: unknown
           resource_id?: string | null
@@ -6323,30 +6843,47 @@ export type Database = {
       }
       user_consents: {
         Row: {
+          anonymized_at: string | null
           consent_type: string
           created_at: string
+          deleted_account_id: string | null
+          email_hash: string | null
           id: string
           ip_address: string | null
           terms_version: string
           user_email: string
         }
         Insert: {
+          anonymized_at?: string | null
           consent_type: string
           created_at?: string
+          deleted_account_id?: string | null
+          email_hash?: string | null
           id?: string
           ip_address?: string | null
           terms_version?: string
           user_email: string
         }
         Update: {
+          anonymized_at?: string | null
           consent_type?: string
           created_at?: string
+          deleted_account_id?: string | null
+          email_hash?: string | null
           id?: string
           ip_address?: string | null
           terms_version?: string
           user_email?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_consents_deleted_account_id_fkey"
+            columns: ["deleted_account_id"]
+            isOneToOne: false
+            referencedRelation: "deleted_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_documents: {
         Row: {
@@ -6835,6 +7372,66 @@ export type Database = {
       }
     }
     Views: {
+      cron_job_health_status: {
+        Row: {
+          consecutive_failures: number | null
+          created_at: string | null
+          description: string | null
+          expected_interval_minutes: number | null
+          health_status: string | null
+          job_name: string | null
+          last_duration_ms: number | null
+          last_error: string | null
+          last_failed_at: string | null
+          last_result: Json | null
+          last_started_at: string | null
+          last_status: string | null
+          last_succeeded_at: string | null
+          minutes_since_success: number | null
+          page_after_minutes: number | null
+          updated_at: string | null
+          warn_after_minutes: number | null
+        }
+        Insert: {
+          consecutive_failures?: number | null
+          created_at?: string | null
+          description?: string | null
+          expected_interval_minutes?: number | null
+          health_status?: never
+          job_name?: string | null
+          last_duration_ms?: number | null
+          last_error?: string | null
+          last_failed_at?: string | null
+          last_result?: Json | null
+          last_started_at?: string | null
+          last_status?: string | null
+          last_succeeded_at?: string | null
+          minutes_since_success?: never
+          page_after_minutes?: number | null
+          updated_at?: string | null
+          warn_after_minutes?: number | null
+        }
+        Update: {
+          consecutive_failures?: number | null
+          created_at?: string | null
+          description?: string | null
+          expected_interval_minutes?: number | null
+          health_status?: never
+          job_name?: string | null
+          last_duration_ms?: number | null
+          last_error?: string | null
+          last_failed_at?: string | null
+          last_result?: Json | null
+          last_started_at?: string | null
+          last_status?: string | null
+          last_succeeded_at?: string | null
+          minutes_since_success?: never
+          page_after_minutes?: number | null
+          updated_at?: string | null
+          warn_after_minutes?: number | null
+        }
+        Relationships: []
+      }
       profiles_safe: {
         Row: {
           account_number: string | null
@@ -6864,6 +7461,15 @@ export type Database = {
         Args: { _token_hash: string; _user_email: string; _user_id: string }
         Returns: Json
       }
+      activate_maintenance_mode: {
+        Args: {
+          p_ends_at?: string
+          p_message?: string
+          p_metadata?: Json
+          p_reason: string
+        }
+        Returns: string
+      }
       admin_resolve_manual_review: {
         Args: {
           p_decision: string
@@ -6878,6 +7484,40 @@ export type Database = {
         Args: { p_deleted_by?: string; p_email: string; p_user_id: string }
         Returns: string
       }
+      apply_account_closure_legal_hold: {
+        Args: { p_closure_request_id: string; p_reason: string }
+        Returns: {
+          account_id: string | null
+          anonymized_at: string | null
+          comments: string | null
+          completed_at: string | null
+          created_at: string
+          current_period_end: string | null
+          deleted_account_id: string | null
+          deletion_scheduled_date: string | null
+          email_hash: string | null
+          id: string
+          legal_hold: boolean
+          legal_hold_applied_at: string | null
+          legal_hold_applied_by: string | null
+          legal_hold_reason: string | null
+          legal_hold_released_at: string | null
+          legal_hold_released_by: string | null
+          owner_user_id: string | null
+          reason: string | null
+          request_date: string
+          reversed_at: string | null
+          status: string
+          subscription_status: string | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "account_closure_requests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       apply_account_freeze: {
         Args: {
           _account_id: string
@@ -6886,6 +7526,31 @@ export type Database = {
           _request_id: string
         }
         Returns: string
+      }
+      apply_deleted_account_legal_hold: {
+        Args: { p_deleted_account_id: string; p_reason?: string }
+        Returns: {
+          deleted_at: string
+          deleted_by: string | null
+          deletion_reason: string | null
+          deletion_status: string
+          email: string
+          email_hash: string | null
+          former_user_id_hash: string | null
+          id: string
+          legal_hold: boolean
+          original_user_id: string | null
+          retention_expires_at: string | null
+          retention_purge_status: string
+          retention_purged_at: string | null
+          stripe_customer_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "deleted_accounts"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       approve_closure_request: {
         Args: { _reason?: string; _request_id: string; _waiting_days?: number }
@@ -6958,10 +7623,31 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: Json
       }
+      consume_continuity_export_authorization: {
+        Args: {
+          _authorization_id: string
+          _file_hash?: string
+          _file_name?: string
+          _file_size_bytes?: number
+          _ip_address?: unknown
+          _user_agent?: string
+        }
+        Returns: {
+          account_id: string
+          authorization_id: string
+          download_count: number
+          download_limit: number
+          expires_at: string
+          request_id: string
+          scope: Json
+          sensitive_areas_included: boolean
+        }[]
+      }
       create_continuity_snapshot: {
         Args: { _request_id: string }
         Returns: string
       }
+      end_maintenance_mode: { Args: { p_id?: string }; Returns: number }
       enforce_continuity_execution_guard: {
         Args: { _request_id: string }
         Returns: undefined
@@ -7012,6 +7698,7 @@ export type Database = {
         }
         Returns: string
       }
+      expire_continuity_export_authorizations: { Args: never; Returns: number }
       expire_grace_periods: { Args: never; Returns: number }
       finalize_property_deletion: {
         Args: { p_lease_token: string; p_property_id: string }
@@ -7033,6 +7720,17 @@ export type Database = {
           activation_rate_pct: number
           signups: number
           wk: string
+        }[]
+      }
+      get_active_maintenance_mode: {
+        Args: never
+        Returns: {
+          ends_at: string
+          id: string
+          is_active: boolean
+          message: string
+          reason: string
+          started_at: string
         }[]
       }
       get_admin_role: {
@@ -7257,12 +7955,25 @@ export type Database = {
         Args: { _account_id: string; _user_id: string }
         Returns: boolean
       }
+      is_deleted_account_email: { Args: { p_email: string }; Returns: boolean }
       is_owner_account_writable: {
         Args: { _owner_user_id: string }
         Returns: boolean
       }
       is_service_role: { Args: never; Returns: boolean }
+      is_system_maintenance_active: { Args: never; Returns: boolean }
       is_trusted_db_writer: { Args: never; Returns: boolean }
+      log_account_export_audit: {
+        Args: {
+          p_error_message?: string
+          p_export_type?: string
+          p_file_count?: number
+          p_metadata?: Json
+          p_signed_url_ttl_seconds?: number
+          p_status?: string
+        }
+        Returns: string
+      }
       log_continuity_event: {
         Args: {
           _action_details?: Json
@@ -7273,6 +7984,40 @@ export type Database = {
         }
         Returns: undefined
       }
+      process_deleted_account_retention: {
+        Args: { p_dry_run?: boolean; p_limit?: number }
+        Returns: Json
+      }
+      reconcile_storage_orphans: {
+        Args: {
+          p_limit?: number
+          p_min_age?: string
+          p_queue_approved?: boolean
+        }
+        Returns: Json
+      }
+      reconcile_storage_usage_drift: {
+        Args: {
+          p_limit?: number
+          p_min_absolute_bytes?: number
+          p_min_relative_ratio?: number
+        }
+        Returns: Json
+      }
+      record_cron_job_result: {
+        Args: {
+          p_duration_ms?: number
+          p_error?: string
+          p_job_name: string
+          p_result?: Json
+          p_status: string
+        }
+        Returns: undefined
+      }
+      record_cron_job_started: {
+        Args: { p_job_name: string }
+        Returns: undefined
+      }
       redeem_gift: {
         Args: {
           _code: string
@@ -7281,6 +8026,65 @@ export type Database = {
           _user_id: string
         }
         Returns: Json
+      }
+      release_account_closure_legal_hold: {
+        Args: { p_closure_request_id: string }
+        Returns: {
+          account_id: string | null
+          anonymized_at: string | null
+          comments: string | null
+          completed_at: string | null
+          created_at: string
+          current_period_end: string | null
+          deleted_account_id: string | null
+          deletion_scheduled_date: string | null
+          email_hash: string | null
+          id: string
+          legal_hold: boolean
+          legal_hold_applied_at: string | null
+          legal_hold_applied_by: string | null
+          legal_hold_reason: string | null
+          legal_hold_released_at: string | null
+          legal_hold_released_by: string | null
+          owner_user_id: string | null
+          reason: string | null
+          request_date: string
+          reversed_at: string | null
+          status: string
+          subscription_status: string | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "account_closure_requests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      release_deleted_account_legal_hold: {
+        Args: { p_deleted_account_id: string }
+        Returns: {
+          deleted_at: string
+          deleted_by: string | null
+          deletion_reason: string | null
+          deletion_status: string
+          email: string
+          email_hash: string | null
+          former_user_id_hash: string | null
+          id: string
+          legal_hold: boolean
+          original_user_id: string | null
+          retention_expires_at: string | null
+          retention_purge_status: string
+          retention_purged_at: string | null
+          stripe_customer_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "deleted_accounts"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       release_property_deletion_lease: {
         Args: { p_error: string; p_lease_token: string; p_property_id: string }
