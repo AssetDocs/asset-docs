@@ -141,16 +141,16 @@ Deno.test({
         (globalThis as any).__seed = { pay, sub, act, ful, can, del, clo, ent, giftA, giftB, aud };
 
         cleanup.push(
-          () => admin.from("payment_events").delete().eq("id", pay),
-          () => admin.from("subscribers").delete().eq("id", sub),
-          () => admin.from("user_activity_logs").delete().eq("id", act),
-          () => admin.from("checkout_fulfillments").delete().eq("id", ful),
-          () => admin.from("subscription_cancellations").delete().eq("id", can),
-          () => admin.from("account_deletion_requests").delete().eq("id", del),
-          () => admin.from("account_closure_requests").delete().eq("id", clo),
-          () => admin.from("gift_subscriptions").delete().eq("id", giftA),
-          () => admin.from("gift_subscriptions").delete().eq("id", giftB),
-          () => admin.from("audit_logs").delete().eq("id", aud),
+          async () => await admin.from("payment_events").delete().eq("id", pay),
+          async () => await admin.from("subscribers").delete().eq("id", sub),
+          async () => await admin.from("user_activity_logs").delete().eq("id", act),
+          async () => await admin.from("checkout_fulfillments").delete().eq("id", ful),
+          async () => await admin.from("subscription_cancellations").delete().eq("id", can),
+          async () => await admin.from("account_deletion_requests").delete().eq("id", del),
+          async () => await admin.from("account_closure_requests").delete().eq("id", clo),
+          async () => await admin.from("gift_subscriptions").delete().eq("id", giftA),
+          async () => await admin.from("gift_subscriptions").delete().eq("id", giftB),
+          async () => await admin.from("audit_logs").delete().eq("id", aud),
           // entitlements row will already be purged by RPC
         );
       });
@@ -166,7 +166,7 @@ Deno.test({
         if (error) throw error;
         tombstoneId = data as unknown as string;
         assertExists(tombstoneId, "RPC must return tombstone id");
-        cleanup.push(() => admin.from("deleted_accounts").delete().eq("id", tombstoneId));
+        cleanup.push(async () => await admin.from("deleted_accounts").delete().eq("id", tombstoneId));
       });
 
       // ----- 4. Assertions -----
