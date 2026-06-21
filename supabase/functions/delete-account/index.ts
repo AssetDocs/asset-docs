@@ -260,10 +260,42 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Delete user's data from all tables with user_id column
-    // Order matters - delete from tables with foreign keys first
-    // Order matters: tables with FK to auth.users must be deleted BEFORE profiles
-    // contacts has FK to auth.users so must be early in the list
+    // ====================================================================
+    // RETENTION MATRIX EXECUTION
+    // 1. Fetch email (needed for tombstone + email-based anonymization)
+    // 2. Call anonymize_user_data RPC (handles all retain/anonymize tables)
+    // 3. Purge user-content tables below
+    // 4. Cancel Stripe + delete auth user (later in the function)
+    // ====================================================================
+
+    const { data: targetUserData } = await supabaseAdmin.auth.admin.getUserById(targetAccountId);
+    const targetUserEmail = targetUserData?.user?.email ?? null;
+
+    // --- Step A: anonymize via RPC ---------------------------------------
+    let tombstoneId: string | null = null;
+    {
+      const { data: rpcData, error: rpcError } = await supabaseAdmin.rpc('anonymize_user_data', {
+        p_user_id: targetAccountId,
+        p_email: targetUserEmail,
+        p_deleted_by: isAdminDeletion ? 'admin' : 'self',
+      });
+      if (rpcError) {
+        const errorId = crypto.randomUUID();
+        console.log('[DELETE-ACCOUNT] anonymize_user_data RPC failed:', { errorId, rpcError });
+        return new Response(
+          JSON.stringify({ error: 'Account deletion failed (anonymize step).', errorId }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      tombstoneId = (rpcData as unknown as string) ?? null;
+      console.log('[DELETE-ACCOUNT] Anonymized via RPC. Tombstone:', tombstoneId);
+    }
+
+    // --- Step B: purge user-content tables (matrix "purge" only) ---------
+    // NOTE: payment_events, subscribers, audit_logs, gift_subscriptions,
+    // entitlements, account_deletion_requests, account_closure_requests,
+    // user_activity_logs, checkout_*, subscription_cancellations are NOT
+    // listed here — they are handled by anonymize_user_data (or retained).
     const tablesWithUserId = [
       'voice_note_attachments',
       'receipts',
@@ -277,10 +309,8 @@ Deno.serve(async (req) => {
       'damage_reports',
       'insurance_policies',
       'notification_preferences',
-      'payment_events',
       'events',
       'user_roles',
-      'audit_logs',
       'paint_codes',
       'financial_accounts',
       'source_websites',
@@ -290,131 +320,46 @@ Deno.serve(async (req) => {
       'trust_information',
       'password_catalog',
       'storage_usage',
-      'subscribers',
-      'contacts',  // FK to auth.users - must be before user deletion
-      'profiles',  // FK to auth.users - must be last before user deletion
-      'entitlements',
+      'contacts',
+      'profiles',
       'account_verification',
-      'vip_contact_attachments',  // must precede vip_contacts (FK RESTRICT)
-      'vip_contacts'
+      'vip_contact_attachments',
+      'vip_contacts',
     ];
 
-    // Delete from recovery_requests (uses owner_user_id and delegate_user_id)
+    // recovery_requests uses owner/delegate columns
     try {
-      await supabaseAdmin
-        .from('recovery_requests')
-        .delete()
-        .eq('owner_user_id', targetAccountId);
-      
-      await supabaseAdmin
-        .from('recovery_requests')
-        .delete()
-        .eq('delegate_user_id', targetAccountId);
-      
-      console.log('[DELETE-ACCOUNT] Successfully deleted recovery requests');
+      await supabaseAdmin.from('recovery_requests').delete().eq('owner_user_id', targetAccountId);
+      await supabaseAdmin.from('recovery_requests').delete().eq('delegate_user_id', targetAccountId);
     } catch (error) {
       console.log('[DELETE-ACCOUNT] Error deleting recovery requests:', error);
     }
 
-    // Delete from gift_subscriptions (uses multiple user ID columns)
-    try {
-      await supabaseAdmin
-        .from('gift_subscriptions')
-        .delete()
-        .eq('purchaser_user_id', targetAccountId);
-      
-      await supabaseAdmin
-        .from('gift_subscriptions')
-        .delete()
-        .eq('recipient_user_id', targetAccountId);
-      
-      await supabaseAdmin
-        .from('gift_subscriptions')
-        .delete()
-        .eq('redeemed_by_user_id', targetAccountId);
-      
-      console.log('[DELETE-ACCOUNT] Successfully deleted gift subscriptions');
-    } catch (error) {
-      console.log('[DELETE-ACCOUNT] Error deleting gift subscriptions:', error);
-    }
-
-    // Delete data from tables with user_id column
     for (const table of tablesWithUserId) {
       try {
         const { error: deleteError } = await supabaseAdmin
           .from(table)
           .delete()
           .eq('user_id', targetAccountId);
-        
         if (deleteError) {
           console.log(`[DELETE-ACCOUNT] Error deleting from ${table}:`, deleteError);
-        } else {
-          console.log(`[DELETE-ACCOUNT] Successfully deleted data from ${table}`);
         }
       } catch (error) {
         console.log(`[DELETE-ACCOUNT] Error processing table ${table}:`, error);
       }
     }
 
-    // Delete from contributors table (uses different column names)
+    // contributors uses different column names
     try {
-      // Delete where user is a contributor
-      await supabaseAdmin
-        .from('contributors')
-        .delete()
-        .eq('contributor_user_id', targetAccountId);
-      
-      // Delete where user is account owner (their contributors)
-      await supabaseAdmin
-        .from('contributors')
-        .delete()
-        .eq('account_owner_id', targetAccountId);
-      
-      console.log('[DELETE-ACCOUNT] Successfully deleted contributor records');
+      await supabaseAdmin.from('contributors').delete().eq('contributor_user_id', targetAccountId);
+      await supabaseAdmin.from('contributors').delete().eq('account_owner_id', targetAccountId);
     } catch (error) {
       console.log('[DELETE-ACCOUNT] Error deleting contributors:', error);
     }
 
-    // Delete from account_deletion_requests (uses different column names)
-    try {
-      await supabaseAdmin
-        .from('account_deletion_requests')
-        .delete()
-        .eq('requester_user_id', targetAccountId);
-      
-      await supabaseAdmin
-        .from('account_deletion_requests')
-        .delete()
-        .eq('account_owner_id', targetAccountId);
-      
-      console.log('[DELETE-ACCOUNT] Successfully deleted account deletion requests');
-    } catch (error) {
-      console.log('[DELETE-ACCOUNT] Error deleting account deletion requests:', error);
-    }
+    // Tombstone already inserted by anonymize_user_data RPC above.
 
-    // Get the user's email before deletion to record in deleted_accounts
-    const { data: targetUserData, error: targetUserError } = await supabaseAdmin.auth.admin.getUserById(targetAccountId);
-    const targetUserEmail = targetUserData?.user?.email;
-    
-    if (targetUserEmail) {
-      // Record the email in deleted_accounts to prevent re-login
-      const { error: recordError } = await supabaseAdmin
-        .from('deleted_accounts')
-        .upsert(
-          { 
-            email: targetUserEmail.toLowerCase(), 
-            original_user_id: targetAccountId,
-            deleted_by: isAdminDeletion ? 'admin' : 'self'
-          },
-          { onConflict: 'email' }
-        );
-      
-      if (recordError) {
-        console.log('[DELETE-ACCOUNT] Error recording deleted account:', recordError);
-      } else {
-        console.log('[DELETE-ACCOUNT] Recorded deleted email:', targetUserEmail);
-      }
-    }
+
 
     // Delete the user account using admin client
     const { error: deleteUserError } = await supabaseAdmin.auth.admin.deleteUser(targetAccountId);

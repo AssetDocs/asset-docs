@@ -21,9 +21,10 @@ export type Database = {
           completed_at: string | null
           created_at: string
           current_period_end: string | null
+          deleted_account_id: string | null
           deletion_scheduled_date: string | null
           id: string
-          owner_user_id: string
+          owner_user_id: string | null
           reason: string | null
           request_date: string
           reversed_at: string | null
@@ -37,9 +38,10 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           current_period_end?: string | null
+          deleted_account_id?: string | null
           deletion_scheduled_date?: string | null
           id?: string
-          owner_user_id: string
+          owner_user_id?: string | null
           reason?: string | null
           request_date?: string
           reversed_at?: string | null
@@ -53,9 +55,10 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           current_period_end?: string | null
+          deleted_account_id?: string | null
           deletion_scheduled_date?: string | null
           id?: string
-          owner_user_id?: string
+          owner_user_id?: string | null
           reason?: string | null
           request_date?: string
           reversed_at?: string | null
@@ -63,7 +66,15 @@ export type Database = {
           subscription_status?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "account_closure_requests_deleted_account_id_fkey"
+            columns: ["deleted_account_id"]
+            isOneToOne: false
+            referencedRelation: "deleted_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       account_continuity_requests: {
         Row: {
@@ -229,45 +240,56 @@ export type Database = {
       }
       account_deletion_requests: {
         Row: {
-          account_owner_id: string
+          account_owner_id: string | null
           created_at: string
+          deleted_account_id: string | null
           grace_period_days: number
           grace_period_ends_at: string
           id: string
           reason: string | null
           requested_at: string
-          requester_user_id: string
+          requester_user_id: string | null
           responded_at: string | null
           status: string
           updated_at: string
         }
         Insert: {
-          account_owner_id: string
+          account_owner_id?: string | null
           created_at?: string
+          deleted_account_id?: string | null
           grace_period_days?: number
           grace_period_ends_at: string
           id?: string
           reason?: string | null
           requested_at?: string
-          requester_user_id: string
+          requester_user_id?: string | null
           responded_at?: string | null
           status?: string
           updated_at?: string
         }
         Update: {
-          account_owner_id?: string
+          account_owner_id?: string | null
           created_at?: string
+          deleted_account_id?: string | null
           grace_period_days?: number
           grace_period_ends_at?: string
           id?: string
           reason?: string | null
           requested_at?: string
-          requester_user_id?: string
+          requester_user_id?: string | null
           responded_at?: string | null
           status?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "account_deletion_requests_deleted_account_id_fkey"
+            columns: ["deleted_account_id"]
+            isOneToOne: false
+            referencedRelation: "deleted_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       account_memberships: {
         Row: {
@@ -792,6 +814,7 @@ export type Database = {
         Row: {
           completed_at: string | null
           created_at: string
+          deleted_account_id: string | null
           email: string | null
           fulfillment_source: string | null
           id: string
@@ -814,6 +837,7 @@ export type Database = {
         Insert: {
           completed_at?: string | null
           created_at?: string
+          deleted_account_id?: string | null
           email?: string | null
           fulfillment_source?: string | null
           id?: string
@@ -836,6 +860,7 @@ export type Database = {
         Update: {
           completed_at?: string | null
           created_at?: string
+          deleted_account_id?: string | null
           email?: string | null
           fulfillment_source?: string | null
           id?: string
@@ -855,11 +880,20 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "checkout_fulfillments_deleted_account_id_fkey"
+            columns: ["deleted_account_id"]
+            isOneToOne: false
+            referencedRelation: "deleted_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       checkout_session_audit: {
         Row: {
           created_at: string
+          deleted_account_id: string | null
           email: string | null
           error_message: string | null
           id: string
@@ -871,6 +905,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_account_id?: string | null
           email?: string | null
           error_message?: string | null
           id?: string
@@ -882,6 +917,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_account_id?: string | null
           email?: string | null
           error_message?: string | null
           id?: string
@@ -891,7 +927,15 @@ export type Database = {
           stripe_session_id?: string | null
           user_agent?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "checkout_session_audit_deleted_account_id_fkey"
+            columns: ["deleted_account_id"]
+            isOneToOne: false
+            referencedRelation: "deleted_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       closure_requests: {
         Row: {
@@ -2196,6 +2240,7 @@ export type Database = {
           deleted_at: string
           deleted_by: string | null
           email: string
+          email_hash: string | null
           id: string
           original_user_id: string | null
         }
@@ -2203,6 +2248,7 @@ export type Database = {
           deleted_at?: string
           deleted_by?: string | null
           email: string
+          email_hash?: string | null
           id?: string
           original_user_id?: string | null
         }
@@ -2210,6 +2256,7 @@ export type Database = {
           deleted_at?: string
           deleted_by?: string | null
           email?: string
+          email_hash?: string | null
           id?: string
           original_user_id?: string | null
         }
@@ -3323,12 +3370,14 @@ export type Database = {
           paid_at: string | null
           payment_status: string
           plan_type: string
-          purchaser_email: string
+          purchaser_deleted_account_id: string | null
+          purchaser_email: string | null
           purchaser_email_sent_at: string | null
           purchaser_name: string
           purchaser_phone: string | null
           purchaser_user_id: string | null
-          recipient_email: string
+          recipient_deleted_account_id: string | null
+          recipient_email: string | null
           recipient_email_sent_at: string | null
           recipient_name: string
           recipient_user_id: string | null
@@ -3367,12 +3416,14 @@ export type Database = {
           paid_at?: string | null
           payment_status?: string
           plan_type: string
-          purchaser_email: string
+          purchaser_deleted_account_id?: string | null
+          purchaser_email?: string | null
           purchaser_email_sent_at?: string | null
           purchaser_name: string
           purchaser_phone?: string | null
           purchaser_user_id?: string | null
-          recipient_email: string
+          recipient_deleted_account_id?: string | null
+          recipient_email?: string | null
           recipient_email_sent_at?: string | null
           recipient_name: string
           recipient_user_id?: string | null
@@ -3411,12 +3462,14 @@ export type Database = {
           paid_at?: string | null
           payment_status?: string
           plan_type?: string
-          purchaser_email?: string
+          purchaser_deleted_account_id?: string | null
+          purchaser_email?: string | null
           purchaser_email_sent_at?: string | null
           purchaser_name?: string
           purchaser_phone?: string | null
           purchaser_user_id?: string | null
-          recipient_email?: string
+          recipient_deleted_account_id?: string | null
+          recipient_email?: string | null
           recipient_email_sent_at?: string | null
           recipient_name?: string
           recipient_user_id?: string | null
@@ -3437,7 +3490,22 @@ export type Database = {
           term?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "gift_subscriptions_purchaser_deleted_account_id_fkey"
+            columns: ["purchaser_deleted_account_id"]
+            isOneToOne: false
+            referencedRelation: "deleted_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gift_subscriptions_recipient_deleted_account_id_fkey"
+            columns: ["recipient_deleted_account_id"]
+            isOneToOne: false
+            referencedRelation: "deleted_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       gifts: {
         Row: {
@@ -4921,6 +4989,7 @@ export type Database = {
           created_at: string
           currency: string | null
           customer_id: string | null
+          deleted_account_id: string | null
           event_data: Json | null
           event_type: string
           id: string
@@ -4935,6 +5004,7 @@ export type Database = {
           created_at?: string
           currency?: string | null
           customer_id?: string | null
+          deleted_account_id?: string | null
           event_data?: Json | null
           event_type: string
           id?: string
@@ -4949,6 +5019,7 @@ export type Database = {
           created_at?: string
           currency?: string | null
           customer_id?: string | null
+          deleted_account_id?: string | null
           event_data?: Json | null
           event_type?: string
           id?: string
@@ -4958,7 +5029,15 @@ export type Database = {
           subscription_id?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "payment_events_deleted_account_id_fkey"
+            columns: ["deleted_account_id"]
+            isOneToOne: false
+            referencedRelation: "deleted_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       photo_folders: {
         Row: {
@@ -5718,7 +5797,8 @@ export type Database = {
       subscribers: {
         Row: {
           created_at: string
-          email: string
+          deleted_account_id: string | null
+          email: string | null
           id: string
           last_payment_failure_check: string | null
           payment_failure_reminder_sent: boolean | null
@@ -5731,11 +5811,12 @@ export type Database = {
           trial_reminder_sent: boolean | null
           trial_reminder_sent_at: string | null
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
-          email: string
+          deleted_account_id?: string | null
+          email?: string | null
           id?: string
           last_payment_failure_check?: string | null
           payment_failure_reminder_sent?: boolean | null
@@ -5748,11 +5829,12 @@ export type Database = {
           trial_reminder_sent?: boolean | null
           trial_reminder_sent_at?: string | null
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
-          email?: string
+          deleted_account_id?: string | null
+          email?: string | null
           id?: string
           last_payment_failure_check?: string | null
           payment_failure_reminder_sent?: boolean | null
@@ -5765,9 +5847,17 @@ export type Database = {
           trial_reminder_sent?: boolean | null
           trial_reminder_sent_at?: string | null
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "subscribers_deleted_account_id_fkey"
+            columns: ["deleted_account_id"]
+            isOneToOne: false
+            referencedRelation: "deleted_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscription_cancellations: {
         Row: {
@@ -5775,8 +5865,9 @@ export type Database = {
           cancelled_at: string
           comments: string | null
           created_at: string
+          deleted_account_id: string | null
           id: string
-          owner_user_id: string
+          owner_user_id: string | null
           period_end: string | null
           plan: string | null
           reason: string | null
@@ -5787,8 +5878,9 @@ export type Database = {
           cancelled_at?: string
           comments?: string | null
           created_at?: string
+          deleted_account_id?: string | null
           id?: string
-          owner_user_id: string
+          owner_user_id?: string | null
           period_end?: string | null
           plan?: string | null
           reason?: string | null
@@ -5799,14 +5891,23 @@ export type Database = {
           cancelled_at?: string
           comments?: string | null
           created_at?: string
+          deleted_account_id?: string | null
           id?: string
-          owner_user_id?: string
+          owner_user_id?: string | null
           period_end?: string | null
           plan?: string | null
           reason?: string | null
           stripe_subscription_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "subscription_cancellations_deleted_account_id_fkey"
+            columns: ["deleted_account_id"]
+            isOneToOne: false
+            referencedRelation: "deleted_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscription_email_events: {
         Row: {
@@ -6170,6 +6271,7 @@ export type Database = {
           action_type: string
           actor_user_id: string | null
           created_at: string
+          deleted_account_id: string | null
           details: Json | null
           id: string
           ip_address: unknown
@@ -6177,13 +6279,14 @@ export type Database = {
           resource_name: string | null
           resource_type: string | null
           user_agent: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           action_category: string
           action_type: string
           actor_user_id?: string | null
           created_at?: string
+          deleted_account_id?: string | null
           details?: Json | null
           id?: string
           ip_address?: unknown
@@ -6191,13 +6294,14 @@ export type Database = {
           resource_name?: string | null
           resource_type?: string | null
           user_agent?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           action_category?: string
           action_type?: string
           actor_user_id?: string | null
           created_at?: string
+          deleted_account_id?: string | null
           details?: Json | null
           id?: string
           ip_address?: unknown
@@ -6205,9 +6309,17 @@ export type Database = {
           resource_name?: string | null
           resource_type?: string | null
           user_agent?: string | null
-          user_id?: string
+          user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_activity_logs_deleted_account_id_fkey"
+            columns: ["deleted_account_id"]
+            isOneToOne: false
+            referencedRelation: "deleted_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_consents: {
         Row: {
@@ -6761,6 +6873,10 @@ export type Database = {
           p_override_user_id?: string
         }
         Returns: Json
+      }
+      anonymize_user_data: {
+        Args: { p_deleted_by?: string; p_email: string; p_user_id: string }
+        Returns: string
       }
       apply_account_freeze: {
         Args: {
