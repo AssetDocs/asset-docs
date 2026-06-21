@@ -316,7 +316,7 @@ Deno.serve(async (req) => {
 
       const { data: dueClosure, error: dueClosureError } = await supabaseAdmin
         .from('account_closure_requests')
-        .select('id,deletion_scheduled_date,status')
+        .select('id,deletion_scheduled_date,status,legal_hold,legal_hold_reason')
         .eq('owner_user_id', targetAccountId)
         .eq('status', 'scheduled')
         .lte('deletion_scheduled_date', new Date().toISOString())
@@ -332,6 +332,20 @@ Deno.serve(async (req) => {
         return new Response(
           JSON.stringify({ error: 'No due scheduled closure request found' }),
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      if (dueClosure.legal_hold === true) {
+        console.log('[DELETE-ACCOUNT] Scheduled closure blocked by legal hold', {
+          targetAccountId,
+          closureRequestId: dueClosure.id,
+        });
+        return new Response(
+          JSON.stringify({
+            error: 'Scheduled closure is under legal hold',
+            reason: dueClosure.legal_hold_reason ?? null,
+          }),
+          { status: 423, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
@@ -397,6 +411,38 @@ Deno.serve(async (req) => {
 
 
     console.log('[DELETE-ACCOUNT] Verifying user permissions for:', user?.id ?? 'internal-sweeper', 'Target:', targetAccountId);
+
+    const { data: heldClosure, error: heldClosureError } = await supabaseAdmin
+      .from('account_closure_requests')
+      .select('id,legal_hold_reason')
+      .eq('owner_user_id', targetAccountId)
+      .eq('status', 'scheduled')
+      .eq('legal_hold', true)
+      .order('deletion_scheduled_date', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (heldClosureError) {
+      console.log('[DELETE-ACCOUNT] Legal hold check failed:', heldClosureError);
+      return new Response(
+        JSON.stringify({ error: 'Unable to verify legal hold status' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (heldClosure) {
+      console.log('[DELETE-ACCOUNT] Account deletion blocked by legal hold', {
+        targetAccountId,
+        closureRequestId: heldClosure.id,
+      });
+      return new Response(
+        JSON.stringify({
+          error: 'Account deletion is blocked by legal hold',
+          reason: heldClosure.legal_hold_reason ?? null,
+        }),
+        { status: 423, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Check contributor status
     const { data: contributorData, error: contributorError } = user

@@ -190,10 +190,10 @@ Daily job `process-storage-orphans` calls `reconcile_storage_orphans`:
 | Support / `dev_support_issues` | n/a | **3 years** | Internal | Scrub PII after close |
 | Storage bundles (exports) | n/a | **7 days** | §5.2 | Sweeper required |
 | Backup snapshots | per tier | 14–28 days | §2.1 | |
-| Legal hold override | Indefinite | Indefinite | Flag in `audit_logs.hold=true` | **Not implemented** |
+| Legal hold override | Indefinite | Indefinite | `account_closure_requests.legal_hold` and `deleted_accounts.legal_hold` | Blocks closure and retention sweepers |
 
 ### 6.1 Launch gaps
-- No `legal_hold` flag or admin tool to apply one.
+- Legal hold DB flags/RPCs exist; admin UI controls are still pending.
 - No automated PII scrub job for closed support tickets.
 - No documented retention schedule surfaced to users in Privacy Policy.
 
@@ -253,7 +253,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 | Closure / deletion requests | Partially in Admin | Unified queue with grace clock |
 | Export audit | `continuity_export_forensics`, `account_export_audit` | Add user-export audit view |
 | Storage drift | `storage_usage_reconciliation_state`, `audit_logs` | New panel; surfaces `storage_usage_drift_corrected` events |
-| Legal hold | none | Toggle on account; blocks all sweepers |
+| Legal hold | DB flags/RPCs on closure requests and tombstones | Admin UI controls pending |
 | Restore drill log | `restore_drill_runs` | Add admin panel when needed |
 
 ---
@@ -269,7 +269,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 **P1 (first 30 days post-launch)**
 5. Admin review UI for `storage_orphan_candidates` + storage drift visibility.
 6. Server-managed user export bundles for strict download-cap enforcement.
-7. Legal hold flag + admin UI.
+7. Legal hold admin UI.
 8. Surface retention schedule in Privacy Policy.
 
 **P2 (quarter 1)**

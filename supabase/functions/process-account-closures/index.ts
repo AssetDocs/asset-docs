@@ -90,6 +90,7 @@ serve(async (req) => {
     .from("account_closure_requests")
     .select("id,owner_user_id,deletion_scheduled_date")
     .eq("status", "scheduled")
+    .eq("legal_hold", false)
     .not("owner_user_id", "is", null)
     .lte("deletion_scheduled_date", new Date().toISOString())
     .order("deletion_scheduled_date", { ascending: true })
@@ -103,11 +104,26 @@ serve(async (req) => {
 
   const results = {
     fetched: dueClosures?.length ?? 0,
+    skipped_legal_hold: 0,
     processed: 0,
     succeeded: 0,
     failed: 0,
     failures: [] as Array<{ closure_request_id: string; status: number; error: unknown }>,
   };
+
+  const { count: heldDueCount, error: heldCountError } = await admin
+    .from("account_closure_requests")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "scheduled")
+    .eq("legal_hold", true)
+    .not("owner_user_id", "is", null)
+    .lte("deletion_scheduled_date", new Date().toISOString());
+
+  if (heldCountError) {
+    console.error("[PROCESS-ACCOUNT-CLOSURES] Legal hold count failed", heldCountError);
+  } else {
+    results.skipped_legal_hold = heldDueCount ?? 0;
+  }
 
   for (const closure of (dueClosures ?? []) as ClosureRequest[]) {
     results.processed++;
