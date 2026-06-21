@@ -193,7 +193,7 @@ Daily job `process-storage-orphans` calls `reconcile_storage_orphans`:
 | Legal hold override | Indefinite | Indefinite | `account_closure_requests.legal_hold` and `deleted_accounts.legal_hold` | Blocks closure and retention sweepers |
 
 ### 6.1 Launch gaps
-- Legal hold DB flags/RPCs exist; admin UI controls are still pending.
+- Basic legal hold controls exist in Admin Cancellations for pending closures and deleted-account tombstones; formal legal review workflow/assignment remains future polish.
 - Support PII scrubber exists as `scrub-old-support-pii`; verify production cron is installed from the runbook.
 - Retention schedule is surfaced in `src/pages/Terms.tsx`; legal/counsel review still recommended before launch.
 
@@ -253,7 +253,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 | Closure / deletion requests | Partially in Admin | Unified queue with grace clock |
 | Export audit | `continuity_export_forensics`, `account_export_audit` | Add user-export audit view |
 | Storage drift | Admin Database panel reads `storage_usage_reconciliation_state` | Add richer alerting/reporting if drift stays noisy |
-| Legal hold | DB flags/RPCs on closure requests and tombstones | Admin UI controls pending |
+| Legal hold | Admin Cancellations controls backed by DB flags/RPCs on closure requests and tombstones | Add formal legal review workflow/assignment if volume warrants |
 | Restore drill log | `restore_drill_runs` | Add admin panel when needed |
 
 ---
@@ -269,7 +269,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 **P1 (first 30 days post-launch)**
 5. Bulk orphan review actions + richer storage drift alerting.
 6. Server-managed user export bundles for strict download-cap enforcement.
-7. Legal hold admin UI.
+7. Formal legal hold review workflow/assignment.
 8. Legal/counsel review of public retention schedule.
 
 **P2 (quarter 1)**

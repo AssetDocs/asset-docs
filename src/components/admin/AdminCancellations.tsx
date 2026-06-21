@@ -5,6 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
 type ProfileLite = {
@@ -16,47 +21,56 @@ type ProfileLite = {
 };
 
 const AdminCancellations: React.FC = () => {
+  const { toast } = useToast();
   const [cancellations, setCancellations] = useState<any[]>([]);
   const [closures, setClosures] = useState<any[]>([]);
   const [deleted, setDeleted] = useState<any[]>([]);
   const [deletionRequests, setDeletionRequests] = useState<any[]>([]);
   const [profileMap, setProfileMap] = useState<Map<string, ProfileLite>>(new Map());
   const [loading, setLoading] = useState(true);
+  const [legalHoldTarget, setLegalHoldTarget] = useState<{ type: 'closure' | 'deleted'; row: any } | null>(null);
+  const [legalHoldReason, setLegalHoldReason] = useState('');
+  const [legalHoldLoading, setLegalHoldLoading] = useState<string | null>(null);
+
+  const loadData = async () => {
+    setLoading(true);
+    const [c, k, d, dr] = await Promise.all([
+      supabase.from('subscription_cancellations').select('*').order('cancelled_at', { ascending: false }).limit(500),
+      supabase.from('account_closure_requests').select('*').order('request_date', { ascending: false }).limit(500),
+      supabase.from('deleted_accounts').select('*').order('deleted_at', { ascending: false }).limit(500),
+      supabase.from('account_deletion_requests').select('*').order('requested_at', { ascending: false }).limit(500),
+    ]);
+    const cRows = c.data || [];
+    const kRows = k.data || [];
+    const dRows = d.data || [];
+    const drRows = dr.data || [];
+    setCancellations(cRows);
+    setClosures(kRows);
+    setDeleted(dRows);
+    setDeletionRequests(drRows);
+
+    const ids = new Set<string>();
+    cRows.forEach((r) => r.owner_user_id && ids.add(r.owner_user_id));
+    kRows.forEach((r) => r.owner_user_id && ids.add(r.owner_user_id));
+    dRows.forEach((r) => r.original_user_id && ids.add(r.original_user_id));
+    drRows.forEach((r) => r.account_owner_id && ids.add(r.account_owner_id));
+
+    if (ids.size > 0) {
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, first_name, last_name, account_number, email')
+        .in('user_id', Array.from(ids));
+      const m = new Map<string, ProfileLite>();
+      (profiles || []).forEach((p: any) => m.set(p.user_id, p));
+      setProfileMap(m);
+    } else {
+      setProfileMap(new Map());
+    }
+    setLoading(false);
+  };
 
   useEffect(() => {
-    (async () => {
-      const [c, k, d, dr] = await Promise.all([
-        supabase.from('subscription_cancellations').select('*').order('cancelled_at', { ascending: false }).limit(500),
-        supabase.from('account_closure_requests').select('*').order('request_date', { ascending: false }).limit(500),
-        supabase.from('deleted_accounts').select('*').order('deleted_at', { ascending: false }).limit(500),
-        supabase.from('account_deletion_requests').select('*').order('requested_at', { ascending: false }).limit(500),
-      ]);
-      const cRows = c.data || [];
-      const kRows = k.data || [];
-      const dRows = d.data || [];
-      const drRows = dr.data || [];
-      setCancellations(cRows);
-      setClosures(kRows);
-      setDeleted(dRows);
-      setDeletionRequests(drRows);
-
-      const ids = new Set<string>();
-      cRows.forEach((r) => r.owner_user_id && ids.add(r.owner_user_id));
-      kRows.forEach((r) => r.owner_user_id && ids.add(r.owner_user_id));
-      dRows.forEach((r) => r.original_user_id && ids.add(r.original_user_id));
-      drRows.forEach((r) => r.account_owner_id && ids.add(r.account_owner_id));
-
-      if (ids.size > 0) {
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('user_id, first_name, last_name, account_number, email')
-          .in('user_id', Array.from(ids));
-        const m = new Map<string, ProfileLite>();
-        (profiles || []).forEach((p: any) => m.set(p.user_id, p));
-        setProfileMap(m);
-      }
-      setLoading(false);
-    })();
+    loadData();
   }, []);
 
   const nameOf = (uid?: string | null, fallbackEmail?: string | null) => {
@@ -95,6 +109,94 @@ const AdminCancellations: React.FC = () => {
     const fromReq = deletionRequests.find((r) => r.account_owner_id === uid && r.reason);
     return fromReq?.reason || null;
   };
+
+  const openLegalHoldDialog = (type: 'closure' | 'deleted', row: any) => {
+    setLegalHoldTarget({ type, row });
+    setLegalHoldReason(row.legal_hold_reason || '');
+  };
+
+  const applyLegalHold = async () => {
+    if (!legalHoldTarget || !legalHoldReason.trim()) return;
+    setLegalHoldLoading(legalHoldTarget.row.id);
+    try {
+      const { error } =
+        legalHoldTarget.type === 'closure'
+          ? await supabase.rpc('apply_account_closure_legal_hold', {
+              p_closure_request_id: legalHoldTarget.row.id,
+              p_reason: legalHoldReason.trim(),
+            })
+          : await supabase.rpc('apply_deleted_account_legal_hold', {
+              p_deleted_account_id: legalHoldTarget.row.id,
+              p_reason: legalHoldReason.trim(),
+            });
+
+      if (error) throw error;
+      toast({ title: 'Legal hold applied', description: 'Retention and deletion sweepers will skip this record.' });
+      setLegalHoldTarget(null);
+      setLegalHoldReason('');
+      await loadData();
+    } catch (error: any) {
+      toast({
+        title: 'Unable to apply legal hold',
+        description: error?.message || 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLegalHoldLoading(null);
+    }
+  };
+
+  const releaseLegalHold = async (type: 'closure' | 'deleted', row: any) => {
+    setLegalHoldLoading(row.id);
+    try {
+      const { error } =
+        type === 'closure'
+          ? await supabase.rpc('release_account_closure_legal_hold', { p_closure_request_id: row.id })
+          : await supabase.rpc('release_deleted_account_legal_hold', { p_deleted_account_id: row.id });
+
+      if (error) throw error;
+      toast({ title: 'Legal hold released', description: 'Normal retention processing can resume for this record.' });
+      await loadData();
+    } catch (error: any) {
+      toast({
+        title: 'Unable to release legal hold',
+        description: error?.message || 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLegalHoldLoading(null);
+    }
+  };
+
+  const LegalHoldBadge = ({ row }: { row: any }) => (
+    row.legal_hold ? (
+      <Badge variant="destructive" title={row.legal_hold_reason || 'Legal hold active'}>Legal hold</Badge>
+    ) : (
+      <span className="text-muted-foreground">-</span>
+    )
+  );
+
+  const LegalHoldActions = ({ type, row }: { type: 'closure' | 'deleted'; row: any }) => (
+    row.legal_hold ? (
+      <Button
+        size="sm"
+        variant="outline"
+        disabled={legalHoldLoading === row.id}
+        onClick={() => releaseLegalHold(type, row)}
+      >
+        Release
+      </Button>
+    ) : (
+      <Button
+        size="sm"
+        variant="outline"
+        disabled={legalHoldLoading === row.id}
+        onClick={() => openLegalHoldDialog(type, row)}
+      >
+        Hold
+      </Button>
+    )
+  );
 
   return (
     <div className="space-y-6">
@@ -166,7 +268,7 @@ const AdminCancellations: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="closures" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card>
               <CardHeader><CardTitle className="text-sm">Total Pending</CardTitle></CardHeader>
               <CardContent className="text-3xl font-bold">{pendingClosures.length}</CardContent>
@@ -178,6 +280,10 @@ const AdminCancellations: React.FC = () => {
             <Card>
               <CardHeader><CardTitle className="text-sm">Reversed</CardTitle></CardHeader>
               <CardContent className="text-3xl font-bold">{pendingClosures.filter(c => c.status === 'reversed').length}</CardContent>
+            </Card>
+            <Card>
+              <CardHeader><CardTitle className="text-sm">Legal Holds</CardTitle></CardHeader>
+              <CardContent className="text-3xl font-bold">{pendingClosures.filter(c => c.legal_hold).length}</CardContent>
             </Card>
           </div>
 
@@ -198,6 +304,8 @@ const AdminCancellations: React.FC = () => {
                       <TableHead>Comments</TableHead>
                       <TableHead>Requested</TableHead>
                       <TableHead>Scheduled Deletion</TableHead>
+                      <TableHead>Hold</TableHead>
+                      <TableHead className="text-right">Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -210,10 +318,12 @@ const AdminCancellations: React.FC = () => {
                         <TableCell className="max-w-xs truncate" title={row.comments || ''}>{row.comments || '—'}</TableCell>
                         <TableCell className="whitespace-nowrap">{row.request_date ? format(new Date(row.request_date), 'PP') : '—'}</TableCell>
                         <TableCell className="whitespace-nowrap">{row.deletion_scheduled_date ? format(new Date(row.deletion_scheduled_date), 'PP') : '—'}</TableCell>
+                        <TableCell><LegalHoldBadge row={row} /></TableCell>
+                        <TableCell className="text-right"><LegalHoldActions type="closure" row={row} /></TableCell>
                       </TableRow>
                     ))}
                     {pendingClosures.length === 0 && (
-                      <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">No pending closure requests</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground">No pending closure requests</TableCell></TableRow>
                     )}
                   </TableBody>
                 </Table>
@@ -223,10 +333,14 @@ const AdminCancellations: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="deleted" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card>
               <CardHeader><CardTitle className="text-sm">Total Deleted</CardTitle></CardHeader>
               <CardContent className="text-3xl font-bold">{deleted.length}</CardContent>
+            </Card>
+            <Card>
+              <CardHeader><CardTitle className="text-sm">Legal Holds</CardTitle></CardHeader>
+              <CardContent className="text-3xl font-bold">{deleted.filter(d => d.legal_hold).length}</CardContent>
             </Card>
             <Card className="md:col-span-2">
               <CardHeader><CardTitle className="text-sm">Deletion Reasons</CardTitle></CardHeader>
@@ -260,6 +374,8 @@ const AdminCancellations: React.FC = () => {
                       <TableHead>Reason</TableHead>
                       <TableHead>Deleted On</TableHead>
                       <TableHead>Deleted By</TableHead>
+                      <TableHead>Hold</TableHead>
+                      <TableHead className="text-right">Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -271,10 +387,12 @@ const AdminCancellations: React.FC = () => {
                         <TableCell>{reasonForDeleted(row.original_user_id) || '—'}</TableCell>
                         <TableCell className="whitespace-nowrap">{row.deleted_at ? format(new Date(row.deleted_at), 'PP') : '—'}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{row.deleted_by || '—'}</TableCell>
+                        <TableCell><LegalHoldBadge row={row} /></TableCell>
+                        <TableCell className="text-right"><LegalHoldActions type="deleted" row={row} /></TableCell>
                       </TableRow>
                     ))}
                     {deleted.length === 0 && (
-                      <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">No deleted accounts</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">No deleted accounts</TableCell></TableRow>
                     )}
                   </TableBody>
                 </Table>
@@ -283,6 +401,33 @@ const AdminCancellations: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={!!legalHoldTarget} onOpenChange={(open) => !open && setLegalHoldTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Apply Legal Hold</DialogTitle>
+            <DialogDescription>
+              Legal holds pause deletion and retention sweepers for the selected record until an admin releases the hold.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="legal-hold-reason">Reason</Label>
+            <Textarea
+              id="legal-hold-reason"
+              value={legalHoldReason}
+              onChange={(event) => setLegalHoldReason(event.target.value)}
+              placeholder="Subpoena, dispute, counsel request, fraud review..."
+              rows={4}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setLegalHoldTarget(null)}>Cancel</Button>
+            <Button onClick={applyLegalHold} disabled={!legalHoldReason.trim() || !!legalHoldLoading}>
+              Apply Hold
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
