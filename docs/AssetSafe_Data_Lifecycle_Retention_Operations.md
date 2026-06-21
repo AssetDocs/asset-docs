@@ -194,7 +194,7 @@ Daily job `process-storage-orphans` calls `reconcile_storage_orphans`:
 
 ### 6.1 Launch gaps
 - Legal hold DB flags/RPCs exist; admin UI controls are still pending.
-- No automated PII scrub job for closed support tickets.
+- Support PII scrubber exists as `scrub-old-support-pii`; verify production cron is installed from the runbook.
 - No documented retention schedule surfaced to users in Privacy Policy.
 
 ---
@@ -238,7 +238,7 @@ Hourly job `process-storage-usage-drift` calls `reconcile_storage_usage_drift`:
 | `process-expired-exports` | function + runbook | hourly | Expire continuity export grants + purge stale `exports/` bucket bundles |
 | `process-storage-orphans` | function + runbook | daily | Storage-vs-DB orphan candidate detection |
 | `process-storage-usage-drift` | function + runbook | hourly batches | Drift correction |
-| `scrub-old-support-pii` | **missing** | weekly | Retention compliance |
+| `scrub-old-support-pii` | function + runbook | weekly | Retention compliance for closed support tickets |
 | `quarterly-restore-drill-reminder` | function + runbook | monthly check | Ops reminder when no passed drill in 90 days |
 
 Wire all via `pg_cron` + `pg_net` per project convention.
@@ -276,7 +276,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 9. Cross-region storage replication or scheduled object snapshots.
 10. Admin UI controls for maintenance/freeze-writes mode.
 11. Admin UI controls for restore-drill sign-off workflow.
-12. PII scrub for closed support tickets.
+12. Admin UI/reporting for closed support PII scrub results.
 
 ---
 

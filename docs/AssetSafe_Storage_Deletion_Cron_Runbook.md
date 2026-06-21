@@ -187,6 +187,31 @@ select cron.schedule(
 );
 ```
 
+## scrub-old-support-pii - weekly, dry-run by default
+
+Redacts free-text PII from `dev_support_issues` after closed issues pass the support retention window. Metadata such as type, priority, status, and timestamps remains for trend analysis.
+
+Start in dry-run. Only flip `dry_run` to `false` after reviewing the eligible IDs.
+
+```sql
+select cron.schedule(
+  'scrub-old-support-pii-prod',
+  '25 5 * * 0',  -- 05:25 UTC Sundays
+  $$
+  select net.http_post(
+    url     := 'https://<PROJECT_REF>.supabase.co/functions/v1/scrub-old-support-pii',
+    headers := jsonb_build_object(
+      'Content-Type',     'application/json',
+      'x-internal-secret','<SERVICE_ROLE_KEY>'
+    ),
+    body    := jsonb_build_object('dry_run', true, 'retention_days', 1095)
+  );
+  $$
+);
+```
+
+Promote to live scrub by re-scheduling with `'dry_run', false`.
+
 ## Cron health visibility
 
 `list-cron-job-health` exposes the latest run, duration, consecutive-failure count, and computed `health_status` (`ok | warn | page | failed | never_run`) per registered job. This is the source of truth for ops dashboards and pager rules — do not poll `cron.job_run_details` directly.

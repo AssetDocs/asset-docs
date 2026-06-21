@@ -53,3 +53,8 @@ verify_jwt = false
 # Sends only when no passed restore drill is recorded in the due window.
 [functions.quarterly-restore-drill-reminder]
 verify_jwt = false
+
+# Internal cron-invoked sweeper - authenticates via x-internal-secret header.
+# Redacts old closed support issue free-text PII after the retention window.
+[functions.scrub-old-support-pii]
+verify_jwt = false
