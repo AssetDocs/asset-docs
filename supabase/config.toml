@@ -43,3 +43,8 @@ verify_jwt = false
 # Conservative: only seeds storage_orphan_candidates; never deletes inline.
 [functions.process-storage-orphans]
 verify_jwt = false
+
+# Internal cron-invoked sweeper - authenticates via x-internal-secret header.
+# Expires continuity export authorizations and removes stale export bundles.
+[functions.process-expired-exports]
+verify_jwt = false

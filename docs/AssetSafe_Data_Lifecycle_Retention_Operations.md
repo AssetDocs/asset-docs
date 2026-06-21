@@ -231,7 +231,7 @@ Hourly per account in a queue (or nightly full-scan):
 | `notify-manual-review-backlog` | exists | daily | Ops alert |
 | `sweep-closure-pending` | **missing** | daily | Flip to deletion after 30 d |
 | `sweep-deletion-pending` | **missing** | hourly | Execute `delete-account` after 14 d |
-| `sweep-expired-exports` | **missing** | hourly | Purge `exports/` bucket bundles |
+| `process-expired-exports` | function + runbook | hourly | Expire continuity export grants + purge stale `exports/` bucket bundles |
 | `reconcile-storage-orphans` | **missing** | nightly | Storage-vs-DB diff |
 | `recompute-storage-usage` | **missing** | hourly batches | Drift correction |
 | `scrub-old-support-pii` | **missing** | weekly | Retention compliance |
