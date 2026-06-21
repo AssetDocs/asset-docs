@@ -13,6 +13,10 @@ Cadence: hourly
 
 The function records health in `cron_job_health` as `process-expired-exports`.
 
+## Storage Bucket Prerequisite
+
+Create a private `exports` bucket before enabling the cron. Do this through the Supabase Storage UI or an approved storage API path, not through a SQL migration, because the Lovable migration runner blocks direct `storage.buckets` writes.
+
 ## Manual Smoke Test
 
 Invoke the function with a dry run before enabling cron:
