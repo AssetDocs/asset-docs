@@ -45,6 +45,22 @@ interface AssetValueEntry {
   date?: string | null;
 }
 
+const EXPORT_SIGNED_URL_TTL_SECONDS = 15 * 60;
+
+type AccountExportAuditRpcClient = {
+  rpc: (
+    fn: 'log_account_export_audit',
+    args: {
+      p_export_type?: string;
+      p_status?: 'started' | 'succeeded' | 'failed';
+      p_file_count?: number | null;
+      p_signed_url_ttl_seconds?: number | null;
+      p_error_message?: string | null;
+      p_metadata?: Record<string, unknown>;
+    }
+  ) => Promise<{ error: { message: string } | null }>;
+};
+
 export interface AssetSummary {
   photos: Array<{
     id: string;
@@ -186,6 +202,41 @@ export interface AssetSummary {
 }
 
 export class ExportService {
+  private static async logAccountExportAudit(
+    status: 'started' | 'succeeded' | 'failed',
+    fileCount: number | null = null,
+    errorMessage: string | null = null,
+    metadata: Record<string, unknown> = {}
+  ): Promise<void> {
+    try {
+      const auditClient = supabase as unknown as AccountExportAuditRpcClient;
+      const { error } = await auditClient.rpc('log_account_export_audit', {
+        p_export_type: 'complete_asset_summary',
+        p_status: status,
+        p_file_count: fileCount,
+        p_signed_url_ttl_seconds: EXPORT_SIGNED_URL_TTL_SECONDS,
+        p_error_message: errorMessage,
+        p_metadata: metadata,
+      });
+
+      if (error) {
+        console.error('Failed to log account export audit:', error.message);
+      }
+    } catch (auditError) {
+      console.error('Failed to log account export audit:', auditError);
+    }
+  }
+
+  private static countExportFiles(assets: AssetSummary): number {
+    return assets.photos.length
+      + assets.videos.length
+      + assets.documents.length
+      + assets.voiceNotes.filter(note => note.audioUrl).length
+      + assets.archiveFiles.length
+      + assets.familyRecipes.filter(recipe => recipe.fileUrl).length
+      + (assets.assetValueEntries.length > 0 ? 2 : 0);
+  }
+
   private static csvEscape(value: string | number | null | undefined): string {
     const text = String(value ?? '');
     return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
@@ -974,7 +1025,7 @@ export class ExportService {
         try {
           const { data: signedUrls } = await supabase.storage
             .from(bucket)
-            .createSignedUrls(uniquePaths, 3600);
+            .createSignedUrls(uniquePaths, EXPORT_SIGNED_URL_TTL_SECONDS);
 
           if (signedUrls) {
             for (const signed of signedUrls) {
@@ -1087,7 +1138,7 @@ export class ExportService {
           try {
             const { data: signedUrls } = await supabase.storage
               .from(bucket)
-              .createSignedUrls(paths, 3600);
+              .createSignedUrls(paths, EXPORT_SIGNED_URL_TTL_SECONDS);
             if (signedUrls) {
               for (const s of signedUrls) {
                 if (s.signedUrl && s.path) {
@@ -1174,7 +1225,7 @@ export class ExportService {
           try {
             const { data: signedUrls } = await supabase.storage
               .from(bucket)
-              .createSignedUrls(paths, 3600);
+              .createSignedUrls(paths, EXPORT_SIGNED_URL_TTL_SECONDS);
             if (signedUrls) {
               for (const s of signedUrls) {
                 if (s.signedUrl && s.path) legacySignedMap[`${bucket}:${s.path}`] = s.signedUrl;
@@ -1243,7 +1294,7 @@ export class ExportService {
           try {
             const { data: signedUrls } = await supabase.storage
               .from('photos')
-              .createSignedUrls(photoPaths, 3600);
+              .createSignedUrls(photoPaths, EXPORT_SIGNED_URL_TTL_SECONDS);
             const itemPhotoMap: Record<string, string> = {};
             if (signedUrls) {
               for (const s of signedUrls) {
@@ -1281,7 +1332,7 @@ export class ExportService {
           try {
             const { data: signedUrls } = await supabase.storage
               .from('documents')
-              .createSignedUrls(receiptPaths, 3600);
+              .createSignedUrls(receiptPaths, EXPORT_SIGNED_URL_TTL_SECONDS);
             if (signedUrls) {
               for (const s of signedUrls) {
                 if (s.signedUrl && s.path) receiptSignedMap[s.path] = s.signedUrl;
@@ -1317,7 +1368,7 @@ export class ExportService {
           try {
             const { data: signedUrls } = await supabase.storage
               .from('documents')
-              .createSignedUrls(docPaths, 3600);
+              .createSignedUrls(docPaths, EXPORT_SIGNED_URL_TTL_SECONDS);
             if (signedUrls) {
               for (const s of signedUrls) {
                 if (s.signedUrl && s.path) docSignedMap[s.path] = s.signedUrl;
@@ -1416,7 +1467,7 @@ export class ExportService {
           try {
             const { data: signedUrls } = await supabase.storage
               .from('documents')
-              .createSignedUrls(paths, 3600);
+              .createSignedUrls(paths, EXPORT_SIGNED_URL_TTL_SECONDS);
             if (signedUrls) {
               for (const s of signedUrls) {
                 if (s.signedUrl && s.path) voiceSignedMap[s.path] = s.signedUrl;
@@ -1619,7 +1670,7 @@ export class ExportService {
           try {
             const { data: signedUrls } = await supabase.storage
               .from(bucket)
-              .createSignedUrls(paths, 3600);
+              .createSignedUrls(paths, EXPORT_SIGNED_URL_TTL_SECONDS);
             if (signedUrls) {
               for (const s of signedUrls) {
                 if (s.signedUrl && s.path) recipeSignedMap[s.path] = s.signedUrl;
@@ -1671,6 +1722,11 @@ export class ExportService {
    */
   static async exportCompleteAssetSummary(userId: string): Promise<void> {
     try {
+      await this.logAccountExportAudit('started', null, null, {
+        mode: 'browser_generated',
+        bundle_retention: 'none_client_download',
+      });
+
       toast({
         title: "Preparing Export",
         description: "Gathering your account archive for export...",
@@ -1687,6 +1743,7 @@ export class ExportService {
 
       // Get user assets
       const assets = await this.getUserAssets(userId);
+      const fileCount = this.countExportFiles(assets);
 
       // Generate PDF summary
       await this.generateAssetSummaryPDF(assets, profile, verificationData);
@@ -1694,12 +1751,23 @@ export class ExportService {
       // Create and download assets zip
       await this.downloadAssetsZip(assets);
 
+      await this.logAccountExportAudit('succeeded', fileCount, null, {
+        mode: 'browser_generated',
+        generated_files: ['asset_summary_pdf', 'asset_zip'],
+      });
+
       toast({
         title: "Export Complete",
         description: "Your account archive PDF and ZIP have been downloaded.",
       });
     } catch (error) {
       console.error('Export failed:', error);
+      await this.logAccountExportAudit(
+        'failed',
+        null,
+        error instanceof Error ? error.message : 'unknown_export_error',
+        { mode: 'browser_generated' }
+      );
       toast({
         title: "Export Failed",
         description: "There was an error exporting your assets. Please try again.",
