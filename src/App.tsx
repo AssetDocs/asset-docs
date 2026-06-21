@@ -15,6 +15,7 @@ import { StepUpProvider } from "@/contexts/StepUpContext";
 import CookieConsent from "@/components/CookieConsent";
 import MobileCTA from "@/components/MobileCTA";
 import AskAssetSafe from "@/components/AskAssetSafe";
+import SystemMaintenanceBanner from "@/components/SystemMaintenanceBanner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdminRole } from "@/hooks/useAdminRole";
 
@@ -348,6 +349,7 @@ const AppContent = () => {
   return (
     <BrowserRouter>
       <ScrollToTopWrapper />
+      <SystemMaintenanceBanner />
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<Index />} />

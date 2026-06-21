@@ -23,7 +23,7 @@ const READ_ONLY_ACCOUNT_STATUSES = new Set([
   'inactive',
 ]);
 
-const READ_ONLY_ACCOUNT_MESSAGE = 'Your account is currently read-only. Reactivate your subscription to add new properties or upload files.';
+const READ_ONLY_ACCOUNT_MESSAGE = 'This workspace is currently read-only. Changes may be paused for billing, lifecycle, or maintenance reasons.';
 
 interface AccountInfo {
   accountId: string;

@@ -44,17 +44,17 @@
 1. Restore PITR snapshot into a scratch project.
 2. Run `supabase/migrations/` against scratch to confirm parity.
 3. Smoke test: login, list properties, open a signed URL, run `check-subscription`.
-4. Sign off in `dev_releases` (type=`restore_drill`).
+4. Sign off in `restore_drill_runs`.
 
 ### 2.4 Approvals
 - **Approver for production restore:** Owner only (single named human).
-- **Pre-restore checklist:** freeze writes (`profiles.account_status='maintenance'` via admin RPC — **not implemented**), notify users via banner, snapshot current state to a separate project, then restore.
+- **Pre-restore checklist:** activate `system_maintenance_windows` via `activate_maintenance_mode`, notify users via the global banner, snapshot current state to a separate project, then restore.
 
 ### 2.5 Launch gaps
-- No documented restore runbook in repo.
+- Restore runbook exists at `docs/AssetSafe_Backup_Restore_Runbook.md`.
 - No automated drill cadence.
 - No secondary storage copy / cross-region object replication.
-- No "freeze writes" maintenance flag.
+- Freeze-writes maintenance flag exists via `system_maintenance_windows`; admin UI controls are still pending.
 
 ---
 
@@ -270,7 +270,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 
 **P2 (quarter 1)**
 9. Cross-region storage replication or scheduled object snapshots.
-10. Maintenance/freeze-writes mode for restores.
+10. Admin UI controls for maintenance/freeze-writes mode.
 11. Automated quarterly restore-drill reminder + sign-off workflow.
 12. PII scrub for closed support tickets.
 

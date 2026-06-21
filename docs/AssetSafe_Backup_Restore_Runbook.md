@@ -98,10 +98,21 @@ Before restore:
 
 1. Confirm incident impact and desired restore point.
 2. Export current production metadata/snapshot where available.
-3. Pause write-heavy scheduled jobs.
-4. Prepare user-facing status notice.
+3. Activate global maintenance mode to freeze user writes and show the in-app notice.
+4. Pause write-heavy scheduled jobs.
 5. Confirm edge function and secret redeploy plan.
 6. Confirm rollback path if the restore target is wrong.
+
+Activate maintenance mode:
+
+```sql
+select public.activate_maintenance_mode(
+  p_reason := 'Production restore',
+  p_message := 'Asset Safe is performing maintenance. Your records remain available, but changes are temporarily paused.',
+  p_ends_at := now() + interval '4 hours',
+  p_metadata := jsonb_build_object('incident_id', '<incident-or-ticket-id>')
+);
+```
 
 During restore:
 
@@ -112,13 +123,19 @@ During restore:
 
 After restore:
 
-1. Record RPO/RTO and findings in `restore_drill_runs`.
-2. Review data changed after the restore point.
-3. Notify affected users if any data loss window exists.
-4. Write follow-up actions for any failed smoke check.
+1. End maintenance mode.
+2. Record RPO/RTO and findings in `restore_drill_runs`.
+3. Review data changed after the restore point.
+4. Notify affected users if any data loss window exists.
+5. Write follow-up actions for any failed smoke check.
+
+End maintenance mode:
+
+```sql
+select public.end_maintenance_mode();
+```
 
 ## Known Gaps
 
-- No global maintenance/freeze-writes flag exists yet.
 - No cross-region storage snapshot controlled by the app exists yet.
 - Scratch project secrets still require manual secure setup.
