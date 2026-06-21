@@ -148,7 +148,7 @@ Daily job `process-storage-orphans` calls `reconcile_storage_orphans`:
 4. Queue only admin-approved candidates into `storage_deletion_jobs`.
 
 ### 4.4 Launch gaps
-- Orphan reconciler exists; admin review UI for `storage_orphan_candidates` is still needed.
+- Basic admin review UI for `storage_orphan_candidates` exists in the Admin Database panel; bulk actions are still pending.
 - No bucket-level lifecycle rule (e.g., auto-delete quarantine prefixes after 30 days).
 - No per-bucket size cap independent of `storage_usage` accounting.
 
@@ -252,7 +252,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 | Pending file/property deletions | `list-pending-file-deletions`, `list-pending-property-deletions` | Pair with bulk approve/deny |
 | Closure / deletion requests | Partially in Admin | Unified queue with grace clock |
 | Export audit | `continuity_export_forensics`, `account_export_audit` | Add user-export audit view |
-| Storage drift | `storage_usage_reconciliation_state`, `audit_logs` | New panel; surfaces `storage_usage_drift_corrected` events |
+| Storage drift | Admin Database panel reads `storage_usage_reconciliation_state` | Add richer alerting/reporting if drift stays noisy |
 | Legal hold | DB flags/RPCs on closure requests and tombstones | Admin UI controls pending |
 | Restore drill log | `restore_drill_runs` | Add admin panel when needed |
 
@@ -267,7 +267,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 4. Re-signup conflict guard codified in signup/auth creation paths.
 
 **P1 (first 30 days post-launch)**
-5. Admin review UI for `storage_orphan_candidates` + storage drift visibility.
+5. Bulk orphan review actions + richer storage drift alerting.
 6. Server-managed user export bundles for strict download-cap enforcement.
 7. Legal hold admin UI.
 8. Legal/counsel review of public retention schedule.

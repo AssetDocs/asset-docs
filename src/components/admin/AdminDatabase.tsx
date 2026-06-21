@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
-import { Database, AlertTriangle, CheckCircle, RefreshCw, HardDrive, FileText, Shield } from 'lucide-react';
+import { Database, AlertTriangle, CheckCircle, RefreshCw, HardDrive, FileText, Shield, EyeOff } from 'lucide-react';
 
 interface TableStats {
   table_name: string;
@@ -24,11 +24,33 @@ interface RLSStatus {
   rls_enabled: boolean;
 }
 
+interface StorageOrphanCandidate {
+  id: string;
+  bucket: string;
+  object_path: string;
+  object_size_bytes: number | null;
+  first_seen_at: string;
+  last_seen_at: string;
+  status: string;
+  approved_at: string | null;
+}
+
+interface StorageUsageDriftState {
+  user_id: string;
+  last_reconciled_at: string;
+  last_drift_bytes: number;
+  last_drift_ratio: number;
+  last_corrected: boolean;
+}
+
 const AdminDatabase = () => {
   const [tableStats, setTableStats] = useState<TableStats[]>([]);
   const [storageBuckets, setStorageBuckets] = useState<StorageBucket[]>([]);
+  const [orphanCandidates, setOrphanCandidates] = useState<StorageOrphanCandidate[]>([]);
+  const [driftStates, setDriftStates] = useState<StorageUsageDriftState[]>([]);
   const [recentErrors, setRecentErrors] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [healthStatus, setHealthStatus] = useState<'healthy' | 'warning' | 'error'>('healthy');
 
   useEffect(() => {
@@ -96,6 +118,27 @@ const AdminDatabase = () => {
         setStorageBuckets(buckets);
       }
 
+      const { data: orphanData, error: orphanError } = await supabase
+        .from('storage_orphan_candidates')
+        .select('id,bucket,object_path,object_size_bytes,first_seen_at,last_seen_at,status,approved_at')
+        .in('status', ['candidate', 'approved', 'queued'])
+        .order('last_seen_at', { ascending: false })
+        .limit(25);
+
+      if (!orphanError && orphanData) {
+        setOrphanCandidates(orphanData as StorageOrphanCandidate[]);
+      }
+
+      const { data: driftData, error: driftError } = await supabase
+        .from('storage_usage_reconciliation_state')
+        .select('user_id,last_reconciled_at,last_drift_bytes,last_drift_ratio,last_corrected')
+        .order('last_reconciled_at', { ascending: false })
+        .limit(25);
+
+      if (!driftError && driftData) {
+        setDriftStates(driftData as StorageUsageDriftState[]);
+      }
+
       // Check for any issues
       const issues: string[] = [];
       
@@ -103,6 +146,14 @@ const AdminDatabase = () => {
       const rlsIssues = stats.filter(s => s.row_count === -1);
       if (rlsIssues.length > 0) {
         issues.push(`${rlsIssues.length} tables have restricted access (RLS)`);
+      }
+
+      if (orphanData?.some((candidate) => candidate.status === 'candidate')) {
+        issues.push('Storage orphan candidates need review');
+      }
+
+      if (driftData?.some((state) => state.last_corrected)) {
+        issues.push('Recent storage usage drift corrections detected');
       }
 
       setRecentErrors(issues);
@@ -146,6 +197,52 @@ const AdminDatabase = () => {
 
   const getTotalFiles = () => {
     return storageBuckets.reduce((sum, b) => sum + b.file_count, 0);
+  };
+
+  const getOrphanCount = (status: string) => {
+    return orphanCandidates.filter((candidate) => candidate.status === status).length;
+  };
+
+  const getCorrectedDriftCount = () => {
+    return driftStates.filter((state) => state.last_corrected).length;
+  };
+
+  const formatPercent = (value: number) => {
+    return `${(value * 100).toFixed(1)}%`;
+  };
+
+  const updateOrphanStatus = async (candidate: StorageOrphanCandidate, status: 'approved' | 'ignored') => {
+    setActionLoading(candidate.id);
+    try {
+      const { data: authData } = await supabase.auth.getUser();
+      const now = new Date().toISOString();
+      const patch =
+        status === 'approved'
+          ? {
+              status,
+              approved_at: now,
+              approved_by: authData.user?.id ?? null,
+              notes: 'Approved from Admin Database storage operations panel',
+            }
+          : {
+              status,
+              notes: 'Ignored from Admin Database storage operations panel',
+            };
+
+      const { error } = await supabase
+        .from('storage_orphan_candidates')
+        .update(patch)
+        .eq('id', candidate.id);
+
+      if (error) throw error;
+      await loadDatabaseStats();
+    } catch (error) {
+      console.error('Error updating storage orphan candidate:', error);
+      setRecentErrors(['Failed to update storage orphan candidate']);
+      setHealthStatus('error');
+    } finally {
+      setActionLoading(null);
+    }
   };
 
   return (
@@ -239,6 +336,18 @@ const AdminDatabase = () => {
             </div>
           </CardContent>
         </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Orphan Review</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <EyeOff className="w-5 h-5 text-orange-500" />
+              <span className="text-2xl font-bold">{getOrphanCount('candidate')}</span>
+              <span className="text-sm text-muted-foreground">pending</span>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -312,6 +421,136 @@ const AdminDatabase = () => {
               </Table>
             ) : (
               <p className="text-center text-muted-foreground py-8">No storage data available</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Storage Orphan Review</CardTitle>
+            <CardDescription>
+              Review objects found in storage with no matching database row. Approved rows are queued by the next orphan sweeper run.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <p>Loading...</p>
+            ) : orphanCandidates.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Object</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Size</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {orphanCandidates.map((candidate) => (
+                    <TableRow key={candidate.id}>
+                      <TableCell>
+                        <div className="font-medium">{candidate.bucket}</div>
+                        <div className="max-w-[320px] truncate text-xs text-muted-foreground" title={candidate.object_path}>
+                          {candidate.object_path}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Seen {new Date(candidate.last_seen_at).toLocaleDateString()}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={candidate.status === 'candidate' ? 'secondary' : 'default'}>
+                          {candidate.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {candidate.object_size_bytes ? formatBytes(candidate.object_size_bytes) : '-'}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={actionLoading === candidate.id || candidate.status !== 'candidate'}
+                            onClick={() => updateOrphanStatus(candidate, 'ignored')}
+                          >
+                            Ignore
+                          </Button>
+                          <Button
+                            size="sm"
+                            disabled={actionLoading === candidate.id || candidate.status !== 'candidate'}
+                            onClick={() => updateOrphanStatus(candidate, 'approved')}
+                          >
+                            Approve
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <p className="text-center text-muted-foreground py-8">No orphan candidates need review</p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Storage Usage Drift</CardTitle>
+            <CardDescription>
+              Latest reconciliation state from `process-storage-usage-drift`.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <p>Loading...</p>
+            ) : driftStates.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>User</TableHead>
+                    <TableHead className="text-right">Drift</TableHead>
+                    <TableHead className="text-right">Ratio</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {driftStates.map((state) => (
+                    <TableRow key={state.user_id}>
+                      <TableCell>
+                        <div className="font-mono text-xs">{state.user_id}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {new Date(state.last_reconciled_at).toLocaleString()}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {formatBytes(Math.abs(state.last_drift_bytes))}
+                      </TableCell>
+                      <TableCell className="text-right">{formatPercent(Number(state.last_drift_ratio))}</TableCell>
+                      <TableCell>
+                        {state.last_corrected ? (
+                          <Badge className="bg-yellow-500">Corrected</Badge>
+                        ) : (
+                          <Badge className="bg-green-500">OK</Badge>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <p className="text-center text-muted-foreground py-8">No storage drift data available</p>
+            )}
+            {getCorrectedDriftCount() > 0 && (
+              <Alert className="mt-4">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Recent Corrections</AlertTitle>
+                <AlertDescription>
+                  {getCorrectedDriftCount()} account(s) had storage usage corrected during recent reconciliation.
+                </AlertDescription>
+              </Alert>
             )}
           </CardContent>
         </Card>
