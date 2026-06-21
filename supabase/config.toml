@@ -25,3 +25,21 @@ verify_jwt = false
 # (SUPABASE_SERVICE_ROLE_KEY). No user JWT is presented by pg_cron.
 [functions.process-storage-deletion-jobs]
 verify_jwt = false
+
+# Internal cron-invoked sweeper — authenticates via x-internal-secret header.
+[functions.process-retention-expirations]
+verify_jwt = false
+
+# Internal cron-invoked sweeper — authenticates via x-internal-secret header
+# AND Authorization: Bearer service-role (used to invoke delete-account).
+[functions.process-account-closures]
+verify_jwt = false
+
+# Internal cron-invoked sweeper — authenticates via x-internal-secret header.
+[functions.process-storage-usage-drift]
+verify_jwt = false
+
+# Internal cron-invoked sweeper — authenticates via x-internal-secret header.
+# Conservative: only seeds storage_orphan_candidates; never deletes inline.
+[functions.process-storage-orphans]
+verify_jwt = false
