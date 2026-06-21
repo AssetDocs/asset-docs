@@ -232,6 +232,70 @@ const Terms: React.FC = () => {
             <p className="mt-4">
               If your account remains inactive or unpaid for an extended period, data may be archived or removed in accordance with these Terms. Asset Safe will make reasonable efforts to notify you before any such action is taken.
             </p>
+            <p className="mt-4">
+              When you delete your account, Asset Safe removes or anonymizes active account content and access records where practical. Some limited records are retained when needed for legal, tax, billing, security, fraud-prevention, consent, dispute-resolution, or audit purposes.
+            </p>
+            <div className="overflow-x-auto mt-4">
+              <table className="min-w-full border border-gray-200 text-sm">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="border border-gray-200 px-3 py-2 text-left font-semibold">Data category</th>
+                    <th className="border border-gray-200 px-3 py-2 text-left font-semibold">Typical retention</th>
+                    <th className="border border-gray-200 px-3 py-2 text-left font-semibold">Purpose</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="border border-gray-200 px-3 py-2">User-uploaded content and asset records</td>
+                    <td className="border border-gray-200 px-3 py-2">Deleted after account deletion is completed, subject to any closure grace period, legal hold, or backup limitations</td>
+                    <td className="border border-gray-200 px-3 py-2">Provide the service while the account is active</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-200 px-3 py-2">Deleted-account tombstone records</td>
+                    <td className="border border-gray-200 px-3 py-2">Indefinite or at least 7 years, minimized where possible</td>
+                    <td className="border border-gray-200 px-3 py-2">Prevent account-reuse abuse, support security review, and preserve required deletion history</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-200 px-3 py-2">Billing, payment, cancellation, checkout, and Stripe reconciliation records</td>
+                    <td className="border border-gray-200 px-3 py-2">Up to 7 years</td>
+                    <td className="border border-gray-200 px-3 py-2">Tax, accounting, refund, chargeback, and dispute support</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-200 px-3 py-2">Security audit logs and system audit records</td>
+                    <td className="border border-gray-200 px-3 py-2">Up to 7 years</td>
+                    <td className="border border-gray-200 px-3 py-2">Security monitoring, fraud prevention, abuse investigation, and legal requests</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-200 px-3 py-2">Legal agreement signatures and consent records</td>
+                    <td className="border border-gray-200 px-3 py-2">Lifetime of the relationship plus up to 7 years, or longer if required by law</td>
+                    <td className="border border-gray-200 px-3 py-2">Proof of consent, agreement acceptance, and compliance obligations</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-200 px-3 py-2">Product activity logs</td>
+                    <td className="border border-gray-200 px-3 py-2">Up to 2 years, usually anonymized after account deletion</td>
+                    <td className="border border-gray-200 px-3 py-2">Product reliability, analytics, and security context</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-200 px-3 py-2">Support and operational tickets</td>
+                    <td className="border border-gray-200 px-3 py-2">Up to 3 years; free-text personal information may be scrubbed after closure</td>
+                    <td className="border border-gray-200 px-3 py-2">Customer support, quality review, and issue history</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-200 px-3 py-2">Export bundles and temporary download links</td>
+                    <td className="border border-gray-200 px-3 py-2">Short-lived links and temporary bundles, generally no longer than 7 days where server-managed</td>
+                    <td className="border border-gray-200 px-3 py-2">Securely deliver requested account or continuity exports</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-200 px-3 py-2">Backups and restore snapshots</td>
+                    <td className="border border-gray-200 px-3 py-2">According to provider backup windows, generally measured in days or weeks</td>
+                    <td className="border border-gray-200 px-3 py-2">Disaster recovery, service reliability, and restore testing</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p className="mt-4">
+              We may retain records longer when required to comply with law, preserve evidence, resolve disputes, enforce agreements, respond to lawful requests, prevent fraud or abuse, or maintain a legal hold. Where possible, retained records are minimized, anonymized, or linked to a deleted-account reference rather than an active account profile.
+            </p>
           </section>
         </div>
       </div>

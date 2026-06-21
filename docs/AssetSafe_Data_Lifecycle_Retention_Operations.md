@@ -195,7 +195,7 @@ Daily job `process-storage-orphans` calls `reconcile_storage_orphans`:
 ### 6.1 Launch gaps
 - Legal hold DB flags/RPCs exist; admin UI controls are still pending.
 - Support PII scrubber exists as `scrub-old-support-pii`; verify production cron is installed from the runbook.
-- No documented retention schedule surfaced to users in Privacy Policy.
+- Retention schedule is surfaced in `src/pages/Terms.tsx`; legal/counsel review still recommended before launch.
 
 ---
 
@@ -270,7 +270,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 5. Admin review UI for `storage_orphan_candidates` + storage drift visibility.
 6. Server-managed user export bundles for strict download-cap enforcement.
 7. Legal hold admin UI.
-8. Surface retention schedule in Privacy Policy.
+8. Legal/counsel review of public retention schedule.
 
 **P2 (quarter 1)**
 9. Cross-region storage replication or scheduled object snapshots.
