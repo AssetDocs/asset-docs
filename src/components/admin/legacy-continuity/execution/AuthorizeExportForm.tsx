@@ -21,11 +21,19 @@ const SCOPE_KEYS = [
   { key: 'memory_safe', label: 'Memory Safe' },
 ];
 
+const toDateTimeLocal = (date: Date) => {
+  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
+  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+};
+
+const defaultExpiration = () => toDateTimeLocal(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
+const maxExpiration = () => toDateTimeLocal(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
+
 const AuthorizeExportForm: React.FC<Props> = ({ caseData, disabled, disabledReason, onDone }) => {
   const [scope, setScope] = useState<Record<string, boolean>>({
     records: true, documents: true, photos: false, legacy_locker: false, memory_safe: false,
   });
-  const [expires, setExpires] = useState('');
+  const [expires, setExpires] = useState(defaultExpiration);
   const [downloadLimit, setDownloadLimit] = useState(5);
   const [sensitive, setSensitive] = useState(false);
   const [reason, setReason] = useState('');
@@ -68,7 +76,14 @@ const AuthorizeExportForm: React.FC<Props> = ({ caseData, disabled, disabledReas
         </div>
         <div>
           <Label className="text-sm">Expiration date <span className="text-rose-600">*</span></Label>
-          <Input type="datetime-local" value={expires} onChange={(e) => setExpires(e.target.value)} disabled={disabled} />
+          <Input
+            type="datetime-local"
+            value={expires}
+            min={toDateTimeLocal(new Date(Date.now() + 5 * 60 * 1000))}
+            max={maxExpiration()}
+            onChange={(e) => setExpires(e.target.value)}
+            disabled={disabled}
+          />
         </div>
         <div>
           <Label className="text-sm">Download limit</Label>
