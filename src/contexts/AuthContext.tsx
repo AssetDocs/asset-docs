@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect, useRef } from 'r
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { SecurityAlertService } from '@/services/SecurityAlertService';
+import { DELETED_ACCOUNT_MESSAGE, isDeletedAccountEmail } from '@/utils/deletedAccountGuard';
 
 // Helper to check if we've already alerted for this session (persisted in localStorage)
 const ALERTED_SESSIONS_KEY = 'alerted_login_sessions';
@@ -208,6 +209,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [user?.id]); // re-run only when the user ID changes
 
   const signUp = async (email: string, password: string, firstName?: string, lastName?: string, giftCode?: string) => {
+    if (await isDeletedAccountEmail(email)) {
+      return {
+        data: null,
+        error: new Error(DELETED_ACCOUNT_MESSAGE),
+      };
+    }
+
     const redirectUrl = `${window.location.origin}/auth/callback`;
     const { data, error } = await supabase.auth.signUp({
       email,

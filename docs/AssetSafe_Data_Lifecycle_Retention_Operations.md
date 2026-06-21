@@ -260,7 +260,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 1. Sweepers: `sweep-closure-pending`, `sweep-deletion-pending`, `sweep-expired-exports`.
 2. Consolidate the three closure/deletion tables or document the matrix.
 3. Restore runbook + one rehearsed drill, logged.
-4. Re-signup conflict guard codified in `request-account-closure` and signup.
+4. Re-signup conflict guard codified in signup/auth creation paths.
 
 **P1 (first 30 days post-launch)**
 5. `reconcile-storage-orphans` + `recompute-storage-usage`.

@@ -68,6 +68,23 @@ serve(async (req: Request) => {
 
     const inviteToken = crypto.randomUUID();
 
+    const { data: isDeletedAccount, error: deletedAccountError } = await supabaseAdmin
+      .rpc('is_deleted_account_email', { p_email: validated.contributor_email });
+
+    if (deletedAccountError) {
+      console.error('[INVITE-CONTRIBUTOR] Deleted account guard failed:', deletedAccountError);
+      throw deletedAccountError;
+    }
+
+    if (isDeletedAccount) {
+      return new Response(JSON.stringify({
+        error: 'This email cannot be invited. Please use a different email or contact support.',
+        code: 'DELETED_ACCOUNT_EMAIL',
+      }), {
+        status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (!validated.resend) {
       const { error: dbError } = await supabaseAdmin
         .from('contributors')

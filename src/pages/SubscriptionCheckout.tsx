@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
+import { DELETED_ACCOUNT_MESSAGE, isDeletedAccountEmail } from '@/utils/deletedAccountGuard';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { CheckIcon, Shield, Star, Zap } from 'lucide-react';
@@ -116,6 +117,10 @@ const SubscriptionCheckout: React.FC = () => {
 
     setIsLoading(true);
     try {
+      if (await isDeletedAccountEmail(data.email)) {
+        throw new Error(DELETED_ACCOUNT_MESSAGE);
+      }
+
       // Store plan type in session storage for after email verification
       sessionStorage.setItem('selectedPlanType', planType);
       

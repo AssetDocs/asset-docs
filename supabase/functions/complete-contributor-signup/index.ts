@@ -69,6 +69,24 @@ serve(async (req: Request) => {
 
     console.log('[COMPLETE-CONTRIBUTOR-SIGNUP] Valid token found for:', validated.email, 'invitation:', invitation.id);
 
+    const { data: isDeletedAccount, error: deletedAccountError } = await supabaseAdmin
+      .rpc('is_deleted_account_email', { p_email: validated.email });
+
+    if (deletedAccountError) {
+      console.error('[COMPLETE-CONTRIBUTOR-SIGNUP] Deleted account guard failed:', deletedAccountError);
+      throw deletedAccountError;
+    }
+
+    if (isDeletedAccount) {
+      return new Response(JSON.stringify({
+        error: 'This email cannot be used to create an account. Please contact support.',
+        success: false
+      }), {
+        status: 409,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // 2. Get or create auth user — create-first + listUsers email filter fallback
     let userId: string;
 

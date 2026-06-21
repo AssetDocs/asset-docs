@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff, AlertCircle, Mail, CheckCircle2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { isDeletedAccountEmail } from '@/utils/deletedAccountGuard';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 
@@ -42,14 +43,7 @@ const Login: React.FC = () => {
     setLoginError(false);
 
     try {
-      // First, check if this email belongs to a deleted account
-      const { data: deletedAccount } = await supabase
-        .from('deleted_accounts')
-        .select('email')
-        .eq('email', email.toLowerCase())
-        .maybeSingle();
-      
-      if (deletedAccount) {
+      if (await isDeletedAccountEmail(email)) {
         toast({
           title: "Account Not Found",
           description: "There is no account attached to this email. Please try again with a valid email, or sign up for a new account.",
