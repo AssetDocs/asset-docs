@@ -4,7 +4,7 @@ import { requireStepUp, getClientIp } from '../_shared/mfa.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-internal-secret',
 }
 
 type SupabaseAdminClient = ReturnType<typeof createClient>;
@@ -42,6 +42,8 @@ type StorageDeletionJob = {
   bucket: string;
   object_path: string;
 };
+
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function addStorageRef(refs: Map<string, StorageRef>, ref: StorageRef) {
   if (!ref.bucket || !ref.path) return;
@@ -290,44 +292,82 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     )
 
-    // Get the authorization header
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader) {
-      console.log('[DELETE-ACCOUNT] No authorization header');
-      return new Response(
-        JSON.stringify({ error: 'No authorization header' }),
-        { 
-          status: 401, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      )
-    }
+    const body = await req.json().catch(() => ({}));
+    const internalSecret = req.headers.get('x-internal-secret');
+    const expectedSecret = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const isInternalDeletion = !!internalSecret && internalSecret === expectedSecret;
 
-    // Get the user from the JWT token
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    )
-
-    if (userError || !user) {
-      console.log('[DELETE-ACCOUNT] Invalid token or no user:', userError);
-      return new Response(
-        JSON.stringify({ error: 'Invalid token' }),
-        { 
-          status: 401, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      )
-    }
-
-    // Parse request body for target account (for admin contributor deletions)
-    let targetAccountId = user.id;
+    let user: { id: string } | null = null;
+    let targetAccountId = '';
     let isAdminDeletion = false;
-    
-    try {
-      const body = await req.json();
+    let isScheduledClosureDeletion = false;
+    let scheduledClosureRequestId: string | null = null;
+
+    if (isInternalDeletion) {
+      if (!body.target_account_id || !uuidRegex.test(body.target_account_id)) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid target_account_id format' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      targetAccountId = body.target_account_id;
+      isScheduledClosureDeletion = true;
+
+      const { data: dueClosure, error: dueClosureError } = await supabaseAdmin
+        .from('account_closure_requests')
+        .select('id,deletion_scheduled_date,status')
+        .eq('owner_user_id', targetAccountId)
+        .eq('status', 'scheduled')
+        .lte('deletion_scheduled_date', new Date().toISOString())
+        .order('deletion_scheduled_date', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      if (dueClosureError || !dueClosure) {
+        console.log('[DELETE-ACCOUNT] No due scheduled closure found for internal deletion', {
+          targetAccountId,
+          dueClosureError,
+        });
+        return new Response(
+          JSON.stringify({ error: 'No due scheduled closure request found' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      scheduledClosureRequestId = dueClosure.id;
+    } else {
+      const authHeader = req.headers.get('Authorization')
+      if (!authHeader) {
+        console.log('[DELETE-ACCOUNT] No authorization header');
+        return new Response(
+          JSON.stringify({ error: 'No authorization header' }),
+          {
+            status: 401,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        )
+      }
+
+      const { data: { user: authUser }, error: userError } = await supabaseClient.auth.getUser(
+        authHeader.replace('Bearer ', '')
+      )
+
+      if (userError || !authUser) {
+        console.log('[DELETE-ACCOUNT] Invalid token or no user:', userError);
+        return new Response(
+          JSON.stringify({ error: 'Invalid token' }),
+          {
+            status: 401,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        )
+      }
+
+      user = authUser;
+      targetAccountId = user.id;
+
       if (body.target_account_id && body.target_account_id !== user.id) {
-        // Validate UUID format before trusting client-supplied value
-        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
         if (!uuidRegex.test(body.target_account_id)) {
           return new Response(
             JSON.stringify({ error: 'Invalid target_account_id format' }),
@@ -337,14 +377,12 @@ Deno.serve(async (req) => {
         targetAccountId = body.target_account_id;
         isAdminDeletion = true;
       }
-    } catch {
-      // No body provided, deleting own account
     }
 
     // Account deletion is destructive — for self-deletion, require a FRESH
     // MFA step-up (last 60s) if the user has MFA enrolled. Admin/contributor
     // deletions skip this gate (governed by contributor-role check above).
-    if (!isAdminDeletion) {
+    if (!isAdminDeletion && !isScheduledClosureDeletion && user) {
       const gate = await requireStepUp(supabaseAdmin, user.id, {
         fresh: true,
         kind: 'delete_account',
@@ -358,20 +396,24 @@ Deno.serve(async (req) => {
     }
 
 
-    console.log('[DELETE-ACCOUNT] Verifying user permissions for:', user.id, 'Target:', targetAccountId);
+    console.log('[DELETE-ACCOUNT] Verifying user permissions for:', user?.id ?? 'internal-sweeper', 'Target:', targetAccountId);
 
     // Check contributor status
-    const { data: contributorData, error: contributorError } = await supabaseAdmin
-      .from('contributors')
-      .select('account_owner_id, role, status')
-      .eq('contributor_user_id', user.id);
+    const { data: contributorData, error: contributorError } = user
+      ? await supabaseAdmin
+        .from('contributors')
+        .select('account_owner_id, role, status')
+        .eq('contributor_user_id', user.id)
+      : { data: null, error: null };
 
     if (contributorError) {
       console.log('[DELETE-ACCOUNT] Error checking contributor status:', contributorError);
     }
 
     // If this is an admin deletion (deleting someone else's account)
-    if (isAdminDeletion) {
+    if (isScheduledClosureDeletion) {
+      console.log('[DELETE-ACCOUNT] Scheduled closure deletion authorized, proceeding with account:', targetAccountId);
+    } else if (isAdminDeletion && user) {
       // Find the contributor relationship for this specific account
       const relevantContributor = contributorData?.find(
         c => c.account_owner_id === targetAccountId
@@ -452,7 +494,7 @@ Deno.serve(async (req) => {
       }
 
       console.log('[DELETE-ACCOUNT] Admin deletion authorized, proceeding with account:', targetAccountId);
-    } else {
+    } else if (user) {
       // User is deleting their own account
       // Check if they're only a contributor (not the owner)
       const ownsAccount = await supabaseAdmin
@@ -480,6 +522,11 @@ Deno.serve(async (req) => {
 
       // This is fine - they can still delete their own account even if they're a contributor elsewhere
       console.log('[DELETE-ACCOUNT] User owns account, proceeding with self-deletion');
+    } else {
+      return new Response(
+        JSON.stringify({ error: 'Unable to authorize account deletion' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
     console.log('[DELETE-ACCOUNT] Authorization verified, proceeding with deletion of:', targetAccountId);
@@ -529,7 +576,7 @@ Deno.serve(async (req) => {
       const { data: rpcData, error: rpcError } = await supabaseAdmin.rpc('anonymize_user_data', {
         p_user_id: targetAccountId,
         p_email: targetUserEmail,
-        p_deleted_by: isAdminDeletion ? 'admin' : 'self',
+        p_deleted_by: isScheduledClosureDeletion ? 'scheduled_closure' : isAdminDeletion ? 'admin' : 'self',
       });
       if (rpcError) {
         const errorId = crypto.randomUUID();
@@ -672,6 +719,17 @@ Deno.serve(async (req) => {
       .from('deleted_accounts')
       .update({ deletion_status: 'completed' })
       .eq('id', tombstoneId);
+
+    if (scheduledClosureRequestId) {
+      await supabaseAdmin
+        .from('account_closure_requests')
+        .update({
+          status: 'completed',
+          completed_at: new Date().toISOString(),
+          deleted_account_id: tombstoneId,
+        })
+        .eq('id', scheduledClosureRequestId);
+    }
 
     return new Response(
       JSON.stringify({ success: true, message: 'Account deleted successfully' }),
