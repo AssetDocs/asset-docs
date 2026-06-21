@@ -7,6 +7,257 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+type SupabaseAdminClient = ReturnType<typeof createClient>;
+
+type StorageRef = {
+  bucket: string;
+  path: string;
+  source: string;
+  accountId?: string | null;
+};
+
+const STORAGE_REF_SOURCES = [
+  { table: 'property_files', bucketColumn: 'bucket_name', pathColumn: 'file_path' },
+  { table: 'legacy_locker_files', bucketColumn: 'bucket_name', pathColumn: 'file_path' },
+  { table: 'legacy_locker_voice_notes', bucketColumn: 'storage_bucket', pathColumn: 'audio_path' },
+  { table: 'voice_note_attachments', bucketColumn: 'storage_bucket', pathColumn: 'file_path' },
+  { table: 'receipts', bucket: 'documents', pathColumn: 'receipt_path' },
+  { table: 'user_documents', bucket: 'documents', pathColumn: 'file_path' },
+  { table: 'memory_safe_items', bucket: 'memory-safe', pathColumn: 'file_path' },
+  { table: 'family_recipes', bucketColumn: 'bucket_name', pathColumn: 'file_path' },
+  { table: 'notes_traditions', bucketColumn: 'bucket_name', pathColumn: 'file_path' },
+  { table: 'vip_contact_attachments', bucket: 'contact-attachments', pathColumn: 'file_path' },
+  { table: 'paint_codes', bucket: 'photos', pathColumn: 'swatch_image_path' },
+] as const;
+
+const STORAGE_REMOVE_BATCH_SIZE = 100;
+
+type TombstoneContext = {
+  deletedAccountId: string;
+  targetAccountId: string;
+};
+
+type StorageDeletionJob = {
+  id: string;
+  bucket: string;
+  object_path: string;
+};
+
+function addStorageRef(refs: Map<string, StorageRef>, ref: StorageRef) {
+  if (!ref.bucket || !ref.path) return;
+  refs.set(`${ref.bucket}:${ref.path}`, ref);
+}
+
+async function collectRowBackedStorageRefs(supabaseAdmin: SupabaseAdminClient, userId: string) {
+  const refs = new Map<string, StorageRef>();
+
+  for (const source of STORAGE_REF_SOURCES) {
+    const columns: string[] = ['id', source.pathColumn];
+    if ('bucketColumn' in source) columns.push(source.bucketColumn);
+
+    const { data, error } = await supabaseAdmin
+      .from(source.table)
+      .select(columns.join(','))
+      .eq('user_id', userId);
+
+    if (error) {
+      throw new Error(`Failed to collect storage refs from ${source.table}: ${error.message}`);
+    }
+
+    for (const row of data ?? []) {
+      const bucket = 'bucket' in source ? source.bucket : row[source.bucketColumn];
+      const path = row[source.pathColumn];
+      if (bucket && path) {
+        addStorageRef(refs, { bucket, path, source: source.table });
+      }
+    }
+  }
+
+  return refs;
+}
+
+async function collectPrefixStorageRefs(
+  supabaseAdmin: SupabaseAdminClient,
+  prefixes: string[],
+  refs: Map<string, StorageRef>,
+) {
+  for (const prefix of prefixes) {
+    const { data, error } = await supabaseAdmin
+      .schema('storage')
+      .from('objects')
+      .select('bucket_id,name')
+      .like('name', `${prefix}%`);
+
+    if (error) {
+      throw new Error(`Failed to list storage objects for ${prefix}: ${error.message}`);
+    }
+
+    for (const object of data ?? []) {
+      if (object.bucket_id && object.name) {
+        addStorageRef(refs, {
+          bucket: object.bucket_id,
+          path: object.name,
+          source: `prefix:${prefix}`,
+        });
+      }
+    }
+  }
+}
+
+function isNotFoundStorageError(err: { message?: string; statusCode?: string | number } | null) {
+  if (!err) return false;
+  const message = (err.message ?? '').toLowerCase();
+  const statusCode = String(err.statusCode ?? '');
+  return statusCode === '404'
+    || message.includes('not found')
+    || message.includes('object does not exist')
+    || message.includes('not_found');
+}
+
+async function queueStorageDeletionJobs(
+  supabaseAdmin: SupabaseAdminClient,
+  refs: Iterable<StorageRef>,
+  context: TombstoneContext,
+) {
+  const rows = Array.from(refs).map((ref) => {
+    const [sourceTable] = ref.source.split(':');
+    return {
+      bucket: ref.bucket,
+      object_path: ref.path,
+      source: ref.source,
+      source_table: sourceTable || null,
+      owner_user_id: context.targetAccountId,
+      account_id: ref.accountId ?? null,
+      deleted_account_id: context.deletedAccountId,
+      status: 'pending',
+      next_attempt_at: new Date().toISOString(),
+      last_error: null,
+      processing_started_at: null,
+      completed_at: null,
+    };
+  });
+
+  if (rows.length === 0) return new Map<string, StorageDeletionJob>();
+
+  const { data, error } = await supabaseAdmin
+    .from('storage_deletion_jobs')
+    .upsert(rows, { onConflict: 'bucket,object_path,deleted_account_id' })
+    .select('id,bucket,object_path');
+
+  if (error) {
+    throw new Error(`Failed to queue storage deletion jobs: ${error.message}`);
+  }
+
+  return new Map(
+    (data ?? []).map((job: StorageDeletionJob) => [`${job.bucket}:${job.object_path}`, job]),
+  );
+}
+
+async function markStorageJob(
+  supabaseAdmin: SupabaseAdminClient,
+  job: StorageDeletionJob | undefined,
+  status: 'processing' | 'succeeded' | 'failed',
+  errorMessage?: string,
+) {
+  if (!job) return;
+
+  const now = new Date();
+  const patch: Record<string, unknown> = {
+    status,
+    last_attempt_at: now.toISOString(),
+    processing_started_at: status === 'processing' ? now.toISOString() : null,
+  };
+
+  if (status === 'succeeded') {
+    patch.completed_at = now.toISOString();
+    patch.last_error = null;
+  } else if (status === 'failed') {
+    patch.last_error = (errorMessage ?? 'storage_delete_failed').slice(0, 1000);
+    patch.next_attempt_at = new Date(now.getTime() + 15 * 60 * 1000).toISOString();
+  }
+
+  if (status !== 'processing') {
+    const { data: current } = await supabaseAdmin
+      .from('storage_deletion_jobs')
+      .select('attempt_count')
+      .eq('id', job.id)
+      .maybeSingle();
+    patch.attempt_count = ((current?.attempt_count as number | null) ?? 0) + 1;
+  }
+
+  await supabaseAdmin
+    .from('storage_deletion_jobs')
+    .update(patch)
+    .eq('id', job.id);
+}
+
+async function removeStorageRefs(
+  supabaseAdmin: SupabaseAdminClient,
+  refs: Iterable<StorageRef>,
+  jobs: Map<string, StorageDeletionJob>,
+) {
+  const byBucket = new Map<string, StorageRef[]>();
+  for (const ref of refs) {
+    const bucketRefs = byBucket.get(ref.bucket) ?? [];
+    bucketRefs.push(ref);
+    byBucket.set(ref.bucket, bucketRefs);
+  }
+
+  let removed = 0;
+  let failed = 0;
+  for (const [bucket, bucketRefs] of byBucket) {
+    for (let i = 0; i < bucketRefs.length; i += STORAGE_REMOVE_BATCH_SIZE) {
+      const batchRefs = bucketRefs.slice(i, i + STORAGE_REMOVE_BATCH_SIZE);
+      const batch = batchRefs.map((ref) => ref.path);
+      for (const ref of batchRefs) {
+        await markStorageJob(supabaseAdmin, jobs.get(`${ref.bucket}:${ref.path}`), 'processing');
+      }
+      const { error } = await supabaseAdmin.storage.from(bucket).remove(batch);
+      if (error && !isNotFoundStorageError(error)) {
+        failed += batch.length;
+        for (const ref of batchRefs) {
+          await markStorageJob(
+            supabaseAdmin,
+            jobs.get(`${ref.bucket}:${ref.path}`),
+            'failed',
+            error.message,
+          );
+        }
+      } else {
+        removed += batch.length;
+        for (const ref of batchRefs) {
+          await markStorageJob(supabaseAdmin, jobs.get(`${ref.bucket}:${ref.path}`), 'succeeded');
+        }
+      }
+    }
+  }
+
+  return { removed, failed };
+}
+
+async function cleanupAccountStorage(supabaseAdmin: SupabaseAdminClient, context: TombstoneContext) {
+  const refs = await collectRowBackedStorageRefs(supabaseAdmin, context.targetAccountId);
+
+  const { data: accounts, error: accountErr } = await supabaseAdmin
+    .from('accounts')
+    .select('id')
+    .eq('owner_user_id', context.targetAccountId);
+
+  if (accountErr) {
+    throw new Error(`Failed to list accounts for storage cleanup: ${accountErr.message}`);
+  }
+
+  const prefixes = [
+    `${context.targetAccountId}/`,
+    ...(accounts ?? []).map((account: { id: string }) => `accounts/${account.id}/`),
+  ];
+
+  await collectPrefixStorageRefs(supabaseAdmin, prefixes, refs);
+  const jobs = await queueStorageDeletionJobs(supabaseAdmin, refs.values(), context);
+  const result = await removeStorageRefs(supabaseAdmin, refs.values(), jobs);
+  return { queued: jobs.size, ...result };
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -264,8 +515,9 @@ Deno.serve(async (req) => {
     // RETENTION MATRIX EXECUTION
     // 1. Fetch email (needed for tombstone + email-based anonymization)
     // 2. Call anonymize_user_data RPC (handles all retain/anonymize tables)
-    // 3. Purge user-content tables below
-    // 4. Cancel Stripe + delete auth user (later in the function)
+    // 3. Queue and attempt storage deletion jobs while content rows exist
+    // 4. Purge user-content tables below
+    // 5. Delete auth user (later in the function)
     // ====================================================================
 
     const { data: targetUserData } = await supabaseAdmin.auth.admin.getUserById(targetAccountId);
@@ -289,6 +541,40 @@ Deno.serve(async (req) => {
       }
       tombstoneId = (rpcData as unknown as string) ?? null;
       console.log('[DELETE-ACCOUNT] Anonymized via RPC. Tombstone:', tombstoneId);
+    }
+
+    if (!tombstoneId) {
+      const errorId = crypto.randomUUID();
+      console.log('[DELETE-ACCOUNT] anonymize_user_data RPC returned no tombstone id:', { errorId });
+      return new Response(
+        JSON.stringify({ error: 'Account deletion failed (tombstone missing).', errorId }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    try {
+      const storageCleanup = await cleanupAccountStorage(supabaseAdmin, {
+        deletedAccountId: tombstoneId,
+        targetAccountId,
+      });
+      console.log('[DELETE-ACCOUNT] Storage cleanup queued and attempted', storageCleanup);
+    } catch (storageCleanupError) {
+      const errorId = crypto.randomUUID();
+      console.error('[DELETE-ACCOUNT] Storage cleanup failed, aborting account deletion:', {
+        errorId,
+        error: storageCleanupError instanceof Error ? storageCleanupError.message : String(storageCleanupError),
+      });
+      return new Response(
+        JSON.stringify({
+          error: 'Account deletion could not complete because file deletion jobs could not be queued. Please try again.',
+          errorId,
+          retryable: true,
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        },
+      );
     }
 
     // --- Step B: purge user-content tables (matrix "purge" only) ---------
@@ -358,15 +644,16 @@ Deno.serve(async (req) => {
     }
 
     // Tombstone already inserted by anonymize_user_data RPC above.
-
-
-
     // Delete the user account using admin client
     const { error: deleteUserError } = await supabaseAdmin.auth.admin.deleteUser(targetAccountId);
 
     if (deleteUserError) {
       const errorId = crypto.randomUUID();
       console.log('[DELETE-ACCOUNT] Error deleting user:', { errorId, error: deleteUserError });
+      await supabaseAdmin
+        .from('deleted_accounts')
+        .update({ deletion_status: 'failed' })
+        .eq('id', tombstoneId);
       return new Response(
         JSON.stringify({ 
           error: 'Account deletion failed. Please try again.',
@@ -380,6 +667,11 @@ Deno.serve(async (req) => {
     }
 
     console.log('[DELETE-ACCOUNT] Successfully deleted user:', targetAccountId);
+
+    await supabaseAdmin
+      .from('deleted_accounts')
+      .update({ deletion_status: 'completed' })
+      .eq('id', tombstoneId);
 
     return new Response(
       JSON.stringify({ success: true, message: 'Account deleted successfully' }),
