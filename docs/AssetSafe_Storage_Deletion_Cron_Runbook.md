@@ -91,3 +91,111 @@ curl -i -X POST \
   -H "x-internal-secret: $SUPABASE_SERVICE_ROLE_KEY" \
   https://leotcbfpqiekgkgumecn.supabase.co/functions/v1/process-storage-deletion-jobs
 ```
+
+---
+
+# Additional Cron Schedules (Data Lifecycle Sweepers)
+
+Same key-handling rules apply: the `SUPABASE_SERVICE_ROLE_KEY` is pasted by the operator at schedule time and is **never** committed to git or written into a migration. All sweepers below authenticate via `x-internal-secret: <SUPABASE_SERVICE_ROLE_KEY>` and run with `verify_jwt = false` in `supabase/config.toml`.
+
+Replace `<PROJECT_REF>` and `<SERVICE_ROLE_KEY>` per environment before running.
+
+## process-retention-expirations — daily, dry-run by default
+
+Purges retained tombstone-linked records once their retention window has elapsed. **Start in dry-run.** Only flip `dry_run` to `false` after a manual review confirms the candidate set.
+
+```sql
+select cron.schedule(
+  'process-retention-expirations-prod',
+  '15 3 * * *',  -- 03:15 UTC daily
+  $$
+  select net.http_post(
+    url     := 'https://<PROJECT_REF>.supabase.co/functions/v1/process-retention-expirations',
+    headers := jsonb_build_object(
+      'Content-Type',     'application/json',
+      'x-internal-secret','<SERVICE_ROLE_KEY>'
+    ),
+    body    := jsonb_build_object('dry_run', true)
+  );
+  $$
+);
+```
+
+Promote to live purge by re-scheduling with `'dry_run', false`.
+
+## process-account-closures — hourly
+
+Finalizes scheduled account closures by invoking `delete-account`. Requires **both** headers — `Authorization: Bearer <service-role-key>` and `x-internal-secret: <service-role-key>`.
+
+```sql
+select cron.schedule(
+  'process-account-closures-prod',
+  '0 * * * *',
+  $$
+  select net.http_post(
+    url     := 'https://<PROJECT_REF>.supabase.co/functions/v1/process-account-closures',
+    headers := jsonb_build_object(
+      'Content-Type',     'application/json',
+      'Authorization',    'Bearer <SERVICE_ROLE_KEY>',
+      'x-internal-secret','<SERVICE_ROLE_KEY>'
+    ),
+    body    := '{}'::jsonb
+  );
+  $$
+);
+```
+
+## process-storage-usage-drift — hourly
+
+Reconciles `storage_usage` ledger against actual bucket totals.
+
+```sql
+select cron.schedule(
+  'process-storage-usage-drift-prod',
+  '20 * * * *',
+  $$
+  select net.http_post(
+    url     := 'https://<PROJECT_REF>.supabase.co/functions/v1/process-storage-usage-drift',
+    headers := jsonb_build_object(
+      'Content-Type',     'application/json',
+      'x-internal-secret','<SERVICE_ROLE_KEY>'
+    ),
+    body    := '{}'::jsonb
+  );
+  $$
+);
+```
+
+## process-storage-orphans — daily, review-gated
+
+**Conservative by design.** This sweeper only inserts rows into `storage_orphan_candidates`; it never deletes objects inline. Admin/dev review must set a candidate's `status = 'approved'` before the next run will enqueue a row in `storage_deletion_jobs` for the regular 5-minute sweeper to process.
+
+```sql
+select cron.schedule(
+  'process-storage-orphans-prod',
+  '40 4 * * *',  -- 04:40 UTC daily
+  $$
+  select net.http_post(
+    url     := 'https://<PROJECT_REF>.supabase.co/functions/v1/process-storage-orphans',
+    headers := jsonb_build_object(
+      'Content-Type',     'application/json',
+      'x-internal-secret','<SERVICE_ROLE_KEY>'
+    ),
+    body    := '{}'::jsonb
+  );
+  $$
+);
+```
+
+## Cron health visibility
+
+`list-cron-job-health` exposes the latest run, duration, consecutive-failure count, and computed `health_status` (`ok | warn | page | failed | never_run`) per registered job. This is the source of truth for ops dashboards and pager rules — do not poll `cron.job_run_details` directly.
+
+## Export audit & signed-URL window
+
+- Browser account exports are now recorded in `account_export_audit` (one row per export assembly).
+- Signed URLs minted during export assembly are valid for **15 minutes** — short enough to limit replay, long enough to assemble a multi-part ZIP.
+
+## Local-only `supabase/config.toml` drift
+
+Some local `config.toml` edits (gift flow, etc.) are intentionally not committed by the maintainer. When applying Lovable changes to `config.toml`, only the `[functions.*]` blocks for the new sweepers are touched; preserve any unrelated local edits during rebase.
