@@ -69,7 +69,29 @@ async function markJob(
     .eq("id", job.id);
 }
 
+async function recordCronJobResult(
+  admin: SupabaseAdminClient,
+  startedAt: number,
+  status: "succeeded" | "failed",
+  result: Record<string, unknown> = {},
+  errorMessage: string | null = null,
+) {
+  const { error } = await admin.rpc("record_cron_job_result", {
+    p_job_name: "process-storage-deletion-jobs",
+    p_status: status,
+    p_duration_ms: Date.now() - startedAt,
+    p_result: result,
+    p_error: errorMessage,
+  });
+
+  if (error) {
+    console.error("[PROCESS-STORAGE-DELETION-JOBS] Cron health update failed", error);
+  }
+}
+
 serve(async (req: Request): Promise<Response> => {
+  const startedAt = Date.now();
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -91,6 +113,10 @@ serve(async (req: Request): Promise<Response> => {
     Math.max(1, Number(new URL(req.url).searchParams.get("limit") ?? "100")),
   );
   const admin = createClient(supabaseUrl, serviceKey);
+  await admin.rpc("record_cron_job_started", {
+    p_job_name: "process-storage-deletion-jobs",
+  });
+
   const now = new Date().toISOString();
 
   const { data: jobs, error } = await admin
@@ -103,6 +129,7 @@ serve(async (req: Request): Promise<Response> => {
 
   if (error) {
     console.error("[PROCESS-STORAGE-DELETION-JOBS] Fetch failed", error);
+    await recordCronJobResult(admin, startedAt, "failed", {}, error.message);
     return json(500, { error: "job_fetch_failed" });
   }
 
@@ -147,6 +174,8 @@ serve(async (req: Request): Promise<Response> => {
       await markJob(admin, job, "succeeded");
     }
   }
+
+  await recordCronJobResult(admin, startedAt, "succeeded", results);
 
   return json(200, results);
 });

@@ -13,7 +13,29 @@ function json(status: number, body: unknown) {
   });
 }
 
+async function recordCronJobResult(
+  admin: ReturnType<typeof createClient>,
+  startedAt: number,
+  status: "succeeded" | "failed",
+  result: Record<string, unknown> = {},
+  errorMessage: string | null = null,
+) {
+  const { error } = await admin.rpc("record_cron_job_result", {
+    p_job_name: "process-retention-expirations",
+    p_status: status,
+    p_duration_ms: Date.now() - startedAt,
+    p_result: result,
+    p_error: errorMessage,
+  });
+
+  if (error) {
+    console.error("[PROCESS-RETENTION-EXPIRATIONS] Cron health update failed", error);
+  }
+}
+
 serve(async (req) => {
+  const startedAt = Date.now();
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -35,6 +57,10 @@ serve(async (req) => {
   const limit = Math.min(500, Math.max(1, Number(body.limit ?? 100)));
 
   const admin = createClient(supabaseUrl, serviceKey);
+  await admin.rpc("record_cron_job_started", {
+    p_job_name: "process-retention-expirations",
+  });
+
   const { data, error } = await admin.rpc("process_deleted_account_retention", {
     p_dry_run: dryRun,
     p_limit: limit,
@@ -42,8 +68,21 @@ serve(async (req) => {
 
   if (error) {
     console.error("[PROCESS-RETENTION-EXPIRATIONS] RPC failed", error);
+    await recordCronJobResult(
+      admin,
+      startedAt,
+      "failed",
+      { dry_run: dryRun, limit },
+      error.message,
+    );
     return json(500, { error: "retention_processing_failed", details: error.message });
   }
+
+  await recordCronJobResult(admin, startedAt, "succeeded", {
+    dry_run: dryRun,
+    limit,
+    result: data,
+  });
 
   return json(200, {
     ok: true,
