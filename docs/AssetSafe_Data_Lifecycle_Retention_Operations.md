@@ -140,16 +140,16 @@ Decision record: `docs/AssetSafe_Closure_Deletion_Table_Matrix.md`.
 - `list-pending-file-deletions` and `list-pending-property-deletions` already surface items awaiting confirmation.
 - **Missing:** a write-side counterpart that *enqueues* (currently most deletes are immediate). Decide: immediate vs queued+sweeper.
 
-### 4.3 Orphan detection (proposed)
-Nightly job `reconcile-storage-orphans`:
-1. List bucket objects (paged).
-2. Left-join against owning table (`property_files.storage_path`, etc.).
-3. Objects with no row → move to `_orphans/` prefix with TTL, alert admin.
-4. Rows with no object → mark `missing_object=true`, surface in admin.
+### 4.3 Orphan detection
+Daily job `process-storage-orphans` calls `reconcile_storage_orphans`:
+1. Build a reference set from known file-owning tables.
+2. Compare the reference set against `storage.objects`.
+3. Insert unreferenced objects into `storage_orphan_candidates`.
+4. Queue only admin-approved candidates into `storage_deletion_jobs`.
 
 ### 4.4 Launch gaps
-- No orphan reconciler.
-- No bucket-level lifecycle rule (e.g., auto-delete `_orphans/` after 30 days).
+- Orphan reconciler exists; admin review UI for `storage_orphan_candidates` is still needed.
+- No bucket-level lifecycle rule (e.g., auto-delete quarantine prefixes after 30 days).
 - No per-bucket size cap independent of `storage_usage` accounting.
 
 ---
@@ -168,12 +168,12 @@ Nightly job `reconcile-storage-orphans`:
 | Signed URL TTL | **15 minutes** for download links; new link via re-auth |
 | Bundle retention | **7 days** then hard delete |
 | Download cap | **5 downloads** per authorization; re-issue requires admin |
-| Audit | Row in `continuity_export_forensics` (continuity) or new `account_export_audit` (user) |
+| Audit | Row in `continuity_export_forensics` (continuity) or `account_export_audit` (user/browser exports) |
 
 ### 5.3 Launch gaps
-- No central `account_export_audit` table for non-continuity exports.
-- TTL/download-cap not enforced consistently across PDF vs ZIP paths.
-- No sweeper deleting expired bundles from the `exports/` bucket.
+- `account_export_audit` exists for non-continuity browser export assemblies.
+- Browser-built exports cannot enforce a true server-side download cap; server-managed export bundles are still needed for strict caps.
+- `process-expired-exports` sweeps the `exports` bucket; confirm production cron is installed from the runbook.
 
 ---
 
@@ -211,15 +211,16 @@ Nightly job `reconcile-storage-orphans`:
 - Direct admin storage removals → no rollup update.
 - Cascade deletes (`secure-delete-property`) — confirm rollup is debited per file.
 
-### 7.3 Proposed sweeper: `recompute-storage-usage`
-Hourly per account in a queue (or nightly full-scan):
-1. Sum `property_files.size` + memory safe + voice notes + delegate vault + exports.
-2. Compare to `storage_usage.bytes_used`.
-3. If drift > 5% or > 50 MB → write corrected value + emit `storage_usage_drift` to `audit_logs`.
+### 7.3 Reconciliation sweeper
+Hourly job `process-storage-usage-drift` calls `reconcile_storage_usage_drift`:
+1. Recalculate storage usage from canonical file tables via `calculate_user_storage_usage`.
+2. Compare to `storage_usage`.
+3. Update `storage_usage` through `update_user_storage_usage`.
+4. If drift > 5% or > 50 MB, emit `storage_usage_drift_corrected` to `audit_logs`.
 
 ### 7.4 Launch gaps
-- No reconciliation job today.
-- No metric/alert on drift rate.
+- Reconciliation job exists; install/verify production cron from `docs/AssetSafe_Storage_Deletion_Cron_Runbook.md`.
+- No dedicated metric/alert on drift rate beyond `cron_job_health` and `audit_logs`.
 - Add-on storage blocks (25 GB) — confirm rollup considers entitlement when alerting.
 
 ---
@@ -235,8 +236,8 @@ Hourly per account in a queue (or nightly full-scan):
 | `sweep-closure-pending` | **missing** | daily | Flip to deletion after 30 d |
 | `sweep-deletion-pending` | **missing** | hourly | Execute `delete-account` after 14 d |
 | `process-expired-exports` | function + runbook | hourly | Expire continuity export grants + purge stale `exports/` bucket bundles |
-| `reconcile-storage-orphans` | **missing** | nightly | Storage-vs-DB diff |
-| `recompute-storage-usage` | **missing** | hourly batches | Drift correction |
+| `process-storage-orphans` | function + runbook | daily | Storage-vs-DB orphan candidate detection |
+| `process-storage-usage-drift` | function + runbook | hourly batches | Drift correction |
 | `scrub-old-support-pii` | **missing** | weekly | Retention compliance |
 | `quarterly-restore-drill-reminder` | function + runbook | monthly check | Ops reminder when no passed drill in 90 days |
 
@@ -250,8 +251,8 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 |---|---|---|
 | Pending file/property deletions | `list-pending-file-deletions`, `list-pending-property-deletions` | Pair with bulk approve/deny |
 | Closure / deletion requests | Partially in Admin | Unified queue with grace clock |
-| Export audit | continuity only | Add user-export audit view |
-| Storage drift | none | New panel; surfaces `storage_usage_drift` events |
+| Export audit | `continuity_export_forensics`, `account_export_audit` | Add user-export audit view |
+| Storage drift | `storage_usage_reconciliation_state`, `audit_logs` | New panel; surfaces `storage_usage_drift_corrected` events |
 | Legal hold | none | Toggle on account; blocks all sweepers |
 | Restore drill log | `restore_drill_runs` | Add admin panel when needed |
 
@@ -266,8 +267,8 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 4. Re-signup conflict guard codified in signup/auth creation paths.
 
 **P1 (first 30 days post-launch)**
-5. `reconcile-storage-orphans` + `recompute-storage-usage`.
-6. `account_export_audit` table + TTL/download-cap enforcement.
+5. Admin review UI for `storage_orphan_candidates` + storage drift visibility.
+6. Server-managed user export bundles for strict download-cap enforcement.
 7. Legal hold flag + admin UI.
 8. Surface retention schedule in Privacy Policy.
 
