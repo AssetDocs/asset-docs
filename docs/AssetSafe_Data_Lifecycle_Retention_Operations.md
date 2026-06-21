@@ -55,7 +55,7 @@
 - Restore drill ledger exists as `restore_drill_runs`; quarterly reminder function/runbook exists.
 - Owner-operated PITR drill still must be performed and logged before launch.
 - No secondary storage copy / cross-region object replication.
-- Freeze-writes maintenance flag exists via `system_maintenance_windows`; admin UI controls are still pending.
+- Freeze-writes maintenance controls exist in the Admin Maintenance tab, backed by `system_maintenance_windows`.
 
 ---
 
@@ -274,7 +274,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 
 **P2 (quarter 1)**
 9. Cross-region storage replication or scheduled object snapshots.
-10. Admin UI controls for maintenance/freeze-writes mode.
+10. Maintenance/freeze-writes controls implemented; continue exercising them during restore drills.
 11. Admin UI controls for restore-drill sign-off workflow.
 12. Admin UI/reporting for closed support PII scrub results.
 
