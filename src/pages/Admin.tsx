@@ -15,7 +15,8 @@ import SystemInfrastructure from '@/components/admin/SystemInfrastructure';
 import SecurityChecklist from '@/components/admin/SecurityChecklist';
 import AdminExportAudit from '@/components/admin/AdminExportAudit';
 import AdminMaintenanceMode from '@/components/admin/AdminMaintenanceMode';
-import { LogOut, Shield, Users, Database, Settings, Handshake, BarChart, CreditCard, Server, FileText, ShieldCheck, Download, Power } from 'lucide-react';
+import AdminRestoreDrills from '@/components/admin/AdminRestoreDrills';
+import { LogOut, Shield, Users, Database, Settings, Handshake, BarChart, CreditCard, Server, FileText, ShieldCheck, Download, Power, History } from 'lucide-react';
 import AdminLegalAgreements from './AdminLegalAgreements';
 
 const Admin = () => {
@@ -78,7 +79,7 @@ const Admin = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-11 gap-2 h-auto p-1">
+          <TabsList className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-12 gap-2 h-auto p-1">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <BarChart className="w-4 h-4" />
               Overview
@@ -118,6 +119,10 @@ const Admin = () => {
             <TabsTrigger value="maintenance" className="flex items-center gap-2">
               <Power className="w-4 h-4" />
               Maint.
+            </TabsTrigger>
+            <TabsTrigger value="restore" className="flex items-center gap-2">
+              <History className="w-4 h-4" />
+              Restore
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="w-4 h-4" />
@@ -317,6 +322,10 @@ const Admin = () => {
 
           <TabsContent value="maintenance">
             <AdminMaintenanceMode />
+          </TabsContent>
+
+          <TabsContent value="restore">
+            <AdminRestoreDrills />
           </TabsContent>
 
           <TabsContent value="settings">

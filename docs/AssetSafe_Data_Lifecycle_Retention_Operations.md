@@ -52,7 +52,7 @@
 
 ### 2.5 Launch gaps
 - Restore runbook exists at `docs/AssetSafe_Backup_Restore_Runbook.md`.
-- Restore drill ledger exists as `restore_drill_runs`; quarterly reminder function/runbook exists.
+- Restore drill ledger exists as `restore_drill_runs`; quarterly reminder function/runbook and Admin Restore panel exist.
 - Owner-operated PITR drill still must be performed and logged before launch.
 - No secondary storage copy / cross-region object replication.
 - Freeze-writes maintenance controls exist in the Admin Maintenance tab, backed by `system_maintenance_windows`.
@@ -254,7 +254,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 | Export audit | Admin Export Audit view for `account_export_audit`; continuity forensics remain in continuity surfaces | Add server-managed export bundle lifecycle for strict download caps |
 | Storage drift | Admin Database panel reads `storage_usage_reconciliation_state` | Add richer alerting/reporting if drift stays noisy |
 | Legal hold | Admin Cancellations controls backed by DB flags/RPCs on closure requests and tombstones | Add formal legal review workflow/assignment if volume warrants |
-| Restore drill log | `restore_drill_runs` | Add admin panel when needed |
+| Restore drill log | Admin Restore panel backed by `restore_drill_runs` | Use during the pre-launch PITR drill and quarterly thereafter |
 
 ---
 
@@ -275,7 +275,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 **P2 (quarter 1)**
 9. Cross-region storage replication or scheduled object snapshots.
 10. Maintenance/freeze-writes controls implemented; continue exercising them during restore drills.
-11. Admin UI controls for restore-drill sign-off workflow.
+11. Restore-drill sign-off workflow implemented; exercise it during the pre-launch PITR drill.
 12. Admin UI/reporting for closed support PII scrub results.
 
 ---
