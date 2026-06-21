@@ -14,7 +14,7 @@ interface WelcomeBannerProps {
 
 const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange }) => {
   const { profile, user } = useAuth();
-  const { accountName, ownerName, isOwner, accountRole, hasMultipleAccounts } = useAccount();
+  const { accountName, ownerName, isOwner, hasMultipleAccounts } = useAccount();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [accountNumber, setAccountNumber] = useState('');
@@ -55,18 +55,17 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange }) => {
     return fullName || user?.email?.split('@')[0] || 'User';
   };
 
-  const getRoleLabel = (role: string | null) => {
-    switch (role) {
-      case 'full_access':
-        return 'Full Access';
-      case 'read_only':
-        return 'Read Only';
-      case 'owner':
-        return 'Owner';
-      default:
-        return '';
-    }
+  const getFirstName = () => {
+    return profile?.first_name || user?.user_metadata?.first_name || getDisplayName().split(' ')[0];
   };
+
+  const getPossessive = (name: string) => {
+    return name.endsWith('s') ? `${name}'` : `${name}'s`;
+  };
+
+  const ownerAccountLabel = ownerName
+    ? `Viewing ${getPossessive(ownerName)} Account`
+    : `Viewing ${accountName || 'Shared Account'}`;
 
   const handleDismissInstallPrompt = () => {
     setHideInstallPrompt(true);
@@ -88,26 +87,16 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange }) => {
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div className="flex-1">
               <p className="text-white/80 text-sm font-medium">
-                Welcome, {getDisplayName()}!
+                Welcome back, {getFirstName()}!
               </p>
               <div className="flex items-center gap-3 mt-0.5">
-                <h1 className="text-2xl font-bold">
-                  {accountName || 'Your Asset Safe Dashboard'}
-                </h1>
+                {!isOwner && (
+                  <h1 className="text-2xl font-bold">
+                    {ownerAccountLabel}
+                  </h1>
+                )}
                 {hasMultipleAccounts && <AccountSwitcher />}
               </div>
-              {!isOwner && accountRole && (
-                <div className="mt-1 space-y-1">
-                  <p className="text-white/90 font-medium">
-                    Authorized User - {getRoleLabel(accountRole)}
-                  </p>
-                  {ownerName && (
-                    <p className="text-white/70 text-sm">
-                      Account Owner: {ownerName}
-                    </p>
-                  )}
-                </div>
-              )}
               <p className="text-white/70 text-sm mt-2">
                 Everything you document today - protects you for tomorrow.
               </p>
