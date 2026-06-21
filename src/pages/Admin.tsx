@@ -16,7 +16,8 @@ import SecurityChecklist from '@/components/admin/SecurityChecklist';
 import AdminExportAudit from '@/components/admin/AdminExportAudit';
 import AdminMaintenanceMode from '@/components/admin/AdminMaintenanceMode';
 import AdminRestoreDrills from '@/components/admin/AdminRestoreDrills';
-import { LogOut, Shield, Users, Database, Settings, Handshake, BarChart, CreditCard, Server, FileText, ShieldCheck, Download, Power, History } from 'lucide-react';
+import AdminSupportPiiReport from '@/components/admin/AdminSupportPiiReport';
+import { LogOut, Shield, Users, Database, Settings, Handshake, BarChart, CreditCard, Server, FileText, ShieldCheck, Download, Power, History, Eraser } from 'lucide-react';
 import AdminLegalAgreements from './AdminLegalAgreements';
 
 const Admin = () => {
@@ -79,7 +80,7 @@ const Admin = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-12 gap-2 h-auto p-1">
+          <TabsList className="grid grid-cols-3 md:grid-cols-7 lg:grid-cols-12 gap-2 h-auto p-1">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <BarChart className="w-4 h-4" />
               Overview
@@ -123,6 +124,10 @@ const Admin = () => {
             <TabsTrigger value="restore" className="flex items-center gap-2">
               <History className="w-4 h-4" />
               Restore
+            </TabsTrigger>
+            <TabsTrigger value="support-pii" className="flex items-center gap-2">
+              <Eraser className="w-4 h-4" />
+              PII
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="w-4 h-4" />
@@ -326,6 +331,10 @@ const Admin = () => {
 
           <TabsContent value="restore">
             <AdminRestoreDrills />
+          </TabsContent>
+
+          <TabsContent value="support-pii">
+            <AdminSupportPiiReport />
           </TabsContent>
 
           <TabsContent value="settings">

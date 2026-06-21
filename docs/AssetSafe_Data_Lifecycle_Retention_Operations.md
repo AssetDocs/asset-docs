@@ -194,7 +194,7 @@ Daily job `process-storage-orphans` calls `reconcile_storage_orphans`:
 
 ### 6.1 Launch gaps
 - Basic legal hold controls exist in Admin Cancellations for pending closures and deleted-account tombstones; formal legal review workflow/assignment remains future polish.
-- Support PII scrubber exists as `scrub-old-support-pii`; verify production cron is installed from the runbook.
+- Support PII scrubber exists as `scrub-old-support-pii`; Admin PII report shows cron health, eligible rows, and scrubbed support records.
 - Retention schedule is surfaced in `src/pages/Terms.tsx`; legal/counsel review still recommended before launch.
 
 ---
@@ -276,7 +276,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 9. Cross-region storage replication or scheduled object snapshots.
 10. Maintenance/freeze-writes controls implemented; continue exercising them during restore drills.
 11. Restore-drill sign-off workflow implemented; exercise it during the pre-launch PITR drill.
-12. Admin UI/reporting for closed support PII scrub results.
+12. Admin UI/reporting for closed support PII scrub results implemented; continue verifying production cron health.
 
 ---
 
