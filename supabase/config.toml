@@ -20,3 +20,8 @@ verify_jwt = false
 # confirmation email sent to the new mailbox. No user JWT required.
 [functions.confirm-email-change]
 verify_jwt = false
+
+# Internal cron-invoked sweeper — authenticates via x-internal-secret header
+# (SUPABASE_SERVICE_ROLE_KEY). No user JWT is presented by pg_cron.
+[functions.process-storage-deletion-jobs]
+verify_jwt = false
