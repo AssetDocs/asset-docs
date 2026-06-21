@@ -357,30 +357,9 @@ Deno.serve(async (req) => {
       console.log('[DELETE-ACCOUNT] Error deleting contributors:', error);
     }
 
+    // Tombstone already inserted by anonymize_user_data RPC above.
 
-    // Get the user's email before deletion to record in deleted_accounts
-    const { data: targetUserData, error: targetUserError } = await supabaseAdmin.auth.admin.getUserById(targetAccountId);
-    const targetUserEmail = targetUserData?.user?.email;
-    
-    if (targetUserEmail) {
-      // Record the email in deleted_accounts to prevent re-login
-      const { error: recordError } = await supabaseAdmin
-        .from('deleted_accounts')
-        .upsert(
-          { 
-            email: targetUserEmail.toLowerCase(), 
-            original_user_id: targetAccountId,
-            deleted_by: isAdminDeletion ? 'admin' : 'self'
-          },
-          { onConflict: 'email' }
-        );
-      
-      if (recordError) {
-        console.log('[DELETE-ACCOUNT] Error recording deleted account:', recordError);
-      } else {
-        console.log('[DELETE-ACCOUNT] Recorded deleted email:', targetUserEmail);
-      }
-    }
+
 
     // Delete the user account using admin client
     const { error: deleteUserError } = await supabaseAdmin.auth.admin.deleteUser(targetAccountId);
