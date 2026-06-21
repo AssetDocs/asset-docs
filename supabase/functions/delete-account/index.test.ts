@@ -22,9 +22,12 @@ if (!SERVICE_ROLE) {
   console.warn("[smoke] SUPABASE_SERVICE_ROLE_KEY not set — skipping retention smoke test");
 }
 
-const admin = createClient(SUPABASE_URL, SERVICE_ROLE, {
-  auth: { autoRefreshToken: false, persistSession: false },
-});
+const admin = SERVICE_ROLE
+  ? createClient(SUPABASE_URL, SERVICE_ROLE, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    })
+  : (null as any);
+
 
 Deno.test({
   name: "anonymize_user_data: retention matrix smoke",
