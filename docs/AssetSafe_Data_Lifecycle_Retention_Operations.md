@@ -52,7 +52,8 @@
 
 ### 2.5 Launch gaps
 - Restore runbook exists at `docs/AssetSafe_Backup_Restore_Runbook.md`.
-- No automated drill cadence.
+- Restore drill ledger exists as `restore_drill_runs`; quarterly reminder function/runbook exists.
+- Owner-operated PITR drill still must be performed and logged before launch.
 - No secondary storage copy / cross-region object replication.
 - Freeze-writes maintenance flag exists via `system_maintenance_windows`; admin UI controls are still pending.
 
@@ -237,7 +238,7 @@ Hourly per account in a queue (or nightly full-scan):
 | `reconcile-storage-orphans` | **missing** | nightly | Storage-vs-DB diff |
 | `recompute-storage-usage` | **missing** | hourly batches | Drift correction |
 | `scrub-old-support-pii` | **missing** | weekly | Retention compliance |
-| `quarterly-restore-drill-reminder` | **missing** | quarterly | Ops reminder |
+| `quarterly-restore-drill-reminder` | function + runbook | monthly check | Ops reminder when no passed drill in 90 days |
 
 Wire all via `pg_cron` + `pg_net` per project convention.
 
@@ -252,7 +253,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 | Export audit | continuity only | Add user-export audit view |
 | Storage drift | none | New panel; surfaces `storage_usage_drift` events |
 | Legal hold | none | Toggle on account; blocks all sweepers |
-| Restore drill log | none | Read from `dev_releases` type=`restore_drill` |
+| Restore drill log | `restore_drill_runs` | Add admin panel when needed |
 
 ---
 
@@ -261,7 +262,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 **P0 (blocking launch)**
 1. Sweepers: `process-account-closures`, `process-expired-exports`; deletion request review remains manual unless approved flow invokes `delete-account`.
 2. Closure/deletion table matrix documented; consolidation deferred until workflows converge.
-3. Restore runbook + one rehearsed drill, logged.
+3. Owner-operated PITR restore drill performed and logged in `restore_drill_runs`.
 4. Re-signup conflict guard codified in signup/auth creation paths.
 
 **P1 (first 30 days post-launch)**
@@ -273,7 +274,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 **P2 (quarter 1)**
 9. Cross-region storage replication or scheduled object snapshots.
 10. Admin UI controls for maintenance/freeze-writes mode.
-11. Automated quarterly restore-drill reminder + sign-off workflow.
+11. Admin UI controls for restore-drill sign-off workflow.
 12. PII scrub for closed support tickets.
 
 ---

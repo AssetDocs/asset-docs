@@ -4,6 +4,7 @@ Status: launch operations runbook
 Owner: Asset Safe operator / project owner
 Production project: `leotcbfpqiekgkgumecn`
 Drill cadence: quarterly before launch, then quarterly after launch
+Reminder: `quarterly-restore-drill-reminder` checks monthly and emails ops when no passed drill is recorded in the last 90 days
 
 ## Targets
 
@@ -17,6 +18,7 @@ Drill cadence: quarterly before launch, then quarterly after launch
 ## Restore Drill Ledger
 
 Record every drill in `public.restore_drill_runs`.
+Use `docs/AssetSafe_Restore_Drill_Reminder_Cron_Runbook.md` to install the reminder cron.
 
 Required fields:
 

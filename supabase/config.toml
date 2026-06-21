@@ -48,3 +48,8 @@ verify_jwt = false
 # Expires continuity export authorizations and removes stale export bundles.
 [functions.process-expired-exports]
 verify_jwt = false
+
+# Internal cron-invoked reminder - authenticates via x-internal-secret header.
+# Sends only when no passed restore drill is recorded in the due window.
+[functions.quarterly-restore-drill-reminder]
+verify_jwt = false
