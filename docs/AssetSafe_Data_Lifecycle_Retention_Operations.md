@@ -261,7 +261,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 | Storage drift | Admin Database panel reads `storage_usage_reconciliation_state` and drift cron health | Add external paging/Slack routing if drift stays noisy |
 | Bucket lifecycle | Admin Database panel reads `get_storage_bucket_lifecycle_status` and flags missing/public-private mismatched buckets plus near/over-cap storage buckets | Configure provider-level lifecycle rules where Supabase supports them |
 | Legal hold | Admin Cancellations controls backed by DB flags/RPCs on closure requests and tombstones, with assignment/review tracking | Add external counsel workflow only if volume warrants |
-| Restore drill log | Admin Restore panel backed by `restore_drill_runs` | Use during the pre-launch PITR drill and quarterly thereafter |
+| Restore drill log | Admin Restore panel backed by `restore_drill_runs`, including owner/operator sign-off state | Use during the pre-launch PITR drill and quarterly thereafter |
 
 ---
 
@@ -282,8 +282,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 9. Configure provider-level bucket lifecycle rules for temporary/quarantine prefixes where Supabase supports them.
 10. Cross-region storage replication or scheduled object snapshots.
 11. Maintenance/freeze-writes controls implemented; continue exercising them during restore drills.
-12. Restore-drill sign-off workflow implemented; exercise it during the pre-launch PITR drill.
-13. Admin UI/reporting for closed support PII scrub results implemented; continue verifying production cron health.
+12. Admin UI/reporting for closed support PII scrub results implemented; continue verifying production cron health.
 
 ---
 

@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React, { useEffect, useMemo, useState } from 'react';
 import { format } from 'date-fns';
-import { CheckCircle, RefreshCw, ShieldCheck } from 'lucide-react';
+import { CheckCircle, RefreshCw, ShieldCheck, Stamp } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,6 +28,10 @@ type RestoreDrillRun = {
   rpo_minutes: number | null;
   rto_minutes: number | null;
   signed_url_smoke_passed: boolean;
+  signoff_notes: string | null;
+  signoff_status: string | null;
+  signed_off_at: string | null;
+  signed_off_by: string | null;
   source_project_ref: string | null;
   started_at: string | null;
   status: string;
@@ -41,6 +45,13 @@ const statusVariant = (status: string) => {
   if (status === 'passed') return 'default';
   if (status === 'failed') return 'destructive';
   if (status === 'in_progress') return 'secondary';
+  return 'outline';
+};
+
+const signoffVariant = (status: string | null) => {
+  if (status === 'signed_off') return 'default';
+  if (status === 'rejected') return 'destructive';
+  if (status === 'ready_for_review') return 'secondary';
   return 'outline';
 };
 
@@ -68,6 +79,7 @@ const AdminRestoreDrills: React.FC = () => {
   const [rtoMinutes, setRtoMinutes] = useState('');
   const [findings, setFindings] = useState('No blocking restore issues found');
   const [followUps, setFollowUps] = useState('');
+  const [signoffNotes, setSignoffNotes] = useState('');
   const [smokeChecks, setSmokeChecks] = useState({
     db_smoke_passed: true,
     storage_smoke_passed: true,
@@ -111,6 +123,7 @@ const AdminRestoreDrills: React.FC = () => {
     setRtoMinutes(selectedRun.rto_minutes?.toString() || '');
     setFindings((selectedRun.findings || []).join('\n') || 'No blocking restore issues found');
     setFollowUps((selectedRun.follow_up_actions || []).join('\n'));
+    setSignoffNotes(selectedRun.signoff_notes || '');
     setSmokeChecks({
       db_smoke_passed: selectedRun.db_smoke_passed,
       storage_smoke_passed: selectedRun.storage_smoke_passed,
@@ -156,6 +169,7 @@ const AdminRestoreDrills: React.FC = () => {
       const patch = {
         status,
         completed_at: new Date().toISOString(),
+        signoff_status: status === 'passed' || status === 'failed' ? 'ready_for_review' : 'not_ready',
         rpo_minutes: rpoMinutes ? Number(rpoMinutes) : null,
         rto_minutes: rtoMinutes ? Number(rtoMinutes) : null,
         findings: splitLines(findings),
@@ -173,6 +187,29 @@ const AdminRestoreDrills: React.FC = () => {
       await loadRuns();
     } catch (error: any) {
       toast({ title: 'Unable to update restore drill', description: error?.message || 'Please try again.', variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updateSignoff = async (signoffStatus: 'signed_off' | 'rejected') => {
+    if (!selectedRun) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase.rpc('sign_off_restore_drill_run', {
+        p_restore_drill_run_id: selectedRun.id,
+        p_signoff_status: signoffStatus,
+        p_signoff_notes: signoffNotes.trim() || null,
+      });
+
+      if (error) throw error;
+      toast({
+        title: signoffStatus === 'signed_off' ? 'Restore drill signed off' : 'Restore drill rejected',
+        description: 'The restore drill sign-off state was recorded.',
+      });
+      await loadRuns();
+    } catch (error: any) {
+      toast({ title: 'Unable to update sign-off', description: error?.message || 'Please try again.', variant: 'destructive' });
     } finally {
       setSaving(false);
     }
@@ -210,10 +247,10 @@ const AdminRestoreDrills: React.FC = () => {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Open Follow-ups</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Awaiting Sign-Off</CardTitle>
           </CardHeader>
           <CardContent className="text-3xl font-bold">
-            {runs.reduce((count, run) => count + (run.follow_up_actions?.length || 0), 0)}
+            {runs.filter((run) => run.signoff_status === 'ready_for_review').length}
           </CardContent>
         </Card>
       </div>
@@ -296,6 +333,49 @@ const AdminRestoreDrills: React.FC = () => {
 
       <Card>
         <CardHeader>
+          <CardTitle>Sign-Off Review</CardTitle>
+          <CardDescription>Approve or reject the selected completed drill after reviewing smoke checks, RPO/RTO, and follow-up actions.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <Badge variant={signoffVariant(selectedRun?.signoff_status || null)}>
+              {selectedRun?.signoff_status || 'not_ready'}
+            </Badge>
+            <span className="text-sm text-muted-foreground">
+              {selectedRun?.signed_off_at ? `Signed ${format(new Date(selectedRun.signed_off_at), 'PP p')}` : 'No sign-off recorded'}
+            </span>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="restore-signoff-notes">Sign-off notes</Label>
+            <Textarea
+              id="restore-signoff-notes"
+              value={signoffNotes}
+              onChange={(event) => setSignoffNotes(event.target.value)}
+              rows={3}
+              placeholder="Owner/counsel review notes, exceptions accepted, follow-up ticket..."
+            />
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button
+              onClick={() => updateSignoff('signed_off')}
+              disabled={!selectedRun || !['passed', 'failed'].includes(selectedRun.status) || saving}
+            >
+              <Stamp className="mr-2 h-4 w-4" />
+              Sign Off
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => updateSignoff('rejected')}
+              disabled={!selectedRun || !['passed', 'failed'].includes(selectedRun.status) || saving}
+            >
+              Reject
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Restore Drill Ledger</CardTitle>
           <CardDescription>Recent restore_drill_runs rows. Select a row to close or update its outcome.</CardDescription>
         </CardHeader>
@@ -313,6 +393,7 @@ const AdminRestoreDrills: React.FC = () => {
                   <TableHead className="text-right">RPO</TableHead>
                   <TableHead className="text-right">RTO</TableHead>
                   <TableHead>Smoke</TableHead>
+                  <TableHead>Sign-Off</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -338,6 +419,7 @@ const AdminRestoreDrills: React.FC = () => {
                       <TableCell className="text-right">{run.rpo_minutes ?? '-'}</TableCell>
                       <TableCell className="text-right">{run.rto_minutes ?? '-'}</TableCell>
                       <TableCell>{smokeCount}/5</TableCell>
+                      <TableCell><Badge variant={signoffVariant(run.signoff_status)}>{run.signoff_status || 'not_ready'}</Badge></TableCell>
                     </TableRow>
                   );
                 })}

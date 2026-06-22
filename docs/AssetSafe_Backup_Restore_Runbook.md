@@ -29,6 +29,7 @@ Required fields:
 - `started_at`, `completed_at`, `rpo_minutes`, `rto_minutes`.
 - Smoke booleans: `db_smoke_passed`, `storage_smoke_passed`, `auth_smoke_passed`, `edge_smoke_passed`, `signed_url_smoke_passed`.
 - `findings` and `follow_up_actions`.
+- Sign-off fields: `signoff_status`, `signoff_notes`, `signed_off_at`, `signed_off_by`.
 
 Example start record:
 
@@ -72,6 +73,7 @@ insert into public.restore_drill_runs (
    - Invoke `list-cron-job-health` as a dev/admin user.
 8. Mark the `restore_drill_runs` row `passed` or `failed`.
 9. Add findings and follow-up actions before closing the drill.
+10. Complete owner/operator sign-off in Admin Restore Drills after reviewing the outcome.
 
 Example completion:
 
@@ -90,6 +92,16 @@ set
   findings = array['No blocking restore issues found'],
   follow_up_actions = array[]::text[]
 where id = '<restore_drill_run_id>';
+```
+
+Example sign-off:
+
+```sql
+select public.sign_off_restore_drill_run(
+  p_restore_drill_run_id := '<restore_drill_run_id>',
+  p_signoff_status := 'signed_off',
+  p_signoff_notes := 'Reviewed RPO/RTO, smoke checks, and follow-up actions.'
+);
 ```
 
 ## Production Restore Decision Gate
