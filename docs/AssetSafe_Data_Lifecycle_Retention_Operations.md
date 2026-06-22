@@ -175,7 +175,7 @@ Daily job `process-storage-orphans` calls `reconcile_storage_orphans`:
 ### 5.3 Launch gaps
 - `account_export_audit` exists for non-continuity browser export assemblies, with a basic Admin Export Audit view.
 - Server-managed account export bundle state exists in `account_export_audit`, including storage path, 7-day expiry, 15-minute signed URL TTL, and 5-download cap enforcement through `consume_account_export_bundle`.
-- Browser-built exports remain immediate local downloads until the export assembler is wired to upload ZIP/PDF bundles into the managed `exports` bucket path.
+- Browser-built account archive exports now upload the assembled ZIP/PDF bundle into the managed `exports` bucket path, mark the audit row ready, and download through `download-account-export-bundle`.
 - `process-expired-exports` sweeps the `exports` bucket; cron health is visible in Admin Export Audit.
 
 ---
@@ -253,7 +253,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 |---|---|---|
 | Pending file/property deletions | `list-pending-file-deletions`, `list-pending-property-deletions` | Pair with bulk approve/deny |
 | Closure / deletion requests | Partially in Admin | Unified queue with grace clock |
-| Export audit | Admin Export Audit view for `account_export_audit`; continuity forensics remain in continuity surfaces; managed bundle rows show path, expiry, and download count | Wire the browser export assembler or an edge worker to create ZIP/PDF bundles in `exports/` |
+| Export audit | Admin Export Audit view for `account_export_audit`; continuity forensics remain in continuity surfaces; managed bundle rows show path, expiry, and download count | Add background/server worker if browser assembly becomes too slow for large accounts |
 | Storage drift | Admin Database panel reads `storage_usage_reconciliation_state` and drift cron health | Add external paging/Slack routing if drift stays noisy |
 | Legal hold | Admin Cancellations controls backed by DB flags/RPCs on closure requests and tombstones | Add formal legal review workflow/assignment if volume warrants |
 | Restore drill log | Admin Restore panel backed by `restore_drill_runs` | Use during the pre-launch PITR drill and quarterly thereafter |
@@ -270,7 +270,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 
 **P1 (first 30 days post-launch)**
 5. External paging/Slack routing for noisy storage drift, if needed.
-6. Wire user export assembly into the server-managed bundle request/download flow.
+6. Monitor managed export bundle performance for large accounts; add a background assembler if browser upload becomes too slow.
 7. Formal legal hold review workflow/assignment.
 8. Legal/counsel review of public retention schedule; record sign-off per `docs/AssetSafe_Data_Lifecycle_External_Controls_Runbook.md`.
 

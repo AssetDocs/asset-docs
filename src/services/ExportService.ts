@@ -46,6 +46,18 @@ interface AssetValueEntry {
 }
 
 const EXPORT_SIGNED_URL_TTL_SECONDS = 15 * 60;
+const ACCOUNT_EXPORT_DOWNLOAD_LIMIT = 5;
+
+type ExtraZipFile = {
+  path: string;
+  blob: Blob;
+};
+
+type ZipBuildResult = {
+  blob: Blob;
+  downloadedCount: number;
+  totalFiles: number;
+};
 
 type AccountExportAuditRpcClient = {
   rpc: (
@@ -59,6 +71,49 @@ type AccountExportAuditRpcClient = {
       p_metadata?: Record<string, unknown>;
     }
   ) => Promise<{ error: { message: string } | null }>;
+};
+
+type AccountExportBundleRequest = {
+  audit_id: string;
+  storage_bucket: string;
+  storage_path: string;
+  expires_at: string;
+  download_limit: number;
+};
+
+type AccountExportBundleRpcClient = {
+  rpc: {
+    (
+      fn: 'create_account_export_bundle_request',
+      args: {
+        p_export_type?: string;
+        p_file_count?: number | null;
+        p_signed_url_ttl_seconds?: number;
+        p_download_limit?: number;
+        p_metadata?: Record<string, unknown>;
+      }
+    ): Promise<{ data: AccountExportBundleRequest[] | null; error: { message: string } | null }>;
+    (
+      fn: 'mark_account_export_bundle_ready',
+      args: {
+        p_audit_id: string;
+        p_storage_bucket: string;
+        p_storage_path: string;
+        p_bundle_file_name: string;
+        p_bundle_size_bytes?: number | null;
+        p_bundle_sha256?: string | null;
+        p_error_message?: string | null;
+      }
+    ): Promise<{ data: string | null; error: { message: string } | null }>;
+  };
+};
+
+type DownloadAccountExportBundleResponse = {
+  signed_url?: string;
+  signed_url_ttl_seconds?: number;
+  download_count?: number;
+  download_limit?: number;
+  error?: string;
 };
 
 export interface AssetSummary {
@@ -308,8 +363,9 @@ export class ExportService {
   static async generateAssetSummaryPDF(
     assets: AssetSummary,
     userProfile?: ExportUserProfile | null,
-    verificationData?: ExportVerificationData | null
-  ): Promise<void> {
+    verificationData?: ExportVerificationData | null,
+    saveFile = true
+  ): Promise<Blob> {
     const pdf = new jsPDF();
     let yPosition = 20;
     const pageHeight = pdf.internal.pageSize.height;
@@ -826,19 +882,27 @@ export class ExportService {
       });
     }
 
-    // Save the PDF
     const fileName = `asset-safe-summary-${new Date().toISOString().split('T')[0]}.pdf`;
-    pdf.save(fileName);
+    const pdfBlob = pdf.output('blob');
+    if (saveFile) {
+      pdf.save(fileName);
+    }
+    return pdfBlob;
   }
 
   /**
    * Create and download a zip file with all asset files
    */
-  static async downloadAssetsZip(assets: AssetSummary): Promise<void> {
+  static async downloadAssetsZip(
+    assets: AssetSummary,
+    saveFile = true,
+    extraFiles: ExtraZipFile[] = []
+  ): Promise<ZipBuildResult | null> {
     const zip = new JSZip();
     let downloadedCount = 0;
     const recipeFiles = assets.familyRecipes.filter(r => r.fileUrl);
     const assetValueFileCount = assets.assetValueEntries.length > 0 ? 2 : 0;
+    const extraFileCount = extraFiles.length;
     const totalFiles =
       assets.photos.length +
       assets.videos.length +
@@ -846,7 +910,8 @@ export class ExportService {
       assets.voiceNotes.filter(n => n.audioUrl).length +
       recipeFiles.length +
       assets.archiveFiles.length +
-      assetValueFileCount;
+      assetValueFileCount +
+      extraFileCount;
 
     if (totalFiles === 0) {
       toast({
@@ -854,7 +919,7 @@ export class ExportService {
         description: "There are no files to download.",
         variant: "destructive"
       });
-      return;
+      return null;
     }
 
     const downloadFile = async (url: string, folder: JSZip, fileName: string) => {
@@ -899,6 +964,11 @@ export class ExportService {
     };
 
     const downloadPromises: Promise<void>[] = [];
+
+    extraFiles.forEach((file) => {
+      zip.file(sanitizeFolderName(file.path), file.blob);
+      downloadedCount++;
+    });
 
     // Download photos
     assets.photos.forEach((photo) => {
@@ -955,15 +1025,17 @@ export class ExportService {
       // Wait for all downloads to complete
       await Promise.allSettled(downloadPromises);
 
-      // Generate and save the zip
       const zipBlob = await zip.generateAsync({ type: 'blob' });
       const fileName = `asset-safe-backup-${new Date().toISOString().split('T')[0]}.zip`;
-      saveAs(zipBlob, fileName);
+      if (saveFile) {
+        saveAs(zipBlob, fileName);
+      }
 
       toast({
-        title: "Assets Downloaded",
-        description: `Successfully downloaded ${downloadedCount} of ${totalFiles} files.`,
+        title: saveFile ? "Assets Downloaded" : "Archive Prepared",
+        description: `Successfully prepared ${downloadedCount} of ${totalFiles} files.`,
       });
+      return { blob: zipBlob, downloadedCount, totalFiles };
     } catch (error) {
       console.error('Error creating zip file:', error);
       toast({
@@ -971,6 +1043,7 @@ export class ExportService {
         description: "There was an error creating the backup file.",
         variant: "destructive"
       });
+      return null;
     }
   }
 
@@ -1717,16 +1790,107 @@ export class ExportService {
     return assets;
   }
 
+  private static async sha256Hex(blob: Blob): Promise<string> {
+    const buffer = await blob.arrayBuffer();
+    const digest = await crypto.subtle.digest('SHA-256', buffer);
+    return Array.from(new Uint8Array(digest))
+      .map(byte => byte.toString(16).padStart(2, '0'))
+      .join('');
+  }
+
+  private static async createManagedBundleRequest(fileCount: number): Promise<AccountExportBundleRequest> {
+    const bundleClient = supabase as unknown as AccountExportBundleRpcClient;
+    const { data, error } = await bundleClient.rpc('create_account_export_bundle_request', {
+      p_export_type: 'server_bundle',
+      p_file_count: fileCount,
+      p_signed_url_ttl_seconds: EXPORT_SIGNED_URL_TTL_SECONDS,
+      p_download_limit: ACCOUNT_EXPORT_DOWNLOAD_LIMIT,
+      p_metadata: {
+        mode: 'managed_browser_assembled',
+        bundle_retention: 'exports_bucket_7_days',
+        generated_files: ['asset_summary_pdf', 'asset_zip'],
+      },
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    const request = data?.[0];
+    if (!request?.audit_id || !request.storage_bucket || !request.storage_path) {
+      throw new Error('managed_export_request_missing');
+    }
+
+    return request;
+  }
+
+  private static async markManagedBundleReady(
+    request: AccountExportBundleRequest,
+    fileName: string,
+    zipBlob: Blob,
+    sha256: string
+  ): Promise<void> {
+    const bundleClient = supabase as unknown as AccountExportBundleRpcClient;
+    const { error } = await bundleClient.rpc('mark_account_export_bundle_ready', {
+      p_audit_id: request.audit_id,
+      p_storage_bucket: request.storage_bucket,
+      p_storage_path: request.storage_path,
+      p_bundle_file_name: fileName,
+      p_bundle_size_bytes: zipBlob.size,
+      p_bundle_sha256: sha256,
+      p_error_message: null,
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+  }
+
+  private static async markManagedBundleFailed(
+    request: AccountExportBundleRequest | null,
+    message: string
+  ): Promise<void> {
+    if (!request) return;
+
+    try {
+      const bundleClient = supabase as unknown as AccountExportBundleRpcClient;
+      await bundleClient.rpc('mark_account_export_bundle_ready', {
+        p_audit_id: request.audit_id,
+        p_storage_bucket: request.storage_bucket,
+        p_storage_path: request.storage_path,
+        p_bundle_file_name: request.storage_path.split('/').pop() || 'asset-safe-export.zip',
+        p_bundle_size_bytes: null,
+        p_bundle_sha256: null,
+        p_error_message: message,
+      });
+    } catch (error) {
+      console.error('Failed to mark managed export failed:', error);
+    }
+  }
+
+  private static async downloadManagedBundle(request: AccountExportBundleRequest, fileName: string): Promise<void> {
+    const { data, error } = await supabase.functions.invoke<DownloadAccountExportBundleResponse>(
+      'download-account-export-bundle',
+      { body: { audit_id: request.audit_id } }
+    );
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    if (!data?.signed_url) {
+      throw new Error(data?.error || 'managed_export_signed_url_missing');
+    }
+
+    saveAs(data.signed_url, fileName);
+  }
+
   /**
    * Export complete asset summary (PDF + ZIP)
    */
   static async exportCompleteAssetSummary(userId: string): Promise<void> {
+    let bundleRequest: AccountExportBundleRequest | null = null;
     try {
-      await this.logAccountExportAudit('started', null, null, {
-        mode: 'browser_generated',
-        bundle_retention: 'none_client_download',
-      });
-
       toast({
         title: "Preparing Export",
         description: "Gathering your account archive for export...",
@@ -1745,29 +1909,53 @@ export class ExportService {
       const assets = await this.getUserAssets(userId);
       const fileCount = this.countExportFiles(assets);
 
-      // Generate PDF summary
-      await this.generateAssetSummaryPDF(assets, profile, verificationData);
-      
-      // Create and download assets zip
-      await this.downloadAssetsZip(assets);
+      bundleRequest = await this.createManagedBundleRequest(fileCount + 1);
 
-      await this.logAccountExportAudit('succeeded', fileCount, null, {
-        mode: 'browser_generated',
-        generated_files: ['asset_summary_pdf', 'asset_zip'],
+      const exportDate = new Date().toISOString().split('T')[0];
+      const pdfFileName = `asset-safe-summary-${exportDate}.pdf`;
+      const zipFileName = `asset-safe-backup-${exportDate}.zip`;
+
+      const pdfBlob = await this.generateAssetSummaryPDF(assets, profile, verificationData, false);
+      const zipResult = await this.downloadAssetsZip(assets, false, [
+        { path: pdfFileName, blob: pdfBlob },
+      ]);
+
+      if (!zipResult) {
+        throw new Error('managed_export_zip_empty');
+      }
+
+      toast({
+        title: "Securing Export",
+        description: "Uploading your archive to the managed export vault...",
       });
+
+      const { error: uploadError } = await supabase.storage
+        .from(bundleRequest.storage_bucket)
+        .upload(bundleRequest.storage_path, zipResult.blob, {
+          cacheControl: '3600',
+          contentType: 'application/zip',
+          upsert: true,
+        });
+
+      if (uploadError) {
+        throw new Error(uploadError.message);
+      }
+
+      const sha256 = await this.sha256Hex(zipResult.blob);
+      await this.markManagedBundleReady(bundleRequest, zipFileName, zipResult.blob, sha256);
+      await this.downloadManagedBundle(bundleRequest, zipFileName);
 
       toast({
         title: "Export Complete",
-        description: "Your account archive PDF and ZIP have been downloaded.",
+        description: "Your managed account archive has been downloaded.",
       });
     } catch (error) {
       console.error('Export failed:', error);
-      await this.logAccountExportAudit(
-        'failed',
-        null,
-        error instanceof Error ? error.message : 'unknown_export_error',
-        { mode: 'browser_generated' }
-      );
+      const message = error instanceof Error ? error.message : 'unknown_export_error';
+      await this.markManagedBundleFailed(bundleRequest, message);
+      if (!bundleRequest) {
+        await this.logAccountExportAudit('failed', null, message, { mode: 'managed_browser_assembled' });
+      }
       toast({
         title: "Export Failed",
         description: "There was an error exporting your assets. Please try again.",
