@@ -180,6 +180,7 @@ Daily job `process-storage-orphans` calls `reconcile_storage_orphans`:
 - `account_export_audit` exists for non-continuity browser export assemblies, with a basic Admin Export Audit view.
 - Server-managed account export bundle state exists in `account_export_audit`, including storage path, 7-day expiry, 15-minute signed URL TTL, and 5-download cap enforcement through `consume_account_export_bundle`.
 - Browser-built account archive exports now upload the assembled ZIP/PDF bundle into the managed `exports` bucket path, mark the audit row ready, and download through `download-account-export-bundle`.
+- Managed account export rows record export duration, bundle throughput, and slow/large performance alerts so the background-assembler decision can be based on production telemetry.
 - `process-expired-exports` expires continuity grants, marks stale managed account export rows `expired`, removes expired bundle objects, and sweeps stale `exports` bucket objects; cron health is visible in Admin Export Audit.
 
 ---
@@ -257,7 +258,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 |---|---|---|
 | Pending file/property deletions | `list-pending-file-deletions`, `list-pending-property-deletions` | Pair with bulk approve/deny |
 | Closure / deletion requests | Partially in Admin | Unified queue with grace clock |
-| Export audit | Admin Export Audit view for `account_export_audit`; continuity forensics remain in continuity surfaces; managed bundle rows show path, expiry, and download count | Add background/server worker if browser assembly becomes too slow for large accounts |
+| Export audit | Admin Export Audit view for `account_export_audit`; continuity forensics remain in continuity surfaces; managed bundle rows show path, expiry, download count, duration, throughput, and performance alerts | Add background/server worker if production telemetry shows browser assembly is too slow for large accounts |
 | Storage drift | Admin Database panel reads `storage_usage_reconciliation_state` and drift cron health | Add external paging/Slack routing if drift stays noisy |
 | Bucket lifecycle | Admin Database panel reads `get_storage_bucket_lifecycle_status` and flags missing/public-private mismatched buckets plus near/over-cap storage buckets | Configure provider-level lifecycle rules where Supabase supports them |
 | Legal hold | Admin Cancellations controls backed by DB flags/RPCs on closure requests and tombstones, with assignment/review tracking | Add external counsel workflow only if volume warrants |
@@ -275,7 +276,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 
 **P1 (first 30 days post-launch)**
 5. External paging/Slack routing for noisy storage drift, if needed.
-6. Monitor managed export bundle performance for large accounts; add a background assembler if browser upload becomes too slow.
+6. Review managed export performance alerts after real large-account usage; add a background assembler if browser upload becomes too slow.
 7. Legal/counsel review of public retention schedule; record sign-off per `docs/AssetSafe_Data_Lifecycle_External_Controls_Runbook.md`.
 
 **P2 (quarter 1)**

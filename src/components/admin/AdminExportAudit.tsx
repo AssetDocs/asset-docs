@@ -18,10 +18,13 @@ type AccountExportAuditRow = {
   download_limit: number | null;
   error_message: string | null;
   expires_at: string | null;
+  export_duration_ms: number | null;
   export_type: string;
   file_count: number | null;
   last_downloaded_at: string | null;
   metadata: Record<string, unknown> | null;
+  bundle_bytes_per_second: number | null;
+  performance_alert: boolean;
   signed_url_ttl_seconds: number | null;
   started_at: string;
   status: string;
@@ -61,6 +64,16 @@ const formatDuration = (start?: string | null, end?: string | null) => {
   return `${Math.round(durationMs / 1000)}s`;
 };
 
+const formatDurationMs = (durationMs?: number | null) => {
+  if (durationMs === null || durationMs === undefined) return '-';
+  if (durationMs < 1000) return '<1s';
+  const seconds = Math.round(durationMs / 1000);
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return remainingSeconds ? `${minutes}m ${remainingSeconds}s` : `${minutes}m`;
+};
+
 const formatTtl = (seconds?: number | null) => {
   if (!seconds) return '-';
   if (seconds < 60) return `${seconds}s`;
@@ -74,6 +87,11 @@ const formatBytes = (bytes?: number | null) => {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
   return `${(bytes / 1024 / 1024 / 1024).toFixed(1)} GB`;
+};
+
+const formatThroughput = (bytesPerSecond?: number | null) => {
+  if (!bytesPerSecond) return '-';
+  return `${formatBytes(bytesPerSecond)}/s`;
 };
 
 const AdminExportAudit: React.FC = () => {
@@ -90,7 +108,7 @@ const AdminExportAudit: React.FC = () => {
     const [{ data, error: queryError }, { data: healthData, error: healthError }, bucketResult] = await Promise.all([
       supabase
         .from('account_export_audit')
-        .select('id,account_id,bundle_file_name,bundle_size_bytes,completed_at,download_count,download_limit,error_message,expires_at,export_type,file_count,last_downloaded_at,metadata,signed_url_ttl_seconds,started_at,status,storage_bucket,storage_path,user_id')
+        .select('id,account_id,bundle_file_name,bundle_size_bytes,bundle_bytes_per_second,completed_at,download_count,download_limit,error_message,expires_at,export_duration_ms,export_type,file_count,last_downloaded_at,metadata,performance_alert,signed_url_ttl_seconds,started_at,status,storage_bucket,storage_path,user_id')
         .order('started_at', { ascending: false })
         .limit(100),
       supabase
@@ -145,6 +163,13 @@ const AdminExportAudit: React.FC = () => {
     const ready = rows.filter((row) => row.status === 'ready').length;
     const expired = rows.filter((row) => row.status === 'expired').length;
     const exhausted = rows.filter((row) => row.status === 'exhausted').length;
+    const performanceAlerts = rows.filter((row) => row.performance_alert).length;
+    const completedDurations = rows
+      .map((row) => row.export_duration_ms)
+      .filter((duration): duration is number => typeof duration === 'number');
+    const avgDurationMs = completedDurations.length
+      ? Math.round(completedDurations.reduce((sum, duration) => sum + duration, 0) / completedDurations.length)
+      : null;
     const now = Date.now();
     const stuck = rows.filter((row) => {
       if (!row.storage_path || !['requested', 'generating'].includes(row.status)) return false;
@@ -155,7 +180,7 @@ const AdminExportAudit: React.FC = () => {
       const msUntilExpiry = new Date(row.expires_at).getTime() - now;
       return msUntilExpiry > 0 && msUntilExpiry <= 24 * 60 * 60 * 1000;
     }).length;
-    return { completed, failed, managedBundles, totalFiles, requested, ready, expired, exhausted, stuck, expiringSoon };
+    return { completed, failed, managedBundles, totalFiles, requested, ready, expired, exhausted, performanceAlerts, avgDurationMs, stuck, expiringSoon };
   }, [rows]);
 
   const filteredRows = useMemo(() => {
@@ -167,6 +192,7 @@ const AdminExportAudit: React.FC = () => {
       if (filter === 'exhausted') return row.status === 'exhausted';
       if (filter === 'attention') {
         if (row.status === 'failed') return true;
+        if (row.performance_alert) return true;
         if (!row.storage_path) return false;
         if (row.status === 'expired') return true;
         if (['requested', 'generating'].includes(row.status)) {
@@ -273,8 +299,18 @@ const AdminExportAudit: React.FC = () => {
               <p className="text-2xl font-semibold">{stats.stuck}</p>
             </div>
             <div>
-              <p className="text-muted-foreground">Expiring 24h</p>
-              <p className="text-2xl font-semibold">{stats.expiringSoon}</p>
+              <p className="text-muted-foreground">Perf alerts</p>
+              <p className="text-2xl font-semibold">{stats.performanceAlerts}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+            <div>
+              <p className="text-muted-foreground">Average completed export duration</p>
+              <p className="font-medium">{formatDurationMs(stats.avgDurationMs)}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Expiring in 24h</p>
+              <p className="font-medium">{stats.expiringSoon}</p>
             </div>
           </div>
         </CardContent>
@@ -367,6 +403,7 @@ const AdminExportAudit: React.FC = () => {
                   <TableHead>Expires</TableHead>
                   <TableHead className="text-right">TTL</TableHead>
                   <TableHead className="text-right">Duration</TableHead>
+                  <TableHead className="text-right">Throughput</TableHead>
                   <TableHead>Error</TableHead>
                 </TableRow>
               </TableHeader>
@@ -398,7 +435,11 @@ const AdminExportAudit: React.FC = () => {
                       {row.expires_at ? format(new Date(row.expires_at), 'PP p') : '-'}
                     </TableCell>
                     <TableCell className="text-right">{formatTtl(row.signed_url_ttl_seconds)}</TableCell>
-                    <TableCell className="text-right">{formatDuration(row.started_at, row.completed_at)}</TableCell>
+                    <TableCell className="text-right">
+                      {formatDurationMs(row.export_duration_ms) !== '-' ? formatDurationMs(row.export_duration_ms) : formatDuration(row.started_at, row.completed_at)}
+                      {row.performance_alert ? <Badge variant="destructive" className="ml-2">slow/large</Badge> : null}
+                    </TableCell>
+                    <TableCell className="text-right">{formatThroughput(row.bundle_bytes_per_second)}</TableCell>
                     <TableCell className="max-w-[260px] truncate" title={row.error_message || ''}>
                       {row.error_message || '-'}
                     </TableCell>
