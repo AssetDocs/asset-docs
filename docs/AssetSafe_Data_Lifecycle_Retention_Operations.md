@@ -2,7 +2,7 @@
 
 **Status:** Developer review draft
 **Scope:** Backup/restore, account closure & deletion, storage object deletion, exports, retention windows, storage-usage lifecycle, and the cron sweepers + admin surfaces that bind them together.
-**Companion docs:** `AssetSafe_Billing_Revenue_Operations.md` (entitlement & subscription lifecycle).
+**Companion docs:** `AssetSafe_Billing_Revenue_Operations.md` (entitlement & subscription lifecycle), `AssetSafe_Data_Lifecycle_External_Controls_Runbook.md` (owner/operator controls outside app code).
 
 ---
 
@@ -52,6 +52,7 @@
 
 ### 2.5 Launch gaps
 - Restore runbook exists at `docs/AssetSafe_Backup_Restore_Runbook.md`.
+- External controls checklist exists at `docs/AssetSafe_Data_Lifecycle_External_Controls_Runbook.md`.
 - Restore drill ledger exists as `restore_drill_runs`; quarterly reminder function/runbook and Admin Restore panel exist.
 - Owner-operated PITR drill still must be performed and logged before launch.
 - No secondary storage copy / cross-region object replication.
@@ -262,14 +263,14 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 **P0 (blocking launch)**
 1. Sweepers: `process-account-closures`, `process-expired-exports`; verify production cron health in Admin Cancellations and Admin Export Audit after deployment.
 2. Closure/deletion table matrix documented; consolidation deferred until workflows converge.
-3. Owner-operated PITR restore drill performed and logged in `restore_drill_runs`.
+3. Owner-operated PITR restore drill performed and logged in `restore_drill_runs`; use `docs/AssetSafe_Data_Lifecycle_External_Controls_Runbook.md` for launch evidence.
 4. Re-signup conflict guard codified in signup/auth creation paths.
 
 **P1 (first 30 days post-launch)**
 5. External paging/Slack routing for noisy storage drift, if needed.
 6. Server-managed user export bundles for strict download-cap enforcement.
 7. Formal legal hold review workflow/assignment.
-8. Legal/counsel review of public retention schedule.
+8. Legal/counsel review of public retention schedule; record sign-off per `docs/AssetSafe_Data_Lifecycle_External_Controls_Runbook.md`.
 
 **P2 (quarter 1)**
 9. Cross-region storage replication or scheduled object snapshots.
