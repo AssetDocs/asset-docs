@@ -6110,6 +6110,45 @@ export type Database = {
         }
         Relationships: []
       }
+      storage_bucket_lifecycle_policies: {
+        Row: {
+          bucket: string
+          cleanup_owner: string
+          created_at: string
+          data_class: string
+          expected_public: boolean
+          launch_required: boolean
+          lifecycle_days: number | null
+          notes: string | null
+          retention_rule: string
+          updated_at: string
+        }
+        Insert: {
+          bucket: string
+          cleanup_owner: string
+          created_at?: string
+          data_class: string
+          expected_public?: boolean
+          launch_required?: boolean
+          lifecycle_days?: number | null
+          notes?: string | null
+          retention_rule: string
+          updated_at?: string
+        }
+        Update: {
+          bucket?: string
+          cleanup_owner?: string
+          created_at?: string
+          data_class?: string
+          expected_public?: boolean
+          launch_required?: boolean
+          lifecycle_days?: number | null
+          notes?: string | null
+          retention_rule?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       storage_deletion_jobs: {
         Row: {
           account_id: string | null
@@ -7964,6 +8003,22 @@ export type Database = {
           metric_name: string
           metric_period: string
           metric_value: number
+        }[]
+      }
+      get_storage_bucket_lifecycle_status: {
+        Args: never
+        Returns: {
+          actual_public: boolean
+          bucket: string
+          bucket_exists: boolean
+          cleanup_owner: string
+          data_class: string
+          expected_public: boolean
+          launch_required: boolean
+          lifecycle_days: number
+          notes: string
+          public_matches: boolean
+          retention_rule: string
         }[]
       }
       get_storage_stats: {
