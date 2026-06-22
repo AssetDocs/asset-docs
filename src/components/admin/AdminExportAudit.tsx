@@ -39,9 +39,17 @@ type CronHealthRow = {
   minutes_since_success: number | null;
 };
 
+type ExportBucketStatus = {
+  exists: boolean;
+  is_public: boolean | null;
+  error: string | null;
+};
+
+type ExportFilter = 'all' | 'managed' | 'attention' | 'ready' | 'expired' | 'exhausted';
+
 const statusVariant = (status: string) => {
   if (status === 'succeeded' || status === 'ready') return 'default';
-  if (status === 'failed') return 'destructive';
+  if (status === 'failed' || status === 'expired') return 'destructive';
   return 'secondary';
 };
 
@@ -71,13 +79,15 @@ const formatBytes = (bytes?: number | null) => {
 const AdminExportAudit: React.FC = () => {
   const [rows, setRows] = useState<AccountExportAuditRow[]>([]);
   const [expiredExportHealth, setExpiredExportHealth] = useState<CronHealthRow | null>(null);
+  const [bucketStatus, setBucketStatus] = useState<ExportBucketStatus | null>(null);
+  const [filter, setFilter] = useState<ExportFilter>('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const loadRows = async () => {
     setLoading(true);
     setError(null);
-    const [{ data, error: queryError }, { data: healthData, error: healthError }] = await Promise.all([
+    const [{ data, error: queryError }, { data: healthData, error: healthError }, bucketResult] = await Promise.all([
       supabase
         .from('account_export_audit')
         .select('id,account_id,bundle_file_name,bundle_size_bytes,completed_at,download_count,download_limit,error_message,expires_at,export_type,file_count,last_downloaded_at,metadata,signed_url_ttl_seconds,started_at,status,storage_bucket,storage_path,user_id')
@@ -87,6 +97,12 @@ const AdminExportAudit: React.FC = () => {
         .from('cron_job_health_status')
         .select('health_status,last_error,last_result,last_status,last_succeeded_at,minutes_since_success')
         .eq('job_name', 'process-expired-exports')
+        .maybeSingle(),
+      (supabase as any)
+        .schema('storage')
+        .from('buckets')
+        .select('id,public')
+        .eq('id', 'exports')
         .maybeSingle(),
     ]);
 
@@ -103,6 +119,16 @@ const AdminExportAudit: React.FC = () => {
     } else {
       setExpiredExportHealth((healthData || null) as CronHealthRow | null);
     }
+
+    if (bucketResult?.error) {
+      setBucketStatus({ exists: false, is_public: null, error: bucketResult.error.message });
+    } else {
+      setBucketStatus({
+        exists: !!bucketResult?.data,
+        is_public: bucketResult?.data?.public ?? null,
+        error: null,
+      });
+    }
     setLoading(false);
   };
 
@@ -115,8 +141,42 @@ const AdminExportAudit: React.FC = () => {
     const failed = rows.filter((row) => row.status === 'failed').length;
     const managedBundles = rows.filter((row) => row.storage_path).length;
     const totalFiles = rows.reduce((sum, row) => sum + (row.file_count || 0), 0);
-    return { completed, failed, managedBundles, totalFiles };
+    const requested = rows.filter((row) => row.status === 'requested' || row.status === 'generating').length;
+    const ready = rows.filter((row) => row.status === 'ready').length;
+    const expired = rows.filter((row) => row.status === 'expired').length;
+    const exhausted = rows.filter((row) => row.status === 'exhausted').length;
+    const now = Date.now();
+    const stuck = rows.filter((row) => {
+      if (!row.storage_path || !['requested', 'generating'].includes(row.status)) return false;
+      return now - new Date(row.started_at).getTime() > 30 * 60 * 1000;
+    }).length;
+    const expiringSoon = rows.filter((row) => {
+      if (!row.expires_at || row.status !== 'ready') return false;
+      const msUntilExpiry = new Date(row.expires_at).getTime() - now;
+      return msUntilExpiry > 0 && msUntilExpiry <= 24 * 60 * 60 * 1000;
+    }).length;
+    return { completed, failed, managedBundles, totalFiles, requested, ready, expired, exhausted, stuck, expiringSoon };
   }, [rows]);
+
+  const filteredRows = useMemo(() => {
+    const now = Date.now();
+    return rows.filter((row) => {
+      if (filter === 'managed') return !!row.storage_path;
+      if (filter === 'ready') return row.status === 'ready';
+      if (filter === 'expired') return row.status === 'expired';
+      if (filter === 'exhausted') return row.status === 'exhausted';
+      if (filter === 'attention') {
+        if (row.status === 'failed') return true;
+        if (!row.storage_path) return false;
+        if (row.status === 'expired') return true;
+        if (['requested', 'generating'].includes(row.status)) {
+          return now - new Date(row.started_at).getTime() > 30 * 60 * 1000;
+        }
+        return false;
+      }
+      return true;
+    });
+  }, [filter, rows]);
 
   const sweeperHealthClass = () => {
     if (expiredExportHealth?.health_status === 'healthy') return 'bg-green-500';
@@ -171,6 +231,59 @@ const AdminExportAudit: React.FC = () => {
         <CardHeader>
           <div className="flex items-start justify-between gap-4">
             <div>
+              <CardTitle>Managed Export Readiness</CardTitle>
+              <CardDescription>Launch checks for the private exports bucket and strict-cap bundle lifecycle.</CardDescription>
+            </div>
+            <Badge className={bucketStatus?.exists && bucketStatus.is_public === false ? 'bg-green-500' : 'bg-yellow-500'}>
+              {bucketStatus?.exists ? (bucketStatus.is_public === false ? 'bucket private' : 'bucket public') : 'bucket missing'}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {(!bucketStatus?.exists || bucketStatus?.is_public) && (
+            <div className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+              <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+              <div>
+                {!bucketStatus?.exists
+                  ? 'Create a private storage bucket named exports before generating managed account exports.'
+                  : 'The exports bucket should be private. Disable public access before launch.'}
+                {bucketStatus?.error ? <span className="block text-xs mt-1">Bucket check error: {bucketStatus.error}</span> : null}
+              </div>
+            </div>
+          )}
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-3 text-sm">
+            <div>
+              <p className="text-muted-foreground">Requested</p>
+              <p className="text-2xl font-semibold">{stats.requested}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Ready</p>
+              <p className="text-2xl font-semibold">{stats.ready}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Expired</p>
+              <p className="text-2xl font-semibold">{stats.expired}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Exhausted</p>
+              <p className="text-2xl font-semibold">{stats.exhausted}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Stuck 30m+</p>
+              <p className="text-2xl font-semibold">{stats.stuck}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Expiring 24h</p>
+              <p className="text-2xl font-semibold">{stats.expiringSoon}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-start justify-between gap-4">
+            <div>
               <CardTitle>Expired Export Sweeper</CardTitle>
               <CardDescription>Health for process-expired-exports, which expires continuity grants and purges stale export bundles.</CardDescription>
             </div>
@@ -212,6 +325,25 @@ const AdminExportAudit: React.FC = () => {
           <CardDescription>Shows the latest 100 export audit records, including strict-cap bundle state where available.</CardDescription>
         </CardHeader>
         <CardContent>
+          <div className="mb-4 flex flex-wrap gap-2">
+            {([
+              ['all', 'All'],
+              ['managed', 'Managed'],
+              ['attention', 'Needs Attention'],
+              ['ready', 'Ready'],
+              ['expired', 'Expired'],
+              ['exhausted', 'Exhausted'],
+            ] as [ExportFilter, string][]).map(([value, label]) => (
+              <Button
+                key={value}
+                variant={filter === value ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilter(value)}
+              >
+                {label}
+              </Button>
+            ))}
+          </div>
           {error && (
             <div className="mb-4 flex items-center gap-2 rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
               <AlertTriangle className="h-4 w-4" />
@@ -220,7 +352,7 @@ const AdminExportAudit: React.FC = () => {
           )}
           {loading ? (
             <p>Loading...</p>
-          ) : rows.length > 0 ? (
+          ) : filteredRows.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -239,7 +371,7 @@ const AdminExportAudit: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rows.map((row) => (
+                {filteredRows.map((row) => (
                   <TableRow key={row.id}>
                     <TableCell className="whitespace-nowrap">{format(new Date(row.started_at), 'PP p')}</TableCell>
                     <TableCell>
@@ -275,7 +407,7 @@ const AdminExportAudit: React.FC = () => {
               </TableBody>
             </Table>
           ) : (
-            <p className="py-8 text-center text-muted-foreground">No export audit records yet</p>
+            <p className="py-8 text-center text-muted-foreground">No export audit records match this filter</p>
           )}
         </CardContent>
       </Card>
