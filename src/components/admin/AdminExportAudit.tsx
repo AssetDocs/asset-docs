@@ -11,14 +11,22 @@ import { supabase } from '@/integrations/supabase/client';
 type AccountExportAuditRow = {
   id: string;
   account_id: string | null;
+  bundle_file_name: string | null;
+  bundle_size_bytes: number | null;
   completed_at: string | null;
+  download_count: number | null;
+  download_limit: number | null;
   error_message: string | null;
+  expires_at: string | null;
   export_type: string;
   file_count: number | null;
+  last_downloaded_at: string | null;
   metadata: Record<string, unknown> | null;
   signed_url_ttl_seconds: number | null;
   started_at: string;
   status: string;
+  storage_bucket: string | null;
+  storage_path: string | null;
   user_id: string | null;
 };
 
@@ -32,7 +40,7 @@ type CronHealthRow = {
 };
 
 const statusVariant = (status: string) => {
-  if (status === 'completed') return 'default';
+  if (status === 'succeeded' || status === 'ready') return 'default';
   if (status === 'failed') return 'destructive';
   return 'secondary';
 };
@@ -52,6 +60,14 @@ const formatTtl = (seconds?: number | null) => {
   return `${minutes}m`;
 };
 
+const formatBytes = (bytes?: number | null) => {
+  if (!bytes) return '-';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  return `${(bytes / 1024 / 1024 / 1024).toFixed(1)} GB`;
+};
+
 const AdminExportAudit: React.FC = () => {
   const [rows, setRows] = useState<AccountExportAuditRow[]>([]);
   const [expiredExportHealth, setExpiredExportHealth] = useState<CronHealthRow | null>(null);
@@ -64,7 +80,7 @@ const AdminExportAudit: React.FC = () => {
     const [{ data, error: queryError }, { data: healthData, error: healthError }] = await Promise.all([
       supabase
         .from('account_export_audit')
-        .select('id,account_id,completed_at,error_message,export_type,file_count,metadata,signed_url_ttl_seconds,started_at,status,user_id')
+        .select('id,account_id,bundle_file_name,bundle_size_bytes,completed_at,download_count,download_limit,error_message,expires_at,export_type,file_count,last_downloaded_at,metadata,signed_url_ttl_seconds,started_at,status,storage_bucket,storage_path,user_id')
         .order('started_at', { ascending: false })
         .limit(100),
       supabase
@@ -95,10 +111,11 @@ const AdminExportAudit: React.FC = () => {
   }, []);
 
   const stats = useMemo(() => {
-    const completed = rows.filter((row) => row.status === 'completed').length;
+    const completed = rows.filter((row) => row.status === 'succeeded' || row.status === 'ready').length;
     const failed = rows.filter((row) => row.status === 'failed').length;
+    const managedBundles = rows.filter((row) => row.storage_path).length;
     const totalFiles = rows.reduce((sum, row) => sum + (row.file_count || 0), 0);
-    return { completed, failed, totalFiles };
+    return { completed, failed, managedBundles, totalFiles };
   }, [rows]);
 
   const sweeperHealthClass = () => {
@@ -144,9 +161,9 @@ const AdminExportAudit: React.FC = () => {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Files Exported</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Managed Bundles</CardTitle>
           </CardHeader>
-          <CardContent className="text-3xl font-bold">{stats.totalFiles}</CardContent>
+          <CardContent className="text-3xl font-bold">{stats.managedBundles}</CardContent>
         </Card>
       </div>
 
@@ -192,7 +209,7 @@ const AdminExportAudit: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle>Account Export Audit</CardTitle>
-          <CardDescription>Shows the latest 100 export audit records, including errors and signed URL TTLs.</CardDescription>
+          <CardDescription>Shows the latest 100 export audit records, including strict-cap bundle state where available.</CardDescription>
         </CardHeader>
         <CardContent>
           {error && (
@@ -213,6 +230,9 @@ const AdminExportAudit: React.FC = () => {
                   <TableHead>User</TableHead>
                   <TableHead>Account</TableHead>
                   <TableHead className="text-right">Files</TableHead>
+                  <TableHead>Bundle</TableHead>
+                  <TableHead className="text-right">Downloads</TableHead>
+                  <TableHead>Expires</TableHead>
                   <TableHead className="text-right">TTL</TableHead>
                   <TableHead className="text-right">Duration</TableHead>
                   <TableHead>Error</TableHead>
@@ -233,6 +253,18 @@ const AdminExportAudit: React.FC = () => {
                       {row.account_id || '-'}
                     </TableCell>
                     <TableCell className="text-right">{row.file_count ?? '-'}</TableCell>
+                    <TableCell className="max-w-[220px] truncate" title={row.storage_path || ''}>
+                      {row.storage_path ? `${row.storage_bucket || 'exports'} / ${row.bundle_file_name || row.storage_path}` : '-'}
+                      {row.bundle_size_bytes ? (
+                        <span className="ml-1 text-xs text-muted-foreground">({formatBytes(row.bundle_size_bytes)})</span>
+                      ) : null}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {row.storage_path ? `${row.download_count ?? 0}/${row.download_limit ?? 5}` : '-'}
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {row.expires_at ? format(new Date(row.expires_at), 'PP p') : '-'}
+                    </TableCell>
                     <TableCell className="text-right">{formatTtl(row.signed_url_ttl_seconds)}</TableCell>
                     <TableCell className="text-right">{formatDuration(row.started_at, row.completed_at)}</TableCell>
                     <TableCell className="max-w-[260px] truncate" title={row.error_message || ''}>
