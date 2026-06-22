@@ -122,6 +122,17 @@ Open legal question:
 
 - Whether plaintext copies of death certificates and legal documents are retained indefinitely, retained for a fixed review window, or replaced by reviewed metadata plus restricted storage object retention.
 
+### 4.3 Competing request conflict policy
+
+When more than one active continuity request exists for the same account, the system marks each active case as `potential_conflict`, records the related request IDs, raises the risk posture, and blocks execution through `enforce_continuity_execution_guard`.
+
+Default reviewer policy:
+
+- Treat all competing requests as elevated risk until reviewed.
+- Compare requester authority, owner preferences, submitted evidence, request type, and timeline.
+- Do not approve export, temporary access, preservation, closure, memorialization, or ownership transfer until the conflict is resolved on the case.
+- Record conflict resolution notes explaining why the selected case may proceed or why the request should be denied/paused.
+
 ## 5. State Machines
 
 ### 5.1 Continuity request review
@@ -246,7 +257,7 @@ Recommended default SLAs:
 
 ### P0 before launch
 
-1. Document and enforce a conflict policy when multiple Legacy Admins, secondary Legacy Admins, or delegates submit competing continuity/recovery requests.
+1. Competing continuity requests are detected on `account_continuity_requests`, surfaced in the admin queue, and blocked from execution until reviewer resolution notes are recorded.
 2. Continuity review SLA clock exists on `account_continuity_requests`; Request Queue and Active Reviews surface overdue, due-soon, and disputed cases.
 3. Confirm owner dispute queue handling: who reviews, what statuses resolve a dispute, and whether a freeze is always applied on dispute.
 4. Confirm proof requirements for death/incapacity/authority with counsel or owner sign-off.
@@ -266,7 +277,7 @@ Recommended default SLAs:
 ## 10. Open Questions
 
 1. Should an owner dispute automatically apply an account freeze, or should it only block execution through the guard?
-2. What is the exact conflict winner policy for multiple authorized continuity actors?
+2. Should conflict resolution require a second reviewer for ownership transfer, closure, or export cases?
 3. Does Asset Safe want inactivity-triggered continuity, or only request/evidence-triggered continuity?
 4. Which documents are required for each request type before approval?
 5. Who is allowed to bypass the 30-day continuity closure waiting period, and what evidence is mandatory?

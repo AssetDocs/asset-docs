@@ -60,6 +60,7 @@ const RequestQueueTab: React.FC<Props> = ({ onOpenCase, refreshKey, activeOnly }
     (async () => {
       setLoading(true);
       await supabase.rpc('refresh_continuity_review_sla');
+      await supabase.rpc('refresh_continuity_request_conflicts');
       let q = supabase.from('account_continuity_requests').select('*').order('created_at', { ascending: false });
       if (activeOnly) q = q.in('status', ACTIVE_STATUSES);
       const { data } = await q;
@@ -116,12 +117,13 @@ const RequestQueueTab: React.FC<Props> = ({ onOpenCase, refreshKey, activeOnly }
     overdue: rows.filter((r) => r.review_sla_status === 'overdue').length,
     dueSoon: rows.filter((r) => r.review_sla_status === 'due_soon').length,
     disputed: rows.filter((r) => r.owner_dispute_status === 'disputed').length,
+    conflicts: rows.filter((r) => r.conflict_status === 'potential_conflict').length,
   }), [rows]);
 
   return (
     <Card className="border-border mt-4">
       <CardContent className="p-4 space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div className="rounded-md border border-border p-3">
             <div className="text-xs text-muted-foreground">Overdue SLA</div>
             <div className="text-2xl font-semibold">{slaCounts.overdue}</div>
@@ -133,6 +135,10 @@ const RequestQueueTab: React.FC<Props> = ({ onOpenCase, refreshKey, activeOnly }
           <div className="rounded-md border border-border p-3">
             <div className="text-xs text-muted-foreground">Owner Disputes</div>
             <div className="text-2xl font-semibold">{slaCounts.disputed}</div>
+          </div>
+          <div className="rounded-md border border-border p-3">
+            <div className="text-xs text-muted-foreground">Request Conflicts</div>
+            <div className="text-2xl font-semibold">{slaCounts.conflicts}</div>
           </div>
         </div>
 
@@ -210,7 +216,14 @@ const RequestQueueTab: React.FC<Props> = ({ onOpenCase, refreshKey, activeOnly }
                 return (
                   <TableRow key={r.id}>
                     <TableCell><Badge variant="outline" className={STATUS_BADGE_CLASS[r.status] || ''}>{STATUS_LABEL[r.status] || r.status}</Badge></TableCell>
-                    <TableCell><Badge variant="outline" className={RISK_BADGE_CLASS[r.risk_level || 'low']}>{RISK_LABEL[r.risk_level || 'low']}</Badge></TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        <Badge variant="outline" className={RISK_BADGE_CLASS[r.risk_level || 'low']}>{RISK_LABEL[r.risk_level || 'low']}</Badge>
+                        {r.conflict_status === 'potential_conflict' && (
+                          <Badge variant="outline" className="bg-amber-50 text-amber-900 border-amber-200">Conflict</Badge>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell className="text-sm">{REQUEST_TYPE_LABEL[r.request_type] || r.request_type}</TableCell>
                     <TableCell className="text-sm font-mono text-xs">{r.account_id?.slice(0, 8)}…</TableCell>
                     <TableCell className="text-sm">{legacyName}</TableCell>

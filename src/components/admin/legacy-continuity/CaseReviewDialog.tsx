@@ -42,6 +42,7 @@ const CaseReviewDialog: React.FC<{ caseId: string | null; onClose: () => void }>
                 <span className="font-semibold">{REQUEST_TYPE_LABEL[caseData.request_type] || caseData.request_type}</span>
                 <Badge variant="outline" className={STATUS_BADGE_CLASS[caseData.status] || ''}>{STATUS_LABEL[caseData.status]}</Badge>
                 <Badge variant="outline" className={RISK_BADGE_CLASS[caseData.risk_level || 'low']}>Risk: {RISK_LABEL[caseData.risk_level || 'low']}</Badge>
+                {caseData.conflict_status === 'potential_conflict' && <Badge variant="outline" className="bg-amber-50 text-amber-900 border-amber-200">Request Conflict</Badge>}
                 {caseData.preservation_hold && <Badge variant="outline" className="bg-amber-50 text-amber-900 border-amber-200">Preservation Hold</Badge>}
                 {isReadOnly && <Badge variant="outline">Read-only</Badge>}
               </>

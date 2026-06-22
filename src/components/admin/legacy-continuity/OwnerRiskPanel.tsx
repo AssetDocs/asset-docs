@@ -30,6 +30,7 @@ const OwnerRiskPanel: React.FC<{ caseData: any; onChange: () => void }> = ({ cas
   const [freezeType, setFreezeType] = useState('continuity_review');
   const [freezeReason, setFreezeReason] = useState('');
   const [bypassReason, setBypassReason] = useState('');
+  const [conflictResolution, setConflictResolution] = useState('');
 
   const load = async () => {
     if (!caseData?.account_id) return;
@@ -81,6 +82,18 @@ const OwnerRiskPanel: React.FC<{ caseData: any; onChange: () => void }> = ({ cas
     toast.success('Waiting period bypassed'); setBypassReason(''); onChange();
   };
 
+  const resolveConflict = async () => {
+    if (conflictResolution.trim().length < 10) { toast.error('Resolution notes required'); return; }
+    const { error } = await supabase.rpc('resolve_continuity_request_conflict', {
+      _request_id: caseData.id,
+      _resolution_notes: conflictResolution,
+    });
+    if (error) { toast.error(error.message); return; }
+    toast.success('Conflict marked resolved');
+    setConflictResolution('');
+    onChange();
+  };
+
   const remaining = caseData.scheduled_execution_at
     ? Math.max(0, new Date(caseData.scheduled_execution_at).getTime() - Date.now())
     : null;
@@ -99,13 +112,28 @@ const OwnerRiskPanel: React.FC<{ caseData: any; onChange: () => void }> = ({ cas
         </Alert>
       )}
 
+      {caseData.conflict_status === 'potential_conflict' && (
+        <Alert className="border-amber-200 bg-amber-50 text-amber-900">
+          <ShieldAlert className="h-4 w-4" />
+          <AlertDescription className="text-sm">
+            <strong>Competing continuity requests detected.</strong> Execution is blocked until a reviewer resolves the conflict.
+            {caseData.conflicting_request_ids?.length > 0 && (
+              <div className="mt-1 font-mono text-xs">
+                Related: {caseData.conflicting_request_ids.map((id: string) => id.slice(0, 8)).join(', ')}
+              </div>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
+
       <Tabs defaultValue="preferences">
-        <TabsList className="grid grid-cols-3 lg:grid-cols-6 h-auto">
+        <TabsList className="grid grid-cols-3 lg:grid-cols-7 h-auto">
           <TabsTrigger value="preferences">Owner Preferences</TabsTrigger>
           <TabsTrigger value="consent">Consent History</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="dispute_freeze">Dispute & Freeze</TabsTrigger>
           <TabsTrigger value="waiting">Waiting Period</TabsTrigger>
+          <TabsTrigger value="conflicts">Conflicts</TabsTrigger>
           <TabsTrigger value="risk">Risk Flags</TabsTrigger>
         </TabsList>
 
@@ -238,6 +266,36 @@ const OwnerRiskPanel: React.FC<{ caseData: any; onChange: () => void }> = ({ cas
                   <Textarea value={bypassReason} onChange={(e) => setBypassReason(e.target.value)} rows={2} />
                   <Button variant="outline" onClick={bypassWaiting} disabled={!bypassReason.trim()}>Bypass Waiting Period</Button>
                 </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="conflicts" className="pt-3">
+          <Card><CardHeader className="pb-3"><CardTitle className="text-base">Competing Request Review</CardTitle></CardHeader>
+            <CardContent className="space-y-3">
+              {caseData.conflict_status === 'potential_conflict' ? (
+                <>
+                  <Alert><AlertDescription>Review all active requests for this account before approving access, export, preservation, closure, or ownership transfer.</AlertDescription></Alert>
+                  <div className="text-sm space-y-1">
+                    <div>Status: <Badge variant="outline" className="bg-amber-50 text-amber-900 border-amber-200">Potential Conflict</Badge></div>
+                    <div>Detected: {caseData.conflict_detected_at ? new Date(caseData.conflict_detected_at).toLocaleString() : 'â€”'}</div>
+                    <div className="font-mono text-xs break-all">Related requests: {caseData.conflicting_request_ids?.length ? caseData.conflicting_request_ids.join(', ') : 'â€”'}</div>
+                  </div>
+                  <div>
+                    <Label>Resolution notes</Label>
+                    <Textarea value={conflictResolution} onChange={(e) => setConflictResolution(e.target.value)} rows={3} />
+                  </div>
+                  <Button onClick={resolveConflict} disabled={conflictResolution.trim().length < 10}>Mark Conflict Reviewed</Button>
+                </>
+              ) : caseData.conflict_status === 'resolved' ? (
+                <div className="text-sm space-y-1">
+                  <div>Status: <Badge variant="outline">Resolved</Badge></div>
+                  <div>Resolved: {caseData.conflict_resolved_at ? new Date(caseData.conflict_resolved_at).toLocaleString() : 'â€”'}</div>
+                  <div className="text-muted-foreground">{caseData.conflict_resolution_notes || 'No resolution notes recorded.'}</div>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No competing active continuity requests detected.</p>
               )}
             </CardContent>
           </Card>
