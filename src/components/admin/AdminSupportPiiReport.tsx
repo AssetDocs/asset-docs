@@ -32,6 +32,20 @@ type CronHealthRow = {
   minutes_since_success: number | null;
 };
 
+type ScrubRunRow = {
+  id: string;
+  completed_at: string;
+  cutoff_at: string;
+  dry_run: boolean;
+  duration_ms: number | null;
+  eligible_count: number;
+  error_message: string | null;
+  issue_ids: string[];
+  retention_days: number;
+  scrubbed_count: number;
+  status: string;
+};
+
 const SUPPORT_RETENTION_DAYS = 1095;
 
 const statusVariant = (status?: string | null) => {
@@ -42,6 +56,7 @@ const statusVariant = (status?: string | null) => {
 
 const AdminSupportPiiReport: React.FC = () => {
   const [issues, setIssues] = useState<SupportIssueRow[]>([]);
+  const [scrubRuns, setScrubRuns] = useState<ScrubRunRow[]>([]);
   const [cronHealth, setCronHealth] = useState<CronHealthRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +69,11 @@ const AdminSupportPiiReport: React.FC = () => {
     setLoading(true);
     setError(null);
 
-    const [{ data: issueData, error: issueError }, { data: cronData, error: cronError }] = await Promise.all([
+    const [
+      { data: issueData, error: issueError },
+      { data: cronData, error: cronError },
+      { data: runData, error: runError },
+    ] = await Promise.all([
       supabase
         .from('dev_support_issues')
         .select('id,created_at,pii_scrub_metadata,pii_scrubbed_at,priority,status,title,type,updated_at')
@@ -66,13 +85,19 @@ const AdminSupportPiiReport: React.FC = () => {
         .select('health_status,job_name,last_duration_ms,last_error,last_result,last_status,last_succeeded_at,minutes_since_success')
         .eq('job_name', 'scrub-old-support-pii')
         .maybeSingle(),
+      supabase
+        .from('support_pii_scrub_runs')
+        .select('id,completed_at,cutoff_at,dry_run,duration_ms,eligible_count,error_message,issue_ids,retention_days,scrubbed_count,status')
+        .order('completed_at', { ascending: false })
+        .limit(25),
     ]);
 
-    if (issueError || cronError) {
-      setError(issueError?.message || cronError?.message || 'Unable to load support PII report');
+    if (issueError || cronError || runError) {
+      setError(issueError?.message || cronError?.message || runError?.message || 'Unable to load support PII report');
     }
 
     setIssues((issueData || []) as SupportIssueRow[]);
+    setScrubRuns((runData || []) as ScrubRunRow[]);
     setCronHealth((cronData || null) as CronHealthRow | null);
     setLoading(false);
   };
@@ -85,6 +110,7 @@ const AdminSupportPiiReport: React.FC = () => {
   const eligible = issues.filter((issue) => !issue.pii_scrubbed_at && new Date(issue.updated_at) <= cutoff);
   const pending = issues.filter((issue) => !issue.pii_scrubbed_at && new Date(issue.updated_at) > cutoff);
   const recentRows = [...eligible, ...scrubbed].slice(0, 25);
+  const failedRuns = scrubRuns.filter((run) => run.status === 'failed');
 
   return (
     <div className="space-y-6">
@@ -131,9 +157,9 @@ const AdminSupportPiiReport: React.FC = () => {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Not Yet Due</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Scrub Failures</CardTitle>
           </CardHeader>
-          <CardContent className="text-3xl font-bold">{pending.length}</CardContent>
+          <CardContent className="text-3xl font-bold">{failedRuns.length}</CardContent>
         </Card>
       </div>
 
@@ -171,8 +197,53 @@ const AdminSupportPiiReport: React.FC = () => {
 
       <Card>
         <CardHeader>
+          <CardTitle>Scrub Run Ledger</CardTitle>
+          <CardDescription>Historical scrub-old-support-pii runs, including dry runs, failures, and affected closed support records.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <p>Loading...</p>
+          ) : scrubRuns.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Completed</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Mode</TableHead>
+                  <TableHead className="text-right">Eligible</TableHead>
+                  <TableHead className="text-right">Scrubbed</TableHead>
+                  <TableHead className="text-right">Duration</TableHead>
+                  <TableHead>Cutoff</TableHead>
+                  <TableHead>Result</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {scrubRuns.map((run) => (
+                  <TableRow key={run.id}>
+                    <TableCell className="whitespace-nowrap">{format(new Date(run.completed_at), 'PP p')}</TableCell>
+                    <TableCell><Badge variant={statusVariant(run.status)}>{run.status}</Badge></TableCell>
+                    <TableCell><Badge variant="outline">{run.dry_run ? 'dry run' : 'live'}</Badge></TableCell>
+                    <TableCell className="text-right">{run.eligible_count}</TableCell>
+                    <TableCell className="text-right">{run.scrubbed_count}</TableCell>
+                    <TableCell className="text-right">{run.duration_ms ?? '-'}</TableCell>
+                    <TableCell className="whitespace-nowrap">{format(new Date(run.cutoff_at), 'PP')}</TableCell>
+                    <TableCell className="max-w-[320px] truncate" title={run.error_message || run.issue_ids.join(', ')}>
+                      {run.error_message || `${run.issue_ids.length} affected IDs`}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <p className="py-8 text-center text-muted-foreground">No scrub runs recorded yet</p>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Closed Support Retention</CardTitle>
-          <CardDescription>Resolved or wont-fix support records. Eligible rows are older than {SUPPORT_RETENTION_DAYS} days and have not been scrubbed.</CardDescription>
+          <CardDescription>Resolved or wont-fix support records. Eligible rows are older than {SUPPORT_RETENTION_DAYS} days and have not been scrubbed. {pending.length} closed records are not yet due.</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (

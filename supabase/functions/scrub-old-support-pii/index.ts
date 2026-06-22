@@ -41,6 +41,41 @@ async function recordCronJobResult(
   }
 }
 
+async function recordScrubRun(
+  admin: ReturnType<typeof createClient>,
+  startedAt: number,
+  params: {
+    status: "succeeded" | "failed";
+    dryRun: boolean;
+    retentionDays: number;
+    cutoff: string;
+    eligible: number;
+    scrubbed: number;
+    ids: string[];
+    errorMessage?: string | null;
+  },
+) {
+  const { error } = await admin
+    .from("support_pii_scrub_runs")
+    .insert({
+      status: params.status,
+      dry_run: params.dryRun,
+      retention_days: params.retentionDays,
+      cutoff_at: params.cutoff,
+      eligible_count: params.eligible,
+      scrubbed_count: params.scrubbed,
+      issue_ids: params.ids,
+      error_message: params.errorMessage ?? null,
+      duration_ms: Date.now() - startedAt,
+      started_at: new Date(startedAt).toISOString(),
+      completed_at: new Date().toISOString(),
+    });
+
+  if (error) {
+    console.error("[SCRUB-OLD-SUPPORT-PII] Scrub run ledger insert failed", error);
+  }
+}
+
 serve(async (req) => {
   const startedAt = Date.now();
 
@@ -92,6 +127,16 @@ serve(async (req) => {
       { dry_run: dryRun, limit, retention_days: retentionDays },
       queryError.message,
     );
+    await recordScrubRun(admin, startedAt, {
+      status: "failed",
+      dryRun,
+      retentionDays,
+      cutoff,
+      eligible: 0,
+      scrubbed: 0,
+      ids: [],
+      errorMessage: queryError.message,
+    });
     return json(500, { error: "support_pii_query_failed", details: queryError.message });
   }
 
@@ -107,6 +152,15 @@ serve(async (req) => {
 
   if (dryRun || rows.length === 0) {
     await recordCronJobResult(admin, startedAt, "succeeded", result);
+    await recordScrubRun(admin, startedAt, {
+      status: "succeeded",
+      dryRun,
+      retentionDays,
+      cutoff,
+      eligible: result.eligible,
+      scrubbed: result.scrubbed,
+      ids: result.ids,
+    });
     return json(200, { ok: true, ...result });
   }
 
@@ -138,6 +192,16 @@ serve(async (req) => {
         message: updateError.message,
       });
       await recordCronJobResult(admin, startedAt, "failed", result, updateError.message);
+      await recordScrubRun(admin, startedAt, {
+        status: "failed",
+        dryRun,
+        retentionDays,
+        cutoff,
+        eligible: result.eligible,
+        scrubbed: result.scrubbed,
+        ids: result.ids,
+        errorMessage: updateError.message,
+      });
       return json(500, { error: "support_pii_update_failed", details: updateError.message });
     }
 
@@ -145,5 +209,14 @@ serve(async (req) => {
   }
 
   await recordCronJobResult(admin, startedAt, "succeeded", result);
+  await recordScrubRun(admin, startedAt, {
+    status: "succeeded",
+    dryRun,
+    retentionDays,
+    cutoff,
+    eligible: result.eligible,
+    scrubbed: result.scrubbed,
+    ids: result.ids,
+  });
   return json(200, { ok: true, ...result });
 });
