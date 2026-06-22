@@ -148,7 +148,7 @@ Daily job `process-storage-orphans` calls `reconcile_storage_orphans`:
 4. Queue only admin-approved candidates into `storage_deletion_jobs`.
 
 ### 4.4 Launch gaps
-- Basic admin review UI for `storage_orphan_candidates` exists in the Admin Database panel; bulk actions are still pending.
+- Admin review UI for `storage_orphan_candidates` exists in the Admin Database panel, including per-row and visible-candidate bulk actions.
 - No bucket-level lifecycle rule (e.g., auto-delete quarantine prefixes after 30 days).
 - No per-bucket size cap independent of `storage_usage` accounting.
 
@@ -267,7 +267,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 4. Re-signup conflict guard codified in signup/auth creation paths.
 
 **P1 (first 30 days post-launch)**
-5. Bulk orphan review actions + richer storage drift alerting.
+5. Richer storage drift alerting.
 6. Server-managed user export bundles for strict download-cap enforcement.
 7. Formal legal hold review workflow/assignment.
 8. Legal/counsel review of public retention schedule.

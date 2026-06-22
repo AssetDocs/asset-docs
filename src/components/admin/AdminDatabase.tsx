@@ -245,6 +245,46 @@ const AdminDatabase = () => {
     }
   };
 
+  const updateBulkOrphanStatus = async (status: 'approved' | 'ignored') => {
+    const pendingIds = orphanCandidates
+      .filter((candidate) => candidate.status === 'candidate')
+      .map((candidate) => candidate.id);
+
+    if (pendingIds.length === 0) return;
+
+    setActionLoading(`bulk-${status}`);
+    try {
+      const { data: authData } = await supabase.auth.getUser();
+      const now = new Date().toISOString();
+      const patch =
+        status === 'approved'
+          ? {
+              status,
+              approved_at: now,
+              approved_by: authData.user?.id ?? null,
+              notes: `Bulk approved ${pendingIds.length} candidate(s) from Admin Database storage operations panel`,
+            }
+          : {
+              status,
+              notes: `Bulk ignored ${pendingIds.length} candidate(s) from Admin Database storage operations panel`,
+            };
+
+      const { error } = await supabase
+        .from('storage_orphan_candidates')
+        .update(patch)
+        .in('id', pendingIds);
+
+      if (error) throw error;
+      await loadDatabaseStats();
+    } catch (error) {
+      console.error('Error bulk updating storage orphan candidates:', error);
+      setRecentErrors(['Failed to bulk update storage orphan candidates']);
+      setHealthStatus('error');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -429,10 +469,31 @@ const AdminDatabase = () => {
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Storage Orphan Review</CardTitle>
-            <CardDescription>
-              Review objects found in storage with no matching database row. Approved rows are queued by the next orphan sweeper run.
-            </CardDescription>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <CardTitle>Storage Orphan Review</CardTitle>
+                <CardDescription>
+                  Review objects found in storage with no matching database row. Approved rows are queued by the next orphan sweeper run.
+                </CardDescription>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={getOrphanCount('candidate') === 0 || !!actionLoading}
+                  onClick={() => updateBulkOrphanStatus('ignored')}
+                >
+                  Ignore All
+                </Button>
+                <Button
+                  size="sm"
+                  disabled={getOrphanCount('candidate') === 0 || !!actionLoading}
+                  onClick={() => updateBulkOrphanStatus('approved')}
+                >
+                  Approve All
+                </Button>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             {loading ? (
