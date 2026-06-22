@@ -64,6 +64,12 @@ interface StorageBucketLifecycleStatus {
   launch_required: boolean;
   retention_rule: string;
   notes: string | null;
+  max_bucket_bytes: number | null;
+  alert_threshold_ratio: number;
+  actual_total_bytes: number;
+  cap_usage_ratio: number | null;
+  within_size_cap: boolean;
+  size_alert: boolean;
 }
 
 const AdminDatabase = () => {
@@ -210,6 +216,10 @@ const AdminDatabase = () => {
         issues.push('Storage bucket public/private setting mismatch');
       }
 
+      if (bucketLifecycleData?.some((bucket) => bucket.size_alert || bucket.within_size_cap === false)) {
+        issues.push('Storage bucket size cap needs attention');
+      }
+
       setRecentErrors(issues);
       setHealthStatus(issues.length > 0 ? 'warning' : 'healthy');
 
@@ -266,18 +276,27 @@ const AdminDatabase = () => {
   };
 
   const getBucketLifecycleIssueCount = () => {
-    return bucketLifecycleStatuses.filter((bucket) => !bucket.bucket_exists || !bucket.public_matches).length;
+    return bucketLifecycleStatuses.filter((bucket) => (
+      !bucket.bucket_exists
+      || !bucket.public_matches
+      || bucket.size_alert
+      || bucket.within_size_cap === false
+    )).length;
   };
 
   const getBucketLifecycleBadgeClass = (bucket: StorageBucketLifecycleStatus) => {
     if (!bucket.bucket_exists) return 'bg-red-500';
+    if (bucket.within_size_cap === false) return 'bg-red-500';
     if (!bucket.public_matches) return 'bg-yellow-500';
+    if (bucket.size_alert) return 'bg-yellow-500';
     return 'bg-green-500';
   };
 
   const getBucketLifecycleLabel = (bucket: StorageBucketLifecycleStatus) => {
     if (!bucket.bucket_exists) return 'missing';
+    if (bucket.within_size_cap === false) return 'over cap';
     if (!bucket.public_matches) return 'visibility mismatch';
+    if (bucket.size_alert) return 'near cap';
     return bucket.actual_public ? 'public' : 'private';
   };
 
@@ -576,6 +595,7 @@ const AdminDatabase = () => {
                   <TableHead>Data Class</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Cleanup</TableHead>
+                  <TableHead className="text-right">Usage / Cap</TableHead>
                   <TableHead>Retention</TableHead>
                 </TableRow>
               </TableHeader>
@@ -595,6 +615,17 @@ const AdminDatabase = () => {
                       </Badge>
                     </TableCell>
                     <TableCell className="font-mono text-xs">{bucket.cleanup_owner}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="font-medium">{formatBytes(bucket.actual_total_bytes || 0)}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {bucket.max_bucket_bytes ? `${formatBytes(bucket.max_bucket_bytes)} cap` : 'No cap'}
+                      </div>
+                      {bucket.cap_usage_ratio !== null && (
+                        <div className="text-xs text-muted-foreground">
+                          {(Number(bucket.cap_usage_ratio) * 100).toFixed(1)}%
+                        </div>
+                      )}
+                    </TableCell>
                     <TableCell>
                       <div className="max-w-[420px] text-sm">{bucket.retention_rule}</div>
                       {bucket.lifecycle_days && (
@@ -615,7 +646,7 @@ const AdminDatabase = () => {
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>Bucket Policy Mismatch</AlertTitle>
               <AlertDescription>
-                Create missing launch-required buckets through the Storage UI and keep public access aligned with the expected policy.
+                Create missing launch-required buckets through the Storage UI, keep public access aligned, and review any bucket approaching or exceeding its operational cap.
               </AlertDescription>
             </Alert>
           )}

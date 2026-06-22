@@ -97,6 +97,7 @@ For each bucket, record:
 - Data class.
 - Whether objects are user content, generated exports, quarantine/review objects, or system artifacts.
 - Expected retention.
+- Operational max bucket size and alert threshold.
 - Whether objects are deleted by edge function, admin review, bucket lifecycle rule, or manual operator action.
 - Whether public access is disabled.
 
@@ -113,7 +114,7 @@ Open launch decision:
 
 - If Supabase bucket lifecycle rules are available for the production plan, configure auto-delete for `exports/` and quarantine/temp prefixes.
 - If bucket lifecycle rules are not available, keep deletion in scheduled edge functions and document the manual fallback.
-- After any bucket is added through the Storage UI, add or update the matching `storage_bucket_lifecycle_policies` row and confirm Admin Database reports the expected status.
+- After any bucket is added through the Storage UI, add or update the matching `storage_bucket_lifecycle_policies` row and confirm Admin Database reports the expected status and cap usage.
 
 ## 4. Cron Health Launch Verification
 

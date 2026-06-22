@@ -153,8 +153,8 @@ Daily job `process-storage-orphans` calls `reconcile_storage_orphans`:
 ### 4.4 Launch gaps
 - Admin review UI for `storage_orphan_candidates` exists in the Admin Database panel, including per-row and visible-candidate bulk actions.
 - Canonical bucket lifecycle policy registry exists as `storage_bucket_lifecycle_policies`; Admin Database compares expected buckets/privacy against `storage.buckets` through `get_storage_bucket_lifecycle_status`.
+- Independent operational bucket caps exist on `storage_bucket_lifecycle_policies`; Admin Database shows live bucket bytes from `storage.objects` and flags near/over-cap buckets.
 - Provider-level bucket lifecycle rules (e.g., auto-delete quarantine prefixes after 30 days) remain an external Supabase/storage configuration decision.
-- No per-bucket size cap independent of `storage_usage` accounting.
 
 ---
 
@@ -258,7 +258,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 | Closure / deletion requests | Partially in Admin | Unified queue with grace clock |
 | Export audit | Admin Export Audit view for `account_export_audit`; continuity forensics remain in continuity surfaces; managed bundle rows show path, expiry, and download count | Add background/server worker if browser assembly becomes too slow for large accounts |
 | Storage drift | Admin Database panel reads `storage_usage_reconciliation_state` and drift cron health | Add external paging/Slack routing if drift stays noisy |
-| Bucket lifecycle | Admin Database panel reads `get_storage_bucket_lifecycle_status` and flags missing/public-private mismatched buckets | Configure provider-level lifecycle rules where Supabase supports them |
+| Bucket lifecycle | Admin Database panel reads `get_storage_bucket_lifecycle_status` and flags missing/public-private mismatched buckets plus near/over-cap storage buckets | Configure provider-level lifecycle rules where Supabase supports them |
 | Legal hold | Admin Cancellations controls backed by DB flags/RPCs on closure requests and tombstones | Add formal legal review workflow/assignment if volume warrants |
 | Restore drill log | Admin Restore panel backed by `restore_drill_runs` | Use during the pre-launch PITR drill and quarterly thereafter |
 
@@ -289,4 +289,4 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 
 ## 11. Open Questions for Developer Review
 1. Confirm post-launch whether the documented closure/deletion table boundaries still hold after real admin usage.
-2. Should any additional buckets be added to `storage_bucket_lifecycle_policies` before launch?
+2. Should any operational bucket caps in `storage_bucket_lifecycle_policies` be raised/lowered before launch?
