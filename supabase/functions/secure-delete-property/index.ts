@@ -35,6 +35,42 @@ function json(status: number, body: unknown) {
   });
 }
 
+async function enqueueStorageDeletionJobs(
+  admin: ReturnType<typeof createClient>,
+  params: {
+    bucket: string;
+    paths: string[];
+    propertyId: string;
+    ownerUserId: string;
+  },
+) {
+  const uniquePaths = [...new Set(params.paths.filter(Boolean))];
+  if (uniquePaths.length === 0) return;
+
+  const { error } = await admin
+    .from("storage_deletion_jobs")
+    .insert(uniquePaths.map((path) => ({
+      bucket: params.bucket,
+      object_path: path,
+      source: "secure-delete-property",
+      source_table: "properties",
+      source_record_id: params.propertyId,
+      owner_user_id: params.ownerUserId,
+      account_id: params.ownerUserId,
+      status: "pending",
+      next_attempt_at: new Date().toISOString(),
+    })));
+
+  if (error) {
+    console.error("secure-delete-property: failed to enqueue storage deletion jobs", {
+      property_id: params.propertyId,
+      bucket: params.bucket,
+      count: uniquePaths.length,
+      err: error.message,
+    });
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -120,6 +156,12 @@ serve(async (req) => {
         const { error: rmErr } = await admin.storage.from(bucket).remove(paths);
         if (rmErr) {
           console.warn(`storage.remove ${bucket} partial failure:`, rmErr.message);
+          await enqueueStorageDeletionJobs(admin, {
+            bucket,
+            paths,
+            propertyId: propertyId!,
+            ownerUserId: callerId,
+          });
         }
       }
       processed += files.length;

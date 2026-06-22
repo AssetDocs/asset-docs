@@ -141,7 +141,8 @@ Decision record: `docs/AssetSafe_Closure_Deletion_Table_Matrix.md`.
 
 ### 4.2 Pending deletion queues
 - `list-pending-file-deletions` and `list-pending-property-deletions` already surface items awaiting confirmation.
-- **Missing:** a write-side counterpart that *enqueues* (currently most deletes are immediate). Decide: immediate vs queued+sweeper.
+- User-facing deletes still attempt immediate storage cleanup for a fast UX, but storage failures now enqueue durable `storage_deletion_jobs` with a `source_record_id` for retry/ops traceability.
+- Account deletion and approved orphan cleanup enqueue directly into `storage_deletion_jobs`; `process-storage-deletion-jobs` handles retries and treats missing objects as idempotent success.
 
 ### 4.3 Orphan detection
 Daily job `process-storage-orphans` calls `reconcile_storage_orphans`:

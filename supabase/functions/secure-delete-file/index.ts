@@ -166,6 +166,41 @@ function isNotFoundStorageError(
   );
 }
 
+async function enqueueStorageDeletionJob(
+  admin: ReturnType<typeof createClient>,
+  params: {
+    bucket: string;
+    objectPath: string;
+    sourceTable: string;
+    sourceRecordId: string;
+    ownerUserId: string;
+    source: string;
+  },
+) {
+  const { error } = await admin
+    .from("storage_deletion_jobs")
+    .insert({
+      bucket: params.bucket,
+      object_path: params.objectPath,
+      source: params.source,
+      source_table: params.sourceTable,
+      source_record_id: params.sourceRecordId,
+      owner_user_id: params.ownerUserId,
+      account_id: params.ownerUserId,
+      status: "pending",
+      next_attempt_at: new Date().toISOString(),
+    });
+
+  if (error) {
+    console.error("secure-delete-file: failed to enqueue storage deletion job", {
+      bucket: params.bucket,
+      source_table: params.sourceTable,
+      source_record_id: params.sourceRecordId,
+      err: error.message,
+    });
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -303,6 +338,14 @@ serve(async (req) => {
           id,
           bucket,
           err: errMsg,
+        });
+        await enqueueStorageDeletionJob(admin, {
+          bucket: bucket!,
+          objectPath: path!,
+          source: "secure-delete-file",
+          sourceTable: def.table,
+          sourceRecordId: id,
+          ownerUserId: rowUserId,
         });
         await releaseLease(errMsg);
         return json(409, {
