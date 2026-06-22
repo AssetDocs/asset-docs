@@ -247,7 +247,7 @@ Recommended default SLAs:
 ### P0 before launch
 
 1. Document and enforce a conflict policy when multiple Legacy Admins, secondary Legacy Admins, or delegates submit competing continuity/recovery requests.
-2. Add an explicit continuity review SLA clock to admin queues so overdue requests and owner disputes surface without manual counting.
+2. Continuity review SLA clock exists on `account_continuity_requests`; Request Queue and Active Reviews surface overdue, due-soon, and disputed cases.
 3. Confirm owner dispute queue handling: who reviews, what statuses resolve a dispute, and whether a freeze is always applied on dispute.
 4. Confirm proof requirements for death/incapacity/authority with counsel or owner sign-off.
 
