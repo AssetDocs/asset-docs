@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
@@ -41,6 +42,11 @@ const AdminCancellations: React.FC = () => {
   const [legalHoldTarget, setLegalHoldTarget] = useState<{ type: 'closure' | 'deleted'; row: any } | null>(null);
   const [legalHoldReason, setLegalHoldReason] = useState('');
   const [legalHoldLoading, setLegalHoldLoading] = useState<string | null>(null);
+  const [reviewTarget, setReviewTarget] = useState<{ type: 'closure' | 'deleted'; row: any } | null>(null);
+  const [reviewStatus, setReviewStatus] = useState('needs_review');
+  const [reviewAssignee, setReviewAssignee] = useState('');
+  const [reviewDueDate, setReviewDueDate] = useState('');
+  const [reviewNotes, setReviewNotes] = useState('');
 
   const loadData = async () => {
     setLoading(true);
@@ -68,7 +74,9 @@ const AdminCancellations: React.FC = () => {
     const ids = new Set<string>();
     cRows.forEach((r) => r.owner_user_id && ids.add(r.owner_user_id));
     kRows.forEach((r) => r.owner_user_id && ids.add(r.owner_user_id));
+    kRows.forEach((r) => r.legal_hold_assigned_to && ids.add(r.legal_hold_assigned_to));
     dRows.forEach((r) => r.original_user_id && ids.add(r.original_user_id));
+    dRows.forEach((r) => r.legal_hold_assigned_to && ids.add(r.legal_hold_assigned_to));
     drRows.forEach((r) => r.account_owner_id && ids.add(r.account_owner_id));
 
     if (ids.size > 0) {
@@ -137,6 +145,14 @@ const AdminCancellations: React.FC = () => {
     setLegalHoldReason(row.legal_hold_reason || '');
   };
 
+  const openReviewDialog = (type: 'closure' | 'deleted', row: any) => {
+    setReviewTarget({ type, row });
+    setReviewStatus(row.legal_hold_review_status || 'needs_review');
+    setReviewAssignee(row.legal_hold_assigned_to || '');
+    setReviewDueDate(row.legal_hold_review_due_at ? row.legal_hold_review_due_at.slice(0, 10) : '');
+    setReviewNotes(row.legal_hold_review_notes || '');
+  };
+
   const applyLegalHold = async () => {
     if (!legalHoldTarget || !legalHoldReason.trim()) return;
     setLegalHoldLoading(legalHoldTarget.row.id);
@@ -190,6 +206,35 @@ const AdminCancellations: React.FC = () => {
     }
   };
 
+  const saveLegalHoldReview = async () => {
+    if (!reviewTarget) return;
+    setLegalHoldLoading(reviewTarget.row.id);
+    try {
+      const dueAt = reviewDueDate ? new Date(`${reviewDueDate}T12:00:00`).toISOString() : null;
+      const { error } = await supabase.rpc('update_legal_hold_review', {
+        p_record_type: reviewTarget.type,
+        p_record_id: reviewTarget.row.id,
+        p_review_status: reviewStatus,
+        p_assigned_to: reviewAssignee.trim() || null,
+        p_review_due_at: dueAt,
+        p_review_notes: reviewNotes.trim() || null,
+      });
+
+      if (error) throw error;
+      toast({ title: 'Legal hold review updated', description: 'Assignment and review status were saved.' });
+      setReviewTarget(null);
+      await loadData();
+    } catch (error: any) {
+      toast({
+        title: 'Unable to update legal hold review',
+        description: error?.message || 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLegalHoldLoading(null);
+    }
+  };
+
   const LegalHoldBadge = ({ row }: { row: any }) => (
     row.legal_hold ? (
       <Badge variant="destructive" title={row.legal_hold_reason || 'Legal hold active'}>Legal hold</Badge>
@@ -200,14 +245,24 @@ const AdminCancellations: React.FC = () => {
 
   const LegalHoldActions = ({ type, row }: { type: 'closure' | 'deleted'; row: any }) => (
     row.legal_hold ? (
-      <Button
-        size="sm"
-        variant="outline"
-        disabled={legalHoldLoading === row.id}
-        onClick={() => releaseLegalHold(type, row)}
-      >
-        Release
-      </Button>
+      <div className="flex justify-end gap-2">
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={legalHoldLoading === row.id}
+          onClick={() => openReviewDialog(type, row)}
+        >
+          Review
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={legalHoldLoading === row.id}
+          onClick={() => releaseLegalHold(type, row)}
+        >
+          Release
+        </Button>
+      </div>
     ) : (
       <Button
         size="sm"
@@ -219,6 +274,26 @@ const AdminCancellations: React.FC = () => {
       </Button>
     )
   );
+
+  const LegalHoldReviewCell = ({ row }: { row: any }) => {
+    if (!row.legal_hold) return <span className="text-muted-foreground">-</span>;
+    const dueAt = row.legal_hold_review_due_at ? new Date(row.legal_hold_review_due_at) : null;
+    const overdue = dueAt ? dueAt.getTime() < Date.now() && row.legal_hold_review_status !== 'resolved' : false;
+
+    return (
+      <div className="space-y-1 text-sm">
+        <Badge variant={overdue ? 'destructive' : 'secondary'}>
+          {row.legal_hold_review_status || 'needs_review'}
+        </Badge>
+        <div className="text-xs text-muted-foreground">
+          Due {dueAt ? format(dueAt, 'PP') : '-'}
+        </div>
+        <div className="text-xs text-muted-foreground">
+          Assigned {nameOf(row.legal_hold_assigned_to)}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -371,6 +446,7 @@ const AdminCancellations: React.FC = () => {
                       <TableHead>Requested</TableHead>
                       <TableHead>Scheduled Deletion</TableHead>
                       <TableHead>Hold</TableHead>
+                      <TableHead>Review</TableHead>
                       <TableHead className="text-right">Action</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -385,11 +461,12 @@ const AdminCancellations: React.FC = () => {
                         <TableCell className="whitespace-nowrap">{row.request_date ? format(new Date(row.request_date), 'PP') : '—'}</TableCell>
                         <TableCell className="whitespace-nowrap">{row.deletion_scheduled_date ? format(new Date(row.deletion_scheduled_date), 'PP') : '—'}</TableCell>
                         <TableCell><LegalHoldBadge row={row} /></TableCell>
+                        <TableCell><LegalHoldReviewCell row={row} /></TableCell>
                         <TableCell className="text-right"><LegalHoldActions type="closure" row={row} /></TableCell>
                       </TableRow>
                     ))}
                     {pendingClosures.length === 0 && (
-                      <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground">No pending closure requests</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground">No pending closure requests</TableCell></TableRow>
                     )}
                   </TableBody>
                 </Table>
@@ -441,6 +518,7 @@ const AdminCancellations: React.FC = () => {
                       <TableHead>Deleted On</TableHead>
                       <TableHead>Deleted By</TableHead>
                       <TableHead>Hold</TableHead>
+                      <TableHead>Review</TableHead>
                       <TableHead className="text-right">Action</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -454,11 +532,12 @@ const AdminCancellations: React.FC = () => {
                         <TableCell className="whitespace-nowrap">{row.deleted_at ? format(new Date(row.deleted_at), 'PP') : '—'}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{row.deleted_by || '—'}</TableCell>
                         <TableCell><LegalHoldBadge row={row} /></TableCell>
+                        <TableCell><LegalHoldReviewCell row={row} /></TableCell>
                         <TableCell className="text-right"><LegalHoldActions type="deleted" row={row} /></TableCell>
                       </TableRow>
                     ))}
                     {deleted.length === 0 && (
-                      <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">No deleted accounts</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground">No deleted accounts</TableCell></TableRow>
                     )}
                   </TableBody>
                 </Table>
@@ -490,6 +569,66 @@ const AdminCancellations: React.FC = () => {
             <Button variant="outline" onClick={() => setLegalHoldTarget(null)}>Cancel</Button>
             <Button onClick={applyLegalHold} disabled={!legalHoldReason.trim() || !!legalHoldLoading}>
               Apply Hold
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!reviewTarget} onOpenChange={(open) => !open && setReviewTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Legal Hold Review</DialogTitle>
+            <DialogDescription>
+              Track ownership, status, and next review date while this legal hold remains active.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="legal-hold-review-status">Status</Label>
+              <select
+                id="legal-hold-review-status"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={reviewStatus}
+                onChange={(event) => setReviewStatus(event.target.value)}
+              >
+                <option value="needs_review">Needs review</option>
+                <option value="in_review">In review</option>
+                <option value="resolved">Resolved</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="legal-hold-assignee">Assigned user ID</Label>
+              <Input
+                id="legal-hold-assignee"
+                value={reviewAssignee}
+                onChange={(event) => setReviewAssignee(event.target.value)}
+                placeholder="Admin user ID"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="legal-hold-due-date">Review due date</Label>
+              <Input
+                id="legal-hold-due-date"
+                type="date"
+                value={reviewDueDate}
+                onChange={(event) => setReviewDueDate(event.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="legal-hold-review-notes">Notes</Label>
+              <Textarea
+                id="legal-hold-review-notes"
+                value={reviewNotes}
+                onChange={(event) => setReviewNotes(event.target.value)}
+                placeholder="Review owner, counsel status, next action..."
+                rows={4}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReviewTarget(null)}>Cancel</Button>
+            <Button onClick={saveLegalHoldReview} disabled={!!legalHoldLoading}>
+              Save Review
             </Button>
           </DialogFooter>
         </DialogContent>
