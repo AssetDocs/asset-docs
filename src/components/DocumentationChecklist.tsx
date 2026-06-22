@@ -7,6 +7,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { ChevronDown, ChevronRight, ClipboardList, Home, Building2, Users, Factory } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
+import { useAccount } from '@/contexts/AccountContext';
+import { recordDashboardResumeActivity } from '@/lib/dashboardResume';
 
 interface ChecklistItem {
   id: string;
@@ -64,6 +66,17 @@ const DocumentationChecklist: React.FC<DocumentationChecklistProps> = ({ embedde
     industrial: 'room',
   });
   const { toast } = useToast();
+  const { accountId, isOwner } = useAccount();
+
+  const rememberChecklist = (label = 'Open Documentation Checklist') => {
+    recordDashboardResumeActivity({
+      accountId,
+      isOwner,
+      activityType: 'documentation_checklist_opened',
+      activityLabel: label,
+      destinationRoute: '/account#documentation-checklist',
+    });
+  };
 
   const toggleViewMode = (tab: string) => {
     setViewModes(prev => ({
@@ -500,6 +513,7 @@ const DocumentationChecklist: React.FC<DocumentationChecklistProps> = ({ embedde
     }
     setCheckedItems(newCheckedItems);
     localStorage.setItem('documentationChecklistItems', JSON.stringify([...newCheckedItems]));
+    rememberChecklist('Continue Documentation Checklist');
   };
 
   // Calculate progress for a specific checklist
@@ -693,7 +707,13 @@ const DocumentationChecklist: React.FC<DocumentationChecklistProps> = ({ embedde
         </div>
       ) : (
         <div className="w-full bg-card border border-border rounded-lg overflow-hidden">
-          <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+          <Collapsible
+            open={isOpen}
+            onOpenChange={(open) => {
+              setIsOpen(open);
+              if (open) rememberChecklist();
+            }}
+          >
             <CollapsibleTrigger asChild>
               <button className="w-full px-6 py-4 flex items-center justify-between gap-3 cursor-pointer hover:bg-muted/30 transition-colors">
                   <div className="flex items-center gap-3">

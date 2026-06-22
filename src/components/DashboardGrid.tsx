@@ -10,9 +10,11 @@ import MFADropdown from '@/components/MFADropdown';
 import EmergencyInstructions from '@/components/EmergencyInstructions';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useAccount } from '@/contexts/AccountContext';
 import { useUnreadNotifications } from '@/hooks/useUnreadNotifications';
 import { useCalendarNotifications } from '@/hooks/useCalendarNotifications';
 import AssetValuesSection from '@/components/AssetValuesSection';
+import { recordDashboardResumeActivity } from '@/lib/dashboardResume';
 import {
   Settings,
   Home,
@@ -41,6 +43,7 @@ interface DashboardGridProps {
 const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { accountId, isOwner } = useAccount();
   const { toast } = useToast();
   const [isDownloading, setIsDownloading] = useState(false);
   const [isAssetValuesOpen, setIsAssetValuesOpen] = useState(() => {
@@ -102,6 +105,36 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
     }
   };
 
+  const rememberAndOpen = (
+    tab: string,
+    activityType: Parameters<typeof recordDashboardResumeActivity>[0]['activityType'],
+    activityLabel: string
+  ) => {
+    recordDashboardResumeActivity({
+      accountId,
+      isOwner,
+      activityType,
+      activityLabel,
+      destinationRoute: `/account?tab=${tab}`,
+    });
+    onTabChange(tab);
+  };
+
+  const rememberAndNavigate = (
+    route: string,
+    activityType: Parameters<typeof recordDashboardResumeActivity>[0]['activityType'],
+    activityLabel: string
+  ) => {
+    recordDashboardResumeActivity({
+      accountId,
+      isOwner,
+      activityType,
+      activityLabel,
+      destinationRoute: route,
+    });
+    navigate(route);
+  };
+
   return (
     <div className="space-y-6">
       {/* Main Grid - 2 columns */}
@@ -114,7 +147,7 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           tags={['Photos', 'Videos', 'Documents', 'Records']}
           actionLabel="Open Documentation"
           actionIcon={<FolderOpen className="h-4 w-4" />}
-          onClick={() => onTabChange('asset-documentation')}
+          onClick={() => rememberAndOpen('asset-documentation', 'asset_documentation_opened', 'Open Asset Documentation')}
           color="red"
         />
 
@@ -125,12 +158,12 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           tags={['VIP Contacts', 'Voice Notes', 'Trusted Pros', 'Notes & Traditions', 'Family Recipes']}
           actionLabel="Open Family Archive"
           actionIcon={<FolderOpen className="h-4 w-4" />}
-          onClick={() => onTabChange('life-hub')}
+          onClick={() => rememberAndOpen('life-hub', 'family_archive_opened', 'Open Family Archive')}
           color="red"
         />
 
         {/* Documentation Checklist - collapsed by default */}
-        <div className="md:col-span-2">
+        <div id="documentation-checklist" className="md:col-span-2">
           <DocumentationChecklist />
         </div>
 
@@ -154,7 +187,7 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           tags={['Instructions', 'Access', 'Recovery']}
           actionLabel="Open Legacy Locker"
           actionIcon={<Shield className="h-4 w-4" />}
-          onClick={() => onTabChange('legacy-locker')}
+          onClick={() => rememberAndOpen('legacy-locker', 'legacy_locker_opened', 'Complete Legacy Locker details')}
           color="yellow"
         />
 
@@ -165,7 +198,7 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           tags={['Websites', 'Logins', 'Sensitive Data']}
           actionLabel="Open Digital Access"
           actionIcon={<Key className="h-4 w-4" />}
-          onClick={() => onTabChange('password-catalog')}
+          onClick={() => rememberAndOpen('password-catalog', 'digital_access_opened', 'Open Digital Access')}
           color="yellow"
         />
 
@@ -191,7 +224,7 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           tags={['Smart Calendar', 'Asset Values', 'Manual Entry', 'Upgrades & Repairs', 'Source Websites', 'Paint Codes']}
           actionLabel="Open Tools"
           actionIcon={<Wrench className="h-4 w-4" />}
-          onClick={() => onTabChange('insights-tools')}
+          onClick={() => rememberAndOpen('insights-tools', 'insights_tools_opened', 'Open Insights & Tools')}
           color="green"
         />
 
@@ -203,7 +236,7 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           tags={['All Homes', 'Vacation Houses', 'Rentals']}
           actionLabel="View Profiles"
           actionIcon={<Home className="h-4 w-4" />}
-          onClick={() => navigate('/account/properties')}
+          onClick={() => rememberAndNavigate('/account/properties', 'property_opened', 'Open Property Profiles')}
           color="blue"
         />
 
@@ -257,7 +290,7 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           tags={['Invite Users', 'Roles', 'Activity Log']}
           actionLabel="Manage Access & Activity"
           actionIcon={<Users className="h-4 w-4" />}
-          onClick={() => onTabChange('access-activity')}
+          onClick={() => rememberAndOpen('access-activity', 'authorized_users_opened', 'Manage Authorized Users')}
           color="blue"
         />
         {/* Emergency Instructions Collapsible */}

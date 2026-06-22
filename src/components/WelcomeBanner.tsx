@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useAccount } from '@/contexts/AccountContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useDashboardResumePrompt } from '@/hooks/useDashboardResumePrompt';
 import AccountSwitcher from '@/components/AccountSwitcher';
 
 interface WelcomeBannerProps {
@@ -21,6 +22,7 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange }) => {
   const [hideInstallPrompt, setHideInstallPrompt] = useState(false);
   const [isAppInstalled, setIsAppInstalled] = useState(false);
   const [isInstallPromptCollapsed, setIsInstallPromptCollapsed] = useState(false);
+  const resumePrompt = useDashboardResumePrompt();
 
   useEffect(() => {
     const fetchAccountNumber = async () => {
@@ -100,6 +102,24 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange }) => {
               <p className="text-white/70 text-sm mt-2">
                 Everything you document today - protects you for tomorrow.
               </p>
+              {resumePrompt && (
+                <div className="mt-2 text-xs text-white/80">
+                  {resumePrompt.kind === 'status' ? (
+                    <span>{resumePrompt.message}</span>
+                  ) : (
+                    <Link
+                      to={resumePrompt.route}
+                      className="inline-flex items-center gap-1 text-white/85 hover:text-white transition-colors"
+                    >
+                      <span className="font-medium">{resumePrompt.prefix}</span>
+                      <span className="underline decoration-white/30 underline-offset-2">
+                        {resumePrompt.label}
+                      </span>
+                      <span aria-hidden="true">-&gt;</span>
+                    </Link>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="flex flex-col gap-2 sm:items-end">

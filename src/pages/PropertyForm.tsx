@@ -13,6 +13,7 @@ import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { PropertyService } from '@/services/PropertyService';
 import { useAccount } from '@/contexts/AccountContext';
 import { useToast } from '@/hooks/use-toast';
+import { recordDashboardResumeActivity } from '@/lib/dashboardResume';
 
 // Parse a possibly-formatted currency string like "$425,000" or "425000" → number | null.
 const parseCurrency = (value: string): number | null => {
@@ -32,7 +33,7 @@ const parseIntOrNull = (value: string): number | null => {
 const PropertyForm: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { canEdit: canWrite, showReadOnlyRestriction } = useAccount();
+  const { canEdit: canWrite, showReadOnlyRestriction, accountId, isOwner } = useAccount();
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -84,6 +85,16 @@ const PropertyForm: React.FC = () => {
         });
         return;
       }
+
+      await recordDashboardResumeActivity({
+        accountId,
+        isOwner,
+        activityType: 'property_created',
+        activityLabel: `Upload photos to ${created.name}`,
+        destinationRoute: `/account/properties/${created.id}/assets`,
+        relatedEntityType: 'property',
+        relatedEntityId: created.id,
+      });
 
       toast({ title: 'Property saved', description: `${created.name} was added.` });
       navigate('/account/properties');

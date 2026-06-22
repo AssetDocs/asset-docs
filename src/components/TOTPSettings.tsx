@@ -9,6 +9,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useVerification } from '@/hooks/useVerification';
 import TOTPSetup from './TOTPSetup';
 import { logActivity } from '@/hooks/useActivityLog';
+import { useAccount } from '@/contexts/AccountContext';
+import { recordDashboardResumeActivity } from '@/lib/dashboardResume';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +26,7 @@ const TOTPSettings: React.FC = () => {
   const { toast } = useToast();
   const { factors, isEnrolled, isLoading, unenroll, refetch } = useTOTP();
   const { refreshVerification, status: verificationStatus } = useVerification();
+  const { accountId, isOwner } = useAccount();
   const [showSetup, setShowSetup] = useState(false);
   const [showDisableConfirm, setShowDisableConfirm] = useState(false);
   const [disabling, setDisabling] = useState(false);
@@ -96,6 +99,13 @@ const TOTPSettings: React.FC = () => {
       resource_type: 'mfa',
       resource_name: 'Authenticator App',
       details: { method: 'totp' }
+    });
+    recordDashboardResumeActivity({
+      accountId,
+      isOwner,
+      activityType: 'mfa_enabled',
+      activityLabel: 'Review MFA settings',
+      destinationRoute: '/account/settings?tab=security',
     });
     
     if (newStatus?.is_verified_plus) {

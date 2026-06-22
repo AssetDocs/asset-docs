@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useAccount } from '@/contexts/AccountContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { supabase } from '@/integrations/supabase/client';
+import { recordDashboardResumeActivity } from '@/lib/dashboardResume';
 
 export const usePropertyFiles = (propertyId: string | null, fileType?: 'photo' | 'video' | 'document') => {
   const [files, setFiles] = useState<PropertyFile[]>([]);
@@ -13,7 +14,7 @@ export const usePropertyFiles = (propertyId: string | null, fileType?: 'photo' |
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
-  const { accountId, ownerUserId, canEdit, isAccountReadOnly, showReadOnlyRestriction } = useAccount();
+  const { accountId, ownerUserId, canEdit, isAccountReadOnly, showReadOnlyRestriction, isOwner } = useAccount();
   const { subscriptionTier, storageQuotaGb } = useSubscription();
 
   const refreshSignedUrls = async (fileList: PropertyFile[]): Promise<PropertyFile[]> => {
@@ -193,6 +194,25 @@ export const usePropertyFiles = (propertyId: string | null, fileType?: 'photo' |
 
       if (uploadedFiles.length > 0) {
         setFiles(prev => [...uploadedFiles, ...prev]);
+        const uploadType = fileType === 'photo'
+          ? 'photos_uploaded'
+          : fileType === 'video'
+            ? 'videos_uploaded'
+            : 'documents_uploaded';
+        const uploadLabel = fileType === 'photo'
+          ? 'Continue uploading property photos'
+          : fileType === 'video'
+            ? 'Continue uploading property videos'
+            : 'Continue uploading property documents';
+        recordDashboardResumeActivity({
+          accountId,
+          isOwner,
+          activityType: uploadType,
+          activityLabel: uploadLabel,
+          destinationRoute: `/account/properties/${propertyId}/assets`,
+          relatedEntityType: 'property',
+          relatedEntityId: propertyId,
+        });
         toast({
           title: 'Upload Successful',
           description: `${uploadedFiles.length} file(s) uploaded successfully`,

@@ -49,6 +49,7 @@ import ContinuityRequestBanner from '@/components/continuity/ContinuityRequestBa
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
+import { recordDashboardResumeActivity } from '@/lib/dashboardResume';
 
 const Account: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -64,12 +65,58 @@ const Account: React.FC = () => {
     return queryTab || stateTab || 'overview';
   });
   const { subscriptionTier } = useSubscription();
-  const { isReadOnly: isViewer, showReadOnlyRestriction: showViewerRestriction, canEdit } = useAccount();
+  const { isReadOnly: isViewer, showReadOnlyRestriction: showViewerRestriction, canEdit, accountId, isOwner } = useAccount();
 
   // Scroll to top when tab changes
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [activeTab]);
+
+  useEffect(() => {
+    const activityByTab: Record<string, { type: any; label: string; route: string }> = {
+      'asset-documentation': {
+        type: 'asset_documentation_opened',
+        label: 'Open Asset Documentation',
+        route: '/account?tab=asset-documentation',
+      },
+      'life-hub': {
+        type: 'family_archive_opened',
+        label: 'Open Family Archive',
+        route: '/account?tab=life-hub',
+      },
+      'password-catalog': {
+        type: 'digital_access_opened',
+        label: 'Open Digital Access',
+        route: '/account?tab=password-catalog',
+      },
+      'legacy-locker': {
+        type: 'legacy_locker_opened',
+        label: 'Complete Legacy Locker details',
+        route: '/account?tab=legacy-locker',
+      },
+      'access-activity': {
+        type: 'authorized_users_opened',
+        label: 'Manage Authorized Users',
+        route: '/account?tab=access-activity',
+      },
+      'emergency-instructions': {
+        type: 'emergency_instructions_opened',
+        label: 'Add emergency instructions',
+        route: '/account?tab=emergency-instructions',
+      },
+    };
+
+    const activity = activityByTab[activeTab];
+    if (!activity) return;
+
+    recordDashboardResumeActivity({
+      accountId,
+      isOwner,
+      activityType: activity.type,
+      activityLabel: activity.label,
+      destinationRoute: activity.route,
+    });
+  }, [activeTab, accountId, isOwner]);
 
   // Sync URL → activeTab when navigating here with a ?tab= param (e.g. from SecurityProgress "Go" CTA)
   // Also reset to overview when the tab param is removed (e.g. clicking Dashboard nav link)
