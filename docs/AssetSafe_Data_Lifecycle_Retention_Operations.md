@@ -220,7 +220,7 @@ Hourly job `process-storage-usage-drift` calls `reconcile_storage_usage_drift`:
 
 ### 7.4 Launch gaps
 - Reconciliation job exists; install/verify production cron from `docs/AssetSafe_Storage_Deletion_Cron_Runbook.md`.
-- No dedicated metric/alert on drift rate beyond `cron_job_health` and `audit_logs`.
+- Admin Database surfaces `process-storage-usage-drift` cron health and high-drift threshold warnings; external paging/Slack routing remains an ops integration decision.
 - Add-on storage blocks (25 GB) — confirm rollup considers entitlement when alerting.
 
 ---
@@ -252,7 +252,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 | Pending file/property deletions | `list-pending-file-deletions`, `list-pending-property-deletions` | Pair with bulk approve/deny |
 | Closure / deletion requests | Partially in Admin | Unified queue with grace clock |
 | Export audit | Admin Export Audit view for `account_export_audit`; continuity forensics remain in continuity surfaces | Add server-managed export bundle lifecycle for strict download caps |
-| Storage drift | Admin Database panel reads `storage_usage_reconciliation_state` | Add richer alerting/reporting if drift stays noisy |
+| Storage drift | Admin Database panel reads `storage_usage_reconciliation_state` and drift cron health | Add external paging/Slack routing if drift stays noisy |
 | Legal hold | Admin Cancellations controls backed by DB flags/RPCs on closure requests and tombstones | Add formal legal review workflow/assignment if volume warrants |
 | Restore drill log | Admin Restore panel backed by `restore_drill_runs` | Use during the pre-launch PITR drill and quarterly thereafter |
 
@@ -267,7 +267,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 4. Re-signup conflict guard codified in signup/auth creation paths.
 
 **P1 (first 30 days post-launch)**
-5. Richer storage drift alerting.
+5. External paging/Slack routing for noisy storage drift, if needed.
 6. Server-managed user export bundles for strict download-cap enforcement.
 7. Formal legal hold review workflow/assignment.
 8. Legal/counsel review of public retention schedule.

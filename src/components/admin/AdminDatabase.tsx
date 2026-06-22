@@ -43,11 +43,21 @@ interface StorageUsageDriftState {
   last_corrected: boolean;
 }
 
+interface CronJobHealthState {
+  health_status: string | null;
+  last_error: string | null;
+  last_result: Record<string, unknown> | null;
+  last_status: string | null;
+  last_succeeded_at: string | null;
+  minutes_since_success: number | null;
+}
+
 const AdminDatabase = () => {
   const [tableStats, setTableStats] = useState<TableStats[]>([]);
   const [storageBuckets, setStorageBuckets] = useState<StorageBucket[]>([]);
   const [orphanCandidates, setOrphanCandidates] = useState<StorageOrphanCandidate[]>([]);
   const [driftStates, setDriftStates] = useState<StorageUsageDriftState[]>([]);
+  const [driftCronHealth, setDriftCronHealth] = useState<CronJobHealthState | null>(null);
   const [recentErrors, setRecentErrors] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -139,6 +149,16 @@ const AdminDatabase = () => {
         setDriftStates(driftData as StorageUsageDriftState[]);
       }
 
+      const { data: driftCronData, error: driftCronError } = await supabase
+        .from('cron_job_health_status')
+        .select('health_status,last_error,last_result,last_status,last_succeeded_at,minutes_since_success')
+        .eq('job_name', 'process-storage-usage-drift')
+        .maybeSingle();
+
+      if (!driftCronError && driftCronData) {
+        setDriftCronHealth(driftCronData as CronJobHealthState);
+      }
+
       // Check for any issues
       const issues: string[] = [];
       
@@ -154,6 +174,10 @@ const AdminDatabase = () => {
 
       if (driftData?.some((state) => state.last_corrected)) {
         issues.push('Recent storage usage drift corrections detected');
+      }
+
+      if (driftCronData?.health_status && driftCronData.health_status !== 'healthy') {
+        issues.push('Storage usage drift cron job needs attention');
       }
 
       setRecentErrors(issues);
@@ -205,6 +229,16 @@ const AdminDatabase = () => {
 
   const getCorrectedDriftCount = () => {
     return driftStates.filter((state) => state.last_corrected).length;
+  };
+
+  const getHighDriftCount = () => {
+    return driftStates.filter((state) => Math.abs(state.last_drift_bytes) > 50 * 1024 * 1024 || Number(state.last_drift_ratio) > 0.05).length;
+  };
+
+  const getDriftCronBadgeClass = () => {
+    if (driftCronHealth?.health_status === 'healthy') return 'bg-green-500';
+    if (driftCronHealth?.health_status === 'critical') return 'bg-red-500';
+    return 'bg-yellow-500';
   };
 
   const formatPercent = (value: number) => {
@@ -559,12 +593,35 @@ const AdminDatabase = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Storage Usage Drift</CardTitle>
-            <CardDescription>
-              Latest reconciliation state from `process-storage-usage-drift`.
-            </CardDescription>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <CardTitle>Storage Usage Drift</CardTitle>
+                <CardDescription>
+                  Latest reconciliation state from `process-storage-usage-drift`.
+                </CardDescription>
+              </div>
+              <Badge className={getDriftCronBadgeClass()}>
+                {driftCronHealth?.health_status || 'unknown'}
+              </Badge>
+            </div>
           </CardHeader>
           <CardContent>
+            <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+              <div className="rounded-md border p-3">
+                <div className="text-muted-foreground">Last success</div>
+                <div className="font-medium">
+                  {driftCronHealth?.last_succeeded_at ? new Date(driftCronHealth.last_succeeded_at).toLocaleString() : '-'}
+                </div>
+              </div>
+              <div className="rounded-md border p-3">
+                <div className="text-muted-foreground">Minutes since success</div>
+                <div className="font-medium">{driftCronHealth?.minutes_since_success ?? '-'}</div>
+              </div>
+              <div className="rounded-md border p-3">
+                <div className="text-muted-foreground">High drift rows</div>
+                <div className="font-medium">{getHighDriftCount()}</div>
+              </div>
+            </div>
             {loading ? (
               <p>Loading...</p>
             ) : driftStates.length > 0 ? (
@@ -611,6 +668,22 @@ const AdminDatabase = () => {
                 <AlertDescription>
                   {getCorrectedDriftCount()} account(s) had storage usage corrected during recent reconciliation.
                 </AlertDescription>
+              </Alert>
+            )}
+            {getHighDriftCount() > 0 && (
+              <Alert className="mt-4" variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>High Drift Detected</AlertTitle>
+                <AlertDescription>
+                  {getHighDriftCount()} account(s) exceeded the 5% or 50 MB drift threshold in the latest visible reconciliation state.
+                </AlertDescription>
+              </Alert>
+            )}
+            {driftCronHealth?.last_error && (
+              <Alert className="mt-4" variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Drift Job Error</AlertTitle>
+                <AlertDescription>{driftCronHealth.last_error}</AlertDescription>
               </Alert>
             )}
           </CardContent>
