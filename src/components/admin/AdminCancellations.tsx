@@ -20,6 +20,15 @@ type ProfileLite = {
   email?: string | null;
 };
 
+type CronHealthLite = {
+  health_status: string | null;
+  last_error: string | null;
+  last_result: Record<string, unknown> | null;
+  last_status: string | null;
+  last_succeeded_at: string | null;
+  minutes_since_success: number | null;
+};
+
 const AdminCancellations: React.FC = () => {
   const { toast } = useToast();
   const [cancellations, setCancellations] = useState<any[]>([]);
@@ -27,6 +36,7 @@ const AdminCancellations: React.FC = () => {
   const [deleted, setDeleted] = useState<any[]>([]);
   const [deletionRequests, setDeletionRequests] = useState<any[]>([]);
   const [profileMap, setProfileMap] = useState<Map<string, ProfileLite>>(new Map());
+  const [closureSweeperHealth, setClosureSweeperHealth] = useState<CronHealthLite | null>(null);
   const [loading, setLoading] = useState(true);
   const [legalHoldTarget, setLegalHoldTarget] = useState<{ type: 'closure' | 'deleted'; row: any } | null>(null);
   const [legalHoldReason, setLegalHoldReason] = useState('');
@@ -34,11 +44,16 @@ const AdminCancellations: React.FC = () => {
 
   const loadData = async () => {
     setLoading(true);
-    const [c, k, d, dr] = await Promise.all([
+    const [c, k, d, dr, health] = await Promise.all([
       supabase.from('subscription_cancellations').select('*').order('cancelled_at', { ascending: false }).limit(500),
       supabase.from('account_closure_requests').select('*').order('request_date', { ascending: false }).limit(500),
       supabase.from('deleted_accounts').select('*').order('deleted_at', { ascending: false }).limit(500),
       supabase.from('account_deletion_requests').select('*').order('requested_at', { ascending: false }).limit(500),
+      supabase
+        .from('cron_job_health_status')
+        .select('health_status,last_error,last_result,last_status,last_succeeded_at,minutes_since_success')
+        .eq('job_name', 'process-account-closures')
+        .maybeSingle(),
     ]);
     const cRows = c.data || [];
     const kRows = k.data || [];
@@ -48,6 +63,7 @@ const AdminCancellations: React.FC = () => {
     setClosures(kRows);
     setDeleted(dRows);
     setDeletionRequests(drRows);
+    setClosureSweeperHealth((health.data || null) as CronHealthLite | null);
 
     const ids = new Set<string>();
     cRows.forEach((r) => r.owner_user_id && ids.add(r.owner_user_id));
@@ -87,6 +103,12 @@ const AdminCancellations: React.FC = () => {
   const AcctBadge = ({ uid }: { uid?: string | null }) => {
     const a = acctOf(uid);
     return a ? <span className="font-mono text-xs bg-muted px-2 py-0.5 rounded">{a}</span> : <span className="text-muted-foreground">—</span>;
+  };
+
+  const sweeperHealthBadgeClass = () => {
+    if (closureSweeperHealth?.health_status === 'healthy') return 'bg-green-500';
+    if (closureSweeperHealth?.health_status === 'critical') return 'bg-red-500';
+    return 'bg-yellow-500';
   };
 
   const reasonCounts = (rows: any[]) => {
@@ -286,6 +308,50 @@ const AdminCancellations: React.FC = () => {
               <CardContent className="text-3xl font-bold">{pendingClosures.filter(c => c.legal_hold).length}</CardContent>
             </Card>
           </div>
+
+          <Card>
+            <CardHeader>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <CardTitle>Closure Sweeper Health</CardTitle>
+                  <CardDescription>
+                    `process-account-closures` executes matured scheduled closures through the delete-account pipeline.
+                  </CardDescription>
+                </div>
+                <Badge className={sweeperHealthBadgeClass()}>
+                  {closureSweeperHealth?.health_status || 'unknown'}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div>
+                <p className="text-muted-foreground">Last success</p>
+                <p className="font-medium">
+                  {closureSweeperHealth?.last_succeeded_at ? format(new Date(closureSweeperHealth.last_succeeded_at), 'PP p') : '—'}
+                </p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Minutes since success</p>
+                <p className="font-medium">{closureSweeperHealth?.minutes_since_success ?? '—'}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Last status</p>
+                <Badge variant={closureSweeperHealth?.last_status === 'failed' ? 'destructive' : 'secondary'}>
+                  {closureSweeperHealth?.last_status || '—'}
+                </Badge>
+              </div>
+              {closureSweeperHealth?.last_error && (
+                <div className="md:col-span-3 rounded-md border border-destructive/40 bg-destructive/5 p-3 text-destructive">
+                  {closureSweeperHealth.last_error}
+                </div>
+              )}
+              {closureSweeperHealth?.last_result && (
+                <div className="md:col-span-3 truncate text-muted-foreground" title={JSON.stringify(closureSweeperHealth.last_result)}>
+                  Last result: {JSON.stringify(closureSweeperHealth.last_result)}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader>

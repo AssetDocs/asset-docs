@@ -233,8 +233,7 @@ Hourly job `process-storage-usage-drift` calls `reconcile_storage_usage_drift`:
 | `check-grace-period-expiry` | exists | hourly | Billing grace flip |
 | `check-gift-reminders` | exists | daily | Gift expiry nudges |
 | `notify-manual-review-backlog` | exists | daily | Ops alert |
-| `sweep-closure-pending` | **missing** | daily | Flip to deletion after 30 d |
-| `sweep-deletion-pending` | **missing** | hourly | Execute `delete-account` after 14 d |
+| `process-account-closures` | function + runbook | hourly batches | Executes matured scheduled closures through `delete-account`; health visible in Admin Cancellations |
 | `process-expired-exports` | function + runbook | hourly | Expire continuity export grants + purge stale `exports/` bucket bundles |
 | `process-storage-orphans` | function + runbook | daily | Storage-vs-DB orphan candidate detection |
 | `process-storage-usage-drift` | function + runbook | hourly batches | Drift correction |
@@ -261,7 +260,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 ## 10. Prioritized Launch Gaps
 
 **P0 (blocking launch)**
-1. Sweepers: `process-account-closures`, `process-expired-exports`; deletion request review remains manual unless approved flow invokes `delete-account`.
+1. Sweepers: `process-account-closures`, `process-expired-exports`; verify production cron health after deployment.
 2. Closure/deletion table matrix documented; consolidation deferred until workflows converge.
 3. Owner-operated PITR restore drill performed and logged in `restore_drill_runs`.
 4. Re-signup conflict guard codified in signup/auth creation paths.
