@@ -125,6 +125,7 @@ Decision record: `docs/AssetSafe_Closure_Deletion_Table_Matrix.md`.
 - Owner closure sweeper exists as `process-account-closures`; verify production cron is installed from the runbook.
 - Deletion request review remains manual; approved requests invoke `delete-account`.
 - Table decision matrix is documented; revisit consolidation after launch only if the workflows converge.
+- `delete-account` collects row-backed storage references and account/user storage prefixes before purging content rows, queues `storage_deletion_jobs`, and attempts storage removal inline.
 
 ---
 
@@ -287,7 +288,6 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 
 ## 11. Open Questions for Developer Review
 1. Confirm post-launch whether the documented closure/deletion table boundaries still hold after real admin usage.
-2. Does `delete-account` today purge storage objects, or only DB rows?
-3. Should any additional buckets be added to `storage_bucket_lifecycle_policies` before launch?
-4. Confirm `deleted_accounts` retention satisfies CCPA/CPRA "right to delete" — tombstone fields must be minimized (email hash vs plaintext).
-5. Should continuity-triggered freezes block the closure/deletion sweepers? (Recommendation: yes, hard block.)
+2. Should any additional buckets be added to `storage_bucket_lifecycle_policies` before launch?
+3. Confirm `deleted_accounts` retention satisfies CCPA/CPRA "right to delete" — tombstone fields must be minimized (email hash vs plaintext).
+4. Should continuity-triggered freezes block the closure/deletion sweepers? (Recommendation: yes, hard block.)

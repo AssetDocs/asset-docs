@@ -24,10 +24,12 @@ const STORAGE_REF_SOURCES = [
   { table: 'receipts', bucket: 'documents', pathColumn: 'receipt_path' },
   { table: 'user_documents', bucket: 'documents', pathColumn: 'file_path' },
   { table: 'memory_safe_items', bucket: 'memory-safe', pathColumn: 'file_path' },
-  { table: 'family_recipes', bucketColumn: 'bucket_name', pathColumn: 'file_path' },
-  { table: 'notes_traditions', bucketColumn: 'bucket_name', pathColumn: 'file_path' },
+  { table: 'family_recipes', bucketColumn: 'bucket_name', fallbackBucket: 'documents', pathColumn: 'file_path' },
+  { table: 'notes_traditions', bucketColumn: 'bucket_name', fallbackBucket: 'documents', pathColumn: 'file_path' },
   { table: 'vip_contact_attachments', bucket: 'contact-attachments', pathColumn: 'file_path' },
   { table: 'paint_codes', bucket: 'photos', pathColumn: 'swatch_image_path' },
+  { table: 'calendar_event_attachments', bucket: 'documents', pathColumn: 'file_path' },
+  { table: 'user_notes', bucketColumn: 'bucket_name', fallbackBucket: 'documents', pathColumn: 'file_path' },
 ] as const;
 
 const STORAGE_REMOVE_BATCH_SIZE = 100;
@@ -67,7 +69,9 @@ async function collectRowBackedStorageRefs(supabaseAdmin: SupabaseAdminClient, u
     }
 
     for (const row of data ?? []) {
-      const bucket = 'bucket' in source ? source.bucket : row[source.bucketColumn];
+      const bucket = 'bucket' in source
+        ? source.bucket
+        : (row[source.bucketColumn] ?? ('fallbackBucket' in source ? source.fallbackBucket : null));
       const path = row[source.pathColumn];
       if (bucket && path) {
         addStorageRef(refs, { bucket, path, source: source.table });
@@ -688,6 +692,8 @@ Deno.serve(async (req) => {
       'damage_reports',
       'insurance_policies',
       'notification_preferences',
+      'calendar_event_attachments',
+      'calendar_events',
       'events',
       'user_roles',
       'paint_codes',
@@ -699,6 +705,7 @@ Deno.serve(async (req) => {
       'trust_information',
       'password_catalog',
       'storage_usage',
+      'user_notes',
       'contacts',
       'profiles',
       'account_verification',
