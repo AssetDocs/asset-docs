@@ -31,6 +31,8 @@ const OwnerRiskPanel: React.FC<{ caseData: any; onChange: () => void }> = ({ cas
   const [freezeReason, setFreezeReason] = useState('');
   const [bypassReason, setBypassReason] = useState('');
   const [conflictResolution, setConflictResolution] = useState('');
+  const [disputeOutcome, setDisputeOutcome] = useState('owner_confirmed');
+  const [disputeResolution, setDisputeResolution] = useState('');
 
   const load = async () => {
     if (!caseData?.account_id) return;
@@ -70,9 +72,16 @@ const OwnerRiskPanel: React.FC<{ caseData: any; onChange: () => void }> = ({ cas
   };
 
   const resolveDispute = async () => {
-    if (!confirm('Mark this dispute as resolved? The case will remain escalated until review completes.')) return;
-    await supabase.from('account_continuity_requests').update({ owner_dispute_status: 'resolved', updated_at: new Date().toISOString() }).eq('id', caseData.id);
-    toast.success('Dispute marked resolved'); onChange();
+    if (disputeResolution.trim().length < 10) { toast.error('Resolution notes required'); return; }
+    const { error } = await supabase.rpc('resolve_continuity_dispute', {
+      _request_id: caseData.id,
+      _outcome: disputeOutcome,
+      _resolution_notes: disputeResolution,
+    });
+    if (error) { toast.error(error.message); return; }
+    toast.success('Dispute marked resolved');
+    setDisputeResolution('');
+    onChange();
   };
 
   const bypassWaiting = async () => {
@@ -105,9 +114,8 @@ const OwnerRiskPanel: React.FC<{ caseData: any; onChange: () => void }> = ({ cas
         <Alert className="border-rose-200 bg-rose-50 text-rose-900">
           <ShieldAlert className="h-4 w-4" />
           <AlertDescription className="text-sm">
-            <strong>Owner Disputed Request.</strong> No continuity execution actions are available until this dispute is resolved.
+            <strong>Owner Disputed Request.</strong> Execution is blocked and a legal dispute freeze should remain active until separately removed by a senior reviewer.
             {caseData.owner_dispute_reason && <div className="mt-1">Reason: {caseData.owner_dispute_reason}</div>}
-            <Button size="sm" variant="outline" className="mt-2" onClick={resolveDispute}>Mark Dispute Resolved</Button>
           </AlertDescription>
         </Alert>
       )}
@@ -212,7 +220,44 @@ const OwnerRiskPanel: React.FC<{ caseData: any; onChange: () => void }> = ({ cas
         </TabsContent>
 
         <TabsContent value="dispute_freeze" className="pt-3">
-          <Card><CardHeader className="pb-3"><CardTitle className="text-base flex items-center gap-2"><Snowflake className="h-4 w-4" /> Apply Account Freeze</CardTitle></CardHeader>
+          <Card><CardHeader className="pb-3"><CardTitle className="text-base flex items-center gap-2"><ShieldAlert className="h-4 w-4" /> Owner Dispute Review</CardTitle></CardHeader>
+            <CardContent className="space-y-3">
+              {caseData.owner_dispute_status === 'disputed' ? (
+                <>
+                  <Alert><AlertDescription>Resolve the owner dispute only after reviewing owner response, requester evidence, account activity, and any legal authority. Removing the freeze is a separate action below.</AlertDescription></Alert>
+                  <div>
+                    <Label>Outcome</Label>
+                    <Select value={disputeOutcome} onValueChange={setDisputeOutcome}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="owner_confirmed">Owner confirmed dispute</SelectItem>
+                        <SelectItem value="requester_confirmed">Requester evidence accepted</SelectItem>
+                        <SelectItem value="insufficient_evidence">Insufficient evidence</SelectItem>
+                        <SelectItem value="duplicate_or_mistaken">Duplicate or mistaken dispute</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Resolution notes</Label>
+                    <Textarea value={disputeResolution} onChange={(e) => setDisputeResolution(e.target.value)} rows={3} />
+                  </div>
+                  <Button onClick={resolveDispute} disabled={disputeResolution.trim().length < 10}>Mark Dispute Resolved</Button>
+                </>
+              ) : caseData.owner_dispute_status === 'resolved' ? (
+                <div className="text-sm space-y-1">
+                  <div>Status: <Badge variant="outline">Resolved</Badge></div>
+                  <div>Outcome: {caseData.owner_dispute_resolution_outcome || '-'}</div>
+                  <div>Resolved: {caseData.owner_dispute_resolved_at ? new Date(caseData.owner_dispute_resolved_at).toLocaleString() : '-'}</div>
+                  <div className="text-muted-foreground">{caseData.owner_dispute_resolution_notes || 'No resolution notes recorded.'}</div>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No active owner dispute on this case.</p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="mt-3"><CardHeader className="pb-3"><CardTitle className="text-base flex items-center gap-2"><Snowflake className="h-4 w-4" /> Apply Account Freeze</CardTitle></CardHeader>
             <CardContent className="space-y-3">
               <div>
                 <Label>Freeze type</Label>

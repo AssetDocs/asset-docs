@@ -171,8 +171,10 @@ flowchart TD
   D -- "no" --> E["review continues"]
   D -- "yes" --> F["status escalated"]
   F --> G["risk flag owner_disputed"]
-  G --> H["execution guard blocks action"]
-  H --> I["reviewer resolves or denies"]
+  G --> H["legal_dispute freeze applied"]
+  H --> I["execution guard blocks action"]
+  I --> J["reviewer records outcome + notes"]
+  J --> K["senior reviewer removes freeze separately if appropriate"]
 ```
 
 Execution guard blocks final action when:
@@ -180,6 +182,12 @@ Execution guard blocks final action when:
 - Owner dispute status is `disputed`.
 - Continuity freeze status is `active`.
 - Waiting period has not elapsed and was not bypassed.
+
+Owner dispute operating policy:
+
+- Owner-submitted disputes automatically apply a `legal_dispute` account freeze when one is not already active for the case.
+- Resolving the dispute requires reviewer outcome selection and internal resolution notes.
+- Dispute resolution does not remove the freeze. Freeze removal remains a separate senior-review action with its own reason.
 
 ## 6. Core Tables
 
@@ -259,7 +267,7 @@ Recommended default SLAs:
 
 1. Competing continuity requests are detected on `account_continuity_requests`, surfaced in the admin queue, and blocked from execution until reviewer resolution notes are recorded.
 2. Continuity review SLA clock exists on `account_continuity_requests`; Request Queue and Active Reviews surface overdue, due-soon, and disputed cases.
-3. Confirm owner dispute queue handling: who reviews, what statuses resolve a dispute, and whether a freeze is always applied on dispute.
+3. Owner disputes automatically apply a legal-dispute freeze, require reviewer outcome notes to resolve, and require separate senior-review freeze removal.
 4. Confirm proof requirements for death/incapacity/authority with counsel or owner sign-off.
 
 ### P1 first 30 days
@@ -276,7 +284,7 @@ Recommended default SLAs:
 
 ## 10. Open Questions
 
-1. Should an owner dispute automatically apply an account freeze, or should it only block execution through the guard?
+1. Should owner dispute resolution for export, closure, and ownership transfer require second-reviewer signoff before freeze removal?
 2. Should conflict resolution require a second reviewer for ownership transfer, closure, or export cases?
 3. Does Asset Safe want inactivity-triggered continuity, or only request/evidence-triggered continuity?
 4. Which documents are required for each request type before approval?

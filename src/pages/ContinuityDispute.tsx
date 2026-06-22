@@ -30,13 +30,9 @@ const ContinuityDispute: React.FC = () => {
       error = res.error;
       if (!error && (res.data as any)?.request_id) resolvedRequestId = (res.data as any).request_id;
     } else if (caseId) {
-      const upd = await supabase.from('account_continuity_requests').update({
-        owner_dispute_status: 'disputed',
-        owner_disputed_at: new Date().toISOString(),
-        owner_dispute_reason: reason,
-        status: 'escalated',
-      }).eq('id', caseId);
-      error = upd.error;
+      const res = await supabase.rpc('submit_continuity_dispute_for_case', { _request_id: caseId, _reason: reason });
+      error = res.error;
+      if (!error && (res.data as any)?.request_id) resolvedRequestId = (res.data as any).request_id;
     } else {
       error = { message: 'Missing dispute token or case ID.' };
     }
