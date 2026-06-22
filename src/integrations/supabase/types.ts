@@ -324,46 +324,73 @@ export type Database = {
       account_export_audit: {
         Row: {
           account_id: string | null
+          bundle_file_name: string | null
+          bundle_sha256: string | null
+          bundle_size_bytes: number | null
           completed_at: string | null
           created_at: string
+          download_count: number
+          download_limit: number
           error_message: string | null
+          expires_at: string | null
           export_type: string
           file_count: number | null
           id: string
+          last_downloaded_at: string | null
           metadata: Json
           signed_url_ttl_seconds: number | null
           started_at: string
           status: string
+          storage_bucket: string
+          storage_path: string | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
           account_id?: string | null
+          bundle_file_name?: string | null
+          bundle_sha256?: string | null
+          bundle_size_bytes?: number | null
           completed_at?: string | null
           created_at?: string
+          download_count?: number
+          download_limit?: number
           error_message?: string | null
+          expires_at?: string | null
           export_type?: string
           file_count?: number | null
           id?: string
+          last_downloaded_at?: string | null
           metadata?: Json
           signed_url_ttl_seconds?: number | null
           started_at?: string
           status?: string
+          storage_bucket?: string
+          storage_path?: string | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
           account_id?: string | null
+          bundle_file_name?: string | null
+          bundle_sha256?: string | null
+          bundle_size_bytes?: number | null
           completed_at?: string | null
           created_at?: string
+          download_count?: number
+          download_limit?: number
           error_message?: string | null
+          expires_at?: string | null
           export_type?: string
           file_count?: number | null
           id?: string
+          last_downloaded_at?: string | null
           metadata?: Json
           signed_url_ttl_seconds?: number | null
           started_at?: string
           status?: string
+          storage_bucket?: string
+          storage_path?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -2338,6 +2365,53 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dashboard_resume_activities: {
+        Row: {
+          account_id: string
+          activity_label: string
+          activity_type: string
+          created_at: string
+          destination_route: string
+          id: string
+          related_entity_id: string | null
+          related_entity_type: string | null
+          user_id: string
+          workspace_context: string
+        }
+        Insert: {
+          account_id: string
+          activity_label: string
+          activity_type: string
+          created_at?: string
+          destination_route: string
+          id?: string
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          user_id: string
+          workspace_context: string
+        }
+        Update: {
+          account_id?: string
+          activity_label?: string
+          activity_type?: string
+          created_at?: string
+          destination_route?: string
+          id?: string
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          user_id?: string
+          workspace_context?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dashboard_resume_activities_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
             referencedColumns: ["id"]
           },
         ]
@@ -7623,6 +7697,20 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: Json
       }
+      consume_account_export_bundle: {
+        Args: { p_audit_id: string }
+        Returns: {
+          account_id: string
+          audit_id: string
+          bundle_file_name: string
+          download_count: number
+          download_limit: number
+          expires_at: string
+          signed_url_ttl_seconds: number
+          storage_bucket: string
+          storage_path: string
+        }[]
+      }
       consume_continuity_export_authorization: {
         Args: {
           _authorization_id: string
@@ -7641,6 +7729,22 @@ export type Database = {
           request_id: string
           scope: Json
           sensitive_areas_included: boolean
+        }[]
+      }
+      create_account_export_bundle_request: {
+        Args: {
+          p_download_limit?: number
+          p_export_type?: string
+          p_file_count?: number
+          p_metadata?: Json
+          p_signed_url_ttl_seconds?: number
+        }
+        Returns: {
+          audit_id: string
+          download_limit: number
+          expires_at: string
+          storage_bucket: string
+          storage_path: string
         }[]
       }
       create_continuity_snapshot: {
@@ -7983,6 +8087,18 @@ export type Database = {
           _request_id: string
         }
         Returns: undefined
+      }
+      mark_account_export_bundle_ready: {
+        Args: {
+          p_audit_id: string
+          p_bundle_file_name: string
+          p_bundle_sha256?: string
+          p_bundle_size_bytes?: number
+          p_error_message?: string
+          p_storage_bucket: string
+          p_storage_path: string
+        }
+        Returns: string
       }
       process_deleted_account_retention: {
         Args: { p_dry_run?: boolean; p_limit?: number }
