@@ -47,14 +47,14 @@ Expected result:
 Create or replace the cron job after the function has been deployed:
 
 ```sql
-select cron.unschedule('process-expired-exports-hourly')
+select cron.unschedule('process-expired-exports')
 where exists (
-  select 1 from cron.job where jobname = 'process-expired-exports-hourly'
+  select 1 from cron.job where jobname = 'process-expired-exports'
 );
 
 select cron.schedule(
-  'process-expired-exports-hourly',
-  '12 * * * *',
+  'process-expired-exports',
+  '0 * * * *',
   $$
   select net.http_post(
     url := 'https://leotcbfpqiekgkgumecn.supabase.co/functions/v1/process-expired-exports',
@@ -71,6 +71,23 @@ select cron.schedule(
   $$
 );
 ```
+
+Verify the schedule:
+
+```sql
+select jobid, schedule, jobname, active
+from cron.job
+where jobname = 'process-expired-exports';
+```
+
+## Post-Bucket Verification
+
+After the private `exports` bucket exists and the cron is scheduled:
+
+1. Trigger one managed account export from the app with **Export Account Archive**.
+2. Confirm `account_export_audit` has a managed bundle row with `storage_bucket='exports'`, a non-null `storage_path`, and status `ready` or `exhausted` after download.
+3. Confirm Admin Export Audit shows `bucket private`.
+4. After the first scheduled cron run, confirm `cron_job_health_status.job_name='process-expired-exports'` has `last_status='succeeded'` and a non-null `last_succeeded_at`.
 
 ## Configuration
 
