@@ -264,6 +264,58 @@ async function cleanupAccountStorage(supabaseAdmin: SupabaseAdminClient, context
   return { queued: jobs.size, ...result };
 }
 
+async function getActiveContinuityFreeze(
+  supabaseAdmin: SupabaseAdminClient,
+  ownerUserId: string,
+) {
+  const { data: accounts, error: accountsError } = await supabaseAdmin
+    .from('accounts')
+    .select('id,account_freeze_status,account_freeze_type')
+    .eq('owner_user_id', ownerUserId);
+
+  if (accountsError) {
+    throw new Error(`Failed to check account freeze state: ${accountsError.message}`);
+  }
+
+  const accountIds = (accounts ?? []).map((account: { id: string }) => account.id);
+  const accountLevelFreeze = (accounts ?? []).find(
+    (account: { account_freeze_status?: string | null }) => account.account_freeze_status === 'active',
+  );
+
+  if (accountLevelFreeze) {
+    return {
+      source: 'accounts',
+      account_id: accountLevelFreeze.id,
+      freeze_type: accountLevelFreeze.account_freeze_type ?? null,
+      reason: null,
+    };
+  }
+
+  if (accountIds.length === 0) return null;
+
+  const { data: freeze, error: freezeError } = await supabaseAdmin
+    .from('continuity_account_freezes')
+    .select('id,account_id,freeze_type,reason,status')
+    .in('account_id', accountIds)
+    .eq('status', 'active')
+    .order('applied_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (freezeError) {
+    throw new Error(`Failed to check continuity account freeze: ${freezeError.message}`);
+  }
+
+  return freeze
+    ? {
+        source: 'continuity_account_freezes',
+        account_id: freeze.account_id,
+        freeze_type: freeze.freeze_type ?? null,
+        reason: freeze.reason ?? null,
+      }
+    : null;
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -443,6 +495,22 @@ Deno.serve(async (req) => {
         JSON.stringify({
           error: 'Account deletion is blocked by legal hold',
           reason: heldClosure.legal_hold_reason ?? null,
+        }),
+        { status: 423, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const activeFreeze = await getActiveContinuityFreeze(supabaseAdmin, targetAccountId);
+    if (activeFreeze) {
+      console.log('[DELETE-ACCOUNT] Account deletion blocked by active continuity freeze', {
+        targetAccountId,
+        activeFreeze,
+      });
+      return new Response(
+        JSON.stringify({
+          error: 'Account deletion is blocked by an active continuity freeze',
+          freeze_type: activeFreeze.freeze_type,
+          reason: activeFreeze.reason,
         }),
         { status: 423, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );

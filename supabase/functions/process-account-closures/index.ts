@@ -59,6 +59,39 @@ async function invokeDeleteAccount(
   return { ok: response.ok, status: response.status, body };
 }
 
+async function hasActiveContinuityFreeze(
+  admin: ReturnType<typeof createClient>,
+  ownerUserId: string,
+) {
+  const { data: accounts, error: accountsError } = await admin
+    .from("accounts")
+    .select("id,account_freeze_status")
+    .eq("owner_user_id", ownerUserId);
+
+  if (accountsError) {
+    throw new Error(`failed_to_check_account_freeze_state:${accountsError.message}`);
+  }
+
+  if ((accounts ?? []).some((account: { account_freeze_status?: string | null }) => account.account_freeze_status === "active")) {
+    return true;
+  }
+
+  const accountIds = (accounts ?? []).map((account: { id: string }) => account.id);
+  if (accountIds.length === 0) return false;
+
+  const { count, error: freezeError } = await admin
+    .from("continuity_account_freezes")
+    .select("id", { count: "exact", head: true })
+    .in("account_id", accountIds)
+    .eq("status", "active");
+
+  if (freezeError) {
+    throw new Error(`failed_to_check_continuity_freeze:${freezeError.message}`);
+  }
+
+  return (count ?? 0) > 0;
+}
+
 serve(async (req) => {
   const startedAt = Date.now();
 
@@ -105,6 +138,7 @@ serve(async (req) => {
   const results = {
     fetched: dueClosures?.length ?? 0,
     skipped_legal_hold: 0,
+    skipped_continuity_freeze: 0,
     processed: 0,
     succeeded: 0,
     failed: 0,
@@ -126,6 +160,30 @@ serve(async (req) => {
   }
 
   for (const closure of (dueClosures ?? []) as ClosureRequest[]) {
+    try {
+      if (await hasActiveContinuityFreeze(admin, closure.owner_user_id)) {
+        results.skipped_continuity_freeze++;
+        console.log("[PROCESS-ACCOUNT-CLOSURES] Skipping closure blocked by active continuity freeze", {
+          closure_request_id: closure.id,
+          owner_user_id: closure.owner_user_id,
+        });
+        continue;
+      }
+    } catch (freezeError) {
+      results.failed++;
+      results.failures.push({
+        closure_request_id: closure.id,
+        status: 500,
+        error: freezeError instanceof Error ? freezeError.message : String(freezeError),
+      });
+      console.error("[PROCESS-ACCOUNT-CLOSURES] Continuity freeze check failed", {
+        closure_request_id: closure.id,
+        owner_user_id: closure.owner_user_id,
+        error: freezeError,
+      });
+      continue;
+    }
+
     results.processed++;
 
     const deletionResult = await invokeDeleteAccount(
