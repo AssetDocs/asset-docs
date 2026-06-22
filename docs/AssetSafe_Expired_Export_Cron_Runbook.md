@@ -9,7 +9,8 @@ Cadence: hourly
 `process-expired-exports` performs two cleanup tasks:
 
 1. Calls `expire_continuity_export_authorizations()` so expired continuity export grants stop working.
-2. Removes stale objects from the configured export storage bucket(s), defaulting to `exports`, when objects are older than 24 hours.
+2. Calls `expire_account_export_bundles()` so managed account export audit rows flip to `expired` after `expires_at`.
+3. Removes expired managed bundle objects plus stale objects from the configured export storage bucket(s), defaulting to `exports`, when objects are older than 24 hours.
 
 The function records health in `cron_job_health` as `process-expired-exports`.
 
@@ -40,7 +41,7 @@ Expected result:
 
 - HTTP 200.
 - `cron_job_health.job_name='process-expired-exports'` shows a recent run.
-- Response includes `expired_authorizations` and per-bucket scan counts.
+- Response includes `expired_authorizations`, `expired_account_export_bundles`, and per-bucket scan counts.
 
 ## Schedule Hourly
 

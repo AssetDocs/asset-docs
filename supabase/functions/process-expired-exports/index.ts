@@ -26,6 +26,19 @@ type SweepResult = {
   errors: string[];
 };
 
+type ExpiredBundle = {
+  audit_id: string;
+  storage_bucket: string;
+  storage_path: string;
+};
+
+type BundleSweepResult = {
+  candidates: number;
+  removed: number;
+  failed: number;
+  errors: string[];
+};
+
 function json(status: number, body: unknown) {
   return new Response(JSON.stringify(body), {
     status,
@@ -131,6 +144,44 @@ async function removeInBatches(
   }
 }
 
+async function removeExpiredBundleObjects(
+  admin: SupabaseAdminClient,
+  bundles: ExpiredBundle[],
+  dryRun: boolean,
+): Promise<BundleSweepResult> {
+  const result: BundleSweepResult = {
+    candidates: bundles.length,
+    removed: 0,
+    failed: 0,
+    errors: [],
+  };
+
+  if (dryRun || bundles.length === 0) return result;
+
+  const byBucket = new Map<string, string[]>();
+  for (const bundle of bundles) {
+    if (!bundle.storage_bucket || !bundle.storage_path) continue;
+    const paths = byBucket.get(bundle.storage_bucket) ?? [];
+    paths.push(bundle.storage_path);
+    byBucket.set(bundle.storage_bucket, paths);
+  }
+
+  for (const [bucket, paths] of byBucket.entries()) {
+    for (let i = 0; i < paths.length; i += 100) {
+      const batch = paths.slice(i, i + 100);
+      const { error } = await admin.storage.from(bucket).remove(batch);
+      if (error) {
+        result.failed += batch.length;
+        result.errors.push(`${bucket}: ${error.message}`);
+      } else {
+        result.removed += batch.length;
+      }
+    }
+  }
+
+  return result;
+}
+
 async function recordCronJobResult(
   admin: SupabaseAdminClient,
   startedAt: number,
@@ -202,6 +253,30 @@ serve(async (req) => {
     return json(500, { error: "authorization_expiry_failed", details: authError.message });
   }
 
+  const { data: expiredBundles, error: bundleError } = await admin
+    .rpc("expire_account_export_bundles", {
+      p_limit: maxObjectsPerBucket,
+      p_dry_run: dryRun,
+    });
+
+  if (bundleError) {
+    console.error("[PROCESS-EXPIRED-EXPORTS] Account export bundle expiry failed", bundleError);
+    await recordCronJobResult(
+      admin,
+      startedAt,
+      "failed",
+      { dry_run: dryRun, min_age_hours: minAgeHours, buckets },
+      bundleError.message,
+    );
+    return json(500, { error: "account_export_bundle_expiry_failed", details: bundleError.message });
+  }
+
+  const bundleResult = await removeExpiredBundleObjects(
+    admin,
+    (expiredBundles ?? []) as ExpiredBundle[],
+    dryRun,
+  );
+
   const results: SweepResult[] = [];
 
   for (const bucket of buckets) {
@@ -220,12 +295,13 @@ serve(async (req) => {
     results.push(result);
   }
 
-  const failed = results.some((result) => result.failed > 0);
+  const failed = results.some((result) => result.failed > 0) || bundleResult.failed > 0;
   const response = {
     ok: !failed,
     dry_run: dryRun,
     min_age_hours: minAgeHours,
     expired_authorizations: expiredAuthorizations ?? 0,
+    expired_account_export_bundles: bundleResult,
     buckets: results,
   };
 

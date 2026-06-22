@@ -176,7 +176,7 @@ Daily job `process-storage-orphans` calls `reconcile_storage_orphans`:
 - `account_export_audit` exists for non-continuity browser export assemblies, with a basic Admin Export Audit view.
 - Server-managed account export bundle state exists in `account_export_audit`, including storage path, 7-day expiry, 15-minute signed URL TTL, and 5-download cap enforcement through `consume_account_export_bundle`.
 - Browser-built account archive exports now upload the assembled ZIP/PDF bundle into the managed `exports` bucket path, mark the audit row ready, and download through `download-account-export-bundle`.
-- `process-expired-exports` sweeps the `exports` bucket; cron health is visible in Admin Export Audit.
+- `process-expired-exports` expires continuity grants, marks stale managed account export rows `expired`, removes expired bundle objects, and sweeps stale `exports` bucket objects; cron health is visible in Admin Export Audit.
 
 ---
 
@@ -237,7 +237,7 @@ Hourly job `process-storage-usage-drift` calls `reconcile_storage_usage_drift`:
 | `check-gift-reminders` | exists | daily | Gift expiry nudges |
 | `notify-manual-review-backlog` | exists | daily | Ops alert |
 | `process-account-closures` | function + runbook | hourly batches | Executes matured scheduled closures through `delete-account`; health visible in Admin Cancellations |
-| `process-expired-exports` | function + runbook | hourly | Expire continuity export grants + purge stale `exports/` bucket bundles |
+| `process-expired-exports` | function + runbook | hourly | Expire continuity export grants, expire managed account export rows, and purge stale `exports/` bucket bundles |
 | `process-storage-orphans` | function + runbook | daily | Storage-vs-DB orphan candidate detection |
 | `process-storage-usage-drift` | function + runbook | hourly batches | Drift correction |
 | `scrub-old-support-pii` | function + runbook | weekly | Retention compliance for closed support tickets |
