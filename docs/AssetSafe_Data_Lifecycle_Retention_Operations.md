@@ -150,7 +150,8 @@ Daily job `process-storage-orphans` calls `reconcile_storage_orphans`:
 
 ### 4.4 Launch gaps
 - Admin review UI for `storage_orphan_candidates` exists in the Admin Database panel, including per-row and visible-candidate bulk actions.
-- No bucket-level lifecycle rule (e.g., auto-delete quarantine prefixes after 30 days).
+- Canonical bucket lifecycle policy registry exists as `storage_bucket_lifecycle_policies`; Admin Database compares expected buckets/privacy against `storage.buckets` through `get_storage_bucket_lifecycle_status`.
+- Provider-level bucket lifecycle rules (e.g., auto-delete quarantine prefixes after 30 days) remain an external Supabase/storage configuration decision.
 - No per-bucket size cap independent of `storage_usage` accounting.
 
 ---
@@ -255,6 +256,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 | Closure / deletion requests | Partially in Admin | Unified queue with grace clock |
 | Export audit | Admin Export Audit view for `account_export_audit`; continuity forensics remain in continuity surfaces; managed bundle rows show path, expiry, and download count | Add background/server worker if browser assembly becomes too slow for large accounts |
 | Storage drift | Admin Database panel reads `storage_usage_reconciliation_state` and drift cron health | Add external paging/Slack routing if drift stays noisy |
+| Bucket lifecycle | Admin Database panel reads `get_storage_bucket_lifecycle_status` and flags missing/public-private mismatched buckets | Configure provider-level lifecycle rules where Supabase supports them |
 | Legal hold | Admin Cancellations controls backed by DB flags/RPCs on closure requests and tombstones | Add formal legal review workflow/assignment if volume warrants |
 | Restore drill log | Admin Restore panel backed by `restore_drill_runs` | Use during the pre-launch PITR drill and quarterly thereafter |
 
@@ -275,16 +277,17 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 8. Legal/counsel review of public retention schedule; record sign-off per `docs/AssetSafe_Data_Lifecycle_External_Controls_Runbook.md`.
 
 **P2 (quarter 1)**
-9. Cross-region storage replication or scheduled object snapshots.
-10. Maintenance/freeze-writes controls implemented; continue exercising them during restore drills.
-11. Restore-drill sign-off workflow implemented; exercise it during the pre-launch PITR drill.
-12. Admin UI/reporting for closed support PII scrub results implemented; continue verifying production cron health.
+9. Configure provider-level bucket lifecycle rules for temporary/quarantine prefixes where Supabase supports them.
+10. Cross-region storage replication or scheduled object snapshots.
+11. Maintenance/freeze-writes controls implemented; continue exercising them during restore drills.
+12. Restore-drill sign-off workflow implemented; exercise it during the pre-launch PITR drill.
+13. Admin UI/reporting for closed support PII scrub results implemented; continue verifying production cron health.
 
 ---
 
 ## 11. Open Questions for Developer Review
 1. Confirm post-launch whether the documented closure/deletion table boundaries still hold after real admin usage.
 2. Does `delete-account` today purge storage objects, or only DB rows?
-3. Where is the canonical list of buckets and their per-bucket lifecycle rules (if any)?
+3. Should any additional buckets be added to `storage_bucket_lifecycle_policies` before launch?
 4. Confirm `deleted_accounts` retention satisfies CCPA/CPRA "right to delete" — tombstone fields must be minimized (email hash vs plaintext).
 5. Should continuity-triggered freezes block the closure/deletion sweepers? (Recommendation: yes, hard block.)

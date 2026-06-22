@@ -52,9 +52,24 @@ interface CronJobHealthState {
   minutes_since_success: number | null;
 }
 
+interface StorageBucketLifecycleStatus {
+  bucket: string;
+  data_class: string;
+  expected_public: boolean;
+  actual_public: boolean | null;
+  bucket_exists: boolean;
+  public_matches: boolean;
+  lifecycle_days: number | null;
+  cleanup_owner: string;
+  launch_required: boolean;
+  retention_rule: string;
+  notes: string | null;
+}
+
 const AdminDatabase = () => {
   const [tableStats, setTableStats] = useState<TableStats[]>([]);
   const [storageBuckets, setStorageBuckets] = useState<StorageBucket[]>([]);
+  const [bucketLifecycleStatuses, setBucketLifecycleStatuses] = useState<StorageBucketLifecycleStatus[]>([]);
   const [orphanCandidates, setOrphanCandidates] = useState<StorageOrphanCandidate[]>([]);
   const [driftStates, setDriftStates] = useState<StorageUsageDriftState[]>([]);
   const [driftCronHealth, setDriftCronHealth] = useState<CronJobHealthState | null>(null);
@@ -159,6 +174,13 @@ const AdminDatabase = () => {
         setDriftCronHealth(driftCronData as CronJobHealthState);
       }
 
+      const { data: bucketLifecycleData, error: bucketLifecycleError } = await supabase
+        .rpc('get_storage_bucket_lifecycle_status' as any);
+
+      if (!bucketLifecycleError && bucketLifecycleData) {
+        setBucketLifecycleStatuses(bucketLifecycleData as StorageBucketLifecycleStatus[]);
+      }
+
       // Check for any issues
       const issues: string[] = [];
       
@@ -178,6 +200,14 @@ const AdminDatabase = () => {
 
       if (driftCronData?.health_status && driftCronData.health_status !== 'healthy') {
         issues.push('Storage usage drift cron job needs attention');
+      }
+
+      if (bucketLifecycleData?.some((bucket) => bucket.launch_required && !bucket.bucket_exists)) {
+        issues.push('Required storage bucket missing');
+      }
+
+      if (bucketLifecycleData?.some((bucket) => bucket.bucket_exists && !bucket.public_matches)) {
+        issues.push('Storage bucket public/private setting mismatch');
       }
 
       setRecentErrors(issues);
@@ -233,6 +263,22 @@ const AdminDatabase = () => {
 
   const getHighDriftCount = () => {
     return driftStates.filter((state) => Math.abs(state.last_drift_bytes) > 50 * 1024 * 1024 || Number(state.last_drift_ratio) > 0.05).length;
+  };
+
+  const getBucketLifecycleIssueCount = () => {
+    return bucketLifecycleStatuses.filter((bucket) => !bucket.bucket_exists || !bucket.public_matches).length;
+  };
+
+  const getBucketLifecycleBadgeClass = (bucket: StorageBucketLifecycleStatus) => {
+    if (!bucket.bucket_exists) return 'bg-red-500';
+    if (!bucket.public_matches) return 'bg-yellow-500';
+    return 'bg-green-500';
+  };
+
+  const getBucketLifecycleLabel = (bucket: StorageBucketLifecycleStatus) => {
+    if (!bucket.bucket_exists) return 'missing';
+    if (!bucket.public_matches) return 'visibility mismatch';
+    return bucket.actual_public ? 'public' : 'private';
   };
 
   const getDriftCronBadgeClass = () => {
@@ -422,6 +468,18 @@ const AdminDatabase = () => {
             </div>
           </CardContent>
         </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Bucket Policy Issues</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <Shield className="w-5 h-5 text-purple-500" />
+              <span className="text-2xl font-bold">{getBucketLifecycleIssueCount()}</span>
+              <span className="text-sm text-muted-foreground">open</span>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -499,6 +557,70 @@ const AdminDatabase = () => {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Bucket Lifecycle Policies</CardTitle>
+          <CardDescription>
+            Canonical bucket inventory, private/public expectations, and cleanup ownership.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <p>Loading...</p>
+          ) : bucketLifecycleStatuses.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Bucket</TableHead>
+                  <TableHead>Data Class</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Cleanup</TableHead>
+                  <TableHead>Retention</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {bucketLifecycleStatuses.map((bucket) => (
+                  <TableRow key={bucket.bucket}>
+                    <TableCell>
+                      <div className="font-medium">{bucket.bucket}</div>
+                      {bucket.launch_required && (
+                        <div className="text-xs text-muted-foreground">Launch required</div>
+                      )}
+                    </TableCell>
+                    <TableCell className="font-mono text-xs">{bucket.data_class}</TableCell>
+                    <TableCell>
+                      <Badge className={getBucketLifecycleBadgeClass(bucket)}>
+                        {getBucketLifecycleLabel(bucket)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="font-mono text-xs">{bucket.cleanup_owner}</TableCell>
+                    <TableCell>
+                      <div className="max-w-[420px] text-sm">{bucket.retention_rule}</div>
+                      {bucket.lifecycle_days && (
+                        <div className="text-xs text-muted-foreground">
+                          Target: {bucket.lifecycle_days} day{bucket.lifecycle_days === 1 ? '' : 's'}
+                        </div>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <p className="text-center text-muted-foreground py-8">No bucket lifecycle policies available</p>
+          )}
+          {getBucketLifecycleIssueCount() > 0 && (
+            <Alert className="mt-4" variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Bucket Policy Mismatch</AlertTitle>
+              <AlertDescription>
+                Create missing launch-required buckets through the Storage UI and keep public access aligned with the expected policy.
+              </AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <Card>

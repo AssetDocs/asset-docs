@@ -89,7 +89,9 @@ Minimum launch evidence:
 
 ## 3. Bucket Inventory And Lifecycle Rules
 
-Maintain a canonical bucket inventory. For each bucket, record:
+Maintain the canonical bucket inventory in `storage_bucket_lifecycle_policies`. The Admin Database panel reads `get_storage_bucket_lifecycle_status` to compare that inventory with live `storage.buckets` rows and flag missing buckets or public/private mismatches.
+
+For each bucket, record:
 
 - Bucket name.
 - Data class.
@@ -111,6 +113,7 @@ Open launch decision:
 
 - If Supabase bucket lifecycle rules are available for the production plan, configure auto-delete for `exports/` and quarantine/temp prefixes.
 - If bucket lifecycle rules are not available, keep deletion in scheduled edge functions and document the manual fallback.
+- After any bucket is added through the Storage UI, add or update the matching `storage_bucket_lifecycle_policies` row and confirm Admin Database reports the expected status.
 
 ## 4. Cron Health Launch Verification
 
