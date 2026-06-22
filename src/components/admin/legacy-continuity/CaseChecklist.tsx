@@ -6,20 +6,28 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAdminRole } from '@/hooks/useAdminRole';
 import {
   CHECKLIST_DEFINITION, CHECKLIST_STATUS_OPTIONS, CHECKLIST_STATUS_LABEL, CHECKLIST_STATUS_BADGE,
+  EVIDENCE_REQUIREMENT_BADGE, EVIDENCE_REQUIREMENT_LABEL,
   capabilitiesForRole, CAP_REQUIREMENT_HELP,
 } from './constants';
 
 const CaseChecklist: React.FC<{ caseData: any; readOnly?: boolean; onChange: () => void }> = ({ caseData, readOnly, onChange }) => {
   const [items, setItems] = useState<Record<string, any>>({});
+  const [requirements, setRequirements] = useState<Record<string, any>>({});
   const { role } = useAdminRole();
   const caps = capabilitiesForRole(role);
   const canEdit = caps.has('complete_checklist') && !readOnly;
 
   const load = async () => {
-    const { data } = await supabase.from('continuity_checklist_items').select('*').eq('request_id', caseData.id);
+    const [{ data }, { data: reqs }] = await Promise.all([
+      supabase.from('continuity_checklist_items').select('*').eq('request_id', caseData.id),
+      supabase.rpc('get_continuity_evidence_requirements', { _request_type: caseData.request_type }),
+    ]);
     const map: Record<string, any> = {};
     (data || []).forEach((it: any) => { map[it.item_key] = it; });
+    const reqMap: Record<string, any> = {};
+    (reqs || []).forEach((it: any) => { reqMap[it.item_key] = it; });
     setItems(map);
+    setRequirements(reqMap);
   };
   useEffect(() => { load(); }, [caseData?.id]);
 
@@ -50,9 +58,22 @@ const CaseChecklist: React.FC<{ caseData: any; readOnly?: boolean; onChange: () 
           <div className="border border-border rounded-md divide-y divide-border">
             {sec.items.map((it) => {
               const cur = items[it.key]?.status || 'not_started';
+              const req = requirements[it.key];
               return (
                 <div key={it.key} className="px-3 py-2 flex items-center justify-between gap-3">
-                  <div className="text-sm flex-1">{it.label}</div>
+                  <div className="text-sm flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span>{it.label}</span>
+                      {req && (
+                        <Badge variant="outline" className={EVIDENCE_REQUIREMENT_BADGE[req.requirement_level]}>
+                          {EVIDENCE_REQUIREMENT_LABEL[req.requirement_level]}
+                        </Badge>
+                      )}
+                    </div>
+                    {req?.requirement_notes && (
+                      <div className="text-xs text-muted-foreground mt-1">{req.requirement_notes}</div>
+                    )}
+                  </div>
                   <Badge variant="outline" className={CHECKLIST_STATUS_BADGE[cur]}>{CHECKLIST_STATUS_LABEL[cur]}</Badge>
                   <Select value={cur} disabled={!canEdit} onValueChange={(v) => setStatus(sec.category, it.key, it.label, v)}>
                     <SelectTrigger className="w-40 h-8" title={canEdit ? '' : CAP_REQUIREMENT_HELP.complete_checklist}>

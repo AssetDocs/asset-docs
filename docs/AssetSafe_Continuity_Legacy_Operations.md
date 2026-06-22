@@ -118,6 +118,8 @@ Document verification states:
 | Memorialization | Identity + death evidence or comparable legal/family proof | Required |
 | Account closure | Identity + legal authority + death/incapacity/estate proof + 30-day waiting period | Required |
 
+The default evidence matrix is seeded in `continuity_evidence_requirements` and surfaced in the case checklist as required, conditional, or recommended for each request type.
+
 Open legal question:
 
 - Whether plaintext copies of death certificates and legal documents are retained indefinitely, retained for a fixed review window, or replaced by reviewed metadata plus restricted storage object retention.
@@ -268,7 +270,7 @@ Recommended default SLAs:
 1. Competing continuity requests are detected on `account_continuity_requests`, surfaced in the admin queue, and blocked from execution until reviewer resolution notes are recorded.
 2. Continuity review SLA clock exists on `account_continuity_requests`; Request Queue and Active Reviews surface overdue, due-soon, and disputed cases.
 3. Owner disputes automatically apply a legal-dispute freeze, require reviewer outcome notes to resolve, and require separate senior-review freeze removal.
-4. Confirm proof requirements for death/incapacity/authority with counsel or owner sign-off.
+4. Default evidence requirements are seeded in `continuity_evidence_requirements` and surfaced in the case checklist by request type.
 
 ### P1 first 30 days
 
@@ -287,5 +289,5 @@ Recommended default SLAs:
 1. Should owner dispute resolution for export, closure, and ownership transfer require second-reviewer signoff before freeze removal?
 2. Should conflict resolution require a second reviewer for ownership transfer, closure, or export cases?
 3. Does Asset Safe want inactivity-triggered continuity, or only request/evidence-triggered continuity?
-4. Which documents are required for each request type before approval?
+4. Which seeded evidence requirements need counsel-approved wording or second-reviewer signoff before launch?
 5. Who is allowed to bypass the 30-day continuity closure waiting period, and what evidence is mandatory?

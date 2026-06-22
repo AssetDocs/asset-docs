@@ -133,6 +133,17 @@ export const CHECKLIST_STATUS_BADGE: Record<string, string> = {
   needs_follow_up: 'bg-amber-50 text-amber-900 border-amber-200',
 };
 
+export const EVIDENCE_REQUIREMENT_LABEL: Record<string, string> = {
+  required: 'Required',
+  conditional: 'Conditional',
+  recommended: 'Recommended',
+};
+export const EVIDENCE_REQUIREMENT_BADGE: Record<string, string> = {
+  required: 'bg-rose-50 text-rose-900 border-rose-200',
+  conditional: 'bg-amber-50 text-amber-900 border-amber-200',
+  recommended: 'bg-blue-50 text-blue-900 border-blue-200',
+};
+
 export const NOTE_CATEGORIES = [
   'general', 'identity_concern', 'legal_concern', 'documentation_concern',
   'fraud_concern', 'communication_summary', 'decision_rationale',
