@@ -173,7 +173,7 @@ Daily job `process-storage-orphans` calls `reconcile_storage_orphans`:
 ### 5.3 Launch gaps
 - `account_export_audit` exists for non-continuity browser export assemblies, with a basic Admin Export Audit view.
 - Browser-built exports cannot enforce a true server-side download cap; server-managed export bundles are still needed for strict caps.
-- `process-expired-exports` sweeps the `exports` bucket; confirm production cron is installed from the runbook.
+- `process-expired-exports` sweeps the `exports` bucket; cron health is visible in Admin Export Audit.
 
 ---
 
@@ -260,7 +260,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 ## 10. Prioritized Launch Gaps
 
 **P0 (blocking launch)**
-1. Sweepers: `process-account-closures`, `process-expired-exports`; verify production cron health after deployment.
+1. Sweepers: `process-account-closures`, `process-expired-exports`; verify production cron health in Admin Cancellations and Admin Export Audit after deployment.
 2. Closure/deletion table matrix documented; consolidation deferred until workflows converge.
 3. Owner-operated PITR restore drill performed and logged in `restore_drill_runs`.
 4. Re-signup conflict guard codified in signup/auth creation paths.

@@ -22,6 +22,15 @@ type AccountExportAuditRow = {
   user_id: string | null;
 };
 
+type CronHealthRow = {
+  health_status: string | null;
+  last_error: string | null;
+  last_result: Record<string, unknown> | null;
+  last_status: string | null;
+  last_succeeded_at: string | null;
+  minutes_since_success: number | null;
+};
+
 const statusVariant = (status: string) => {
   if (status === 'completed') return 'default';
   if (status === 'failed') return 'destructive';
@@ -45,23 +54,38 @@ const formatTtl = (seconds?: number | null) => {
 
 const AdminExportAudit: React.FC = () => {
   const [rows, setRows] = useState<AccountExportAuditRow[]>([]);
+  const [expiredExportHealth, setExpiredExportHealth] = useState<CronHealthRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const loadRows = async () => {
     setLoading(true);
     setError(null);
-    const { data, error: queryError } = await supabase
-      .from('account_export_audit')
-      .select('id,account_id,completed_at,error_message,export_type,file_count,metadata,signed_url_ttl_seconds,started_at,status,user_id')
-      .order('started_at', { ascending: false })
-      .limit(100);
+    const [{ data, error: queryError }, { data: healthData, error: healthError }] = await Promise.all([
+      supabase
+        .from('account_export_audit')
+        .select('id,account_id,completed_at,error_message,export_type,file_count,metadata,signed_url_ttl_seconds,started_at,status,user_id')
+        .order('started_at', { ascending: false })
+        .limit(100),
+      supabase
+        .from('cron_job_health_status')
+        .select('health_status,last_error,last_result,last_status,last_succeeded_at,minutes_since_success')
+        .eq('job_name', 'process-expired-exports')
+        .maybeSingle(),
+    ]);
 
     if (queryError) {
       setError(queryError.message);
       setRows([]);
     } else {
       setRows((data || []) as AccountExportAuditRow[]);
+    }
+
+    if (healthError) {
+      setError((current) => current || healthError.message);
+      setExpiredExportHealth(null);
+    } else {
+      setExpiredExportHealth((healthData || null) as CronHealthRow | null);
     }
     setLoading(false);
   };
@@ -76,6 +100,12 @@ const AdminExportAudit: React.FC = () => {
     const totalFiles = rows.reduce((sum, row) => sum + (row.file_count || 0), 0);
     return { completed, failed, totalFiles };
   }, [rows]);
+
+  const sweeperHealthClass = () => {
+    if (expiredExportHealth?.health_status === 'healthy') return 'bg-green-500';
+    if (expiredExportHealth?.health_status === 'critical') return 'bg-red-500';
+    return 'bg-yellow-500';
+  };
 
   return (
     <div className="space-y-6">
@@ -119,6 +149,45 @@ const AdminExportAudit: React.FC = () => {
           <CardContent className="text-3xl font-bold">{stats.totalFiles}</CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <CardTitle>Expired Export Sweeper</CardTitle>
+              <CardDescription>Health for process-expired-exports, which expires continuity grants and purges stale export bundles.</CardDescription>
+            </div>
+            <Badge className={sweeperHealthClass()}>{expiredExportHealth?.health_status || 'unknown'}</Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+          <div>
+            <p className="text-muted-foreground">Last status</p>
+            <Badge variant={expiredExportHealth?.last_status === 'failed' ? 'destructive' : 'secondary'}>
+              {expiredExportHealth?.last_status || '-'}
+            </Badge>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Last success</p>
+            <p>{expiredExportHealth?.last_succeeded_at ? format(new Date(expiredExportHealth.last_succeeded_at), 'PP p') : '-'}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Minutes since success</p>
+            <p>{expiredExportHealth?.minutes_since_success ?? '-'}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Last result</p>
+            <p className="truncate" title={JSON.stringify(expiredExportHealth?.last_result || {})}>
+              {expiredExportHealth?.last_result ? JSON.stringify(expiredExportHealth.last_result) : '-'}
+            </p>
+          </div>
+          {expiredExportHealth?.last_error && (
+            <div className="md:col-span-4 rounded-md border border-destructive/40 bg-destructive/5 p-3 text-destructive">
+              {expiredExportHealth.last_error}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
