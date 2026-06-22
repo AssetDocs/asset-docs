@@ -188,7 +188,7 @@ Daily job `process-storage-orphans` calls `reconcile_storage_orphans`:
 | Data class | Live window | Post-deletion retention | Basis | Notes |
 |---|---|---|---|---|
 | User content (files, items, properties) | Account active | Purged on hard delete | Product | Subject to closure grace |
-| `deleted_accounts` tombstone | n/a | **Indefinite** (≥ 7 yr) | Re-signup conflict guard | Email + deleted_at only |
+| `deleted_accounts` tombstone | n/a | **Indefinite** (≥ 7 yr) | Re-signup conflict guard | `email_hash`, hashed former user id, deletion metadata; no plaintext email |
 | `audit_logs`, `continuity_audit_logs`, `continuity_email_audit_log` | n/a | **7 years** | SOC 2-aligned | Immutable per memory |
 | `user_activity_logs` | n/a | **2 years** | Product/security | Per `audit-and-activity-integrity` |
 | Billing records (`payment_events`, `subscribers`, `stripe_events`) | n/a | **7 years** | Tax/finance | Stripe is also a copy |
@@ -290,4 +290,3 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 ## 11. Open Questions for Developer Review
 1. Confirm post-launch whether the documented closure/deletion table boundaries still hold after real admin usage.
 2. Should any additional buckets be added to `storage_bucket_lifecycle_policies` before launch?
-3. Confirm `deleted_accounts` retention satisfies CCPA/CPRA "right to delete" — tombstone fields must be minimized (email hash vs plaintext).

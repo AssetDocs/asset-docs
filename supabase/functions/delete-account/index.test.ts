@@ -173,12 +173,13 @@ Deno.test({
       });
 
       // ----- 4. Assertions -----
-      await t.step("tombstone has email_hash", async () => {
+      await t.step("tombstone has email_hash and no plaintext email", async () => {
         const { data } = await admin
           .from("deleted_accounts")
-          .select("email_hash, original_user_id")
+          .select("email, email_hash, original_user_id")
           .eq("id", tombstoneId)
           .single();
+        assertEquals(data?.email, null, "deleted_accounts.email must not retain plaintext email");
         assertExists(data?.email_hash, "email_hash must be populated");
         assertEquals(data?.original_user_id, userId);
       });
