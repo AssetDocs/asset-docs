@@ -270,7 +270,7 @@ Wire all via `pg_cron` + `pg_net` per project convention.
 1. Sweepers: `process-account-closures`, `process-expired-exports`; verify production cron health in Admin Cancellations and Admin Export Audit after deployment.
 2. Closure/deletion table matrix documented; consolidation deferred until workflows converge.
 3. Owner-operated PITR restore drill performed and logged in `restore_drill_runs`; use `docs/AssetSafe_Data_Lifecycle_External_Controls_Runbook.md` for launch evidence.
-4. Re-signup conflict guard codified in signup/auth creation paths.
+4. Re-signup conflict guard is codified in `handle_new_user`, app signup, contributor/invite signup, and Stripe checkout fulfillment paths.
 
 **P1 (first 30 days post-launch)**
 5. External paging/Slack routing for noisy storage drift, if needed.

@@ -114,6 +114,18 @@ async function adminFetchUserByEmail(
   return user ? { id: user.id, email: user.email } : null;
 }
 
+async function isDeletedAccountEmail(supabaseAdmin: any, email: string): Promise<boolean> {
+  const { data, error } = await supabaseAdmin.rpc("is_deleted_account_email", {
+    p_email: email,
+  });
+
+  if (error) {
+    throw new Error(`deleted_account_guard_failed:${error.message}`);
+  }
+
+  return data === true;
+}
+
 // ---------------------------------------------------------------------------
 // Claim row (atomic-ish — single round trip when possible)
 // ---------------------------------------------------------------------------
@@ -531,6 +543,19 @@ export async function fulfillCheckout(
           "storage_addon_without_user_id",
         );
       }
+
+      if (await isDeletedAccountEmail(supabaseAdmin, details.email)) {
+        await supabaseAdmin
+          .from("checkout_fulfillments")
+          .update({
+            status: "rejected",
+            manual_review_reason: "deleted_account_email_blocked",
+            completed_at: new Date().toISOString(),
+          })
+          .eq("id", fulfillmentId);
+        return { status: "rejected", reason: "deleted_account_email_blocked" };
+      }
+
       // Try create user; fall back to filtered lookup on 422.
       const nameParts = (details.customerName || "").split(" ");
       const firstName = nameParts[0] || null;
