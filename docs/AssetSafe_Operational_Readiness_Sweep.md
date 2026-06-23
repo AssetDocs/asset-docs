@@ -15,7 +15,7 @@ The goal is to separate remaining engineering gaps from operator/legal/provider-
 
 | Area | Readiness | Remaining launch posture |
 |---|---|---|
-| 1. Billing & revenue operations | Partially ready | Several Stripe lifecycle gaps remain product/engineering decisions |
+| 1. Billing & revenue operations | Mostly ready | Launch decisions are centralized; webhook replay/repair and Stripe Dashboard settings need owner evidence |
 | 2. Data lifecycle & retention | Mostly ready | Production cron health, restore drill, legal retention sign-off remain |
 | 3. Continuity & legacy edge cases | Mostly ready | Counsel/operator decisions remain for evidence retention and second-review rules |
 | 4. Support & ops tooling | Mostly ready | Support tier/SLA ownership should be formalized before launch |
@@ -51,13 +51,13 @@ These are not just operator checkboxes; they may require product or code changes
 
 | Item | Current posture | Recommended launch decision |
 |---|---|---|
-| Stripe disputes | Billing doc identifies `charge.dispute.created/closed` as unhandled | Either implement dispute webhook handling or document manual Stripe Dashboard-only handling before launch |
-| Refunds | Manual Stripe Dashboard refunds with no app-side refund edge function | Accept manual refund ops for MVP or build admin refund/audit flow |
-| Dunning escalation | Single payment reminder exists; no day-3/day-5/day-7 campaign | Accept single-reminder MVP or add escalated dunning table/copy |
-| Trial reminders | Columns exist but cron/function path is stale | Decide to remove trial UX or restore scheduled reminder path |
+| Stripe disputes | Billing doc identifies `charge.dispute.created/closed` as unhandled | Follow `docs/AssetSafe_Billing_Revenue_Launch_Runbook.md`: accept manual Stripe Dashboard handling for MVP or build webhook handling |
+| Refunds | Manual Stripe Dashboard refunds with no app-side refund edge function | Follow `docs/AssetSafe_Billing_Revenue_Launch_Runbook.md`: accept manual refund ops for MVP or build admin refund/audit flow |
+| Dunning escalation | Single payment reminder exists; no day-3/day-5/day-7 campaign | Follow `docs/AssetSafe_Billing_Revenue_Launch_Runbook.md`: accept single-reminder MVP or add escalated dunning |
+| Trial reminders | Columns exist but cron/function path is stale | Follow `docs/AssetSafe_Billing_Revenue_Launch_Runbook.md`: remove trial promise or restore scheduled reminders |
 | Webhook secret rotation | Runbook exists; dual-secret support is future hardening | Accept short maintenance-window rotation or add dual-secret verification |
-| Receipt duplication | Stripe and app receipt paths may both send receipts | Confirm intentional transactional email behavior |
-| Gift payment failures | Gift subscriptions should not pollute normal dunning state | Verify latest webhook behavior or add explicit gift filter |
+| Receipt duplication | Stripe and app receipt paths may both send receipts | Choose receipt source in `docs/AssetSafe_Billing_Revenue_Launch_Runbook.md` |
+| Gift payment failures | Gift subscriptions should not pollute normal dunning state | Verify behavior using `docs/AssetSafe_Billing_Revenue_Launch_Runbook.md` or add explicit gift filter |
 
 ## P1 First 30 Days
 
@@ -85,7 +85,10 @@ These are not just operator checkboxes; they may require product or code changes
 
 ### 1. Billing & Revenue Operations
 
-Primary doc: `docs/AssetSafe_Billing_Revenue_Operations.md`
+Primary docs:
+
+- `docs/AssetSafe_Billing_Revenue_Operations.md`
+- `docs/AssetSafe_Billing_Revenue_Launch_Runbook.md`
 
 Covered:
 
@@ -97,10 +100,11 @@ Covered:
 
 Remaining:
 
-- Decide dispute/refund/dunning/trial-reminder posture.
-- Confirm duplicate receipt behavior.
-- Confirm gift payment failures do not affect normal subscriber dunning state.
-- Decide whether manual Stripe Dashboard operations are acceptable for MVP.
+- Record owner acceptance for manual dispute/refund operations or build the replacement code.
+- Record owner acceptance for single-reminder dunning.
+- Choose receipt strategy.
+- Verify gift payment failures do not affect normal subscriber dunning state.
+- Monitor and repair `stripe_events.outcome = 'error'`.
 
 ### 2. Data Lifecycle & Retention
 
@@ -277,6 +281,8 @@ Remaining:
 
 ## Recommended Next Fix
 
-Support & Ops Tooling is now centralized in `docs/AssetSafe_Support_Ops_Runbook.md`.
+Support & Ops Tooling is centralized in `docs/AssetSafe_Support_Ops_Runbook.md`.
 
-The highest-value next pass is Billing & Revenue Operations, because the sweep still flags Stripe disputes, refunds, dunning escalation, stale trial reminders, receipt duplication, and gift payment-failure filtering as unresolved product/engineering decisions.
+Billing & Revenue launch policy is centralized in `docs/AssetSafe_Billing_Revenue_Launch_Runbook.md`.
+
+The highest-value next pass is to convert the remaining P0/P1 launch gates into an operator sign-off checklist, then mark which items are accepted MVP posture versus code-required before launch.
