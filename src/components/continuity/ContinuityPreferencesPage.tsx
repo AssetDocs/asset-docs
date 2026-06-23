@@ -59,6 +59,14 @@ const SEGMENT_POLICY = [
   { value: 'preserve_read_only', label: 'Preserve read-only' },
 ];
 
+const HEARTBEAT_INTERVALS = [
+  { value: '30', label: 'Every 30 days' },
+  { value: '60', label: 'Every 60 days' },
+  { value: '90', label: 'Every 90 days' },
+  { value: '180', label: 'Every 6 months' },
+  { value: '365', label: 'Once per year' },
+];
+
 const READINESS_LABELS: Record<string, string> = {
   legacy_admin_assigned: 'Legacy Admin assigned',
   mfa_enabled: 'MFA enabled',
@@ -85,6 +93,11 @@ const ContinuityPreferencesPage: React.FC = () => {
   const { isOwner } = useAccount();
   const [prefs, setPrefs] = useState<any>(DEFAULT_PREFS);
   const [annual, setAnnual] = useState(false);
+  const [heartbeatEnabled, setHeartbeatEnabled] = useState(false);
+  const [heartbeatInterval, setHeartbeatInterval] = useState('90');
+  const [lastHeartbeatAt, setLastHeartbeatAt] = useState<string | null>(null);
+  const [nextHeartbeatDueAt, setNextHeartbeatDueAt] = useState<string | null>(null);
+  const [heartbeatStatus, setHeartbeatStatus] = useState('disabled');
   const [reviewedAt, setReviewedAt] = useState<string | null>(null);
   const [version, setVersion] = useState(1);
   const [readiness, setReadiness] = useState<any>(null);
@@ -94,11 +107,16 @@ const ContinuityPreferencesPage: React.FC = () => {
     if (!user?.id) return;
     (async () => {
       const { data } = await supabase.from('legacy_locker')
-        .select('continuity_preferences, continuity_annual_reminder, continuity_preferences_reviewed_at, continuity_preferences_version')
+        .select('continuity_preferences, continuity_annual_reminder, continuity_preferences_reviewed_at, continuity_preferences_version, continuity_heartbeat_enabled, continuity_heartbeat_interval_days, continuity_last_heartbeat_at, continuity_next_heartbeat_due_at, continuity_heartbeat_status')
         .eq('user_id', user.id).maybeSingle();
       if (data) {
         setPrefs({ ...DEFAULT_PREFS, ...(data.continuity_preferences || {}) });
         setAnnual(!!data.continuity_annual_reminder);
+        setHeartbeatEnabled(!!data.continuity_heartbeat_enabled);
+        setHeartbeatInterval(String(data.continuity_heartbeat_interval_days || 90));
+        setLastHeartbeatAt(data.continuity_last_heartbeat_at || null);
+        setNextHeartbeatDueAt(data.continuity_next_heartbeat_due_at || null);
+        setHeartbeatStatus(data.continuity_heartbeat_status || 'disabled');
         setReviewedAt(data.continuity_preferences_reviewed_at || null);
         setVersion(data.continuity_preferences_version || 1);
       }
@@ -125,13 +143,21 @@ const ContinuityPreferencesPage: React.FC = () => {
       user_id: user.id,
       continuity_preferences: prefs,
       continuity_annual_reminder: annual,
+      continuity_heartbeat_enabled: heartbeatEnabled,
+      continuity_heartbeat_interval_days: Number(heartbeatInterval),
+      continuity_heartbeat_status: heartbeatEnabled ? 'current' : 'disabled',
+      continuity_next_heartbeat_due_at: heartbeatEnabled ? new Date(Date.now() + Number(heartbeatInterval) * 24 * 3600 * 1000).toISOString() : null,
       continuity_preferences_reviewed_at: new Date().toISOString(),
       continuity_preferences_version: version + 1,
     }, { onConflict: 'user_id' });
     setSaving(false);
     if (error) { toast.error(error.message); return; }
+    const { data: heartbeat } = await supabase.rpc('record_continuity_owner_heartbeat', { _user_id: user.id });
     setVersion((v) => v + 1);
     setReviewedAt(new Date().toISOString());
+    setHeartbeatStatus(heartbeatEnabled ? 'current' : 'disabled');
+    setLastHeartbeatAt((heartbeat as any)?.last_heartbeat_at || new Date().toISOString());
+    setNextHeartbeatDueAt((heartbeat as any)?.next_heartbeat_due_at || null);
     toast.success('Continuity preferences saved');
   };
 
@@ -233,6 +259,33 @@ const ContinuityPreferencesPage: React.FC = () => {
         <CardContent className="flex items-center justify-between">
           <Label>Remind me once per year to review my Legacy Continuity settings.</Label>
           <Switch checked={annual} onCheckedChange={setAnnual} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Continuity Heartbeat</CardTitle>
+          <CardDescription>Optional check-ins help Asset Safe tell the difference between ordinary silence and a possible continuity concern. Heartbeats never trigger continuity by themselves.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <Label>Enable owner heartbeat check-ins</Label>
+            <Switch checked={heartbeatEnabled} onCheckedChange={setHeartbeatEnabled} />
+          </div>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <Label className="sm:w-48">Check-in cadence</Label>
+            <Select value={heartbeatInterval} onValueChange={setHeartbeatInterval} disabled={!heartbeatEnabled}>
+              <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {HEARTBEAT_INTERVALS.map((i) => <SelectItem key={i.value} value={i.value}>{i.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+            <Badge variant="outline">Status: {heartbeatStatus}</Badge>
+            <Badge variant="outline">Last: {lastHeartbeatAt ? new Date(lastHeartbeatAt).toLocaleDateString() : 'Never'}</Badge>
+            <Badge variant="outline">Next: {nextHeartbeatDueAt ? new Date(nextHeartbeatDueAt).toLocaleDateString() : 'Not scheduled'}</Badge>
+          </div>
         </CardContent>
       </Card>
 

@@ -39,7 +39,7 @@ const OwnerRiskPanel: React.FC<{ caseData: any; onChange: () => void }> = ({ cas
     const { data: acc } = await supabase.from('accounts').select('owner_user_id').eq('id', caseData.account_id).maybeSingle();
     if (acc?.owner_user_id) {
       const { data: locker } = await supabase.from('legacy_locker')
-        .select('continuity_preferences, continuity_preferences_version, continuity_preferences_reviewed_at')
+        .select('continuity_preferences, continuity_preferences_version, continuity_preferences_reviewed_at, continuity_heartbeat_enabled, continuity_heartbeat_interval_days, continuity_last_heartbeat_at, continuity_next_heartbeat_due_at, continuity_heartbeat_status')
         .eq('user_id', acc.owner_user_id).maybeSingle();
       setOwnerPrefs(locker);
     }
@@ -151,6 +151,12 @@ const OwnerRiskPanel: React.FC<{ caseData: any; onChange: () => void }> = ({ cas
               {ownerPrefs?.continuity_preferences ? (
                 <pre className="text-xs bg-muted p-3 rounded overflow-auto max-h-80">{JSON.stringify(ownerPrefs.continuity_preferences, null, 2)}</pre>
               ) : <p className="text-sm text-muted-foreground">No preferences set by owner.</p>}
+              <div className="flex flex-wrap gap-2 mt-3 text-xs">
+                <Badge variant="outline">Heartbeat: {ownerPrefs?.continuity_heartbeat_status || 'disabled'}</Badge>
+                <Badge variant="outline">Last: {ownerPrefs?.continuity_last_heartbeat_at ? new Date(ownerPrefs.continuity_last_heartbeat_at).toLocaleDateString() : 'Never'}</Badge>
+                <Badge variant="outline">Next: {ownerPrefs?.continuity_next_heartbeat_due_at ? new Date(ownerPrefs.continuity_next_heartbeat_due_at).toLocaleDateString() : 'Not scheduled'}</Badge>
+                {ownerPrefs?.continuity_heartbeat_enabled && <Badge variant="outline">Cadence: {ownerPrefs.continuity_heartbeat_interval_days} days</Badge>}
+              </div>
               {ownerPrefs?.continuity_preferences_reviewed_at && (
                 <p className="text-xs text-muted-foreground mt-2">
                   Last reviewed {new Date(ownerPrefs.continuity_preferences_reviewed_at).toLocaleDateString()} • Version {ownerPrefs.continuity_preferences_version}

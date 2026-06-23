@@ -264,6 +264,13 @@ Recommended default SLAs:
 | Closure waiting period | 30 calendar days unless legally bypassed | Ownership administrator |
 | Recovery Delegate owner grace | owner-configured 7-30 days | Automated sweeper + owner response |
 
+Owner heartbeat policy:
+
+- Owner heartbeat is optional and owner-configured from Continuity Preferences.
+- Supported cadences are 30, 60, 90, 180, or 365 days.
+- A missed heartbeat is an admin-review signal only. It does not automatically trigger continuity, grant access, export data, memorialize, preserve, close, or transfer an account.
+- Heartbeat due/overdue cases are available through `get_continuity_heartbeat_report`.
+
 ## 9. Launch Gaps
 
 ### P0 before launch
@@ -275,7 +282,7 @@ Recommended default SLAs:
 
 ### P1 first 30 days
 
-5. Add owner heartbeat / inactivity detection policy if Asset Safe wants continuity to trigger from inactivity rather than only requester-submitted evidence.
+5. Optional owner heartbeat policy exists on `legacy_locker`; missed check-ins are review signals only and do not trigger continuity actions automatically.
 6. In-app ops reporting exists for unresolved owner disputes, external assistance backlog age, high-risk external assistance, and overdue continuity reviews.
 7. Add secondary Legacy Admin UX if the schema is intended for production use.
 
@@ -289,6 +296,6 @@ Recommended default SLAs:
 
 1. Should owner dispute resolution for export, closure, and ownership transfer require second-reviewer signoff before freeze removal?
 2. Should conflict resolution require a second reviewer for ownership transfer, closure, or export cases?
-3. Does Asset Safe want inactivity-triggered continuity, or only request/evidence-triggered continuity?
+3. Should missed owner heartbeats generate email reminders or remain admin-review signals only?
 4. Which seeded evidence requirements need counsel-approved wording or second-reviewer signoff before launch?
 5. Who is allowed to bypass the 30-day continuity closure waiting period, and what evidence is mandatory?
