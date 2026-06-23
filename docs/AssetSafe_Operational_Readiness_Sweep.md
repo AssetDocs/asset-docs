@@ -93,6 +93,7 @@ Primary docs:
 - `docs/AssetSafe_Launch_Code_Workqueue.md`
 - `docs/AssetSafe_Launch_Evidence_Collection_Runbook.md`
 - `docs/AssetSafe_Launch_Handoff.md`
+- `docs/AssetSafe_Launch_Packet_Index.md`
 
 Covered:
 
@@ -296,3 +297,5 @@ Conditional developer prompts for any items marked `Code required` are centraliz
 Evidence collection instructions for filling the operator checklist are centralized in `docs/AssetSafe_Launch_Evidence_Collection_Runbook.md`.
 
 The launch handoff routing note is `docs/AssetSafe_Launch_Handoff.md`.
+
+The launch packet index is `docs/AssetSafe_Launch_Packet_Index.md`.

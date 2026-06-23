@@ -4,6 +4,7 @@ Status: launch handoff note
 Date: 2026-06-23
 Owner: Asset Safe operator / project owner
 Companion docs:
+- `docs/AssetSafe_Launch_Packet_Index.md`
 - `docs/AssetSafe_Launch_Operator_Signoff_Checklist.md`
 - `docs/AssetSafe_Launch_Evidence_Collection_Runbook.md`
 - `docs/AssetSafe_Launch_Code_Workqueue.md`
@@ -17,6 +18,7 @@ This is the routing note for the launch readiness packet. It explains what the o
 
 | Doc | Audience | Use |
 |---|---|---|
+| `docs/AssetSafe_Launch_Packet_Index.md` | Operator / developer | One-page launch packet map |
 | `docs/AssetSafe_Operational_Readiness_Sweep.md` | Operator / developer | Current readiness by operational area |
 | `docs/AssetSafe_Launch_Operator_Signoff_Checklist.md` | Operator | Final P0/P1/P2 decision sheet |
 | `docs/AssetSafe_Launch_Evidence_Collection_Runbook.md` | Operator | Exact queries, screenshots, approvals, and tickets to collect |
@@ -90,4 +92,3 @@ Do not start these unless the operator explicitly marks them `Code required` or 
 The operator should fill the first pass of `docs/AssetSafe_Launch_Operator_Signoff_Checklist.md` using the evidence runbook.
 
 The first decision checkpoint is whether any P0 row becomes `Code required`. If none do, launch readiness becomes an operator/legal/provider evidence exercise rather than an engineering sprint.
-
