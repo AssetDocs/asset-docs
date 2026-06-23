@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
-import { Users, Gift, CreditCard, UserX, Search, RefreshCw, UserPlus } from 'lucide-react';
+import { Users, Gift, CreditCard, UserX, Search, RefreshCw, UserPlus, ShieldCheck } from 'lucide-react';
 
 interface UserRecord {
   user_id: string;
@@ -81,10 +81,25 @@ interface PaymentEvent {
   event_data: any;
 }
 
+interface SupportAccessReview {
+  id: string;
+  admin_user_id: string;
+  target_user_id: string;
+  target_email: string | null;
+  target_account_number: string | null;
+  reason: string;
+  access_scope: string;
+  status: string;
+  expires_at: string;
+  completed_at: string | null;
+  created_at: string;
+}
+
 const AdminUsers = () => {
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [giftSubscriptions, setGiftSubscriptions] = useState<GiftSubscription[]>([]);
   const [paymentEvents, setPaymentEvents] = useState<PaymentEvent[]>([]);
+  const [supportAccessReviews, setSupportAccessReviews] = useState<SupportAccessReview[]>([]);
   const [customerLookup, setCustomerLookup] = useState<Record<string, { name: string; email: string | null; accountNumber: string | null }>>({});
   const [ownersWithContributors, setOwnersWithContributors] = useState<OwnerWithContributors[]>([]);
   const [loading, setLoading] = useState(true);
@@ -317,6 +332,15 @@ const AdminUsers = () => {
 
       if (paymentsData) setPaymentEvents(paymentsData);
 
+      // Fetch support access review log
+      const { data: accessReviewData } = await supabase
+        .from('support_access_reviews')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      if (accessReviewData) setSupportAccessReviews(accessReviewData);
+
     } catch (error) {
       console.error('Error loading user data:', error);
     } finally {
@@ -377,6 +401,53 @@ const AdminUsers = () => {
       style: 'currency',
       currency: currency || 'USD',
     }).format(amount / 100);
+  };
+
+  const logSupportAccessReview = async (user: UserRecord) => {
+    const reason = window.prompt(
+      `Log read-only support access for ${user.email || user.user_id}.\n\nEnter the support reason or ticket reference:`
+    );
+    if (!reason) return;
+    const trimmedReason = reason.trim();
+    if (trimmedReason.length < 10) {
+      window.alert('Please enter at least 10 characters describing the support reason.');
+      return;
+    }
+
+    const { data: authData } = await supabase.auth.getUser();
+    const { error } = await supabase.from('support_access_reviews').insert({
+      admin_user_id: authData.user?.id,
+      target_user_id: user.user_id,
+      target_email: user.email,
+      target_account_number: user.account_number,
+      reason: trimmedReason,
+    });
+
+    if (error) {
+      console.error('Failed to log support access review:', error);
+      window.alert('Could not log support access review.');
+      return;
+    }
+
+    await loadData();
+  };
+
+  const completeSupportAccessReview = async (review: SupportAccessReview) => {
+    const { error } = await supabase
+      .from('support_access_reviews')
+      .update({
+        status: 'completed',
+        completed_at: new Date().toISOString(),
+      })
+      .eq('id', review.id);
+
+    if (error) {
+      console.error('Failed to complete support access review:', error);
+      window.alert('Could not complete support access review.');
+      return;
+    }
+
+    await loadData();
   };
 
   // Build lookup: recipient_user_id -> redeemed gift
@@ -508,6 +579,7 @@ const AdminUsers = () => {
           <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
           <TabsTrigger value="gifts">Gift Subscriptions</TabsTrigger>
           <TabsTrigger value="payments">Payment Events</TabsTrigger>
+          <TabsTrigger value="support-access">Support Access</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all-users" className="space-y-4">
@@ -542,6 +614,7 @@ const AdminUsers = () => {
                       <TableHead>Source</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Created</TableHead>
+                      <TableHead>Support</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -644,11 +717,21 @@ const AdminUsers = () => {
                         <TableCell className="text-sm text-muted-foreground">
                           {formatDate(user.created_at)}
                         </TableCell>
+                        <TableCell>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => logSupportAccessReview(user)}
+                          >
+                            <ShieldCheck className="w-4 h-4 mr-2" />
+                            Log View
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                     {filteredUsers.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={8} className="text-center text-muted-foreground">
+                        <TableCell colSpan={10} className="text-center text-muted-foreground">
                           No users found
                         </TableCell>
                       </TableRow>
@@ -807,6 +890,78 @@ const AdminUsers = () => {
                 </Table>
               ) : (
               <p className="text-center text-muted-foreground py-8">No payment events recorded</p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="support-access">
+          <Card>
+            <CardHeader>
+              <CardTitle>Support Access Reviews</CardTitle>
+              <CardDescription>Audited read-only support context requests logged before customer account review</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <p>Loading...</p>
+              ) : supportAccessReviews.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Target</TableHead>
+                      <TableHead>Account #</TableHead>
+                      <TableHead>Reason</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Logged</TableHead>
+                      <TableHead>Expires</TableHead>
+                      <TableHead>Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {supportAccessReviews.map((review) => (
+                      <TableRow key={review.id}>
+                        <TableCell>
+                          <div>
+                            <p className="text-sm">{review.target_email || '-'}</p>
+                            <p className="font-mono text-xs text-muted-foreground">{review.target_user_id}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-mono text-xs">
+                          {review.target_account_number || '-'}
+                        </TableCell>
+                        <TableCell className="max-w-md text-sm">{review.reason}</TableCell>
+                        <TableCell>
+                          <Badge variant={review.status === 'logged' ? 'default' : 'secondary'}>
+                            {review.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {formatDate(review.created_at)}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {formatDate(review.expires_at)}
+                        </TableCell>
+                        <TableCell>
+                          {review.status === 'logged' ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => completeSupportAccessReview(review)}
+                            >
+                              Complete
+                            </Button>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">
+                              {review.completed_at ? formatDate(review.completed_at) : '-'}
+                            </span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <p className="text-center text-muted-foreground py-8">No support access reviews logged</p>
               )}
             </CardContent>
           </Card>

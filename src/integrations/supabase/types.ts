@@ -6385,6 +6385,48 @@ export type Database = {
         }
         Relationships: []
       }
+      support_access_reviews: {
+        Row: {
+          access_scope: string
+          admin_user_id: string
+          completed_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          reason: string
+          status: string
+          target_account_number: string | null
+          target_email: string | null
+          target_user_id: string
+        }
+        Insert: {
+          access_scope?: string
+          admin_user_id: string
+          completed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          reason: string
+          status?: string
+          target_account_number?: string | null
+          target_email?: string | null
+          target_user_id: string
+        }
+        Update: {
+          access_scope?: string
+          admin_user_id?: string
+          completed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          reason?: string
+          status?: string
+          target_account_number?: string | null
+          target_email?: string | null
+          target_user_id?: string
+        }
+        Relationships: []
+      }
       subscribers: {
         Row: {
           anonymized_at: string | null
