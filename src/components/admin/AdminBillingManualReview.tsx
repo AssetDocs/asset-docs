@@ -14,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Loader2, ShieldAlert, History, RefreshCw } from 'lucide-react';
+import { Loader2, ShieldAlert, History, RefreshCw, Send } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ManualReviewRow {
@@ -56,6 +56,7 @@ const ManualReviewQueue: React.FC = () => {
   const [reason, setReason] = useState('');
   const [action, setAction] = useState<'approve' | 'reject'>('approve');
   const [submitting, setSubmitting] = useState(false);
+  const [resendingId, setResendingId] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -64,7 +65,7 @@ const ManualReviewQueue: React.FC = () => {
       .select(
         'id, stripe_session_id, email, metadata_user_id, metadata_user_email, manual_review_reason, amount_total, currency, created_at, status',
       )
-      .eq('status', 'manual_review')
+      .in('status', ['manual_review', 'fulfilled_email_failed'])
       .order('created_at', { ascending: false })
       .limit(100);
     if (error) toast.error('Failed to load manual review queue');
@@ -86,13 +87,21 @@ const ManualReviewQueue: React.FC = () => {
     try {
       const { data, error } = await supabase.functions.invoke('admin-approve-fulfillment', {
         body: {
-          session_id: selected.stripe_session_id,
-          action,
-          reason: reason.trim(),
+          fulfillment_id: selected.id,
+          decision: action,
+          override_user_id: selected.metadata_user_id,
+          override_reason: reason.trim(),
+          notes: reason.trim(),
         },
       });
-      if (error || !data?.success) {
+      if (error || data?.error) {
         throw new Error(data?.error || error?.message || 'Failed');
+      }
+      const okStatuses = action === 'reject'
+        ? ['rejected']
+        : ['fulfilled', 'fulfilled_email_failed', 'already_done'];
+      if (!okStatuses.includes(data?.status)) {
+        throw new Error(data?.reason || data?.status || 'Unexpected fulfillment response');
       }
       toast.success(action === 'approve' ? 'Fulfillment approved' : 'Fulfillment rejected');
       setSelected(null);
@@ -103,6 +112,22 @@ const ManualReviewQueue: React.FC = () => {
       toast.error(e?.message ?? 'Resolution failed');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleResend = async (row: ManualReviewRow) => {
+    setResendingId(row.id);
+    try {
+      const { error } = await supabase.functions.invoke('resend-magic-link', {
+        body: { session_id: row.stripe_session_id },
+      });
+      if (error) throw error;
+      toast.success('Sign-in link resend requested');
+      load();
+    } catch (e: any) {
+      toast.error(e?.message ?? 'Resend failed');
+    } finally {
+      setResendingId(null);
     }
   };
 
@@ -120,7 +145,7 @@ const ManualReviewQueue: React.FC = () => {
         <div>
           <h3 className="text-lg font-semibold">Manual review queue</h3>
           <p className="text-sm text-muted-foreground">
-            {rows.length} fulfillment{rows.length === 1 ? '' : 's'} awaiting human verification
+            {rows.length} fulfillment{rows.length === 1 ? '' : 's'} awaiting human verification or email resend
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={load}>
@@ -150,7 +175,10 @@ const ManualReviewQueue: React.FC = () => {
                       Session <code className="text-xs">{row.stripe_session_id}</code>
                     </CardDescription>
                   </div>
-                  <Badge variant="outline">{formatMoney(row.amount_total, row.currency)}</Badge>
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <Badge variant="outline">{row.status.replaceAll('_', ' ')}</Badge>
+                    <Badge variant="outline">{formatMoney(row.amount_total, row.currency)}</Badge>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -168,28 +196,46 @@ const ManualReviewQueue: React.FC = () => {
                   <Label className="text-xs text-muted-foreground">Reason flagged</Label>
                   <p className="text-sm">{row.manual_review_reason ?? '—'}</p>
                 </div>
-                <div className="flex gap-2 pt-2">
-                  <Button
-                    size="sm"
-                    onClick={() => {
-                      setSelected(row);
-                      setAction('approve');
-                      setReason('');
-                    }}
-                  >
-                    Approve & fulfill
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => {
-                      setSelected(row);
-                      setAction('reject');
-                      setReason('');
-                    }}
-                  >
-                    Reject
-                  </Button>
+                <div className="flex flex-wrap gap-2 pt-2">
+                  {row.status === 'manual_review' ? (
+                    <>
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          setSelected(row);
+                          setAction('approve');
+                          setReason('');
+                        }}
+                      >
+                        Approve & fulfill
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => {
+                          setSelected(row);
+                          setAction('reject');
+                          setReason('');
+                        }}
+                      >
+                        Reject
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleResend(row)}
+                      disabled={resendingId === row.id}
+                    >
+                      {resendingId === row.id ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Send className="h-4 w-4 mr-2" />
+                      )}
+                      Resend sign-in link
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -205,7 +251,7 @@ const ManualReviewQueue: React.FC = () => {
             </DialogTitle>
             <DialogDescription>
               {action === 'approve'
-                ? 'This will provision the account using the email on the Stripe session. The override is permanently logged.'
+                ? 'This will provision the account for the metadata user on the checkout fulfillment. The override is permanently logged.'
                 : 'This will mark the fulfillment as rejected. No account will be provisioned. The decision is permanently logged.'}
             </DialogDescription>
           </DialogHeader>

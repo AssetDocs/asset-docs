@@ -24,8 +24,8 @@ serve(async (req) => {
 
     const { data: manualReview, error: e1 } = await supabaseAdmin
       .from("checkout_fulfillments")
-      .select("id, stripe_session_id, email, plan_lookup_key, manual_review_reason, created_at")
-      .eq("status", "manual_review")
+      .select("id, stripe_session_id, email, plan_lookup_key, manual_review_reason, created_at, status")
+      .in("status", ["manual_review", "fulfilled_email_failed"])
       .lt("created_at", cutoffOldBacklog)
       .order("created_at", { ascending: true })
       .limit(100);
@@ -100,7 +100,7 @@ serve(async (req) => {
       <div style="font-family:Arial,sans-serif;max-width:680px;margin:0 auto;">
         <h2>Asset Safe — Fulfillment backlog</h2>
         <p>${totalIssues} issue(s) need attention.</p>
-        ${fmtList("Manual review > 24h", manualReview)}
+        ${fmtList("Manual review / email delivery failures > 24h", manualReview)}
         ${fmtList("Stuck processing > 24h", stuckProcessing)}
         ${fmtList("Email-mismatch overrides (last 24h)", anomalies)}
       </div>`;
