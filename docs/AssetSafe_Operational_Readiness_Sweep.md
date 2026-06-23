@@ -89,6 +89,7 @@ Primary docs:
 
 - `docs/AssetSafe_Billing_Revenue_Operations.md`
 - `docs/AssetSafe_Billing_Revenue_Launch_Runbook.md`
+- `docs/AssetSafe_Launch_Operator_Signoff_Checklist.md`
 
 Covered:
 
@@ -285,4 +286,4 @@ Support & Ops Tooling is centralized in `docs/AssetSafe_Support_Ops_Runbook.md`.
 
 Billing & Revenue launch policy is centralized in `docs/AssetSafe_Billing_Revenue_Launch_Runbook.md`.
 
-The highest-value next pass is to convert the remaining P0/P1 launch gates into an operator sign-off checklist, then mark which items are accepted MVP posture versus code-required before launch.
+The remaining launch gates are centralized in `docs/AssetSafe_Launch_Operator_Signoff_Checklist.md`. The highest-value next pass is for the operator to fill in owners/evidence and mark any `Code required` items that must block launch.

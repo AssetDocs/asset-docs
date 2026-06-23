@@ -18,6 +18,7 @@ Companion docs:
 - `docs/AssetSafe_Mobile_Capacitor_Ops_Runbook.md`
 - `docs/AssetSafe_Operational_Readiness_Sweep.md`
 - `docs/AssetSafe_Support_Ops_Runbook.md`
+- `docs/AssetSafe_Launch_Operator_Signoff_Checklist.md`
 
 ## Purpose
 
@@ -43,6 +44,7 @@ Use this checklist before launch, after major Supabase/storage changes, and duri
 | Mobile release/privacy review | Required before app-store launch | `docs/AssetSafe_Mobile_Capacitor_Ops_Runbook.md` launch gate |
 | Support ownership/SLA process | Required before launch | `docs/AssetSafe_Support_Ops_Runbook.md` launch gate |
 | Incident contact path | Required before launch | Named owner and escalation email/group |
+| Final operator sign-off | Required before launch | `docs/AssetSafe_Launch_Operator_Signoff_Checklist.md` completed |
 
 ## 1. PITR And Restore Readiness
 
