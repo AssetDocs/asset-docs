@@ -92,6 +92,7 @@ Primary docs:
 - `docs/AssetSafe_Launch_Operator_Signoff_Checklist.md`
 - `docs/AssetSafe_Launch_Code_Workqueue.md`
 - `docs/AssetSafe_Launch_Evidence_Collection_Runbook.md`
+- `docs/AssetSafe_Launch_Handoff.md`
 
 Covered:
 
@@ -293,3 +294,5 @@ The remaining launch gates are centralized in `docs/AssetSafe_Launch_Operator_Si
 Conditional developer prompts for any items marked `Code required` are centralized in `docs/AssetSafe_Launch_Code_Workqueue.md`.
 
 Evidence collection instructions for filling the operator checklist are centralized in `docs/AssetSafe_Launch_Evidence_Collection_Runbook.md`.
+
+The launch handoff routing note is `docs/AssetSafe_Launch_Handoff.md`.
