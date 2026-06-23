@@ -66,6 +66,8 @@ select cron.unschedule('process-storage-deletion-jobs-prod');
 -- then re-run the cron.schedule(...) block in section 3 with the new key
 ```
 
+For the full production rotation checklist, affected secrets, emergency triggers, and validation evidence, follow `docs/AssetSafe_Key_Rotation_Runbook.md`.
+
 ## 5. Pause / resume / remove
 
 ```sql

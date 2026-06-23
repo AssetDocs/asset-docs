@@ -215,7 +215,7 @@ Protected statuses (`deletion_requested`, `scheduled_for_deletion`, `deleted`) a
 6. **Refund flow** — no edge function to issue refunds from admin; today done manually in Stripe Dashboard with no app-side audit row.
 7. **Chargeback flow** — `charge.dispute.created` should auto-flip account to `expired_read_only` + open an admin review item.
 8. **Reconciliation alerting** — `StripeReconciliation.tsx` exists but there's no scheduled drift-detector emitting Slack/email alerts.
-9. **Webhook signing key rotation** — `STRIPE_WEBHOOK_SECRET` rotation has no documented runbook; the webhook supports only one secret at a time.
+9. **Webhook signing key rotation** — documented in `docs/AssetSafe_Key_Rotation_Runbook.md`; the webhook still supports only one secret at a time, so dual-secret support remains a future hardening item.
 10. **Receipt duplication** — both Stripe and `send-payment-receipt` send receipts; confirm intentional and reflected in transactional-email opt-out logic.
 11. **Trial reminders** — `subscribers.trial_end` / `trial_reminder_sent` columns exist but no current cron is scheduled (legacy `check-trial-reminders` migration references a deleted function). Decision needed: keep or remove.
 12. **Past-due → cancel hard stop** — if Stripe's smart retries exhaust and subscription goes to `unpaid`, we flip to `expired_read_only` but never delete the entitlement row; verify cleanup expectation.
