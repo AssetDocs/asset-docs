@@ -176,7 +176,7 @@ const ManualReviewQueue: React.FC = () => {
                     </CardDescription>
                   </div>
                   <div className="flex flex-wrap justify-end gap-2">
-                    <Badge variant="outline">{row.status.replaceAll('_', ' ')}</Badge>
+                    <Badge variant="outline">{row.status.split('_').join(' ')}</Badge>
                     <Badge variant="outline">{formatMoney(row.amount_total, row.currency)}</Badge>
                   </div>
                 </div>
