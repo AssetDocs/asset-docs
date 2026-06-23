@@ -9,6 +9,7 @@ Companion docs:
 - `docs/AssetSafe_Security_Incident_Response_Runbook.md`
 - `docs/AssetSafe_Legal_Request_Runbook.md`
 - `docs/AssetSafe_Privacy_Request_DSAR_Runbook.md`
+- `docs/AssetSafe_DMCA_Takedown_Runbook.md`
 
 ## Purpose
 
@@ -133,7 +134,7 @@ order by job_name;
 
 ## Audit Export Procedure
 
-Use this procedure for legal requests, privacy requests, incident response, support escalations, billing disputes, or continuity disputes. For subpoenas, warrants, court orders, preservation requests, or law-enforcement requests, follow `docs/AssetSafe_Legal_Request_Runbook.md` first. For DSAR/privacy requests, follow `docs/AssetSafe_Privacy_Request_DSAR_Runbook.md` first.
+Use this procedure for legal requests, privacy requests, content complaints, incident response, support escalations, billing disputes, or continuity disputes. For subpoenas, warrants, court orders, preservation requests, or law-enforcement requests, follow `docs/AssetSafe_Legal_Request_Runbook.md` first. For DSAR/privacy requests, follow `docs/AssetSafe_Privacy_Request_DSAR_Runbook.md` first. For DMCA/content complaints, follow `docs/AssetSafe_DMCA_Takedown_Runbook.md` first.
 
 1. Open an export ticket with requester, approver, reason, scope, and deadline.
 2. Define the minimum necessary scope: user/account ID, date range, tables, and event types.

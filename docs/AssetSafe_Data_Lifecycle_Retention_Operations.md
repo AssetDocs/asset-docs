@@ -204,6 +204,8 @@ Audit-log access, export procedure, and tamper-evidence posture are covered in `
 
 Privacy request and DSAR intake, identity verification, export/deletion coordination, and denial handling are covered in `docs/AssetSafe_Privacy_Request_DSAR_Runbook.md`.
 
+Copyright, DMCA-style, and user-uploaded content complaint handling is covered in `docs/AssetSafe_DMCA_Takedown_Runbook.md`.
+
 ### 6.1 Launch gaps
 - Legal hold controls exist in Admin Cancellations for pending closures and deleted-account tombstones, including review status, assigned reviewer, review due date, and notes.
 - Support PII scrubber exists as `scrub-old-support-pii`; Admin PII report shows cron health, eligible rows, scrubbed support records, and durable scrub-run history.

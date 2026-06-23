@@ -8,6 +8,7 @@ Companion docs:
 - `docs/AssetSafe_Data_Lifecycle_Retention_Operations.md`
 - `docs/AssetSafe_Security_Incident_Response_Runbook.md`
 - `docs/AssetSafe_Privacy_Request_DSAR_Runbook.md`
+- `docs/AssetSafe_DMCA_Takedown_Runbook.md`
 
 ## Purpose
 
@@ -16,6 +17,8 @@ This runbook defines how Asset Safe handles subpoenas, warrants, court orders, l
 This is an operational checklist, not legal advice. Counsel or the business owner must review legal demands before production data is preserved, disclosed, or withheld from user notification.
 
 User-initiated privacy requests, DSARs, deletion, correction, and authorized-agent requests are covered separately in `docs/AssetSafe_Privacy_Request_DSAR_Runbook.md`.
+
+Copyright, DMCA-style, and user-uploaded content complaints are covered separately in `docs/AssetSafe_DMCA_Takedown_Runbook.md`.
 
 ## Request Types
 
