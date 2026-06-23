@@ -36,7 +36,15 @@ const CaseSummarySidebar: React.FC<{ caseData: any }> = ({ caseData }) => {
       if (caseData.requested_by_user_id) {
         const { data: prof } = await supabase.from('profiles').select('*').eq('user_id', caseData.requested_by_user_id).maybeSingle();
         setLegacyAdminProfile(prof);
-        const { data: la } = await supabase.from('legacy_admins').select('*').eq('account_id', caseData.account_id).eq('legacy_admin_user_id', caseData.requested_by_user_id).maybeSingle();
+        const { data: la } = await supabase
+          .from('legacy_admins')
+          .select('*')
+          .eq('account_id', caseData.account_id)
+          .eq('legacy_admin_user_id', caseData.requested_by_user_id)
+          .eq('status', 'active')
+          .order('designation_priority', { ascending: true })
+          .limit(1)
+          .maybeSingle();
         setLegacyAdmin(la);
       }
     })();
@@ -65,6 +73,7 @@ const CaseSummarySidebar: React.FC<{ caseData: any }> = ({ caseData }) => {
         <Row label="Legal Authority" value={caseData.metadata?.legal_authorization} />
         <Row label="Account Holder Passed Away" value={caseData.metadata?.passed_away} />
         <Row label="Designated" value={legacyAdmin?.created_at ? new Date(legacyAdmin.created_at).toLocaleDateString() : '—'} />
+        <Row label="Designation Role" value={legacyAdmin?.designation_role} />
         <Row label="Designation Status" value={legacyAdmin?.status} />
       </Section>
     </div>

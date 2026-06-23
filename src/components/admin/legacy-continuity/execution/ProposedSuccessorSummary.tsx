@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 const Row = ({ label, value }: any) => (
   <div className="flex justify-between gap-4 py-1 text-sm">
     <span className="text-muted-foreground">{label}</span>
-    <span className="font-medium text-right break-all">{value ?? '—'}</span>
+    <span className="font-medium text-right break-all">{value ?? '-'}</span>
   </div>
 );
 
@@ -15,17 +15,27 @@ const ProposedSuccessorSummary: React.FC<{ caseData: any }> = ({ caseData }) => 
   const [data, setData] = useState<any>(null);
 
   useEffect(() => {
-    if (!caseData?.requester_user_id) return;
+    const requesterId = caseData?.requested_by_user_id || caseData?.requester_user_id;
+    if (!requesterId) return;
     (async () => {
-      const { data: profile } = await supabase.from('profiles').select('first_name,last_name').eq('user_id', caseData.requester_user_id).maybeSingle();
-      const { data: legacy } = await supabase.from('legacy_admins').select('*').eq('legacy_admin_user_id', caseData.requester_user_id).eq('account_id', caseData.account_id).maybeSingle();
-      const { data: membership } = await supabase.from('account_memberships').select('role,created_at').eq('user_id', caseData.requester_user_id).eq('account_id', caseData.account_id).maybeSingle();
-      setData({ profile, legacy, membership });
+      const { data: profile } = await supabase.from('profiles').select('first_name,last_name').eq('user_id', requesterId).maybeSingle();
+      const { data: legacy } = await supabase
+        .from('legacy_admins')
+        .select('*')
+        .eq('legacy_admin_user_id', requesterId)
+        .eq('account_id', caseData.account_id)
+        .eq('status', 'active')
+        .order('designation_priority', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      const { data: membership } = await supabase.from('account_memberships').select('role,created_at').eq('user_id', requesterId).eq('account_id', caseData.account_id).maybeSingle();
+      setData({ profile, legacy, membership, requesterId });
     })();
-  }, [caseData?.requester_user_id, caseData?.account_id]);
+  }, [caseData?.requested_by_user_id, caseData?.requester_user_id, caseData?.account_id]);
 
-  if (!data) return <div className="text-sm text-muted-foreground p-4">Loading successor…</div>;
-  const { profile, legacy, membership } = data;
+  if (!data) return <div className="text-sm text-muted-foreground p-4">Loading successor...</div>;
+  const { profile, legacy, membership, requesterId } = data;
+  const designatedAt = legacy?.assigned_at || legacy?.designated_at;
 
   return (
     <Card>
@@ -33,12 +43,13 @@ const ProposedSuccessorSummary: React.FC<{ caseData: any }> = ({ caseData }) => 
         <CardTitle className="text-base">Proposed Successor (Legacy Admin)</CardTitle>
       </CardHeader>
       <CardContent className="space-y-1">
-        <Row label="Name" value={[profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || '—'} />
-        <Row label="User ID" value={<span className="font-mono text-xs">{caseData.requester_user_id?.slice(0,8)}…</span>} />
-        <Row label="Relationship" value={caseData.relationship || legacy?.relationship || '—'} />
+        <Row label="Name" value={[profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || '-'} />
+        <Row label="User ID" value={<span className="font-mono text-xs">{requesterId?.slice(0, 8)}...</span>} />
+        <Row label="Relationship" value={caseData.relationship || legacy?.relationship || '-'} />
         <Row label="Current role" value={membership?.role || 'none'} />
-        <Row label="Added as authorized user" value={membership?.created_at ? new Date(membership.created_at).toLocaleDateString() : '—'} />
-        <Row label="Legacy Admin since" value={legacy?.designated_at ? new Date(legacy.designated_at).toLocaleDateString() : '—'} />
+        <Row label="Legacy Admin role" value={legacy?.designation_role || 'Legacy Admin'} />
+        <Row label="Added as authorized user" value={membership?.created_at ? new Date(membership.created_at).toLocaleDateString() : '-'} />
+        <Row label="Legacy Admin since" value={designatedAt ? new Date(designatedAt).toLocaleDateString() : '-'} />
         <Row label="Identity verification" value={<Badge variant="outline">{caseData.identity_verification_status || 'pending'}</Badge>} />
         <Row label="Documentation review" value={<Badge variant="outline">{caseData.documentation_status || 'pending'}</Badge>} />
         <Row label="Legal authority review" value={<Badge variant="outline">{caseData.legal_authority_status || 'pending'}</Badge>} />

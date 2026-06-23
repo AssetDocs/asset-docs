@@ -48,13 +48,12 @@ const SecurityProgress: React.FC<SecurityProgressProps> = ({ hideChecklist = fal
         if (!cancelled) setAuthorizedUserCount(count ?? 0);
       } catch { /* ignore */ }
       try {
-        const { data } = await supabase
+        const { count } = await supabase
           .from('legacy_admins')
-          .select('id')
+          .select('id', { count: 'exact', head: true })
           .eq('account_id', accountId)
-          .eq('status', 'active')
-          .maybeSingle();
-        if (!cancelled) setLegacyAdminAssigned(!!data);
+          .eq('status', 'active');
+        if (!cancelled) setLegacyAdminAssigned((count ?? 0) > 0);
       } catch { /* ignore */ }
       try {
         if (storageQuotaGb > 0) {

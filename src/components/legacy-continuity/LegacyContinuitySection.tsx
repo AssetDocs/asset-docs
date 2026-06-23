@@ -44,10 +44,11 @@ const LegacyContinuitySection: React.FC = () => {
         .from('legacy_admins')
         .select('id, legacy_admin_user_id')
         .eq('account_id', accountId)
+        .eq('legacy_admin_user_id', user.id)
         .eq('status', 'active')
         .maybeSingle();
       if (cancelled) return;
-      if (la && la.legacy_admin_user_id === user.id) {
+      if (la) {
         setIsLegacyAdmin(true);
         setLegacyAdminId(la.id);
         await loadRequests();

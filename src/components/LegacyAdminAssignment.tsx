@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -37,29 +37,36 @@ interface LegacyAdminRow {
   id: string;
   legacy_admin_user_id: string;
   assigned_at: string;
+  designation_role: 'primary' | 'secondary';
+  designation_priority: number;
   notes: string | null;
 }
 
 const LegacyAdminAssignment: React.FC<Props> = ({ members }) => {
   const { accountId, isOwner } = useAccount();
   const { toast } = useToast();
-  const [current, setCurrent] = useState<LegacyAdminRow | null>(null);
+  const [admins, setAdmins] = useState<LegacyAdminRow[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string>('');
+  const [selectedRole, setSelectedRole] = useState<'primary' | 'secondary'>('secondary');
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [removeOpen, setRemoveOpen] = useState(false);
+  const [removeTarget, setRemoveTarget] = useState<LegacyAdminRow | null>(null);
   const [loading, setLoading] = useState(false);
 
   const eligibleMembers = members.filter(m => m.role !== 'owner');
+  const primary = admins.find(a => a.designation_role === 'primary');
 
   const fetchCurrent = async () => {
     if (!accountId) return;
     const { data } = await supabase
       .from('legacy_admins')
-      .select('id, legacy_admin_user_id, assigned_at, notes')
+      .select('id, legacy_admin_user_id, assigned_at, designation_role, designation_priority, notes')
       .eq('account_id', accountId)
       .eq('status', 'active')
-      .maybeSingle();
-    setCurrent(data || null);
+      .order('designation_priority', { ascending: true })
+      .order('assigned_at', { ascending: true });
+    const active = data || [];
+    setAdmins(active);
+    setSelectedRole(active.some((a) => a.designation_role === 'primary') ? 'secondary' : 'primary');
   };
 
   useEffect(() => { fetchCurrent(); }, [accountId]);
@@ -71,6 +78,8 @@ const LegacyAdminAssignment: React.FC<Props> = ({ members }) => {
     return name || m.email || 'Authorized user';
   };
 
+  const availableMembers = eligibleMembers.filter(m => !admins.some(a => a.legacy_admin_user_id === m.user_id));
+
   const handleAssign = async () => {
     if (!selectedUserId || !accountId) return;
     setLoading(true);
@@ -78,31 +87,36 @@ const LegacyAdminAssignment: React.FC<Props> = ({ members }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Remove any existing active first (single active enforced by unique index)
-      if (current) {
+      if (selectedRole === 'primary' && primary) {
         await supabase
           .from('legacy_admins')
-          .update({ status: 'removed' })
-          .eq('id', current.id);
+          .update({ designation_role: 'secondary', designation_priority: 2 })
+          .eq('id', primary.id);
       }
 
+      const nextSecondaryPriority = Math.max(1, ...admins.map((a) => a.designation_priority || 1)) + 1;
       const { error } = await supabase.from('legacy_admins').insert({
         account_id: accountId,
         legacy_admin_user_id: selectedUserId,
         assigned_by_owner_id: user.id,
+        designation_role: selectedRole,
+        designation_priority: selectedRole === 'primary' ? 1 : nextSecondaryPriority,
       });
       if (error) throw error;
 
-      // Fire-and-forget email notification to the newly designated Legacy Admin
       supabase.functions
         .invoke('send-legacy-admin-notification', {
           body: { legacy_admin_user_id: selectedUserId, account_id: accountId },
         })
         .catch((e) => console.warn('legacy admin email failed', e));
 
-      toast({ title: 'Legacy Admin assigned', description: `${memberLabel(selectedUserId)} is now your Legacy Admin.` });
+      toast({
+        title: selectedRole === 'primary' ? 'Primary Legacy Admin assigned' : 'Secondary Legacy Admin added',
+        description: `${memberLabel(selectedUserId)} is now a ${selectedRole} Legacy Admin.`,
+      });
       setConfirmOpen(false);
       setSelectedUserId('');
+      setSelectedRole(primary ? 'secondary' : 'primary');
       fetchCurrent();
     } catch (err: any) {
       toast({ title: 'Error', description: err.message, variant: 'destructive' });
@@ -112,16 +126,16 @@ const LegacyAdminAssignment: React.FC<Props> = ({ members }) => {
   };
 
   const handleRemove = async () => {
-    if (!current) return;
+    if (!removeTarget) return;
     setLoading(true);
     try {
       const { error } = await supabase
         .from('legacy_admins')
         .update({ status: 'removed' })
-        .eq('id', current.id);
+        .eq('id', removeTarget.id);
       if (error) throw error;
       toast({ title: 'Legacy Admin removed' });
-      setRemoveOpen(false);
+      setRemoveTarget(null);
       fetchCurrent();
     } catch (err: any) {
       toast({ title: 'Error', description: err.message, variant: 'destructive' });
@@ -137,13 +151,11 @@ const LegacyAdminAssignment: React.FC<Props> = ({ members }) => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <HeartHandshake className="h-5 w-5 text-primary" />
-          Legacy Admin
+          Legacy Admins
         </CardTitle>
         <CardDescription>
-          A Legacy Admin is the trusted person you designate to help preserve and manage your
-          Asset Safe account if you become temporarily unavailable or unable to manage it yourself.
-          A Legacy Admin may submit continuity requests such as ownership transfer, data export,
-          or account closure as part of your continuity plan.
+          Designate trusted people who may submit continuity requests if you become unavailable or unable to manage your account.
+          You can keep one primary Legacy Admin and add secondary Legacy Admins as backups.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -156,43 +168,56 @@ const LegacyAdminAssignment: React.FC<Props> = ({ members }) => {
           </AlertDescription>
         </Alert>
 
-        {current ? (
-          <div className="flex items-center justify-between rounded-md border p-3">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
-                <HeartHandshake className="h-4 w-4 text-primary" />
+        {admins.length > 0 ? (
+          <div className="space-y-2">
+            {admins.map((admin) => (
+              <div key={admin.id} className="flex items-center justify-between rounded-md border p-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+                    <HeartHandshake className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">{memberLabel(admin.legacy_admin_user_id)}</p>
+                    <Badge className={admin.designation_role === 'primary' ? 'bg-primary/10 text-primary border-primary/20 mt-1' : 'bg-muted text-muted-foreground border-border mt-1'}>
+                      {admin.designation_role === 'primary' ? 'Primary Legacy Admin' : 'Secondary Legacy Admin'}
+                    </Badge>
+                  </div>
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => setRemoveTarget(admin)} className="text-destructive">
+                  <Trash2 className="h-4 w-4 mr-1" /> Remove
+                </Button>
               </div>
-              <div>
-                <p className="text-sm font-medium">{memberLabel(current.legacy_admin_user_id)}</p>
-                <Badge className="bg-primary/10 text-primary border-primary/20 mt-1">Legacy Admin</Badge>
-              </div>
-            </div>
-            <Button variant="ghost" size="sm" onClick={() => setRemoveOpen(true)} className="text-destructive">
-              <Trash2 className="h-4 w-4 mr-1" /> Remove
-            </Button>
+            ))}
           </div>
         ) : (
           <p className="text-sm text-muted-foreground italic">No Legacy Admin selected yet.</p>
         )}
 
-        {eligibleMembers.length > 0 && (
+        {availableMembers.length > 0 && (
           <div className="flex flex-col sm:flex-row gap-2">
             <Select value={selectedUserId} onValueChange={setSelectedUserId}>
               <SelectTrigger className="flex-1">
-                <SelectValue placeholder={current ? 'Change Legacy Admin...' : 'Choose an authorized user...'} />
+                <SelectValue placeholder="Choose an authorized user..." />
               </SelectTrigger>
               <SelectContent>
-                {eligibleMembers
-                  .filter(m => m.user_id !== current?.legacy_admin_user_id)
-                  .map(m => (
-                    <SelectItem key={m.user_id} value={m.user_id}>
-                      {memberLabel(m.user_id)}
-                    </SelectItem>
-                  ))}
+                {availableMembers.map(m => (
+                  <SelectItem key={m.user_id} value={m.user_id}>
+                    {memberLabel(m.user_id)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={selectedRole} onValueChange={(v: any) => setSelectedRole(v)}>
+              <SelectTrigger className="w-full sm:w-44">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="primary">Primary</SelectItem>
+                <SelectItem value="secondary">Secondary</SelectItem>
               </SelectContent>
             </Select>
             <Button disabled={!selectedUserId || loading} onClick={() => setConfirmOpen(true)}>
-              {current ? 'Change' : 'Assign'} Legacy Admin
+              Add Legacy Admin
             </Button>
           </div>
         )}
@@ -207,11 +232,10 @@ const LegacyAdminAssignment: React.FC<Props> = ({ members }) => {
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Assign Legacy Admin?</AlertDialogTitle>
+            <AlertDialogTitle>Add Legacy Admin?</AlertDialogTitle>
             <AlertDialogDescription>
-              This is a designation, not an immediate role change. It does not give billing,
-              deletion, or owner-profile access. Their normal Read Only or Full Access permissions
-              remain unchanged. You can change or remove this designation at any time.
+              This is a designation, not an immediate role change. If you choose Primary, any current primary Legacy Admin will become secondary.
+              You can change or remove designations at any time.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -223,13 +247,13 @@ const LegacyAdminAssignment: React.FC<Props> = ({ members }) => {
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={removeOpen} onOpenChange={setRemoveOpen}>
+      <AlertDialog open={!!removeTarget} onOpenChange={(open) => !open && setRemoveTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Remove Legacy Admin?</AlertDialogTitle>
             <AlertDialogDescription>
-              This clears the current Legacy Admin designation. Their normal authorized-user
-              access (Read Only or Full Access) is unchanged.
+              This clears the Legacy Admin designation for {removeTarget ? memberLabel(removeTarget.legacy_admin_user_id) : 'this user'}.
+              Their normal authorized-user access is unchanged.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

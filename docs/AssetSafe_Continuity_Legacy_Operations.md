@@ -16,7 +16,7 @@ Scope: Legacy Admin requests, Recovery Delegates, continuity review, owner dispu
 | Role | Current system surface | Operational meaning |
 |---|---|---|
 | Account owner | Account, Legacy Locker, continuity preferences, dispute link | Person whose account may be preserved, exported, memorialized, or closed |
-| Legacy Admin | Existing authorized user designated in `legacy_admins` | Can submit continuity requests for the assigned account |
+| Legacy Admin | Existing authorized user designated in `legacy_admins` as primary or secondary | Can submit continuity requests for the assigned account; secondary designation does not change normal Authorized User permissions |
 | Recovery Delegate | `legacy_locker.delegate_user_id` and recovery request flow | Can request encrypted Legacy Locker recovery after owner grace period |
 | Continuity reviewer | Admin Continuity & Preservation workspace | Reviews identity, legal authority, evidence, risk, owner response, and requested action |
 | Senior reviewer | Admin roles with freeze/temp-access/preservation authority | Can approve high-impact continuity actions |
@@ -27,6 +27,13 @@ Scope: Legacy Admin requests, Recovery Delegates, continuity review, owner dispu
 ### 3.1 Legacy Admin continuity request
 
 User-facing component: `ContinuityRequestWizard`
+
+Legacy Admin designation policy:
+
+- Each account may have one active primary Legacy Admin.
+- Each account may have additional active secondary Legacy Admins as backups.
+- Adding or removing a Legacy Admin designation does not change billing, deletion, owner-profile, or Authorized User access permissions.
+- Multiple active continuity requests still require reviewer conflict resolution before high-impact actions execute.
 
 Request types:
 
@@ -284,7 +291,7 @@ Owner heartbeat policy:
 
 5. Optional owner heartbeat policy exists on `legacy_locker`; missed check-ins are review signals only and do not trigger continuity actions automatically.
 6. In-app ops reporting exists for unresolved owner disputes, external assistance backlog age, high-risk external assistance, and overdue continuity reviews.
-7. Add secondary Legacy Admin UX if the schema is intended for production use.
+7. Secondary Legacy Admin UX is implemented: `legacy_admins` supports active primary/secondary designations with one active primary per account.
 
 ### P2 quarter 1
 

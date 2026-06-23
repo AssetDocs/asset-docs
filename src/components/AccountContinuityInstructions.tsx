@@ -26,7 +26,7 @@ const AccountContinuityInstructions: React.FC<Props> = ({ vaultPassphrase }) => 
   const [preference, setPreference] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
   const [loading, setLoading] = useState(false);
-  const [legacyAdminName, setLegacyAdminName] = useState<string | null>(null);
+  const [legacyAdminNames, setLegacyAdminNames] = useState<string[]>([]);
   const [requestCount, setRequestCount] = useState(0);
 
   useEffect(() => {
@@ -45,20 +45,25 @@ const AccountContinuityInstructions: React.FC<Props> = ({ vaultPassphrase }) => 
 
       const { data: la } = await supabase
         .from('legacy_admins')
-        .select('legacy_admin_user_id')
+        .select('legacy_admin_user_id, designation_role, designation_priority')
         .eq('account_id', accountId)
         .eq('status', 'active')
-        .maybeSingle();
-      if (la) {
-        const { data: prof } = await supabase
+        .order('designation_priority', { ascending: true })
+        .order('assigned_at', { ascending: true });
+      if (la?.length) {
+        const ids = la.map((row: any) => row.legacy_admin_user_id);
+        const { data: profs } = await supabase
           .from('profiles_safe' as any)
-          .select('first_name, last_name')
-          .eq('user_id', la.legacy_admin_user_id)
-          .maybeSingle();
-        const name = `${prof?.first_name || ''} ${prof?.last_name || ''}`.trim();
-        setLegacyAdminName(name || 'Authorized user');
+          .select('user_id, first_name, last_name')
+          .in('user_id', ids);
+        const profileMap = new Map((profs || []).map((p: any) => [p.user_id, p]));
+        setLegacyAdminNames(la.map((row: any) => {
+          const prof = profileMap.get(row.legacy_admin_user_id);
+          const name = `${prof?.first_name || ''} ${prof?.last_name || ''}`.trim() || 'Authorized user';
+          return row.designation_role === 'secondary' ? `${name} (secondary)` : name;
+        }));
       } else {
-        setLegacyAdminName(null);
+        setLegacyAdminNames([]);
       }
 
       const { count } = await supabase
@@ -116,8 +121,12 @@ const AccountContinuityInstructions: React.FC<Props> = ({ vaultPassphrase }) => 
             <Crown className="h-4 w-4 text-amber-600" />
             <span className="text-sm">Selected Legacy Admin:</span>
           </div>
-          {legacyAdminName ? (
-            <Badge className="bg-amber-100 text-amber-800 border-amber-200">{legacyAdminName}</Badge>
+          {legacyAdminNames.length ? (
+            <div className="flex flex-wrap justify-end gap-1">
+              {legacyAdminNames.map((name) => (
+                <Badge key={name} className="bg-amber-100 text-amber-800 border-amber-200">{name}</Badge>
+              ))}
+            </div>
           ) : (
             <span className="text-xs text-muted-foreground italic">None assigned</span>
           )}
