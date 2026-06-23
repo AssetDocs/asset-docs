@@ -2731,19 +2731,13 @@ export type Database = {
       dev_support_issues: {
         Row: {
           assignee_id: string | null
-          billing_verification_status: string
           created_at: string
           created_by: string | null
           description: string | null
           id: string
-          identity_verification_status: string
           pii_scrub_metadata: Json
           pii_scrubbed_at: string | null
           priority: Database["public"]["Enums"]["dev_support_priority"]
-          recovery_action_notes: string | null
-          recovery_action_status: string
-          recovery_completed_at: string | null
-          recovery_scenario: string | null
           reported_by: string | null
           resolution: string | null
           status: Database["public"]["Enums"]["dev_support_status"]
@@ -2753,19 +2747,13 @@ export type Database = {
         }
         Insert: {
           assignee_id?: string | null
-          billing_verification_status?: string
           created_at?: string
           created_by?: string | null
           description?: string | null
           id?: string
-          identity_verification_status?: string
           pii_scrub_metadata?: Json
           pii_scrubbed_at?: string | null
           priority?: Database["public"]["Enums"]["dev_support_priority"]
-          recovery_action_notes?: string | null
-          recovery_action_status?: string
-          recovery_completed_at?: string | null
-          recovery_scenario?: string | null
           reported_by?: string | null
           resolution?: string | null
           status?: Database["public"]["Enums"]["dev_support_status"]
@@ -2775,19 +2763,13 @@ export type Database = {
         }
         Update: {
           assignee_id?: string | null
-          billing_verification_status?: string
           created_at?: string
           created_by?: string | null
           description?: string | null
           id?: string
-          identity_verification_status?: string
           pii_scrub_metadata?: Json
           pii_scrubbed_at?: string | null
           priority?: Database["public"]["Enums"]["dev_support_priority"]
-          recovery_action_notes?: string | null
-          recovery_action_status?: string
-          recovery_completed_at?: string | null
-          recovery_scenario?: string | null
           reported_by?: string | null
           resolution?: string | null
           status?: Database["public"]["Enums"]["dev_support_status"]
@@ -8377,7 +8359,6 @@ export type Database = {
         | "feature_request"
         | "ux_issue"
         | "question"
-        | "account_recovery"
       dev_task_priority: "low" | "medium" | "high" | "critical"
       dev_task_status: "todo" | "in_progress" | "done" | "archived"
       membership_role: "owner" | "full_access" | "read_only"
@@ -8562,7 +8543,6 @@ export const Constants = {
         "feature_request",
         "ux_issue",
         "question",
-        "account_recovery",
       ],
       dev_task_priority: ["low", "medium", "high", "critical"],
       dev_task_status: ["todo", "in_progress", "done", "archived"],
