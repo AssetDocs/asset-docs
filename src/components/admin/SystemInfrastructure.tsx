@@ -52,6 +52,23 @@ type CronHealthRow = {
   last_error: string | null;
 };
 
+type EmailDeliverabilityHealth = {
+  monitor_name: string | null;
+  description: string | null;
+  events_24h: number | null;
+  sent_or_delivered_24h: number | null;
+  bounced_24h: number | null;
+  complained_24h: number | null;
+  delayed_24h: number | null;
+  bounce_rate_24h: number | null;
+  complaint_rate_24h: number | null;
+  latest_event_at: string | null;
+  latest_problem_event_type: string | null;
+  latest_problem_domain: string | null;
+  latest_problem_at: string | null;
+  health_status: string | null;
+};
+
 // Edge Functions categorized by purpose
 const edgeFunctions = [
   // Authentication & User Management
@@ -237,6 +254,7 @@ const SystemInfrastructure = () => {
   });
   const [cronHealth, setCronHealth] = useState<CronHealthRow[]>([]);
   const [cronHealthLoading, setCronHealthLoading] = useState(false);
+  const [emailHealth, setEmailHealth] = useState<EmailDeliverabilityHealth | null>(null);
   const { exportInfrastructureToPDF } = useInfrastructurePDFExport();
 
   const loadCronHealth = async () => {
@@ -259,8 +277,23 @@ const SystemInfrastructure = () => {
     }
   };
 
+  const loadEmailHealth = async () => {
+    const { data, error } = await supabase
+      .from('email_deliverability_health_status')
+      .select('*')
+      .maybeSingle();
+
+    if (error) {
+      console.warn('Unable to load email deliverability health:', error);
+      setEmailHealth(null);
+    } else {
+      setEmailHealth(data as EmailDeliverabilityHealth | null);
+    }
+  };
+
   useEffect(() => {
     loadCronHealth();
+    loadEmailHealth();
   }, []);
 
   const toggleSection = (section: string) => {
@@ -299,6 +332,21 @@ const SystemInfrastructure = () => {
 
   const formatDateTime = (value?: string | null) => {
     return value ? new Date(value).toLocaleString() : '-';
+  };
+
+  const monitorHealthBadge = (status?: string | null) => {
+    switch (status) {
+      case 'ok':
+        return <Badge className="bg-green-500">Healthy</Badge>;
+      case 'warn':
+        return <Badge className="bg-yellow-500">Warn</Badge>;
+      case 'page':
+        return <Badge variant="destructive">Page</Badge>;
+      case 'no_events':
+        return <Badge variant="outline">No Events</Badge>;
+      default:
+        return <Badge variant="secondary">{status || 'Unknown'}</Badge>;
+    }
   };
 
   const handleExportPDF = () => {
@@ -657,6 +705,74 @@ const SystemInfrastructure = () => {
                 </Table>
               ) : (
                 <p className="text-center text-muted-foreground py-8">No cron health rows found</p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <CardTitle>Email Deliverability</CardTitle>
+                  <CardDescription>Bounce, complaint, and delivery-delay thresholds for transactional email</CardDescription>
+                </div>
+                {monitorHealthBadge(emailHealth?.health_status)}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {emailHealth ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 md:grid-cols-6 gap-4 text-sm">
+                    <div>
+                      <p className="text-muted-foreground">Events 24h</p>
+                      <p className="font-semibold">{emailHealth.events_24h ?? 0}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Sent/Delivered</p>
+                      <p className="font-semibold">{emailHealth.sent_or_delivered_24h ?? 0}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Bounces</p>
+                      <p className="font-semibold">{emailHealth.bounced_24h ?? 0}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Complaints</p>
+                      <p className="font-semibold">{emailHealth.complained_24h ?? 0}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Bounce Rate</p>
+                      <p className="font-semibold">
+                        {emailHealth.bounce_rate_24h === null ? '-' : `${emailHealth.bounce_rate_24h}%`}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Complaint Rate</p>
+                      <p className="font-semibold">
+                        {emailHealth.complaint_rate_24h === null ? '-' : `${emailHealth.complaint_rate_24h}%`}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <p className="text-muted-foreground">Delayed 24h</p>
+                      <p className="font-semibold">{emailHealth.delayed_24h ?? 0}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Latest Event</p>
+                      <p className="font-semibold">{formatDateTime(emailHealth.latest_event_at)}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Latest Problem</p>
+                      <p className="font-semibold">
+                        {emailHealth.latest_problem_event_type
+                          ? `${emailHealth.latest_problem_event_type}${emailHealth.latest_problem_domain ? ` · ${emailHealth.latest_problem_domain}` : ''}`
+                          : '-'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-center text-muted-foreground py-8">No deliverability health row available</p>
               )}
             </CardContent>
           </Card>
