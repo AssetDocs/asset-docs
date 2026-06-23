@@ -14,7 +14,7 @@ export type DevMilestoneStatus = 'planned' | 'in_progress' | 'completed' | 'dela
 export type DevReleaseStatus = 'planned' | 'in_progress' | 'released' | 'rolled_back';
 export type DevSupportPriority = 'low' | 'medium' | 'high' | 'critical';
 export type DevSupportStatus = 'new' | 'investigating' | 'in_progress' | 'resolved' | 'wont_fix';
-export type DevSupportType = 'bug_report' | 'feature_request' | 'ux_issue' | 'question';
+export type DevSupportType = 'bug_report' | 'feature_request' | 'ux_issue' | 'question' | 'account_recovery';
 
 export interface DevTask {
   id: string;
@@ -115,6 +115,12 @@ export interface DevSupportIssue {
   sla_status?: 'on_track' | 'due_soon' | 'overdue' | 'met' | 'missed' | null;
   escalated_at?: string | null;
   escalation_reason?: string | null;
+  recovery_scenario?: 'lost_mfa' | 'lost_backup_codes' | 'lost_email_access' | 'lost_mfa_and_backup_codes' | 'lost_email_and_mfa' | 'other' | null;
+  identity_verification_status?: 'not_required' | 'needs_review' | 'verified' | 'failed' | null;
+  billing_verification_status?: 'not_required' | 'needs_review' | 'verified' | 'failed' | null;
+  recovery_action_status?: 'not_required' | 'needs_review' | 'approved' | 'completed' | 'rejected' | null;
+  recovery_action_notes?: string | null;
+  recovery_completed_at?: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -477,6 +483,10 @@ export function useDevWorkspace() {
     reported_by?: string;
     type?: DevSupportType;
     priority?: DevSupportPriority;
+    recovery_scenario?: DevSupportIssue['recovery_scenario'];
+    identity_verification_status?: DevSupportIssue['identity_verification_status'];
+    billing_verification_status?: DevSupportIssue['billing_verification_status'];
+    recovery_action_status?: DevSupportIssue['recovery_action_status'];
   }) => {
     const { data: user } = await supabase.auth.getUser();
     const { error } = await supabase.from('dev_support_issues').insert({
@@ -485,6 +495,10 @@ export function useDevWorkspace() {
       reported_by: data.reported_by || null,
       type: data.type || 'bug_report',
       priority: data.priority || 'medium',
+      recovery_scenario: data.recovery_scenario || null,
+      identity_verification_status: data.identity_verification_status || 'not_required',
+      billing_verification_status: data.billing_verification_status || 'not_required',
+      recovery_action_status: data.recovery_action_status || 'not_required',
       created_by: user?.user?.id || null,
     });
     if (error) {

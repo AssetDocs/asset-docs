@@ -155,6 +155,30 @@ const AdminDevWorkspace: React.FC = () => {
     return `Resolution due ${format(new Date(issue.resolution_due_at), 'MMM d, h:mm a')}`;
   };
 
+  const recoveryScenarioLabel = (scenario?: string | null) => {
+    switch (scenario) {
+      case 'lost_mfa': return 'Lost MFA';
+      case 'lost_backup_codes': return 'Lost backup codes';
+      case 'lost_email_access': return 'Lost email access';
+      case 'lost_mfa_and_backup_codes': return 'Lost MFA and backup codes';
+      case 'lost_email_and_mfa': return 'Lost email and MFA';
+      case 'other': return 'Other recovery case';
+      default: return 'Account recovery';
+    }
+  };
+
+  const recoveryStatusBadge = (status?: string | null) => {
+    switch (status) {
+      case 'failed':
+      case 'rejected': return 'destructive';
+      case 'verified':
+      case 'completed': return 'secondary';
+      case 'approved':
+      case 'needs_review': return 'default';
+      default: return 'outline';
+    }
+  };
+
   return (
     <>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -563,13 +587,32 @@ const AdminDevWorkspace: React.FC = () => {
                               Resolution: {issue.resolution}
                             </p>
                           )}
+                          {issue.type === 'account_recovery' && (
+                            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                              <Badge variant="outline">{recoveryScenarioLabel(issue.recovery_scenario)}</Badge>
+                              <Badge variant={recoveryStatusBadge(issue.identity_verification_status)}>
+                                Identity: {(issue.identity_verification_status || 'needs_review').replace('_', ' ')}
+                              </Badge>
+                              <Badge variant={recoveryStatusBadge(issue.billing_verification_status)}>
+                                Billing: {(issue.billing_verification_status || 'needs_review').replace('_', ' ')}
+                              </Badge>
+                              <Badge variant={recoveryStatusBadge(issue.recovery_action_status)}>
+                                Action: {(issue.recovery_action_status || 'needs_review').replace('_', ' ')}
+                              </Badge>
+                              {issue.recovery_completed_at && (
+                                <span className="text-muted-foreground">
+                                  Completed {format(new Date(issue.recovery_completed_at), 'MMM d, h:mm a')}
+                                </span>
+                              )}
+                            </div>
+                          )}
                           <p className="text-xs text-muted-foreground mt-2">
                             {format(new Date(issue.created_at), 'MMM d, yyyy')} · {supportDueLabel(issue)}
                             {issue.first_response_due_at && !issue.first_responded_at ? ` · first response due ${format(new Date(issue.first_response_due_at), 'MMM d, h:mm a')}` : ''}
                             {issue.escalated_at ? ` · escalated ${format(new Date(issue.escalated_at), 'MMM d, h:mm a')}` : ''}
                           </p>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center justify-end gap-2">
                           <Select 
                             value={issue.status} 
                             onValueChange={(v) => updateSupportIssue(issue.id, { status: v as DevSupportStatus })}
@@ -585,6 +628,53 @@ const AdminDevWorkspace: React.FC = () => {
                               <SelectItem value="wont_fix">Won't Fix</SelectItem>
                             </SelectContent>
                           </Select>
+                          {issue.type === 'account_recovery' && (
+                            <>
+                              <Select
+                                value={issue.identity_verification_status || 'needs_review'}
+                                onValueChange={(v) => updateSupportIssue(issue.id, { identity_verification_status: v as any })}
+                              >
+                                <SelectTrigger className="w-32">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="needs_review">ID Review</SelectItem>
+                                  <SelectItem value="verified">ID Verified</SelectItem>
+                                  <SelectItem value="failed">ID Failed</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Select
+                                value={issue.billing_verification_status || 'needs_review'}
+                                onValueChange={(v) => updateSupportIssue(issue.id, { billing_verification_status: v as any })}
+                              >
+                                <SelectTrigger className="w-36">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="needs_review">Billing Review</SelectItem>
+                                  <SelectItem value="verified">Billing Verified</SelectItem>
+                                  <SelectItem value="failed">Billing Failed</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Select
+                                value={issue.recovery_action_status || 'needs_review'}
+                                onValueChange={(v) => updateSupportIssue(issue.id, {
+                                  recovery_action_status: v as any,
+                                  recovery_completed_at: v === 'completed' ? new Date().toISOString() : null,
+                                })}
+                              >
+                                <SelectTrigger className="w-36">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="needs_review">Needs Review</SelectItem>
+                                  <SelectItem value="approved">Approved</SelectItem>
+                                  <SelectItem value="completed">Completed</SelectItem>
+                                  <SelectItem value="rejected">Rejected</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </>
+                          )}
                           <Button variant="ghost" size="icon" onClick={() => deleteSupportIssue(issue.id)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>

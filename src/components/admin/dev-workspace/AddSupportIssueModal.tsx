@@ -6,8 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-export type DevSupportType = 'bug_report' | 'feature_request' | 'ux_issue' | 'question';
+export type DevSupportType = 'bug_report' | 'feature_request' | 'ux_issue' | 'question' | 'account_recovery';
 export type DevSupportPriority = 'low' | 'medium' | 'high' | 'critical';
+type RecoveryScenario = 'lost_mfa' | 'lost_backup_codes' | 'lost_email_access' | 'lost_mfa_and_backup_codes' | 'lost_email_and_mfa' | 'other';
 
 interface AddSupportIssueModalProps {
   open: boolean;
@@ -18,6 +19,10 @@ interface AddSupportIssueModalProps {
     reported_by?: string;
     type?: DevSupportType;
     priority?: DevSupportPriority;
+    recovery_scenario?: RecoveryScenario;
+    identity_verification_status?: 'needs_review';
+    billing_verification_status?: 'needs_review';
+    recovery_action_status?: 'needs_review';
   }) => Promise<boolean>;
 }
 
@@ -31,7 +36,9 @@ export const AddSupportIssueModal: React.FC<AddSupportIssueModalProps> = ({
   const [reportedBy, setReportedBy] = useState('');
   const [type, setType] = useState<DevSupportType>('bug_report');
   const [priority, setPriority] = useState<DevSupportPriority>('medium');
+  const [recoveryScenario, setRecoveryScenario] = useState<RecoveryScenario>('lost_mfa_and_backup_codes');
   const [loading, setLoading] = useState(false);
+  const isAccountRecovery = type === 'account_recovery';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,6 +51,10 @@ export const AddSupportIssueModal: React.FC<AddSupportIssueModalProps> = ({
       reported_by: reportedBy.trim() || undefined,
       type,
       priority,
+      recovery_scenario: isAccountRecovery ? recoveryScenario : undefined,
+      identity_verification_status: isAccountRecovery ? 'needs_review' : undefined,
+      billing_verification_status: isAccountRecovery ? 'needs_review' : undefined,
+      recovery_action_status: isAccountRecovery ? 'needs_review' : undefined,
     });
 
     if (success) {
@@ -52,6 +63,7 @@ export const AddSupportIssueModal: React.FC<AddSupportIssueModalProps> = ({
       setReportedBy('');
       setType('bug_report');
       setPriority('medium');
+      setRecoveryScenario('lost_mfa_and_backup_codes');
       onOpenChange(false);
     }
     setLoading(false);
@@ -63,7 +75,7 @@ export const AddSupportIssueModal: React.FC<AddSupportIssueModalProps> = ({
         <DialogHeader>
           <DialogTitle>Add Support Issue</DialogTitle>
           <DialogDescription>
-            Log a user-reported issue, feature request, or UX feedback
+            Log a user-reported issue, recovery case, feature request, or UX feedback
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -82,7 +94,16 @@ export const AddSupportIssueModal: React.FC<AddSupportIssueModalProps> = ({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="type">Type</Label>
-                <Select value={type} onValueChange={(v) => setType(v as DevSupportType)}>
+                <Select
+                  value={type}
+                  onValueChange={(v) => {
+                    const nextType = v as DevSupportType;
+                    setType(nextType);
+                    if (nextType === 'account_recovery' && priority === 'medium') {
+                      setPriority('high');
+                    }
+                  }}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -91,6 +112,7 @@ export const AddSupportIssueModal: React.FC<AddSupportIssueModalProps> = ({
                     <SelectItem value="feature_request">Feature Request</SelectItem>
                     <SelectItem value="ux_issue">UX Issue</SelectItem>
                     <SelectItem value="question">Question</SelectItem>
+                    <SelectItem value="account_recovery">Account Recovery</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -109,6 +131,25 @@ export const AddSupportIssueModal: React.FC<AddSupportIssueModalProps> = ({
                 </Select>
               </div>
             </div>
+
+            {isAccountRecovery && (
+              <div className="space-y-2">
+                <Label htmlFor="recovery_scenario">Recovery Scenario</Label>
+                <Select value={recoveryScenario} onValueChange={(v) => setRecoveryScenario(v as RecoveryScenario)}>
+                  <SelectTrigger id="recovery_scenario">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="lost_mfa">Lost MFA</SelectItem>
+                    <SelectItem value="lost_backup_codes">Lost Backup Codes</SelectItem>
+                    <SelectItem value="lost_email_access">Lost Email Access</SelectItem>
+                    <SelectItem value="lost_mfa_and_backup_codes">Lost MFA and Backup Codes</SelectItem>
+                    <SelectItem value="lost_email_and_mfa">Lost Email and MFA</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="reported_by">Reported By</Label>
