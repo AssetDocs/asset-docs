@@ -69,6 +69,21 @@ type EmailDeliverabilityHealth = {
   health_status: string | null;
 };
 
+type EdgeFunctionHealthRow = {
+  function_name: string | null;
+  invocations_24h: number | null;
+  failures_24h: number | null;
+  failures_1h: number | null;
+  failure_rate_24h: number | null;
+  p95_duration_ms_24h: number | null;
+  latest_invocation_at: string | null;
+  latest_failure_at: string | null;
+  latest_error_type: string | null;
+  latest_error_message: string | null;
+  latest_error_status_code: number | null;
+  health_status: string | null;
+};
+
 // Edge Functions categorized by purpose
 const edgeFunctions = [
   // Authentication & User Management
@@ -255,6 +270,7 @@ const SystemInfrastructure = () => {
   const [cronHealth, setCronHealth] = useState<CronHealthRow[]>([]);
   const [cronHealthLoading, setCronHealthLoading] = useState(false);
   const [emailHealth, setEmailHealth] = useState<EmailDeliverabilityHealth | null>(null);
+  const [edgeFunctionHealth, setEdgeFunctionHealth] = useState<EdgeFunctionHealthRow[]>([]);
   const { exportInfrastructureToPDF } = useInfrastructurePDFExport();
 
   const loadCronHealth = async () => {
@@ -291,9 +307,25 @@ const SystemInfrastructure = () => {
     }
   };
 
+  const loadEdgeFunctionHealth = async () => {
+    const { data, error } = await supabase
+      .from('edge_function_health_status')
+      .select('*')
+      .order('health_status', { ascending: true })
+      .order('function_name', { ascending: true });
+
+    if (error) {
+      console.warn('Unable to load edge function health:', error);
+      setEdgeFunctionHealth([]);
+    } else {
+      setEdgeFunctionHealth((data || []) as EdgeFunctionHealthRow[]);
+    }
+  };
+
   useEffect(() => {
     loadCronHealth();
     loadEmailHealth();
+    loadEdgeFunctionHealth();
   }, []);
 
   const toggleSection = (section: string) => {
@@ -309,6 +341,9 @@ const SystemInfrastructure = () => {
   const projectId = 'leotcbfpqiekgkgumecn';
   const unhealthyCronJobs = cronHealth.filter(job =>
     job.health_status && !['ok', 'healthy'].includes(job.health_status)
+  ).length;
+  const unhealthyEdgeFunctions = edgeFunctionHealth.filter(fn =>
+    fn.health_status && !['ok', 'healthy'].includes(fn.health_status)
   ).length;
 
   const cronHealthBadge = (status?: string | null) => {
@@ -705,6 +740,77 @@ const SystemInfrastructure = () => {
                 </Table>
               ) : (
                 <p className="text-center text-muted-foreground py-8">No cron health rows found</p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <CardTitle>Edge Function Health</CardTitle>
+                  <CardDescription>Error budget status from reported function invocation events</CardDescription>
+                </div>
+                {unhealthyEdgeFunctions > 0 ? (
+                  <Badge variant="destructive">{unhealthyEdgeFunctions} attention</Badge>
+                ) : (
+                  <Badge className="bg-green-500">All clear</Badge>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {edgeFunctionHealth.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Function</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Invocations 24h</TableHead>
+                      <TableHead>Failures</TableHead>
+                      <TableHead>Failure Rate</TableHead>
+                      <TableHead>P95</TableHead>
+                      <TableHead>Latest Failure</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {edgeFunctionHealth.map((fn) => (
+                      <TableRow key={fn.function_name || 'unknown'}>
+                        <TableCell className="font-mono text-xs">{fn.function_name || '-'}</TableCell>
+                        <TableCell>{monitorHealthBadge(fn.health_status)}</TableCell>
+                        <TableCell className="text-sm">{fn.invocations_24h ?? 0}</TableCell>
+                        <TableCell className="text-sm">
+                          {fn.failures_24h ?? 0}
+                          {fn.failures_1h ? (
+                            <span className="text-xs text-muted-foreground"> ({fn.failures_1h} last hour)</span>
+                          ) : null}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {fn.failure_rate_24h === null ? '-' : `${fn.failure_rate_24h}%`}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {fn.p95_duration_ms_24h === null ? '-' : `${fn.p95_duration_ms_24h} ms`}
+                        </TableCell>
+                        <TableCell className="max-w-sm text-sm">
+                          {fn.latest_failure_at ? (
+                            <div>
+                              <p>{formatDateTime(fn.latest_failure_at)}</p>
+                              <p className="truncate text-xs text-muted-foreground">
+                                {fn.latest_error_status_code ? `${fn.latest_error_status_code} · ` : ''}
+                                {fn.latest_error_type || fn.latest_error_message || 'failed'}
+                              </p>
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <p className="text-center text-muted-foreground py-8">
+                  No edge function invocation events reported yet
+                </p>
               )}
             </CardContent>
           </Card>
