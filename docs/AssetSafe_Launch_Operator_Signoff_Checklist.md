@@ -10,6 +10,7 @@ Companion docs:
 - `docs/AssetSafe_Support_Ops_Runbook.md`
 - `docs/AssetSafe_Security_Incident_Response_Runbook.md`
 - `docs/AssetSafe_Terms_Privacy_Update_Runbook.md`
+- `docs/AssetSafe_Launch_Evidence_Collection_Runbook.md`
 
 ## Purpose
 
@@ -23,6 +24,8 @@ Use it to record whether each remaining item is:
 - `Deferred` - not required for current launch scope.
 
 Do not mark launch ready until every P0 row has an owner, decision, evidence link, and date.
+
+Use `docs/AssetSafe_Launch_Evidence_Collection_Runbook.md` to gather the query results, screenshots, tickets, and written approvals needed to fill the evidence column.
 
 ## Decision Legend
 
@@ -109,4 +112,3 @@ Complete this section only after every P0 row above has a decision and evidence.
 | Operator-action blockers remaining |  |
 | Final approver |  |
 | Approval date |  |
-
