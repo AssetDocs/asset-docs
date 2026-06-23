@@ -9,6 +9,7 @@ Companion docs:
 - `docs/AssetSafe_Storage_Deletion_Cron_Runbook.md`
 - `docs/AssetSafe_Key_Rotation_Runbook.md`
 - `docs/AssetSafe_Security_Incident_Response_Runbook.md`
+- `docs/AssetSafe_Vulnerability_Scan_Runbook.md`
 
 ## Purpose
 

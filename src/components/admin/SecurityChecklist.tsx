@@ -225,7 +225,7 @@ const checklistData: ChecklistSection[] = [
         id: 'vulnerability-scan',
         title: 'Scan for basic vulnerabilities (OWASP ZAP plan)',
         whatToVerify: 'No obvious exposure before launch',
-        howToVerify: 'Run OWASP ZAP baseline scan against staging URL',
+        howToVerify: 'Run docs/AssetSafe_Vulnerability_Scan_Runbook.md against staging',
         passCriteria: 'No critical issues reported',
         priority: 'P1',
         owner: 'Security Lead',
