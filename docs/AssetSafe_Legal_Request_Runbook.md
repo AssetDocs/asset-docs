@@ -7,12 +7,15 @@ Companion docs:
 - `docs/AssetSafe_Audit_Log_Retention_Runbook.md`
 - `docs/AssetSafe_Data_Lifecycle_Retention_Operations.md`
 - `docs/AssetSafe_Security_Incident_Response_Runbook.md`
+- `docs/AssetSafe_Privacy_Request_DSAR_Runbook.md`
 
 ## Purpose
 
 This runbook defines how Asset Safe handles subpoenas, warrants, court orders, law-enforcement requests, civil discovery requests, preservation requests, and other legal demands for user or account data.
 
 This is an operational checklist, not legal advice. Counsel or the business owner must review legal demands before production data is preserved, disclosed, or withheld from user notification.
+
+User-initiated privacy requests, DSARs, deletion, correction, and authorized-agent requests are covered separately in `docs/AssetSafe_Privacy_Request_DSAR_Runbook.md`.
 
 ## Request Types
 
