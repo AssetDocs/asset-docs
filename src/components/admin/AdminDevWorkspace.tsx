@@ -127,6 +127,34 @@ const AdminDevWorkspace: React.FC = () => {
     }
   };
 
+  const supportSlaStatus = (issue: any) => {
+    if (issue.status === 'resolved' || issue.status === 'wont_fix') return issue.sla_status || 'met';
+    if (!issue.resolution_due_at) return issue.sla_status || 'on_track';
+    const due = new Date(issue.resolution_due_at).getTime();
+    const remainingHours = (due - Date.now()) / 36e5;
+    if (remainingHours < 0) return 'overdue';
+    if (remainingHours <= 6) return 'due_soon';
+    return issue.sla_status || 'on_track';
+  };
+
+  const supportSlaBadge = (status: string) => {
+    switch (status) {
+      case 'overdue': return 'destructive';
+      case 'due_soon': return 'default';
+      case 'missed': return 'destructive';
+      case 'met': return 'secondary';
+      default: return 'outline';
+    }
+  };
+
+  const supportDueLabel = (issue: any) => {
+    if (issue.status === 'resolved' || issue.status === 'wont_fix') {
+      return issue.resolved_at ? `Resolved ${format(new Date(issue.resolved_at), 'MMM d, h:mm a')}` : 'Resolved';
+    }
+    if (!issue.resolution_due_at) return 'No SLA due date';
+    return `Resolution due ${format(new Date(issue.resolution_due_at), 'MMM d, h:mm a')}`;
+  };
+
   return (
     <>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -517,6 +545,10 @@ const AdminDevWorkspace: React.FC = () => {
                             <Badge variant={issue.priority === 'critical' || issue.priority === 'high' ? 'destructive' : 'secondary'}>
                               {issue.priority}
                             </Badge>
+                            <Badge variant={supportSlaBadge(supportSlaStatus(issue))}>
+                              {supportSlaStatus(issue).replace('_', ' ')}
+                            </Badge>
+                            {issue.support_tier && <Badge variant="outline">{issue.support_tier}</Badge>}
                           </div>
                           {issue.reported_by && (
                             <p className="text-sm text-muted-foreground mb-1">
@@ -532,7 +564,9 @@ const AdminDevWorkspace: React.FC = () => {
                             </p>
                           )}
                           <p className="text-xs text-muted-foreground mt-2">
-                            {format(new Date(issue.created_at), 'MMM d, yyyy')}
+                            {format(new Date(issue.created_at), 'MMM d, yyyy')} · {supportDueLabel(issue)}
+                            {issue.first_response_due_at && !issue.first_responded_at ? ` · first response due ${format(new Date(issue.first_response_due_at), 'MMM d, h:mm a')}` : ''}
+                            {issue.escalated_at ? ` · escalated ${format(new Date(issue.escalated_at), 'MMM d, h:mm a')}` : ''}
                           </p>
                         </div>
                         <div className="flex items-center gap-2">

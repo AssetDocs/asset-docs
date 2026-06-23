@@ -107,6 +107,14 @@ export interface DevSupportIssue {
   status: DevSupportStatus;
   assignee_id: string | null;
   resolution: string | null;
+  support_tier?: string | null;
+  first_response_due_at?: string | null;
+  resolution_due_at?: string | null;
+  first_responded_at?: string | null;
+  resolved_at?: string | null;
+  sla_status?: 'on_track' | 'due_soon' | 'overdue' | 'met' | 'missed' | null;
+  escalated_at?: string | null;
+  escalation_reason?: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
