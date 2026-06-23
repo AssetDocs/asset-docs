@@ -295,7 +295,7 @@ Owner heartbeat policy:
 
 ### P2 quarter 1
 
-8. Add continuity incident tabletop: disputed death report, competing executor requests, fraudulent documentation, and owner account recovery after freeze.
+8. Continuity incident tabletop runbook exists in `docs/AssetSafe_Continuity_Incident_Tabletop_Runbook.md` for disputed death reports, competing executor requests, fraudulent documentation, and owner account recovery after freeze.
 9. Formal evidence retention workflow exists for uploaded death/legal documents: reviewers can classify retention category, expiration, legal hold, status, and notes on each `continuity_documents` row.
 10. Operational metrics are surfaced in the continuity workspace through `get_continuity_ops_report`: median triage time, review backlog, dispute aging, and closure waiting-period completion rate.
 
