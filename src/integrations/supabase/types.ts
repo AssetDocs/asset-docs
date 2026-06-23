@@ -6596,99 +6596,6 @@ export type Database = {
         }
         Relationships: []
       }
-      edge_function_invocation_events: {
-        Row: {
-          actor_user_id: string | null
-          created_at: string
-          duration_ms: number | null
-          error_message: string | null
-          error_type: string | null
-          function_name: string
-          id: string
-          invocation_id: string | null
-          metadata: Json
-          occurred_at: string
-          request_path: string | null
-          status: string
-          status_code: number | null
-        }
-        Insert: {
-          actor_user_id?: string | null
-          created_at?: string
-          duration_ms?: number | null
-          error_message?: string | null
-          error_type?: string | null
-          function_name: string
-          id?: string
-          invocation_id?: string | null
-          metadata?: Json
-          occurred_at?: string
-          request_path?: string | null
-          status: string
-          status_code?: number | null
-        }
-        Update: {
-          actor_user_id?: string | null
-          created_at?: string
-          duration_ms?: number | null
-          error_message?: string | null
-          error_type?: string | null
-          function_name?: string
-          id?: string
-          invocation_id?: string | null
-          metadata?: Json
-          occurred_at?: string
-          request_path?: string | null
-          status?: string
-          status_code?: number | null
-        }
-        Relationships: []
-      }
-      monitoring_alert_policies: {
-        Row: {
-          created_at: string
-          enabled: boolean
-          id: string
-          monitor_key: string
-          monitor_label: string
-          owner_team: string
-          page_channel: string
-          page_rule: string
-          runbook_url: string | null
-          updated_at: string
-          warning_channel: string
-          warn_rule: string
-        }
-        Insert: {
-          created_at?: string
-          enabled?: boolean
-          id?: string
-          monitor_key: string
-          monitor_label: string
-          owner_team?: string
-          page_channel?: string
-          page_rule: string
-          runbook_url?: string | null
-          updated_at?: string
-          warning_channel?: string
-          warn_rule: string
-        }
-        Update: {
-          created_at?: string
-          enabled?: boolean
-          id?: string
-          monitor_key?: string
-          monitor_label?: string
-          owner_team?: string
-          page_channel?: string
-          page_rule?: string
-          runbook_url?: string | null
-          updated_at?: string
-          warning_channel?: string
-          warn_rule?: string
-        }
-        Relationships: []
-      }
       system_maintenance_windows: {
         Row: {
           created_at: string
@@ -7720,23 +7627,6 @@ export type Database = {
           latest_problem_event_type: string | null
           monitor_name: string | null
           sent_or_delivered_24h: number | null
-        }
-        Relationships: []
-      }
-      edge_function_health_status: {
-        Row: {
-          failure_rate_24h: number | null
-          failures_1h: number | null
-          failures_24h: number | null
-          function_name: string | null
-          health_status: string | null
-          invocations_24h: number | null
-          latest_error_message: string | null
-          latest_error_status_code: number | null
-          latest_error_type: string | null
-          latest_failure_at: string | null
-          latest_invocation_at: string | null
-          p95_duration_ms_24h: number | null
         }
         Relationships: []
       }
