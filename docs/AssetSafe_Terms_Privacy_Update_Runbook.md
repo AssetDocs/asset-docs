@@ -7,6 +7,7 @@ Companion docs:
 - `docs/AssetSafe_Privacy_Request_DSAR_Runbook.md`
 - `docs/AssetSafe_Retention_Deletion_Policy_Matrix.md`
 - `docs/AssetSafe_Audit_Log_Retention_Runbook.md`
+- `docs/AssetSafe_Growth_Product_Ops_Runbook.md`
 
 ## Purpose
 
