@@ -10,6 +10,7 @@ Scope: Legacy Admin requests, Recovery Delegates, continuity review, owner dispu
 2. Account owner protection comes first. Owner notifications, dispute links, waiting periods, account freezes, and audit logs are safety controls, not optional decoration.
 3. The account should remain reversible until the final continuity action is executed. Preservation, temporary access, export authorization, and closure waiting periods must leave a review trail.
 4. Continuity records are retained as legal/security evidence. They should not be swept by ordinary account-deletion cleanup unless explicitly anonymized through the deletion/tombstone policy.
+5. Owner-requested or business/legal ownership transfer outside death/incapacity continuity is covered separately in `docs/AssetSafe_Multi_Account_Workspace_Ops_Runbook.md`.
 
 ## 2. Primary Roles
 

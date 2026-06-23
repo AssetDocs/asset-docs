@@ -162,6 +162,8 @@ Triggered when Stripe reports `unpaid`, `incomplete_expired`, `canceled`, **or**
 
 Activation funnel review, churn reason analysis, lifecycle/win-back messaging, referral readiness, and changelog operations are covered in `docs/AssetSafe_Growth_Product_Ops_Runbook.md`.
 
+Authorized User over-limit handling after plan changes and ownership/billing transfer boundaries are covered in `docs/AssetSafe_Multi_Account_Workspace_Ops_Runbook.md`.
+
 ---
 
 ## 6. Admin Surfaces
