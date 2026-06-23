@@ -84,6 +84,18 @@ type EdgeFunctionHealthRow = {
   health_status: string | null;
 };
 
+type MonitoringAlertPolicy = {
+  monitor_key: string;
+  monitor_label: string;
+  owner_team: string;
+  warning_channel: string;
+  page_channel: string;
+  warn_rule: string;
+  page_rule: string;
+  runbook_url: string | null;
+  enabled: boolean;
+};
+
 // Edge Functions categorized by purpose
 const edgeFunctions = [
   // Authentication & User Management
@@ -271,6 +283,7 @@ const SystemInfrastructure = () => {
   const [cronHealthLoading, setCronHealthLoading] = useState(false);
   const [emailHealth, setEmailHealth] = useState<EmailDeliverabilityHealth | null>(null);
   const [edgeFunctionHealth, setEdgeFunctionHealth] = useState<EdgeFunctionHealthRow[]>([]);
+  const [alertPolicies, setAlertPolicies] = useState<MonitoringAlertPolicy[]>([]);
   const { exportInfrastructureToPDF } = useInfrastructurePDFExport();
 
   const loadCronHealth = async () => {
@@ -322,10 +335,26 @@ const SystemInfrastructure = () => {
     }
   };
 
+  const loadAlertPolicies = async () => {
+    const { data, error } = await supabase
+      .from('monitoring_alert_policies')
+      .select('monitor_key,monitor_label,owner_team,warning_channel,page_channel,warn_rule,page_rule,runbook_url,enabled')
+      .eq('enabled', true)
+      .order('monitor_label', { ascending: true });
+
+    if (error) {
+      console.warn('Unable to load alert policies:', error);
+      setAlertPolicies([]);
+    } else {
+      setAlertPolicies((data || []) as MonitoringAlertPolicy[]);
+    }
+  };
+
   useEffect(() => {
     loadCronHealth();
     loadEmailHealth();
     loadEdgeFunctionHealth();
+    loadAlertPolicies();
   }, []);
 
   const toggleSection = (section: string) => {
@@ -381,6 +410,19 @@ const SystemInfrastructure = () => {
         return <Badge variant="outline">No Events</Badge>;
       default:
         return <Badge variant="secondary">{status || 'Unknown'}</Badge>;
+    }
+  };
+
+  const channelBadge = (channel: string) => {
+    switch (channel) {
+      case 'pager':
+        return <Badge variant="destructive">Pager</Badge>;
+      case 'slack':
+        return <Badge className="bg-purple-500">Slack</Badge>;
+      case 'ops_email':
+        return <Badge className="bg-blue-500">Ops Email</Badge>;
+      default:
+        return <Badge variant="outline">Dashboard</Badge>;
     }
   };
 
@@ -740,6 +782,51 @@ const SystemInfrastructure = () => {
                 </Table>
               ) : (
                 <p className="text-center text-muted-foreground py-8">No cron health rows found</p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Alert Routing Policy</CardTitle>
+              <CardDescription>Owner, channel, and threshold rules for operational monitors</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {alertPolicies.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Monitor</TableHead>
+                      <TableHead>Owner</TableHead>
+                      <TableHead>Warn</TableHead>
+                      <TableHead>Page</TableHead>
+                      <TableHead>Rules</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {alertPolicies.map((policy) => (
+                      <TableRow key={policy.monitor_key}>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{policy.monitor_label}</p>
+                            {policy.runbook_url && (
+                              <p className="text-xs text-muted-foreground">{policy.runbook_url}</p>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-sm">{policy.owner_team}</TableCell>
+                        <TableCell>{channelBadge(policy.warning_channel)}</TableCell>
+                        <TableCell>{channelBadge(policy.page_channel)}</TableCell>
+                        <TableCell className="max-w-xl text-sm">
+                          <p><span className="font-medium">Warn:</span> {policy.warn_rule}</p>
+                          <p className="mt-1"><span className="font-medium">Page:</span> {policy.page_rule}</p>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <p className="text-center text-muted-foreground py-8">No alert policies configured</p>
               )}
             </CardContent>
           </Card>

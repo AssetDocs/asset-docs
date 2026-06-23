@@ -6644,6 +6644,51 @@ export type Database = {
         }
         Relationships: []
       }
+      monitoring_alert_policies: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          monitor_key: string
+          monitor_label: string
+          owner_team: string
+          page_channel: string
+          page_rule: string
+          runbook_url: string | null
+          updated_at: string
+          warning_channel: string
+          warn_rule: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          monitor_key: string
+          monitor_label: string
+          owner_team?: string
+          page_channel?: string
+          page_rule: string
+          runbook_url?: string | null
+          updated_at?: string
+          warning_channel?: string
+          warn_rule: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          monitor_key?: string
+          monitor_label?: string
+          owner_team?: string
+          page_channel?: string
+          page_rule?: string
+          runbook_url?: string | null
+          updated_at?: string
+          warning_channel?: string
+          warn_rule?: string
+        }
+        Relationships: []
+      }
       system_maintenance_windows: {
         Row: {
           created_at: string
