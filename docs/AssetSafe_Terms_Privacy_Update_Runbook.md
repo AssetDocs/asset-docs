@@ -8,6 +8,7 @@ Companion docs:
 - `docs/AssetSafe_Retention_Deletion_Policy_Matrix.md`
 - `docs/AssetSafe_Audit_Log_Retention_Runbook.md`
 - `docs/AssetSafe_Growth_Product_Ops_Runbook.md`
+- `docs/AssetSafe_Mobile_Capacitor_Ops_Runbook.md`
 
 ## Purpose
 
@@ -27,6 +28,7 @@ This is an operational checklist, not legal advice. Counsel or the business owne
 | Material commercial change | Subscription, cancellation, refund, renewal, or billing terms changed | Counsel review, notice, likely re-consent before checkout/renewal-sensitive flows |
 | Security/legal obligation change | Breach notice language, lawful request handling, legal hold, export/deletion policy | Counsel review and documented rollout |
 | Cookie/marketing change | New analytics/marketing technology or changed consent purpose | Update cookie disclosure and consent preferences where applicable |
+| Mobile distribution change | App-store launch, mobile SDK, push notification, crash reporting, or mobile data-collection change | Store privacy-label review, counsel/operator review, possible notice or re-consent |
 
 When unsure, treat the change as material until counsel/operator decides otherwise.
 
@@ -83,6 +85,7 @@ Possible notice channels:
 - Account settings banner.
 - Checkout/signup consent copy.
 - Changelog/support article.
+- App Store / Google Play release notes when the change affects mobile users.
 
 Do not use marketing opt-out status to suppress legally required transactional/legal notices.
 

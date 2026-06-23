@@ -11,6 +11,7 @@ Companion docs:
 - `docs/AssetSafe_Vulnerability_Scan_Runbook.md`
 - `docs/AssetSafe_Audit_Log_Retention_Runbook.md`
 - `docs/AssetSafe_Legal_Request_Runbook.md`
+- `docs/AssetSafe_Mobile_Capacitor_Ops_Runbook.md`
 
 ## Purpose
 
@@ -54,6 +55,7 @@ Common detection sources:
 - Resend bounce/complaint spikes or webhook verification failures.
 - User/support reports.
 - GitHub secret scanning or accidental disclosure.
+- Mobile store, TestFlight, Play Console, crash report, or app-review alert.
 
 ## First 15 Minutes
 
@@ -123,6 +125,14 @@ select public.activate_maintenance_mode(
 3. Pause affected send paths if abusive or incorrect emails are being sent.
 4. Preserve provider message IDs, recipient domains, and templates involved.
 5. Review bounce/complaint thresholds in Admin Monitoring.
+
+### Mobile App Incident
+
+1. Confirm affected platform, app version, build number, device/OS, and whether desktop web is affected.
+2. Preserve store console, crash report, review, and support evidence.
+3. If the issue is caused by hosted web content, roll back the web deploy or activate maintenance mode.
+4. If the issue is native-build specific, halt phased rollout where available and prepare a hotfix build.
+5. Review mobile session, export, deletion, billing, and Authorized User boundaries before restoring rollout.
 
 ## Evidence Queries
 
