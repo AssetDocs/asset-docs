@@ -9,10 +9,13 @@ Companion docs:
 - `docs/AssetSafe_Operational_Readiness_Sweep.md`
 - `docs/AssetSafe_Billing_Revenue_Launch_Runbook.md`
 - `docs/AssetSafe_Data_Lifecycle_External_Controls_Runbook.md`
+- `docs/AssetSafe_Launch_Evidence_SQL.sql`
 
 ## Purpose
 
 This runbook tells the operator what evidence to collect before filling in `docs/AssetSafe_Launch_Operator_Signoff_Checklist.md`.
+
+For database-backed evidence, use `docs/AssetSafe_Launch_Evidence_SQL.sql` as the read-only SQL bundle.
 
 Evidence can be:
 
@@ -395,4 +398,3 @@ Before marking the sign-off checklist complete:
 5. Every `Accepted MVP` row has an accepted risk note.
 6. Every `Deferred` row has a scope note.
 7. Final approver signs and dates `docs/AssetSafe_Launch_Operator_Signoff_Checklist.md`.
-
