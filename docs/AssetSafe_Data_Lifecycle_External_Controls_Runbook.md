@@ -16,6 +16,7 @@ Companion docs:
 - `docs/AssetSafe_DMCA_Takedown_Runbook.md`
 - `docs/AssetSafe_Terms_Privacy_Update_Runbook.md`
 - `docs/AssetSafe_Mobile_Capacitor_Ops_Runbook.md`
+- `docs/AssetSafe_Operational_Readiness_Sweep.md`
 
 ## Purpose
 
