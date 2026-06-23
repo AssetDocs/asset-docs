@@ -54,6 +54,12 @@ const LegacyContinuityWorkspace: React.FC = () => {
     return `Oldest ${(hours / 24).toFixed(1)}d`;
   };
 
+  const hoursMetricLabel = (hours?: number | null) => {
+    const value = Number(hours ?? 0);
+    if (value < 24) return `${value}h`;
+    return `${(value / 24).toFixed(1)}d`;
+  };
+
   const metricCards = [
     { label: 'New Requests', value: metrics.new ?? 0, icon: Inbox },
     { label: 'Under Review', value: metrics.under_review ?? 0, icon: Clock },
@@ -88,6 +94,30 @@ const LegacyContinuityWorkspace: React.FC = () => {
       value: opsReport.overdue_continuity_reviews?.metric_value ?? 0,
       detail: ageLabel(opsReport.overdue_continuity_reviews?.oldest_age_hours),
       icon: Clock,
+    },
+    {
+      label: 'Review Backlog',
+      value: opsReport.continuity_review_backlog?.metric_value ?? 0,
+      detail: ageLabel(opsReport.continuity_review_backlog?.oldest_age_hours),
+      icon: Inbox,
+    },
+    {
+      label: 'Median Triage Time',
+      value: hoursMetricLabel(opsReport.median_triage_time_hours?.metric_value),
+      detail: 'Last 90 days',
+      icon: Clock,
+    },
+    {
+      label: 'Median Dispute Age',
+      value: hoursMetricLabel(opsReport.median_dispute_age_hours?.metric_value),
+      detail: ageLabel(opsReport.median_dispute_age_hours?.oldest_age_hours),
+      icon: AlertTriangle,
+    },
+    {
+      label: 'Closure Completion Rate',
+      value: `${opsReport.closure_completion_rate_90d?.metric_value ?? 0}%`,
+      detail: 'Last 90 days',
+      icon: CheckCircle2,
     },
   ];
 
