@@ -5081,6 +5081,51 @@ export type Database = {
         }
         Relationships: []
       }
+      monitoring_alert_policies: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          monitor_key: string
+          monitor_label: string
+          owner_team: string
+          page_channel: string
+          page_rule: string
+          runbook_url: string | null
+          updated_at: string
+          warn_rule: string
+          warning_channel: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          monitor_key: string
+          monitor_label: string
+          owner_team?: string
+          page_channel?: string
+          page_rule: string
+          runbook_url?: string | null
+          updated_at?: string
+          warn_rule: string
+          warning_channel?: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          monitor_key?: string
+          monitor_label?: string
+          owner_team?: string
+          page_channel?: string
+          page_rule?: string
+          runbook_url?: string | null
+          updated_at?: string
+          warn_rule?: string
+          warning_channel?: string
+        }
+        Relationships: []
+      }
       notes_traditions: {
         Row: {
           bucket_name: string | null
