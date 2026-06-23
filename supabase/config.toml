@@ -58,3 +58,8 @@ verify_jwt = false
 # Redacts old closed support issue free-text PII after the retention window.
 [functions.scrub-old-support-pii]
 verify_jwt = false
+
+# Public webhook receiver — Resend calls without a user JWT.
+# Authenticates via Svix signature (RESEND_WEBHOOK_SECRET) once configured.
+[functions.resend-webhook]
+verify_jwt = false
