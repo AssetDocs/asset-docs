@@ -6385,48 +6385,6 @@ export type Database = {
         }
         Relationships: []
       }
-      support_access_reviews: {
-        Row: {
-          access_scope: string
-          admin_user_id: string
-          completed_at: string | null
-          created_at: string
-          expires_at: string
-          id: string
-          reason: string
-          status: string
-          target_account_number: string | null
-          target_email: string | null
-          target_user_id: string
-        }
-        Insert: {
-          access_scope?: string
-          admin_user_id: string
-          completed_at?: string | null
-          created_at?: string
-          expires_at?: string
-          id?: string
-          reason: string
-          status?: string
-          target_account_number?: string | null
-          target_email?: string | null
-          target_user_id: string
-        }
-        Update: {
-          access_scope?: string
-          admin_user_id?: string
-          completed_at?: string | null
-          created_at?: string
-          expires_at?: string
-          id?: string
-          reason?: string
-          status?: string
-          target_account_number?: string | null
-          target_email?: string | null
-          target_user_id?: string
-        }
-        Relationships: []
-      }
       subscribers: {
         Row: {
           anonymized_at: string | null
@@ -6587,54 +6545,6 @@ export type Database = {
           sent_at?: string
           status?: string | null
           user_id?: string | null
-        }
-        Relationships: []
-      }
-      email_deliverability_events: {
-        Row: {
-          created_at: string
-          email_stream: string | null
-          event_type: string
-          from_email: string | null
-          id: string
-          occurred_at: string
-          provider: string
-          provider_event_id: string | null
-          provider_message_id: string | null
-          raw_payload: Json
-          recipient_domain: string | null
-          recipient_email_hash: string | null
-          subject: string | null
-        }
-        Insert: {
-          created_at?: string
-          email_stream?: string | null
-          event_type: string
-          from_email?: string | null
-          id?: string
-          occurred_at?: string
-          provider?: string
-          provider_event_id?: string | null
-          provider_message_id?: string | null
-          raw_payload?: Json
-          recipient_domain?: string | null
-          recipient_email_hash?: string | null
-          subject?: string | null
-        }
-        Update: {
-          created_at?: string
-          email_stream?: string | null
-          event_type?: string
-          from_email?: string | null
-          id?: string
-          occurred_at?: string
-          provider?: string
-          provider_event_id?: string | null
-          provider_message_id?: string | null
-          raw_payload?: Json
-          recipient_domain?: string | null
-          recipient_email_hash?: string | null
-          subject?: string | null
         }
         Relationships: []
       }
@@ -7653,25 +7563,6 @@ export type Database = {
         }
         Relationships: []
       }
-      email_deliverability_health_status: {
-        Row: {
-          bounce_rate_24h: number | null
-          bounced_24h: number | null
-          complained_24h: number | null
-          complaint_rate_24h: number | null
-          delayed_24h: number | null
-          description: string | null
-          events_24h: number | null
-          health_status: string | null
-          latest_event_at: string | null
-          latest_problem_at: string | null
-          latest_problem_domain: string | null
-          latest_problem_event_type: string | null
-          monitor_name: string | null
-          sent_or_delivered_24h: number | null
-        }
-        Relationships: []
-      }
       profiles_safe: {
         Row: {
           account_number: string | null
@@ -7679,26 +7570,6 @@ export type Database = {
           first_name: string | null
           last_name: string | null
           user_id: string | null
-        }
-        Relationships: []
-      }
-      stripe_webhook_health_status: {
-        Row: {
-          description: string | null
-          error_events_24h: number | null
-          events_24h: number | null
-          health_status: string | null
-          latest_error_at: string | null
-          latest_error_event_id: string | null
-          latest_error_event_type: string | null
-          latest_error_message: string | null
-          latest_event_at: string | null
-          latest_processed_at: string | null
-          monitor_name: string | null
-          oldest_pending_at: string | null
-          oldest_pending_minutes: number | null
-          pending_events: number | null
-          total_events: number | null
         }
         Relationships: []
       }
