@@ -2949,6 +2949,54 @@ export type Database = {
         }
         Relationships: []
       }
+      email_deliverability_events: {
+        Row: {
+          created_at: string
+          email_stream: string | null
+          event_type: string
+          from_email: string | null
+          id: string
+          occurred_at: string
+          provider: string
+          provider_event_id: string | null
+          provider_message_id: string | null
+          raw_payload: Json
+          recipient_domain: string | null
+          recipient_email_hash: string | null
+          subject: string | null
+        }
+        Insert: {
+          created_at?: string
+          email_stream?: string | null
+          event_type: string
+          from_email?: string | null
+          id?: string
+          occurred_at?: string
+          provider?: string
+          provider_event_id?: string | null
+          provider_message_id?: string | null
+          raw_payload?: Json
+          recipient_domain?: string | null
+          recipient_email_hash?: string | null
+          subject?: string | null
+        }
+        Update: {
+          created_at?: string
+          email_stream?: string | null
+          event_type?: string
+          from_email?: string | null
+          id?: string
+          occurred_at?: string
+          provider?: string
+          provider_event_id?: string | null
+          provider_message_id?: string | null
+          raw_payload?: Json
+          recipient_domain?: string | null
+          recipient_email_hash?: string | null
+          subject?: string | null
+        }
+        Relationships: []
+      }
       emergency_instructions: {
         Row: {
           access_notes: Json | null
@@ -7560,6 +7608,25 @@ export type Database = {
           page_after_minutes?: number | null
           updated_at?: string | null
           warn_after_minutes?: number | null
+        }
+        Relationships: []
+      }
+      email_deliverability_health_status: {
+        Row: {
+          bounce_rate_24h: number | null
+          bounced_24h: number | null
+          complained_24h: number | null
+          complaint_rate_24h: number | null
+          delayed_24h: number | null
+          description: string | null
+          events_24h: number | null
+          health_status: string | null
+          latest_event_at: string | null
+          latest_problem_at: string | null
+          latest_problem_domain: string | null
+          latest_problem_event_type: string | null
+          monitor_name: string | null
+          sent_or_delivered_24h: number | null
         }
         Relationships: []
       }
