@@ -13,6 +13,7 @@ Owner: Asset Safe operator / project owner
 | 3 | `docs/AssetSafe_Launch_Operator_Signoff_Checklist.md` | Final P0/P1/P2 decision and approval sheet |
 | 4 | `docs/AssetSafe_Launch_Evidence_Collection_Runbook.md` | Exact SQL queries, screenshots, tickets, and approvals needed for sign-off |
 | 5 | `docs/AssetSafe_Launch_Code_Workqueue.md` | Conditional Lovable/dev prompts for rows marked `Code required` |
+| 6 | `docs/AssetSafe_Lovable_Launch_Readiness_Prompt.md` | Copy-paste prompt for Lovable coordination |
 
 ## Operator Flow
 
@@ -21,7 +22,8 @@ Owner: Asset Safe operator / project owner
 3. Use `docs/AssetSafe_Launch_Evidence_Collection_Runbook.md` to gather evidence for each P0 row.
 4. Mark each row as `Accepted MVP`, `Operator action required`, `Code required`, or `Deferred`.
 5. Send only `Code required` rows to Lovable using `docs/AssetSafe_Launch_Code_Workqueue.md`.
-6. Record final approval in the sign-off checklist.
+6. Use `docs/AssetSafe_Lovable_Launch_Readiness_Prompt.md` if Lovable should help classify rows before code work begins.
+7. Record final approval in the sign-off checklist.
 
 ## Area Runbooks
 
@@ -65,4 +67,3 @@ The launch packet is complete only when every P0 row in `docs/AssetSafe_Launch_O
 - accepted risk or blocker note.
 
 If a P0 row is marked `Code required`, launch readiness depends on the corresponding item in `docs/AssetSafe_Launch_Code_Workqueue.md` being implemented, deployed, and verified.
-
