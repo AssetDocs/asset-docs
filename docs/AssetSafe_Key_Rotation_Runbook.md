@@ -38,6 +38,8 @@ Schedule routine rotations during a low-traffic maintenance window.
 
 Use this path for any suspected exposure.
 
+For incidents involving possible user data, account access, billing records, storage objects, or email integrity, run this together with `docs/AssetSafe_Security_Incident_Response_Runbook.md`.
+
 1. Treat the old value as compromised.
 2. Generate and install the replacement immediately.
 3. Disable the old credential as soon as the new path is validated.

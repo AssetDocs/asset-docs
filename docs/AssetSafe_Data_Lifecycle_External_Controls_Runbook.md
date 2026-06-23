@@ -8,6 +8,7 @@ Companion docs:
 - `docs/AssetSafe_Backup_Restore_Runbook.md`
 - `docs/AssetSafe_Storage_Deletion_Cron_Runbook.md`
 - `docs/AssetSafe_Key_Rotation_Runbook.md`
+- `docs/AssetSafe_Security_Incident_Response_Runbook.md`
 
 ## Purpose
 
@@ -185,7 +186,7 @@ Required decision points:
 
 The app records cron health and admin panels expose the major data lifecycle warnings. External paging or Slack routing remains an operational integration.
 
-Secret rotation cadence, emergency rotation triggers, and post-rotation validation are covered in `docs/AssetSafe_Key_Rotation_Runbook.md`.
+Security incident response is covered in `docs/AssetSafe_Security_Incident_Response_Runbook.md`. Secret rotation cadence, emergency rotation triggers, and post-rotation validation are covered in `docs/AssetSafe_Key_Rotation_Runbook.md`.
 
 Minimum launch routing:
 
