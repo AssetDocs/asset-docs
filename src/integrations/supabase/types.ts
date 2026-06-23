@@ -7615,6 +7615,26 @@ export type Database = {
         }
         Relationships: []
       }
+      stripe_webhook_health_status: {
+        Row: {
+          description: string | null
+          error_events_24h: number | null
+          events_24h: number | null
+          health_status: string | null
+          latest_error_at: string | null
+          latest_error_event_id: string | null
+          latest_error_event_type: string | null
+          latest_error_message: string | null
+          latest_event_at: string | null
+          latest_processed_at: string | null
+          monitor_name: string | null
+          oldest_pending_at: string | null
+          oldest_pending_minutes: number | null
+          pending_events: number | null
+          total_events: number | null
+        }
+        Relationships: []
+      }
       v_authoritative_consent: {
         Row: {
           consent_type: string | null

@@ -90,11 +90,30 @@ interface Summary {
   orphaned: number;
 }
 
+interface StripeWebhookHealth {
+  monitor_name: string;
+  description: string | null;
+  total_events: number;
+  events_24h: number;
+  pending_events: number;
+  oldest_pending_at: string | null;
+  oldest_pending_minutes: number | null;
+  latest_event_at: string | null;
+  latest_processed_at: string | null;
+  error_events_24h: number;
+  latest_error_event_id: string | null;
+  latest_error_event_type: string | null;
+  latest_error_at: string | null;
+  latest_error_message: string | null;
+  health_status: 'ok' | 'warn' | 'page' | 'no_events';
+}
+
 const StripeReconciliation = () => {
   const [subscriptions, setSubscriptions] = useState<StripeSubscription[]>([]);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<UserRecord[]>([]);
+  const [webhookHealth, setWebhookHealth] = useState<StripeWebhookHealth | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   
   // Dialog states
@@ -117,6 +136,17 @@ const StripeReconciliation = () => {
 
       setSubscriptions(data.subscriptions || []);
       setSummary(data.summary || null);
+
+      const { data: healthData, error: healthError } = await supabase
+        .from('stripe_webhook_health_status')
+        .select('*')
+        .maybeSingle();
+
+      if (healthError) {
+        console.warn('Unable to load Stripe webhook health:', healthError);
+      } else {
+        setWebhookHealth(healthData as StripeWebhookHealth | null);
+      }
 
       // Also load users for linking
       const { data: profilesData } = await supabase
@@ -186,6 +216,21 @@ const StripeReconciliation = () => {
         return <Badge variant="secondary">Incomplete</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
+    }
+  };
+
+  const getWebhookHealthBadge = (status?: string | null) => {
+    switch (status) {
+      case 'ok':
+        return <Badge className="bg-green-500"><CheckCircle className="w-3 h-3 mr-1" />Healthy</Badge>;
+      case 'warn':
+        return <Badge className="bg-yellow-500"><AlertTriangle className="w-3 h-3 mr-1" />Warn</Badge>;
+      case 'page':
+        return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Page</Badge>;
+      case 'no_events':
+        return <Badge variant="outline">No Events</Badge>;
+      default:
+        return <Badge variant="secondary">Unknown</Badge>;
     }
   };
 
@@ -282,6 +327,57 @@ const StripeReconciliation = () => {
           Refresh
         </Button>
       </div>
+
+      {webhookHealth && (
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <CardTitle className="text-base">Stripe Webhook Health</CardTitle>
+                <CardDescription>Pending event lag and recent processing errors</CardDescription>
+              </div>
+              {getWebhookHealthBadge(webhookHealth.health_status)}
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+              <div>
+                <p className="text-muted-foreground">Events 24h</p>
+                <p className="font-semibold">{webhookHealth.events_24h}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Pending</p>
+                <p className="font-semibold">{webhookHealth.pending_events}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Oldest Pending</p>
+                <p className="font-semibold">
+                  {webhookHealth.oldest_pending_minutes === null ? '-' : `${webhookHealth.oldest_pending_minutes} min`}
+                </p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Errors 24h</p>
+                <p className="font-semibold">{webhookHealth.error_events_24h}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Last Processed</p>
+                <p className="font-semibold">
+                  {webhookHealth.latest_processed_at ? formatDate(webhookHealth.latest_processed_at) : '-'}
+                </p>
+              </div>
+            </div>
+            {webhookHealth.latest_error_at && (
+              <div className="mt-4 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm">
+                <p className="font-medium">Latest error: {webhookHealth.latest_error_event_type || webhookHealth.latest_error_event_id}</p>
+                <p className="text-muted-foreground">
+                  {formatDate(webhookHealth.latest_error_at)}
+                  {webhookHealth.latest_error_message ? ` · ${webhookHealth.latest_error_message}` : ''}
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Summary Stats */}
       {summary && (
