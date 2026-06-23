@@ -14,6 +14,7 @@ Companion docs:
 - `docs/AssetSafe_Legal_Request_Runbook.md`
 - `docs/AssetSafe_Privacy_Request_DSAR_Runbook.md`
 - `docs/AssetSafe_DMCA_Takedown_Runbook.md`
+- `docs/AssetSafe_Terms_Privacy_Update_Runbook.md`
 
 ## Purpose
 
@@ -35,6 +36,7 @@ Use this checklist before launch, after major Supabase/storage changes, and duri
 | Legal request intake path | Required before launch | `docs/AssetSafe_Legal_Request_Runbook.md` owner/counsel path |
 | Privacy request intake path | Required before launch | `docs/AssetSafe_Privacy_Request_DSAR_Runbook.md` owner/counsel path |
 | Takedown/content complaint path | Required before launch | `docs/AssetSafe_DMCA_Takedown_Runbook.md` owner/counsel path |
+| Terms/privacy update process | Required before launch | `docs/AssetSafe_Terms_Privacy_Update_Runbook.md` review notes |
 | Incident contact path | Required before launch | Named owner and escalation email/group |
 
 ## 1. PITR And Restore Readiness

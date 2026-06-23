@@ -8,12 +8,15 @@ Companion docs:
 - `docs/AssetSafe_Retention_Deletion_Policy_Matrix.md`
 - `docs/AssetSafe_Audit_Log_Retention_Runbook.md`
 - `docs/AssetSafe_Legal_Request_Runbook.md`
+- `docs/AssetSafe_Terms_Privacy_Update_Runbook.md`
 
 ## Purpose
 
 This runbook defines how Asset Safe handles privacy requests, including access/export, deletion, correction, restriction, opt-out, and other data subject requests. It is designed for US-first operations, including CCPA/CPRA-style expectations, while leaving final legal interpretation to counsel/operator review.
 
 This is an operational checklist, not legal advice. Counsel or the business owner must approve denials, deadline extensions, and any response involving minors, disputed authority, legal hold, law enforcement, or sensitive family/continuity facts.
+
+Terms/Privacy material-change notice and re-consent operations are covered in `docs/AssetSafe_Terms_Privacy_Update_Runbook.md`.
 
 ## Request Types
 

@@ -279,7 +279,7 @@ const checklistData: ChecklistSection[] = [
         id: 'privacy-terms',
         title: 'Publish Privacy Policy + Terms of Service',
         whatToVerify: 'Required legal pages exist publicly',
-        howToVerify: 'Review pages in footer + onboarding',
+        howToVerify: 'Review docs/AssetSafe_Terms_Privacy_Update_Runbook.md',
         passCriteria: 'Policies are accessible and match platform behavior',
         priority: 'P0',
         owner: 'Legal/Product',

@@ -54,6 +54,7 @@ Once you mark any cells you want to change, the dev has everything needed to:
 - Update the Privacy Policy retention table to match.
 - Use `docs/AssetSafe_Audit_Log_Retention_Runbook.md` for audit-log access, export, and tamper-evidence operations.
 - Use `docs/AssetSafe_Privacy_Request_DSAR_Runbook.md` for access, deletion, correction, authorized-agent, and denial operations.
+- Use `docs/AssetSafe_Terms_Privacy_Update_Runbook.md` for material Terms/Privacy changes and re-consent operations.
 
 ---
 

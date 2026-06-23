@@ -10,6 +10,7 @@ Companion docs:
 - `docs/AssetSafe_Legal_Request_Runbook.md`
 - `docs/AssetSafe_Privacy_Request_DSAR_Runbook.md`
 - `docs/AssetSafe_DMCA_Takedown_Runbook.md`
+- `docs/AssetSafe_Terms_Privacy_Update_Runbook.md`
 
 ## Purpose
 
