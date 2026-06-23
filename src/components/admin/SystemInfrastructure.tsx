@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -31,10 +31,26 @@ import {
   Lock,
   Cloud,
   GitBranch,
-  Download
+  Download,
+  RefreshCw
 } from 'lucide-react';
 import SystemArchitectureFlowcharts from './SystemArchitectureFlowcharts';
 import { useInfrastructurePDFExport } from '@/hooks/useInfrastructurePDFExport';
+import { supabase } from '@/integrations/supabase/client';
+
+type CronHealthRow = {
+  job_name: string | null;
+  description: string | null;
+  expected_interval_minutes: number | null;
+  health_status: string | null;
+  last_status: string | null;
+  last_succeeded_at: string | null;
+  last_failed_at: string | null;
+  minutes_since_success: number | null;
+  consecutive_failures: number | null;
+  last_duration_ms: number | null;
+  last_error: string | null;
+};
 
 // Edge Functions categorized by purpose
 const edgeFunctions = [
@@ -219,7 +235,33 @@ const SystemInfrastructure = () => {
     emails: false,
     gaps: false,
   });
+  const [cronHealth, setCronHealth] = useState<CronHealthRow[]>([]);
+  const [cronHealthLoading, setCronHealthLoading] = useState(false);
   const { exportInfrastructureToPDF } = useInfrastructurePDFExport();
+
+  const loadCronHealth = async () => {
+    setCronHealthLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('cron_job_health_status')
+        .select('job_name,description,expected_interval_minutes,health_status,last_status,last_succeeded_at,last_failed_at,minutes_since_success,consecutive_failures,last_duration_ms,last_error')
+        .order('health_status', { ascending: true })
+        .order('job_name', { ascending: true });
+
+      if (error) {
+        console.warn('Unable to load cron health:', error);
+        setCronHealth([]);
+      } else {
+        setCronHealth((data || []) as CronHealthRow[]);
+      }
+    } finally {
+      setCronHealthLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadCronHealth();
+  }, []);
 
   const toggleSection = (section: string) => {
     setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
@@ -232,6 +274,32 @@ const SystemInfrastructure = () => {
   }, {} as Record<string, typeof edgeFunctions>);
 
   const projectId = 'leotcbfpqiekgkgumecn';
+  const unhealthyCronJobs = cronHealth.filter(job =>
+    job.health_status && !['ok', 'healthy'].includes(job.health_status)
+  ).length;
+
+  const cronHealthBadge = (status?: string | null) => {
+    switch (status) {
+      case 'ok':
+      case 'healthy':
+        return <Badge className="bg-green-500">Healthy</Badge>;
+      case 'warn':
+      case 'warning':
+        return <Badge className="bg-yellow-500">Warn</Badge>;
+      case 'page':
+      case 'critical':
+      case 'failed':
+        return <Badge variant="destructive">{status}</Badge>;
+      case 'never_run':
+        return <Badge variant="outline">Never Run</Badge>;
+      default:
+        return <Badge variant="secondary">{status || 'Unknown'}</Badge>;
+    }
+  };
+
+  const formatDateTime = (value?: string | null) => {
+    return value ? new Date(value).toLocaleString() : '-';
+  };
 
   const handleExportPDF = () => {
     exportInfrastructureToPDF({
@@ -319,10 +387,14 @@ const SystemInfrastructure = () => {
 
       {/* Tabs for Architecture vs Technical Details */}
       <Tabs defaultValue="subscription" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="subscription" className="flex items-center gap-2">
             <CreditCard className="h-4 w-4" />
             Subscription
+          </TabsTrigger>
+          <TabsTrigger value="monitoring" className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4" />
+            Monitoring
           </TabsTrigger>
           <TabsTrigger value="architecture" className="flex items-center gap-2">
             <GitBranch className="h-4 w-4" />
@@ -503,6 +575,89 @@ const SystemInfrastructure = () => {
                   </ul>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="monitoring" className="mt-6 space-y-6">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <CardTitle>Cron Job Health</CardTitle>
+                  <CardDescription>Dead-man-switch status for scheduled operational workers</CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                  {unhealthyCronJobs > 0 ? (
+                    <Badge variant="destructive">{unhealthyCronJobs} attention</Badge>
+                  ) : (
+                    <Badge className="bg-green-500">All clear</Badge>
+                  )}
+                  <Button onClick={loadCronHealth} variant="outline" size="sm" disabled={cronHealthLoading}>
+                    <RefreshCw className={`h-4 w-4 mr-2 ${cronHealthLoading ? 'animate-spin' : ''}`} />
+                    Refresh
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {cronHealthLoading ? (
+                <p className="text-sm text-muted-foreground">Loading cron health...</p>
+              ) : cronHealth.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Job</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Interval</TableHead>
+                      <TableHead>Last Success</TableHead>
+                      <TableHead>Last Run</TableHead>
+                      <TableHead>Failures</TableHead>
+                      <TableHead>Error</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {cronHealth.map((job) => (
+                      <TableRow key={job.job_name || 'unknown'}>
+                        <TableCell>
+                          <div>
+                            <p className="font-mono text-xs">{job.job_name || '-'}</p>
+                            {job.description && (
+                              <p className="text-xs text-muted-foreground">{job.description}</p>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>{cronHealthBadge(job.health_status)}</TableCell>
+                        <TableCell className="text-sm">{job.expected_interval_minutes ?? '-'} min</TableCell>
+                        <TableCell className="text-sm">
+                          <div>
+                            <p>{formatDateTime(job.last_succeeded_at)}</p>
+                            {job.minutes_since_success !== null && job.minutes_since_success !== undefined && (
+                              <p className="text-xs text-muted-foreground">{job.minutes_since_success} min ago</p>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          <div>
+                            <Badge variant={job.last_status === 'failed' ? 'destructive' : 'secondary'}>
+                              {job.last_status || '-'}
+                            </Badge>
+                            {job.last_duration_ms !== null && job.last_duration_ms !== undefined && (
+                              <p className="text-xs text-muted-foreground mt-1">{job.last_duration_ms} ms</p>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-sm">{job.consecutive_failures ?? 0}</TableCell>
+                        <TableCell className="max-w-sm truncate text-sm text-muted-foreground">
+                          {job.last_error || '-'}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <p className="text-center text-muted-foreground py-8">No cron health rows found</p>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
