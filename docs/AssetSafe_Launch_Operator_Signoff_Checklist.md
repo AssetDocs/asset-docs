@@ -11,6 +11,7 @@ Companion docs:
 - `docs/AssetSafe_Security_Incident_Response_Runbook.md`
 - `docs/AssetSafe_Terms_Privacy_Update_Runbook.md`
 - `docs/AssetSafe_Launch_Evidence_Collection_Runbook.md`
+- `docs/AssetSafe_Lovable_P0_Launch_Readiness_Classification.md`
 
 ## Purpose
 
@@ -26,6 +27,8 @@ Use it to record whether each remaining item is:
 Do not mark launch ready until every P0 row has an owner, decision, evidence link, and date.
 
 Use `docs/AssetSafe_Launch_Evidence_Collection_Runbook.md` to gather the query results, screenshots, tickets, and written approvals needed to fill the evidence column.
+
+Use `docs/AssetSafe_Lovable_P0_Launch_Readiness_Classification.md` as the current first-pass classification. Final row decisions still belong to the operator.
 
 ## Decision Legend
 

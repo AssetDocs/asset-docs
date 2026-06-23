@@ -14,6 +14,7 @@ Owner: Asset Safe operator / project owner
 | 4 | `docs/AssetSafe_Launch_Evidence_Collection_Runbook.md` | Exact SQL queries, screenshots, tickets, and approvals needed for sign-off |
 | 5 | `docs/AssetSafe_Launch_Code_Workqueue.md` | Conditional Lovable/dev prompts for rows marked `Code required` |
 | 6 | `docs/AssetSafe_Lovable_Launch_Readiness_Prompt.md` | Copy-paste prompt for Lovable coordination |
+| 7 | `docs/AssetSafe_Lovable_P0_Launch_Readiness_Classification.md` | Lovable's first-pass P0 classification and evidence list |
 
 ## Operator Flow
 
@@ -23,7 +24,8 @@ Owner: Asset Safe operator / project owner
 4. Mark each row as `Accepted MVP`, `Operator action required`, `Code required`, or `Deferred`.
 5. Send only `Code required` rows to Lovable using `docs/AssetSafe_Launch_Code_Workqueue.md`.
 6. Use `docs/AssetSafe_Lovable_Launch_Readiness_Prompt.md` if Lovable should help classify rows before code work begins.
-7. Record final approval in the sign-off checklist.
+7. Use `docs/AssetSafe_Lovable_P0_Launch_Readiness_Classification.md` as the current first-pass classification.
+8. Record final approval in the sign-off checklist.
 
 ## Area Runbooks
 

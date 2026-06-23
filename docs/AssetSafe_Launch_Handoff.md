@@ -9,6 +9,7 @@ Companion docs:
 - `docs/AssetSafe_Launch_Evidence_Collection_Runbook.md`
 - `docs/AssetSafe_Launch_Code_Workqueue.md`
 - `docs/AssetSafe_Lovable_Launch_Readiness_Prompt.md`
+- `docs/AssetSafe_Lovable_P0_Launch_Readiness_Classification.md`
 - `docs/AssetSafe_Operational_Readiness_Sweep.md`
 
 ## Purpose
@@ -25,6 +26,7 @@ This is the routing note for the launch readiness packet. It explains what the o
 | `docs/AssetSafe_Launch_Evidence_Collection_Runbook.md` | Operator | Exact queries, screenshots, approvals, and tickets to collect |
 | `docs/AssetSafe_Launch_Code_Workqueue.md` | Lovable / developer | Conditional implementation prompts for rows marked `Code required` |
 | `docs/AssetSafe_Lovable_Launch_Readiness_Prompt.md` | Operator / Lovable | Copy-paste prompt for classification before implementation |
+| `docs/AssetSafe_Lovable_P0_Launch_Readiness_Classification.md` | Operator / Lovable | Lovable's current first-pass P0 classification |
 
 ## Operator Instructions
 
