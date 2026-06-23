@@ -52,6 +52,7 @@ Once you mark any cells you want to change, the dev has everything needed to:
 - Write the deletion routine in `delete-account` as a single transaction: (a) insert tombstone, (b) `UPDATE … SET user_id = NULL, email = NULL, deleted_account_id = …` on all `anonymize` tables, (c) `DELETE` on all `purge` tables, (d) leave `retain` tables untouched.
 - Add a nightly sweeper to enforce the time-based purge windows (e.g. drop `user_activity_logs` rows older than 2 years).
 - Update the Privacy Policy retention table to match.
+- Use `docs/AssetSafe_Audit_Log_Retention_Runbook.md` for audit-log access, export, and tamper-evidence operations.
 
 ---
 

@@ -9,6 +9,7 @@ Companion docs:
 - `docs/AssetSafe_Data_Lifecycle_External_Controls_Runbook.md`
 - `docs/AssetSafe_Continuity_Incident_Tabletop_Runbook.md`
 - `docs/AssetSafe_Vulnerability_Scan_Runbook.md`
+- `docs/AssetSafe_Audit_Log_Retention_Runbook.md`
 
 ## Purpose
 
@@ -45,6 +46,7 @@ Common detection sources:
 
 - Admin Monitoring: cron, Stripe webhook, email deliverability, edge function health.
 - Vulnerability scans and manual security tests from `docs/AssetSafe_Vulnerability_Scan_Runbook.md`.
+- Audit review findings from `docs/AssetSafe_Audit_Log_Retention_Runbook.md`.
 - Supabase Edge Function logs.
 - Supabase Auth and database logs.
 - Stripe webhook failures, disputes, or suspicious billing activity.

@@ -200,6 +200,8 @@ Daily job `process-storage-orphans` calls `reconcile_storage_orphans`:
 | Backup snapshots | per tier | 14–28 days | §2.1 | |
 | Legal hold override | Indefinite | Indefinite | `account_closure_requests.legal_hold` and `deleted_accounts.legal_hold` | Blocks closure and retention sweepers |
 
+Audit-log access, export procedure, and tamper-evidence posture are covered in `docs/AssetSafe_Audit_Log_Retention_Runbook.md`.
+
 ### 6.1 Launch gaps
 - Legal hold controls exist in Admin Cancellations for pending closures and deleted-account tombstones, including review status, assigned reviewer, review due date, and notes.
 - Support PII scrubber exists as `scrub-old-support-pii`; Admin PII report shows cron health, eligible rows, scrubbed support records, and durable scrub-run history.
