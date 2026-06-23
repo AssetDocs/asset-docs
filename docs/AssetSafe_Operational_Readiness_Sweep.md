@@ -90,6 +90,7 @@ Primary docs:
 - `docs/AssetSafe_Billing_Revenue_Operations.md`
 - `docs/AssetSafe_Billing_Revenue_Launch_Runbook.md`
 - `docs/AssetSafe_Launch_Operator_Signoff_Checklist.md`
+- `docs/AssetSafe_Launch_Code_Workqueue.md`
 
 Covered:
 
@@ -287,3 +288,5 @@ Support & Ops Tooling is centralized in `docs/AssetSafe_Support_Ops_Runbook.md`.
 Billing & Revenue launch policy is centralized in `docs/AssetSafe_Billing_Revenue_Launch_Runbook.md`.
 
 The remaining launch gates are centralized in `docs/AssetSafe_Launch_Operator_Signoff_Checklist.md`. The highest-value next pass is for the operator to fill in owners/evidence and mark any `Code required` items that must block launch.
+
+Conditional developer prompts for any items marked `Code required` are centralized in `docs/AssetSafe_Launch_Code_Workqueue.md`.
