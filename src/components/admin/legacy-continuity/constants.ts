@@ -189,6 +189,40 @@ export const DOCUMENT_CATEGORIES = [
   'Other legal documentation',
 ];
 
+export const DOCUMENT_RETENTION_CATEGORIES = [
+  'case_evidence',
+  'legal_authority',
+  'death_certificate',
+  'identity_verification',
+  'fraud_or_dispute',
+  'other_sensitive',
+] as const;
+export const DOCUMENT_RETENTION_LABEL: Record<string, string> = {
+  case_evidence: 'Case evidence',
+  legal_authority: 'Legal authority',
+  death_certificate: 'Death certificate',
+  identity_verification: 'Identity verification',
+  fraud_or_dispute: 'Fraud or dispute',
+  other_sensitive: 'Other sensitive',
+};
+export const DOCUMENT_RETENTION_STATUS_OPTIONS = [
+  'not_started', 'needs_review', 'reviewed', 'legal_hold', 'purge_eligible',
+] as const;
+export const DOCUMENT_RETENTION_STATUS_LABEL: Record<string, string> = {
+  not_started: 'Not Started',
+  needs_review: 'Needs Review',
+  reviewed: 'Reviewed',
+  legal_hold: 'Legal Hold',
+  purge_eligible: 'Purge Eligible',
+};
+export const DOCUMENT_RETENTION_BADGE: Record<string, string> = {
+  not_started: 'bg-muted text-muted-foreground border-border',
+  needs_review: 'bg-amber-50 text-amber-900 border-amber-200',
+  reviewed: 'bg-emerald-50 text-emerald-900 border-emerald-200',
+  legal_hold: 'bg-rose-50 text-rose-900 border-rose-200',
+  purge_eligible: 'bg-slate-100 text-slate-800 border-slate-200',
+};
+
 export const TEMP_ACCESS_STATUS_LABEL: Record<string, string> = {
   active: 'Active',
   expiring_soon: 'Expiring Soon',
