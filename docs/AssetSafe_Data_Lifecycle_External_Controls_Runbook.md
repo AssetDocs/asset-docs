@@ -17,6 +17,7 @@ Companion docs:
 - `docs/AssetSafe_Terms_Privacy_Update_Runbook.md`
 - `docs/AssetSafe_Mobile_Capacitor_Ops_Runbook.md`
 - `docs/AssetSafe_Operational_Readiness_Sweep.md`
+- `docs/AssetSafe_Support_Ops_Runbook.md`
 
 ## Purpose
 
@@ -40,6 +41,7 @@ Use this checklist before launch, after major Supabase/storage changes, and duri
 | Takedown/content complaint path | Required before launch | `docs/AssetSafe_DMCA_Takedown_Runbook.md` owner/counsel path |
 | Terms/privacy update process | Required before launch | `docs/AssetSafe_Terms_Privacy_Update_Runbook.md` review notes |
 | Mobile release/privacy review | Required before app-store launch | `docs/AssetSafe_Mobile_Capacitor_Ops_Runbook.md` launch gate |
+| Support ownership/SLA process | Required before launch | `docs/AssetSafe_Support_Ops_Runbook.md` launch gate |
 | Incident contact path | Required before launch | Named owner and escalation email/group |
 
 ## 1. PITR And Restore Readiness

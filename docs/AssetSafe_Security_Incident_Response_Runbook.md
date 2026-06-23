@@ -12,6 +12,7 @@ Companion docs:
 - `docs/AssetSafe_Audit_Log_Retention_Runbook.md`
 - `docs/AssetSafe_Legal_Request_Runbook.md`
 - `docs/AssetSafe_Mobile_Capacitor_Ops_Runbook.md`
+- `docs/AssetSafe_Support_Ops_Runbook.md`
 
 ## Purpose
 
@@ -229,6 +230,8 @@ Minimum internal support brief:
 - What support can say.
 - What support must escalate.
 - Whether refunds, account recovery, legal hold, or deletion requests are paused.
+
+Normal support intake, SLA, read-only support review, and account recovery review are covered in `docs/AssetSafe_Support_Ops_Runbook.md`.
 
 ## Recovery
 

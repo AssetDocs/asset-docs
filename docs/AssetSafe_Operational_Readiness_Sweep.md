@@ -43,7 +43,7 @@ These should be completed or explicitly accepted before broad production launch.
 | Run vulnerability scan and triage High/Critical findings | `docs/AssetSafe_Vulnerability_Scan_Runbook.md` | Security / Platform | ZAP/dependency/secret-scan results |
 | Choose production secret manager | `docs/AssetSafe_Key_Rotation_Runbook.md` | Operator / Platform | Named system and access owner |
 | Confirm incident contacts and tabletop | `docs/AssetSafe_Security_Incident_Response_Runbook.md` | Security / Operator | Contact list and tabletop notes |
-| Confirm support ownership/SLA | Support/admin workflow | Operator | Named support owner, backup, and response targets |
+| Confirm support ownership/SLA | `docs/AssetSafe_Support_Ops_Runbook.md` | Operator | Named support owner, backup, and response targets |
 
 ## P0 Engineering Or Product Decisions
 
@@ -156,13 +156,13 @@ Covered in current app/admin work:
 - Account recovery support issue type.
 - Recovery scenario fields and admin review status controls.
 - Manual-review posture for sensitive recovery work.
+- Support SLA tracking, support access review logging, and support PII scrub monitoring.
 
 Remaining:
 
 - Name support owner and backup.
-- Define response SLAs by plan or request severity.
 - Define escalation path from support to legal/security/billing.
-- Decide whether a dedicated support operations runbook should be added before launch.
+- Accept the support tier, SLA, read-only review, and account-recovery policies in `docs/AssetSafe_Support_Ops_Runbook.md`.
 
 ### 5. Monitoring, Alerting & On-Call
 
@@ -277,13 +277,6 @@ Remaining:
 
 ## Recommended Next Fix
 
-The broadest remaining documentation gap is Support & Ops Tooling. The code now has account-recovery support surfaces, but the operating policy should be centralized:
+Support & Ops Tooling is now centralized in `docs/AssetSafe_Support_Ops_Runbook.md`.
 
-- Support tiers and SLA by severity/plan.
-- Escalation paths for billing, account recovery, security, legal, continuity, and data deletion.
-- Rules for audited read-only support debugging.
-- Manual-review backlog ownership.
-- Locked-out paying-customer recovery workflow.
-
-Recommended next doc: `docs/AssetSafe_Support_Ops_Runbook.md`.
-
+The highest-value next pass is Billing & Revenue Operations, because the sweep still flags Stripe disputes, refunds, dunning escalation, stale trial reminders, receipt duplication, and gift payment-failure filtering as unresolved product/engineering decisions.
