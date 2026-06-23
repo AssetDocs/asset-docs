@@ -11,6 +11,7 @@ Companion docs:
 - `docs/AssetSafe_Security_Incident_Response_Runbook.md`
 - `docs/AssetSafe_Vulnerability_Scan_Runbook.md`
 - `docs/AssetSafe_Audit_Log_Retention_Runbook.md`
+- `docs/AssetSafe_Legal_Request_Runbook.md`
 
 ## Purpose
 
@@ -29,6 +30,7 @@ Use this checklist before launch, after major Supabase/storage changes, and duri
 | Cron health verification | Required before launch | Admin screenshots or `cron_job_health` query result |
 | Legal retention review | Required before launch | Counsel/operator sign-off on public retention schedule |
 | Audit log retention review | Required before launch | `docs/AssetSafe_Audit_Log_Retention_Runbook.md` review notes |
+| Legal request intake path | Required before launch | `docs/AssetSafe_Legal_Request_Runbook.md` owner/counsel path |
 | Incident contact path | Required before launch | Named owner and escalation email/group |
 
 ## 1. PITR And Restore Readiness

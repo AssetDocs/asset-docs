@@ -10,6 +10,7 @@ Companion docs:
 - `docs/AssetSafe_Continuity_Incident_Tabletop_Runbook.md`
 - `docs/AssetSafe_Vulnerability_Scan_Runbook.md`
 - `docs/AssetSafe_Audit_Log_Retention_Runbook.md`
+- `docs/AssetSafe_Legal_Request_Runbook.md`
 
 ## Purpose
 
@@ -195,6 +196,8 @@ Counsel should determine:
 - Whether user notice is required and by what deadline.
 - Whether regulator, attorney general, payment processor, or law enforcement notice is required.
 - Whether user notification should be delayed to preserve investigation or comply with law enforcement.
+
+Law-enforcement, subpoena, warrant, preservation, and civil discovery workflows are covered in `docs/AssetSafe_Legal_Request_Runbook.md`.
 
 Do not send breach-notification language without counsel/operator approval.
 
