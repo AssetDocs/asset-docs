@@ -16,6 +16,7 @@ import ExternalAssistanceTab from './ExternalAssistanceTab';
 const LegacyContinuityWorkspace: React.FC = () => {
   const [tab, setTab] = useState('queue');
   const [metrics, setMetrics] = useState<any>({});
+  const [opsReport, setOpsReport] = useState<Record<string, any>>({});
   const [openCaseId, setOpenCaseId] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -39,8 +40,19 @@ const LegacyContinuityWorkspace: React.FC = () => {
         if (['completed', 'archived'].includes(r.status)) m.completed++;
       });
       setMetrics(m);
+
+      const { data: report } = await supabase.rpc('get_continuity_ops_report');
+      const reportMap: Record<string, any> = {};
+      (report || []).forEach((row: any) => { reportMap[row.metric_key] = row; });
+      setOpsReport(reportMap);
     })();
   }, [refreshKey]);
+
+  const ageLabel = (hours?: number | null) => {
+    if (hours == null) return 'No active backlog';
+    if (hours < 24) return `Oldest ${hours.toFixed(1)}h`;
+    return `Oldest ${(hours / 24).toFixed(1)}d`;
+  };
 
   const metricCards = [
     { label: 'New Requests', value: metrics.new ?? 0, icon: Inbox },
@@ -50,6 +62,33 @@ const LegacyContinuityWorkspace: React.FC = () => {
     { label: 'Temporary Continuity Access Active', value: metrics.temp_active ?? 0, icon: KeyRound },
     { label: 'Continuity Actions Pending', value: metrics.transfer_pending ?? 0, icon: ArrowRightLeft },
     { label: 'Completed Cases', value: metrics.completed ?? 0, icon: CheckCircle2 },
+  ];
+
+  const opsCards = [
+    {
+      label: 'Unresolved Owner Disputes',
+      value: opsReport.unresolved_owner_disputes?.metric_value ?? 0,
+      detail: ageLabel(opsReport.unresolved_owner_disputes?.oldest_age_hours),
+      icon: AlertTriangle,
+    },
+    {
+      label: 'External Assistance Waiting',
+      value: opsReport.external_assistance_waiting?.metric_value ?? 0,
+      detail: ageLabel(opsReport.external_assistance_waiting?.oldest_age_hours),
+      icon: FileWarning,
+    },
+    {
+      label: 'High-Risk External Assistance',
+      value: opsReport.high_risk_external_assistance?.metric_value ?? 0,
+      detail: ageLabel(opsReport.high_risk_external_assistance?.oldest_age_hours),
+      icon: AlertTriangle,
+    },
+    {
+      label: 'Overdue Continuity Reviews',
+      value: opsReport.overdue_continuity_reviews?.metric_value ?? 0,
+      detail: ageLabel(opsReport.overdue_continuity_reviews?.oldest_age_hours),
+      icon: Clock,
+    },
   ];
 
   const openCase = (id: string) => setOpenCaseId(id);
@@ -78,6 +117,21 @@ const LegacyContinuityWorkspace: React.FC = () => {
                 <span className="text-2xl font-semibold tabular-nums">{c.value}</span>
               </div>
               <div className="text-xs text-muted-foreground leading-tight">{c.label}</div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        {opsCards.map((c) => (
+          <Card key={c.label} className="border-border">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-1">
+                <c.icon className="h-4 w-4 text-muted-foreground" />
+                <span className="text-2xl font-semibold tabular-nums">{c.value}</span>
+              </div>
+              <div className="text-xs text-muted-foreground leading-tight">{c.label}</div>
+              <div className="text-xs text-muted-foreground mt-1">{c.detail}</div>
             </CardContent>
           </Card>
         ))}

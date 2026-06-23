@@ -248,6 +248,7 @@ Key RPCs:
 - `authorize_continuity_export`
 - `consume_continuity_export_authorization`
 - `expire_continuity_export_authorizations`
+- `get_continuity_ops_report`
 
 ## 8. Operational SLAs
 
@@ -275,7 +276,7 @@ Recommended default SLAs:
 ### P1 first 30 days
 
 5. Add owner heartbeat / inactivity detection policy if Asset Safe wants continuity to trigger from inactivity rather than only requester-submitted evidence.
-6. Add recurring reporting for unresolved continuity disputes and cases waiting on external assistance.
+6. In-app ops reporting exists for unresolved owner disputes, external assistance backlog age, high-risk external assistance, and overdue continuity reviews.
 7. Add secondary Legacy Admin UX if the schema is intended for production use.
 
 ### P2 quarter 1
