@@ -52,6 +52,9 @@ order by created_at asc;
 
 -- ============================================================================
 -- 02 Data lifecycle: latest passed restore drill
+-- Note: some environments may not have the later signoff columns yet.
+-- If signoff_status/signed_off_at are absent, use approved_by_user_id plus
+-- an operator evidence note as the sign-off signal.
 -- ============================================================================
 
 select
@@ -68,8 +71,7 @@ select
   auth_smoke_passed,
   edge_smoke_passed,
   signed_url_smoke_passed,
-  signoff_status,
-  signed_off_at,
+  approved_by_user_id,
   findings,
   follow_up_actions
 from public.restore_drill_runs
@@ -97,7 +99,7 @@ order by id;
 
 select *
 from public.get_storage_bucket_lifecycle_status()
-order by bucket_id;
+order by bucket;
 
 -- ============================================================================
 -- 02/05 Data lifecycle + monitoring: launch cron health
@@ -127,20 +129,20 @@ order by job_name;
 
 -- ============================================================================
 -- 04 Support: open support backlog by SLA state
+-- Note: support_tier / sla_status columns require the support SLA migration.
+-- This query intentionally uses base columns that exist in older schemas.
 -- ============================================================================
 
 select
   type,
   priority,
-  support_tier,
   status,
-  sla_status,
   count(*) as issue_count,
-  min(resolution_due_at) as earliest_resolution_due_at
+  min(created_at) as oldest_issue_created_at
 from public.dev_support_issues
 where status in ('new', 'investigating', 'in_progress')
-group by type, priority, support_tier, status, sla_status
-order by earliest_resolution_due_at nulls last;
+group by type, priority, status
+order by oldest_issue_created_at nulls last;
 
 -- ============================================================================
 -- 05 Monitoring: alert routing policies
@@ -162,7 +164,8 @@ order by monitor_key;
 
 select
   event_type,
-  recipient_email,
+  recipient_email_hash,
+  recipient_domain,
   provider_message_id,
   occurred_at,
   created_at
@@ -176,11 +179,10 @@ limit 50;
 -- ============================================================================
 
 select
-  user_id,
+  user_email,
   consent_type,
   terms_version,
-  consented_at
+  created_at
 from public.user_consents
-order by consented_at desc
+order by created_at desc
 limit 50;
-

@@ -16,6 +16,7 @@ Owner: Asset Safe operator / project owner
 | 6 | `docs/AssetSafe_Lovable_Launch_Readiness_Prompt.md` | Copy-paste prompt for Lovable coordination |
 | 7 | `docs/AssetSafe_Lovable_P0_Launch_Readiness_Classification.md` | Lovable's first-pass P0 classification and evidence list |
 | 8 | `docs/AssetSafe_Launch_Evidence_SQL.sql` | Read-only SQL bundle for database-backed launch evidence |
+| 9 | `docs/AssetSafe_Launch_Evidence_Run_2026_06_23.md` | First evidence-pass result summary and follow-ups |
 
 ## Operator Flow
 

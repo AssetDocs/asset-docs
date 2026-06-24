@@ -179,8 +179,7 @@ select
   auth_smoke_passed,
   edge_smoke_passed,
   signed_url_smoke_passed,
-  signoff_status,
-  signed_off_at,
+  approved_by_user_id,
   findings,
   follow_up_actions
 from public.restore_drill_runs
@@ -215,7 +214,7 @@ If available, also run:
 ```sql
 select *
 from public.get_storage_bucket_lifecycle_status()
-order by bucket_id;
+order by bucket;
 ```
 
 Evidence:
@@ -289,15 +288,13 @@ Run:
 select
   type,
   priority,
-  support_tier,
   status,
-  sla_status,
   count(*) as issue_count,
-  min(resolution_due_at) as earliest_resolution_due_at
+  min(created_at) as oldest_issue_created_at
 from public.dev_support_issues
 where status in ('new', 'investigating', 'in_progress')
-group by type, priority, support_tier, status, sla_status
-order by earliest_resolution_due_at nulls last;
+group by type, priority, status
+order by oldest_issue_created_at nulls last;
 ```
 
 Evidence:
