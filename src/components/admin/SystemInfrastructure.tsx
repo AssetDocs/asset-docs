@@ -321,7 +321,7 @@ const SystemInfrastructure = () => {
   };
 
   const loadEdgeFunctionHealth = async () => {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('edge_function_health_status')
       .select('*')
       .order('health_status', { ascending: true })
