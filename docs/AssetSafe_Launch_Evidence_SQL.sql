@@ -150,11 +150,15 @@ order by oldest_issue_created_at nulls last;
 
 select
   monitor_key,
-  severity,
-  route,
+  monitor_label,
+  owner_team,
+  warning_channel,
+  page_channel,
+  warn_rule,
+  page_rule,
+  runbook_url,
   enabled,
-  warn_after_minutes,
-  page_after_minutes
+  updated_at
 from public.monitoring_alert_policies
 order by monitor_key;
 
