@@ -16,6 +16,7 @@ import AdminContactSubmissions from './AdminContactSubmissions';
 import LegacyContinuityWorkspace from './legacy-continuity/LegacyContinuityWorkspace';
 import AdminCancellations from './AdminCancellations';
 import AdminBillingManualReview from './AdminBillingManualReview';
+import AdminDatabase from './AdminDatabase';
 import {
   Users,
   CreditCard,
@@ -29,6 +30,7 @@ import {
   FolderOpen,
   ShieldCheck,
   Mail,
+  Database,
 } from 'lucide-react';
 
 const AdminOwnerWorkspace: React.FC = () => {
@@ -37,7 +39,7 @@ const AdminOwnerWorkspace: React.FC = () => {
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-      <TabsList className="grid grid-cols-4 md:grid-cols-12 gap-2 h-auto p-1">
+      <TabsList className="flex flex-wrap gap-2 h-auto p-1 justify-start">
         <TabsTrigger value="overview" className="flex items-center gap-2">
           <BarChart className="w-4 h-4" />
           Overview
@@ -89,6 +91,10 @@ const AdminOwnerWorkspace: React.FC = () => {
         <TabsTrigger value="documents" className="flex items-center gap-2">
           <FolderOpen className="w-4 h-4" />
           Documents
+        </TabsTrigger>
+        <TabsTrigger value="database" className="flex items-center gap-2">
+          <Database className="w-4 h-4" />
+          Database
         </TabsTrigger>
         <TabsTrigger value="settings" className="flex items-center gap-2">
           <Settings className="w-4 h-4" />
@@ -283,6 +289,10 @@ const AdminOwnerWorkspace: React.FC = () => {
 
       <TabsContent value="documents">
         <AdminDocuments />
+      </TabsContent>
+
+      <TabsContent value="database">
+        <AdminDatabase />
       </TabsContent>
 
       <TabsContent value="settings">
