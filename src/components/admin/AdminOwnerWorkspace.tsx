@@ -16,6 +16,7 @@ import AdminContactSubmissions from './AdminContactSubmissions';
 import LegacyContinuityWorkspace from './legacy-continuity/LegacyContinuityWorkspace';
 import AdminCancellations from './AdminCancellations';
 import AdminBillingManualReview from './AdminBillingManualReview';
+import AdminDatabase from './AdminDatabase';
 import {
   Users,
   CreditCard,
@@ -29,6 +30,7 @@ import {
   FolderOpen,
   ShieldCheck,
   Mail,
+  Database,
 } from 'lucide-react';
 
 const AdminOwnerWorkspace: React.FC = () => {
