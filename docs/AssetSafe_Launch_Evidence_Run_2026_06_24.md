@@ -58,8 +58,16 @@ Observed:
 Evidence classification:
 
 - Storage lifecycle visibility through Admin UI: evidence accepted.
-- Bucket lifecycle launch gate: still `Operator action required` because `floor-plans` is missing.
+- Bucket lifecycle launch gate: accepted after operator confirmed `floor-plans` is not launch-required.
 - Storage usage drift cron health: still `Operator action required` because the job has not reported a successful run.
+
+### Floor-Plans Bucket Decision
+
+Operator decision on 2026-06-24:
+
+- `floor-plans` is not launch-required.
+- The missing `floor-plans` bucket should not block launch readiness.
+- If the product later enables floor-plan uploads as a launch-required workflow, create the bucket as private and update the bucket lifecycle policy evidence at that time.
 
 ### Query Bundle Fix
 
@@ -111,15 +119,15 @@ No `Code required` item is triggered yet.
 Rows that remain `Operator action required`:
 
 - Cron jobs must show real successful runs, not `never_run`.
-- Storage lifecycle status has Admin UI evidence, but the missing `floor-plans` bucket must be resolved or explicitly removed from launch-required policy.
+- Storage lifecycle status has Admin UI evidence; `floor-plans` missing bucket is accepted because it is not launch-required.
 - Monitoring alert policy evidence must be re-run with corrected columns.
 - PITR, Stripe settings, gift behavior, support ownership, legal approvals, vulnerability scan, and incident/tabletop evidence still need non-SQL evidence.
 
 ## Immediate Operator Actions
 
-1. Create the missing `floor-plans` bucket as private in Supabase Storage, or update `storage_bucket_lifecycle_policies` if `floor-plans` is not launch-required.
-2. Run or wait for `process-storage-usage-drift` until the Admin Database panel shows a real last success.
-3. Re-run the cron health SQL after the scheduled jobs fire.
+1. Run or wait for `process-storage-usage-drift` until the Admin Database panel shows a real last success.
+2. Re-run the cron health SQL after the scheduled jobs fire.
+3. Re-run the corrected monitoring alert policy query.
 
 ## Notes
 
