@@ -37,6 +37,30 @@ The remaining launch evidence gaps are operational:
 
 ## Actions From This Pass
 
+### Admin Database Screenshot Evidence
+
+Screenshot reviewed: `C:\Users\Micha\Downloads\Screenshot_24-6-2026_21283_getassetsafe.com.jpeg`.
+
+Observed:
+
+- Admin Database panel can display Bucket Lifecycle Policies.
+- `exports` bucket is present and marked `private`.
+- Most launch-required buckets are marked `private`.
+- `floor-plans` is marked `missing`.
+- Database Health reports:
+  - `Storage usage drift cron job needs attention`
+  - `Required storage bucket missing`
+- Storage Usage Drift panel shows:
+  - `Last success: -`
+  - `Minutes since success: -`
+  - `High drift rows: 0`
+
+Evidence classification:
+
+- Storage lifecycle visibility through Admin UI: evidence accepted.
+- Bucket lifecycle launch gate: still `Operator action required` because `floor-plans` is missing.
+- Storage usage drift cron health: still `Operator action required` because the job has not reported a successful run.
+
 ### Query Bundle Fix
 
 `docs/AssetSafe_Launch_Evidence_SQL.sql` now queries `monitoring_alert_policies` using the actual columns:
@@ -87,11 +111,16 @@ No `Code required` item is triggered yet.
 Rows that remain `Operator action required`:
 
 - Cron jobs must show real successful runs, not `never_run`.
-- Storage lifecycle status must be captured with sufficient permissions or Admin UI evidence.
+- Storage lifecycle status has Admin UI evidence, but the missing `floor-plans` bucket must be resolved or explicitly removed from launch-required policy.
 - Monitoring alert policy evidence must be re-run with corrected columns.
 - PITR, Stripe settings, gift behavior, support ownership, legal approvals, vulnerability scan, and incident/tabletop evidence still need non-SQL evidence.
+
+## Immediate Operator Actions
+
+1. Create the missing `floor-plans` bucket as private in Supabase Storage, or update `storage_bucket_lifecycle_policies` if `floor-plans` is not launch-required.
+2. Run or wait for `process-storage-usage-drift` until the Admin Database panel shows a real last success.
+3. Re-run the cron health SQL after the scheduled jobs fire.
 
 ## Notes
 
 The `cron_job_health_status` result is the most important open operational item from the SQL evidence. Until the required jobs show successful runs, launch readiness should remain incomplete even if no code work is required.
-
