@@ -39,7 +39,7 @@ const AdminOwnerWorkspace: React.FC = () => {
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-      <TabsList className="grid grid-cols-4 md:grid-cols-15 gap-2 h-auto p-1">
+      <TabsList className="flex flex-wrap gap-2 h-auto p-1 justify-start">
         <TabsTrigger value="database" className="flex items-center gap-2">
           <Database className="w-4 h-4" />
           Database
