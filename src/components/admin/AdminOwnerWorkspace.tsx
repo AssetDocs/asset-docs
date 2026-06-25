@@ -92,6 +92,10 @@ const AdminOwnerWorkspace: React.FC = () => {
           <FolderOpen className="w-4 h-4" />
           Documents
         </TabsTrigger>
+        <TabsTrigger value="database" className="flex items-center gap-2">
+          <Database className="w-4 h-4" />
+          Database
+        </TabsTrigger>
         <TabsTrigger value="settings" className="flex items-center gap-2">
           <Settings className="w-4 h-4" />
           Settings
