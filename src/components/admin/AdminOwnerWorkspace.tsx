@@ -291,6 +291,10 @@ const AdminOwnerWorkspace: React.FC = () => {
         <AdminDocuments />
       </TabsContent>
 
+      <TabsContent value="database">
+        <AdminDatabase />
+      </TabsContent>
+
       <TabsContent value="settings">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
