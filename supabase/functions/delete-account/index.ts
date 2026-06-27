@@ -351,8 +351,8 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const internalSecret = req.headers.get('x-internal-secret');
-    const expectedSecret = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    const isInternalDeletion = !!internalSecret && internalSecret === expectedSecret;
+    const isInternalDeletion = isAuthorizedInternalCall(req);
+
 
     let user: { id: string } | null = null;
     let targetAccountId = '';
