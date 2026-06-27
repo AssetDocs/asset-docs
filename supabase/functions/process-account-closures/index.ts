@@ -51,7 +51,7 @@ async function invokeDeleteAccount(
       Authorization: `Bearer ${serviceKey}`,
       apikey: serviceKey,
       "Content-Type": "application/json",
-      "x-internal-secret": serviceKey,
+      "x-internal-secret": getPreferredInternalSecret() ?? serviceKey,
     },
     body: JSON.stringify({ target_account_id: targetAccountId }),
   });
