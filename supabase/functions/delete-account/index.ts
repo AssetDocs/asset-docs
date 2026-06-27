@@ -1,6 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.51.0'
 import Stripe from 'https://esm.sh/stripe@14.21.0'
 import { requireStepUp, getClientIp } from '../_shared/mfa.ts'
+import { isAuthorizedInternalCall } from '../_shared/internalSecret.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
