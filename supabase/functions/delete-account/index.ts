@@ -350,8 +350,8 @@ Deno.serve(async (req) => {
     )
 
     const body = await req.json().catch(() => ({}));
-    const internalSecret = req.headers.get('x-internal-secret');
     const isInternalDeletion = isAuthorizedInternalCall(req);
+
 
 
     let user: { id: string } | null = null;
