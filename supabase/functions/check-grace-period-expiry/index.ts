@@ -105,7 +105,7 @@ const handler = async (req: Request): Promise<Response> => {
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${supabaseServiceKey}`,
-              'x-internal-secret': supabaseServiceKey,
+              'x-internal-secret': getPreferredInternalSecret() ?? supabaseServiceKey,
             },
             body: JSON.stringify({
               delegateEmail,
