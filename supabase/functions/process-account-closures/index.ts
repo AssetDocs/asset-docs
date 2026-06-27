@@ -105,7 +105,7 @@ serve(async (req) => {
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const serviceKey = getPreferredInternalSecret();
   if (!supabaseUrl || !serviceKey) {
     return json(500, { error: "missing_environment" });
   }

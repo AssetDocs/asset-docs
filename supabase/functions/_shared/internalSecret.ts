@@ -2,7 +2,7 @@
 // cron-invoked lifecycle edge functions.
 //
 // Accepts (in priority order):
-//   1) Any value listed in SUPABASE_SECRET_KEYS  (comma- or whitespace-separated;
+//   1) Any value listed in ASSETSAFE_SECRET_KEYS  (comma- or whitespace-separated;
 //      typically one or more `sb_secret_...` keys for rotation)
 //   2) SUPABASE_SERVICE_ROLE_KEY                  (legacy fallback)
 //
@@ -19,7 +19,7 @@ function timingSafeEqual(a: string, b: string): boolean {
 
 export function getAcceptedInternalSecrets(): string[] {
   const out = new Set<string>();
-  const list = Deno.env.get("SUPABASE_SECRET_KEYS");
+  const list = Deno.env.get("ASSETSAFE_SECRET_KEYS");
   if (list) {
     for (const part of list.split(/[\s,]+/)) {
       const trimmed = part.trim();
@@ -43,10 +43,10 @@ export function isAuthorizedInternalCall(req: Request): boolean {
 /**
  * Returns the preferred secret value to forward in an `x-internal-secret`
  * header when one cron function calls another. Prefers the first
- * SUPABASE_SECRET_KEYS entry, falling back to SUPABASE_SERVICE_ROLE_KEY.
+ * ASSETSAFE_SECRET_KEYS entry, falling back to SUPABASE_SERVICE_ROLE_KEY.
  */
 export function getPreferredInternalSecret(): string | null {
-  const list = Deno.env.get("SUPABASE_SECRET_KEYS");
+  const list = Deno.env.get("ASSETSAFE_SECRET_KEYS");
   if (list) {
     const first = list.split(/[\s,]+/).map((p) => p.trim()).find(Boolean);
     if (first) return first;
