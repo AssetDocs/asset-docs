@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.51.0";
+import { isAuthorizedInternalCall } from "../_shared/internalSecret.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,15 +14,14 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   // Guard: only allow calls from Supabase scheduler (x-internal-secret header)
-  const internalSecret = req.headers.get("x-internal-secret");
-  const expectedSecret = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (!internalSecret || internalSecret !== expectedSecret) {
+  if (!isAuthorizedInternalCall(req)) {
     console.error('[CHECK-GIFT-REMINDERS] Unauthorized call — missing or invalid x-internal-secret');
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
   }
+
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
