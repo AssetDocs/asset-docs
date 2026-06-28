@@ -37,9 +37,18 @@ export function getAcceptedInternalSecrets(): string[] {
 export function isAuthorizedInternalCall(req: Request): boolean {
   const provided = req.headers.get("x-internal-secret");
   if (!provided) return false;
-  for (const accepted of getAcceptedInternalSecrets()) {
+  const acceptedSecrets = getAcceptedInternalSecrets();
+  for (const accepted of acceptedSecrets) {
     if (timingSafeEqual(provided, accepted)) return true;
   }
+  console.warn("[INTERNAL-SECRET] Unauthorized internal call", {
+    provided_length: provided.length,
+    accepted_count: acceptedSecrets.length,
+    accepted_lengths: acceptedSecrets.map((secret) => secret.length),
+    has_assetsafe_secret_keys: Boolean(Deno.env.get("ASSETSAFE_SECRET_KEYS")),
+    has_platform_secret_keys: Boolean(Deno.env.get("SUPABASE_SECRET_KEYS")),
+    has_legacy_service_role_key: Boolean(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")),
+  });
   return false;
 }
 
