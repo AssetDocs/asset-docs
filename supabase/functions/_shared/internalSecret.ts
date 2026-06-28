@@ -2,7 +2,8 @@
 // cron-invoked lifecycle edge functions.
 //
 // Accepts (in priority order):
-//   1) Any value listed in ASSETSAFE_SECRET_KEYS  (comma- or whitespace-separated;
+//   1) Any value listed in ASSETSAFE_SECRET_KEYS / assetsafe_secret_keys
+//      (comma- or whitespace-separated;
 //      typically one or more `sb_secret_...` keys for rotation)
 //   2) Any value listed in SUPABASE_SECRET_KEYS   (platform-provided new API keys)
 //   3) SUPABASE_SERVICE_ROLE_KEY                  (legacy fallback)
@@ -38,7 +39,7 @@ function splitSecretList(envName: string): string[] {
 
 export function getAcceptedInternalSecrets(): string[] {
   const out = new Set<string>();
-  for (const envName of ["ASSETSAFE_SECRET_KEYS", "SUPABASE_SECRET_KEYS"]) {
+  for (const envName of ["ASSETSAFE_SECRET_KEYS", "assetsafe_secret_keys", "SUPABASE_SECRET_KEYS"]) {
     for (const secret of splitSecretList(envName)) {
       out.add(secret);
     }
@@ -60,6 +61,7 @@ export function isAuthorizedInternalCall(req: Request): boolean {
     accepted_count: acceptedSecrets.length,
     accepted_lengths: acceptedSecrets.map((secret) => secret.length),
     has_assetsafe_secret_keys: Boolean(Deno.env.get("ASSETSAFE_SECRET_KEYS")),
+    has_lowercase_assetsafe_secret_keys: Boolean(Deno.env.get("assetsafe_secret_keys")),
     has_platform_secret_keys: Boolean(Deno.env.get("SUPABASE_SECRET_KEYS")),
     has_legacy_service_role_key: Boolean(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")),
   });
@@ -69,7 +71,7 @@ export function isAuthorizedInternalCall(req: Request): boolean {
 export function getInternalSecretAuthMetadata(req: Request): Record<string, unknown> {
   const provided = req.headers.get("x-internal-secret");
   const acceptedSecrets = getAcceptedInternalSecrets();
-  const acceptedSources = ["ASSETSAFE_SECRET_KEYS", "SUPABASE_SECRET_KEYS", "SUPABASE_SERVICE_ROLE_KEY"]
+  const acceptedSources = ["ASSETSAFE_SECRET_KEYS", "assetsafe_secret_keys", "SUPABASE_SECRET_KEYS", "SUPABASE_SERVICE_ROLE_KEY"]
     .flatMap((source) => {
       const secrets = source === "SUPABASE_SERVICE_ROLE_KEY"
         ? [Deno.env.get(source)].filter((secret): secret is string => Boolean(secret))
@@ -88,6 +90,7 @@ export function getInternalSecretAuthMetadata(req: Request): Record<string, unkn
     accepted_lengths: acceptedSecrets.map((secret) => secret.length),
     accepted_sources: acceptedSources,
     has_assetsafe_secret_keys: Boolean(Deno.env.get("ASSETSAFE_SECRET_KEYS")),
+    has_lowercase_assetsafe_secret_keys: Boolean(Deno.env.get("assetsafe_secret_keys")),
     has_platform_secret_keys: Boolean(Deno.env.get("SUPABASE_SECRET_KEYS")),
     has_legacy_service_role_key: Boolean(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")),
   };
@@ -96,11 +99,11 @@ export function getInternalSecretAuthMetadata(req: Request): Record<string, unkn
 /**
  * Returns the preferred secret value to forward in an `x-internal-secret`
  * header when one cron function calls another. Prefers the first
- * ASSETSAFE_SECRET_KEYS entry, then the first platform SUPABASE_SECRET_KEYS
- * entry, falling back to SUPABASE_SERVICE_ROLE_KEY.
+ * ASSETSAFE_SECRET_KEYS / assetsafe_secret_keys entry, then the first platform
+ * SUPABASE_SECRET_KEYS entry, falling back to SUPABASE_SERVICE_ROLE_KEY.
  */
 export function getPreferredInternalSecret(): string | null {
-  for (const envName of ["ASSETSAFE_SECRET_KEYS", "SUPABASE_SECRET_KEYS"]) {
+  for (const envName of ["ASSETSAFE_SECRET_KEYS", "assetsafe_secret_keys", "SUPABASE_SECRET_KEYS"]) {
     const first = splitSecretList(envName)[0];
     if (first) return first;
   }
