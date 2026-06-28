@@ -12,7 +12,7 @@ The actual restore remains a human-operated Supabase dashboard task documented i
 
 ## Required Secrets
 
-- `SUPABASE_SERVICE_ROLE_KEY`
+- `assetsafe_secret_keys` or `ASSETSAFE_SECRET_KEYS`
 - `RESEND_API_KEY`
 - `RESTORE_DRILL_REMINDER_EMAILS`, comma-separated
 
@@ -20,7 +20,7 @@ If `RESTORE_DRILL_REMINDER_EMAILS` is absent, the function falls back to `ADMIN_
 
 ## Install Cron
 
-Run this in Supabase SQL editor after deployment. Replace `<PROJECT_REF>` and `<INTERNAL_SECRET>` at execution time; do not commit secrets.
+Run this in Supabase SQL editor after deployment. Replace `<PROJECT_REF>` and `<INTERNAL_CRON_SECRET>` at execution time; do not commit secrets.
 
 ```sql
 select cron.schedule(
@@ -28,11 +28,8 @@ select cron.schedule(
   '0 15 1 * *',
   $$
   select net.http_post(
-    url := 'https://<PROJECT_REF>.functions.supabase.co/quarterly-restore-drill-reminder',
-    headers := jsonb_build_object(
-      'Content-Type', 'application/json',
-      'x-internal-secret', '<INTERNAL_SECRET>'
-    ),
+    url := 'https://<PROJECT_REF>.supabase.co/functions/v1/quarterly-restore-drill-reminder',
+    headers := '{"Content-Type":"application/json","x-internal-secret":"<INTERNAL_CRON_SECRET>"}'::jsonb,
     body := jsonb_build_object('due_after_days', 90)
   );
   $$
@@ -43,11 +40,8 @@ select cron.schedule(
 
 ```sql
 select net.http_post(
-  url := 'https://<PROJECT_REF>.functions.supabase.co/quarterly-restore-drill-reminder',
-  headers := jsonb_build_object(
-    'Content-Type', 'application/json',
-    'x-internal-secret', '<INTERNAL_SECRET>'
-  ),
+  url := 'https://<PROJECT_REF>.supabase.co/functions/v1/quarterly-restore-drill-reminder',
+  headers := '{"Content-Type":"application/json","x-internal-secret":"<INTERNAL_CRON_SECRET>"}'::jsonb,
   body := jsonb_build_object('dry_run', true, 'force', true)
 );
 ```

@@ -1,36 +1,64 @@
-# Runbook: Schedule `process-storage-deletion-jobs`
+# Runbook: Data Lifecycle Cron Schedules
 
 **Owner:** Platform / Ops
-**Function:** `supabase/functions/process-storage-deletion-jobs`
-**Auth model:** Public endpoint (`verify_jwt = false`) protected by an `x-internal-secret` header that must equal `SUPABASE_SERVICE_ROLE_KEY`.
-**Why this is a manual runbook, not a migration:** the schedule embeds the service-role key in `pg_cron` job SQL. We deliberately keep that out of git history and out of automated migrations. Operators run this once per environment, from an authenticated Supabase SQL editor session.
+**Primary function:** `supabase/functions/process-storage-deletion-jobs`
+**Auth model:** Public Edge Function endpoints (`verify_jwt = false`) protected by an `x-internal-secret` header. The header must match the AssetSafe internal cron secret stored in Supabase Edge Function Secrets as `assetsafe_secret_keys` or `ASSETSAFE_SECRET_KEYS`.
 
----
+The cron schedule embeds the internal secret in `pg_cron` job SQL. Keep that value out of git, migrations, screenshots, and chat transcripts. Operators run these commands from an authenticated Supabase SQL Editor session.
 
-## 1. Prerequisites
+## Prerequisites
 
-- Function `process-storage-deletion-jobs` is deployed and reachable at:
-  `https://<PROJECT_REF>.supabase.co/functions/v1/process-storage-deletion-jobs`
-- Extensions enabled in the target project (one-time, safe to re-run):
-  ```sql
-  create extension if not exists pg_cron with schema extensions;
-  create extension if not exists pg_net  with schema extensions;
-  ```
-- You have the project's `SUPABASE_SERVICE_ROLE_KEY` (Project Settings → API).
-  **Never** paste it into a migration file, a chat, or a committed `.sql` file.
+- Target Edge Functions are deployed.
+- `pg_cron` and `pg_net` are enabled:
 
-## 2. Environments
+```sql
+create extension if not exists pg_cron with schema extensions;
+create extension if not exists pg_net  with schema extensions;
+```
 
-| Env     | Project ref           | Cron name                              | Cadence       |
-| ------- | --------------------- | -------------------------------------- | ------------- |
-| prod    | `leotcbfpqiekgkgumecn`| `process-storage-deletion-jobs-prod`   | `*/5 * * * *` |
-| staging | _fill in_             | `process-storage-deletion-jobs-staging`| `*/5 * * * *` |
+- You have the current internal cron secret from the approved secret manager / Supabase Edge Function secret source.
+- The `exports` bucket exists and is private before enabling `process-expired-exports`.
 
-5-minute cadence is the default; adjust per ops policy.
+## Safe Verification
 
-## 3. Schedule the job
+Do not select or screenshot `cron.job.command`; it contains the embedded `x-internal-secret` value.
 
-Run in the **Supabase SQL Editor** for the target project (authenticated session — do NOT script this through CI or commit it):
+Use this instead:
+
+```sql
+select jobid, jobname, schedule, active
+from cron.job
+where jobname in (
+  'process-storage-deletion-jobs-prod',
+  'process-expired-exports',
+  'process-account-closures-prod',
+  'process-storage-usage-drift-prod',
+  'process-storage-orphans-prod',
+  'process-retention-expirations-prod',
+  'scrub-old-support-pii-prod',
+  'quarterly-restore-drill-reminder'
+)
+order by jobname;
+```
+
+Check function responses here:
+
+```sql
+select
+  id,
+  status_code,
+  timed_out,
+  error_msg,
+  created,
+  left(content, 500) as content_preview
+from net._http_response
+order by id desc
+limit 20;
+```
+
+Expected: current rows return `status_code = 200`. Old `401` rows indicate stale pre-rotation calls and do not matter once newer rows are healthy.
+
+## Schedule: Storage Deletion Jobs
 
 ```sql
 select cron.schedule(
@@ -39,95 +67,34 @@ select cron.schedule(
   $$
   select net.http_post(
     url     := 'https://leotcbfpqiekgkgumecn.supabase.co/functions/v1/process-storage-deletion-jobs',
-    headers := jsonb_build_object(
-      'Content-Type',      'application/json',
-      'x-internal-secret', '<PASTE_SUPABASE_SERVICE_ROLE_KEY_HERE>'
-    ),
+    headers := '{"Content-Type":"application/json","x-internal-secret":"<INTERNAL_CRON_SECRET>"}'::jsonb,
     body    := '{}'::jsonb
   );
   $$
 );
 ```
 
-Verify:
+## Schedule: Expired Exports
 
-```sql
-select jobid, schedule, jobname, active
-from cron.job
-where jobname = 'process-storage-deletion-jobs-prod';
-```
-
-## 4. Rotate the secret
-
-When `SUPABASE_SERVICE_ROLE_KEY` is rotated, the cron job's embedded header becomes stale and the function will return 401. Re-run:
-
-```sql
-select cron.unschedule('process-storage-deletion-jobs-prod');
--- then re-run the cron.schedule(...) block in section 3 with the new key
-```
-
-For the full production rotation checklist, affected secrets, emergency triggers, and validation evidence, follow `docs/AssetSafe_Key_Rotation_Runbook.md`.
-
-## 5. Pause / resume / remove
-
-```sql
--- pause
-update cron.job set active = false where jobname = 'process-storage-deletion-jobs-prod';
--- resume
-update cron.job set active = true  where jobname = 'process-storage-deletion-jobs-prod';
--- remove
-select cron.unschedule('process-storage-deletion-jobs-prod');
-```
-
-## 6. Observability
-
-- Recent invocations: `select * from cron.job_run_details where jobid = <id> order by start_time desc limit 20;`
-- Function logs: Supabase Dashboard → Edge Functions → `process-storage-deletion-jobs` → Logs.
-- Expected response: `200` with a JSON summary of jobs processed. `401` means the header secret no longer matches the current service-role key — re-run section 4.
-
-## 7. Manual invocation (smoke test)
-
-```bash
-curl -i -X POST \
-  -H "Content-Type: application/json" \
-  -H "x-internal-secret: $SUPABASE_SERVICE_ROLE_KEY" \
-  https://leotcbfpqiekgkgumecn.supabase.co/functions/v1/process-storage-deletion-jobs
-```
-
----
-
-# Additional Cron Schedules (Data Lifecycle Sweepers)
-
-Same key-handling rules apply: the `SUPABASE_SERVICE_ROLE_KEY` is pasted by the operator at schedule time and is **never** committed to git or written into a migration. All sweepers below authenticate via `x-internal-secret: <SUPABASE_SERVICE_ROLE_KEY>` and run with `verify_jwt = false` in `supabase/config.toml`.
-
-Replace `<PROJECT_REF>` and `<SERVICE_ROLE_KEY>` per environment before running.
-
-## process-retention-expirations — daily, dry-run by default
-
-Purges retained tombstone-linked records once their retention window has elapsed. **Start in dry-run.** Only flip `dry_run` to `false` after a manual review confirms the candidate set.
+Requires `public.expire_account_export_bundles(p_dry_run, p_limit)` from migration `20260622113000_expire_account_export_bundles.sql`.
 
 ```sql
 select cron.schedule(
-  'process-retention-expirations-prod',
-  '15 3 * * *',  -- 03:15 UTC daily
+  'process-expired-exports',
+  '0 * * * *',
   $$
   select net.http_post(
-    url     := 'https://<PROJECT_REF>.supabase.co/functions/v1/process-retention-expirations',
-    headers := jsonb_build_object(
-      'Content-Type',     'application/json',
-      'x-internal-secret','<SERVICE_ROLE_KEY>'
-    ),
-    body    := jsonb_build_object('dry_run', true)
+    url     := 'https://leotcbfpqiekgkgumecn.supabase.co/functions/v1/process-expired-exports',
+    headers := '{"Content-Type":"application/json","x-internal-secret":"<INTERNAL_CRON_SECRET>"}'::jsonb,
+    body    := jsonb_build_object('dry_run', false, 'min_age_hours', 24, 'limit', 1000)
   );
   $$
 );
 ```
 
-Promote to live purge by re-scheduling with `'dry_run', false`.
+## Schedule: Account Closures
 
-## process-account-closures — hourly
-
-Finalizes scheduled account closures by invoking `delete-account`. Requires **both** headers — `Authorization: Bearer <service-role-key>` and `x-internal-secret: <service-role-key>`.
+Finalizes scheduled account closures by invoking `delete-account`. The cron path authenticates with `x-internal-secret`.
 
 ```sql
 select cron.schedule(
@@ -135,21 +102,15 @@ select cron.schedule(
   '0 * * * *',
   $$
   select net.http_post(
-    url     := 'https://<PROJECT_REF>.supabase.co/functions/v1/process-account-closures',
-    headers := jsonb_build_object(
-      'Content-Type',     'application/json',
-      'Authorization',    'Bearer <SERVICE_ROLE_KEY>',
-      'x-internal-secret','<SERVICE_ROLE_KEY>'
-    ),
+    url     := 'https://leotcbfpqiekgkgumecn.supabase.co/functions/v1/process-account-closures',
+    headers := '{"Content-Type":"application/json","x-internal-secret":"<INTERNAL_CRON_SECRET>"}'::jsonb,
     body    := '{}'::jsonb
   );
   $$
 );
 ```
 
-## process-storage-usage-drift — hourly
-
-Reconciles `storage_usage` ledger against actual bucket totals.
+## Schedule: Storage Usage Drift
 
 ```sql
 select cron.schedule(
@@ -157,72 +118,133 @@ select cron.schedule(
   '20 * * * *',
   $$
   select net.http_post(
-    url     := 'https://<PROJECT_REF>.supabase.co/functions/v1/process-storage-usage-drift',
-    headers := jsonb_build_object(
-      'Content-Type',     'application/json',
-      'x-internal-secret','<SERVICE_ROLE_KEY>'
-    ),
+    url     := 'https://leotcbfpqiekgkgumecn.supabase.co/functions/v1/process-storage-usage-drift',
+    headers := '{"Content-Type":"application/json","x-internal-secret":"<INTERNAL_CRON_SECRET>"}'::jsonb,
     body    := '{}'::jsonb
   );
   $$
 );
 ```
 
-## process-storage-orphans — daily, review-gated
+## Schedule: Storage Orphans
 
-**Conservative by design.** This sweeper only inserts rows into `storage_orphan_candidates`; it never deletes objects inline. Admin/dev review must set a candidate's `status = 'approved'` before the next run will enqueue a row in `storage_deletion_jobs` for the regular 5-minute sweeper to process.
+This sweeper inserts rows into `storage_orphan_candidates`; it does not delete objects inline. Approved candidates are later queued into `storage_deletion_jobs`.
 
 ```sql
 select cron.schedule(
   'process-storage-orphans-prod',
-  '40 4 * * *',  -- 04:40 UTC daily
+  '40 4 * * *',
   $$
   select net.http_post(
-    url     := 'https://<PROJECT_REF>.supabase.co/functions/v1/process-storage-orphans',
-    headers := jsonb_build_object(
-      'Content-Type',     'application/json',
-      'x-internal-secret','<SERVICE_ROLE_KEY>'
-    ),
+    url     := 'https://leotcbfpqiekgkgumecn.supabase.co/functions/v1/process-storage-orphans',
+    headers := '{"Content-Type":"application/json","x-internal-secret":"<INTERNAL_CRON_SECRET>"}'::jsonb,
     body    := '{}'::jsonb
   );
   $$
 );
 ```
 
-## scrub-old-support-pii - weekly, dry-run by default
+## Schedule: Retention Expirations
 
-Redacts free-text PII from `dev_support_issues` after closed issues pass the support retention window. Metadata such as type, priority, status, and timestamps remains for trend analysis.
+Start in dry-run. Only flip `dry_run` to `false` after manual review confirms the candidate set.
 
-Start in dry-run. Only flip `dry_run` to `false` after reviewing the eligible IDs.
+```sql
+select cron.schedule(
+  'process-retention-expirations-prod',
+  '15 3 * * *',
+  $$
+  select net.http_post(
+    url     := 'https://leotcbfpqiekgkgumecn.supabase.co/functions/v1/process-retention-expirations',
+    headers := '{"Content-Type":"application/json","x-internal-secret":"<INTERNAL_CRON_SECRET>"}'::jsonb,
+    body    := jsonb_build_object('dry_run', true)
+  );
+  $$
+);
+```
+
+## Schedule: Support PII Scrub
+
+Start in dry-run. Only flip `dry_run` to `false` after reviewing eligible issue IDs.
 
 ```sql
 select cron.schedule(
   'scrub-old-support-pii-prod',
-  '25 5 * * 0',  -- 05:25 UTC Sundays
+  '25 5 * * 0',
   $$
   select net.http_post(
-    url     := 'https://<PROJECT_REF>.supabase.co/functions/v1/scrub-old-support-pii',
-    headers := jsonb_build_object(
-      'Content-Type',     'application/json',
-      'x-internal-secret','<SERVICE_ROLE_KEY>'
-    ),
+    url     := 'https://leotcbfpqiekgkgumecn.supabase.co/functions/v1/scrub-old-support-pii',
+    headers := '{"Content-Type":"application/json","x-internal-secret":"<INTERNAL_CRON_SECRET>"}'::jsonb,
     body    := jsonb_build_object('dry_run', true, 'retention_days', 1095)
   );
   $$
 );
 ```
 
-Promote to live scrub by re-scheduling with `'dry_run', false`.
+## Schedule: Restore Drill Reminder
 
-## Cron health visibility
+```sql
+select cron.schedule(
+  'quarterly-restore-drill-reminder',
+  '0 15 1 * *',
+  $$
+  select net.http_post(
+    url     := 'https://leotcbfpqiekgkgumecn.supabase.co/functions/v1/quarterly-restore-drill-reminder',
+    headers := '{"Content-Type":"application/json","x-internal-secret":"<INTERNAL_CRON_SECRET>"}'::jsonb,
+    body    := jsonb_build_object('due_after_days', 90)
+  );
+  $$
+);
+```
 
-`list-cron-job-health` exposes the latest run, duration, consecutive-failure count, and computed `health_status` (`ok | warn | page | failed | never_run`) per registered job. This is the source of truth for ops dashboards and pager rules — do not poll `cron.job_run_details` directly.
+## Rotate The Internal Cron Secret
 
-## Export audit & signed-URL window
+1. Create a fresh internal secret value.
+2. Update Supabase Edge Function Secrets with the new value under `assetsafe_secret_keys` or `ASSETSAFE_SECRET_KEYS`.
+3. Deploy affected Edge Functions if the auth helper changed.
+4. Unschedule all affected cron jobs.
+5. Recreate the schedules with the new value in `x-internal-secret`.
+6. Confirm new `net._http_response` rows return `200`.
+7. Confirm `cron_job_health_status` returns to `ok` after each schedule's expected run window.
 
-- Browser account exports are now recorded in `account_export_audit` (one row per export assembly).
-- Signed URLs minted during export assembly are valid for **15 minutes** — short enough to limit replay, long enough to assemble a multi-part ZIP.
+Unschedule block:
 
-## Local-only `supabase/config.toml` drift
+```sql
+select cron.unschedule('process-storage-deletion-jobs-prod');
+select cron.unschedule('process-expired-exports');
+select cron.unschedule('process-account-closures-prod');
+select cron.unschedule('process-storage-usage-drift-prod');
+select cron.unschedule('process-storage-orphans-prod');
+select cron.unschedule('process-retention-expirations-prod');
+select cron.unschedule('scrub-old-support-pii-prod');
+select cron.unschedule('quarterly-restore-drill-reminder');
+```
 
-Some local `config.toml` edits (gift flow, etc.) are intentionally not committed by the maintainer. When applying Lovable changes to `config.toml`, only the `[functions.*]` blocks for the new sweepers are touched; preserve any unrelated local edits during rebase.
+If a job is already absent, Supabase may return `could not find valid entry`; verify active jobs first with the Safe Verification query.
+
+## Cron Health
+
+```sql
+select
+  job_name,
+  health_status,
+  last_status,
+  last_started_at,
+  last_succeeded_at,
+  last_failed_at,
+  consecutive_failures,
+  last_error
+from public.cron_job_health_status
+where job_name in (
+  'process-account-closures',
+  'process-expired-exports',
+  'process-storage-deletion-jobs',
+  'process-storage-orphans',
+  'process-storage-usage-drift',
+  'process-retention-expirations',
+  'scrub-old-support-pii',
+  'quarterly-restore-drill-reminder'
+)
+order by job_name;
+```
+
+`page` with `last_status = 'succeeded'` and `consecutive_failures = 0` usually means the success is stale relative to the configured expected interval. Re-check after the next scheduled window before treating it as a function failure.

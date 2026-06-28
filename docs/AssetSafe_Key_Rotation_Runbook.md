@@ -16,7 +16,7 @@ Secrets must never be committed to git, pasted into migrations, or shared in cha
 |---|---|---:|---|---|
 | `STRIPE_SECRET_KEY` | Billing / Ops | 180 days | Stripe dashboard access change, suspected billing compromise, leaked logs, staff/offboarding event | All Stripe-calling edge functions fail until Supabase secret is updated |
 | `STRIPE_WEBHOOK_SECRET` | Billing / Ops | 180 days | Webhook endpoint changed, Stripe webhook signing error spike, suspected endpoint compromise | `stripe-webhook` rejects Stripe events until the active secret matches |
-| `SUPABASE_SERVICE_ROLE_KEY` | Platform / Ops | 180 days | Any service-role exposure, contractor/offboarding event, accidental paste, repo/chat leak | Internal cron jobs using `x-internal-secret` return 401 until rescheduled |
+| AssetSafe internal cron secret (`sb_secret_...`) | Platform / Ops | 180 days | Any cron secret exposure, contractor/offboarding event, accidental paste, repo/chat/screenshot leak | Internal cron jobs using `x-internal-secret` return 401 until Edge Function Secrets and cron schedules are updated |
 | `RESEND_API_KEY` | Platform / Ops | 180 days | Resend account access change, bounce/complaint investigation requiring credential hygiene, suspected email abuse | Outbound email functions fail until Supabase secret is updated |
 | `RESEND_WEBHOOK_SECRET` | Platform / Ops | 180 days | Webhook endpoint changed, signature verification failures, suspected webhook replay/forgery | `resend-webhook` rejects events until the active secret matches |
 | Supabase anon key | Platform / Ops | Annual or incident-driven | Public client key changed by Supabase, project migration, misuse requiring project credential rotation | Frontend config and any anon-authenticated cron/webhook paths must be refreshed |
@@ -96,22 +96,36 @@ Known risk:
 
 - Stripe may retry events signed with the old secret during the cutover. If a retry storm occurs, temporarily pause non-critical billing changes, confirm the new secret is active, then use Stripe's retry controls after validation.
 
-## Supabase Service Role Key And Internal Cron Secret
+## Supabase Secret API Keys And Internal Cron Secret
 
-Asset Safe uses the Supabase service-role key in two places:
+Asset Safe no longer uses the legacy service-role key as the primary `x-internal-secret` value for lifecycle cron. Internal cron calls use a fresh Supabase secret API key value (`sb_secret_...`) stored in Edge Function Secrets.
 
-- Edge Function server-side Supabase admin clients.
-- Internal cron calls through `x-internal-secret`.
+Supported Edge Function secret names:
 
-The cron jobs embed the key in `pg_cron` job definitions at scheduling time. After rotating the service-role key, every internal cron job that sends `x-internal-secret` must be unscheduled and recreated with the new value.
+- `assetsafe_secret_keys`
+- `ASSETSAFE_SECRET_KEYS`
+- `SUPABASE_SECRET_KEYS` as a platform fallback
+- `SUPABASE_SERVICE_ROLE_KEY` as a legacy transition fallback only
+
+The cron jobs embed the internal secret in `pg_cron` job definitions at scheduling time. After rotating the internal cron secret, every cron job that sends `x-internal-secret` must be unscheduled and recreated with the new value.
 
 Rotation steps:
 
-1. Rotate the service-role key in Supabase Project Settings.
-2. Update Supabase Edge Function secret `SUPABASE_SERVICE_ROLE_KEY`.
-3. Recreate all internal cron schedules that pass `x-internal-secret` or `Authorization: Bearer <service-role-key>`.
-4. Smoke test each critical internal function with the new header from a secure operator shell or Supabase SQL Editor.
-5. Confirm `cron_job_health_status` returns to `ok` after the next scheduled run.
+1. Create a fresh `sb_secret_...` value in Supabase.
+2. Update Supabase Edge Function secret `assetsafe_secret_keys` or `ASSETSAFE_SECRET_KEYS` with the fresh value.
+3. Redeploy affected Edge Functions if the internal auth helper changed.
+4. Unschedule all internal cron schedules that pass `x-internal-secret`.
+5. Recreate those schedules with the fresh value in the `x-internal-secret` header.
+6. Smoke test each critical internal function from Supabase SQL Editor and confirm each returned request ID resolves to HTTP `200` in `net._http_response`.
+7. Confirm `cron_job_health_status` returns to `ok` after the next scheduled run window.
+
+Use static JSON headers in `net.http_post` schedule definitions:
+
+```sql
+headers := '{"Content-Type":"application/json","x-internal-secret":"<INTERNAL_CRON_SECRET>"}'::jsonb
+```
+
+Do not select or screenshot `cron.job.command`; it contains the embedded secret value. Verify schedules with `jobid`, `jobname`, `schedule`, and `active` only.
 
 Critical cron runbooks:
 
@@ -133,7 +147,7 @@ from public.cron_job_health_status
 order by job_name;
 ```
 
-Do not mark the rotation complete while any launch-critical cron is `page`, `failed`, or stale because of 401 responses.
+Do not mark the rotation complete while any launch-critical cron is `failed` or still producing new 401 responses. A `page` row with `last_status='succeeded'`, `consecutive_failures=0`, and no `last_error` is usually a stale-window condition; re-check after that job's next scheduled run before treating it as a function failure.
 
 ## Resend API Key
 
@@ -207,7 +221,7 @@ Maintain the next due date outside the codebase in the operations calendar or ti
 | Secret group | Routine cadence | Suggested recurring month |
 |---|---:|---|
 | Stripe API + webhook secrets | 180 days | January / July |
-| Supabase service-role/internal cron secret | 180 days | February / August |
+| Supabase secret API/internal cron secret | 180 days | February / August |
 | Resend API + webhook secrets | 180 days | March / September |
 | Supabase anon key review | Annual | October |
 
