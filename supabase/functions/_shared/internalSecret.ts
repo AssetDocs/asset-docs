@@ -18,15 +18,29 @@ function timingSafeEqual(a: string, b: string): boolean {
   return mismatch === 0;
 }
 
+function fingerprintSecret(value: string): string {
+  let hash = 2166136261;
+  for (let i = 0; i < value.length; i++) {
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(16).padStart(8, "0");
+}
+
+function splitSecretList(envName: string): string[] {
+  const list = Deno.env.get(envName);
+  if (!list) return [];
+  return list
+    .split(/[\s,]+/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
 export function getAcceptedInternalSecrets(): string[] {
   const out = new Set<string>();
   for (const envName of ["ASSETSAFE_SECRET_KEYS", "SUPABASE_SECRET_KEYS"]) {
-    const list = Deno.env.get(envName);
-    if (list) {
-      for (const part of list.split(/[\s,]+/)) {
-        const trimmed = part.trim();
-        if (trimmed) out.add(trimmed);
-      }
+    for (const secret of splitSecretList(envName)) {
+      out.add(secret);
     }
   }
   const legacy = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -55,11 +69,24 @@ export function isAuthorizedInternalCall(req: Request): boolean {
 export function getInternalSecretAuthMetadata(req: Request): Record<string, unknown> {
   const provided = req.headers.get("x-internal-secret");
   const acceptedSecrets = getAcceptedInternalSecrets();
+  const acceptedSources = ["ASSETSAFE_SECRET_KEYS", "SUPABASE_SECRET_KEYS", "SUPABASE_SERVICE_ROLE_KEY"]
+    .flatMap((source) => {
+      const secrets = source === "SUPABASE_SERVICE_ROLE_KEY"
+        ? [Deno.env.get(source)].filter((secret): secret is string => Boolean(secret))
+        : splitSecretList(source);
+      return secrets.map((secret) => ({
+        source,
+        length: secret.length,
+        fingerprint: fingerprintSecret(secret),
+      }));
+    });
   return {
     provided_header_present: Boolean(provided),
     provided_length: provided?.length ?? 0,
+    provided_fingerprint: provided ? fingerprintSecret(provided) : null,
     accepted_count: acceptedSecrets.length,
     accepted_lengths: acceptedSecrets.map((secret) => secret.length),
+    accepted_sources: acceptedSources,
     has_assetsafe_secret_keys: Boolean(Deno.env.get("ASSETSAFE_SECRET_KEYS")),
     has_platform_secret_keys: Boolean(Deno.env.get("SUPABASE_SECRET_KEYS")),
     has_legacy_service_role_key: Boolean(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")),
@@ -74,11 +101,8 @@ export function getInternalSecretAuthMetadata(req: Request): Record<string, unkn
  */
 export function getPreferredInternalSecret(): string | null {
   for (const envName of ["ASSETSAFE_SECRET_KEYS", "SUPABASE_SECRET_KEYS"]) {
-    const list = Deno.env.get(envName);
-    if (list) {
-      const first = list.split(/[\s,]+/).map((p) => p.trim()).find(Boolean);
-      if (first) return first;
-    }
+    const first = splitSecretList(envName)[0];
+    if (first) return first;
   }
   return Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? null;
 }
