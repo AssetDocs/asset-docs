@@ -46,6 +46,17 @@ type StorageDeletionJob = {
   object_path: string;
 };
 
+type StorageBucket = {
+  id?: string | null;
+  name?: string | null;
+};
+
+type StorageListItem = {
+  name: string;
+  id?: string | null;
+  metadata?: Record<string, unknown> | null;
+};
+
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function addStorageRef(refs: Map<string, StorageRef>, ref: StorageRef) {
@@ -88,24 +99,48 @@ async function collectPrefixStorageRefs(
   prefixes: string[],
   refs: Map<string, StorageRef>,
 ) {
-  for (const prefix of prefixes) {
-    const { data, error } = await supabaseAdmin
-      .schema('storage')
-      .from('objects')
-      .select('bucket_id,name')
-      .like('name', `${prefix}%`);
+  const { data: buckets, error: bucketsError } = await supabaseAdmin.storage.listBuckets();
+  if (bucketsError) {
+    throw new Error(`Failed to list storage buckets for account cleanup: ${bucketsError.message}`);
+  }
+
+  async function collectFromBucket(bucket: string, listPrefix: string, sourcePrefix: string) {
+    const { data, error } = await supabaseAdmin.storage
+      .from(bucket)
+      .list(listPrefix, {
+        limit: 1000,
+        sortBy: { column: 'name', order: 'asc' },
+      });
 
     if (error) {
-      throw new Error(`Failed to list storage objects for ${prefix}: ${error.message}`);
+      if (isNotFoundStorageError(error)) return;
+      throw new Error(`Failed to list storage objects for ${bucket}/${sourcePrefix}: ${error.message}`);
     }
 
-    for (const object of data ?? []) {
-      if (object.bucket_id && object.name) {
+    for (const item of (data ?? []) as StorageListItem[]) {
+      const objectPath = listPrefix ? `${listPrefix}/${item.name}` : item.name;
+      const isDirectory = !item.id && !item.metadata;
+
+      if (isDirectory) {
+        await collectFromBucket(bucket, objectPath, sourcePrefix);
+      } else if (objectPath.startsWith(sourcePrefix)) {
         addStorageRef(refs, {
-          bucket: object.bucket_id,
-          path: object.name,
-          source: `prefix:${prefix}`,
+          bucket,
+          path: objectPath,
+          source: `prefix:${sourcePrefix}`,
         });
+      }
+    }
+  }
+
+  for (const bucket of (buckets ?? []) as StorageBucket[]) {
+    const bucketName = bucket.id ?? bucket.name;
+    if (!bucketName) continue;
+
+    for (const prefix of prefixes) {
+      const normalizedPrefix = prefix.replace(/\/+$/, '');
+      if (normalizedPrefix) {
+        await collectFromBucket(bucketName, normalizedPrefix, prefix);
       }
     }
   }
