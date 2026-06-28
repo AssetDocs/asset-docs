@@ -52,6 +52,20 @@ export function isAuthorizedInternalCall(req: Request): boolean {
   return false;
 }
 
+export function getInternalSecretAuthMetadata(req: Request): Record<string, unknown> {
+  const provided = req.headers.get("x-internal-secret");
+  const acceptedSecrets = getAcceptedInternalSecrets();
+  return {
+    provided_header_present: Boolean(provided),
+    provided_length: provided?.length ?? 0,
+    accepted_count: acceptedSecrets.length,
+    accepted_lengths: acceptedSecrets.map((secret) => secret.length),
+    has_assetsafe_secret_keys: Boolean(Deno.env.get("ASSETSAFE_SECRET_KEYS")),
+    has_platform_secret_keys: Boolean(Deno.env.get("SUPABASE_SECRET_KEYS")),
+    has_legacy_service_role_key: Boolean(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")),
+  };
+}
+
 /**
  * Returns the preferred secret value to forward in an `x-internal-secret`
  * header when one cron function calls another. Prefers the first
