@@ -1875,7 +1875,15 @@ export class ExportService {
     );
 
     if (error) {
-      throw new Error(error.message);
+      let message = error.message;
+      const context = (error as { context?: unknown }).context;
+      if (context instanceof Response) {
+        const details = await context.clone().text().catch(() => '');
+        if (details) {
+          message = `${message}: ${details.slice(0, 500)}`;
+        }
+      }
+      throw new Error(message);
     }
 
     if (!data?.signed_url) {
