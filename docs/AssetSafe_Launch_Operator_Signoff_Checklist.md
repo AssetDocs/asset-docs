@@ -82,14 +82,14 @@ Use `docs/AssetSafe_Lovable_P0_Launch_Readiness_Classification.md` as the curren
 
 ## P1 First 30 Days
 
-## Evidence Progress Snapshot - 2026-06-28
+## Evidence Progress Snapshot - 2026-06-28 / 2026-06-29
 
 This section records evidence gathered during launch-readiness work without replacing the operator sign-off rows above. Final launch decisions still require an owner, evidence link, and date in the P0 table.
 
 | Area | Gate | Current evidence status | Remaining action |
 |---|---|---|---|
 | Data lifecycle | Required lifecycle cron health | Partial evidence captured in `docs/AssetSafe_Launch_Evidence_Run_2026_06_28.md`; latest `net._http_response` rows after secret rotation returned HTTP `200`; several health rows were `ok`, while retention/orphan/usage-drift rows still needed next scheduled-window review | Re-run `cron_job_health_status` after the next scheduled windows and attach final screenshot/query result |
-| Data lifecycle | Private export bucket and expired-export sweeper | `exports` bucket confirmed private; `process-expired-exports` returned HTTP `200` after `20260622113000_expire_account_export_bundles.sql` and schema reload | Trigger one real managed account export and confirm upload/download/expiry evidence |
+| Data lifecycle | Private export bucket and managed export round trip | `exports` bucket confirmed private; `process-expired-exports` returned HTTP `200` after `20260622113000_expire_account_export_bundles.sql` and schema reload; real **Export Account Archive** round trip succeeded with evidence in `docs/AssetSafe_Launch_Evidence_Run_2026_06_29.md` | Verify expiry behavior after the 7-day TTL, or against a controlled test row if pre-launch expiry evidence is required |
 | Data lifecycle | Account closure sweeper | `process-account-closures` returned HTTP `200` after `delete-account` was updated to use Storage API prefix scans | Keep the 207/500 failure and fix evidence with the launch evidence note |
 | Monitoring | First real cron successes | Latest `net._http_response` rows after recreated cron jobs returned HTTP `200`; stale 401 rows identified as pre-rotation failures | Re-check dashboard health after all cadence windows have elapsed |
 | Security | Production internal cron secret rotation | Fresh `sb_secret_...` internal secret was installed in Edge Function Secrets; docs now require `assetsafe_secret_keys` or `ASSETSAFE_SECRET_KEYS`; all lifecycle cron jobs were recreated | Choose and record the approved long-term production secret manager and access owner |
