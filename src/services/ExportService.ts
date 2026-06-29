@@ -1934,7 +1934,7 @@ export class ExportService {
         .upload(bundleRequest.storage_path, zipResult.blob, {
           cacheControl: '3600',
           contentType: 'application/zip',
-          upsert: true,
+          upsert: false,
         });
 
       if (uploadError) {
