@@ -7971,6 +7971,14 @@ export type Database = {
         }
         Returns: string
       }
+      expire_account_export_bundles: {
+        Args: { p_dry_run?: boolean; p_limit?: number }
+        Returns: {
+          audit_id: string
+          storage_bucket: string
+          storage_path: string
+        }[]
+      }
       expire_continuity_export_authorizations: { Args: never; Returns: number }
       expire_grace_periods: { Args: never; Returns: number }
       finalize_property_deletion: {
