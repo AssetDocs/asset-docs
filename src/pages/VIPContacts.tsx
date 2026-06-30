@@ -349,7 +349,7 @@ const VIPContacts: React.FC = () => {
               Back to Dashboard
             </Button>
             <Button
-              onClick={() => navigate('/account', { state: { tab: 'life-hub' } })}
+              onClick={() => navigate('/account?tab=life-hub')}
               variant="outline"
               size="sm"
               className="bg-white text-brand-orange border-brand-orange hover:bg-brand-orange/10"

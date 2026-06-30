@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import AssetValuesSection from '@/components/AssetValuesSection';
@@ -54,16 +54,17 @@ import { recordDashboardResumeActivity } from '@/lib/dashboardResume';
 const Account: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const location = useLocation();
   const { toast } = useToast();
-  const navigationState = location.state as { tab?: string } | null;
   const [showTour, setShowTour] = useState(false);
-  const [activeTab, setActiveTab] = useState(() => {
-    // Check query param first (e.g., from breadcrumb links), then navigation state
-    const queryTab = searchParams.get('tab');
-    const stateTab = navigationState?.tab;
-    return queryTab || stateTab || 'overview';
-  });
+  const activeTab = searchParams.get('tab') || 'overview';
+  const handleTabChange = (tab: string) => {
+    if (tab === 'overview') {
+      navigate('/account');
+      return;
+    }
+    navigate(`/account?tab=${encodeURIComponent(tab)}`);
+  };
+  const setActiveTab = handleTabChange;
   const { subscriptionTier } = useSubscription();
   const { isReadOnly: isViewer, showReadOnlyRestriction: showViewerRestriction, canEdit, accountId, isOwner } = useAccount();
 
@@ -117,26 +118,6 @@ const Account: React.FC = () => {
       destinationRoute: activity.route,
     });
   }, [activeTab, accountId, isOwner]);
-
-  // Sync URL → activeTab when navigating here with a ?tab= param (e.g. from SecurityProgress "Go" CTA)
-  // Also reset to overview when the tab param is removed (e.g. clicking Dashboard nav link)
-  useEffect(() => {
-    const queryTab = searchParams.get('tab');
-    if (queryTab && queryTab !== activeTab) {
-      setActiveTab(queryTab);
-    } else if (!queryTab && activeTab !== 'overview') {
-      setActiveTab('overview');
-    }
-  }, [searchParams, activeTab]);
-
-  // Sync activeTab → URL so browser tab switches don't reset the view
-  useEffect(() => {
-    if (activeTab === 'overview') {
-      navigate('/account', { replace: true });
-    } else {
-      navigate(`/account?tab=${activeTab}`, { replace: true });
-    }
-  }, [activeTab, navigate]);
 
   // Sync subscription and show success message if redirected from successful payment
   useEffect(() => {
