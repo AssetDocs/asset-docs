@@ -3696,6 +3696,8 @@ export type Database = {
           delivery_status: string
           email_hash: string | null
           expires_at: string | null
+          failed_at: string | null
+          failure_reason: string | null
           first_login_at: string | null
           gift_code: string
           gift_message: string | null
@@ -3745,6 +3747,8 @@ export type Database = {
           delivery_status?: string
           email_hash?: string | null
           expires_at?: string | null
+          failed_at?: string | null
+          failure_reason?: string | null
           first_login_at?: string | null
           gift_code: string
           gift_message?: string | null
@@ -3794,6 +3798,8 @@ export type Database = {
           delivery_status?: string
           email_hash?: string | null
           expires_at?: string | null
+          failed_at?: string | null
+          failure_reason?: string | null
           first_login_at?: string | null
           gift_code?: string
           gift_message?: string | null

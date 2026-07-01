@@ -158,9 +158,24 @@ serve(async (req) => {
           await sendPaymentReceipt(supabase, session);
           break;
         }
+        case 'checkout.session.async_payment_failed': {
+          const session = event.data.object as Stripe.Checkout.Session;
+          await handleGiftCheckoutFailed(supabase, session, 'checkout.session.async_payment_failed');
+          break;
+        }
+        case 'checkout.session.expired': {
+          const session = event.data.object as Stripe.Checkout.Session;
+          await handleGiftCheckoutExpired(supabase, session);
+          break;
+        }
         case 'payment_intent.succeeded': {
           const paymentIntent = event.data.object as Stripe.PaymentIntent;
           await sendPaymentReceiptFromIntent(supabase, stripe, paymentIntent);
+          break;
+        }
+        case 'payment_intent.payment_failed': {
+          const paymentIntent = event.data.object as Stripe.PaymentIntent;
+          await handleGiftPaymentIntentFailed(supabase, stripe, paymentIntent);
           break;
         }
         default:
@@ -509,6 +524,156 @@ async function handlePaymentFailed(
     last_payment_failure_check: new Date().toISOString(),
     updated_at: new Date().toISOString()
   }).eq('stripe_customer_id', invoice.customer);
+}
+
+async function updateGiftCheckoutFailureState(
+  supabase: any,
+  match: {
+    sessionId?: string | null;
+    giftId?: string | null;
+    paymentIntentId?: string | null;
+  },
+  state: 'failed' | 'expired',
+  reason: string,
+) {
+  let query = supabase
+    .from('gift_subscriptions')
+    .select('id,status,payment_status,stripe_session_id,stripe_payment_intent_id')
+    .limit(1);
+
+  if (match.giftId) {
+    query = query.eq('id', match.giftId);
+  } else if (match.sessionId) {
+    query = query.eq('stripe_session_id', match.sessionId);
+  } else if (match.paymentIntentId) {
+    query = query.eq('stripe_payment_intent_id', match.paymentIntentId);
+  } else {
+    logStep('Gift failure update skipped: no gift lookup key', { state, reason });
+    return;
+  }
+
+  const { data: rows, error: lookupErr } = await query;
+  if (lookupErr) {
+    logStep('ERROR looking up gift for failure update', lookupErr);
+    throw new Error(`gift failure lookup failed: ${lookupErr.message}`);
+  }
+  if (!rows || rows.length === 0) {
+    logStep('Gift failure update skipped: no matching gift row', { match, state, reason });
+    return;
+  }
+
+  const gift = rows[0];
+  if (gift.status === 'paid' || gift.payment_status === 'paid') {
+    logStep('Gift failure update skipped: gift already paid', { giftId: gift.id, state, reason });
+    return;
+  }
+
+  const update: Record<string, any> = {
+    status: state,
+    payment_status: state,
+    delivery_status: 'not_sent',
+    failed_at: new Date().toISOString(),
+    failure_reason: reason,
+    updated_at: new Date().toISOString(),
+  };
+  if (match.paymentIntentId && !gift.stripe_payment_intent_id) {
+    update.stripe_payment_intent_id = match.paymentIntentId;
+  }
+
+  const { data: updated, error: updateErr } = await supabase
+    .from('gift_subscriptions')
+    .update(update)
+    .eq('id', gift.id)
+    .neq('status', 'paid')
+    .neq('payment_status', 'paid')
+    .select('id,status,payment_status');
+
+  if (updateErr) {
+    logStep('ERROR updating gift failure state', updateErr);
+    throw new Error(`gift failure update failed: ${updateErr.message}`);
+  }
+
+  logStep('Gift failure state updated', {
+    giftId: gift.id,
+    state,
+    reason,
+    updatedCount: updated?.length ?? 0,
+  });
+}
+
+async function handleGiftCheckoutFailed(
+  supabase: any,
+  session: Stripe.Checkout.Session,
+  reason: string,
+) {
+  if (session.metadata?.gift !== 'true') return;
+
+  await updateGiftCheckoutFailureState(
+    supabase,
+    {
+      sessionId: session.id,
+      giftId: session.metadata?.gift_subscription_id ?? null,
+      paymentIntentId: typeof session.payment_intent === 'string' ? session.payment_intent : null,
+    },
+    'failed',
+    reason,
+  );
+}
+
+async function handleGiftCheckoutExpired(
+  supabase: any,
+  session: Stripe.Checkout.Session,
+) {
+  if (session.metadata?.gift !== 'true') return;
+
+  await updateGiftCheckoutFailureState(
+    supabase,
+    {
+      sessionId: session.id,
+      giftId: session.metadata?.gift_subscription_id ?? null,
+      paymentIntentId: typeof session.payment_intent === 'string' ? session.payment_intent : null,
+    },
+    'expired',
+    'checkout.session.expired',
+  );
+}
+
+async function handleGiftPaymentIntentFailed(
+  supabase: any,
+  stripe: Stripe,
+  paymentIntent: Stripe.PaymentIntent,
+) {
+  let session: Stripe.Checkout.Session | null = null;
+  if (paymentIntent.metadata?.gift !== 'true') {
+    try {
+      const sessions = await stripe.checkout.sessions.list({
+        payment_intent: paymentIntent.id,
+        limit: 1,
+      } as any);
+      session = sessions.data[0] ?? null;
+    } catch (err) {
+      logStep('Unable to look up checkout session for failed payment intent', {
+        paymentIntentId: paymentIntent.id,
+        error: (err as Error).message,
+      });
+    }
+  }
+
+  const giftMetadata = paymentIntent.metadata?.gift === 'true' || session?.metadata?.gift === 'true';
+  if (!giftMetadata) return;
+
+  await updateGiftCheckoutFailureState(
+    supabase,
+    {
+      sessionId: session?.id ?? null,
+      giftId: paymentIntent.metadata?.gift_subscription_id ?? session?.metadata?.gift_subscription_id ?? null,
+      paymentIntentId: paymentIntent.id,
+    },
+    'failed',
+    paymentIntent.last_payment_error?.code
+      ? `payment_intent.payment_failed:${paymentIntent.last_payment_error.code}`
+      : 'payment_intent.payment_failed',
+  );
 }
 
 async function handleCheckoutCompleted(
