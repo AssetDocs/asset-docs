@@ -158,7 +158,7 @@ limit 100;
 Stripe webhook health:
 
 ```sql
-select stripe_event_id, event_type, status, processed_at, error_id
+select stripe_event_id, event_type, status, outcome, processed_at, error_message
 from public.stripe_events
 order by created_at desc
 limit 50;
@@ -167,7 +167,7 @@ limit 50;
 Email deliverability:
 
 ```sql
-select event_type, recipient_email, provider_message_id, occurred_at
+select event_type, recipient_email_hash, recipient_domain, provider_message_id, occurred_at
 from public.email_deliverability_events
 order by occurred_at desc
 limit 50;

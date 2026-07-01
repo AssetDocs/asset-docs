@@ -20,6 +20,7 @@ Owner: Asset Safe operator / project owner
 | 10 | `docs/AssetSafe_Launch_Evidence_Run_2026_06_24.md` | Second evidence-pass result summary and follow-ups |
 | 11 | `docs/AssetSafe_Launch_Evidence_Run_2026_06_28.md` | Lifecycle cron secret rotation and cron recovery evidence |
 | 12 | `docs/AssetSafe_Launch_Evidence_Run_2026_06_29.md` | Managed account export round-trip verification |
+| 13 | `docs/AssetSafe_Launch_Evidence_Run_2026_07_01.md` | Security operations: lifecycle cron health and Resend webhook recovery |
 
 ## Operator Flow
 

@@ -82,19 +82,19 @@ Use `docs/AssetSafe_Lovable_P0_Launch_Readiness_Classification.md` as the curren
 
 ## P1 First 30 Days
 
-## Evidence Progress Snapshot - 2026-06-28 / 2026-06-29
+## Evidence Progress Snapshot - 2026-06-28 / 2026-07-01
 
 This section records evidence gathered during launch-readiness work without replacing the operator sign-off rows above. Final launch decisions still require an owner, evidence link, and date in the P0 table.
 
 | Area | Gate | Current evidence status | Remaining action |
 |---|---|---|---|
-| Data lifecycle | Required lifecycle cron health | Partial evidence captured in `docs/AssetSafe_Launch_Evidence_Run_2026_06_28.md`; latest `net._http_response` rows after secret rotation returned HTTP `200`; several health rows were `ok`, while retention/orphan/usage-drift rows still needed next scheduled-window review | Re-run `cron_job_health_status` after the next scheduled windows and attach final screenshot/query result |
+| Data lifecycle | Required lifecycle cron health | Final evidence captured in `docs/AssetSafe_Launch_Evidence_Run_2026_07_01.md`; all 8 lifecycle jobs returned `ok` / `succeeded` with `consecutive_failures=0` and `last_error=null` | Operator can attach final screenshot/query result to sign-off row |
 | Data lifecycle | Private export bucket and managed export round trip | `exports` bucket confirmed private; `process-expired-exports` returned HTTP `200` after `20260622113000_expire_account_export_bundles.sql` and schema reload; real **Export Account Archive** round trip succeeded with evidence in `docs/AssetSafe_Launch_Evidence_Run_2026_06_29.md` | Verify expiry behavior after the 7-day TTL, or against a controlled test row if pre-launch expiry evidence is required |
 | Data lifecycle | Account closure sweeper | `process-account-closures` returned HTTP `200` after `delete-account` was updated to use Storage API prefix scans | Keep the 207/500 failure and fix evidence with the launch evidence note |
-| Monitoring | First real cron successes | Latest `net._http_response` rows after recreated cron jobs returned HTTP `200`; stale 401 rows identified as pre-rotation failures | Re-check dashboard health after all cadence windows have elapsed |
+| Monitoring | First real cron successes | Latest lifecycle health evidence in `docs/AssetSafe_Launch_Evidence_Run_2026_07_01.md` confirms all 8 lifecycle jobs healthy after cadence windows elapsed; stale 401 rows identified as pre-rotation failures | Keep routine dashboard review cadence active |
 | Security | Production internal cron secret rotation | Fresh `sb_secret_...` internal secret was installed in Edge Function Secrets; docs now require `assetsafe_secret_keys` or `ASSETSAFE_SECRET_KEYS`; all lifecycle cron jobs were recreated | Choose and record the approved long-term production secret manager and access owner |
-| Security | Key rotation runbook | `docs/AssetSafe_Key_Rotation_Runbook.md` updated for Supabase secret API keys, lowercase secret support, static cron headers, and `cron.job.command` exposure warning | Decide when to remove legacy service-role fallback from `isAuthorizedInternalCall(req)` |
-| Security | Incident / scan readiness | Runbooks exist: `docs/AssetSafe_Security_Incident_Response_Runbook.md`, `docs/AssetSafe_Vulnerability_Scan_Runbook.md`, `docs/AssetSafe_Audit_Log_Retention_Runbook.md` | Run pre-launch scan, triage High/Critical findings, and schedule/complete incident tabletop |
+| Security | Key rotation runbook | `docs/AssetSafe_Key_Rotation_Runbook.md` updated for Supabase secret API keys, lowercase secret support, static cron headers, `cron.job.command` exposure warning, and current schema-safe validation queries | Decide when to remove legacy service-role fallback from `isAuthorizedInternalCall(req)` |
+| Security | Incident / scan readiness | Runbooks exist: `docs/AssetSafe_Security_Incident_Response_Runbook.md`, `docs/AssetSafe_Vulnerability_Scan_Runbook.md`, `docs/AssetSafe_Audit_Log_Retention_Runbook.md`; Resend webhook recovery and clean dependency audit/build evidence captured in `docs/AssetSafe_Launch_Evidence_Run_2026_07_01.md` | Run staging ZAP/manual auth scan, triage High/Critical findings, and schedule/complete incident tabletop |
 | Legal/compliance | DSAR, DMCA, legal request, Terms/Privacy paths | Runbooks exist and are indexed in `docs/AssetSafe_Launch_Packet_Index.md` | Counsel/operator approval still required for each intake path and active public version |
 | Support | Support/account recovery posture | Account recovery remains audited-review only; support ops runbook exists | Name `support@assetsafe.net` owner/backup and accept SLA/escalation matrix |
 | Billing | Manual billing ops posture | Billing launch runbook and code workqueue define manual MVP posture for disputes, refunds, dunning, receipts, gift failures, and trial reminders | Record owner decisions for receipt source, trial posture, gift failure verification, and daily Stripe error review |
