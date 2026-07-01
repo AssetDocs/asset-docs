@@ -741,6 +741,15 @@ async function handleCheckoutCompleted(
         throw new Error(`gift paid update failed: ${payUpdErr.message}`);
       }
 
+      const deliveryDate = gift.delivery_date ? new Date(gift.delivery_date) : now;
+      if (deliveryDate.getTime() > Date.now()) {
+        logStep('Gift paid; delivery scheduled for future date', {
+          giftId: gift.id,
+          deliveryDate: deliveryDate.toISOString(),
+        });
+        return;
+      }
+
       // 2. Acquire sending lock with stuck-recovery guard (10 min)
       const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
       const newClaimToken = (() => {

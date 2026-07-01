@@ -97,6 +97,7 @@ const GiftCheckout: React.FC = () => {
           fromName: values.fromName,
           giftMessage: values.giftMessage || '',
           purchaserEmail: values.purchaserEmail,
+          deliveryDate: values.deliveryDate,
         },
       });
 
@@ -261,7 +262,7 @@ const GiftCheckout: React.FC = () => {
                                               onSelect={(date) => {
                                                 if (date) field.onChange(format(date, 'yyyy-MM-dd'));
                                               }}
-                                              disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                                              disabled={(date) => date <= new Date(new Date().setHours(0, 0, 0, 0))}
                                               initialFocus
                                               className="p-3 pointer-events-auto"
                                             />
@@ -313,11 +314,7 @@ const GiftCheckout: React.FC = () => {
                                   <FormLabel htmlFor="agree-terms" className="text-sm font-normal cursor-pointer">
                                     I agree to the{' '}
                                     <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary underline">
-                                      Terms of Service
-                                    </a>
-                                    {' '}and{' '}
-                                    <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary underline">
-                                      Terms of Service
+                                      Terms of Service, including the subscription terms
                                     </a>.
                                   </FormLabel>
                                   <FormMessage />

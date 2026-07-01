@@ -46,7 +46,7 @@ serve(async (req) => {
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
 
     const body = await req.json();
-    const { recipientEmail, fromName, giftMessage, purchaserEmail, recipientName } = body ?? {};
+    const { recipientEmail, fromName, giftMessage, purchaserEmail, recipientName, deliveryDate } = body ?? {};
 
     if (!recipientEmail || !fromName || !purchaserEmail) {
       throw new Error("recipientEmail, fromName, and purchaserEmail are required");
@@ -58,6 +58,26 @@ serve(async (req) => {
     }
     if (fromName.length > 100 || (giftMessage && giftMessage.length > 1000)) {
       throw new Error("Input exceeds maximum length");
+    }
+
+    let scheduledDeliveryDate = new Date();
+    if (deliveryDate) {
+      const dateOnly = String(deliveryDate).trim();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dateOnly)) {
+        throw new Error("Invalid delivery date");
+      }
+
+      // Deliver scheduled gifts during the U.S. morning on the selected calendar day.
+      // Immediate delivery is used for today; scheduled delivery is future-only.
+      const selectedDate = new Date(`${dateOnly}T15:00:00.000Z`);
+      const today = new Date();
+      today.setUTCHours(0, 0, 0, 0);
+      const selectedDay = new Date(`${dateOnly}T00:00:00.000Z`);
+      if (selectedDay <= today) {
+        scheduledDeliveryDate = new Date();
+      } else {
+        scheduledDeliveryDate = selectedDate;
+      }
     }
 
     // Verify consent (logged in last 30 minutes)
@@ -103,7 +123,7 @@ serve(async (req) => {
       recipient_email: recipientEmail,
       recipient_name: recipientName || "",
       gift_message: giftMessage || null,
-      delivery_date: new Date().toISOString(),
+      delivery_date: scheduledDeliveryDate.toISOString(),
       amount: 18900,
       currency: "usd",
       status: "pending",

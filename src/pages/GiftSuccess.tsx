@@ -10,8 +10,9 @@ import { useToast } from '@/hooks/use-toast';
 
 type GiftStatus = {
   found?: boolean;
-  payment_status?: 'pending' | 'paid' | 'refunded' | 'canceled';
+  payment_status?: 'pending' | 'paid' | 'refunded' | 'canceled' | 'failed' | 'expired';
   delivery_status?: 'not_sent' | 'sending' | 'sent' | 'failed';
+  delivery_date?: string | null;
   created_at?: string;
   delivered_at?: string | null;
   recipient_email_masked?: string;
@@ -35,6 +36,7 @@ const GiftSuccess: React.FC = () => {
       });
       if (error) throw error;
       setStatus(data as GiftStatus);
+      return data as GiftStatus;
     } catch (e) {
       console.error('[GiftSuccess] status error', e);
     }
@@ -47,11 +49,18 @@ const GiftSuccess: React.FC = () => {
     const tick = async () => {
       if (cancelled) return;
       attempts += 1;
-      await fetchStatus();
+      const latest = await fetchStatus();
       setIsLoading(false);
+      const latestDeliveryDate = latest?.delivery_date ? new Date(latest.delivery_date) : null;
+      const isScheduled =
+        latest?.payment_status === 'paid' &&
+        latest?.delivery_status === 'not_sent' &&
+        latestDeliveryDate !== null &&
+        latestDeliveryDate.getTime() > Date.now();
       const stop =
         attempts >= 7 ||
-        (status?.delivery_status === 'sent' || status?.delivery_status === 'failed');
+        isScheduled ||
+        (latest?.delivery_status === 'sent' || latest?.delivery_status === 'failed');
       if (!stop && !cancelled) setTimeout(tick, 5000);
     };
     tick();
@@ -82,9 +91,18 @@ const GiftSuccess: React.FC = () => {
     }
   };
 
+  const deliveryDate = status?.delivery_date ? new Date(status.delivery_date) : null;
+  const scheduled =
+    status?.payment_status === 'paid' &&
+    status?.delivery_status === 'not_sent' &&
+    deliveryDate !== null &&
+    deliveryDate.getTime() > Date.now();
   const delivered = status?.delivery_status === 'sent';
   const failed = status?.delivery_status === 'failed';
-  const inProgress = !delivered && !failed;
+  const inProgress = !delivered && !failed && !scheduled;
+  const deliveryDateLabel = deliveryDate
+    ? deliveryDate.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
+    : null;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -98,6 +116,8 @@ const GiftSuccess: React.FC = () => {
                   <Loader2 className="h-16 w-16 text-primary animate-spin" />
                 ) : delivered ? (
                   <CheckCircle className="h-16 w-16 text-green-500" />
+                ) : scheduled ? (
+                  <CheckCircle className="h-16 w-16 text-blue-500" />
                 ) : (
                   <AlertCircle className="h-16 w-16 text-amber-500" />
                 )}
@@ -105,31 +125,40 @@ const GiftSuccess: React.FC = () => {
               <CardTitle className="text-2xl">
                 {delivered
                   ? 'Gift Delivered!'
+                  : scheduled
+                    ? 'Gift Scheduled!'
                   : failed
                     ? 'Gift Purchase Successful'
-                    : 'Processing Your Gift…'}
+                    : 'Processing Your Gift...'}
               </CardTitle>
               <CardDescription className="text-lg">
                 {delivered
                   ? 'The recipient has been notified by email.'
+                  : scheduled
+                    ? `The recipient email will be sent on ${deliveryDateLabel}.`
                   : failed
-                    ? 'We had trouble sending the email — you can try again below.'
+                    ? 'We had trouble sending the email - you can try again below.'
                     : 'Finalizing payment and sending the gift notification.'}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {!sessionId || !successToken ? (
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-sm text-amber-800">
-                  Missing session details. If you completed a purchase, please check your email — the
+                  Missing session details. If you completed a purchase, please check your email - the
                   recipient will still receive their gift.
                 </div>
               ) : (
                 <>
-                  <div className={`rounded-lg p-6 border ${delivered ? 'bg-green-50 border-green-200' : failed ? 'bg-amber-50 border-amber-200' : 'bg-secondary/10 border-border'}`}>
-                    <Gift className={`h-8 w-8 mx-auto mb-3 ${delivered ? 'text-green-600' : failed ? 'text-amber-600' : 'text-primary'}`} />
+                  <div className={`rounded-lg p-6 border ${delivered ? 'bg-green-50 border-green-200' : scheduled ? 'bg-blue-50 border-blue-200' : failed ? 'bg-amber-50 border-amber-200' : 'bg-secondary/10 border-border'}`}>
+                    <Gift className={`h-8 w-8 mx-auto mb-3 ${delivered ? 'text-green-600' : scheduled ? 'text-blue-600' : failed ? 'text-amber-600' : 'text-primary'}`} />
                     {status?.recipient_email_masked && (
                       <p className="text-sm text-foreground/80">
                         Recipient: <strong>{status.recipient_email_masked}</strong>
+                      </p>
+                    )}
+                    {scheduled && deliveryDateLabel && (
+                      <p className="text-sm text-foreground/80 mt-2">
+                        Scheduled delivery: <strong>{deliveryDateLabel}</strong>
                       </p>
                     )}
                     <div className="mt-3 flex items-center justify-center gap-2 text-sm">
@@ -137,6 +166,8 @@ const GiftSuccess: React.FC = () => {
                       <span>
                         {delivered
                           ? 'Email delivered'
+                          : scheduled
+                            ? 'Email scheduled'
                           : failed
                             ? 'Email failed to send'
                             : 'Email in progress'}
@@ -147,7 +178,7 @@ const GiftSuccess: React.FC = () => {
                   {failed && (
                     <Button onClick={handleResend} disabled={resending} size="lg" className="w-full">
                       {resending ? (
-                        <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Resending…</>
+                        <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Resending...</>
                       ) : (
                         <><RefreshCw className="h-4 w-4 mr-2" />Resend gift email</>
                       )}
@@ -165,7 +196,7 @@ const GiftSuccess: React.FC = () => {
                     </div>
                     <div className="flex items-start gap-2">
                       <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">3</span>
-                      <span>Their 12-month subscription activates immediately.</span>
+                      <span>Their 12-month subscription activates when they redeem the gift.</span>
                     </div>
                   </div>
 

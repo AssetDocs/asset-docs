@@ -1,7 +1,8 @@
-// get-gift-status — public, guest-safe gift status lookup + resend action.
+// get-gift-status - public, guest-safe gift status lookup + resend action.
 // Requires (sessionId, successToken). Never exposes raw row, gift id, or Stripe IDs.
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getPreferredInternalSecret } from "../_shared/internalSecret.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -79,7 +80,7 @@ serve(async (req) => {
       // Re-query verified pair via service role to obtain gift id
       const { data: rows, error: rowErr } = await supabase
         .from("gift_subscriptions")
-        .select("id, payment_status, delivery_status, delivery_attempted_at")
+        .select("id, payment_status, delivery_status, delivery_attempted_at, delivery_date")
         .eq("stripe_session_id", sessionId)
         .eq("success_token_hash", tokenHash)
         .gt("success_token_expires_at", new Date().toISOString())
@@ -92,6 +93,11 @@ serve(async (req) => {
       const gift = rows[0];
       if (gift.payment_status !== "paid") {
         return new Response(JSON.stringify({ error: "not_paid" }), {
+          status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (gift.delivery_date && new Date(gift.delivery_date).getTime() > Date.now()) {
+        return new Response(JSON.stringify({ error: "scheduled", delivery_date: gift.delivery_date }), {
           status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
@@ -127,14 +133,15 @@ serve(async (req) => {
         });
       }
 
-      const internalSecret = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const internalSecret = getPreferredInternalSecret() ?? serviceRoleKey;
       const sendUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-gift-email`;
       const res = await fetch(sendUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "x-internal-secret": internalSecret,
-          Authorization: `Bearer ${internalSecret}`,
+          Authorization: `Bearer ${serviceRoleKey}`,
         },
         body: JSON.stringify({ giftId: gift.id, claimToken: newToken, resend: true }),
       });

@@ -1,9 +1,10 @@
-// send-gift-email — single writer for gift email delivery.
+// send-gift-email - single writer for gift email delivery.
 // Auth: x-internal-secret (SUPABASE_SERVICE_ROLE_KEY) or admin JWT.
 // Idempotent: skips if recipient_email_sent_at is set and resend !== true.
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { isAuthorizedInternalCall } from "../_shared/internalSecret.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -27,9 +28,7 @@ serve(async (req) => {
 
     // Authorize: x-internal-secret OR admin JWT
     let authorized = false;
-    const internalSecret = req.headers.get("x-internal-secret");
-    const expectedInternal = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    if (internalSecret && expectedInternal && internalSecret === expectedInternal) {
+    if (isAuthorizedInternalCall(req)) {
       authorized = true;
     } else {
       const authHeader = req.headers.get("Authorization");
@@ -67,7 +66,7 @@ serve(async (req) => {
     if (gift.payment_status !== "paid") throw new Error("Gift not paid yet");
 
     if (gift.recipient_email_sent_at && !isResend) {
-      log("Idempotent skip — already sent", { id: gift.id });
+      log("Idempotent skip - already sent", { id: gift.id });
       return new Response(JSON.stringify({ skipped: "already_sent" }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -136,13 +135,13 @@ serve(async (req) => {
       log("Recipient email throw", { error: lastError });
     }
 
-    // Purchaser confirmation — only on first delivery, not on resend
+    // Purchaser confirmation - only on first delivery, not on resend
     if (!isResend && gift.purchaser_email && !gift.purchaser_email_sent_at) {
       try {
         const purRes = await resend.emails.send({
           from: "Asset Safe <noreply@assetsafe.net>",
           to: [gift.purchaser_email],
-          subject: `Gift Subscription Sent — ${gift.recipient_email}`,
+          subject: `Gift Subscription Sent - ${gift.recipient_email}`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8fafc;">
               <div style="text-align: center; padding: 30px 20px 20px;">
