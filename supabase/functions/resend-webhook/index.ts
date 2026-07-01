@@ -4,12 +4,18 @@
 // first time). Stores hash + domain of recipient, never plaintext.
 
 import { createClient } from "npm:@supabase/supabase-js@2.45.0";
-import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { Webhook } from "npm:svix@1.40.0";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const WEBHOOK_SECRET = Deno.env.get("RESEND_WEBHOOK_SECRET");
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, svix-id, svix-timestamp, svix-signature",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
 
 const TRACKED_EVENT_TYPES = new Set([
   "email.sent",
