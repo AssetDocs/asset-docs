@@ -117,7 +117,7 @@ const CreatePassword = () => {
         console.warn('[CreatePassword] accept-invite error (non-fatal):', e);
       }
 
-      const profileUpdate: Record<string, unknown> = {
+      const profileUpdate = {
         password_set: true,
         onboarding_complete: true,
         first_name: firstName.trim(),
