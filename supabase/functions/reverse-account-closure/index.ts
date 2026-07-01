@@ -12,6 +12,12 @@ const corsHeaders = {
 
 const log = (s: string, d?: any) => console.log(`[CLOSURE-REVERSE] ${s}${d ? ' ' + JSON.stringify(d) : ''}`);
 
+const accountStatusFromEntitlement = (entitlement: any) => {
+  if (entitlement?.cancel_at_period_end) return 'cancelled_billing_active';
+  if (entitlement?.status === 'canceled' || entitlement?.status === 'inactive') return 'expired_read_only';
+  return 'active';
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
@@ -45,10 +51,18 @@ serve(async (req) => {
       .eq('id', pending.id);
     if (updErr) throw updErr;
 
-    // Restore account status (best-effort: back to cancelled_billing_active if billing still cancelling, else active)
+    const { data: entitlement } = await supabase
+      .from('entitlements')
+      .select('status, cancel_at_period_end')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    const nextAccountStatus = accountStatusFromEntitlement(entitlement);
+
+    // Restore account status based on current billing projection.
     await supabase
       .from('profiles')
-      .update({ account_status: 'cancelled_billing_active', updated_at: new Date().toISOString() })
+      .update({ account_status: nextAccountStatus, updated_at: new Date().toISOString() })
       .eq('user_id', userId);
 
     // Reversal notification emails (non-blocking)
