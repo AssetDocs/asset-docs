@@ -58,8 +58,8 @@ serve(async (req) => {
     }
 
     const { data: isAdmin, error: roleError } = await supabase.rpc("has_app_role", {
-      _user_id: userRes.user.id,
-      _role: "admin",
+      target_user_id: userRes.user.id,
+      required_role: "admin",
     });
     if (roleError) {
       return json({ error: "role_check_failed", details: roleError.message }, 500);
