@@ -6448,15 +6448,68 @@ export type Database = {
         }
         Relationships: []
       }
+      stripe_event_replay_requests: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          notes: string | null
+          processed_at: string | null
+          requested_at: string
+          requested_by: string | null
+          result_outcome: string | null
+          status: string
+          stripe_event_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          notes?: string | null
+          processed_at?: string | null
+          requested_at?: string
+          requested_by?: string | null
+          result_outcome?: string | null
+          status?: string
+          stripe_event_id: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          notes?: string | null
+          processed_at?: string | null
+          requested_at?: string
+          requested_by?: string | null
+          result_outcome?: string | null
+          status?: string
+          stripe_event_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stripe_event_replay_requests_stripe_event_id_fkey"
+            columns: ["stripe_event_id"]
+            isOneToOne: false
+            referencedRelation: "stripe_events"
+            referencedColumns: ["stripe_event_id"]
+          },
+        ]
+      }
       stripe_events: {
         Row: {
           created_at: string
           error_message: string | null
           event_type: string
           id: string
+          last_error_at: string | null
+          last_replayed_at: string | null
           outcome: string | null
           payload: Json | null
           processed_at: string
+          replay_request_count: number
+          replay_requested_at: string | null
+          replay_requested_by: string | null
+          replay_status: string
           status: string
           stripe_event_id: string
         }
@@ -6465,9 +6518,15 @@ export type Database = {
           error_message?: string | null
           event_type: string
           id?: string
+          last_error_at?: string | null
+          last_replayed_at?: string | null
           outcome?: string | null
           payload?: Json | null
           processed_at?: string
+          replay_request_count?: number
+          replay_requested_at?: string | null
+          replay_requested_by?: string | null
+          replay_status?: string
           status?: string
           stripe_event_id: string
         }
@@ -6476,9 +6535,15 @@ export type Database = {
           error_message?: string | null
           event_type?: string
           id?: string
+          last_error_at?: string | null
+          last_replayed_at?: string | null
           outcome?: string | null
           payload?: Json | null
           processed_at?: string
+          replay_request_count?: number
+          replay_requested_at?: string | null
+          replay_requested_by?: string | null
+          replay_status?: string
           status?: string
           stripe_event_id?: string
         }
@@ -8416,6 +8481,14 @@ export type Database = {
           p_property_id: string
         }
         Returns: boolean
+      }
+      request_stripe_event_replay: {
+        Args: {
+          p_notes?: string
+          p_requested_by: string
+          p_stripe_event_id: string
+        }
+        Returns: string
       }
       revoke_continuity_access: {
         Args: { _grant_id: string; _grant_type: string; _reason: string }
