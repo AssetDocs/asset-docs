@@ -8267,6 +8267,13 @@ export type Database = {
         }[]
       }
       get_user_plan: { Args: { target_user_id: string }; Returns: string }
+      get_vault_delegate_public_key: {
+        Args: { p_delegate_user_id: string }
+        Returns: {
+          key_version: number
+          public_key_jwk: Json
+        }[]
+      }
       has_account_access: {
         Args: { _min_role: string; _owner_user_id: string; _user_id: string }
         Returns: boolean
