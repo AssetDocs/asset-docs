@@ -27,7 +27,7 @@ Only build items marked `Code required` by the operator. Items marked `Accepted 
 
 | ID | Area | Build only if | Default launch posture |
 |---|---|---|---|
-| BILL-01 | Stripe webhook replay/repair | Manual repair of `stripe_events.outcome = 'error'` is not accepted | Operator daily repair accepted for MVP |
+| BILL-01 | Stripe webhook replay/repair | Implemented in code; needs migration/deploy/evidence | Operator daily repair accepted only if replay tooling is not deployed |
 | BILL-02 | Stripe dispute webhooks | Manual Stripe Dashboard dispute handling is not accepted | Manual dispute handling accepted for MVP |
 | BILL-03 | Admin refund flow | Manual Stripe Dashboard refunds are not accepted | Manual refunds accepted for MVP |
 | BILL-04 | Escalated dunning | Single app reminder plus Stripe smart retries is not accepted | Single reminder accepted for MVP |
@@ -41,16 +41,15 @@ Only build items marked `Code required` by the operator. Items marked `Accepted 
 
 ### Problem
 
-Handler-level Stripe webhook failures can set `stripe_events.outcome = 'error'` while still returning HTTP 200 to Stripe. Stripe will not necessarily retry those claimed events.
+Handler-level Stripe webhook failures can set `stripe_events.outcome = 'error'` while still returning HTTP 200 to Stripe. Stripe will not necessarily retry those claimed events unless an operator explicitly requests redelivery.
 
 ### Build
 
-- Add an admin-only replay or repair function for failed Stripe events.
-- Allow replay only for `stripe_events.outcome = 'error'`.
-- Reconstruct the Stripe event from the stored payload or refetch the event from Stripe by `stripe_event_id`.
-- Re-run the relevant handler idempotently.
-- Record replay attempts, actor, timestamp, previous outcome, new outcome, and error details.
-- Expose failed/replayed events in an admin billing/monitoring surface.
+- Apply `20260702100000_add_stripe_event_replay_requests.sql`.
+- Deploy `admin-request-stripe-event-replay` and the updated `stripe-webhook`.
+- Use Admin Billing > Stripe Reconciliation to mark an errored event ready for replay.
+- Redeliver the event from Stripe so the fresh signed payload re-enters `stripe-webhook`.
+- Confirm the replay request ledger records actor, timestamp, result outcome, and error details.
 
 ### Acceptance
 
@@ -61,7 +60,7 @@ Handler-level Stripe webhook failures can set `stripe_events.outcome = 'error'` 
 
 ### Lovable Prompt
 
-Implement an admin-only Stripe webhook replay/repair path for `stripe_events.outcome = 'error'`. It should be idempotent, audited, restricted to admin/dev workspace access, and should not delete original failed event evidence. Add an admin surface or monitoring card showing failed Stripe events and replay results.
+Verify the implemented admin-only Stripe webhook replay/repair path for `stripe_events.outcome = 'error'`. Apply the migration, deploy the two affected functions, mark one failed event ready for replay from the admin surface, redeliver it from Stripe, and capture the resulting `stripe_event_replay_requests` and `stripe_events` evidence.
 
 ## BILL-02: Stripe Dispute Webhooks
 
@@ -271,4 +270,3 @@ Implement external alert delivery for critical monitoring policies. Use owner-ap
 ## Operator Note
 
 For MVP launch, the recommended posture is to accept manual processes for disputes, refunds, dunning escalation, and external alerting, while requiring evidence for monitoring, cron health, receipt choice, gift payment-failure verification, support ownership, legal/privacy sign-off, restore drill, and security scan.
-

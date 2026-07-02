@@ -91,8 +91,11 @@ serve(async (req) => {
       return new Response('Invalid signature', { status: 400, headers: corsHeaders });
     }
 
+    let replayAttempt = false;
+
     // Atomically claim the Stripe event before running any handlers. A duplicate
-    // insert means another delivery already processed or is currently processing it.
+    // insert means another delivery already processed or is currently processing it,
+    // unless an admin has explicitly prepared a failed event for signed redelivery.
     const { error: claimError } = await supabase.from('stripe_events').insert({
       stripe_event_id: event.id,
       event_type: event.type,
@@ -101,12 +104,55 @@ serve(async (req) => {
     });
 
     if (claimError?.code === '23505') {
-      logStep('Event already claimed, skipping', { eventId: event.id });
-      return new Response(JSON.stringify({ received: true, skipped: true }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      const { data: existingEvent, error: existingEventError } = await supabase
+        .from('stripe_events')
+        .select('outcome, replay_status')
+        .eq('stripe_event_id', event.id)
+        .maybeSingle();
+
+      if (existingEventError) throw existingEventError;
+
+      if (existingEvent?.outcome === 'error' && existingEvent?.replay_status === 'requested') {
+        const replayStartedAt = new Date().toISOString();
+        const { data: replayClaimedEvent, error: replayClaimError } = await supabase
+          .from('stripe_events')
+          .update({
+            outcome: 'pending',
+            payload: event.data,
+            replay_status: 'processing',
+            last_replayed_at: replayStartedAt,
+            error_message: null,
+            last_error_at: null,
+          })
+          .eq('stripe_event_id', event.id)
+          .eq('replay_status', 'requested')
+          .select('stripe_event_id')
+          .maybeSingle();
+
+        if (replayClaimError) throw replayClaimError;
+        if (!replayClaimedEvent) {
+          logStep('Replay already claimed, skipping', { eventId: event.id });
+          return new Response(JSON.stringify({ received: true, skipped: true }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        await supabase
+          .from('stripe_event_replay_requests')
+          .update({ status: 'processing' })
+          .eq('stripe_event_id', event.id)
+          .eq('status', 'requested');
+
+        replayAttempt = true;
+        logStep('Replaying requested event', { eventId: event.id });
+      } else {
+        logStep('Event already claimed, skipping', { eventId: event.id });
+        return new Response(JSON.stringify({ received: true, skipped: true }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
     }
-    if (claimError) throw claimError;
+    if (claimError && claimError.code !== '23505') throw claimError;
 
     logStep('Processing event', { type: event.type, id: event.id });
 
@@ -116,7 +162,7 @@ serve(async (req) => {
     const subscriptionId = eventObject.subscription || eventObject.id || null;
     let amount: number | null = eventObject.amount_total || eventObject.amount_paid || eventObject.amount || eventObject.plan?.amount || null;
     
-    await supabase.from('payment_events').insert({
+    const { error: paymentEventInsertError } = await supabase.from('payment_events').insert({
       stripe_event_id: event.id,
       event_type: event.type,
       event_data: event.data,
@@ -126,8 +172,22 @@ serve(async (req) => {
       amount: amount,
       currency: eventObject.currency || 'usd'
     });
+    if (paymentEventInsertError?.code === '23505') {
+      await supabase.from('payment_events').update({
+        event_type: event.type,
+        event_data: event.data,
+        status: 'received',
+        customer_id: customerId,
+        subscription_id: typeof subscriptionId === 'string' ? subscriptionId : null,
+        amount: amount,
+        currency: eventObject.currency || 'usd'
+      }).eq('stripe_event_id', event.id);
+    } else if (paymentEventInsertError) {
+      throw paymentEventInsertError;
+    }
 
     let outcome = 'success';
+    let errorMessage: string | null = null;
     try {
       switch (event.type) {
         case 'customer.subscription.created':
@@ -184,15 +244,32 @@ serve(async (req) => {
       }
     } catch (processingError) {
       outcome = 'error';
-      logStep('Error processing event', { error: (processingError as Error).message });
+      errorMessage = (processingError as Error).message;
+      logStep('Error processing event', { error: errorMessage });
     }
 
+    const processedAt = new Date().toISOString();
     await supabase.from('stripe_events').update({ 
-      processed_at: new Date().toISOString(), outcome 
+      processed_at: processedAt,
+      outcome,
+      error_message: errorMessage,
+      last_error_at: outcome === 'error' ? processedAt : null,
+      ...(replayAttempt ? { replay_status: outcome === 'error' ? 'failed' : 'replayed' } : {})
     }).eq('stripe_event_id', event.id);
 
+    if (replayAttempt) {
+      await supabase.from('stripe_event_replay_requests').update({
+        status: outcome === 'error' ? 'failed' : 'succeeded',
+        processed_at: processedAt,
+        result_outcome: outcome,
+        error_message: errorMessage,
+      })
+      .eq('stripe_event_id', event.id)
+      .in('status', ['requested', 'processing']);
+    }
+
     await supabase.from('payment_events').update({ 
-      status: 'processed', processed_at: new Date().toISOString() 
+      status: outcome === 'error' ? 'error' : 'processed', processed_at: processedAt
     }).eq('stripe_event_id', event.id);
 
     return new Response(JSON.stringify({ received: true, outcome }), {

@@ -108,12 +108,25 @@ interface StripeWebhookHealth {
   health_status: 'ok' | 'warn' | 'page' | 'no_events';
 }
 
+interface StripeErroredEvent {
+  stripe_event_id: string;
+  event_type: string;
+  outcome: string;
+  created_at: string;
+  processed_at: string | null;
+  error_message: string | null;
+  replay_status: string | null;
+  replay_requested_at: string | null;
+  replay_request_count: number | null;
+}
+
 const StripeReconciliation = () => {
   const [subscriptions, setSubscriptions] = useState<StripeSubscription[]>([]);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [webhookHealth, setWebhookHealth] = useState<StripeWebhookHealth | null>(null);
+  const [erroredEvents, setErroredEvents] = useState<StripeErroredEvent[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   
   // Dialog states
@@ -123,6 +136,7 @@ const StripeReconciliation = () => {
   const [selectedSubscription, setSelectedSubscription] = useState<StripeSubscription | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<string>('');
   const [actionLoading, setActionLoading] = useState(false);
+  const [replayLoadingEventId, setReplayLoadingEventId] = useState<string | null>(null);
 
   const loadData = async () => {
     setLoading(true);
@@ -146,6 +160,19 @@ const StripeReconciliation = () => {
         console.warn('Unable to load Stripe webhook health:', healthError);
       } else {
         setWebhookHealth(healthData as StripeWebhookHealth | null);
+      }
+
+      const { data: erroredEventData, error: erroredEventError } = await supabase
+        .from('stripe_events')
+        .select('stripe_event_id, event_type, outcome, created_at, processed_at, error_message, replay_status, replay_requested_at, replay_request_count')
+        .eq('outcome', 'error')
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (erroredEventError) {
+        console.warn('Unable to load Stripe webhook errors:', erroredEventError);
+      } else {
+        setErroredEvents((erroredEventData || []) as StripeErroredEvent[]);
       }
 
       // Also load users for linking
@@ -302,6 +329,28 @@ const StripeReconciliation = () => {
     }
   };
 
+  const handleRequestReplay = async (stripeEventId: string) => {
+    setReplayLoadingEventId(stripeEventId);
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-request-stripe-event-replay', {
+        body: {
+          stripeEventId,
+          notes: 'Requested from Stripe Reconciliation admin panel',
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast.success('Stripe event marked ready for replay');
+      loadData();
+    } catch (error: any) {
+      toast.error('Failed to request replay: ' + error.message);
+    } finally {
+      setReplayLoadingEventId(null);
+    }
+  };
+
   const filteredSubscriptions = subscriptions.filter(sub => {
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();
@@ -373,6 +422,53 @@ const StripeReconciliation = () => {
                   {formatDate(webhookHealth.latest_error_at)}
                   {webhookHealth.latest_error_message ? ` · ${webhookHealth.latest_error_message}` : ''}
                 </p>
+              </div>
+            )}
+            {erroredEvents.length > 0 && (
+              <div className="mt-4 overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Event</TableHead>
+                      <TableHead>Created</TableHead>
+                      <TableHead>Replay</TableHead>
+                      <TableHead>Error</TableHead>
+                      <TableHead className="text-right">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {erroredEvents.map((event) => (
+                      <TableRow key={event.stripe_event_id}>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{event.event_type}</p>
+                            <p className="text-xs font-mono text-muted-foreground">{event.stripe_event_id}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>{formatDate(event.created_at)}</TableCell>
+                        <TableCell>
+                          <Badge variant={event.replay_status === 'requested' ? 'default' : 'outline'}>
+                            {event.replay_status || 'not_requested'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="max-w-xs truncate text-sm text-muted-foreground">
+                          {event.error_message || '-'}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={event.replay_status === 'requested' || event.replay_status === 'processing' || replayLoadingEventId === event.stripe_event_id}
+                            onClick={() => handleRequestReplay(event.stripe_event_id)}
+                          >
+                            <RefreshCw className={`w-3 h-3 mr-2 ${replayLoadingEventId === event.stripe_event_id ? 'animate-spin' : ''}`} />
+                            Prepare Replay
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             )}
           </CardContent>

@@ -22,7 +22,7 @@ Stripe remains the source of truth for money movement. Asset Safe's database is 
 | Area | Current behavior | Launch posture |
 |---|---|---|
 | Webhook claim/idempotency | `stripe_events` row is inserted with `outcome = 'pending'`; duplicates are skipped | Accept, but monitor failed outcomes |
-| Handler failure | Handler-level errors set `stripe_events.outcome = 'error'`; Stripe still receives HTTP 200 | P0: operator repair/replay path required |
+| Handler failure | Handler-level errors set `stripe_events.outcome = 'error'`; an admin can mark the event ready for replay, then Stripe redelivery reprocesses it | Deploy and verify replay tooling before launch |
 | Signature/config failure | Invalid signature or missing config returns non-2xx | Accept |
 | Disputes/chargebacks | Not handled by webhook; visible in Stripe only | Manual Stripe Dashboard review for MVP unless code is added |
 | Refunds | No admin refund edge function; visible in Stripe only | Manual Stripe Dashboard refund for MVP unless code is added |
@@ -38,7 +38,7 @@ These decisions should be recorded before launch.
 
 | Decision | Recommended MVP answer | If not accepted |
 |---|---|---|
-| Webhook replay/repair | Monitor `stripe_events.outcome = 'error'` daily and repair manually from Stripe Dashboard/event payload | Build admin replay function before launch |
+| Webhook replay/repair | Use Admin Billing > Stripe Reconciliation to prepare errored events for signed Stripe redelivery | Manual repair remains the fallback if replay evidence fails |
 | Disputes | Manual Stripe Dashboard handling; create support/billing issue for every dispute | Build `charge.dispute.*` webhook handling before launch |
 | Refunds | Manual Stripe Dashboard handling; record support/billing issue with Stripe refund ID | Build admin refund function and refund audit table |
 | Dunning | Keep one app-side payment reminder plus Stripe smart retries | Add `dunning_attempts` table and day-3/day-5/day-7 copy |
@@ -102,13 +102,15 @@ order by latest_seen desc;
 
 Do not delete failed Stripe event rows. They are operational evidence.
 
-### Future engineering hardening
+### Webhook Replay Verification
 
-Recommended later improvement:
+Before launch:
 
-- Add an admin-only replay function for `stripe_events.outcome = 'error'`.
-- Add a monitor/alert when any `error` outcome is older than 15 minutes.
-- Decide whether handler-level failures should return non-2xx before the event is marked terminal.
+- Apply `20260702100000_add_stripe_event_replay_requests.sql`.
+- Deploy `admin-request-stripe-event-replay` and the updated `stripe-webhook`.
+- Mark one `stripe_events.outcome = 'error'` event ready for replay from the admin surface.
+- Redeliver the event from Stripe and confirm `stripe_event_replay_requests.status` becomes `succeeded` or `failed` with details.
+- Confirm duplicate redelivery without a replay request still returns skipped.
 
 ## Stripe Event Severity Tiers
 
@@ -256,4 +258,3 @@ Before launch, confirm:
 - Gift payment-failure behavior is verified.
 - Billing manual review queue includes email-failure cases.
 - `check-payment-failures` and `expire-subscription-grace-periods-hourly` are scheduled and healthy.
-

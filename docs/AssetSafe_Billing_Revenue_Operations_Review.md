@@ -13,28 +13,11 @@ This addendum refreshes the earlier developer review of `AssetSafe_Billing_Reven
 - Scheduled gift delivery is deployed through `check-gift-deliveries`, with cron returning HTTP 200 no-op success.
 - Internal cron/function authentication now uses the shared `ASSETSAFE_SECRET_KEYS` / `assetsafe_secret_keys` helper instead of relying on the legacy service-role key as the public header value.
 - Monitoring alert policy rows and the Admin Monitoring surface are in place.
+- Stripe webhook replay/repair now has an admin request path and replay ledger in code. Apply migration `20260702100000_add_stripe_event_replay_requests.sql`, deploy `admin-request-stripe-event-replay` and `stripe-webhook`, then verify with a failed Stripe event redelivery.
 
 ## P0 Remaining Launch Items
 
-### 1. Stripe webhook failure recovery and replay
-
-Current risk: `stripe-webhook` records errored events with `outcome = 'error'`, but the operational replay/repair path is still not a first-class admin workflow.
-
-Impact: an event can be claimed and logged but require manual repair if local processing fails after idempotency capture.
-
-Recommended next step:
-
-- Add an admin-only replay/reprocess function for `stripe_events.outcome = 'error'`.
-- Add an Admin Billing/Monitoring card for recent errored Stripe events.
-- Document when operators should repair data manually versus replaying an event.
-
-Relevant implementation:
-
-- `supabase/functions/stripe-webhook/index.ts`
-- `public.stripe_events`
-- `public.payment_events`
-
-### 2. Refunds, disputes, and chargebacks
+### 1. Refunds, disputes, and chargebacks
 
 Current risk: dispute/refund events remain policy-defined but not fully implemented.
 
@@ -44,7 +27,7 @@ Recommended next step:
 - Decide which events require immediate read-only lock, admin review only, or no entitlement change.
 - Add a support/admin queue entry for dispute/chargeback review.
 
-### 3. Plan-change preview and proration disclosure
+### 2. Plan-change preview and proration disclosure
 
 Current risk: Stripe proration defaults are used, but the app does not show a clear pre-confirmation charge/credit preview.
 
