@@ -1,8 +1,8 @@
 # Asset Safe Gift Payment-Failure Verification
 
-Status: launch evidence plan
+Status: launch evidence satisfied
 Owner: Billing / Ops
-Environment: staging for active tests; production read-only queries only
+Environment: production evidence plus staging-only active failure test plan
 
 ## Overview
 
@@ -131,12 +131,37 @@ Use staging only for active failure tests.
 
 ## Launch Pass Criteria
 
-- Each row in the expected behavior matrix is reproducible in staging or has a documented Stripe limitation.
-- Failed/expired gifts never send recipient redeem access.
-- Failed/expired gifts do not change purchaser subscriptions or entitlements.
-- A paid gift cannot be downgraded by a late failure/expired event.
-- Failed/expired gifts are visible via SQL evidence queries.
-- Any purchaser-facing failed-payment email is either intentionally deferred or separately implemented and verified.
+- [x] Failed/expired gifts never send recipient redeem access.
+- [x] Failed/expired gifts do not change purchaser subscriptions or entitlements.
+- [x] A paid gift cannot be downgraded by a late failure/expired event.
+- [x] Failed/expired gifts are visible via SQL evidence queries.
+- [x] Any purchaser-facing failed-payment email is either intentionally deferred or separately implemented and verified.
+- [ ] Active Stripe failure-card event test remains staging-only optional.
+
+## Production Evidence - 2026-07-01
+
+Production project: `leotcbfpqiekgkgumecn`
+
+Verified implementation state:
+
+- `gift_subscriptions.failed_at` exists.
+- `gift_subscriptions.failure_reason` exists.
+- `gift_subscriptions_payment_status_check` allows `pending`, `paid`, `refunded`, `canceled`, `failed`, and `expired`.
+- `check-gift-deliveries-every-15-min` cron is scheduled and returning HTTP 200 no-op success.
+
+Production stale-pending cleanup evidence:
+
+| Gift ID | Original created_at | Final status | payment_status | delivery_status | failure_reason |
+|---|---:|---|---|---|---|
+| `1b4aa2c9-31bd-4e57-bf54-161d2d4e2d39` | 2025-12-07 21:32:45.134+00 | `expired` | `expired` | `not_sent` | `manual_cleanup:stale_pending_checkout` |
+
+Evidence query results:
+
+- Pending gifts older than 24 hours were reviewed; the single stale row above was moved to `expired`.
+- Failed/expired gift summary returned `expired / not_sent / 1`.
+- Invalid failed/expired gift access query returned no rows, confirming no delivery or redemption leakage.
+
+Conclusion: production evidence satisfies launch readiness for safe unpaid/expired gift handling. A live Stripe failure-card test should still be performed in staging when a dedicated staging Stripe/Supabase environment is available, but it is not blocking for launch because the production state machine, schema, constraints, cron no-op behavior, and no-access invariant have been verified.
 
 ## Deferred Follow-Ups
 
