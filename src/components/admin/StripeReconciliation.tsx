@@ -151,28 +151,13 @@ const StripeReconciliation = () => {
       setSubscriptions(data.subscriptions || []);
       setSummary(data.summary || null);
 
-      const { data: healthData, error: healthError } = await supabase
-        .from('stripe_webhook_health_status')
-        .select('*')
-        .maybeSingle();
+      const { data: webhookData, error: webhookError } = await supabase.functions.invoke('admin-stripe-webhook-health');
 
-      if (healthError) {
-        console.warn('Unable to load Stripe webhook health:', healthError);
+      if (webhookError || webhookData?.error) {
+        console.warn('Unable to load Stripe webhook health:', webhookError || webhookData?.error);
       } else {
-        setWebhookHealth(healthData as StripeWebhookHealth | null);
-      }
-
-      const { data: erroredEventData, error: erroredEventError } = await supabase
-        .from('stripe_events')
-        .select('stripe_event_id, event_type, outcome, created_at, processed_at, error_message, replay_status, replay_requested_at, replay_request_count')
-        .eq('outcome', 'error')
-        .order('created_at', { ascending: false })
-        .limit(5);
-
-      if (erroredEventError) {
-        console.warn('Unable to load Stripe webhook errors:', erroredEventError);
-      } else {
-        setErroredEvents((erroredEventData || []) as StripeErroredEvent[]);
+        setWebhookHealth(webhookData?.webhookHealth as StripeWebhookHealth | null);
+        setErroredEvents((webhookData?.erroredEvents || []) as StripeErroredEvent[]);
       }
 
       // Also load users for linking
