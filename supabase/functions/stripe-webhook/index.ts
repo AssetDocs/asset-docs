@@ -238,6 +238,13 @@ serve(async (req) => {
           await handleGiftPaymentIntentFailed(supabase, stripe, paymentIntent);
           break;
         }
+        case 'charge.dispute.created':
+        case 'charge.dispute.updated':
+        case 'charge.dispute.closed': {
+          const dispute = event.data.object as Stripe.Dispute;
+          await handleDisputeEvent(supabase, stripe, dispute, event.type, event.id);
+          break;
+        }
         default:
           logStep('Unhandled event type', { type: event.type });
           outcome = 'skipped';
@@ -957,6 +964,133 @@ async function findUserForStripeCustomer(
   }
 
   return { id: user.id, email: user.email };
+}
+
+async function handleDisputeEvent(
+  supabase: any,
+  stripe: Stripe,
+  dispute: Stripe.Dispute,
+  eventType: string,
+  sourceEventId: string,
+) {
+  logStep('Handling Stripe dispute event', { disputeId: dispute.id, eventType, status: dispute.status });
+  const disputeAny = dispute as any;
+
+  let charge: Stripe.Charge | null = null;
+  if (typeof dispute.charge === 'string') {
+    try {
+      charge = await stripe.charges.retrieve(dispute.charge);
+    } catch (error) {
+      logStep('Unable to retrieve dispute charge', { disputeId: dispute.id, chargeId: dispute.charge, error: (error as Error).message });
+    }
+  } else if (dispute.charge) {
+    charge = dispute.charge as Stripe.Charge;
+  }
+
+  const stripeCustomerId = typeof charge?.customer === 'string'
+    ? charge.customer
+    : typeof disputeAny.payment_intent === 'string'
+      ? null
+      : null;
+  const customer = stripeCustomerId ? await getCustomerEmail(stripe, stripeCustomerId) : null;
+  const user = stripeCustomerId ? await findUserForStripeCustomer(supabase, stripe, stripeCustomerId) : null;
+  const customerEmail = customer?.email || user?.email || charge?.billing_details?.email || null;
+  const evidenceDueBy = dispute.evidence_details?.due_by
+    ? new Date(dispute.evidence_details.due_by * 1000).toISOString()
+    : null;
+  const isClosed = eventType === 'charge.dispute.closed' || ['won', 'lost', 'warning_closed'].includes(dispute.status);
+  const outcome = isClosed ? dispute.status : null;
+  const openedAt = dispute.created ? new Date(dispute.created * 1000).toISOString() : new Date().toISOString();
+  const closedAt = isClosed ? new Date().toISOString() : null;
+  const supportPriority = isClosed && dispute.status === 'lost' ? 'critical' : 'high';
+
+  const { data: existingReview } = await supabase
+    .from('stripe_dispute_reviews')
+    .select('id, support_issue_id')
+    .eq('stripe_dispute_id', dispute.id)
+    .maybeSingle();
+
+  let supportIssueId = existingReview?.support_issue_id || null;
+  const issueTitle = isClosed
+    ? `Stripe dispute closed: ${dispute.id} (${dispute.status})`
+    : `Stripe dispute opened: ${dispute.id}`;
+  const issueDescription = [
+    `Stripe event: ${eventType}`,
+    `Dispute ID: ${dispute.id}`,
+    `Charge ID: ${typeof dispute.charge === 'string' ? dispute.charge : charge?.id || '-'}`,
+    `Payment intent: ${typeof disputeAny.payment_intent === 'string' ? disputeAny.payment_intent : '-'}`,
+    `Customer ID: ${stripeCustomerId || '-'}`,
+    `User ID: ${user?.id || '-'}`,
+    `Amount: ${dispute.amount ?? '-'} ${dispute.currency || ''}`,
+    `Reason: ${dispute.reason || '-'}`,
+    `Status: ${dispute.status || '-'}`,
+    `Evidence due: ${evidenceDueBy || '-'}`,
+    `Access action: review_required`,
+  ].join('\n');
+
+  if (supportIssueId) {
+    const { error: issueUpdateError } = await supabase
+      .from('dev_support_issues')
+      .update({
+        title: issueTitle,
+        description: issueDescription,
+        priority: supportPriority,
+        status: isClosed ? 'investigating' : 'new',
+        support_tier: 'priority',
+        escalation_reason: 'Stripe dispute requires billing review',
+      })
+      .eq('id', supportIssueId);
+    if (issueUpdateError) logStep('Unable to update dispute support issue', issueUpdateError);
+  } else {
+    const { data: issue, error: issueInsertError } = await supabase
+      .from('dev_support_issues')
+      .insert({
+        title: issueTitle,
+        description: issueDescription,
+        reported_by: customerEmail || stripeCustomerId || dispute.id,
+        type: 'billing_review',
+        priority: supportPriority,
+        status: 'new',
+        support_tier: 'priority',
+        escalation_reason: 'Stripe dispute requires billing review',
+      })
+      .select('id')
+      .maybeSingle();
+    if (issueInsertError) logStep('Unable to create dispute support issue', issueInsertError);
+    supportIssueId = issue?.id || null;
+  }
+
+  const reviewPayload = {
+    stripe_dispute_id: dispute.id,
+    stripe_charge_id: typeof dispute.charge === 'string' ? dispute.charge : charge?.id || null,
+    stripe_payment_intent_id: typeof disputeAny.payment_intent === 'string' ? disputeAny.payment_intent : null,
+    stripe_customer_id: stripeCustomerId,
+    user_id: user?.id || null,
+    customer_email: customerEmail,
+    amount: dispute.amount || null,
+    currency: dispute.currency || null,
+    reason: dispute.reason || null,
+    status: dispute.status || null,
+    outcome,
+    evidence_due_by: evidenceDueBy,
+    opened_at: openedAt,
+    closed_at: closedAt,
+    access_action_status: 'review_required',
+    support_issue_id: supportIssueId,
+    latest_event_id: sourceEventId,
+    raw_payload: dispute as any,
+  };
+
+  const { error: reviewError } = await supabase
+    .from('stripe_dispute_reviews')
+    .upsert(reviewPayload, { onConflict: 'stripe_dispute_id' });
+
+  if (reviewError) {
+    logStep('Unable to upsert stripe dispute review', reviewError);
+    throw reviewError;
+  }
+
+  logStep('Stripe dispute review recorded', { disputeId: dispute.id, supportIssueId });
 }
 
 async function sendPaymentReceipt(supabase: any, session: Stripe.Checkout.Session) {

@@ -28,7 +28,7 @@ Only build items marked `Code required` by the operator. Items marked `Accepted 
 | ID | Area | Build only if | Default launch posture |
 |---|---|---|---|
 | BILL-01 | Stripe webhook replay/repair | Implemented in code; needs migration/deploy/evidence | Operator daily repair accepted only if replay tooling is not deployed |
-| BILL-02 | Stripe dispute webhooks | Manual Stripe Dashboard dispute handling is not accepted | Manual dispute handling accepted for MVP |
+| BILL-02 | Stripe dispute webhooks | Implemented in code; needs migration/deploy/evidence | Manual dispute evidence submission remains in Stripe Dashboard |
 | BILL-03 | Admin refund flow | Manual Stripe Dashboard refunds are not accepted | Manual refunds accepted for MVP |
 | BILL-04 | Escalated dunning | Single app reminder plus Stripe smart retries is not accepted | Single reminder accepted for MVP |
 | BILL-05 | Receipt idempotency / source-of-truth | Asset Safe receipts remain enabled and duplicate risk is not accepted | Choose one receipt source operationally |
@@ -66,17 +66,16 @@ Verify the implemented admin-only Stripe webhook replay/repair path for `stripe_
 
 ### Problem
 
-`charge.dispute.created` and `charge.dispute.closed` are not handled by the Stripe webhook. Disputes are visible only in Stripe Dashboard.
+`charge.dispute.created`, `charge.dispute.updated`, and `charge.dispute.closed` are handled by the Stripe webhook after deployment. Evidence submission still happens in Stripe Dashboard.
 
 ### Build
 
-- Add database table or support issue integration for Stripe disputes.
-- Handle `charge.dispute.created`.
-- Handle `charge.dispute.closed`.
-- Store dispute ID, charge ID, customer ID, amount, reason, status, evidence due date, and outcome.
-- Open or update a billing support issue.
+- Apply `20260702110000_add_stripe_dispute_reviews.sql`.
+- Deploy the updated `stripe-webhook`.
+- Verify `charge.dispute.created`, `charge.dispute.updated`, and `charge.dispute.closed`.
+- Confirm `stripe_dispute_reviews` stores dispute ID, charge ID, customer ID, amount, reason, status, evidence due date, and outcome.
+- Confirm a billing review support issue is created or updated.
 - Do not automatically lock access unless the product decision says to.
-- Add admin review surface or monitoring row.
 
 ### Acceptance
 
@@ -87,7 +86,7 @@ Verify the implemented admin-only Stripe webhook replay/repair path for `stripe_
 
 ### Lovable Prompt
 
-Add Stripe dispute webhook handling for `charge.dispute.created` and `charge.dispute.closed`. Create auditable billing review records and support issue linkage, but do not automatically change account access unless the implementation includes an explicit reviewed access decision.
+Verify the implemented Stripe dispute webhook handling for `charge.dispute.created`, `charge.dispute.updated`, and `charge.dispute.closed`. Confirm auditable billing review records and support issue linkage are created, and confirm no account access changes occur without an explicit reviewed access decision.
 
 ## BILL-03: Admin Refund Flow
 

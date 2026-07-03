@@ -14,18 +14,19 @@ This addendum refreshes the earlier developer review of `AssetSafe_Billing_Reven
 - Internal cron/function authentication now uses the shared `ASSETSAFE_SECRET_KEYS` / `assetsafe_secret_keys` helper instead of relying on the legacy service-role key as the public header value.
 - Monitoring alert policy rows and the Admin Monitoring surface are in place.
 - Stripe webhook replay/repair now has an admin request path and replay ledger in code. Apply migration `20260702100000_add_stripe_event_replay_requests.sql`, deploy `admin-request-stripe-event-replay` and `stripe-webhook`, then verify with a failed Stripe event redelivery.
+- Stripe dispute webhook handling is in code for `charge.dispute.created`, `charge.dispute.updated`, and `charge.dispute.closed`. Apply migration `20260702110000_add_stripe_dispute_reviews.sql`, deploy `stripe-webhook`, then verify with Stripe dispute test events.
 
 ## P0 Remaining Launch Items
 
-### 1. Refunds, disputes, and chargebacks
+### 1. Refunds and chargeback access decisions
 
-Current risk: dispute/refund events remain policy-defined but not fully implemented.
+Current risk: dispute events now create auditable billing review records, but refund issuance and final account-access decisions remain manual/operator-owned.
 
 Recommended next step:
 
-- Add severity tiers for `charge.dispute.created`, `charge.dispute.closed`, `charge.refunded`, and related payment reversal events.
-- Decide which events require immediate read-only lock, admin review only, or no entitlement change.
-- Add a support/admin queue entry for dispute/chargeback review.
+- Decide whether manual Stripe Dashboard refunds are accepted for MVP or whether an admin refund function is required.
+- Decide which closed dispute outcomes require read-only access, admin review only, or no entitlement change.
+- Verify dispute-created and dispute-closed evidence in `stripe_dispute_reviews` and `dev_support_issues`.
 
 ### 2. Plan-change preview and proration disclosure
 
