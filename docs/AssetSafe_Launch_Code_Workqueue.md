@@ -27,12 +27,12 @@ Only build items marked `Code required` by the operator. Items marked `Accepted 
 
 | ID | Area | Build only if | Default launch posture |
 |---|---|---|---|
-| BILL-01 | Stripe webhook replay/repair | Implemented in code; needs migration/deploy/evidence | Operator daily repair accepted only if replay tooling is not deployed |
-| BILL-02 | Stripe dispute webhooks | Implemented in code; needs migration/deploy/evidence | Manual dispute evidence submission remains in Stripe Dashboard |
+| BILL-01 | Stripe webhook replay/repair | Implemented in code; final operator replay drill/evidence may still be attached | Operator daily repair accepted only if replay tooling is not deployed |
+| BILL-02 | Stripe dispute webhooks | Implemented, deployed, and test-evidenced | Manual dispute evidence submission remains in Stripe Dashboard |
 | BILL-03 | Admin refund flow | Deferred by owner for MVP | Manual Stripe Dashboard refunds accepted with webhook-confirmed local evidence |
 | BILL-04 | Escalated dunning | Single app reminder plus Stripe smart retries is not accepted | Single reminder accepted for MVP |
 | BILL-05 | Receipt idempotency / source-of-truth | Asset Safe receipts remain enabled and duplicate risk is not accepted | Choose one receipt source operationally |
-| BILL-06 | Gift payment-failure filter | Gift failure behavior cannot be verified | Add explicit gift filter |
+| BILL-06 | Gift payment-failure filter | Verified evidence is no longer accepted or behavior regresses | Add explicit gift filter |
 | BILL-07 | Trial reminder flow | Trials are marketed before current reminder path exists | Restore reminders or remove trial promise |
 | SEC-01 | Dual-secret webhook verification | Maintenance-window secret rotation is not accepted | Single active secret accepted for MVP |
 | MON-01 | External alert delivery | Dashboard/manual monitoring is not accepted | Dashboard/admin monitoring accepted for MVP |
@@ -83,6 +83,7 @@ Verify the implemented admin-only Stripe webhook replay/repair path for `stripe_
 - Closed dispute records won/lost/other outcome.
 - Access action is explicit, not accidental.
 - Manual Stripe Dashboard evidence submission remains supported.
+- Launch evidence: `stripe trigger charge.dispute.created` produced recent `stripe_dispute_reviews` and `dev_support_issues` rows.
 
 ### Lovable Prompt
 
@@ -117,10 +118,11 @@ Required evidence for each refund:
 
 ### Acceptance
 
-- Admin can issue approved full/partial refund.
-- Refund record is auditable.
-- Failed/refused refunds are recorded.
-- Entitlement/account access is not changed unless explicitly requested.
+- Manual Stripe Dashboard refund remains the MVP issuance path.
+- Refund record is auditable through `stripe_refund_reviews`.
+- Billing review support issue is created or updated.
+- Entitlement/account access is not changed unless explicitly reviewed.
+- Launch evidence: `stripe trigger charge.refunded` produced recent `stripe_refund_reviews` and `dev_support_issues` rows.
 
 ### Lovable Prompt
 

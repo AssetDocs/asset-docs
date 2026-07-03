@@ -50,6 +50,16 @@ Every event is recorded in `stripe_events` (`stripe_event_id` unique key) with `
 
 ---
 
+### 2.1 Launch Closure Update - 2026-07-03
+
+The original event-map notes above predate the July billing launch hardening work. For launch readiness, use this closure status:
+
+- `stripe_events` now tracks webhook processing through `outcome` values such as `pending`, `success`, `skipped`, and `error`; failed handler-level events can be prepared for signed Stripe redelivery from the admin replay workflow.
+- Gift payment failures and expired gift checkout sessions are handled separately from ordinary subscriber dunning. Evidence is recorded in `docs/AssetSafe_Gift_Payment_Failure_Verification.md`.
+- `charge.dispute.created`, `charge.dispute.updated`, and `charge.dispute.closed` create/update `stripe_dispute_reviews` rows and linked billing review support issues. Stripe evidence submission and account access changes remain manual/operator-owned for MVP.
+- `charge.refunded` creates/updates `stripe_refund_reviews` rows and linked billing review support issues. Refunds are initiated manually in Stripe Dashboard for MVP.
+- `invoice.upcoming`, `invoice.finalized`, `customer.subscription.trial_will_end`, payment-method-only events, and customer metadata updates remain logged/skipped/monitor-only unless a future product decision adds side effects.
+
 ## 3. Lifecycle Rules (Current)
 
 ### 3.1 Retry cadence (dunning)
@@ -214,6 +224,8 @@ Protected statuses (`deletion_requested`, `scheduled_for_deletion`, `deleted`) a
 ---
 
 ## 8. Open Items for Launch Review
+
+Launch closure note (2026-07-03): items 1, 3, 6, and 7 below are superseded for MVP by the webhook replay, gift-failure, dispute-review, and refund-review work described in section 2.1. Keep them here as historical context for future hardening, not as active P0 launch blockers.
 
 1. **Unhandled Stripe events** — `charge.dispute.created/closed`, `charge.refunded`, `customer.subscription.trial_will_end`, `invoice.upcoming`. Disputes today are silent; refunds invisible in app DB.
 2. **Single dunning reminder** — no day-3 / day-5 / day-7 escalation. Recommend a `dunning_attempts` table and graduated copy.

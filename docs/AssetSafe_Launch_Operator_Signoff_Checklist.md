@@ -44,12 +44,12 @@ Use `docs/AssetSafe_Lovable_P0_Launch_Readiness_Classification.md` as the curren
 | Area | Launch gate | Recommended decision | Owner | Evidence / ticket | Date |
 |---|---|---|---|---|---|
 | Billing | Monitor and repair `stripe_events.outcome = 'error'` | Operator action required |  |  |  |
-| Billing | Manual Stripe Dashboard dispute handling accepted, or webhook handling built | Webhook review evidence built; Stripe evidence submission remains manual |  | `stripe_dispute_reviews` + `dev_support_issues` test evidence |  |
-| Billing | Manual Stripe Dashboard refund handling accepted, or admin refund flow built | Manual Stripe Dashboard refunds accepted for MVP with support-ticket and webhook evidence |  | Record refund ID, amount, reason, approver, access decision, and `stripe_refund_reviews` row |  |
+| Billing | Manual Stripe Dashboard dispute handling accepted, or webhook handling built | Accepted MVP: webhook review evidence built; Stripe evidence submission remains manual |  | `stripe trigger charge.dispute.created` verified `stripe_dispute_reviews` + `dev_support_issues` evidence |  |
+| Billing | Manual Stripe Dashboard refund handling accepted, or admin refund flow built | Accepted MVP: manual Stripe Dashboard refunds with support-ticket and webhook evidence |  | `stripe trigger charge.refunded` verified `stripe_refund_reviews` + `dev_support_issues`; real refunds still require refund ID, amount, reason, approver, and access decision in support issue |  |
 | Billing | Single app-side dunning reminder accepted, or escalated dunning built | Accepted MVP |  |  |  |
 | Billing | Receipt strategy chosen: Stripe, Asset Safe, or both | Operator action required |  |  |  |
 | Billing | Trial reminder posture chosen before marketing trials | Operator action required |  |  |  |
-| Billing | Gift payment-failure behavior verified | Operator action required |  |  |  |
+| Billing | Gift payment-failure behavior verified | Accepted MVP with evidence |  | `docs/AssetSafe_Gift_Payment_Failure_Verification.md`; gift failed/expired events and `check-gift-deliveries` cron evidence captured |  |
 | Billing | `check-payment-failures` and `expire-subscription-grace-periods-hourly` healthy | Operator action required |  |  |  |
 | Data lifecycle | PITR enabled on production | Operator action required |  |  |  |
 | Data lifecycle | PITR restore drill passed and signed off | Operator action required |  |  |  |
@@ -97,7 +97,7 @@ This section records evidence gathered during launch-readiness work without repl
 | Security | Incident / scan readiness | Runbooks exist: `docs/AssetSafe_Security_Incident_Response_Runbook.md`, `docs/AssetSafe_Vulnerability_Scan_Runbook.md`, `docs/AssetSafe_Audit_Log_Retention_Runbook.md`; Resend webhook recovery and clean dependency audit/build evidence captured in `docs/AssetSafe_Launch_Evidence_Run_2026_07_01.md` | Run staging ZAP/manual auth scan, triage High/Critical findings, and schedule/complete incident tabletop |
 | Legal/compliance | DSAR, DMCA, legal request, Terms/Privacy paths | Runbooks exist and are indexed in `docs/AssetSafe_Launch_Packet_Index.md` | Counsel/operator approval still required for each intake path and active public version |
 | Support | Support/account recovery posture | Account recovery remains audited-review only; support ops runbook exists | Name `support@assetsafe.net` owner/backup and accept SLA/escalation matrix |
-| Billing | Manual billing ops posture | Billing launch runbook and code workqueue define manual MVP posture for disputes, refunds, dunning, receipts, gift failures, and trial reminders | Record owner decisions for receipt source, trial posture, gift failure verification, daily Stripe error review, and manual refund evidence |
+| Billing | Manual billing ops posture | Replay, gift failure, dispute, and refund evidence are implemented/tested; billing runbook and workqueue define manual MVP posture for dunning, receipts, and trial reminders | Record owner decisions for receipt source, trial posture, daily Stripe error review, billing support owner, and Stripe Dashboard retry/receipt settings |
 
 | Area | Follow-up | Recommended decision | Owner | Evidence / ticket | Date |
 |---|---|---|---|---|---|

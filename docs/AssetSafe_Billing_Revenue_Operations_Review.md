@@ -14,19 +14,20 @@ This addendum refreshes the earlier developer review of `AssetSafe_Billing_Reven
 - Internal cron/function authentication now uses the shared `ASSETSAFE_SECRET_KEYS` / `assetsafe_secret_keys` helper instead of relying on the legacy service-role key as the public header value.
 - Monitoring alert policy rows and the Admin Monitoring surface are in place.
 - Stripe webhook replay/repair now has an admin request path and replay ledger in code. Apply migration `20260702100000_add_stripe_event_replay_requests.sql`, deploy `admin-request-stripe-event-replay` and `stripe-webhook`, then verify with a failed Stripe event redelivery.
-- Stripe dispute webhook handling is in code for `charge.dispute.created`, `charge.dispute.updated`, and `charge.dispute.closed`. Apply migration `20260702110000_add_stripe_dispute_reviews.sql`, deploy `stripe-webhook`, then verify with Stripe dispute test events.
+- Stripe dispute webhook handling is live for `charge.dispute.created`, `charge.dispute.updated`, and `charge.dispute.closed`; `stripe trigger charge.dispute.created` produced both `stripe_dispute_reviews` and `dev_support_issues` evidence.
+- Refunds are manual in Stripe Dashboard for MVP, with webhook-backed local audit evidence. `stripe trigger charge.refunded` produced both `stripe_refund_reviews` and `dev_support_issues` evidence.
 
 ## P0 Remaining Launch Items
 
 ### 1. Refunds and chargeback access decisions
 
-Current risk: dispute and refund webhook events now create auditable billing review records, but final account-access decisions remain manual/operator-owned. Refunds are intentionally initiated manually in Stripe Dashboard for MVP with support-ticket and webhook evidence.
+Current posture: dispute and refund webhook events create auditable billing review records and linked support issues. Final account-access decisions remain manual/operator-owned. Refunds are intentionally initiated manually in Stripe Dashboard for MVP with support-ticket and webhook evidence.
 
 Recommended next step:
 
 - Decide which closed dispute outcomes require read-only access, admin review only, or no entitlement change.
-- Verify dispute-created and dispute-closed evidence in `stripe_dispute_reviews` and `dev_support_issues`.
-- For each refund, record the Stripe refund ID, amount, reason, approver, and access decision in a support/billing issue; verify the `charge.refunded` webhook row in `stripe_refund_reviews`.
+- Treat dispute/refund access action as an explicit review decision; do not let webhook ingestion change entitlements automatically.
+- For real refunds, record the Stripe refund ID, amount, reason, approver, and access decision in a support/billing issue; verify the `charge.refunded` webhook row in `stripe_refund_reviews`.
 
 ### 2. Plan-change preview and proration disclosure
 

@@ -24,12 +24,12 @@ Stripe remains the source of truth for money movement. Asset Safe's database is 
 | Webhook claim/idempotency | `stripe_events` row is inserted with `outcome = 'pending'`; duplicates are skipped | Accept, but monitor failed outcomes |
 | Handler failure | Handler-level errors set `stripe_events.outcome = 'error'`; an admin can mark the event ready for replay, then Stripe redelivery reprocesses it | Deploy and verify replay tooling before launch |
 | Signature/config failure | Invalid signature or missing config returns non-2xx | Accept |
-| Disputes/chargebacks | Not handled by webhook; visible in Stripe only | Manual Stripe Dashboard review for MVP unless code is added |
-| Refunds | No admin refund edge function; visible in Stripe only | Manual Stripe Dashboard refund for MVP unless code is added |
+| Disputes/chargebacks | `charge.dispute.*` events create `stripe_dispute_reviews` rows and billing review support issues | Accept; Stripe evidence submission and access decisions remain manual |
+| Refunds | Refunds are initiated manually in Stripe Dashboard; `charge.refunded` creates `stripe_refund_reviews` rows and billing review support issues | Accept manual Stripe refund handling for MVP |
 | Dunning | Stripe smart retries plus one app-side reminder | Acceptable MVP if owner accepts single app reminder |
 | Trial reminders | Columns exist; scheduled path is stale | Disable/defer trial reminder UX or rebuild before offering trials |
 | Receipts | App receipt may send from checkout/payment-intent paths; Stripe receipts may also be enabled | Owner must choose one or approve duplication |
-| Gift payment failures | Gift payment failures should not drive ordinary dunning | Verify latest webhook/gift behavior before launch |
+| Gift payment failures | Gift payment failures are handled separately from ordinary subscriber dunning | Accept with recorded gift failure verification evidence |
 | Manual fulfillment review | Admin queue includes `manual_review` and `fulfilled_email_failed` | Accept |
 
 ## P0 Launch Decisions
@@ -39,8 +39,8 @@ These decisions should be recorded before launch.
 | Decision | Recommended MVP answer | If not accepted |
 |---|---|---|
 | Webhook replay/repair | Use Admin Billing > Stripe Reconciliation to prepare errored events for signed Stripe redelivery | Manual repair remains the fallback if replay evidence fails |
-| Disputes | Manual Stripe Dashboard handling; create support/billing issue for every dispute | Build `charge.dispute.*` webhook handling before launch |
-| Refunds | Manual Stripe Dashboard handling; record support/billing issue with Stripe refund ID | Build admin refund function and refund audit table |
+| Disputes | Webhook creates local review evidence; Stripe Dashboard evidence submission and access decisions stay manual | Build automatic access-action workflow if manual review is rejected |
+| Refunds | Manual Stripe Dashboard refunds with support-ticket evidence and webhook-confirmed local audit rows | Build admin refund issuance UI/function if manual refund handling is rejected |
 | Dunning | Keep one app-side payment reminder plus Stripe smart retries | Add `dunning_attempts` table and day-3/day-5/day-7 copy |
 | Trial reminders | Do not market free trials until reminder path is restored or removed | Recreate `check-trial-reminders` flow |
 | Receipts | Use either Stripe receipts or Asset Safe branded receipts as the primary user receipt | Add idempotent receipt log and opt-out rules |
@@ -125,11 +125,11 @@ If Stripe introduces new event types in production, classify them before adding 
 
 ## Disputes And Chargebacks
 
-Current posture: disputes are handled manually in Stripe Dashboard.
+Current posture: dispute events are captured locally, but evidence submission and access decisions are handled manually.
 
 When a dispute is received:
 
-1. Create a billing support issue with priority `critical`.
+1. Confirm the webhook-created billing support issue exists, or create one manually if the event predates webhook coverage.
 2. Record Stripe dispute ID, charge ID, customer ID, subscription ID, amount, reason, due date, and evidence deadline.
 3. Check account ownership and recent account activity.
 4. Decide whether to keep the account active, move it to read-only, or freeze selected actions.
@@ -148,11 +148,11 @@ Recommended MVP access policy:
 
 ## Refunds
 
-Current posture: refunds are issued manually in Stripe Dashboard.
+Current posture: refunds are issued manually in Stripe Dashboard and confirmed locally by the `charge.refunded` webhook.
 
 Refund workflow:
 
-1. Create a billing support issue with priority `high` or `critical`.
+1. Create a billing support issue with priority `high` or `critical` before issuing the refund, or attach the webhook-created issue if the event arrived first.
 2. Verify requester authority: account owner or billing owner.
 3. Check cancellation status, subscription period, usage, gift status, and any legal/security hold.
 4. Decide full vs partial refund and whether access changes immediately.
@@ -253,7 +253,7 @@ Before launch, confirm:
 - Stripe Dashboard retry, receipt, refund, and dispute settings have been reviewed.
 - `stripe_events.outcome = 'error'` has an owner and daily check.
 - Billing support issues have an escalation owner.
-- Manual refund and dispute handling are accepted for MVP or replacement code is built.
+- Manual refund and dispute access-review handling are accepted for MVP; webhook evidence is verified.
 - Receipt strategy is chosen.
 - Trial reminder posture is chosen.
 - Gift payment-failure behavior is verified.
