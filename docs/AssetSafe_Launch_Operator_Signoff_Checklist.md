@@ -47,7 +47,7 @@ Use `docs/AssetSafe_Lovable_P0_Launch_Readiness_Classification.md` as the curren
 | Billing | Manual Stripe Dashboard dispute handling accepted, or webhook handling built | Accepted MVP: webhook review evidence built; Stripe evidence submission remains manual |  | `stripe trigger charge.dispute.created` verified `stripe_dispute_reviews` + `dev_support_issues` evidence |  |
 | Billing | Manual Stripe Dashboard refund handling accepted, or admin refund flow built | Accepted MVP: manual Stripe Dashboard refunds with support-ticket and webhook evidence |  | `stripe trigger charge.refunded` verified `stripe_refund_reviews` + `dev_support_issues`; real refunds still require refund ID, amount, reason, approver, and access decision in support issue |  |
 | Billing | Single app-side dunning reminder accepted, or escalated dunning built | Accepted MVP |  |  |  |
-| Billing | Receipt strategy chosen: Stripe, Asset Safe, or both | Operator action required |  |  |  |
+| Billing | Receipt strategy chosen: Stripe, Asset Safe, or both | Operator action required; app receipt idempotency implemented |  | Verify `subscription_email_events.idempotency_key` after receipt test; record whether Stripe receipts, Asset Safe receipts, or both are approved |  |
 | Billing | Trial reminder posture chosen before marketing trials | Operator action required |  |  |  |
 | Billing | Gift payment-failure behavior verified | Accepted MVP with evidence |  | `docs/AssetSafe_Gift_Payment_Failure_Verification.md`; gift failed/expired events and `check-gift-deliveries` cron evidence captured |  |
 | Billing | `check-payment-failures` and `expire-subscription-grace-periods-hourly` healthy | Operator action required |  |  |  |

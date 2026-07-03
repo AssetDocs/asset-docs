@@ -28,7 +28,7 @@ Stripe remains the source of truth for money movement. Asset Safe's database is 
 | Refunds | Refunds are initiated manually in Stripe Dashboard; `charge.refunded` creates `stripe_refund_reviews` rows and billing review support issues | Accept manual Stripe refund handling for MVP |
 | Dunning | Stripe smart retries plus one app-side reminder | Acceptable MVP if owner accepts single app reminder |
 | Trial reminders | Columns exist; scheduled path is stale | Disable/defer trial reminder UX or rebuild before offering trials |
-| Receipts | App receipt may send from checkout/payment-intent paths; Stripe receipts may also be enabled | Owner must choose one or approve duplication |
+| Receipts | Asset Safe receipt sends are deduped by Stripe transaction/email; Stripe receipts may also be enabled | Owner must choose one receipt source or approve both intentionally |
 | Gift payment failures | Gift payment failures are handled separately from ordinary subscriber dunning | Accept with recorded gift failure verification evidence |
 | Manual fulfillment review | Admin queue includes `manual_review` and `fulfilled_email_failed` | Accept |
 
@@ -43,7 +43,7 @@ These decisions should be recorded before launch.
 | Refunds | Manual Stripe Dashboard refunds with support-ticket evidence and webhook-confirmed local audit rows | Build admin refund issuance UI/function if manual refund handling is rejected |
 | Dunning | Keep one app-side payment reminder plus Stripe smart retries | Add `dunning_attempts` table and day-3/day-5/day-7 copy |
 | Trial reminders | Do not market free trials until reminder path is restored or removed | Recreate `check-trial-reminders` flow |
-| Receipts | Use either Stripe receipts or Asset Safe branded receipts as the primary user receipt | Add idempotent receipt log and opt-out rules |
+| Receipts | Use either Stripe receipts or Asset Safe branded receipts as the primary user receipt | Owner must approve both if both remain enabled |
 | Gift payment failures | Treat gift payment failures as non-dunning unless tied to an active redeemed recipient subscription | Add explicit gift filter in webhook/checker |
 
 ## Webhook Failure Recovery
@@ -188,7 +188,7 @@ Future escalation path:
 
 ## Receipts
 
-Current code can send Asset Safe receipts from checkout/payment-intent paths. Stripe may also send Stripe-hosted receipts depending on Dashboard settings.
+Current code can send Asset Safe receipts from checkout/payment-intent paths. Asset Safe receipt sends are idempotent through `subscription_email_events.idempotency_key`, keyed by Stripe transaction ID and recipient email. Stripe may also send Stripe-hosted receipts depending on Dashboard settings.
 
 Before launch, choose one:
 
@@ -196,9 +196,9 @@ Before launch, choose one:
 |---|---|---|
 | Stripe receipts only | Simplest | Disable or limit app receipt sends |
 | Asset Safe receipts only | Branded experience | Disable Stripe automatic receipts where possible |
-| Both receipts | Accept only if intentional | User may receive duplicates |
+| Both receipts | Accept only if intentional | User may receive both a Stripe-hosted receipt and an Asset Safe branded receipt |
 
-If app receipts remain enabled, add or verify idempotency through `subscription_email_events` or another durable email log before broad launch.
+If app receipts remain enabled, verify `subscription_email_events` records one `payment_receipt` row per Stripe transaction/recipient and skips duplicate webhook paths.
 
 ## Trial Reminders
 

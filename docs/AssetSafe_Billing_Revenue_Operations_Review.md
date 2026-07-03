@@ -67,12 +67,12 @@ Recommended next step:
 
 ### 6. Receipt trigger and duplicate-send policy
 
-Current risk: receipt sends can be triggered by multiple Stripe paths depending on event ordering.
+Current posture: receipt sends can be triggered by multiple Stripe paths depending on event ordering, but Asset Safe app receipts are now deduped through `subscription_email_events.idempotency_key`.
 
 Recommended next step:
 
 - Confirm whether Asset Safe relies on Stripe-hosted receipts, app receipts, or both.
-- Add or verify idempotency for app receipt sends.
+- Verify app receipt idempotency after migration `20260703120000_add_subscription_email_event_idempotency_key.sql` and deployment of `send-payment-receipt-internal`.
 - Update the event map with actual receipt trigger behavior.
 
 ## Documentation Corrections Needed

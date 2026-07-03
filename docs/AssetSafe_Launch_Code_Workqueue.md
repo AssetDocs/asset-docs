@@ -31,7 +31,7 @@ Only build items marked `Code required` by the operator. Items marked `Accepted 
 | BILL-02 | Stripe dispute webhooks | Implemented, deployed, and test-evidenced | Manual dispute evidence submission remains in Stripe Dashboard |
 | BILL-03 | Admin refund flow | Deferred by owner for MVP | Manual Stripe Dashboard refunds accepted with webhook-confirmed local evidence |
 | BILL-04 | Escalated dunning | Single app reminder plus Stripe smart retries is not accepted | Single reminder accepted for MVP |
-| BILL-05 | Receipt idempotency / source-of-truth | Asset Safe receipts remain enabled and duplicate risk is not accepted | Choose one receipt source operationally |
+| BILL-05 | Receipt idempotency / source-of-truth | Receipt idempotency evidence fails, or both receipt sources are not accepted | Choose one receipt source operationally |
 | BILL-06 | Gift payment-failure filter | Verified evidence is no longer accepted or behavior regresses | Add explicit gift filter |
 | BILL-07 | Trial reminder flow | Trials are marketed before current reminder path exists | Restore reminders or remove trial promise |
 | SEC-01 | Dual-secret webhook verification | Maintenance-window secret rotation is not accepted | Single active secret accepted for MVP |
@@ -157,13 +157,13 @@ Replace the single `payment_failure_reminder_sent` behavior with a durable dunni
 
 ### Problem
 
-Asset Safe can send app receipts while Stripe may also send receipts. Current receipt triggers may include checkout and payment-intent paths.
+Asset Safe can send app receipts while Stripe may also send receipts. Receipt triggers may include checkout and payment-intent paths.
 
 ### Build
 
 - Decide whether Asset Safe receipts remain enabled.
-- If enabled, add durable receipt idempotency keyed by Stripe event/payment object.
-- Check `subscription_email_events` or a new receipt log before sending.
+- If enabled, keep durable receipt idempotency keyed by Stripe transaction/recipient.
+- Check `subscription_email_events.idempotency_key` before sending.
 - Document whether Stripe automatic receipts should be disabled.
 
 ### Acceptance
@@ -171,6 +171,7 @@ Asset Safe can send app receipts while Stripe may also send receipts. Current re
 - A user does not receive duplicate Asset Safe receipts for the same payment.
 - Stripe/app double-send is either disabled or intentionally documented.
 - Receipt sends are visible in email/audit evidence.
+- Launch implementation: `subscription_email_events.idempotency_key` prevents duplicate Asset Safe receipt sends for the same Stripe transaction/recipient.
 
 ### Lovable Prompt
 
