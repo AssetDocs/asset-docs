@@ -88,7 +88,7 @@ const SubscriptionCheckout: React.FC = () => {
   };
 
   const commonFeatures = [
-    "30-day free trial",
+    "Monthly subscription access",
     "Photo and video uploads",
     "Full web platform access",
     "Voice notes for item details",
@@ -207,7 +207,7 @@ const SubscriptionCheckout: React.FC = () => {
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-semibold flex-shrink-0 mt-0.5">3</span>
-                      Complete your payment to start your free trial
+                      Complete your payment to activate your subscription
                     </li>
                   </ol>
                 </CardContent>
@@ -454,10 +454,9 @@ const SubscriptionCheckout: React.FC = () => {
                 </div>
 
                 <div className="mt-6 p-4 bg-muted rounded-lg">
-                  <h4 className="font-semibold mb-2">🎉 30-Day Free Trial</h4>
+                  <h4 className="font-semibold mb-2">Subscription Access</h4>
                   <p className="text-sm text-muted-foreground">
-                    Start your free trial today. You won't be charged until after your trial period ends. 
-                    Cancel anytime during the trial with no charges.
+                    Your subscription starts when payment is complete. You can manage or cancel billing from your account settings.
                   </p>
                 </div>
 

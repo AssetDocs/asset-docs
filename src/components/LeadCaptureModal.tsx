@@ -107,7 +107,7 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
 
       toast({
         title: "Thank you!",
-        description: "Your information has been saved and the inventory checklist is downloading! Find more valuable tools like this in your client dashboard when you start your free trial today. Limited time only!",
+        description: "Your information has been saved and the inventory checklist is downloading. Create your Asset Safe account to access more tools in your client dashboard.",
       });
 
       // Show success state with call-to-action
@@ -125,7 +125,7 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
     }
   };
 
-  const handleStartTrial = () => {
+  const handleCreateAccount = () => {
     window.location.href = '/auth';
   };
 
@@ -274,19 +274,16 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
             
             <div className="text-center space-y-4 py-4">
               <p className="text-muted-foreground">
-                Find more valuable tools like this in your client dashboard when you start your free trial today.
-              </p>
-              <p className="text-sm font-semibold text-primary">
-                Limited time only!
+                Create your Asset Safe account to access more tools in your client dashboard.
               </p>
               
               <div className="space-y-3">
                 <Button 
-                  onClick={handleStartTrial}
+                  onClick={handleCreateAccount}
                   className="w-full text-orange-500"
                   size="lg"
                 >
-                  Start Your Free 30-Day Trial
+                  Create Your Account
                 </Button>
                 
                 <Button 

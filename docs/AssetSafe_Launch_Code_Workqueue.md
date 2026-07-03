@@ -33,7 +33,7 @@ Only build items marked `Code required` by the operator. Items marked `Accepted 
 | BILL-04 | Escalated dunning | Single app reminder plus Stripe smart retries is not accepted | Single reminder accepted for MVP |
 | BILL-05 | Receipt idempotency / source-of-truth | Receipt idempotency evidence fails, or both receipt sources are not accepted | Choose one receipt source operationally |
 | BILL-06 | Gift payment-failure filter | Verified evidence is no longer accepted or behavior regresses | Add explicit gift filter |
-| BILL-07 | Trial reminder flow | Trials are marketed before current reminder path exists | Restore reminders or remove trial promise |
+| BILL-07 | Trial reminder flow | Free trials are reintroduced or marketed before a monitored reminder path exists | Restore reminders before offering trials |
 | SEC-01 | Dual-secret webhook verification | Maintenance-window secret rotation is not accepted | Single active secret accepted for MVP |
 | MON-01 | External alert delivery | Dashboard/manual monitoring is not accepted | Dashboard/admin monitoring accepted for MVP |
 
@@ -206,22 +206,26 @@ Add an explicit gift payment-failure filter to `stripe-webhook` and `check-payme
 
 Trial reminder columns exist, but the current scheduled function path is stale.
 
-### Build
+### MVP Decision
 
-- Either remove trial reminder promises from product/legal/support copy, or recreate `check-trial-reminders`.
+Owner decision: Asset Safe does not offer free trials for launch. Current paid options are monthly subscription and yearly gift.
+
+### Build Later If Trials Are Reintroduced
+
+- Recreate `check-trial-reminders`.
 - If rebuilding, send trial-ending reminders based on `subscribers.trial_end`.
 - Track `trial_reminder_sent`.
 - Add cron health.
 
 ### Acceptance
 
-- Trial reminder copy matches actual behavior.
+- Product/legal/support copy does not promise free trials for launch.
 - Reminder sends are idempotent.
 - Cron health is visible.
 
 ### Lovable Prompt
 
-Either remove trial reminder promises from user-facing/admin copy or restore a monitored `check-trial-reminders` flow that sends idempotent trial-ending notices and updates `subscribers.trial_reminder_sent`.
+No trial-reminder code is required for MVP because Asset Safe does not offer free trials for launch. If trials are reintroduced later, restore a monitored `check-trial-reminders` flow that sends idempotent trial-ending notices and updates `subscribers.trial_reminder_sent`.
 
 ## SEC-01: Dual-Secret Webhook Verification
 

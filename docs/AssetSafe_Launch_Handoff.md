@@ -69,7 +69,7 @@ Unless the operator changes the decision, the current default posture is:
 | Stripe disputes | Manual Stripe Dashboard handling |
 | Refunds | Manual Stripe Dashboard handling |
 | Dunning escalation | One app reminder plus Stripe smart retries |
-| Trial reminders | Do not market trials until reminder path is restored or removed |
+| Trial reminders | No free trials offered for launch; restore reminder path only if trials return |
 | Receipts | Operator chooses Stripe, Asset Safe, or both intentionally |
 | Gift payment failures | Verify behavior; build explicit filter only if not verified |
 | Webhook replay | Manual daily repair accepted unless operator requires admin replay tooling |
@@ -84,7 +84,7 @@ Do not start these unless the operator explicitly marks them `Code required` or 
 - Admin refund flow.
 - Stripe dispute webhook automation.
 - Escalated dunning campaign.
-- Trial reminder rebuild.
+- Trial reminder rebuild, only if free trials are reintroduced.
 - Dual-secret webhook verification.
 - External Slack/pager alert dispatcher.
 - Mobile app-store release pipeline.

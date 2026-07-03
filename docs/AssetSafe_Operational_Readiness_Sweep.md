@@ -54,7 +54,7 @@ These are not just operator checkboxes; they may require product or code changes
 | Stripe disputes | Billing doc identifies `charge.dispute.created/closed` as unhandled | Follow `docs/AssetSafe_Billing_Revenue_Launch_Runbook.md`: accept manual Stripe Dashboard handling for MVP or build webhook handling |
 | Refunds | Manual Stripe Dashboard refunds with no app-side refund edge function | Follow `docs/AssetSafe_Billing_Revenue_Launch_Runbook.md`: accept manual refund ops for MVP or build admin refund/audit flow |
 | Dunning escalation | Single payment reminder exists; no day-3/day-5/day-7 campaign | Follow `docs/AssetSafe_Billing_Revenue_Launch_Runbook.md`: accept single-reminder MVP or add escalated dunning |
-| Trial reminders | Columns exist but cron/function path is stale | Follow `docs/AssetSafe_Billing_Revenue_Launch_Runbook.md`: remove trial promise or restore scheduled reminders |
+| Trial reminders | Free trials are not offered for launch; stale cron/function path stays disabled | Follow `docs/AssetSafe_Billing_Revenue_Launch_Runbook.md`: restore scheduled reminders only if trials are reintroduced |
 | Webhook secret rotation | Runbook exists; dual-secret support is future hardening | Accept short maintenance-window rotation or add dual-secret verification |
 | Receipt duplication | Stripe and app receipt paths may both send receipts | Choose receipt source in `docs/AssetSafe_Billing_Revenue_Launch_Runbook.md` |
 | Gift payment failures | Gift subscriptions should not pollute normal dunning state | Verify behavior using `docs/AssetSafe_Billing_Revenue_Launch_Runbook.md` or add explicit gift filter |

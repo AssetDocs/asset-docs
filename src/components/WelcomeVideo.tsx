@@ -62,7 +62,7 @@ const WelcomeVideo: React.FC = () => {
     },
     {
       title: "Get Started Today",
-      description: "Your property documentation journey begins with a free 14-day trial",
+      description: "Your property documentation journey begins with your Asset Safe subscription",
       icon: Check,
       color: "text-brand-orange"
     }

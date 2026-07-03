@@ -27,7 +27,7 @@ Stripe remains the source of truth for money movement. Asset Safe's database is 
 | Disputes/chargebacks | `charge.dispute.*` events create `stripe_dispute_reviews` rows and billing review support issues | Accept; Stripe evidence submission and access decisions remain manual |
 | Refunds | Refunds are initiated manually in Stripe Dashboard; `charge.refunded` creates `stripe_refund_reviews` rows and billing review support issues | Accept manual Stripe refund handling for MVP |
 | Dunning | Stripe smart retries plus one app-side reminder | Acceptable MVP if owner accepts single app reminder |
-| Trial reminders | Columns exist; scheduled path is stale | Disable/defer trial reminder UX or rebuild before offering trials |
+| Trial reminders | Asset Safe does not offer free trials for launch; stale trial reminder path remains disabled | Accept; no trial reminder rebuild required |
 | Receipts | Asset Safe receipt sends are deduped by Stripe transaction/email; Stripe receipts may also be enabled | Owner must choose one receipt source or approve both intentionally |
 | Gift payment failures | Gift payment failures are handled separately from ordinary subscriber dunning | Accept with recorded gift failure verification evidence |
 | Manual fulfillment review | Admin queue includes `manual_review` and `fulfilled_email_failed` | Accept |
@@ -42,7 +42,7 @@ These decisions should be recorded before launch.
 | Disputes | Webhook creates local review evidence; Stripe Dashboard evidence submission and access decisions stay manual | Build automatic access-action workflow if manual review is rejected |
 | Refunds | Manual Stripe Dashboard refunds with support-ticket evidence and webhook-confirmed local audit rows | Build admin refund issuance UI/function if manual refund handling is rejected |
 | Dunning | Keep one app-side payment reminder plus Stripe smart retries | Add `dunning_attempts` table and day-3/day-5/day-7 copy |
-| Trial reminders | Do not market free trials until reminder path is restored or removed | Recreate `check-trial-reminders` flow |
+| Trial reminders | Do not offer or market free trials for launch | Recreate `check-trial-reminders` only if trials are reintroduced later |
 | Receipts | Use either Stripe receipts or Asset Safe branded receipts as the primary user receipt | Owner must approve both if both remain enabled |
 | Gift payment failures | Treat gift payment failures as non-dunning unless tied to an active redeemed recipient subscription | Add explicit gift filter in webhook/checker |
 
@@ -202,12 +202,13 @@ If app receipts remain enabled, verify `subscription_email_events` records one `
 
 ## Trial Reminders
 
-Do not market or enable a trial reminder promise until one of these is true:
+Launch posture: Asset Safe does not offer free trials. Current paid options are monthly subscription and yearly gift.
 
-- A current `check-trial-reminders` function and cron exist and are monitored.
-- Trial reminders are explicitly removed from product/legal/support copy.
+- Do not market free trials in product, legal, support, CRM, or ad copy.
+- Do not enable or schedule stale `check-trial-reminders` jobs for launch.
+- If trials are reintroduced later, restore a monitored `check-trial-reminders` function and cron before promising trial-ending notices.
 
-If trials are offered without app reminders, Stripe's own trial lifecycle emails should be reviewed in Stripe Dashboard and support should know the app does not send separate trial-ending notices.
+Stripe's own trial lifecycle emails are not part of the launch posture unless a future trial product is approved.
 
 ## Gift Payment Failures
 
@@ -255,7 +256,7 @@ Before launch, confirm:
 - Billing support issues have an escalation owner.
 - Manual refund and dispute access-review handling are accepted for MVP; webhook evidence is verified.
 - Receipt strategy is chosen.
-- Trial reminder posture is chosen.
+- Trial posture is chosen: no free trials offered for launch.
 - Gift payment-failure behavior is verified.
 - Billing manual review queue includes email-failure cases.
 - `check-payment-failures` and `expire-subscription-grace-periods-hourly` are scheduled and healthy.
