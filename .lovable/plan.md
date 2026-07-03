@@ -1,51 +1,64 @@
-## What Codex is asking for
+# Apply `subscription_email_events.idempotency_key` migration
 
-Codex has staged three new pieces already committed to the repo:
+## Status check (production `leotcbfpqiekgkgumecn`)
 
-1. Migration file: `supabase/migrations/20260702110000_add_stripe_dispute_reviews.sql` — creates `public.stripe_dispute_reviews`, adds `billing_review` to the `dev_support_type` enum, enables RLS, and adds two policies (service_role full access, admins read).
-2. Updated `stripe-webhook` edge function — already contains `handleDisputeEvent()` wired to `charge.dispute.created / updated / closed`, writing into `public.stripe_dispute_reviews` and opening a `dev_support_issues` row of type `billing_review`.
-3. A verification SQL query.
+- Migration file `supabase/migrations/20260703120000_add_subscription_email_event_idempotency_key.sql` exists in the repo but **has NOT been applied to production**.
+- Verified via `information_schema.columns` — `subscription_email_events` currently has only: `id, account_id, user_id, event_type, recipient_email, sent_at, status, resend_message_id, created_at`. No `idempotency_key` column.
+- Verified via `pg_indexes` — only `subscription_email_events_pkey` and `uniq_subscription_email_events_dedup` exist. No `uniq_subscription_email_events_idempotency_key`.
 
-You just need to (a) run the migration, (b) redeploy the webhook, (c) fire Stripe test dispute events, (d) run the SELECT to confirm rows landed.
+## Problem with the existing migration file
 
-## Gap I need to fix before applying
+The current file uses `ADD COLUMN IF NOT EXISTS` and `CREATE UNIQUE INDEX IF NOT EXISTS` but does NOT set an explicit `search_path` or wrap in a transaction block, and (more importantly per project rules) it does not re-assert GRANTs. The table already exists so no new `CREATE TABLE` GRANT block is required — existing grants on `subscription_email_events` carry over to the new column. RLS/policies on the table are unchanged and unaffected by adding a nullable column.
 
-The staged migration is missing the required `GRANT` statements for the new public-schema table. Without them PostgREST returns permission errors even though RLS policies exist. I'll add them as part of the apply step:
+## Plan
 
-- `GRANT SELECT ON public.stripe_dispute_reviews TO authenticated;` (admin read policy needs it)
-- `GRANT ALL ON public.stripe_dispute_reviews TO service_role;` (webhook writes)
-- No `anon` grant — table is admin/service-role only.
+Create and run a new corrected migration that:
 
-The rest of the migration is applied verbatim.
+1. Adds `idempotency_key text` (nullable) to `public.subscription_email_events` (idempotent).
+2. Creates partial unique index `uniq_subscription_email_events_idempotency_key` on `(idempotency_key) WHERE idempotency_key IS NOT NULL` (idempotent).
+3. Adds a short `COMMENT ON COLUMN` documenting purpose (dedupe key for `send-payment-receipt-internal`).
+4. No table create, so no new GRANTs required. RLS/policies unchanged.
 
-## Steps
+## Verification SQL (run after apply)
 
-1. **Apply migration** via `supabase--migration` — runs the staged SQL exactly as written **plus** the three `GRANT` lines above. This also extends the `dev_support_type` enum with `billing_review`.
-2. **Deploy `stripe-webhook`** via `supabase--deploy_edge_functions` (["stripe-webhook"]). The dispute handler code is already in place in `supabase/functions/stripe-webhook/index.ts` (lines 241–245, 969+).
-3. **Send test events from Stripe** — you (or Codex) trigger from Stripe Dashboard → Developers → Webhooks → your endpoint → "Send test webhook":
-   - `charge.dispute.created`
-   - `charge.dispute.updated`
-   - `charge.dispute.closed`
-   Or use Stripe CLI: `stripe trigger charge.dispute.created`.
-4. **Verify** — run in Supabase SQL Editor:
-   ```sql
-   select * from public.stripe_dispute_reviews
-   order by created_at desc
-   limit 10;
-   ```
-   Expect one row per test dispute with `status`, `reason`, `access_action_status='review_required'`, and a linked `support_issue_id`. Also check:
-   ```sql
-   select id, type, priority, title from public.dev_support_issues
-   where type = 'billing_review' order by created_at desc limit 10;
-   ```
-   And in Edge Function logs, look for `Handling Stripe dispute event`.
+```sql
+-- 1. Column exists and is nullable text
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_schema='public'
+  AND table_name='subscription_email_events'
+  AND column_name='idempotency_key';
 
-## Technical notes
+-- 2. Partial unique index exists
+SELECT indexname, indexdef
+FROM pg_indexes
+WHERE schemaname='public'
+  AND tablename='subscription_email_events'
+  AND indexname='uniq_subscription_email_events_idempotency_key';
 
-- No frontend changes; this is backend + webhook only.
-- Enum change (`ALTER TYPE ... ADD VALUE`) must be committed before it can be used by the webhook insert into `dev_support_issues.type`. The migration handles this in the same transaction boundary Supabase's runner supports (Postgres 15+ allows it).
-- Dropping/recreating policies is not needed — the file uses `CREATE POLICY` with fresh names.
-- After deploy, Edge Function logs: https://supabase.com/dashboard/project/leotcbfpqiekgkgumecn/functions/stripe-webhook/logs
+-- 3. Grants unchanged (sanity)
+SELECT grantee, privilege_type
+FROM information_schema.role_table_grants
+WHERE table_schema='public' AND table_name='subscription_email_events'
+ORDER BY grantee, privilege_type;
 
-## Approve to proceed
-Say "go" (or approve) and I'll: (1) call `supabase--migration` with the SQL + GRANTs, then (2) deploy `stripe-webhook`.
+-- 4. RLS still enabled
+SELECT relname, relrowsecurity
+FROM pg_class WHERE relname='subscription_email_events';
+
+-- 5. Functional dedupe test (should insert one row, second insert should error 23505)
+INSERT INTO public.subscription_email_events
+  (event_type, recipient_email, sent_at, idempotency_key)
+VALUES ('receipt.test','verify@example.com', now(), 'verify-idem-key-001');
+
+INSERT INTO public.subscription_email_events
+  (event_type, recipient_email, sent_at, idempotency_key)
+VALUES ('receipt.test','verify@example.com', now(), 'verify-idem-key-001');
+-- expect: duplicate key value violates unique constraint "uniq_subscription_email_events_idempotency_key"
+
+DELETE FROM public.subscription_email_events WHERE idempotency_key='verify-idem-key-001';
+```
+
+## Approval
+
+Approve this plan and I will call the migration tool with the corrected SQL, then hand you the verification queries above.
