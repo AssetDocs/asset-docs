@@ -158,7 +158,8 @@ Refund workflow:
 4. Decide full vs partial refund and whether access changes immediately.
 5. Issue refund in Stripe Dashboard.
 6. Record Stripe refund ID, amount, reason, approver, and access decision in the support issue.
-7. Confirm local entitlement status still matches intended access.
+7. Confirm `charge.refunded` created or updated a local `stripe_refund_reviews` row.
+8. Confirm local entitlement status still matches intended access.
 
 Do not promise refunds before owner/billing approval.
 

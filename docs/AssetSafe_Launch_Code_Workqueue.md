@@ -29,7 +29,7 @@ Only build items marked `Code required` by the operator. Items marked `Accepted 
 |---|---|---|---|
 | BILL-01 | Stripe webhook replay/repair | Implemented in code; needs migration/deploy/evidence | Operator daily repair accepted only if replay tooling is not deployed |
 | BILL-02 | Stripe dispute webhooks | Implemented in code; needs migration/deploy/evidence | Manual dispute evidence submission remains in Stripe Dashboard |
-| BILL-03 | Admin refund flow | Manual Stripe Dashboard refunds are not accepted | Manual refunds accepted for MVP |
+| BILL-03 | Admin refund flow | Deferred by owner for MVP | Manual Stripe Dashboard refunds accepted with webhook-confirmed local evidence |
 | BILL-04 | Escalated dunning | Single app reminder plus Stripe smart retries is not accepted | Single reminder accepted for MVP |
 | BILL-05 | Receipt idempotency / source-of-truth | Asset Safe receipts remain enabled and duplicate risk is not accepted | Choose one receipt source operationally |
 | BILL-06 | Gift payment-failure filter | Gift failure behavior cannot be verified | Add explicit gift filter |
@@ -94,7 +94,19 @@ Verify the implemented Stripe dispute webhook handling for `charge.dispute.creat
 
 Refunds are currently issued in Stripe Dashboard with no app-side refund workflow.
 
-### Build
+### MVP Decision
+
+Owner decision: keep refunds manual in Stripe Dashboard for MVP.
+
+Required evidence for each refund:
+
+- Support/billing issue exists before refund is issued.
+- Issue records requester, Stripe customer/payment reference, reason, requested amount, approved amount, approver, and access decision.
+- Stripe Dashboard refund ID is copied into the issue after completion.
+- `charge.refunded` webhook creates or updates a `stripe_refund_reviews` audit row.
+- Entitlement/account access changes are handled separately from refund issuance.
+
+### Build Later If Manual Handling Is Rejected
 
 - Add admin refund request/record table.
 - Add an admin-only edge function to issue full or partial refunds through Stripe.
@@ -112,7 +124,7 @@ Refunds are currently issued in Stripe Dashboard with no app-side refund workflo
 
 ### Lovable Prompt
 
-Build an admin-only refund workflow backed by Stripe refunds. Require reason and approver evidence, support full/partial refunds, persist Stripe refund IDs/status, and keep entitlement/account access changes separate from refund issuance.
+No refund-issuance UI required for MVP. Manual Stripe Dashboard refunds are accepted with support-ticket evidence and webhook-confirmed local audit rows. Revisit an admin-only refund workflow only if manual handling becomes too slow, too risky, or not auditable enough.
 
 ## BILL-04: Escalated Dunning
 

@@ -245,6 +245,11 @@ serve(async (req) => {
           await handleDisputeEvent(supabase, stripe, dispute, event.type, event.id);
           break;
         }
+        case 'charge.refunded': {
+          const charge = event.data.object as Stripe.Charge;
+          await handleChargeRefunded(supabase, stripe, charge, event.id);
+          break;
+        }
         default:
           logStep('Unhandled event type', { type: event.type });
           outcome = 'skipped';
@@ -1091,6 +1096,116 @@ async function handleDisputeEvent(
   }
 
   logStep('Stripe dispute review recorded', { disputeId: dispute.id, supportIssueId });
+}
+
+async function handleChargeRefunded(
+  supabase: any,
+  stripe: Stripe,
+  charge: Stripe.Charge,
+  sourceEventId: string,
+) {
+  logStep('Handling Stripe charge refunded', { chargeId: charge.id });
+
+  const refunds = charge.refunds?.data || [];
+  const refund = refunds.length > 0
+    ? refunds.reduce((latest: Stripe.Refund, current: Stripe.Refund) =>
+        (current.created || 0) > (latest.created || 0) ? current : latest,
+      )
+    : null;
+
+  if (!refund) {
+    logStep('charge.refunded did not include refund details', { chargeId: charge.id });
+    return;
+  }
+
+  const stripeCustomerId = typeof charge.customer === 'string' ? charge.customer : null;
+  const customer = stripeCustomerId ? await getCustomerEmail(stripe, stripeCustomerId) : null;
+  const user = stripeCustomerId ? await findUserForStripeCustomer(supabase, stripe, stripeCustomerId) : null;
+  const customerEmail = customer?.email || user?.email || charge.billing_details?.email || null;
+  const paymentIntentId = typeof charge.payment_intent === 'string' ? charge.payment_intent : null;
+  const isFailed = refund.status === 'failed' || refund.status === 'canceled';
+  const supportPriority = isFailed ? 'high' : 'medium';
+
+  const { data: existingReview } = await supabase
+    .from('stripe_refund_reviews')
+    .select('id, support_issue_id')
+    .eq('stripe_refund_id', refund.id)
+    .maybeSingle();
+
+  let supportIssueId = existingReview?.support_issue_id || null;
+  const issueTitle = `Stripe refund recorded: ${refund.id} (${refund.status || 'unknown'})`;
+  const issueDescription = [
+    `Stripe event: charge.refunded`,
+    `Refund ID: ${refund.id}`,
+    `Charge ID: ${charge.id}`,
+    `Payment intent: ${paymentIntentId || '-'}`,
+    `Customer ID: ${stripeCustomerId || '-'}`,
+    `User ID: ${user?.id || '-'}`,
+    `Amount: ${refund.amount ?? charge.amount_refunded ?? '-'} ${refund.currency || charge.currency || ''}`,
+    `Reason: ${refund.reason || '-'}`,
+    `Status: ${refund.status || '-'}`,
+    `Access action: review_required`,
+  ].join('\n');
+
+  if (supportIssueId) {
+    const { error: issueUpdateError } = await supabase
+      .from('dev_support_issues')
+      .update({
+        title: issueTitle,
+        description: issueDescription,
+        priority: supportPriority,
+        status: isFailed ? 'investigating' : 'new',
+        support_tier: 'priority',
+        escalation_reason: 'Stripe refund requires billing evidence review',
+      })
+      .eq('id', supportIssueId);
+    if (issueUpdateError) logStep('Unable to update refund support issue', issueUpdateError);
+  } else {
+    const { data: issue, error: issueInsertError } = await supabase
+      .from('dev_support_issues')
+      .insert({
+        title: issueTitle,
+        description: issueDescription,
+        reported_by: customerEmail || stripeCustomerId || refund.id,
+        type: 'billing_review',
+        priority: supportPriority,
+        status: 'new',
+        support_tier: 'priority',
+        escalation_reason: 'Stripe refund requires billing evidence review',
+      })
+      .select('id')
+      .maybeSingle();
+    if (issueInsertError) logStep('Unable to create refund support issue', issueInsertError);
+    supportIssueId = issue?.id || null;
+  }
+
+  const { error: reviewError } = await supabase
+    .from('stripe_refund_reviews')
+    .upsert({
+      stripe_refund_id: refund.id,
+      stripe_charge_id: charge.id,
+      stripe_payment_intent_id: paymentIntentId,
+      stripe_customer_id: stripeCustomerId,
+      user_id: user?.id || null,
+      customer_email: customerEmail,
+      amount: refund.amount || charge.amount_refunded || null,
+      currency: refund.currency || charge.currency || null,
+      reason: refund.reason || null,
+      status: refund.status || null,
+      outcome: isFailed ? 'failed' : 'recorded',
+      manual_review_status: 'needs_review',
+      access_action_status: 'review_required',
+      support_issue_id: supportIssueId,
+      latest_event_id: sourceEventId,
+      raw_payload: { charge, refund } as any,
+    }, { onConflict: 'stripe_refund_id' });
+
+  if (reviewError) {
+    logStep('Unable to upsert stripe refund review', reviewError);
+    throw reviewError;
+  }
+
+  logStep('Stripe refund review recorded', { refundId: refund.id, chargeId: charge.id, supportIssueId });
 }
 
 async function sendPaymentReceipt(supabase: any, session: Stripe.Checkout.Session) {

@@ -20,13 +20,13 @@ This addendum refreshes the earlier developer review of `AssetSafe_Billing_Reven
 
 ### 1. Refunds and chargeback access decisions
 
-Current risk: dispute events now create auditable billing review records, but refund issuance and final account-access decisions remain manual/operator-owned.
+Current risk: dispute and refund webhook events now create auditable billing review records, but final account-access decisions remain manual/operator-owned. Refunds are intentionally initiated manually in Stripe Dashboard for MVP with support-ticket and webhook evidence.
 
 Recommended next step:
 
-- Decide whether manual Stripe Dashboard refunds are accepted for MVP or whether an admin refund function is required.
 - Decide which closed dispute outcomes require read-only access, admin review only, or no entitlement change.
 - Verify dispute-created and dispute-closed evidence in `stripe_dispute_reviews` and `dev_support_issues`.
+- For each refund, record the Stripe refund ID, amount, reason, approver, and access decision in a support/billing issue; verify the `charge.refunded` webhook row in `stripe_refund_reviews`.
 
 ### 2. Plan-change preview and proration disclosure
 
@@ -82,4 +82,4 @@ Update `AssetSafe_Billing_Revenue_Operations.md` before treating it as the sourc
 - Clarify current gift payment-failure behavior and link to `AssetSafe_Gift_Payment_Failure_Verification.md`.
 - Keep billing grace enforcement distinct from legacy/recovery grace jobs.
 - Update cron inventory to include `check-gift-deliveries-every-15-min`.
-- Add explicit refund/dispute handling policy once decided.
+- Refund/dispute handling policy is decided for MVP: disputes create local review evidence; refunds remain manual in Stripe Dashboard with support-ticket evidence and `charge.refunded` local audit evidence.
