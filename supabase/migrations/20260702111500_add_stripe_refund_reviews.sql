@@ -24,6 +24,9 @@ CREATE TABLE IF NOT EXISTS public.stripe_refund_reviews (
   updated_at timestamp with time zone NOT NULL DEFAULT now()
 );
 
+GRANT SELECT ON public.stripe_refund_reviews TO authenticated;
+GRANT ALL ON public.stripe_refund_reviews TO service_role;
+
 ALTER TABLE public.stripe_refund_reviews ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Service role manages stripe refund reviews"

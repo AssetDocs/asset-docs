@@ -25,6 +25,9 @@ CREATE TABLE IF NOT EXISTS public.stripe_dispute_reviews (
   updated_at timestamp with time zone NOT NULL DEFAULT now()
 );
 
+GRANT SELECT ON public.stripe_dispute_reviews TO authenticated;
+GRANT ALL ON public.stripe_dispute_reviews TO service_role;
+
 ALTER TABLE public.stripe_dispute_reviews ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Service role manages stripe dispute reviews"
