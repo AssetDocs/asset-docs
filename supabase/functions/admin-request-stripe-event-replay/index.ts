@@ -39,14 +39,16 @@ serve(async (req) => {
       return json({ error: "unauthorized" }, 401);
     }
 
-    const { data: isAdmin, error: roleError } = await supabase.rpc("has_app_role", {
-      target_user_id: userRes.user.id,
-      required_role: "admin",
-    });
+    const { data: roleData, error: roleError } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userRes.user.id)
+      .eq("role", "admin")
+      .maybeSingle();
     if (roleError) {
       return json({ error: "role_check_failed", details: roleError.message }, 500);
     }
-    if (!isAdmin) {
+    if (!roleData) {
       return json({ error: "forbidden" }, 403);
     }
 
