@@ -6836,6 +6836,7 @@ export type Database = {
           created_at: string
           event_type: string
           id: string
+          idempotency_key: string | null
           recipient_email: string
           resend_message_id: string | null
           sent_at: string
@@ -6847,6 +6848,7 @@ export type Database = {
           created_at?: string
           event_type: string
           id?: string
+          idempotency_key?: string | null
           recipient_email: string
           resend_message_id?: string | null
           sent_at?: string
@@ -6858,6 +6860,7 @@ export type Database = {
           created_at?: string
           event_type?: string
           id?: string
+          idempotency_key?: string | null
           recipient_email?: string
           resend_message_id?: string | null
           sent_at?: string
