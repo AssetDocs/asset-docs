@@ -6629,6 +6629,80 @@ export type Database = {
         }
         Relationships: []
       }
+      stripe_refund_reviews: {
+        Row: {
+          access_action_status: string
+          amount: number | null
+          created_at: string
+          currency: string | null
+          customer_email: string | null
+          id: string
+          latest_event_id: string | null
+          manual_review_status: string
+          outcome: string | null
+          raw_payload: Json | null
+          reason: string | null
+          status: string | null
+          stripe_charge_id: string | null
+          stripe_customer_id: string | null
+          stripe_payment_intent_id: string | null
+          stripe_refund_id: string
+          support_issue_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          access_action_status?: string
+          amount?: number | null
+          created_at?: string
+          currency?: string | null
+          customer_email?: string | null
+          id?: string
+          latest_event_id?: string | null
+          manual_review_status?: string
+          outcome?: string | null
+          raw_payload?: Json | null
+          reason?: string | null
+          status?: string | null
+          stripe_charge_id?: string | null
+          stripe_customer_id?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_refund_id: string
+          support_issue_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          access_action_status?: string
+          amount?: number | null
+          created_at?: string
+          currency?: string | null
+          customer_email?: string | null
+          id?: string
+          latest_event_id?: string | null
+          manual_review_status?: string
+          outcome?: string | null
+          raw_payload?: Json | null
+          reason?: string | null
+          status?: string | null
+          stripe_charge_id?: string | null
+          stripe_customer_id?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_refund_id?: string
+          support_issue_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stripe_refund_reviews_support_issue_id_fkey"
+            columns: ["support_issue_id"]
+            isOneToOne: false
+            referencedRelation: "dev_support_issues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscribers: {
         Row: {
           anonymized_at: string | null
