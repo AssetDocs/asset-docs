@@ -6448,6 +6448,86 @@ export type Database = {
         }
         Relationships: []
       }
+      stripe_dispute_reviews: {
+        Row: {
+          access_action_status: string
+          amount: number | null
+          closed_at: string | null
+          created_at: string
+          currency: string | null
+          customer_email: string | null
+          evidence_due_by: string | null
+          id: string
+          latest_event_id: string | null
+          opened_at: string | null
+          outcome: string | null
+          raw_payload: Json | null
+          reason: string | null
+          status: string | null
+          stripe_charge_id: string | null
+          stripe_customer_id: string | null
+          stripe_dispute_id: string
+          stripe_payment_intent_id: string | null
+          support_issue_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          access_action_status?: string
+          amount?: number | null
+          closed_at?: string | null
+          created_at?: string
+          currency?: string | null
+          customer_email?: string | null
+          evidence_due_by?: string | null
+          id?: string
+          latest_event_id?: string | null
+          opened_at?: string | null
+          outcome?: string | null
+          raw_payload?: Json | null
+          reason?: string | null
+          status?: string | null
+          stripe_charge_id?: string | null
+          stripe_customer_id?: string | null
+          stripe_dispute_id: string
+          stripe_payment_intent_id?: string | null
+          support_issue_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          access_action_status?: string
+          amount?: number | null
+          closed_at?: string | null
+          created_at?: string
+          currency?: string | null
+          customer_email?: string | null
+          evidence_due_by?: string | null
+          id?: string
+          latest_event_id?: string | null
+          opened_at?: string | null
+          outcome?: string | null
+          raw_payload?: Json | null
+          reason?: string | null
+          status?: string | null
+          stripe_charge_id?: string | null
+          stripe_customer_id?: string | null
+          stripe_dispute_id?: string
+          stripe_payment_intent_id?: string | null
+          support_issue_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stripe_dispute_reviews_support_issue_id_fkey"
+            columns: ["support_issue_id"]
+            isOneToOne: false
+            referencedRelation: "dev_support_issues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stripe_event_replay_requests: {
         Row: {
           created_at: string
@@ -8584,6 +8664,7 @@ export type Database = {
         | "ux_issue"
         | "question"
         | "account_recovery"
+        | "billing_review"
       dev_task_priority: "low" | "medium" | "high" | "critical"
       dev_task_status: "todo" | "in_progress" | "done" | "archived"
       membership_role: "owner" | "full_access" | "read_only"
@@ -8769,6 +8850,7 @@ export const Constants = {
         "ux_issue",
         "question",
         "account_recovery",
+        "billing_review",
       ],
       dev_task_priority: ["low", "medium", "high", "critical"],
       dev_task_status: ["todo", "in_progress", "done", "archived"],
