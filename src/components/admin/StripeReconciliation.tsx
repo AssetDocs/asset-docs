@@ -120,12 +120,31 @@ interface StripeErroredEvent {
   replay_request_count: number | null;
 }
 
+const defaultStripeWebhookHealth: StripeWebhookHealth = {
+  monitor_name: 'stripe-webhook',
+  description: 'Stripe webhook processing lag and error monitor',
+  total_events: 0,
+  events_24h: 0,
+  pending_events: 0,
+  oldest_pending_at: null,
+  oldest_pending_minutes: null,
+  latest_event_at: null,
+  latest_processed_at: null,
+  error_events_24h: 0,
+  latest_error_event_id: null,
+  latest_error_event_type: null,
+  latest_error_at: null,
+  latest_error_message: null,
+  health_status: 'no_events',
+};
+
 const StripeReconciliation = () => {
   const [subscriptions, setSubscriptions] = useState<StripeSubscription[]>([]);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [webhookHealth, setWebhookHealth] = useState<StripeWebhookHealth | null>(null);
+  const [webhookHealthError, setWebhookHealthError] = useState<string | null>(null);
   const [erroredEvents, setErroredEvents] = useState<StripeErroredEvent[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -155,8 +174,11 @@ const StripeReconciliation = () => {
 
       if (webhookError || webhookData?.error) {
         console.warn('Unable to load Stripe webhook health:', webhookError || webhookData?.error);
+        setWebhookHealth(defaultStripeWebhookHealth);
+        setWebhookHealthError(webhookData?.details || webhookData?.error || webhookError?.message || 'Unable to load webhook health');
       } else {
-        setWebhookHealth(webhookData?.webhookHealth as StripeWebhookHealth | null);
+        setWebhookHealth((webhookData?.webhookHealth as StripeWebhookHealth | null) || defaultStripeWebhookHealth);
+        setWebhookHealthError(null);
         setErroredEvents((webhookData?.erroredEvents || []) as StripeErroredEvent[]);
       }
 
@@ -346,6 +368,7 @@ const StripeReconciliation = () => {
       sub.subscriptionId.toLowerCase().includes(term)
     );
   });
+  const displayedWebhookHealth = webhookHealth || defaultStripeWebhookHealth;
 
   return (
     <div className="space-y-6">
@@ -362,50 +385,55 @@ const StripeReconciliation = () => {
         </Button>
       </div>
 
-      {webhookHealth && (
-        <Card>
+      <Card>
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <CardTitle className="text-base">Stripe Webhook Health</CardTitle>
                 <CardDescription>Pending event lag and recent processing errors</CardDescription>
               </div>
-              {getWebhookHealthBadge(webhookHealth.health_status)}
+              {getWebhookHealthBadge(displayedWebhookHealth.health_status)}
             </div>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
               <div>
                 <p className="text-muted-foreground">Events 24h</p>
-                <p className="font-semibold">{webhookHealth.events_24h}</p>
+                <p className="font-semibold">{displayedWebhookHealth.events_24h}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Pending</p>
-                <p className="font-semibold">{webhookHealth.pending_events}</p>
+                <p className="font-semibold">{displayedWebhookHealth.pending_events}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Oldest Pending</p>
                 <p className="font-semibold">
-                  {webhookHealth.oldest_pending_minutes === null ? '-' : `${webhookHealth.oldest_pending_minutes} min`}
+                  {displayedWebhookHealth.oldest_pending_minutes === null ? '-' : `${displayedWebhookHealth.oldest_pending_minutes} min`}
                 </p>
               </div>
               <div>
                 <p className="text-muted-foreground">Errors 24h</p>
-                <p className="font-semibold">{webhookHealth.error_events_24h}</p>
+                <p className="font-semibold">{displayedWebhookHealth.error_events_24h}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Last Processed</p>
                 <p className="font-semibold">
-                  {webhookHealth.latest_processed_at ? formatDate(webhookHealth.latest_processed_at) : '-'}
+                  {displayedWebhookHealth.latest_processed_at ? formatDate(displayedWebhookHealth.latest_processed_at) : '-'}
                 </p>
               </div>
             </div>
-            {webhookHealth.latest_error_at && (
+            {webhookHealthError && (
+              <div className="mt-4 rounded-md border border-yellow-500/30 bg-yellow-500/5 p-3 text-sm">
+                <p className="font-medium">Webhook health unavailable</p>
+                <p className="text-muted-foreground">{webhookHealthError}</p>
+              </div>
+            )}
+            {displayedWebhookHealth.latest_error_at && (
               <div className="mt-4 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm">
-                <p className="font-medium">Latest error: {webhookHealth.latest_error_event_type || webhookHealth.latest_error_event_id}</p>
+                <p className="font-medium">Latest error: {displayedWebhookHealth.latest_error_event_type || displayedWebhookHealth.latest_error_event_id}</p>
                 <p className="text-muted-foreground">
-                  {formatDate(webhookHealth.latest_error_at)}
-                  {webhookHealth.latest_error_message ? ` · ${webhookHealth.latest_error_message}` : ''}
+                  {formatDate(displayedWebhookHealth.latest_error_at)}
+                  {displayedWebhookHealth.latest_error_message ? ` - ${displayedWebhookHealth.latest_error_message}` : ''}
                 </p>
               </div>
             )}
@@ -458,7 +486,6 @@ const StripeReconciliation = () => {
             )}
           </CardContent>
         </Card>
-      )}
 
       {/* Summary Stats */}
       {summary && (
