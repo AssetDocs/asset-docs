@@ -12,6 +12,7 @@ Companion docs:
 - `docs/AssetSafe_Support_Launch_Decision_Memo.md`
 - `docs/AssetSafe_Monitoring_Launch_Decision_Memo.md`
 - `docs/AssetSafe_Security_Incident_Response_Runbook.md`
+- `docs/AssetSafe_Security_Launch_Decision_Memo.md`
 - `docs/AssetSafe_Terms_Privacy_Update_Runbook.md`
 - `docs/AssetSafe_Launch_Evidence_Collection_Runbook.md`
 - `docs/AssetSafe_Lovable_P0_Launch_Readiness_Classification.md`
@@ -98,6 +99,7 @@ This section records evidence gathered during launch-readiness work without repl
 | Security | Production internal cron secret rotation | Fresh `sb_secret_...` internal secret was installed in Edge Function Secrets; docs now require `assetsafe_secret_keys` or `ASSETSAFE_SECRET_KEYS`; all lifecycle cron jobs were recreated | Choose and record the approved long-term production secret manager and access owner |
 | Security | Key rotation runbook | `docs/AssetSafe_Key_Rotation_Runbook.md` updated for Supabase secret API keys, lowercase secret support, static cron headers, `cron.job.command` exposure warning, and current schema-safe validation queries | Decide when to remove legacy service-role fallback from `isAuthorizedInternalCall(req)` |
 | Security | Incident / scan readiness | Runbooks exist: `docs/AssetSafe_Security_Incident_Response_Runbook.md`, `docs/AssetSafe_Vulnerability_Scan_Runbook.md`, `docs/AssetSafe_Audit_Log_Retention_Runbook.md`; Resend webhook recovery and clean dependency audit/build evidence captured in `docs/AssetSafe_Launch_Evidence_Run_2026_07_01.md` | Run staging ZAP/manual auth scan, triage High/Critical findings, and schedule/complete incident tabletop |
+| Security | Launch decision packet | `docs/AssetSafe_Security_Launch_Decision_Memo.md` separates owner-approval items from evidence-required items: secret manager and incident contacts can close after owner approval; vulnerability scan and tabletop stay open until evidence/scheduling exists | Operator should approve secret-manager/contact defaults and provide scan/tabletop evidence before final security closure |
 | Monitoring | Launch decision packet | `docs/AssetSafe_Monitoring_Launch_Decision_Memo.md` defines approved dashboard-first MVP monitoring, daily launch-week review, escalation thresholds, and follow-up external routing choices | Closed in P0 sign-off rows |
 | Legal/compliance | DSAR, DMCA, legal request, Terms/Privacy paths | Runbooks exist and are indexed in `docs/AssetSafe_Launch_Packet_Index.md` | Counsel/operator approval still required for each intake path and active public version |
 | Support | Support/account recovery posture | Account recovery remains audited-review only; support ops runbook exists | Name `support@assetsafe.net` owner/backup and accept SLA/escalation matrix |

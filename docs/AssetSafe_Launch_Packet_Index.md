@@ -43,7 +43,7 @@ Owner: Asset Safe operator / project owner
 | Continuity & legacy edge cases | `docs/AssetSafe_Continuity_Legacy_Operations.md`; launch decisions: `docs/AssetSafe_Continuity_Launch_Decision_Memo.md` |
 | Support & ops tooling | `docs/AssetSafe_Support_Ops_Runbook.md`; launch decisions: `docs/AssetSafe_Support_Launch_Decision_Memo.md` |
 | Monitoring & alerting | `docs/AssetSafe_Operational_Readiness_Sweep.md`; launch decisions: `docs/AssetSafe_Monitoring_Launch_Decision_Memo.md` |
-| Security operations | `docs/AssetSafe_Security_Incident_Response_Runbook.md` |
+| Security operations | `docs/AssetSafe_Security_Incident_Response_Runbook.md`; launch decisions: `docs/AssetSafe_Security_Launch_Decision_Memo.md` |
 | Compliance & legal ops | `docs/AssetSafe_Legal_Request_Runbook.md` |
 | Growth / product ops | `docs/AssetSafe_Growth_Product_Ops_Runbook.md` |
 | Multi-account / workspace ops | `docs/AssetSafe_Multi_Account_Workspace_Ops_Runbook.md` |
@@ -58,6 +58,7 @@ Owner: Asset Safe operator / project owner
 | Expired export cron | `docs/AssetSafe_Expired_Export_Cron_Runbook.md` |
 | Restore drill reminder cron | `docs/AssetSafe_Restore_Drill_Reminder_Cron_Runbook.md` |
 | Key rotation | `docs/AssetSafe_Key_Rotation_Runbook.md` |
+| Security launch decision memo | `docs/AssetSafe_Security_Launch_Decision_Memo.md` |
 | Vulnerability scanning | `docs/AssetSafe_Vulnerability_Scan_Runbook.md` |
 | Monitoring launch decision memo | `docs/AssetSafe_Monitoring_Launch_Decision_Memo.md` |
 | Audit log retention | `docs/AssetSafe_Audit_Log_Retention_Runbook.md` |
