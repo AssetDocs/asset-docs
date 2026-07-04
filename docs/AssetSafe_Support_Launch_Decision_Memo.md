@@ -17,8 +17,8 @@ This memo converts the remaining Support P0 launch gates into explicit MVP opera
 
 | Launch gate | Recommended decision | Evidence / implementation basis |
 |---|---|---|
-| `support@assetsafe.net` owner and backup named | Assign `support@assetsafe.net` to the Asset Safe operator/company owner as primary owner. Assign one named backup support operator before public launch. Backup must have access to the mailbox, admin support queue, Stripe Dashboard read/review access, and escalation contacts. | `docs/AssetSafe_Support_Ops_Runbook.md` defines `support@assetsafe.net` as primary intake and requires a named owner/backup. |
-| Support tiers, SLA targets, and escalation paths accepted | Accept the runbook SLA matrix for MVP: critical first response 1 hour / resolution target 8 hours; high 4 hours / 1 business day; medium 1 day / 3 days; low 2 days / 7 days. Support tiers are `standard`, `priority`, and `vip`; tiers affect queue order only and do not bypass security, legal, billing, continuity, deletion, or privacy gates. | `dev_support_issues` supports `support_tier`, SLA status, first-response due dates, resolution due dates, and escalation fields. `docs/AssetSafe_Support_Ops_Runbook.md` defines escalation paths. |
+| `support@assetsafe.net` owner and backup named | Michael Lewis is the primary owner for `support@assetsafe.net`. Backup support owner is not formally assigned for MVP; Michael Lewis retains responsibility for backup coverage until a backup owner is assigned. | `docs/AssetSafe_Support_Ops_Runbook.md` defines `support@assetsafe.net` as primary intake and requires a named owner/backup. |
+| Support tiers, SLA targets, and escalation paths accepted | Accept the runbook SLA matrix for MVP: critical first response 1 hour / resolution target 8 hours; high 4 hours / 1 business day; medium 1 day / 3 days; low 2 days / 7 days. Support tiers are `standard`, `priority`, and `vip`; tiers affect queue order only and do not bypass security, legal, billing, continuity, deletion, or privacy gates. This matrix may be revised after launch based on actual support volume and risk. | `dev_support_issues` supports `support_tier`, SLA status, first-response due dates, resolution due dates, and escalation fields. `docs/AssetSafe_Support_Ops_Runbook.md` defines escalation paths. |
 | Account recovery confirmed as audited-review only | Accept audited-review only. Support may approve, reject, or complete a recovery review, but no support issue automatically resets MFA, changes email, bypasses auth, grants ownership, exports files, or removes legal/continuity/deletion holds. | `dev_support_issues` includes `account_recovery`, recovery scenarios, identity/billing/action status columns, and admin review UI. No function is documented as bypassing auth or resetting MFA from a support issue. |
 | No write-capable impersonation for launch | Accept no write-capable impersonation for launch. Support uses admin panels, audit logs, support access reviews, provider dashboards, and user-provided screenshots. Any future view-as-user feature must be read-only, audited, expiring, and blocked from high-impact actions. | `docs/AssetSafe_Support_Ops_Runbook.md` prohibits write-capable impersonation at launch. `support_access_reviews` provides logged read-only support inspection workflow. |
 
@@ -28,8 +28,8 @@ Fill this section before final owner sign-off.
 
 | Role | Name / account | Access confirmed | Notes |
 |---|---|---|---|
-| Primary support owner |  |  | Owns `support@assetsafe.net`, daily queue review, and user-facing response quality |
-| Backup support owner |  |  | Must be able to cover urgent support during primary unavailability |
+| Primary support owner | Michael Lewis | Yes | Owns `support@assetsafe.net`, daily queue review, and user-facing response quality |
+| Backup support owner | Not formally assigned for MVP | Pending | Michael Lewis retains responsibility for backup coverage until a backup owner is assigned |
 | Billing escalation owner |  |  | Handles refunds, disputes, failed payments, and Stripe Dashboard actions |
 | Security escalation owner |  |  | Handles suspected unauthorized access, account recovery risk, and incident escalation |
 | Legal/privacy escalation owner |  |  | Handles DSAR, DMCA, legal requests, deletion disputes, and legal holds |
