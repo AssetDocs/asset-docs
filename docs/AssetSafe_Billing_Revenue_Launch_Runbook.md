@@ -61,6 +61,13 @@ Because handler-level failures are claimed and return 200, operators must monito
 
 ### Daily check
 
+Launch cadence:
+
+- Owner: `support@assetsafe.net` / billing operator.
+- During launch week: review daily before noon Central.
+- After launch week: reduce to 2-3x weekly if webhook health remains stable.
+- Escalate any `outcome = 'error'`, rising pending queue, or replay failure into a billing/support issue.
+
 ```sql
 select
   stripe_event_id,
@@ -68,7 +75,7 @@ select
   outcome,
   created_at,
   processed_at,
-  payload
+  error_message
 from public.stripe_events
 where outcome = 'error'
 order by created_at desc;
