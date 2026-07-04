@@ -33,7 +33,7 @@ Primary evidence source: `docs/AssetSafe_Launch_Evidence_Run_2026_07_01.md`.
 | Launch gate | Recommended decision | Evidence / action required |
 |---|---|---|
 | Production secret manager chosen | Accepted for MVP. Runtime/application secrets use Supabase Edge Function Secrets. Human/operator vault is 1Password for break-glass copies and rotation records. Primary owner is Michael Lewis. Backup owner is not formally assigned for MVP and should be assigned after launch or before broader rollout. | Approved by operator on 2026-07-04. `docs/AssetSafe_Production_Secret_Manager_Decision_Brief.md` remains the detailed operating brief. |
-| Pre-launch vulnerability scan completed with no untriaged High/Critical findings | Do not close yet. Dependency audit/build evidence is complete, but staging ZAP/manual auth-RLS abuse checks still need evidence. | Run staging scan/manual checks per `docs/AssetSafe_Vulnerability_Scan_Runbook.md`; no untriaged High/Critical findings may remain. |
+| Pre-launch vulnerability scan completed with no untriaged High/Critical findings | Deferred / Accepted MVP risk. Full staging environment plus active ZAP/Playwright scan evidence is deferred to P1 / pre-broad-launch hardening because staging is not yet provisioned. | Do not run active ZAP against production. Do not seed staging-style test accounts in production. Before broad launch, provision staging, seed role test accounts, run Playwright role-gate checks plus ZAP/manual auth-RLS checks, and confirm no untriaged High/Critical findings remain. |
 | Incident contacts and escalation path confirmed | Accepted for MVP. Michael Lewis is the primary security / incident / platform owner. Backup owner is not formally assigned for MVP. `support@assetsafe.net` remains the support escalation inbox. A formal backup owner should be assigned after launch or before broader rollout. | Approved by operator on 2026-07-04. |
 | Incident tabletop completed or scheduled before broad launch | Do not mark "completed" until the tabletop is run. For MVP, "scheduled" is acceptable only if date, participants, staging URL/project, scenario, and evidence location are recorded. | Fill `docs/AssetSafe_Security_Incident_Tabletop_Agenda.md` scheduling fields or attach completed evidence. |
 
@@ -47,17 +47,34 @@ Primary evidence source: `docs/AssetSafe_Launch_Evidence_Run_2026_07_01.md`.
 | Billing Lead | Michael Lewis | Not formally assigned for MVP | Owns Stripe Dashboard review, refunds/disputes, and billing evidence |
 | Counsel / Legal Operator | Michael Lewis until counsel is named | Counsel TBD | Must be involved for breach notification, legal requests, and user notice wording |
 
-## Vulnerability Scan Evidence Required
+## Vulnerability Scan MVP Deferral
 
-Minimum before closing the scan row:
+Operator decision on 2026-07-04: defer the full staging environment plus active ZAP/Playwright scan evidence to P1 / pre-broad-launch hardening.
+
+Compensating controls accepted for MVP:
+
+- Dependency audit passed with 0 vulnerabilities.
+- Production build passed.
+- Supabase linter/security warnings have been reviewed/fixed or documented.
+- RLS/security policies have been manually reviewed where applicable.
+- MFA/step-up/vault protections have been tested.
+- Billing/webhook flows have been tested.
+- Dashboard-first monitoring is accepted for MVP.
+- Incident response and secret manager decisions are accepted.
+
+Constraints:
+
+- Do not run active ZAP against production.
+- Do not seed staging-style test accounts in production.
+
+Requirement before broad launch:
 
 1. Staging or dedicated non-production target identified.
-2. ZAP baseline or equivalent passive scan completed.
-3. Manual auth/RLS abuse checks completed for owner, Authorized User, contributor/viewer, admin, and expired/read-only scenarios relevant to launch.
-4. GitHub/secret-scanning alerts reviewed.
-5. Dependency audit evidence attached.
-6. No untriaged High/Critical findings remain.
-7. Any accepted Medium or lower risk has owner/date/rationale.
+2. Staging test accounts seeded for owner, Authorized User / full access, read-only, admin, and expired/read-only scenarios where available.
+3. Playwright role-gate checks completed.
+4. ZAP baseline and/or manual auth-RLS checks completed.
+5. No untriaged High/Critical findings remain.
+6. Any accepted Medium or Low findings have owner, rationale, and due date.
 
 ## Incident Tabletop Evidence Required
 
@@ -78,7 +95,10 @@ Closed after owner approval:
 - Production secret manager chosen.
 - Incident contacts and escalation path confirmed.
 
-Keep open until evidence exists:
+Still open until evidence exists:
+
+- Incident tabletop completed or scheduled before broad launch.
+
+Deferred / accepted MVP risk:
 
 - Pre-launch vulnerability scan completed with no untriaged High/Critical findings.
-- Incident tabletop completed or scheduled before broad launch.
