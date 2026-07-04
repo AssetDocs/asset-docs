@@ -26,9 +26,9 @@ Stripe remains the source of truth for money movement. Asset Safe's database is 
 | Signature/config failure | Invalid signature or missing config returns non-2xx | Accept |
 | Disputes/chargebacks | `charge.dispute.*` events create `stripe_dispute_reviews` rows and billing review support issues | Accept; Stripe evidence submission and access decisions remain manual |
 | Refunds | Refunds are initiated manually in Stripe Dashboard; `charge.refunded` creates `stripe_refund_reviews` rows and billing review support issues | Accept manual Stripe refund handling for MVP |
-| Dunning | Stripe smart retries plus one app-side reminder | Acceptable MVP if owner accepts single app reminder |
+| Dunning | Stripe Smart Retries plus one app-side reminder | Accepted MVP: Smart Retries enabled, Stripe failed-payment emails disabled, Asset Safe sends branded notice |
 | Trial reminders | Asset Safe does not offer free trials for launch; stale trial reminder path remains disabled | Accept; no trial reminder rebuild required |
-| Receipts | Asset Safe receipt sends are deduped by Stripe transaction/email; Stripe receipts may also be enabled | Owner must choose one receipt source or approve both intentionally |
+| Receipts | Asset Safe receipt sends are deduped by Stripe transaction/email; Stripe customer receipt emails are disabled | Accepted MVP: Asset Safe receipts only |
 | Gift payment failures | Gift payment failures are handled separately from ordinary subscriber dunning | Accept with recorded gift failure verification evidence |
 | Manual fulfillment review | Admin queue includes `manual_review` and `fulfilled_email_failed` | Accept |
 
@@ -41,9 +41,9 @@ These decisions should be recorded before launch.
 | Webhook replay/repair | Use Admin Billing > Stripe Reconciliation to prepare errored events for signed Stripe redelivery | Manual repair remains the fallback if replay evidence fails |
 | Disputes | Webhook creates local review evidence; Stripe Dashboard evidence submission and access decisions stay manual | Build automatic access-action workflow if manual review is rejected |
 | Refunds | Manual Stripe Dashboard refunds with support-ticket evidence and webhook-confirmed local audit rows | Build admin refund issuance UI/function if manual refund handling is rejected |
-| Dunning | Keep one app-side payment reminder plus Stripe smart retries | Add `dunning_attempts` table and day-3/day-5/day-7 copy |
+| Dunning | Keep one app-side payment reminder plus Stripe Smart Retries | Add `dunning_attempts` table and day-3/day-5/day-7 copy |
 | Trial reminders | Do not offer or market free trials for launch | Recreate `check-trial-reminders` only if trials are reintroduced later |
-| Receipts | Use either Stripe receipts or Asset Safe branded receipts as the primary user receipt | Owner must approve both if both remain enabled |
+| Receipts | Use Asset Safe branded receipts as the primary user receipt; Stripe customer receipt emails disabled | Re-enable Stripe receipts only as a fallback if app receipts become unreliable |
 | Gift payment failures | Treat gift payment failures as non-dunning unless tied to an active redeemed recipient subscription | Add explicit gift filter in webhook/checker |
 
 ## Webhook Failure Recovery
@@ -174,7 +174,8 @@ Do not promise refunds before owner/billing approval.
 
 Current posture:
 
-- Stripe smart retries remain enabled in Stripe Dashboard.
+- Stripe Smart Retries are enabled in Stripe Dashboard: 8 retries over up to 2 weeks.
+- Stripe failed-payment customer emails are disabled intentionally.
 - App-side `check-payment-failures` runs daily and sends at most one reminder per failure cycle.
 - The 7-day app grace period begins on `invoice.payment_failed`.
 - `invoice.payment_succeeded` must clear `payment_failed_at` and `grace_period_ends_at`.
@@ -182,8 +183,8 @@ Current posture:
 
 Launch acceptance criteria:
 
-- Owner accepts one app-side reminder for MVP.
-- Stripe retry/email settings are reviewed in Stripe Dashboard.
+- Owner accepts one app-side failed-payment reminder for MVP.
+- Stripe retry/email settings are reviewed in Stripe Dashboard: Smart Retries enabled, Stripe failed-payment emails disabled.
 - `check-payment-failures` cron health is visible.
 - `expire-subscription-grace-periods-hourly` is installed and verified.
 
@@ -195,15 +196,15 @@ Future escalation path:
 
 ## Receipts
 
-Current code can send Asset Safe receipts from checkout/payment-intent paths. Asset Safe receipt sends are idempotent through `subscription_email_events.idempotency_key`, keyed by Stripe transaction ID and recipient email. Stripe may also send Stripe-hosted receipts depending on Dashboard settings.
+Current code sends Asset Safe branded receipts from checkout/payment-intent paths. Asset Safe receipt sends are idempotent through `subscription_email_events.idempotency_key`, keyed by Stripe transaction ID and recipient email. Stripe customer receipt emails are disabled for launch to avoid duplicate receipt-style emails.
 
-Before launch, choose one:
+Launch choice:
 
 | Option | Recommendation | Notes |
 |---|---|---|
-| Stripe receipts only | Simplest | Disable or limit app receipt sends |
-| Asset Safe receipts only | Branded experience | Disable Stripe automatic receipts where possible |
-| Both receipts | Accept only if intentional | User may receive both a Stripe-hosted receipt and an Asset Safe branded receipt |
+| Stripe receipts only | Deferred | Re-enable only if app receipts become unreliable |
+| Asset Safe receipts only | Accepted MVP | Branded receipt path; Stripe customer receipt emails disabled |
+| Both receipts | Not selected | Avoid duplicate receipt-style emails |
 
 If app receipts remain enabled, verify `subscription_email_events` records one `payment_receipt` row per Stripe transaction/recipient and skips duplicate webhook paths.
 
@@ -262,7 +263,7 @@ Before launch, confirm:
 - `stripe_events.outcome = 'error'` has an owner and daily check.
 - Billing support issues have an escalation owner.
 - Manual refund and dispute access-review handling are accepted for MVP; webhook evidence is verified.
-- Receipt strategy is chosen.
+- Receipt strategy is chosen: Asset Safe receipts only; Stripe customer receipt emails disabled.
 - Trial posture is chosen: no free trials offered for launch.
 - Gift payment-failure behavior is verified.
 - Billing manual review queue includes email-failure cases.
