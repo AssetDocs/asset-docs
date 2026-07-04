@@ -33,7 +33,7 @@ Evidence source: `docs/AssetSafe_Launch_Evidence_Run_2026_07_01.md`.
 
 | Launch gate | Recommended decision | Evidence / implementation basis |
 |---|---|---|
-| External alert routing chosen | Accept dashboard-first monitoring for MVP, with Michael Lewis / support owner responsible for daily launch-week review. Use Admin Monitoring, Admin Database, Admin Billing Stripe Webhook Health, Resend dashboard, Supabase Edge Function logs, and SQL health queries as the source of truth. Keep Slack/pager as P1 unless an external service is configured before launch. | `monitoring_alert_policies` exists for routing policy records. Admin surfaces exist for cron, database/storage, Stripe webhook health, and email deliverability. |
+| External alert routing chosen | Dashboard-first monitoring is accepted for MVP, with Michael Lewis / support owner responsible for daily launch-week review. Use Admin Monitoring, Admin Database, Admin Billing Stripe Webhook Health, Resend dashboard, Supabase Edge Function logs, and SQL health queries as the source of truth. Use `support@assetsafe.net` as the human escalation inbox for user-impacting issues. Keep Slack/pager as P1 unless configured and tested before launch. | `monitoring_alert_policies` exists for routing policy records. Admin surfaces exist for cron, database/storage, Stripe webhook health, and email deliverability. |
 | First real cron successes reviewed after scheduling | Accept as complete. The July 1 evidence run showed all eight lifecycle jobs `ok` / `succeeded`, `consecutive_failures=0`, and `last_error=null`. | `docs/AssetSafe_Launch_Evidence_Run_2026_07_01.md`. |
 
 ## MVP Routing Policy
@@ -46,6 +46,7 @@ Recommended launch posture:
 4. Use `support@assetsafe.net` as the human escalation inbox for user-impacting issues until Slack/pager routing is configured.
 5. Use Supabase logs, Resend dashboard, Stripe Dashboard, and SQL evidence queries for root-cause review.
 6. If launch traffic increases or dashboard-only review becomes too quiet, configure Slack/email/pager routing as P1.
+7. Revisit dashboard-first monitoring after launch traffic begins or within 30 days, whichever comes first.
 
 ## Alert Severity Matrix
 
