@@ -54,8 +54,8 @@ Use `docs/AssetSafe_Lovable_P0_Launch_Readiness_Classification.md` as the curren
 | Data lifecycle | PITR enabled on production | Operator action required |  |  |  |
 | Data lifecycle | PITR restore drill passed and signed off | Operator action required |  |  |  |
 | Data lifecycle | Storage backup posture accepted | Operator action required |  |  |  |
-| Data lifecycle | Bucket lifecycle policy accepted | Operator action required |  |  |  |
-| Data lifecycle | Required data lifecycle cron health verified | Operator action required |  |  |  |
+| Data lifecycle | Bucket lifecycle policy accepted | Accepted MVP | Asset Safe operator / platform | Admin Database Bucket Lifecycle Policies evidence captured; `exports` bucket private; `floor-plans` accepted as not launch-required on 2026-06-24; managed export round trip succeeded in `docs/AssetSafe_Launch_Evidence_Run_2026_06_29.md` | 2026-07-03 |
+| Data lifecycle | Required data lifecycle cron health verified | Accepted MVP | Asset Safe operator / platform | `docs/AssetSafe_Launch_Evidence_Run_2026_07_01.md`: all 8 lifecycle jobs `ok`/`succeeded`, `consecutive_failures=0`, `last_error=null` | 2026-07-03 |
 | Data lifecycle | Legal retention schedule reviewed | Operator action required |  |  |  |
 | Continuity | Evidence retention for death/legal documents decided | Operator action required |  |  |  |
 | Continuity | Second-review rules for high-risk continuity cases decided | Operator action required |  |  |  |
@@ -88,8 +88,8 @@ This section records evidence gathered during launch-readiness work without repl
 
 | Area | Gate | Current evidence status | Remaining action |
 |---|---|---|---|
-| Data lifecycle | Required lifecycle cron health | Final evidence captured in `docs/AssetSafe_Launch_Evidence_Run_2026_07_01.md`; all 8 lifecycle jobs returned `ok` / `succeeded` with `consecutive_failures=0` and `last_error=null` | Operator can attach final screenshot/query result to sign-off row |
-| Data lifecycle | Private export bucket and managed export round trip | `exports` bucket confirmed private; `process-expired-exports` returned HTTP `200` after `20260622113000_expire_account_export_bundles.sql` and schema reload; real **Export Account Archive** round trip succeeded with evidence in `docs/AssetSafe_Launch_Evidence_Run_2026_06_29.md` | Verify expiry behavior after the 7-day TTL, or against a controlled test row if pre-launch expiry evidence is required |
+| Data lifecycle | Required lifecycle cron health | Final evidence captured in `docs/AssetSafe_Launch_Evidence_Run_2026_07_01.md`; all 8 lifecycle jobs returned `ok` / `succeeded` with `consecutive_failures=0` and `last_error=null` | Closed in P0 sign-off row |
+| Data lifecycle | Private export bucket and managed export round trip | `exports` bucket confirmed private; `process-expired-exports` returned HTTP `200` after `20260622113000_expire_account_export_bundles.sql` and schema reload; real **Export Account Archive** round trip succeeded with evidence in `docs/AssetSafe_Launch_Evidence_Run_2026_06_29.md` | Keep 7-day TTL expiry as follow-up evidence unless pre-launch expiry proof is required |
 | Data lifecycle | Account closure sweeper | `process-account-closures` returned HTTP `200` after `delete-account` was updated to use Storage API prefix scans | Keep the 207/500 failure and fix evidence with the launch evidence note |
 | Monitoring | First real cron successes | Latest lifecycle health evidence in `docs/AssetSafe_Launch_Evidence_Run_2026_07_01.md` confirms all 8 lifecycle jobs healthy after cadence windows elapsed; stale 401 rows identified as pre-rotation failures | Keep routine dashboard review cadence active |
 | Security | Production internal cron secret rotation | Fresh `sb_secret_...` internal secret was installed in Edge Function Secrets; docs now require `assetsafe_secret_keys` or `ASSETSAFE_SECRET_KEYS`; all lifecycle cron jobs were recreated | Choose and record the approved long-term production secret manager and access owner |
