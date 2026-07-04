@@ -9,6 +9,7 @@ Companion docs:
 - `docs/AssetSafe_Data_Lifecycle_External_Controls_Runbook.md`
 - `docs/AssetSafe_Continuity_Launch_Decision_Memo.md`
 - `docs/AssetSafe_Support_Ops_Runbook.md`
+- `docs/AssetSafe_Support_Launch_Decision_Memo.md`
 - `docs/AssetSafe_Security_Incident_Response_Runbook.md`
 - `docs/AssetSafe_Terms_Privacy_Update_Runbook.md`
 - `docs/AssetSafe_Launch_Evidence_Collection_Runbook.md`
@@ -64,8 +65,8 @@ Use `docs/AssetSafe_Lovable_P0_Launch_Readiness_Classification.md` as the curren
 | Continuity | Continuity tabletop completed or scheduled before broad launch | Accepted MVP | Asset Safe operator / continuity reviewer | `docs/AssetSafe_Continuity_Launch_Decision_Memo.md` and `docs/AssetSafe_Continuity_Incident_Tabletop_Runbook.md`: one tabletop required before broad continuity launch; record scenario, participants, outcome, and follow-up actions | 2026-07-03 |
 | Support | `support@assetsafe.net` owner and backup named | Operator action required |  |  |  |
 | Support | Support tiers, SLA targets, and escalation paths accepted | Operator action required |  |  |  |
-| Support | Account recovery confirmed as audited-review only | Accepted MVP |  |  |  |
-| Support | No write-capable impersonation for launch | Accepted MVP |  |  |  |
+| Support | Account recovery confirmed as audited-review only | Accepted MVP | Asset Safe operator / support lead | `docs/AssetSafe_Support_Launch_Decision_Memo.md`; `dev_support_issues` supports `account_recovery`, recovery scenarios, identity/billing/action review statuses; support issue review does not automatically reset MFA, change email, bypass auth, grant ownership, or export data | 2026-07-03 |
+| Support | No write-capable impersonation for launch | Accepted MVP | Asset Safe operator / support lead | `docs/AssetSafe_Support_Launch_Decision_Memo.md` and `docs/AssetSafe_Support_Ops_Runbook.md`: no write-capable impersonation for launch; account-level inspection uses admin panels, audit logs, provider dashboards, screenshots, and logged `support_access_reviews` when available | 2026-07-03 |
 | Monitoring | External alert routing chosen: dashboard-only, email, Slack, or pager | Operator action required |  |  |  |
 | Monitoring | First real cron successes reviewed after scheduling | Operator action required |  |  |  |
 | Security | Production secret manager chosen | Operator action required |  |  |  |
@@ -98,6 +99,7 @@ This section records evidence gathered during launch-readiness work without repl
 | Security | Incident / scan readiness | Runbooks exist: `docs/AssetSafe_Security_Incident_Response_Runbook.md`, `docs/AssetSafe_Vulnerability_Scan_Runbook.md`, `docs/AssetSafe_Audit_Log_Retention_Runbook.md`; Resend webhook recovery and clean dependency audit/build evidence captured in `docs/AssetSafe_Launch_Evidence_Run_2026_07_01.md` | Run staging ZAP/manual auth scan, triage High/Critical findings, and schedule/complete incident tabletop |
 | Legal/compliance | DSAR, DMCA, legal request, Terms/Privacy paths | Runbooks exist and are indexed in `docs/AssetSafe_Launch_Packet_Index.md` | Counsel/operator approval still required for each intake path and active public version |
 | Support | Support/account recovery posture | Account recovery remains audited-review only; support ops runbook exists | Name `support@assetsafe.net` owner/backup and accept SLA/escalation matrix |
+| Support | Launch decision packet | `docs/AssetSafe_Support_Launch_Decision_Memo.md` defines recommended MVP defaults for mailbox ownership, backup coverage, support tiers, SLA targets, escalation paths, audited account recovery, and no write-capable impersonation | Operator should fill owner/backup record and approve SLA/escalation defaults before closing remaining Support P0 rows |
 | Billing | Manual billing ops posture | Replay, gift failure, dispute, refund, receipt idempotency, no-trial posture, Stripe error review cadence, Smart Retries, and Asset Safe receipt source are implemented/tested/decided | Record named billing backup owner if desired |
 | Continuity | Launch decision packet | `docs/AssetSafe_Continuity_Launch_Decision_Memo.md` defines approved MVP defaults for evidence retention, senior review, 30-day closure bypass, and tabletop scheduling | Closed in P0 sign-off rows |
 
