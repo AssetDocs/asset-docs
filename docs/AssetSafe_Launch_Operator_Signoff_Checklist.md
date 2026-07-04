@@ -50,7 +50,7 @@ Use `docs/AssetSafe_Lovable_P0_Launch_Readiness_Classification.md` as the curren
 | Billing | Receipt strategy chosen: Stripe, Asset Safe, or both | Accepted MVP: Asset Safe receipts only | `support@assetsafe.net` / billing operator | Stripe customer receipt emails disabled; Asset Safe receipt idempotency verified through `subscription_email_events.idempotency_key` duplicate-skip test | 2026-07-03 |
 | Billing | Trial reminder posture chosen before marketing trials | Accepted MVP: no free trials offered for launch |  | User-facing trial copy removed; no `check-trial-reminders` rebuild required unless trials are reintroduced |  |
 | Billing | Gift payment-failure behavior verified | Accepted MVP with evidence |  | `docs/AssetSafe_Gift_Payment_Failure_Verification.md`; gift failed/expired events and `check-gift-deliveries` cron evidence captured |  |
-| Billing | `check-payment-failures` and `expire-subscription-grace-periods-hourly` healthy | Operator action required |  |  |  |
+| Billing | `check-payment-failures` and `expire-subscription-grace-periods-hourly` healthy | Accepted MVP | `support@assetsafe.net` / billing operator | `check-payment-failures-daily` active with daily succeeded runs; `expire-subscription-grace-periods-hourly` active with recent hourly succeeded runs | 2026-07-03 |
 | Data lifecycle | PITR enabled on production | Operator action required |  |  |  |
 | Data lifecycle | PITR restore drill passed and signed off | Operator action required |  |  |  |
 | Data lifecycle | Storage backup posture accepted | Operator action required |  |  |  |
