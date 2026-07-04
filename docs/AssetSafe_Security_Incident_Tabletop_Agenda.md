@@ -17,6 +17,28 @@ This template drives a 60-minute pre-launch security incident tabletop and captu
 
 Do not run destructive actions against production during the exercise. All containment steps are walked through against staging or in a dry-run/read-only fashion.
 
+## MVP Scheduling Record
+
+The operator approved scheduling one tabletop before broad launch using the suspected unauthorized access / exposed storage object scenario.
+
+| Field | Value |
+|---|---|
+| Scheduled date | Proposed: 2026-07-06 |
+| Start time / timezone | Proposed: 10:00 AM America/Chicago |
+| Scenario | Suspected unauthorized access or exposed storage object affecting user asset documents |
+| Staging app URL | `[staging URL]` |
+| Staging Supabase project ref | `[staging ref]` |
+| Active ZAP scanning | Approved for staging only; not approved for production |
+| Expected outcome | Pass or pass-with-actions |
+| Evidence location | This agenda or launch evidence folder |
+
+| Participant role | Named participant |
+|---|---|
+| Incident Commander / Security Lead / Platform Lead | Michael Lewis |
+| Support/operator participant | Michael Lewis or named support owner |
+| Engineering observer | Codex/Lovable/dev contact if available |
+| Legal/counsel observer | TBD / not assigned for MVP |
+
 ## Launch Gate Prerequisites
 
 Fill these in before scheduling. If any row is blank, the tabletop cannot start.
