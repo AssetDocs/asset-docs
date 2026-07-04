@@ -58,10 +58,10 @@ Use `docs/AssetSafe_Lovable_P0_Launch_Readiness_Classification.md` as the curren
 | Data lifecycle | Bucket lifecycle policy accepted | Accepted MVP | Asset Safe operator / platform | Admin Database Bucket Lifecycle Policies evidence captured; `exports` bucket private; `floor-plans` accepted as not launch-required on 2026-06-24; managed export round trip succeeded in `docs/AssetSafe_Launch_Evidence_Run_2026_06_29.md` | 2026-07-03 |
 | Data lifecycle | Required data lifecycle cron health verified | Accepted MVP | Asset Safe operator / platform | `docs/AssetSafe_Launch_Evidence_Run_2026_07_01.md`: all 8 lifecycle jobs `ok`/`succeeded`, `consecutive_failures=0`, `last_error=null` | 2026-07-03 |
 | Data lifecycle | Legal retention schedule reviewed | Operator action required |  |  |  |
-| Continuity | Evidence retention for death/legal documents decided | Operator action required |  |  |  |
-| Continuity | Second-review rules for high-risk continuity cases decided | Operator action required |  |  |  |
-| Continuity | 30-day continuity closure bypass authority decided | Operator action required |  |  |  |
-| Continuity | Continuity tabletop completed or scheduled before broad launch | Operator action required |  |  |  |
+| Continuity | Evidence retention for death/legal documents decided | Accepted MVP | Asset Safe operator / continuity reviewer | `docs/AssetSafe_Continuity_Launch_Decision_Memo.md`: retain death/legal/continuity request evidence for 7 years after resolution unless counsel advises otherwise; legal hold overrides; ordinary account deletion must not auto-purge before retention expiry | 2026-07-03 |
+| Continuity | Second-review rules for high-risk continuity cases decided | Accepted MVP | Asset Safe operator / senior reviewer | `docs/AssetSafe_Continuity_Launch_Decision_Memo.md`: senior review required for death/legal authority, access transfer, vault export, disputed request, suspicious/fraudulent document, ownership transfer, and high-impact continuity actions | 2026-07-03 |
+| Continuity | 30-day continuity closure bypass authority decided | Accepted MVP | Asset Safe operator / senior reviewer / company owner | `docs/AssetSafe_Continuity_Launch_Decision_Memo.md`: bypass only by senior reviewer, senior operator, or company owner with documented justification; blocked while dispute, freeze, or unresolved conflict remains | 2026-07-03 |
+| Continuity | Continuity tabletop completed or scheduled before broad launch | Accepted MVP | Asset Safe operator / continuity reviewer | `docs/AssetSafe_Continuity_Launch_Decision_Memo.md` and `docs/AssetSafe_Continuity_Incident_Tabletop_Runbook.md`: one tabletop required before broad continuity launch; record scenario, participants, outcome, and follow-up actions | 2026-07-03 |
 | Support | `support@assetsafe.net` owner and backup named | Operator action required |  |  |  |
 | Support | Support tiers, SLA targets, and escalation paths accepted | Operator action required |  |  |  |
 | Support | Account recovery confirmed as audited-review only | Accepted MVP |  |  |  |
@@ -99,7 +99,7 @@ This section records evidence gathered during launch-readiness work without repl
 | Legal/compliance | DSAR, DMCA, legal request, Terms/Privacy paths | Runbooks exist and are indexed in `docs/AssetSafe_Launch_Packet_Index.md` | Counsel/operator approval still required for each intake path and active public version |
 | Support | Support/account recovery posture | Account recovery remains audited-review only; support ops runbook exists | Name `support@assetsafe.net` owner/backup and accept SLA/escalation matrix |
 | Billing | Manual billing ops posture | Replay, gift failure, dispute, refund, receipt idempotency, no-trial posture, Stripe error review cadence, Smart Retries, and Asset Safe receipt source are implemented/tested/decided | Record named billing backup owner if desired |
-| Continuity | Launch decision packet | `docs/AssetSafe_Continuity_Launch_Decision_Memo.md` defines recommended MVP defaults for evidence retention, senior review, 30-day closure bypass, and tabletop scheduling | Operator/counsel should approve defaults and fill tabletop scheduling record before closing Continuity P0 rows |
+| Continuity | Launch decision packet | `docs/AssetSafe_Continuity_Launch_Decision_Memo.md` defines approved MVP defaults for evidence retention, senior review, 30-day closure bypass, and tabletop scheduling | Closed in P0 sign-off rows |
 
 | Area | Follow-up | Recommended decision | Owner | Evidence / ticket | Date |
 |---|---|---|---|---|---|

@@ -16,9 +16,9 @@ This memo converts the remaining continuity P0 launch gates into explicit MVP op
 
 | Launch gate | Recommended decision | Evidence / implementation basis |
 |---|---|---|
-| Evidence retention for death/legal documents decided | Accept review-gated retention. Retain continuity legal/death documents for the case lifetime plus applicable audit/legal-hold retention. Do not auto-purge continuity documents through ordinary account deletion. Reviewers must classify each uploaded document with retention category, review status, expiration when applicable, and legal hold when needed. | `continuity-documents` bucket lifecycle policy says retain for continuity case lifetime plus applicable legal hold/audit retention. `continuity_documents` includes retention review status, category, expiration, hold, reviewer, and notes. |
+| Evidence retention for death/legal documents decided | Accept review-gated retention. Retain death/legal/continuity request evidence for 7 years after resolution, unless counsel advises otherwise. Legal hold overrides the 7-year window. Do not auto-purge continuity documents through ordinary account deletion before the retention period expires unless counsel approves a different disposition. Reviewers must classify each uploaded document with retention category, review status, expiration when applicable, and legal hold when needed. | `continuity-documents` bucket lifecycle policy says retain for continuity case lifetime plus applicable legal hold/audit retention. `continuity_documents` includes retention review status, category, expiration, hold, reviewer, and notes. |
 | Second-review rules for high-risk continuity cases decided | Require senior reviewer approval for high-impact actions: data export, temporary access with download/export, preservation, memorialization, account closure, ownership transfer, conflict resolution that allows a high-impact action, owner-dispute freeze removal, and suspicious/fraudulent document cases. | `AssetSafe_Continuity_Legacy_Operations.md` already treats high-impact actions as senior-review actions. Admin surfaces and RPCs include freeze, conflict, execution guard, and senior-review labels. |
-| 30-day continuity closure bypass authority decided | Default: do not bypass the 30-calendar-day waiting period. Bypass is allowed only for senior reviewer / ownership administrator action when legally required or owner-protective, with written reason, supporting evidence, and audit log entry. No bypass is allowed while owner dispute, active freeze, or unresolved competing request remains. | `bypass_waiting_period` records reason, timestamp, and reviewer. `enforce_continuity_execution_guard` blocks execution while disputes, freezes, unresolved conflicts, or waiting periods remain. |
+| 30-day continuity closure bypass authority decided | Default: do not bypass the 30-calendar-day waiting period. Bypass is allowed only for senior reviewer / senior operator / company owner action when legally required or owner-protective, with written reason, supporting evidence, and audit log entry. No bypass is allowed while owner dispute, active freeze, or unresolved competing request remains. | `bypass_waiting_period` records reason, timestamp, and reviewer. `enforce_continuity_execution_guard` blocks execution while disputes, freezes, unresolved conflicts, or waiting periods remain. |
 | Continuity tabletop completed or scheduled before broad launch | Schedule one tabletop before broad continuity launch. For MVP launch, accept "scheduled" only if date, owner, participants, staging account, and follow-up owner are recorded. | `docs/AssetSafe_Continuity_Incident_Tabletop_Runbook.md` defines scenarios, pass criteria, and evidence capture. |
 
 ## Document Retention Policy
@@ -36,7 +36,8 @@ Recommended launch posture:
    - `not_needed`
 5. Apply legal hold for disputed, suspicious, fraudulent, court/law-enforcement, estate-conflict, or owner-disputed cases.
 6. Do not delete suspicious or disputed documents just because the document is rejected; retain as evidence under restricted access.
-7. Where counsel later approves minimization, replace long-term plaintext document retention with retained metadata plus a restricted evidence record.
+7. Do not allow ordinary account deletion workflows to auto-purge continuity, death, legal authority, or continuity request evidence before the 7-year retention period expires, unless counsel approves a different disposition.
+8. Where counsel later approves minimization, replace long-term plaintext document retention with retained metadata plus a restricted evidence record.
 
 ## Second-Review Matrix
 
@@ -65,7 +66,7 @@ Allowed bypass reasons:
 
 Required before bypass:
 
-- Senior reviewer or ownership administrator approval.
+- Senior reviewer, senior operator, or company owner approval.
 - Written reason in the bypass workflow.
 - Evidence attached or referenced in continuity notes.
 - No unresolved owner dispute.
