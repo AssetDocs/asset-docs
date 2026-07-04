@@ -2,6 +2,7 @@
 
 Status: launch security operations template
 Owner: Security Lead / Operator
+MVP scheduling status: must be scheduled before broad launch; completion evidence still required
 Companion docs:
 - `docs/AssetSafe_Security_Incident_Response_Runbook.md`
 - `docs/AssetSafe_Key_Rotation_Runbook.md`
@@ -33,11 +34,11 @@ Fill these in before scheduling. If any row is blank, the tabletop cannot start.
 
 | Field | Value |
 |---|---|
-| Scheduled date |  |
+| Scheduled date | TBD before broad launch |
 | Start time / timezone |  |
 | Duration | 60 minutes |
 | Location / video link |  |
-| Facilitator |  |
+| Facilitator | Michael Lewis |
 | Note-taker |  |
 | Evidence bundle location (Drive/ticket link) |  |
 
@@ -45,11 +46,11 @@ Fill these in before scheduling. If any row is blank, the tabletop cannot start.
 
 | Role | Name | Contact | Present (Y/N) |
 |---|---|---|---|
-| Incident Commander (IC) |  |  |  |
-| Platform Lead (Supabase / edge functions / storage) |  |  |  |
-| Support Lead (`support@assetsafe.net`) |  |  |  |
-| Counsel / Operator |  |  |  |
-| Observer(s) |  |  |  |
+| Incident Commander (IC) | Michael Lewis | `support@assetsafe.net` |  |
+| Platform Lead (Supabase / edge functions / storage) | Michael Lewis / engineering observer |  |  |
+| Support Lead (`support@assetsafe.net`) | Michael Lewis / support operator | `support@assetsafe.net` |  |
+| Counsel / Operator | Michael Lewis / counsel if assigned |  |  |
+| Observer(s) | Engineering observer |  |  |
 
 ## Launch Scenario — Private Storage Object Exposure
 

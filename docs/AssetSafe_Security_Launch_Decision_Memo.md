@@ -32,9 +32,9 @@ Primary evidence source: `docs/AssetSafe_Launch_Evidence_Run_2026_07_01.md`.
 
 | Launch gate | Recommended decision | Evidence / action required |
 |---|---|---|
-| Production secret manager chosen | Accept Supabase Edge Function Secrets as the runtime secret store for MVP, with 1Password as the human-accessible vault for break-glass copies and rotation records. Primary owner should be Michael Lewis unless another security lead is named. Backup owner remains pending unless assigned. | Approve and fill `docs/AssetSafe_Production_Secret_Manager_Decision_Brief.md`. |
+| Production secret manager chosen | Accepted for MVP. Runtime/application secrets use Supabase Edge Function Secrets. Human/operator vault is 1Password for break-glass copies and rotation records. Primary owner is Michael Lewis. Backup owner is not formally assigned for MVP and should be assigned after launch or before broader rollout. | Approved by operator on 2026-07-04. `docs/AssetSafe_Production_Secret_Manager_Decision_Brief.md` remains the detailed operating brief. |
 | Pre-launch vulnerability scan completed with no untriaged High/Critical findings | Do not close yet. Dependency audit/build evidence is complete, but staging ZAP/manual auth-RLS abuse checks still need evidence. | Run staging scan/manual checks per `docs/AssetSafe_Vulnerability_Scan_Runbook.md`; no untriaged High/Critical findings may remain. |
-| Incident contacts and escalation path confirmed | Accept Michael Lewis as Incident Commander / Security Lead for MVP unless another owner is named. Use `support@assetsafe.net` as the support intake/escalation inbox. Counsel/operator escalation remains Michael unless counsel is separately named. | Approve the contact matrix below. |
+| Incident contacts and escalation path confirmed | Accepted for MVP. Michael Lewis is the primary security / incident / platform owner. Backup owner is not formally assigned for MVP. `support@assetsafe.net` remains the support escalation inbox. A formal backup owner should be assigned after launch or before broader rollout. | Approved by operator on 2026-07-04. |
 | Incident tabletop completed or scheduled before broad launch | Do not mark "completed" until the tabletop is run. For MVP, "scheduled" is acceptable only if date, participants, staging URL/project, scenario, and evidence location are recorded. | Fill `docs/AssetSafe_Security_Incident_Tabletop_Agenda.md` scheduling fields or attach completed evidence. |
 
 ## Recommended Contact Matrix
@@ -73,7 +73,7 @@ Minimum before closing or scheduling the tabletop row:
 
 ## Sign-Off Recommendation
 
-Can close after owner approval:
+Closed after owner approval:
 
 - Production secret manager chosen.
 - Incident contacts and escalation path confirmed.

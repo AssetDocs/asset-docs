@@ -59,7 +59,7 @@ Owner: Asset Safe operator / project owner
 | Restore drill reminder cron | `docs/AssetSafe_Restore_Drill_Reminder_Cron_Runbook.md` |
 | Key rotation | `docs/AssetSafe_Key_Rotation_Runbook.md` |
 | Security launch decision memo | `docs/AssetSafe_Security_Launch_Decision_Memo.md` |
-| Vulnerability scanning | `docs/AssetSafe_Vulnerability_Scan_Runbook.md` |
+| Vulnerability scanning | `docs/AssetSafe_Vulnerability_Scan_Runbook.md`; pending evidence sheet: `docs/AssetSafe_Vulnerability_Scan_Evidence_Pending.md` |
 | Monitoring launch decision memo | `docs/AssetSafe_Monitoring_Launch_Decision_Memo.md` |
 | Audit log retention | `docs/AssetSafe_Audit_Log_Retention_Runbook.md` |
 | Support launch decision memo | `docs/AssetSafe_Support_Launch_Decision_Memo.md` |
