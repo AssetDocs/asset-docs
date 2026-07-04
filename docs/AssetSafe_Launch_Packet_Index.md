@@ -40,7 +40,7 @@ Owner: Asset Safe operator / project owner
 |---|---|
 | Billing & revenue | `docs/AssetSafe_Billing_Revenue_Launch_Runbook.md` |
 | Data lifecycle & retention | `docs/AssetSafe_Data_Lifecycle_External_Controls_Runbook.md` |
-| Continuity & legacy edge cases | `docs/AssetSafe_Continuity_Legacy_Operations.md` |
+| Continuity & legacy edge cases | `docs/AssetSafe_Continuity_Legacy_Operations.md`; launch decisions: `docs/AssetSafe_Continuity_Launch_Decision_Memo.md` |
 | Support & ops tooling | `docs/AssetSafe_Support_Ops_Runbook.md` |
 | Monitoring & alerting | `docs/AssetSafe_Operational_Readiness_Sweep.md` |
 | Security operations | `docs/AssetSafe_Security_Incident_Response_Runbook.md` |
@@ -64,6 +64,7 @@ Owner: Asset Safe operator / project owner
 | DMCA / takedown | `docs/AssetSafe_DMCA_Takedown_Runbook.md` |
 | Terms / privacy updates | `docs/AssetSafe_Terms_Privacy_Update_Runbook.md` |
 | Continuity incident tabletop | `docs/AssetSafe_Continuity_Incident_Tabletop_Runbook.md` |
+| Continuity launch decision memo | `docs/AssetSafe_Continuity_Launch_Decision_Memo.md` |
 
 ## Launch Rule
 

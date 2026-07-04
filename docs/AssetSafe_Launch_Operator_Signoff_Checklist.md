@@ -7,6 +7,7 @@ Companion docs:
 - `docs/AssetSafe_Operational_Readiness_Sweep.md`
 - `docs/AssetSafe_Billing_Revenue_Launch_Runbook.md`
 - `docs/AssetSafe_Data_Lifecycle_External_Controls_Runbook.md`
+- `docs/AssetSafe_Continuity_Launch_Decision_Memo.md`
 - `docs/AssetSafe_Support_Ops_Runbook.md`
 - `docs/AssetSafe_Security_Incident_Response_Runbook.md`
 - `docs/AssetSafe_Terms_Privacy_Update_Runbook.md`
@@ -98,6 +99,7 @@ This section records evidence gathered during launch-readiness work without repl
 | Legal/compliance | DSAR, DMCA, legal request, Terms/Privacy paths | Runbooks exist and are indexed in `docs/AssetSafe_Launch_Packet_Index.md` | Counsel/operator approval still required for each intake path and active public version |
 | Support | Support/account recovery posture | Account recovery remains audited-review only; support ops runbook exists | Name `support@assetsafe.net` owner/backup and accept SLA/escalation matrix |
 | Billing | Manual billing ops posture | Replay, gift failure, dispute, refund, receipt idempotency, no-trial posture, Stripe error review cadence, Smart Retries, and Asset Safe receipt source are implemented/tested/decided | Record named billing backup owner if desired |
+| Continuity | Launch decision packet | `docs/AssetSafe_Continuity_Launch_Decision_Memo.md` defines recommended MVP defaults for evidence retention, senior review, 30-day closure bypass, and tabletop scheduling | Operator/counsel should approve defaults and fill tabletop scheduling record before closing Continuity P0 rows |
 
 | Area | Follow-up | Recommended decision | Owner | Evidence / ticket | Date |
 |---|---|---|---|---|---|
