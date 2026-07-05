@@ -44,7 +44,7 @@ Owner: Asset Safe operator / project owner
 | Support & ops tooling | `docs/AssetSafe_Support_Ops_Runbook.md`; launch decisions: `docs/AssetSafe_Support_Launch_Decision_Memo.md` |
 | Monitoring & alerting | `docs/AssetSafe_Operational_Readiness_Sweep.md`; launch decisions: `docs/AssetSafe_Monitoring_Launch_Decision_Memo.md` |
 | Security operations | `docs/AssetSafe_Security_Incident_Response_Runbook.md`; launch decisions: `docs/AssetSafe_Security_Launch_Decision_Memo.md` |
-| Compliance & legal ops | `docs/AssetSafe_Legal_Request_Runbook.md` |
+| Compliance & legal ops | `docs/AssetSafe_Legal_Request_Runbook.md`; launch decisions: `docs/AssetSafe_Legal_Privacy_MVP_Decision_Memo.md` |
 | Growth / product ops | `docs/AssetSafe_Growth_Product_Ops_Runbook.md` |
 | Multi-account / workspace ops | `docs/AssetSafe_Multi_Account_Workspace_Ops_Runbook.md` |
 | Mobile / Capacitor ops | `docs/AssetSafe_Mobile_Capacitor_Ops_Runbook.md` |
@@ -66,6 +66,7 @@ Owner: Asset Safe operator / project owner
 | Privacy / DSAR requests | `docs/AssetSafe_Privacy_Request_DSAR_Runbook.md` |
 | DMCA / takedown | `docs/AssetSafe_DMCA_Takedown_Runbook.md` |
 | Terms / privacy updates | `docs/AssetSafe_Terms_Privacy_Update_Runbook.md` |
+| Legal / privacy MVP decisions | `docs/AssetSafe_Legal_Privacy_MVP_Decision_Memo.md` |
 | Continuity incident tabletop | `docs/AssetSafe_Continuity_Incident_Tabletop_Runbook.md` |
 | Continuity launch decision memo | `docs/AssetSafe_Continuity_Launch_Decision_Memo.md` |
 
