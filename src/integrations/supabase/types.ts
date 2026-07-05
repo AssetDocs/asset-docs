@@ -3180,6 +3180,7 @@ export type Database = {
           requester_relationship: string
           risk_level: string
           status: string
+          submission_token: string
           submitted_at: string
           updated_at: string
           user_agent: string | null
@@ -3213,6 +3214,7 @@ export type Database = {
           requester_relationship: string
           risk_level?: string
           status?: string
+          submission_token?: string
           submitted_at?: string
           updated_at?: string
           user_agent?: string | null
@@ -3246,6 +3248,7 @@ export type Database = {
           requester_relationship?: string
           risk_level?: string
           status?: string
+          submission_token?: string
           submitted_at?: string
           updated_at?: string
           user_agent?: string | null
@@ -3310,6 +3313,7 @@ export type Database = {
           id: string
           ip_address: string | null
           request_id: string | null
+          submission_token: string | null
         }
         Insert: {
           action_details?: Json
@@ -3321,6 +3325,7 @@ export type Database = {
           id?: string
           ip_address?: string | null
           request_id?: string | null
+          submission_token?: string | null
         }
         Update: {
           action_details?: Json
@@ -3332,6 +3337,7 @@ export type Database = {
           id?: string
           ip_address?: string | null
           request_id?: string | null
+          submission_token?: string | null
         }
         Relationships: [
           {
@@ -3353,6 +3359,7 @@ export type Database = {
           id: string
           request_id: string
           reviewer_notes: string | null
+          submission_token: string | null
           updated_at: string
           uploaded_at: string
           verification_status: string
@@ -3366,6 +3373,7 @@ export type Database = {
           id?: string
           request_id: string
           reviewer_notes?: string | null
+          submission_token?: string | null
           updated_at?: string
           uploaded_at?: string
           verification_status?: string
@@ -3379,6 +3387,7 @@ export type Database = {
           id?: string
           request_id?: string
           reviewer_notes?: string | null
+          submission_token?: string | null
           updated_at?: string
           uploaded_at?: string
           verification_status?: string

@@ -37,6 +37,10 @@ const DOC_CATEGORIES = [
 type PendingDoc = { file: File; document_category: string };
 type UploadedDoc = { file_name: string; file_path: string; file_size: number; file_type: string; document_category: string };
 type AcknowledgementKey = "manual_review" | "no_access_granted" | "no_confirmation" | "accurate";
+type AssistanceSubmissionResponse = {
+  reference?: string | null;
+  submission_token?: string | null;
+};
 
 const ACKNOWLEDGEMENTS: Array<[AcknowledgementKey, string]> = [
   ["manual_review", "I understand this request will be manually reviewed by Asset Safe."],
@@ -98,14 +102,16 @@ const AccountAssistance: React.FC = () => {
         body: { ...form, acknowledgements: ack, documents: [] },
       });
       if (error) throw error;
-      requestId = data?.reference || null;
+      const response = data as AssistanceSubmissionResponse | null;
+      requestId = response?.reference || null;
+      const submissionToken = response?.submission_token || null;
 
-      if (requestId && docs.length > 0) {
+      if (requestId && submissionToken && docs.length > 0) {
         const uploadedDocs: UploadedDoc[] = [];
 
         for (const doc of docs.slice(0, 10)) {
           const ext = doc.file.name.split(".").pop() || "bin";
-          const path = `submission/${requestId}/${crypto.randomUUID()}.${ext}`;
+          const path = `submission/${requestId}/${submissionToken}/${crypto.randomUUID()}.${ext}`;
           const { error: uploadError } = await supabase.storage
             .from("external-assistance-docs")
             .upload(path, doc.file, { contentType: doc.file.type });
@@ -123,7 +129,7 @@ const AccountAssistance: React.FC = () => {
         if (uploadedDocs.length > 0) {
           const { error: docError } = await supabase
             .from("external_assistance_documents")
-            .insert(uploadedDocs.map((doc) => ({ ...doc, request_id: requestId })));
+            .insert(uploadedDocs.map((doc) => ({ ...doc, request_id: requestId, submission_token: submissionToken })));
           if (docError) throw docError;
         }
       }

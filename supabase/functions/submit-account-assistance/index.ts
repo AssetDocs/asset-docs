@@ -106,7 +106,7 @@ Deno.serve(async (req) => {
         acknowledgements,
         ip_address: ip, user_agent: ua,
       })
-      .select("id")
+      .select("id, submission_token")
       .single();
 
     if (insertErr || !inserted) {
@@ -114,11 +114,13 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "submission_failed" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
     const requestId = inserted.id;
+    const submissionToken = inserted.submission_token;
 
     // Attach uploaded docs (already uploaded client-side to submission/<temp>/)
     if (documents.length) {
       const rows = documents.slice(0, 10).map((d) => ({
         request_id: requestId,
+        submission_token: submissionToken,
         file_name: clean(d.file_name, 255) || "document",
         file_path: clean(d.file_path, 500) || "",
         file_size: typeof d.file_size === "number" ? d.file_size : null,
@@ -133,6 +135,7 @@ Deno.serve(async (req) => {
     // Audit: submission
     await supa.from("external_assistance_audit_logs").insert({
       request_id: requestId,
+      submission_token: submissionToken,
       actor_type: "public_requester",
       action_type: "external_assistance_submitted",
       action_details: { reason_for_contact, relationship: requester_relationship, document_count: documents.length },
@@ -159,6 +162,7 @@ Deno.serve(async (req) => {
         });
         await supa.from("external_assistance_audit_logs").insert({
           request_id: requestId,
+          submission_token: submissionToken,
           actor_type: "system",
           action_type: "owner_notified",
           action_details: { matched_user_id: prof.user_id, delivery: sendResult },
@@ -172,7 +176,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ success: true, reference: requestId }), {
+    return new Response(JSON.stringify({ success: true, reference: requestId, submission_token: submissionToken }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
