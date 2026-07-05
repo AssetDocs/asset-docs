@@ -28,7 +28,7 @@
 ## 2. Backup & Restore
 
 ### 2.1 Supabase-managed
-- **PITR (Point-In-Time Recovery):** required on production project `leotcbfpqiekgkgumecn`. Confirm plan tier supports 7-day PITR minimum (target: 14 days pre-launch, 28 days post-launch).
+- **PITR (Point-In-Time Recovery):** required on production project `leotcbfpqiekgkgumecn`. Operator accepted 7-day PITR for MVP due to cost; 14-day PITR is deferred to P1 / broader-launch upgrade, with 28 days as a later maturity target.
 - **Daily logical backups:** Supabase automatic; retained per tier.
 - **Storage:** S3-backed; relies on Supabase replication. No Lovable-managed second copy today — **gap**.
 
@@ -197,7 +197,7 @@ Daily job `process-storage-orphans` calls `reconcile_storage_orphans`:
 | `legal_agreement_signatures`, `user_consents` | n/a | **Lifetime + 7 years** | Legal | Required for TOS proof |
 | Support / `dev_support_issues` | n/a | **3 years** | Internal | Scrub PII after close |
 | Storage bundles (exports) | n/a | **7 days** | §5.2 | Sweeper required |
-| Backup snapshots | per tier | 14–28 days | §2.1 | |
+| Backup snapshots | per tier | 7 days MVP; 14+ days post-MVP target | §2.1 | |
 | Legal hold override | Indefinite | Indefinite | `account_closure_requests.legal_hold` and `deleted_accounts.legal_hold` | Blocks closure and retention sweepers |
 
 Audit-log access, export procedure, and tamper-evidence posture are covered in `docs/AssetSafe_Audit_Log_Retention_Runbook.md`.

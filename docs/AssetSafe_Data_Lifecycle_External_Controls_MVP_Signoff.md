@@ -1,6 +1,6 @@
 # Asset Safe Data Lifecycle External Controls - MVP Launch Sign-Off
 
-Status: Operator decisions recorded; PITR evidence and restore drill remain open
+Status: Operator decisions recorded; PITR accepted for MVP, restore drill remains open
 Date prepared: 2026-07-05
 Production project: `leotcbfpqiekgkgumecn`
 Companion runbook: `docs/AssetSafe_Data_Lifecycle_External_Controls_Runbook.md`
@@ -11,26 +11,27 @@ This document captures the four Data Lifecycle External Controls items required 
 
 ## 1. PITR (Point-in-Time Recovery)
 
-**Status:** Operator action required - cannot be verified from code.
+**Status:** Accepted MVP - 7-day PITR enabled; 14-day target deferred to P1.
 
 PITR is a Supabase project-level setting configured in the dashboard. It is not visible through the Data API and cannot be confirmed programmatically from this repo.
 
-**Operator must confirm:**
+**Operator decision (2026-07-05):**
 
-- [ ] PITR is enabled on production project `leotcbfpqiekgkgumecn`
-- [ ] Recovery window meets pre-launch target: **14 days minimum**
-- [ ] Post-launch target scheduled to increase to **28 days**
+- [x] PITR is enabled on production project `leotcbfpqiekgkgumecn`
+- [x] Recovery window accepted for MVP: **7 days**
+- [x] Original 14-day pre-launch target deferred to P1 / broader-launch upgrade
+- [ ] Post-launch / broader-launch upgrade target to 14 days or greater should be revisited when usage, revenue, or risk level justifies the additional cost
 
 **Evidence to capture:**
 
 - Screenshot of Supabase Dashboard -> Project Settings -> Add-ons -> Point in Time Recovery, showing enabled state and retention window
 - Store in launch evidence packet alongside `docs/AssetSafe_Launch_Evidence_Run_2026_07_01.md`
 
-**Operator note (2026-07-05):** Operator intends to confirm PITR in the Supabase dashboard and capture the required screenshot evidence. This item remains **Operator action required** until that evidence is attached.
+**Operator note (2026-07-05):** Operator approved 7-day PITR for MVP due to cost. The 14-day target doubles PITR add-on cost and PITR also requires the project to be at least Small compute. Seven-day PITR provides meaningful MVP protection against bad migrations, accidental deletion, operator error, and short-window data corruption. Daily backups and the manual export/restore runbook remain the MVP fallback. Treat 14-day PITR as a P1 / broader-launch upgrade.
 
 **Recommended checklist wording:**
 
-> PITR enabled on production Supabase project `leotcbfpqiekgkgumecn` with a 14-day recovery window (pre-launch target). Confirmed via Supabase dashboard screenshot dated __________. Post-launch increase to 28 days scheduled by __________. Owner: __________.
+> PITR enabled on production Supabase project `leotcbfpqiekgkgumecn` with a 7-day recovery window accepted for MVP. The original 14-day target is deferred to P1 / broader-launch upgrade with owner approval due to cost. Daily backups and the manual export/restore runbook remain the MVP fallback.
 
 ---
 
@@ -61,7 +62,7 @@ Rationale:
 
 **Recommended checklist wording (deferred/accepted-risk override path - NOT ACTIVE):**
 
-> PITR restore drill deferred to post-launch as Accepted MVP Risk. Owner __________ acknowledges no restore path has been proven end-to-end. Drill scheduled by __________ (within 30 days of launch). Compensating control: PITR enabled with 14-day window and Supabase-managed backups.
+> PITR restore drill deferred to post-launch as Accepted MVP Risk. Owner __________ acknowledges no restore path has been proven end-to-end. Drill scheduled by __________ (within 30 days of launch). Compensating control: PITR enabled with 7-day window and Supabase-managed backups.
 
 ---
 
@@ -73,7 +74,7 @@ Current posture inventory:
 
 | Layer | Backup mechanism | MVP acceptable? |
 |---|---|---|
-| Postgres database | Supabase managed daily backups + PITR (14-day window once confirmed) | Yes, once PITR confirmed per Section 1 |
+| Postgres database | Supabase managed daily backups + PITR (7-day MVP window) | Yes for MVP |
 | Storage objects (user documents/media) | Supabase Storage provider-managed durability and replication | Yes for MVP |
 | Storage objects - secondary app-managed copy | None | Yes - explicitly deferred |
 | `exports/` bucket | Regenerable from source data; 7-day lifecycle via `process-expired-exports` | Yes |
@@ -125,7 +126,7 @@ Copy into launch notes and complete before flipping the launch gate.
 
 | Control | Decision | Owner | Date | Evidence |
 |---|---|---|---|---|
-| PITR enabled (14-day window) | Operator action required | Michael Lewis |  | Dashboard screenshot still required |
+| PITR enabled (7-day MVP window) | Accepted MVP; 14-day target deferred to P1 | Michael Lewis | 2026-07-05 | Operator approval; dashboard screenshot recommended for evidence packet |
 | PITR restore drill | Required before launch | Michael Lewis / platform owner |  | `restore_drill_runs` row id and signoff still required |
 | Storage backup posture | Accepted for MVP | Michael Lewis | 2026-07-05 | This document + launch checklist |
 | Legal retention schedule | Accepted for MVP; counsel review pending | Michael Lewis | 2026-07-05 | This document + counsel status |

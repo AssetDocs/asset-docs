@@ -54,8 +54,9 @@ Confirm production Supabase PITR is enabled and the recovery window meets the cu
 
 | Phase | Target |
 |---|---:|
-| Pre-launch | 14 days |
-| Post-launch | 28 days |
+| MVP launch | 7 days |
+| P1 / broader launch target | 14 days |
+| Later maturity target | 28 days |
 
 ### Required pre-launch drill
 
