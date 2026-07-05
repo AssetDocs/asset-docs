@@ -1,9 +1,9 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Camera, Upload, Trash2, Loader2, Images } from 'lucide-react';
+import { Camera, Upload, Loader2, Images } from 'lucide-react';
 import { usePropertyFiles } from '@/hooks/usePropertyFiles';
-import { Input } from '@/components/ui/input';
+import { useNavigate } from 'react-router-dom';
 
 interface PropertyPhotosProps {
   propertyId: string | null;
@@ -11,17 +11,11 @@ interface PropertyPhotosProps {
 }
 
 const PropertyPhotos: React.FC<PropertyPhotosProps> = ({ propertyId, onViewPhotoGallery }) => {
+  const navigate = useNavigate();
   const {
     files: photos,
     isLoading,
-    isUploading,
-    uploadFiles,
-    deleteFile,
-    canUpload,
-    isAccountReadOnly,
-    showReadOnlyRestriction,
   } = usePropertyFiles(propertyId, 'photo');
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -31,31 +25,17 @@ const PropertyPhotos: React.FC<PropertyPhotosProps> = ({ propertyId, onViewPhoto
     });
   };
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!canUpload) {
-      showReadOnlyRestriction();
-      e.target.value = '';
-      return;
-    }
-
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      await uploadFiles(Array.from(files));
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
-  };
-
-  const handleDelete = async (fileId: string, filePath: string, bucketName: string) => {
-    await deleteFile(fileId, filePath, bucketName);
+  const openAssetDocumentationUpload = () => {
+    const query = new URLSearchParams({ tab: 'photos' });
+    if (propertyId) query.set('property_id', propertyId);
+    navigate(`/account/media/upload?${query.toString()}`);
   };
 
   if (!propertyId) {
     return (
       <div className="mt-6 text-center text-gray-500 p-8 border border-dashed rounded-lg">
         <Camera className="h-12 w-12 mx-auto text-gray-300 mb-2" />
-        <p>Select a property to view and upload photos</p>
+        <p>Select a property to view linked photos</p>
       </div>
     );
   }
@@ -63,20 +43,20 @@ const PropertyPhotos: React.FC<PropertyPhotosProps> = ({ propertyId, onViewPhoto
   return (
     <div className="mt-6">
       <div className="mb-4 flex justify-between items-center">
-        <p className="text-sm text-gray-600">Property photos</p>
+        <div>
+          <p className="text-sm font-medium text-gray-700">Linked from Asset Documentation</p>
+          <p className="text-xs text-gray-500">
+            Property Profiles organize what belongs to this property. Uploads are managed in Asset Documentation.
+          </p>
+        </div>
         <div className="flex gap-2">
           <Button 
             variant="outline" 
             size="sm"
-            onClick={() => canUpload ? fileInputRef.current?.click() : showReadOnlyRestriction()}
-            disabled={isUploading || !canUpload}
+            onClick={openAssetDocumentationUpload}
           >
-            {isUploading ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Upload className="h-4 w-4 mr-2" />
-            )}
-            {isAccountReadOnly ? 'Reactivate to upload files' : 'Upload Photos'}
+            <Upload className="h-4 w-4 mr-2" />
+            Upload Asset Documentation
           </Button>
           <Button 
             variant="outline" 
@@ -88,15 +68,6 @@ const PropertyPhotos: React.FC<PropertyPhotosProps> = ({ propertyId, onViewPhoto
           </Button>
         </div>
       </div>
-      
-      <Input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        multiple
-        className="hidden"
-        onChange={handleFileSelect}
-      />
 
       {isLoading ? (
         <div className="text-center py-8">
@@ -105,13 +76,10 @@ const PropertyPhotos: React.FC<PropertyPhotosProps> = ({ propertyId, onViewPhoto
       ) : photos.length === 0 ? (
         <div className="text-center text-gray-500 p-8 border border-dashed rounded-lg">
           <Camera className="h-12 w-12 mx-auto text-gray-300 mb-2" />
-          <p className="mb-4">No photos uploaded yet</p>
-          <Button
-            onClick={() => canUpload ? fileInputRef.current?.click() : showReadOnlyRestriction()}
-            disabled={isUploading || !canUpload}
-          >
+          <p className="mb-4">No photos linked to this property yet.</p>
+          <Button onClick={openAssetDocumentationUpload}>
             <Upload className="h-4 w-4 mr-2" />
-            {isAccountReadOnly ? 'Reactivate to upload files' : 'Upload First Photo'}
+            Add in Asset Documentation
           </Button>
         </div>
       ) : (
@@ -138,14 +106,6 @@ const PropertyPhotos: React.FC<PropertyPhotosProps> = ({ propertyId, onViewPhoto
                     onClick={() => window.open(photo.file_url, '_blank')}
                   >
                     View
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    onClick={() => handleDelete(photo.id, photo.file_path, photo.bucket_name)}
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="h-3 w-3" />
                   </Button>
                 </div>
               </CardContent>

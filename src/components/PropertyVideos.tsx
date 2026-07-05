@@ -1,29 +1,20 @@
-import React, { useState, useRef } from 'react';
+import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Video, Upload, Trash2, Loader2 } from 'lucide-react';
+import { Video, Upload, Loader2 } from 'lucide-react';
 import { usePropertyFiles } from '@/hooks/usePropertyFiles';
-import DeleteConfirmationDialog from './DeleteConfirmationDialog';
+import { useNavigate } from 'react-router-dom';
 
 interface PropertyVideosProps {
   propertyId: string | null;
 }
 
 const PropertyVideos: React.FC<PropertyVideosProps> = ({ propertyId }) => {
+  const navigate = useNavigate();
   const {
     files: videos,
     isLoading,
-    isUploading,
-    uploadFiles,
-    deleteFile,
-    canUpload,
-    isAccountReadOnly,
-    showReadOnlyRestriction,
   } = usePropertyFiles(propertyId, 'video');
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [videoToDelete, setVideoToDelete] = useState<{id: string, path: string, bucket: string} | null>(null);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -33,75 +24,39 @@ const PropertyVideos: React.FC<PropertyVideosProps> = ({ propertyId }) => {
     });
   };
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!canUpload) {
-      showReadOnlyRestriction();
-      e.target.value = '';
-      return;
-    }
-
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      await uploadFiles(Array.from(files));
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
-  };
-
-  const handleDeleteClick = (fileId: string, filePath: string, bucketName: string) => {
-    setVideoToDelete({ id: fileId, path: filePath, bucket: bucketName });
-    setDeleteDialogOpen(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (videoToDelete) {
-      await deleteFile(videoToDelete.id, videoToDelete.path, videoToDelete.bucket);
-    }
-    setDeleteDialogOpen(false);
-    setVideoToDelete(null);
-  };
-
-  const handleCancelDelete = () => {
-    setDeleteDialogOpen(false);
-    setVideoToDelete(null);
+  const openAssetDocumentationUpload = () => {
+    const query = new URLSearchParams({ tab: 'videos' });
+    if (propertyId) query.set('property_id', propertyId);
+    navigate(`/account/media/upload?${query.toString()}`);
   };
 
   if (!propertyId) {
     return (
       <div className="mt-6 text-center text-gray-500 p-8 border border-dashed rounded-lg">
         <Video className="h-12 w-12 mx-auto text-gray-300 mb-2" />
-        <p>Select a property to view and upload videos</p>
+        <p>Select a property to view linked videos</p>
       </div>
     );
   }
 
   return (
     <div className="mt-6 space-y-4">
-      <div className="flex justify-end mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
+        <div>
+          <p className="text-sm font-medium text-gray-700">Linked from Asset Documentation</p>
+          <p className="text-xs text-gray-500">
+            Property Profiles organize what belongs to this property. Uploads are managed in Asset Documentation.
+          </p>
+        </div>
         <Button 
           variant="outline" 
           size="sm"
-          onClick={() => canUpload ? fileInputRef.current?.click() : showReadOnlyRestriction()}
-          disabled={isUploading || !canUpload}
+          onClick={openAssetDocumentationUpload}
         >
-          {isUploading ? (
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          ) : (
-            <Upload className="h-4 w-4 mr-2" />
-          )}
-          {isAccountReadOnly ? 'Reactivate to upload files' : 'Upload Videos'}
+          <Upload className="h-4 w-4 mr-2" />
+          Upload Asset Documentation
         </Button>
       </div>
-      
-      <Input
-        ref={fileInputRef}
-        type="file"
-        accept="video/*"
-        multiple
-        className="hidden"
-        onChange={handleFileSelect}
-      />
 
       {isLoading ? (
         <div className="text-center py-8">
@@ -110,13 +65,10 @@ const PropertyVideos: React.FC<PropertyVideosProps> = ({ propertyId }) => {
       ) : videos.length === 0 ? (
         <div className="text-center text-gray-500 p-8 border border-dashed rounded-lg">
           <Video className="h-12 w-12 mx-auto text-gray-300 mb-2" />
-          <p className="mb-4">No videos uploaded yet</p>
-          <Button
-            onClick={() => canUpload ? fileInputRef.current?.click() : showReadOnlyRestriction()}
-            disabled={isUploading || !canUpload}
-          >
+          <p className="mb-4">No videos linked to this property yet.</p>
+          <Button onClick={openAssetDocumentationUpload}>
             <Upload className="h-4 w-4 mr-2" />
-            {isAccountReadOnly ? 'Reactivate to upload files' : 'Upload First Video'}
+            Add in Asset Documentation
           </Button>
         </div>
       ) : null}
@@ -144,27 +96,11 @@ const PropertyVideos: React.FC<PropertyVideosProps> = ({ propertyId }) => {
                 >
                   Watch
                 </Button>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => handleDeleteClick(video.id, video.file_path, video.bucket_name)}
-                  className="text-destructive hover:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
               </div>
             </div>
           </CardContent>
         </Card>
       ))}
-      
-      <DeleteConfirmationDialog
-        isOpen={deleteDialogOpen}
-        onClose={handleCancelDelete}
-        onConfirm={handleConfirmDelete}
-        title="Delete Video"
-        description="Are you sure you want to delete this video? This action cannot be undone."
-      />
     </div>
   );
 };

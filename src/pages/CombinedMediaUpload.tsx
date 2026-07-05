@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Camera, Video, Upload, Image, Film, Trash2, Loader2, Plus, Paperclip, X, Star } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import DashboardBreadcrumb from '@/components/DashboardBreadcrumb';
 import PropertySelector from '@/components/PropertySelector';
 import { Input } from '@/components/ui/input';
@@ -42,6 +42,7 @@ const NO_FOLDER_VALUE = '__none__';
 
 const CombinedMediaUpload: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { user } = useAuth();
   const { accountId } = useAccount();
@@ -50,7 +51,7 @@ const CombinedMediaUpload: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   
-  const [activeTab, setActiveTab] = useState<'photos' | 'videos'>('photos');
+  const [activeTab, setActiveTab] = useState<'photos' | 'videos'>(() => searchParams.get('tab') === 'videos' ? 'videos' : 'photos');
   const [selectedPropertyId, setSelectedPropertyId] = useState<string>('');
   const [selectedFolderId, setSelectedFolderId] = useState<string>('');
   const [folders, setFolders] = useState<MediaFolder[]>([]);
@@ -67,6 +68,18 @@ const CombinedMediaUpload: React.FC = () => {
   const [attachments, setAttachments] = useState<AttachmentEntry[]>([]);
   
   const { uploadFiles, isUploading } = usePropertyFiles(selectedPropertyId || null, activeTab === 'photos' ? 'photo' : 'video');
+
+  useEffect(() => {
+    const propertyId = searchParams.get('property_id');
+    if (propertyId) {
+      setSelectedPropertyId(propertyId);
+    }
+
+    const tab = searchParams.get('tab');
+    if (tab === 'photos' || tab === 'videos') {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   // Fetch folders based on active tab
   useEffect(() => {

@@ -15,6 +15,7 @@ import {
   ClipboardCheck, 
   FileText, 
   Home,
+  Map,
   Files
 } from 'lucide-react';
 
@@ -26,6 +27,7 @@ export type DocumentType =
   | 'inspection_report' 
   | 'appraisal' 
   | 'title_deed' 
+  | 'floorplan'
   | 'other';
 
 interface DocumentTypeOption {
@@ -77,6 +79,12 @@ const documentTypes: DocumentTypeOption[] = [
     label: 'Title / Deed',
     description: 'Property ownership\ndocuments',
     icon: Home,
+  },
+  {
+    type: 'floorplan',
+    label: 'Floorplan',
+    description: 'Property layouts,\nroom plans, or builder plans',
+    icon: Map,
   },
   {
     type: 'other',

@@ -25,7 +25,9 @@ import {
   Wrench,
   FileDown,
   Download,
+  Upload,
   Loader2,
+  Map,
   MapPin,
   Calendar,
   ExternalLink
@@ -68,6 +70,15 @@ interface UpgradeRepair {
   location: string | null;
 }
 
+interface AssetDocument {
+  id: string;
+  document_name: string | null;
+  file_name: string;
+  file_url: string | null;
+  file_path: string;
+  created_at: string;
+}
+
 // Simple signed image component
 const SignedImage: React.FC<{ file: PropertyFile; className?: string }> = ({ file, className }) => {
   const { signedUrl, isLoading } = useSignedUrl(file.file_path, file.bucket_name);
@@ -100,6 +111,8 @@ const PropertyAllAssets: React.FC = () => {
   const [photos, setPhotos] = useState<PropertyFile[]>([]);
   const [videos, setVideos] = useState<PropertyFile[]>([]);
   const [documents, setDocuments] = useState<PropertyFile[]>([]);
+  const [assetDocuments, setAssetDocuments] = useState<AssetDocument[]>([]);
+  const [floorplans, setFloorplans] = useState<AssetDocument[]>([]);
   const [damageReports, setDamageReports] = useState<DamageReport[]>([]);
   const [paintCodes, setPaintCodes] = useState<PaintCode[]>([]);
   
@@ -127,6 +140,8 @@ const PropertyAllAssets: React.FC = () => {
         photosData,
         videosData,
         documentsData,
+        assetDocumentsData,
+        floorplanData,
         damageData,
         paintData,
         manualData,
@@ -135,6 +150,8 @@ const PropertyAllAssets: React.FC = () => {
         PropertyService.getPropertyFiles(propertyId, 'photo'),
         PropertyService.getPropertyFiles(propertyId, 'video'),
         PropertyService.getPropertyFiles(propertyId, 'document'),
+        supabase.from('user_documents').select('id, document_name, file_name, file_url, file_path, created_at').eq('property_id', propertyId).eq('user_id', user.id).or('document_type.is.null,document_type.neq.floorplan'),
+        supabase.from('user_documents').select('id, document_name, file_name, file_url, file_path, created_at').eq('property_id', propertyId).eq('user_id', user.id).eq('document_type', 'floorplan'),
         supabase.from('damage_reports').select('*').eq('property_id', propertyId).eq('user_id', user.id),
         supabase.from('paint_codes').select('*').eq('property_id', propertyId).eq('user_id', user.id),
         supabase.from('items').select('*').eq('property_id', propertyId).eq('user_id', user.id),
@@ -144,6 +161,8 @@ const PropertyAllAssets: React.FC = () => {
       setPhotos(photosData || []);
       setVideos(videosData || []);
       setDocuments(documentsData || []);
+      setAssetDocuments((assetDocumentsData.data || []) as AssetDocument[]);
+      setFloorplans((floorplanData.data || []) as AssetDocument[]);
       setDamageReports(damageData.data || []);
       setPaintCodes(paintData.data || []);
       setManualEntries(manualData.data || []);
@@ -196,8 +215,14 @@ const PropertyAllAssets: React.FC = () => {
     return new Date(dateStr).toLocaleDateString();
   };
 
-  const totalAssets = photos.length + videos.length + documents.length +
-    damageReports.length + paintCodes.length +
+  const openAssetDocumentationUpload = (type = 'other') => {
+    if (!propertyId) return;
+    const query = new URLSearchParams({ type, property_id: propertyId });
+    navigate(`/account/documents/upload?${query.toString()}`);
+  };
+
+  const totalAssets = photos.length + videos.length + documents.length + assetDocuments.length +
+    floorplans.length + damageReports.length + paintCodes.length +
     manualEntries.length + upgradeRepairs.length;
 
   if (loading) {
@@ -288,8 +313,23 @@ const PropertyAllAssets: React.FC = () => {
             </Card>
           </div>
 
+          <Card className="mb-6">
+            <CardContent className="p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-foreground">Linked from Asset Documentation</p>
+                <p className="text-sm text-muted-foreground">
+                  Files shown here are linked from Asset Documentation. To add photos, videos, documents, floorplans, or records to this property, upload them in Asset Documentation and attach them to this property.
+                </p>
+              </div>
+              <Button onClick={() => openAssetDocumentationUpload()} className="shrink-0">
+                <Upload className="h-4 w-4 mr-2" />
+                Upload Asset Documentation
+              </Button>
+            </CardContent>
+          </Card>
+
           {/* Assets Accordion */}
-          <Accordion type="multiple" defaultValue={['photos', 'videos', 'documents']} className="space-y-4">
+          <Accordion type="multiple" defaultValue={['photos', 'videos', 'documents', 'floorplans']} className="space-y-4">
             {/* Photos */}
             <AccordionItem value="photos" className="border rounded-lg bg-white">
               <AccordionTrigger className="px-4 hover:no-underline">
@@ -301,7 +341,13 @@ const PropertyAllAssets: React.FC = () => {
               </AccordionTrigger>
               <AccordionContent className="px-4 pb-4">
                 {photos.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-4">No photos uploaded for this property</p>
+                  <div className="text-center py-4">
+                    <p className="text-muted-foreground mb-3">No photos linked to this property yet.</p>
+                    <Button variant="outline" size="sm" onClick={() => navigate(`/account/media/upload?tab=photos&property_id=${propertyId}`)}>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Add in Asset Documentation
+                    </Button>
+                  </div>
                 ) : (
                   <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                     {photos.map((photo) => (
@@ -325,7 +371,13 @@ const PropertyAllAssets: React.FC = () => {
               </AccordionTrigger>
               <AccordionContent className="px-4 pb-4">
                 {videos.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-4">No videos uploaded for this property</p>
+                  <div className="text-center py-4">
+                    <p className="text-muted-foreground mb-3">No videos linked to this property yet.</p>
+                    <Button variant="outline" size="sm" onClick={() => navigate(`/account/media/upload?tab=videos&property_id=${propertyId}`)}>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Add in Asset Documentation
+                    </Button>
+                  </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     {videos.map((video) => (
@@ -354,10 +406,34 @@ const PropertyAllAssets: React.FC = () => {
                 </div>
               </AccordionTrigger>
               <AccordionContent className="px-4 pb-4">
-                {documents.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-4">No documents uploaded for this property</p>
+                {documents.length === 0 && assetDocuments.length === 0 ? (
+                  <div className="text-center py-4">
+                    <p className="text-muted-foreground mb-3">No documents linked to this property yet.</p>
+                    <Button variant="outline" size="sm" onClick={() => openAssetDocumentationUpload()}>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Add in Asset Documentation
+                    </Button>
+                  </div>
                 ) : (
                   <div className="space-y-2">
+                    {assetDocuments.map((doc) => (
+                      <Card key={doc.id} className="p-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <FileText className="h-5 w-5 text-muted-foreground shrink-0" />
+                            <div className="min-w-0">
+                              <p className="font-medium truncate">{doc.document_name || doc.file_name}</p>
+                              <p className="text-xs text-muted-foreground">{formatDate(doc.created_at)}</p>
+                            </div>
+                          </div>
+                          {doc.file_url && (
+                            <Button size="sm" variant="outline" onClick={() => window.open(doc.file_url!, '_blank')}>
+                              View
+                            </Button>
+                          )}
+                        </div>
+                      </Card>
+                    ))}
                     {documents.map((doc) => (
                       <Card key={doc.id} className="p-3">
                         <div className="flex items-center justify-between">
@@ -368,6 +444,49 @@ const PropertyAllAssets: React.FC = () => {
                               <p className="text-xs text-muted-foreground">{formatDate(doc.created_at)}</p>
                             </div>
                           </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* Floorplans */}
+            <AccordionItem value="floorplans" className="border rounded-lg bg-white">
+              <AccordionTrigger className="px-4 hover:no-underline">
+                <div className="flex items-center gap-2">
+                  <Map className="h-5 w-5 text-brand-blue" />
+                  <span className="font-semibold">Floorplans</span>
+                  <Badge variant="outline">{floorplans.length}</Badge>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-4 pb-4">
+                {floorplans.length === 0 ? (
+                  <div className="text-center py-4">
+                    <p className="text-muted-foreground mb-3">No floorplans linked to this property yet.</p>
+                    <Button variant="outline" size="sm" onClick={() => openAssetDocumentationUpload('floorplan')}>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Add in Asset Documentation
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {floorplans.map((floorplan) => (
+                      <Card key={floorplan.id} className="p-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <Map className="h-5 w-5 text-muted-foreground shrink-0" />
+                            <div className="min-w-0">
+                              <p className="font-medium truncate">{floorplan.document_name || floorplan.file_name}</p>
+                              <p className="text-xs text-muted-foreground">{formatDate(floorplan.created_at)}</p>
+                            </div>
+                          </div>
+                          {floorplan.file_url && (
+                            <Button size="sm" variant="outline" onClick={() => window.open(floorplan.file_url!, '_blank')}>
+                              View
+                            </Button>
+                          )}
                         </div>
                       </Card>
                     ))}

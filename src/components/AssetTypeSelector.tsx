@@ -18,6 +18,7 @@ import {
   ClipboardCheck, 
   FileText, 
   Home,
+  Map,
   Files
 } from 'lucide-react';
 
@@ -32,6 +33,7 @@ export type AssetUploadType =
   | 'inspection_report' 
   | 'appraisal' 
   | 'title_deed' 
+  | 'floorplan'
   | 'other';
 
 interface AssetTypeOption {
@@ -101,6 +103,12 @@ const assetTypes: AssetTypeOption[] = [
     label: 'Title / Deed',
     description: 'Property ownership\ndocuments',
     icon: Home,
+  },
+  {
+    type: 'floorplan',
+    label: 'Floorplan',
+    description: 'Layouts, room plans,\nor builder plans',
+    icon: Map,
   },
   {
     type: 'other',

@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Upload, FileText, Trash2, Shield, FileWarning, FileCheck, Receipt, ClipboardCheck, Home, Files, Loader2, Camera, ScanLine } from 'lucide-react';
+import { ArrowLeft, Upload, FileText, Trash2, Shield, FileWarning, FileCheck, Receipt, ClipboardCheck, Home, Map, Files, Loader2, Camera, ScanLine } from 'lucide-react';
 import ScanToPDF from '@/components/ScanToPDF';
 import PropertySelector from '@/components/PropertySelector';
 import { useAuth } from '@/contexts/AuthContext';
@@ -34,6 +34,7 @@ const documentTypeLabels: Record<DocumentType, { label: string; icon: React.Elem
   inspection_report: { label: 'Inspection Report', icon: ClipboardCheck, color: 'bg-yellow text-yellow-foreground' },
   appraisal: { label: 'Appraisal', icon: FileText, color: 'bg-yellow text-yellow-foreground' },
   title_deed: { label: 'Title / Deed', icon: Home, color: 'bg-yellow text-yellow-foreground' },
+  floorplan: { label: 'Floorplan', icon: Map, color: 'bg-yellow text-yellow-foreground' },
   other: { label: 'Other', icon: Files, color: 'bg-yellow text-yellow-foreground' }
 };
 
@@ -72,6 +73,13 @@ const DocumentUpload: React.FC = () => {
       fetchFolders();
     }
   }, [user?.id, accountId]);
+
+  useEffect(() => {
+    const propertyId = searchParams.get('property_id');
+    if (propertyId) {
+      setSelectedPropertyId(propertyId);
+    }
+  }, [searchParams]);
 
   const fetchFolders = async () => {
     if (!user || !accountId) return;
