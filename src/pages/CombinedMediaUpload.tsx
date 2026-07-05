@@ -185,14 +185,12 @@ const CombinedMediaUpload: React.FC = () => {
         item_values: filteredItems.length > 0 ? filteredItems : undefined,
       });
 
-      // If marked as high-value, update the uploaded files
+      // If marked as high-value, mark the value-bearing representative file.
       if (isHighValue && uploadedFiles && uploadedFiles.length > 0) {
-        for (const file of uploadedFiles) {
-          await supabase
-            .from('property_files')
-            .update({ is_high_value: true })
-            .eq('id', file.id);
-        }
+        await supabase
+          .from('property_files')
+          .update({ is_high_value: true })
+          .eq('id', uploadedFiles[0].id);
       }
       toast({
         title: "Success",
@@ -496,7 +494,7 @@ const CombinedMediaUpload: React.FC = () => {
                     Mark as high-value item
                   </Label>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Flag this upload for your High-Value Items collection
+                    Flag this documented item/set for your High-Value Items collection
                   </p>
                 </div>
               </div>
@@ -504,7 +502,7 @@ const CombinedMediaUpload: React.FC = () => {
               {/* Item Values Section */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <Label className="text-sm font-medium">Item Values</Label>
+                  <Label className="text-sm font-medium">Add items documented in this upload set</Label>
                   <Button
                     type="button"
                     variant="outline"
@@ -517,8 +515,13 @@ const CombinedMediaUpload: React.FC = () => {
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground mb-3">
-                  Add items pictured and their estimated values
+                  What assets are shown across these {activeTab === 'photos' ? 'photos' : 'videos'}?
                 </p>
+                {selectedFiles.length > 1 && (
+                  <p className="text-xs text-muted-foreground mb-3 rounded-md border bg-muted/30 px-3 py-2">
+                    Tip: Taking several photos of the same room? Add each item and value once - we'll connect the photos without counting the value more than once.
+                  </p>
+                )}
                 <div className="space-y-3">
                   {items.map((item, index) => (
                     <div key={item.id} className="flex items-start gap-2">

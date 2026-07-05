@@ -137,7 +137,7 @@ export const usePropertyFiles = (propertyId: string | null, fileType?: 'photo' |
         }
       }
 
-      for (const file of filesToUpload) {
+      for (const [index, file] of filesToUpload.entries()) {
         const fullPath = buildAssetDocPath({
           accountId,
           kind: bucket,
@@ -163,7 +163,7 @@ export const usePropertyFiles = (propertyId: string | null, fileType?: 'photo' |
               folder_id: folderId || null,
               description: metadata?.description || null,
               tags: metadata?.tags || [],
-              item_values: metadata?.item_values || [],
+              item_values: index === 0 ? metadata?.item_values || [] : [],
             });
 
             if (propertyFile) {

@@ -1085,9 +1085,18 @@ export class ExportService {
         }
       };
 
+      const fileValueDedupeKeys = new Set<string>();
+
       const getFileItemValues = (itemValues: unknown): Array<{ name?: unknown; value?: unknown }> => {
         if (!Array.isArray(itemValues)) return [];
         return itemValues.filter(value => value && typeof value === 'object') as Array<{ name?: unknown; value?: unknown }>;
+      };
+
+      const getUploadMinute = (createdAt?: string | null) => {
+        const date = createdAt ? new Date(createdAt) : null;
+        if (!date || Number.isNaN(date.getTime())) return 'unknown-minute';
+        date.setSeconds(0, 0);
+        return date.toISOString();
       };
 
       const signStoragePaths = async (bucket: string, paths: string[]) => {
@@ -1263,6 +1272,19 @@ export class ExportService {
             const name = typeof itemValue.name === 'string' && itemValue.name.trim()
               ? itemValue.name.trim()
               : 'Unnamed Value';
+            const dedupeKey = [
+              file.property_id || 'no-property',
+              file.file_type || 'unknown-type',
+              file.folder_id || 'no-folder',
+              getUploadMinute(file.created_at),
+              index,
+              name.toLowerCase(),
+              value,
+            ].join('|');
+
+            if (fileValueDedupeKeys.has(dedupeKey)) return;
+            fileValueDedupeKeys.add(dedupeKey);
+
             addAssetValueEntry({
               id: `fv-${file.id}-${index + 1}`,
               name,
