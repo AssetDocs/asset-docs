@@ -1,8 +1,8 @@
 # Asset Safe Security Incident Tabletop — Agenda & Evidence Template
 
-Status: launch security operations template
-Owner: Security Lead / Operator
-MVP scheduling status: must be scheduled before broad launch; completion evidence still required
+Status: scheduled MVP tabletop; completion evidence still required
+Owner: Michael Lewis / Security Lead / Operator
+MVP scheduling status: scheduled before broad launch; completion evidence preferred before broad launch
 Companion docs:
 - `docs/AssetSafe_Security_Incident_Response_Runbook.md`
 - `docs/AssetSafe_Key_Rotation_Runbook.md`
@@ -23,14 +23,14 @@ The operator approved scheduling one tabletop before broad launch using the susp
 
 | Field | Value |
 |---|---|
-| Scheduled date | Proposed: 2026-07-06 |
-| Start time / timezone | Proposed: 10:00 AM America/Chicago |
+| Scheduled date | 2026-07-06 |
+| Start time / timezone | 10:00 AM America/Chicago |
 | Scenario | Suspected unauthorized access or exposed storage object affecting user asset documents |
 | Staging app URL | `[staging URL]` |
 | Staging Supabase project ref | `[staging ref]` |
 | Active ZAP scanning | Approved for staging only; not approved for production |
 | Expected outcome | Pass or pass-with-actions |
-| Evidence location | This agenda or launch evidence folder |
+| Evidence location | `docs/AssetSafe_Security_Incident_Tabletop_Agenda.md` or launch evidence folder |
 
 | Participant role | Named participant |
 |---|---|
@@ -56,8 +56,8 @@ Fill these in before scheduling. If any row is blank, the tabletop cannot start.
 
 | Field | Value |
 |---|---|
-| Scheduled date | TBD before broad launch |
-| Start time / timezone |  |
+| Scheduled date | 2026-07-06 |
+| Start time / timezone | 10:00 AM America/Chicago |
 | Duration | 60 minutes |
 | Location / video link |  |
 | Facilitator | Michael Lewis |
