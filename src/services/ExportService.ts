@@ -246,6 +246,25 @@ export interface AssetSummary {
     fileUrl?: string;
     createdAt: string;
   }>;
+  familyMedications: Array<{
+    id: string;
+    medicationName: string;
+    dosage?: string;
+    frequencyInstructions?: string;
+    reason?: string;
+    prescribingDoctor?: string;
+    pharmacyName?: string;
+    pharmacyPhone?: string;
+    startDate?: string;
+    endDate?: string;
+    currentlyTaking: boolean;
+    medicationCategory?: string;
+    caregiverNotes?: string;
+    notes?: string;
+    fileName?: string;
+    fileUrl?: string;
+    updatedAt: string;
+  }>;
   contributors: Array<{
     id: string;
     firstName?: string;
@@ -289,6 +308,7 @@ export class ExportService {
       + assets.voiceNotes.filter(note => note.audioUrl).length
       + assets.archiveFiles.length
       + assets.familyRecipes.filter(recipe => recipe.fileUrl).length
+      + assets.familyMedications.filter(medication => medication.fileUrl).length
       + (assets.assetValueEntries.length > 0 ? 2 : 0);
   }
 
@@ -442,6 +462,8 @@ export class ExportService {
     pdf.text(`Insurance Policies: ${assets.insurancePolicies.length}`, 30, yPosition);
     yPosition += lineHeight;
     pdf.text(`Family Recipes: ${assets.familyRecipes.length}`, 30, yPosition);
+    yPosition += lineHeight;
+    pdf.text(`Medication List: ${assets.familyMedications.length}`, 30, yPosition);
     yPosition += lineHeight;
     pdf.text(`Contributors: ${assets.contributors.length}`, 30, yPosition);
     yPosition += 20;
@@ -857,6 +879,51 @@ export class ExportService {
       yPosition += 10;
     }
 
+    // Medication List section
+    if (assets.familyMedications.length > 0) {
+      checkPageSpace(30);
+      pdf.setFontSize(16);
+      pdf.setFont(undefined, 'bold');
+      pdf.text('Medication List', 20, yPosition);
+      yPosition += 10;
+
+      assets.familyMedications.forEach((medication, index) => {
+        checkPageSpace(30);
+        pdf.setFontSize(10);
+        pdf.setFont(undefined, 'bold');
+        pdf.text(`${index + 1}. ${medication.medicationName}`, 30, yPosition);
+        yPosition += lineHeight;
+        pdf.setFont(undefined, 'normal');
+        const details = [
+          medication.currentlyTaking ? 'Status: Current' : 'Status: Past',
+          medication.dosage ? `Dosage: ${medication.dosage}` : null,
+          medication.frequencyInstructions ? `Instructions: ${medication.frequencyInstructions}` : null,
+          medication.reason ? `Reason: ${medication.reason}` : null,
+          medication.prescribingDoctor ? `Doctor: ${medication.prescribingDoctor}` : null,
+          medication.pharmacyName ? `Pharmacy: ${medication.pharmacyName}` : null,
+          medication.pharmacyPhone ? `Pharmacy phone: ${medication.pharmacyPhone}` : null,
+          medication.medicationCategory ? `Category: ${medication.medicationCategory}` : null,
+          medication.fileName ? `Attachment: ${medication.fileName}` : null,
+        ].filter(Boolean) as string[];
+        details.forEach((detail) => {
+          checkPageSpace(lineHeight);
+          pdf.text(`   ${detail}`, 30, yPosition);
+          yPosition += lineHeight;
+        });
+        const notes = [medication.caregiverNotes, medication.notes].filter(Boolean).join('\n');
+        if (notes) {
+          const lines = pdf.splitTextToSize(`   Notes: ${notes}`, 150);
+          lines.forEach((line: string) => {
+            checkPageSpace(lineHeight);
+            pdf.text(line, 30, yPosition);
+            yPosition += lineHeight;
+          });
+        }
+        yPosition += 4;
+      });
+      yPosition += 6;
+    }
+
     // Contributors section
     if (assets.contributors.length > 0) {
       checkPageSpace(30);
@@ -901,6 +968,7 @@ export class ExportService {
     const zip = new JSZip();
     let downloadedCount = 0;
     const recipeFiles = assets.familyRecipes.filter(r => r.fileUrl);
+    const medicationFiles = assets.familyMedications.filter(m => m.fileUrl);
     const assetValueFileCount = assets.assetValueEntries.length > 0 ? 2 : 0;
     const extraFileCount = extraFiles.length;
     const totalFiles =
@@ -909,6 +977,7 @@ export class ExportService {
       assets.documents.length +
       assets.voiceNotes.filter(n => n.audioUrl).length +
       recipeFiles.length +
+      medicationFiles.length +
       assets.archiveFiles.length +
       assetValueFileCount +
       extraFileCount;
@@ -943,6 +1012,7 @@ export class ExportService {
     const documentsFolder = zip.folder('documents');
     const voiceNotesFolder = zip.folder('voice-notes');
     const recipesFolder = zip.folder('family-recipes');
+    const medicationsFolder = zip.folder('medication-list');
     const assetValuesFolder = zip.folder('asset-values');
     const archiveFolders: Record<string, JSZip> = {};
 
@@ -1007,6 +1077,14 @@ export class ExportService {
       }
     });
 
+    // Download Medication List attachments
+    medicationFiles.forEach((medication) => {
+      if (medicationsFolder && medication.fileUrl) {
+        const fileName = medication.fileName || `${medication.medicationName.replace(/[^a-zA-Z0-9]/g, '_')}`;
+        downloadPromises.push(downloadFile(medication.fileUrl, medicationsFolder, sanitizeFileName(fileName)));
+      }
+    });
+
     // Include read-only Asset Values rollups as generated CSV files.
     if (assetValuesFolder && assets.assetValueEntries.length > 0) {
       assetValuesFolder.file('asset-values-summary.csv', this.buildAssetValuesSummaryCsv(assets.assetValueEntries));
@@ -1066,6 +1144,7 @@ export class ExportService {
       damageReports: [],
       insurancePolicies: [],
       familyRecipes: [],
+      familyMedications: [],
       contributors: []
     };
 
@@ -1786,6 +1865,53 @@ export class ExportService {
           fileName: recipe.file_name || undefined,
           fileUrl: (recipe.file_path ? recipeSignedMap[recipe.file_path] : null) || recipe.file_url || undefined,
           createdAt: recipe.created_at || new Date().toISOString()
+        }));
+      }
+
+      // Fetch Medication List
+      const { data: familyMedications, error: medicationsError } = await supabase
+        .from('family_medications' as any)
+        .select('*')
+        .eq('user_id', userId);
+
+      if (!medicationsError && familyMedications && familyMedications.length > 0) {
+        const medicationsWithFiles = familyMedications.filter((m: any) => m.file_path);
+        const medicationSignedMap: Record<string, string> = {};
+        if (medicationsWithFiles.length > 0) {
+          const paths = medicationsWithFiles.map((m: any) => m.file_path!);
+          const bucket = medicationsWithFiles[0].bucket_name || 'documents';
+          try {
+            const { data: signedUrls } = await supabase.storage
+              .from(bucket)
+              .createSignedUrls(paths, EXPORT_SIGNED_URL_TTL_SECONDS);
+            if (signedUrls) {
+              for (const s of signedUrls) {
+                if (s.signedUrl && s.path) medicationSignedMap[s.path] = s.signedUrl;
+              }
+            }
+          } catch (err) {
+            console.error('Error signing medication file URLs:', err);
+          }
+        }
+
+        assets.familyMedications = familyMedications.map((medication: any) => ({
+          id: medication.id,
+          medicationName: medication.medication_name,
+          dosage: medication.dosage || undefined,
+          frequencyInstructions: medication.frequency_instructions || undefined,
+          reason: medication.reason || undefined,
+          prescribingDoctor: medication.prescribing_doctor || undefined,
+          pharmacyName: medication.pharmacy_name || undefined,
+          pharmacyPhone: medication.pharmacy_phone || undefined,
+          startDate: medication.start_date || undefined,
+          endDate: medication.end_date || undefined,
+          currentlyTaking: medication.currently_taking ?? true,
+          medicationCategory: medication.medication_category || undefined,
+          caregiverNotes: medication.caregiver_notes || undefined,
+          notes: medication.notes || undefined,
+          fileName: medication.file_name || undefined,
+          fileUrl: (medication.file_path ? medicationSignedMap[medication.file_path] : null) || medication.file_url || undefined,
+          updatedAt: medication.updated_at || medication.created_at || new Date().toISOString(),
         }));
       }
 

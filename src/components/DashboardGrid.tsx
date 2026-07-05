@@ -91,6 +91,7 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
         assets.documents.length +
         assets.voiceNotes.filter(note => note.audioUrl).length +
         assets.familyRecipes.filter(recipe => recipe.fileUrl).length +
+        assets.familyMedications.filter(medication => medication.fileUrl).length +
         assets.archiveFiles.length;
       if (totalFiles === 0) {
         toast({ title: 'No Files Found', description: "You haven't uploaded any files yet.", variant: 'destructive' });
@@ -155,7 +156,7 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           icon={<Heart className="h-6 w-6" />}
           title="Family Archive"
           description="Everyday life, organized and protected."
-          tags={['VIP Contacts', 'Voice Notes', 'Trusted Pros', 'Notes & Traditions', 'Family Recipes']}
+          tags={['VIP Contacts', 'Voice Notes', 'Trusted Pros', 'Notes & Traditions', 'Family Recipes', 'Medication List']}
           actionLabel="Open Family Archive"
           actionIcon={<FolderOpen className="h-4 w-4" />}
           onClick={() => rememberAndOpen('life-hub', 'family_archive_opened', 'Open Family Archive')}

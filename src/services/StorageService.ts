@@ -461,13 +461,13 @@ export function buildAssetDocPath(opts: {
 }
 
 /**
- * {userId}/family-recipes|notes-traditions/{rand}.ext
+ * {userId}/family-recipes|notes-traditions|medication-list/{rand}.ext
  * {userId}/memory-safe/{folderIdOrRoot}/{rand}.ext
  * Family Archive remains owner-only — first path segment is the owner's user id.
  */
 export function buildFamilyArchivePath(opts: {
   userId: string;
-  section: 'family-recipes' | 'notes-traditions' | 'memory-safe';
+  section: 'family-recipes' | 'notes-traditions' | 'medication-list' | 'memory-safe';
   folderId?: string | null;
   file: File;
 }): string {

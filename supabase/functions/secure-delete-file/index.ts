@@ -9,7 +9,8 @@
  *                                property_file, user_document)
  *   - clear_attachment_fields : keep the parent row, null out attachment cols
  *                               (family_recipe_attachment,
- *                                notes_tradition_attachment)
+ *                                notes_tradition_attachment,
+ *                                family_medication_attachment)
  *   - clear_optional_swatch   : keep the parent row, null out one image col
  *                               (paint_code_swatch)
  *
@@ -113,6 +114,22 @@ const RESOURCES: Record<string, ResourceDef> = {
     ],
     label: "Notes / tradition attachment",
     labelColumn: "title",
+  },
+  family_medication_attachment: {
+    table: "family_medications",
+    bucket: "from_row",
+    pathColumn: "file_path",
+    ownership: "shared_owner",
+    finalize: "clear_attachment_fields",
+    attachmentColumns: [
+      "file_path",
+      "file_url",
+      "file_name",
+      "file_size",
+      "bucket_name",
+    ],
+    label: "Medication attachment",
+    labelColumn: "medication_name",
   },
   contact_attachment: {
     table: "vip_contact_attachments",

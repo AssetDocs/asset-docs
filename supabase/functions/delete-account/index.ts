@@ -26,6 +26,7 @@ const STORAGE_REF_SOURCES = [
   { table: 'user_documents', bucket: 'documents', pathColumn: 'file_path' },
   { table: 'memory_safe_items', bucket: 'memory-safe', pathColumn: 'file_path' },
   { table: 'family_recipes', bucketColumn: 'bucket_name', fallbackBucket: 'documents', pathColumn: 'file_path' },
+  { table: 'family_medications', bucketColumn: 'bucket_name', fallbackBucket: 'documents', pathColumn: 'file_path' },
   { table: 'notes_traditions', bucketColumn: 'bucket_name', fallbackBucket: 'documents', pathColumn: 'file_path' },
   { table: 'vip_contact_attachments', bucket: 'contact-attachments', pathColumn: 'file_path' },
   { table: 'paint_codes', bucket: 'photos', pathColumn: 'swatch_image_path' },

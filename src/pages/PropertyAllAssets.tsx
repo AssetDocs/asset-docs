@@ -215,10 +215,8 @@ const PropertyAllAssets: React.FC = () => {
     return new Date(dateStr).toLocaleDateString();
   };
 
-  const openAssetDocumentationUpload = (type = 'other') => {
-    if (!propertyId) return;
-    const query = new URLSearchParams({ type, property_id: propertyId });
-    navigate(`/account/documents/upload?${query.toString()}`);
+  const openAssetDocumentationUpload = () => {
+    navigate('/account?tab=asset-documentation');
   };
 
   const totalAssets = photos.length + videos.length + documents.length + assetDocuments.length +
@@ -263,14 +261,14 @@ const PropertyAllAssets: React.FC = () => {
       
       <div className="flex-grow py-8 px-4 bg-gray-50">
         <div className="max-w-7xl mx-auto">
-          <DashboardBreadcrumb />
+          <DashboardBreadcrumb
+            parentRoute="/account/properties"
+            parentLabel="Back to Properties"
+            hidePageName
+          />
           
           {/* Header */}
           <div className="mb-6">
-            <Button variant="outline" onClick={() => navigate('/account/properties')} className="mb-4">
-              <ArrowLeft className="h-4 w-4 mr-2" /> Back to Properties
-            </Button>
-            
             <Card className="bg-gradient-to-r from-brand-blue to-brand-lightBlue text-white">
               <CardContent className="p-6">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -343,7 +341,7 @@ const PropertyAllAssets: React.FC = () => {
                 {photos.length === 0 ? (
                   <div className="text-center py-4">
                     <p className="text-muted-foreground mb-3">No photos linked to this property yet.</p>
-                    <Button variant="outline" size="sm" onClick={() => navigate(`/account/media/upload?tab=photos&property_id=${propertyId}`)}>
+                    <Button variant="outline" size="sm" onClick={openAssetDocumentationUpload}>
                       <Upload className="h-4 w-4 mr-2" />
                       Add in Asset Documentation
                     </Button>
@@ -373,7 +371,7 @@ const PropertyAllAssets: React.FC = () => {
                 {videos.length === 0 ? (
                   <div className="text-center py-4">
                     <p className="text-muted-foreground mb-3">No videos linked to this property yet.</p>
-                    <Button variant="outline" size="sm" onClick={() => navigate(`/account/media/upload?tab=videos&property_id=${propertyId}`)}>
+                    <Button variant="outline" size="sm" onClick={openAssetDocumentationUpload}>
                       <Upload className="h-4 w-4 mr-2" />
                       Add in Asset Documentation
                     </Button>
@@ -409,7 +407,7 @@ const PropertyAllAssets: React.FC = () => {
                 {documents.length === 0 && assetDocuments.length === 0 ? (
                   <div className="text-center py-4">
                     <p className="text-muted-foreground mb-3">No documents linked to this property yet.</p>
-                    <Button variant="outline" size="sm" onClick={() => openAssetDocumentationUpload()}>
+                    <Button variant="outline" size="sm" onClick={openAssetDocumentationUpload}>
                       <Upload className="h-4 w-4 mr-2" />
                       Add in Asset Documentation
                     </Button>
@@ -465,7 +463,7 @@ const PropertyAllAssets: React.FC = () => {
                 {floorplans.length === 0 ? (
                   <div className="text-center py-4">
                     <p className="text-muted-foreground mb-3">No floorplans linked to this property yet.</p>
-                    <Button variant="outline" size="sm" onClick={() => openAssetDocumentationUpload('floorplan')}>
+                    <Button variant="outline" size="sm" onClick={openAssetDocumentationUpload}>
                       <Upload className="h-4 w-4 mr-2" />
                       Add in Asset Documentation
                     </Button>

@@ -50,6 +50,7 @@ const DownloadAllFilesButton: React.FC = () => {
         assets.documents.length +
         assets.voiceNotes.filter(note => note.audioUrl).length +
         assets.familyRecipes.filter(recipe => recipe.fileUrl).length +
+        assets.familyMedications.filter(medication => medication.fileUrl).length +
         assets.archiveFiles.length;
       
       if (totalFiles === 0) {

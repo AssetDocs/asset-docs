@@ -68,9 +68,7 @@ const PropertyDocuments: React.FC<PropertyDocumentsProps> = ({ propertyId }) => 
   };
 
   const openAssetDocumentationUpload = () => {
-    const query = new URLSearchParams({ type: 'other' });
-    if (propertyId) query.set('property_id', propertyId);
-    navigate(`/account/documents/upload?${query.toString()}`);
+    navigate('/account?tab=asset-documentation');
   };
 
   if (!propertyId) {

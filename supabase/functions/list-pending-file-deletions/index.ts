@@ -28,6 +28,7 @@ const SOURCES: Source[] = [
   { resource: "user_document",              table: "user_documents",          label: "Document",                   labelColumn: "file_name", ownership: "shared_owner" },
   { resource: "memory_safe_item",           table: "memory_safe_items",       label: "Memory Safe item",           labelColumn: "file_name", ownership: "owner_only" },
   { resource: "family_recipe_attachment",   table: "family_recipes",          label: "Recipe attachment",          labelColumn: "title",     ownership: "owner_only" },
+  { resource: "family_medication_attachment", table: "family_medications",    label: "Medication attachment",      labelColumn: "medication_name", ownership: "shared_owner" },
   { resource: "notes_tradition_attachment", table: "notes_traditions",        label: "Notes / tradition attachment", labelColumn: "title",   ownership: "owner_only" },
   { resource: "contact_attachment",         table: "vip_contact_attachments", label: "Contact attachment",         labelColumn: "file_name", ownership: "owner_only" },
   { resource: "paint_code_swatch",          table: "paint_codes",             label: "Paint code swatch",          labelColumn: "name",      ownership: "owner_only" },

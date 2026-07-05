@@ -25,9 +25,7 @@ const PropertyVideos: React.FC<PropertyVideosProps> = ({ propertyId }) => {
   };
 
   const openAssetDocumentationUpload = () => {
-    const query = new URLSearchParams({ tab: 'videos' });
-    if (propertyId) query.set('property_id', propertyId);
-    navigate(`/account/media/upload?${query.toString()}`);
+    navigate('/account?tab=asset-documentation');
   };
 
   if (!propertyId) {

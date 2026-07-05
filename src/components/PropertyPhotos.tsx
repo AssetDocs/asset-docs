@@ -26,9 +26,7 @@ const PropertyPhotos: React.FC<PropertyPhotosProps> = ({ propertyId, onViewPhoto
   };
 
   const openAssetDocumentationUpload = () => {
-    const query = new URLSearchParams({ tab: 'photos' });
-    if (propertyId) query.set('property_id', propertyId);
-    navigate(`/account/media/upload?${query.toString()}`);
+    navigate('/account?tab=asset-documentation');
   };
 
   if (!propertyId) {
