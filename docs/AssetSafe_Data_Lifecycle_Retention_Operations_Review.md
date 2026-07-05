@@ -46,12 +46,12 @@ Recommended next step:
 
 Current state: legal hold fields and review workflow exist.
 
-Remaining risk: operator/counsel policy for when to place, remove, or override legal hold still needs formal signoff.
+Current MVP decision: operator accepted the legal retention schedule on 2026-07-05 with counsel review pending. Legal hold is confirmed to override deletion, anonymization, and expiration sweepers.
 
 Recommended next step:
 
-- Add the legal hold policy owner and response SLA to the operator checklist.
-- Confirm which sweepers must skip legal-hold accounts.
+- Complete counsel review and record any required policy changes.
+- Add the legal hold policy owner and response SLA to the operator checklist if counsel requires more specificity.
 - Record review outcome in the legal hold admin workflow.
 
 ## P1 Remaining Launch Items
@@ -60,13 +60,13 @@ Recommended next step:
 
 Current state: app-level sweepers and bucket policy inventory exist.
 
-Remaining gap: provider-level lifecycle/replication posture still needs owner confirmation.
+Current MVP decision: storage backup posture accepted on 2026-07-05. MVP uses Supabase managed DB backups + PITR for Postgres and Supabase Storage provider-managed durability/replication for objects. No secondary app-managed object backup is provisioned for MVP.
 
 Recommended next step:
 
-- Confirm whether production requires cross-region object replication or secondary storage backup.
+- Review whether production should add cross-region object replication or scheduled secondary object snapshots after MVP.
 - Record the decision in `AssetSafe_Data_Lifecycle_External_Controls_Runbook.md`.
-- If deferred, add it to post-launch risk register.
+- Track the review as P1/Q1 follow-up in the launch checklist.
 
 ### 5. Export end-to-end evidence cadence
 
