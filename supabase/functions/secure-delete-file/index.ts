@@ -15,7 +15,7 @@
  *
  * Authorization:
  *   - shared_owner resources require has_account_access(caller, row.user_id,
- *     'owner'). Full Access / Read Only AUs are rejected.
+ *     'full_access'). Read Only AUs are rejected.
  *   - owner_only resources require caller === row.user_id.
  *
  * Failure handling:
@@ -263,7 +263,7 @@ serve(async (req) => {
         {
           _user_id: callerId,
           _owner_user_id: rowUserId,
-          _min_role: "owner",
+          _min_role: "full_access",
         },
       );
       if (rpcErr) {
@@ -384,6 +384,8 @@ serve(async (req) => {
           resource,
           id,
         });
+        await releaseLease("db_delete: row_not_deleted");
+        return json(409, { error: "db_delete_incomplete", retryable: true });
       }
     } else {
       // clear_attachment_fields / clear_optional_swatch — keep parent row.
@@ -413,6 +415,8 @@ serve(async (req) => {
       }
       if (!count) {
         console.warn("secure-delete-file: clear-fields count=0", { resource, id });
+        await releaseLease("clear_fields: row_not_updated");
+        return json(409, { error: "db_update_incomplete", retryable: true });
       }
     }
 

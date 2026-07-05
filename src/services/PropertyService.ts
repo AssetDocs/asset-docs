@@ -212,6 +212,7 @@ export class PropertyService {
         .from('property_files')
         .select('*')
         .eq('property_id', propertyId)
+        .eq('pending_delete', false)
         .order('created_at', { ascending: false });
 
       if (fileType) {
@@ -275,6 +276,7 @@ export class PropertyService {
         .from('property_files')
         .select('*')
         .eq('user_id', user.id)
+        .eq('pending_delete', false)
         .order('created_at', { ascending: false });
 
       if (fileType) {
@@ -307,6 +309,7 @@ export class PropertyService {
         .select('*')
         .eq('user_id', user.id)
         .eq('source', 'damage_report')
+        .eq('pending_delete', false)
         .order('created_at', { ascending: false });
 
       if (propertyId) {
@@ -333,6 +336,7 @@ export class PropertyService {
         .select('*')
         .eq('user_id', user.id)
         .eq('source', 'upgrade_repair')
+        .eq('pending_delete', false)
         .order('created_at', { ascending: false });
 
       if (propertyId) {

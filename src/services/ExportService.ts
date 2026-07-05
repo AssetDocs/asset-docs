@@ -1202,7 +1202,8 @@ export class ExportService {
       const { data: propertyFiles, error: propertyFilesError } = await supabase
         .from('property_files')
         .select('*')
-        .eq('user_id', userId);
+        .eq('user_id', userId)
+        .eq('pending_delete', false);
 
       if (!propertyFilesError && propertyFiles) {
         // Group files by bucket to batch-sign URLs
@@ -1454,7 +1455,8 @@ export class ExportService {
       const { data: userDocs, error: userDocsError } = await supabase
         .from('user_documents')
         .select('*')
-        .eq('user_id', userId);
+        .eq('user_id', userId)
+        .eq('pending_delete', false);
 
       if (!userDocsError && userDocs && userDocs.length > 0) {
         const docPaths = userDocs.map(d => d.file_path).filter(Boolean) as string[];

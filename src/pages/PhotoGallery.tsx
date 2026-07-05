@@ -147,12 +147,28 @@ const PhotoGallery: React.FC = () => {
     bucket: photo.bucket_name,
     uploadDate: photo.created_at,
     size: formatFileSize(photo.file_size),
-    propertyName: getPropertyName(photo.property_id)
+    propertyName: getPropertyName(photo.property_id),
+    roomName: folders.find(folder => folder.id === photo.folder_id)?.folder_name || '',
+    tags: Array.isArray(photo.tags) ? photo.tags : [],
+    itemNames: Array.isArray(photo.item_values)
+      ? photo.item_values.map((item: any) => item?.name).filter(Boolean)
+      : [],
+    description: photo.description || '',
+    isHighValue: photo.is_high_value ? 'high value' : ''
   }));
 
   const filteredAndSortedPhotos = React.useMemo(() => {
     let filtered = transformedPhotos.filter(photo => {
-      const matchesSearch = photo.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const query = searchTerm.toLowerCase();
+      const matchesSearch = [
+        photo.name,
+        photo.propertyName,
+        photo.roomName,
+        photo.description,
+        photo.isHighValue,
+        ...photo.tags,
+        ...photo.itemNames,
+      ].join(' ').toLowerCase().includes(query);
       const photoData = photos.find(p => p.id === photo.id);
       const matchesFolder = selectedFolder ? photoData?.folder_id === selectedFolder : true;
       return matchesSearch && matchesFolder;
@@ -331,33 +347,58 @@ const PhotoGallery: React.FC = () => {
 
   const confirmDelete = async () => {
     try {
+      let deletedIds: string[] = [];
       if (bulkDeleteMode) {
-        // Delete multiple photos
-        const deletePromises = selectedPhotos.map(photoId => {
+        const results = await Promise.all(selectedPhotos.map(async photoId => {
           const photo = photos.find(p => p.id === photoId);
           if (photo) {
-            return PropertyService.deletePropertyFile(photo.id, photo.file_path, photo.bucket_name);
+            const ok = await PropertyService.deletePropertyFile(photo.id, photo.file_path, photo.bucket_name);
+            return { id: photoId, ok };
           }
-          return Promise.resolve(false);
-        });
-        
-        await Promise.all(deletePromises);
-        toast({
-          title: "Success",
-          description: `${selectedPhotos.length} photo(s) deleted successfully`
-        });
+          return { id: photoId, ok: false };
+        }));
+        deletedIds = results.filter(result => result.ok).map(result => result.id);
+        const failCount = results.length - deletedIds.length;
+        if (failCount === 0) {
+          toast({
+            title: "Success",
+            description: `${deletedIds.length} photo(s) deleted successfully`
+          });
+        } else if (deletedIds.length === 0) {
+          toast({
+            title: "Error",
+            description: "The photo(s) could not be fully deleted. Please try again.",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Partial delete",
+            description: `${deletedIds.length} deleted, ${failCount} could not be fully deleted. Please try again.`,
+            variant: "destructive"
+          });
+        }
       } else if (photoToDelete) {
-        // Delete single photo
         const photo = photos.find(p => p.id === photoToDelete);
         if (photo) {
           const success = await PropertyService.deletePropertyFile(photo.id, photo.file_path, photo.bucket_name);
           if (success) {
+            deletedIds = [photoToDelete];
             toast({
               title: "Success",
               description: "Photo deleted successfully"
             });
+          } else {
+            toast({
+              title: "Error",
+              description: "The photo could not be fully deleted. Please try again.",
+              variant: "destructive"
+            });
           }
         }
+      }
+
+      if (deletedIds.length > 0) {
+        setPhotos(prev => prev.filter(photo => !deletedIds.includes(photo.id)));
       }
       
       await fetchPhotos(); // Refresh the list

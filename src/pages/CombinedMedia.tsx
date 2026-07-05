@@ -166,12 +166,27 @@ const CombinedMedia: React.FC = () => {
       uploadDate: file.created_at,
       size: formatFileSize(file.file_size),
       propertyName: getPropertyName(file.property_id),
-      fileType: file.file_type
+      fileType: file.file_type,
+      roomName: folders.find(folder => folder.id === file.folder_id)?.folder_name || '',
+      tags: Array.isArray(file.tags) ? file.tags : [],
+      itemNames: Array.isArray(file.item_values)
+        ? file.item_values.map((item: any) => item?.name).filter(Boolean)
+        : [],
+      description: file.description || ''
     }));
 
   const getFilteredItems = () => {
     let filtered = transformedFiles.filter(item => {
-      const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const query = searchTerm.toLowerCase();
+      const matchesSearch = [
+        item.name,
+        item.propertyName,
+        item.roomName,
+        item.fileType,
+        item.description,
+        ...item.tags,
+        ...item.itemNames,
+      ].join(' ').toLowerCase().includes(query);
       const fileData = allFiles.find(f => f.id === item.id);
       
       let matchesFolder = true;
@@ -362,20 +377,39 @@ const CombinedMedia: React.FC = () => {
 
   const confirmDelete = async () => {
     try {
+      let deletedIds: string[] = [];
       if (bulkDeleteMode) {
-        const deletePromises = selectedFiles.map(id => {
+        const results = await Promise.all(selectedFiles.map(async id => {
           const file = allFiles.find(f => f.id === id);
-          if (file) return PropertyService.deletePropertyFile(file.id, file.file_path, file.bucket_name);
-          return Promise.resolve(false);
-        });
-        await Promise.all(deletePromises);
-        toast({ title: "Success", description: `${selectedFiles.length} file(s) deleted successfully` });
+          if (!file) return { id, ok: false };
+          const ok = await PropertyService.deletePropertyFile(file.id, file.file_path, file.bucket_name);
+          return { id, ok };
+        }));
+        deletedIds = results.filter(result => result.ok).map(result => result.id);
+        const failCount = results.length - deletedIds.length;
+        if (failCount === 0) {
+          toast({ title: "Success", description: `${deletedIds.length} file(s) deleted successfully` });
+        } else if (deletedIds.length === 0) {
+          toast({ title: "Error", description: "The file(s) could not be fully deleted. Please try again.", variant: "destructive" });
+        } else {
+          toast({ title: "Partial delete", description: `${deletedIds.length} deleted, ${failCount} could not be fully deleted. Please try again.`, variant: "destructive" });
+        }
       } else if (itemToDelete) {
         const file = allFiles.find(f => f.id === itemToDelete);
         if (file) {
-          await PropertyService.deletePropertyFile(file.id, file.file_path, file.bucket_name);
-          toast({ title: "Success", description: "File deleted successfully" });
+          const ok = await PropertyService.deletePropertyFile(file.id, file.file_path, file.bucket_name);
+          if (ok) {
+            deletedIds = [itemToDelete];
+            toast({ title: "Success", description: "File deleted successfully" });
+          } else {
+            toast({ title: "Error", description: "The file could not be fully deleted. Please try again.", variant: "destructive" });
+          }
         }
+      }
+
+      if (deletedIds.length > 0) {
+        setPhotos(prev => prev.filter(file => !deletedIds.includes(file.id)));
+        setVideos(prev => prev.filter(file => !deletedIds.includes(file.id)));
       }
       
       await fetchPhotos();

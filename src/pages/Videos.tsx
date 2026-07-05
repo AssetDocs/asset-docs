@@ -146,7 +146,13 @@ const Videos: React.FC = () => {
     propertyName: getPropertyName(video.property_id),
     duration: '--:--', // TODO: Store duration in database
     folderId: video.folder_id || null,
-    tags: []
+    roomName: folders.find(folder => folder.id === video.folder_id)?.name || '',
+    tags: Array.isArray(video.tags) ? video.tags : [],
+    itemNames: Array.isArray(video.item_values)
+      ? video.item_values.map((item: any) => item?.name).filter(Boolean)
+      : [],
+    description: video.description || '',
+    isHighValue: video.is_high_value ? 'high value' : ''
   }));
 
   const currentFolderName = selectedFolder 
@@ -154,7 +160,16 @@ const Videos: React.FC = () => {
     : 'All Videos';
 
   const filteredVideos = transformedVideos.filter(video => {
-    const matchesSearch = video.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const query = searchTerm.toLowerCase();
+    const matchesSearch = [
+      video.name,
+      video.propertyName,
+      video.roomName,
+      video.description,
+      video.isHighValue,
+      ...video.tags,
+      ...video.itemNames,
+    ].join(' ').toLowerCase().includes(query);
     const matchesFolder = selectedFolder ? video.folderId === selectedFolder : true;
     return matchesSearch && matchesFolder;
   });
@@ -297,33 +312,58 @@ const Videos: React.FC = () => {
 
   const confirmDelete = async () => {
     try {
+      let deletedIds: string[] = [];
       if (bulkDeleteMode) {
-        // Delete multiple videos
-        const deletePromises = selectedVideos.map(videoId => {
+        const results = await Promise.all(selectedVideos.map(async videoId => {
           const video = videos.find(v => v.id === videoId);
           if (video) {
-            return PropertyService.deletePropertyFile(video.id, video.file_path, video.bucket_name);
+            const ok = await PropertyService.deletePropertyFile(video.id, video.file_path, video.bucket_name);
+            return { id: videoId, ok };
           }
-          return Promise.resolve(false);
-        });
-        
-        await Promise.all(deletePromises);
-        toast({
-          title: "Success",
-          description: `${selectedVideos.length} video(s) deleted successfully`
-        });
+          return { id: videoId, ok: false };
+        }));
+        deletedIds = results.filter(result => result.ok).map(result => result.id);
+        const failCount = results.length - deletedIds.length;
+        if (failCount === 0) {
+          toast({
+            title: "Success",
+            description: `${deletedIds.length} video(s) deleted successfully`
+          });
+        } else if (deletedIds.length === 0) {
+          toast({
+            title: "Error",
+            description: "The video(s) could not be fully deleted. Please try again.",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Partial delete",
+            description: `${deletedIds.length} deleted, ${failCount} could not be fully deleted. Please try again.`,
+            variant: "destructive"
+          });
+        }
       } else if (videoToDelete) {
-        // Delete single video
         const video = videos.find(v => v.id === videoToDelete);
         if (video) {
           const success = await PropertyService.deletePropertyFile(video.id, video.file_path, video.bucket_name);
           if (success) {
+            deletedIds = [videoToDelete];
             toast({
               title: "Success",
               description: "Video deleted successfully"
             });
+          } else {
+            toast({
+              title: "Error",
+              description: "The video could not be fully deleted. Please try again.",
+              variant: "destructive"
+            });
           }
         }
+      }
+
+      if (deletedIds.length > 0) {
+        setVideos(prev => prev.filter(video => !deletedIds.includes(video.id)));
       }
       
       await fetchVideos(); // Refresh the list

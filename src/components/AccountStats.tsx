@@ -40,7 +40,8 @@ const AccountStats: React.FC = () => {
         .from('property_files')
         .select('property_id')
         .eq('user_id', user.id as any)
-        .eq('file_type', 'video' as any) as any;
+        .eq('file_type', 'video' as any)
+        .eq('pending_delete', false as any) as any;
       
       const videoPropertyIds = (videoPropertyFiles as any[])?.map((f: any) => f.property_id) || [];
       const videoItemValue = items

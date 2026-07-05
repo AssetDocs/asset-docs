@@ -139,6 +139,7 @@ const Documents: React.FC = () => {
         .from('user_documents')
         .select('*')
         .eq('user_id', user.id)
+        .eq('pending_delete', false)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -212,7 +213,8 @@ const Documents: React.FC = () => {
     description: doc.description,
     category: doc.category,
     documentType: doc.document_type,
-    folderId: doc.folder_id
+    folderId: doc.folder_id,
+    folderName: folders.find(folder => folder.id === doc.folder_id)?.folder_name || ''
   }));
 
   const currentFolderName = selectedFolder 
@@ -220,7 +222,18 @@ const Documents: React.FC = () => {
     : 'All Documents';
 
   const filteredDocuments = transformedDocuments.filter(document => {
-    const matchesSearch = document.name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const query = searchTerm.toLowerCase();
+    const tagsText = Array.isArray(document.tags) ? document.tags.join(' ') : String(document.tags || '');
+    const matchesSearch = [
+      document.name,
+      document.propertyName,
+      document.folderName,
+      document.type,
+      document.category,
+      document.documentType,
+      document.description,
+      tagsText,
+    ].join(' ').toLowerCase().includes(query);
     const matchesFolder = selectedFolder ? document.folderId === selectedFolder : true;
     return matchesSearch && matchesFolder;
   });
@@ -310,7 +323,8 @@ const Documents: React.FC = () => {
 
       if (bulkDeleteMode) {
         const results = await Promise.all(selectedDocuments.map(deleteOne));
-        const okCount = results.filter(Boolean).length;
+        const deletedIds = selectedDocuments.filter((_, index) => results[index]);
+        const okCount = deletedIds.length;
         const failCount = results.length - okCount;
         if (failCount === 0) {
           toast({ title: "Success", description: `${okCount} document(s) deleted successfully` });
@@ -327,9 +341,13 @@ const Documents: React.FC = () => {
             variant: "destructive",
           });
         }
+        if (deletedIds.length > 0) {
+          setDocuments(prev => prev.filter(document => !deletedIds.includes(document.id)));
+        }
       } else if (documentToDelete) {
         const ok = await deleteOne(documentToDelete);
         if (ok) {
+          setDocuments(prev => prev.filter(document => document.id !== documentToDelete));
           toast({ title: "Success", description: "Document deleted successfully" });
         } else {
           toast({

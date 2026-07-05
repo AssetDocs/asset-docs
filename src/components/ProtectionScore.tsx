@@ -42,9 +42,9 @@ const ProtectionScore: React.FC<ProtectionScoreProps> = ({ defaultOpen = false }
     try {
       // Fetch upload count (photos + videos + documents)
       const [photosRes, videosRes, docsRes] = await Promise.all([
-        supabase.from('property_files').select('id', { count: 'exact' }).eq('user_id', user.id).eq('file_type', 'photo'),
-        supabase.from('property_files').select('id', { count: 'exact' }).eq('user_id', user.id).eq('file_type', 'video'),
-        supabase.from('property_files').select('id', { count: 'exact' }).eq('user_id', user.id).eq('file_type', 'document'),
+        supabase.from('property_files').select('id', { count: 'exact' }).eq('user_id', user.id).eq('file_type', 'photo').eq('pending_delete', false),
+        supabase.from('property_files').select('id', { count: 'exact' }).eq('user_id', user.id).eq('file_type', 'video').eq('pending_delete', false),
+        supabase.from('property_files').select('id', { count: 'exact' }).eq('user_id', user.id).eq('file_type', 'document').eq('pending_delete', false),
       ]);
       const totalUploads = (photosRes.count || 0) + (videosRes.count || 0) + (docsRes.count || 0);
 

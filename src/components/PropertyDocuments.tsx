@@ -43,6 +43,7 @@ const PropertyDocuments: React.FC<PropertyDocumentsProps> = ({ propertyId }) => 
         .select('id, document_name, file_name, file_url, created_at, document_type')
         .eq('property_id', propertyId)
         .eq('user_id', user.id)
+        .eq('pending_delete', false)
         .order('created_at', { ascending: false });
 
       if (error) {
