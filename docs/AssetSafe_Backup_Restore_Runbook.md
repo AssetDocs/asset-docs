@@ -6,6 +6,21 @@ Production project: `leotcbfpqiekgkgumecn`
 Drill cadence: quarterly before launch, then quarterly after launch
 Reminder: `quarterly-restore-drill-reminder` checks monthly and emails ops when no passed drill is recorded in the last 90 days
 
+## MVP Restore Drill Scheduling Record
+
+The operator accepted 7-day PITR for MVP and approved scheduling the first PITR restore drill as the limited-MVP gate. A completed restore drill remains preferred before broad launch.
+
+| Field | Value |
+|---|---|
+| Scheduled date | 2026-07-07 |
+| Start time / timezone | 10:00 AM America/Chicago |
+| Drill type | `pitr_to_scratch` |
+| Source project ref | `leotcbfpqiekgkgumecn` |
+| Target project ref | Scratch Supabase project, to be created/identified before drill |
+| Owner | Michael Lewis / platform owner |
+| Evidence location | `public.restore_drill_runs` row plus Admin Restore Drills screenshot or launch evidence note |
+| MVP gate status | Scheduled is accepted for limited MVP; completed drill is preferred before broad launch |
+
 ## Targets
 
 | Metric | Target |

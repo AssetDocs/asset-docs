@@ -1,6 +1,6 @@
 # Asset Safe Data Lifecycle External Controls - MVP Launch Sign-Off
 
-Status: Operator decisions recorded; PITR accepted for MVP, restore drill remains open
+Status: Operator decisions recorded; PITR accepted for MVP, restore drill scheduled for limited MVP
 Date prepared: 2026-07-05
 Production project: `leotcbfpqiekgkgumecn`
 Companion runbook: `docs/AssetSafe_Data_Lifecycle_External_Controls_Runbook.md`
@@ -37,11 +37,11 @@ PITR is a Supabase project-level setting configured in the dashboard. It is not 
 
 ## 2. PITR Restore Drill
 
-**Status:** Required before launch; operator accepted this stance on 2026-07-05.
+**Status:** Accepted MVP - scheduled for limited MVP; completed drill preferred before broad launch.
 
-Restore drill tables (`public.restore_drill_runs`), admin surfaces, and the `quarterly-restore-drill-reminder` cron are all implemented and healthy. No `restore_drill_runs` row with `status = 'passed'` exists yet, so the drill itself has not been executed.
+Restore drill tables (`public.restore_drill_runs`), admin surfaces, and the `quarterly-restore-drill-reminder` cron are all implemented and healthy. The first PITR restore drill is scheduled for 2026-07-07 at 10:00 AM America/Chicago. No `restore_drill_runs` row with `status = 'passed'` exists yet, so the drill itself has not been executed.
 
-**Active decision: REQUIRE BEFORE LAUNCH - do not accept as MVP risk.**
+**Active decision: scheduled is accepted for limited MVP; completed drill remains preferred before broad launch.**
 
 Rationale:
 
@@ -50,17 +50,21 @@ Rationale:
 - Marketing and Terms language commits to durable custodianship of user records; launching without a proven restore path contradicts that commitment.
 - The drill produces the only evidence that PITR, edge function redeploy, and secret rehydration actually work end-to-end.
 
-**Override path only:** If the operator later elects to accept this as MVP risk anyway, the following mitigations must be in place and disclosed internally:
+**Completion path:** When the drill is run, record the `restore_drill_runs` row and owner sign-off as below. If the operator later elects to continue beyond limited MVP without completion evidence, the following mitigations must be in place and disclosed internally:
 
 - Written owner acknowledgment that no restore has been proven
 - Restore drill scheduled within 30 days of launch, tracked as P0 in the launch backlog
 - Incident response runbook updated to reflect "restore path unverified" as an elevated risk factor
 
-**Recommended checklist wording (required-before-launch path):**
+**Recommended checklist wording (scheduled limited-MVP path):**
+
+> PITR restore drill scheduled for 2026-07-07 at 10:00 AM America/Chicago per `docs/AssetSafe_Backup_Restore_Runbook.md`. Limited MVP accepts scheduled drill; completed drill and `restore_drill_runs` sign-off evidence remain preferred before broad launch.
+
+**Recommended checklist wording (completed path):**
 
 > PITR restore drill completed on __________ per `docs/AssetSafe_Backup_Restore_Runbook.md`. `restore_drill_runs` row id __________ shows `status = 'passed'` with all five smoke checks (db, storage, auth, edge, signed_url) true. RPO __________ min, RTO __________ min. Owner sign-off recorded via `sign_off_restore_drill_run`. Findings and follow-ups reviewed.
 
-**Recommended checklist wording (deferred/accepted-risk override path - NOT ACTIVE):**
+**Recommended checklist wording (deferred/accepted-risk override path):**
 
 > PITR restore drill deferred to post-launch as Accepted MVP Risk. Owner __________ acknowledges no restore path has been proven end-to-end. Drill scheduled by __________ (within 30 days of launch). Compensating control: PITR enabled with 7-day window and Supabase-managed backups.
 
@@ -127,7 +131,7 @@ Copy into launch notes and complete before flipping the launch gate.
 | Control | Decision | Owner | Date | Evidence |
 |---|---|---|---|---|
 | PITR enabled (7-day MVP window) | Accepted MVP; 14-day target deferred to P1 | Michael Lewis | 2026-07-05 | Operator approval; dashboard screenshot recommended for evidence packet |
-| PITR restore drill | Required before launch | Michael Lewis / platform owner |  | `restore_drill_runs` row id and signoff still required |
+| PITR restore drill | Accepted MVP - scheduled; completed drill preferred before broad launch | Michael Lewis / platform owner | 2026-07-05 | Scheduled for 2026-07-07 at 10:00 AM America/Chicago; `restore_drill_runs` row id and signoff still required after execution |
 | Storage backup posture | Accepted for MVP | Michael Lewis | 2026-07-05 | This document + launch checklist |
 | Legal retention schedule | Accepted for MVP; counsel review pending | Michael Lewis | 2026-07-05 | This document + counsel status |
 
