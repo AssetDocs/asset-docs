@@ -299,21 +299,27 @@ serve(async (req) => {
     const nowIso = new Date().toISOString();
     const nextAttempts = (row.delete_attempts ?? 0) + 1;
 
-    const { data: claimed, error: claimErr } = await admin
-      .from(def.table)
-      .update({
-        pending_delete: true,
-        pending_delete_at: row.pending_delete_at ?? nowIso,
-        delete_processing_at: nowIso,
-        delete_attempts: nextAttempts,
-        delete_error: null,
-      })
-      .eq("id", id)
-      .or(
-        `pending_delete.eq.false,delete_processing_at.is.null,delete_processing_at.lt.${staleBefore}`,
-      )
-      .select("id")
-      .maybeSingle();
+    const { data: claimed, error: claimErr } = resource === "property_file"
+      ? await admin.rpc("claim_property_file_delete", {
+          p_file_id: id,
+          p_stale_before: staleBefore,
+          p_now: nowIso,
+        })
+      : await admin
+          .from(def.table)
+          .update({
+            pending_delete: true,
+            pending_delete_at: row.pending_delete_at ?? nowIso,
+            delete_processing_at: nowIso,
+            delete_attempts: nextAttempts,
+            delete_error: null,
+          })
+          .eq("id", id)
+          .or(
+            `pending_delete.eq.false,delete_processing_at.is.null,delete_processing_at.lt.${staleBefore}`,
+          )
+          .select("id")
+          .maybeSingle();
 
     if (claimErr) {
       console.error("secure-delete-file: claim failed", {
@@ -334,6 +340,14 @@ serve(async (req) => {
     const hasPath = !!path && !!bucket;
 
     const releaseLease = async (errMessage: string | null) => {
+      if (resource === "property_file") {
+        await admin.rpc("release_property_file_delete", {
+          p_file_id: id,
+          p_error: errMessage,
+        });
+        return;
+      }
+
       await admin
         .from(def.table)
         .update({
@@ -381,19 +395,33 @@ serve(async (req) => {
 
     // --- Finalize per strategy -----------------------------------------
     if (def.finalize === "delete_row") {
-      const { error: delErr, count } = await admin
-        .from(def.table)
-        .delete({ count: "exact" })
-        .eq("id", id)
-        .eq("pending_delete", true);
+      let delErr: { message?: string } | null = null;
+      let count: number | null = null;
+
+      if (resource === "property_file") {
+        const { data: finalized, error: finalizeErr } = await admin.rpc(
+          "finalize_property_file_delete",
+          { p_file_id: id },
+        );
+        delErr = finalizeErr;
+        count = finalized ? 1 : 0;
+      } else {
+        const result = await admin
+          .from(def.table)
+          .delete({ count: "exact" })
+          .eq("id", id)
+          .eq("pending_delete", true);
+        delErr = result.error;
+        count = result.count;
+      }
 
       if (delErr) {
         console.error("secure-delete-file: db delete failed", {
           resource,
           id,
-          err: delErr.message,
+          err: delErr.message ?? "unknown_error",
         });
-        await releaseLease(`db_delete: ${delErr.message}`);
+        await releaseLease(`db_delete: ${delErr.message ?? "unknown_error"}`);
         return json(409, { error: "db_delete_failed", retryable: true });
       }
       if (!count) {
