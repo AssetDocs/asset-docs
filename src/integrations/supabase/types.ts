@@ -3180,7 +3180,6 @@ export type Database = {
           requester_relationship: string
           risk_level: string
           status: string
-          submission_token: string
           submitted_at: string
           updated_at: string
           user_agent: string | null
@@ -3214,7 +3213,6 @@ export type Database = {
           requester_relationship: string
           risk_level?: string
           status?: string
-          submission_token?: string
           submitted_at?: string
           updated_at?: string
           user_agent?: string | null
@@ -3248,7 +3246,6 @@ export type Database = {
           requester_relationship?: string
           risk_level?: string
           status?: string
-          submission_token?: string
           submitted_at?: string
           updated_at?: string
           user_agent?: string | null
@@ -3313,7 +3310,6 @@ export type Database = {
           id: string
           ip_address: string | null
           request_id: string | null
-          submission_token: string | null
         }
         Insert: {
           action_details?: Json
@@ -3325,7 +3321,6 @@ export type Database = {
           id?: string
           ip_address?: string | null
           request_id?: string | null
-          submission_token?: string | null
         }
         Update: {
           action_details?: Json
@@ -3337,7 +3332,6 @@ export type Database = {
           id?: string
           ip_address?: string | null
           request_id?: string | null
-          submission_token?: string | null
         }
         Relationships: [
           {
@@ -3359,7 +3353,6 @@ export type Database = {
           id: string
           request_id: string
           reviewer_notes: string | null
-          submission_token: string | null
           updated_at: string
           uploaded_at: string
           verification_status: string
@@ -3373,7 +3366,6 @@ export type Database = {
           id?: string
           request_id: string
           reviewer_notes?: string | null
-          submission_token?: string | null
           updated_at?: string
           uploaded_at?: string
           verification_status?: string
@@ -3387,7 +3379,6 @@ export type Database = {
           id?: string
           request_id?: string
           reviewer_notes?: string | null
-          submission_token?: string | null
           updated_at?: string
           uploaded_at?: string
           verification_status?: string
@@ -3448,6 +3439,102 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      family_medications: {
+        Row: {
+          bucket_name: string | null
+          caregiver_notes: string | null
+          created_at: string
+          currently_taking: boolean
+          delete_attempts: number
+          delete_error: string | null
+          delete_processing_at: string | null
+          dosage: string | null
+          end_date: string | null
+          file_name: string | null
+          file_path: string | null
+          file_size: number | null
+          file_url: string | null
+          frequency_instructions: string | null
+          id: string
+          medication_category: string | null
+          medication_name: string
+          notes: string | null
+          pending_delete: boolean
+          pending_delete_at: string | null
+          pharmacy_name: string | null
+          pharmacy_phone: string | null
+          prescribing_doctor: string | null
+          prescription_number: string | null
+          reason: string | null
+          refill_number: string | null
+          start_date: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bucket_name?: string | null
+          caregiver_notes?: string | null
+          created_at?: string
+          currently_taking?: boolean
+          delete_attempts?: number
+          delete_error?: string | null
+          delete_processing_at?: string | null
+          dosage?: string | null
+          end_date?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          file_url?: string | null
+          frequency_instructions?: string | null
+          id?: string
+          medication_category?: string | null
+          medication_name: string
+          notes?: string | null
+          pending_delete?: boolean
+          pending_delete_at?: string | null
+          pharmacy_name?: string | null
+          pharmacy_phone?: string | null
+          prescribing_doctor?: string | null
+          prescription_number?: string | null
+          reason?: string | null
+          refill_number?: string | null
+          start_date?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bucket_name?: string | null
+          caregiver_notes?: string | null
+          created_at?: string
+          currently_taking?: boolean
+          delete_attempts?: number
+          delete_error?: string | null
+          delete_processing_at?: string | null
+          dosage?: string | null
+          end_date?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          file_url?: string | null
+          frequency_instructions?: string | null
+          id?: string
+          medication_category?: string | null
+          medication_name?: string
+          notes?: string | null
+          pending_delete?: boolean
+          pending_delete_at?: string | null
+          pharmacy_name?: string | null
+          pharmacy_phone?: string | null
+          prescribing_doctor?: string | null
+          prescription_number?: string | null
+          reason?: string | null
+          refill_number?: string | null
+          start_date?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       family_recipes: {
         Row: {

@@ -316,12 +316,12 @@ const PropertyAllAssets: React.FC = () => {
               <div>
                 <p className="text-sm font-semibold text-foreground">Linked from Asset Documentation</p>
                 <p className="text-sm text-muted-foreground">
-                  Files shown here are linked from Asset Documentation. To add photos, videos, documents, floorplans, or records to this property, upload them in Asset Documentation and attach them to this property.
+                  Files shown here are linked from Asset Documentation. To manage photos, videos, documents, floorplans, or records for this property, visit Asset Documentation.
                 </p>
               </div>
               <Button onClick={() => openAssetDocumentationUpload()} className="shrink-0">
                 <Upload className="h-4 w-4 mr-2" />
-                Upload Asset Documentation
+                Asset Documentation
               </Button>
             </CardContent>
           </Card>
