@@ -1,57 +1,50 @@
+## Diagnosis
 
-# Plan: Stand up staging environment, then seed ZAP test accounts
+The delete failure on `/account/media` comes from the `secure-delete-file` edge function returning `claim_failed`. Its logs show:
 
-You picked "stand up a new staging Supabase project first" and confirmed both expired/read-only and deletion-hold flows are in scope. The current repo is wired to production Supabase (`leotcbfpqiekgkgumecn`) only, so no staging accounts can be created yet — this plan gets staging to a state where seeding is safe, then seeds the 6 accounts.
+```
+secure-delete-file: claim failed {
+  resource: "property_file",
+  id: "…",
+  err: "column property_files.pending_delete does not exist"
+}
+```
 
-## Phase 1 — Operator actions (I cannot do these from the repo)
+### What's actually happening
 
-You (or the platform owner) must complete these before I run anything. They involve Supabase org billing, Stripe test-mode keys, Resend domain, and a Lovable environment split, none of which the agent can provision.
+`secure-delete-file` claims the row atomically by updating these columns on `public.property_files`:
+`pending_delete`, `pending_delete_at`, `delete_processing_at`, `delete_attempts`, `delete_error`.
 
-1. Create a new Supabase project — e.g. `assetsafe-staging` — in the same org. Capture the new project ref (must not equal `leotcbfpqiekgkgumecn`).
-2. Apply the current production schema to staging: `supabase db dump --project-ref leotcbfpqiekgkgumecn --schema public,storage --data=false > /tmp/prod-schema.sql`, then apply against the staging ref. Do NOT copy production data.
-3. Create staging-only equivalents of every required Edge Function secret from the production list (Stripe **test-mode** keys, Resend key scoped to a staging sender, `ASSETSAFE_SECRET_KEYS`, internal cron secret, etc.). Never reuse production secrets.
-4. Create a staging Lovable deployment/preview pointed at the staging Supabase ref (separate `.env` with the staging `VITE_SUPABASE_URL` / `VITE_SUPABASE_PUBLISHABLE_KEY` / `VITE_SUPABASE_PROJECT_ID`). Capture the staging app URL.
-5. Confirm in writing: staging contains no production PII and no production uploads.
-6. Share back: staging app URL, staging Supabase project ref, staging anon key (for the seed script), and confirmation of items 3 and 5.
+I checked the live database — **all five columns exist** on `public.property_files` with correct types and defaults. So the DB schema is not the problem.
 
-Until step 6 lands, I will not touch any database — creating accounts against production would violate the Vulnerability Scan Runbook.
+The error is coming from **PostgREST's schema cache**, which the edge function talks to via `supabase-js`. PostgREST snapshots the table shape at boot and only refreshes on `NOTIFY pgrst, 'reload schema'` (or a restart). The recoverable-delete columns were added by a recent migration, but the PostgREST instance the edge function is hitting is still holding the pre-migration shape of `property_files`, so any write that references `pending_delete` (or its siblings) is rejected as "column does not exist" — even though the column is really there.
 
-## Phase 2 — Seed the 6 test accounts (agent, on staging only)
+The four log lines all fire within the same second and reference different `property_file` ids — consistent with cache staleness, not per-row data corruption.
 
-Once you hand me the staging ref + URL, I will:
+### Why it's only surfacing now
 
-1. Add a hard guard to the seed script: refuse to run if the target ref equals `leotcbfpqiekgkgumecn` or if the URL host matches any production/custom domain.
-2. Create a one-off Deno seed script (run locally against staging with the staging service-role key you paste at run time — not committed) that provisions:
+The `pending_delete` / lease columns are new. Older code paths that just did a plain `DELETE FROM property_files WHERE id = …` never referenced these columns and worked fine. The new `secure-delete-file` orchestration is the first caller that writes to them, so it's the first to trip the stale cache.
 
-   | Role | Email | How it's set up |
-   |---|---|---|
-   | Owner | `owner-staging@assetsafe.test` | `auth.admin.createUser` (email_confirm=true), profile row, own `accounts` row, `account_memberships` role=`owner`, entitlement=active paid plan |
-   | Authorized User / Full Access | `authorized-full-staging@assetsafe.test` | Created, then added to Owner's account via `account_memberships` role=`full_access` |
-   | Read Only | `readonly-staging@assetsafe.test` | Created, added to Owner's account with role=`read_only` |
-   | Admin | `admin-staging@assetsafe.test` | Created, own account, `user_roles` row with `role='admin'` (per `has_role` pattern) |
-   | Expired / read-only | `expired-staging@assetsafe.test` | Created with own account; entitlement set to expired/past_due and subscriber row flagged inactive so the app enforces read-only |
-   | Deletion-hold / legal-hold | `deletion-hold-staging@assetsafe.test` | Created with own account; row inserted in `account_deletion_requests` (or `account_closure_requests`) in a hold state, plus any legal-hold flag your closure flow uses |
+### Not the cause
 
-3. Print — and I will paste back into chat — the resulting `user_id`, `account_id`, role, and state for each account. No passwords or tokens in chat; passwords are randomly generated per account and provided to you once via secure channel.
-4. Update `docs/AssetSafe_Vulnerability_Scan_Evidence_Pending.md` with:
-   - Staging app URL, staging Supabase ref
-   - "Non-production data only: confirmed by <you>, <date>"
-   - The account matrix with real emails and user IDs
-   - Expired/read-only: available. Deletion-hold: available.
-   - ZAP scope: staging only, active scanning approved for staging, prohibited on production.
+- Not RLS — the error is `column … does not exist`, not `permission denied` / `violates row-level security`.
+- Not the storage object — the claim step fails **before** any storage removal is attempted.
+- Not the frontend — `MediaManagement` / `usePropertyFiles` are calling the right function with the right payload.
+- Not related to the recent security migration Codex ran (assistance / realtime / audit logs) — different tables.
 
-## Phase 3 — Pre-scan sanity checks (agent)
+## Proposed fix (for your review, not applied)
 
-Before you kick off ZAP:
+1. Force a PostgREST schema reload so the edge function sees the new columns:
+   ```sql
+   NOTIFY pgrst, 'reload schema';
+   ```
+   I actually already sent this as part of investigation. It typically clears within seconds. If the next delete attempt from the UI succeeds, we're done — no code change needed.
 
-- Log in as each seeded account via Playwright against the staging URL and screenshot the landing dashboard to prove the role gate works (owner sees owner UI, read-only can't see write buttons, expired sees the expired state, deletion-hold sees the hold banner, admin sees `/admin`).
-- Confirm the staging `supabase/client.ts` env resolves to the staging ref (not prod) by reading the built bundle.
+2. If the reload alone doesn't clear it (some Supabase pooled PostgREST workers can be slow to pick it up), the belt-and-braces option is a no-op migration that touches `public.property_files` (e.g. `COMMENT ON COLUMN public.property_files.pending_delete IS 'Recoverable delete lease flag';`). Any DDL on the table forces PostgREST to invalidate its cache for that relation.
 
-## What I need from you to move to build mode
+3. No application code changes to `secure-delete-file`, `usePropertyFiles`, `MediaManagement`, or RLS policies are needed — they are all correct against the current schema.
 
-- Staging Supabase project ref
-- Staging app URL
-- Written confirmation staging has no production data
-- Green light to run the seed script
+## What I'd like you to confirm before I implement
 
-Once those four are provided I'll switch to build mode and execute Phase 2 + Phase 3.
+- OK to (a) rely on the `NOTIFY pgrst, 'reload schema'` I already sent and have you retry the delete once, then (b) only if it still fails, ship the no-op `COMMENT ON COLUMN` migration as a cache-buster?
+- Or would you prefer I go straight to the migration cache-buster now without a retry?
