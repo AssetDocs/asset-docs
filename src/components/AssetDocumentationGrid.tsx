@@ -491,14 +491,14 @@ const AssetDocumentationGrid: React.FC = () => {
             </div>
           )}
 
-          {!isFinding && filteredResults.length === 0 ? (
+          {!isFinding && hasActiveFinder && filteredResults.length === 0 ? (
             <div className="rounded-lg border border-dashed p-6 text-center">
               <p className="font-medium">No matching documentation found.</p>
               <p className="text-sm text-muted-foreground mt-1">
                 Try searching by tag, room, property, or document type.
               </p>
             </div>
-          ) : (
+          ) : hasActiveFinder ? (
             <div className="space-y-2">
               {filteredResults.slice(0, 12).map((result) => (
                 <div key={`${result.source}-${result.id}`} className="rounded-lg border p-3 bg-background">
@@ -562,7 +562,7 @@ const AssetDocumentationGrid: React.FC = () => {
                 </p>
               )}
             </div>
-          )}
+          ) : null}
         </CardContent>
       </Card>
 
