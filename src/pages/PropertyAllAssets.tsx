@@ -321,7 +321,7 @@ const PropertyAllAssets: React.FC = () => {
               </div>
               <Button onClick={() => openAssetDocumentationUpload()} className="shrink-0">
                 <Upload className="h-4 w-4 mr-2" />
-                Upload Asset Documentation
+                Asset Documentation
               </Button>
             </CardContent>
           </Card>
