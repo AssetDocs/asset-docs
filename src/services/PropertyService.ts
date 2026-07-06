@@ -35,6 +35,13 @@ export interface PropertyFile {
   created_at: string;
 }
 
+export interface DeletePropertyFileResult {
+  ok: boolean;
+  status?: number;
+  error?: string;
+  retryable?: boolean;
+}
+
 export class PropertyService {
   // Properties CRUD
   static async createProperty(propertyData: Omit<Property, 'id' | 'created_at' | 'updated_at' | 'last_updated' | 'user_id'>): Promise<Property | null> {
@@ -251,6 +258,11 @@ export class PropertyService {
     _filePath?: string,
     _bucketName?: string
   ): Promise<boolean> {
+    const result = await this.deletePropertyFileDetailed(fileId);
+    return result.ok;
+  }
+
+  static async deletePropertyFileDetailed(fileId: string): Promise<DeletePropertyFileResult> {
     try {
       const { data, error } = await supabase.functions.invoke('secure-delete-file', {
         body: { resource: 'property_file', id: fileId },
@@ -258,12 +270,24 @@ export class PropertyService {
       if (error) {
         const status = (error as any)?.context?.status ?? (error as any)?.status;
         console.error('deletePropertyFile failed', { fileId, status, error });
-        return false;
+        return {
+          ok: false,
+          status,
+          error: (error as any)?.message || 'secure_delete_failed',
+        };
       }
-      return !!(data as any)?.ok;
+      const body = (data || {}) as any;
+      return {
+        ok: body.ok === true || body.success === true || body.deleted === true,
+        error: body.error,
+        retryable: body.retryable,
+      };
     } catch (error) {
       console.error('deletePropertyFile threw', error);
-      return false;
+      return {
+        ok: false,
+        error: error instanceof Error ? error.message : 'secure_delete_threw',
+      };
     }
   }
 

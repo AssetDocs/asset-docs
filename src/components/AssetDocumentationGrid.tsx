@@ -481,15 +481,15 @@ const AssetDocumentationGrid: React.FC = () => {
             </Label>
           </div>
 
-          <div className="text-sm text-muted-foreground">
-            {isFinding ? (
-              'Loading documentation...'
-            ) : hasActiveFinder ? (
-              <>Showing {filteredResults.length} results{searchTerm ? <> for "{searchTerm}"</> : null}</>
-            ) : (
-              <>Showing {filteredResults.length} recent documentation file{filteredResults.length === 1 ? '' : 's'}</>
-            )}
-          </div>
+          {(isFinding || hasActiveFinder) && (
+            <div className="text-sm text-muted-foreground">
+              {isFinding ? (
+                'Loading documentation...'
+              ) : (
+                <>Showing {filteredResults.length} results{searchTerm ? <> for "{searchTerm}"</> : null}</>
+              )}
+            </div>
+          )}
 
           {!isFinding && filteredResults.length === 0 ? (
             <div className="rounded-lg border border-dashed p-6 text-center">

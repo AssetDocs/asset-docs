@@ -83,6 +83,7 @@ const CombinedMedia: React.FC = () => {
   const [folderToDelete, setFolderToDelete] = useState<string | null>(null);
   const [showEditFolder, setShowEditFolder] = useState(false);
   const [folderToEdit, setFolderToEdit] = useState<PhotoFolder | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const activeAccountRef = useRef<string | null>(accountId);
   useEffect(() => {
@@ -376,14 +377,16 @@ const CombinedMedia: React.FC = () => {
   };
 
   const confirmDelete = async () => {
+    if (isDeleting) return;
+    setIsDeleting(true);
     try {
       let deletedIds: string[] = [];
       if (bulkDeleteMode) {
         const results = await Promise.all(selectedFiles.map(async id => {
           const file = allFiles.find(f => f.id === id);
           if (!file) return { id, ok: false };
-          const ok = await PropertyService.deletePropertyFile(file.id, file.file_path, file.bucket_name);
-          return { id, ok };
+          const result = await PropertyService.deletePropertyFileDetailed(file.id);
+          return { id, ok: result.ok, error: result.error };
         }));
         deletedIds = results.filter(result => result.ok).map(result => result.id);
         const failCount = results.length - deletedIds.length;
@@ -397,12 +400,18 @@ const CombinedMedia: React.FC = () => {
       } else if (itemToDelete) {
         const file = allFiles.find(f => f.id === itemToDelete);
         if (file) {
-          const ok = await PropertyService.deletePropertyFile(file.id, file.file_path, file.bucket_name);
-          if (ok) {
+          const result = await PropertyService.deletePropertyFileDetailed(file.id);
+          if (result.ok) {
             deletedIds = [itemToDelete];
             toast({ title: "Success", description: "File deleted successfully" });
           } else {
-            toast({ title: "Error", description: "The file could not be fully deleted. Please try again.", variant: "destructive" });
+            toast({
+              title: "Error",
+              description: result.retryable
+                ? "The file cleanup could not finish yet. Please try again."
+                : "The file could not be fully deleted. Please try again.",
+              variant: "destructive"
+            });
           }
         }
       }
@@ -422,6 +431,7 @@ const CombinedMedia: React.FC = () => {
       setShowDeleteDialog(false);
       setItemToDelete(null);
       setBulkDeleteMode(false);
+      setIsDeleting(false);
     }
   };
 
@@ -622,6 +632,8 @@ const CombinedMedia: React.FC = () => {
         onConfirm={confirmDelete}
         title={bulkDeleteMode ? "Delete Files" : "Delete File"}
         itemCount={bulkDeleteMode ? selectedFiles.length : 1}
+        confirmText={isDeleting ? "Deleting..." : undefined}
+        confirmDisabled={isDeleting}
       />
 
       <DeleteConfirmationDialog
