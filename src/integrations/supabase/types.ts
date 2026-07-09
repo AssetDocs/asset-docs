@@ -8173,6 +8173,10 @@ export type Database = {
         }
         Returns: string
       }
+      claim_property_file_delete: {
+        Args: { p_file_id: string; p_now?: string; p_stale_before: string }
+        Returns: boolean
+      }
       clear_last_used_account_if_revoked: {
         Args: { _account_id: string; _user_id: string }
         Returns: undefined
@@ -8307,6 +8311,10 @@ export type Database = {
       expire_grace_periods: { Args: never; Returns: number }
       finalize_property_deletion: {
         Args: { p_lease_token: string; p_property_id: string }
+        Returns: boolean
+      }
+      finalize_property_file_delete: {
+        Args: { p_file_id: string }
         Returns: boolean
       }
       get_account_write_state: {
@@ -8728,6 +8736,10 @@ export type Database = {
       }
       release_property_deletion_lease: {
         Args: { p_error: string; p_lease_token: string; p_property_id: string }
+        Returns: boolean
+      }
+      release_property_file_delete: {
+        Args: { p_error?: string; p_file_id: string }
         Returns: boolean
       }
       remove_account_freeze: {
