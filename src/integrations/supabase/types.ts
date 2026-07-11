@@ -3440,6 +3440,74 @@ export type Database = {
           },
         ]
       }
+      family_important_locations: {
+        Row: {
+          attachment_file_name: string | null
+          category: string | null
+          created_at: string
+          delete_attempts: number
+          delete_error: string | null
+          delete_processing_at: string | null
+          id: string
+          item_name: string
+          location_description: string | null
+          notes: string | null
+          pending_delete: boolean
+          pending_delete_at: string | null
+          property_id: string | null
+          related_contact_name: string | null
+          room_area: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attachment_file_name?: string | null
+          category?: string | null
+          created_at?: string
+          delete_attempts?: number
+          delete_error?: string | null
+          delete_processing_at?: string | null
+          id?: string
+          item_name: string
+          location_description?: string | null
+          notes?: string | null
+          pending_delete?: boolean
+          pending_delete_at?: string | null
+          property_id?: string | null
+          related_contact_name?: string | null
+          room_area?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attachment_file_name?: string | null
+          category?: string | null
+          created_at?: string
+          delete_attempts?: number
+          delete_error?: string | null
+          delete_processing_at?: string | null
+          id?: string
+          item_name?: string
+          location_description?: string | null
+          notes?: string | null
+          pending_delete?: boolean
+          pending_delete_at?: string | null
+          property_id?: string | null
+          related_contact_name?: string | null
+          room_area?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "family_important_locations_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       family_medications: {
         Row: {
           bucket_name: string | null
