@@ -14,6 +14,8 @@ const Navbar: React.FC = () => {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const { translate } = useTranslation();
   const { isAuthenticated, signOut, profile } = useAuth();
+  const location = useLocation();
+  const onDashboard = location.pathname === '/account' || location.pathname.startsWith('/account/');
 
   const handleSearchToggle = () => {
     setIsSearchExpanded(!isSearchExpanded);
