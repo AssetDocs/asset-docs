@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, NavLink, useLocation } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Menu, X, LogOut, User, Home } from 'lucide-react';
 import SearchBar from '@/components/SearchBar';
@@ -15,6 +15,7 @@ const Navbar: React.FC = () => {
   const { translate } = useTranslation();
   const { isAuthenticated, signOut, profile } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const onDashboard = location.pathname === '/account' || location.pathname.startsWith('/account/');
 
   const handleSearchToggle = () => {
@@ -25,11 +26,24 @@ const Navbar: React.FC = () => {
     setIsSearchExpanded(false);
   };
 
+  const handleLogoClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    setIsMenuOpen(false);
+
+    if (
+      onDashboard
+      && typeof window !== 'undefined'
+      && window.matchMedia('(max-width: 767px)').matches
+    ) {
+      event.preventDefault();
+      navigate('/', { state: { allowAuthenticatedHome: true } });
+    }
+  };
+
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3">
         <div className="flex justify-between items-center">
-          <Link to="/" className="flex items-center">
+          <Link to="/" className="flex items-center" onClick={handleLogoClick}>
             <img 
               src={assetSafeLogo} 
               alt="Asset Safe - Digital Home Inventory and Legacy Locker Platform" 
