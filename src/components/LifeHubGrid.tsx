@@ -9,6 +9,7 @@ import {
   ChefHat,
   Archive,
   Pill,
+  MapPin,
 } from 'lucide-react';
 
 interface LifeHubGridProps {
@@ -90,6 +91,17 @@ const LifeHubGrid: React.FC<LifeHubGridProps> = ({ onTabChange }) => {
           description="Keep a simple family-reference list of medications and pharmacies."
           actionLabel="View List"
           onClick={() => onTabChange('medication-list')}
+          color="rose"
+          variant="compact"
+        />
+
+        {/* Important Locations */}
+        <DashboardGridCard
+          icon={<MapPin className="h-5 w-5" />}
+          title="Important Locations"
+          description="Record where important documents, keys, keepsakes, and physical items are stored."
+          actionLabel="View Locations"
+          onClick={() => onTabChange('important-locations')}
           color="rose"
           variant="compact"
         />

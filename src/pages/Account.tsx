@@ -34,6 +34,7 @@ import NotesAndTraditions from '@/components/NotesAndTraditions';
 import QuickNotesSection from '@/components/QuickNotesSection';
 import FamilyRecipes from '@/components/FamilyRecipes';
 import FamilyMedications from '@/components/FamilyMedications';
+import ImportantLocations from '@/components/ImportantLocations';
 import MemorySafe from '@/components/MemorySafe';
 import AssetDocumentationGrid from '@/components/AssetDocumentationGrid';
 
@@ -183,6 +184,7 @@ const Account: React.FC = () => {
       'notes-traditions': { title: 'Notes & Traditions', subtitle: 'Capture family traditions, stories, and important notes.' },
       'family-recipes': { title: 'Family Recipes', subtitle: 'Preserve cherished family recipes for generations.' },
       'medication-list': { title: 'Medication List', subtitle: 'A simple family-reference list for medications, pharmacies, and related notes.' },
+      'important-locations': { title: 'Important Locations', subtitle: 'Record where important documents, keys, keepsakes, and physical items are stored.' },
       'memory-safe': { title: 'Memory Safe', subtitle: 'A protected place for the memories you want to keep — and pass on.' },
       'access-activity': { title: 'Access & Activity', subtitle: 'Manage authorized users and monitor recent account activity.' },
       'emergency-instructions': { title: 'Emergency Instructions', subtitle: 'Clear guidance that brings clarity during unexpected situations.' },
@@ -241,7 +243,7 @@ const Account: React.FC = () => {
                   Back to Dashboard
                 </Button>
 
-                {['voice-notes', 'service-pros', 'notes-traditions', 'family-recipes', 'medication-list', 'memory-safe'].includes(activeTab) && (
+                {['voice-notes', 'service-pros', 'notes-traditions', 'family-recipes', 'medication-list', 'important-locations', 'memory-safe'].includes(activeTab) && (
                   <Button
                     onClick={() => {
                       setActiveTab('life-hub');
@@ -415,6 +417,10 @@ const Account: React.FC = () => {
 
             <TabsContent value="medication-list">
               <FamilyMedications onNavigate={setActiveTab} />
+            </TabsContent>
+
+            <TabsContent value="important-locations">
+              <ImportantLocations onNavigate={setActiveTab} />
             </TabsContent>
 
             <TabsContent value="memory-safe">
