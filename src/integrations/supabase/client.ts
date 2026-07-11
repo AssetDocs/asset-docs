@@ -13,11 +13,5 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
-    // Custom lock with extended timeout to prevent "lock broken by steal" errors
-    // when updateUser and onAuthStateChange both try to acquire the Web Lock
-    // simultaneously during the onboarding finish step.
-    lock: (name: string, acquireTimeout: number, fn: () => Promise<any>) => {
-      return navigator.locks.request(name, fn);
-    },
   }
 });

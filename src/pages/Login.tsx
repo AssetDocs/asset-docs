@@ -14,6 +14,23 @@ import { isDeletedAccountEmail } from '@/utils/deletedAccountGuard';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 
+const DELETED_ACCOUNT_CHECK_TIMEOUT_MS = 4000;
+
+const withTimeout = async <T,>(promise: Promise<T>, fallback: T, timeoutMs: number): Promise<T> => {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((resolve) => {
+        timeoutId = setTimeout(() => resolve(fallback), timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+};
+
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -43,13 +60,18 @@ const Login: React.FC = () => {
     setLoginError(false);
 
     try {
-      if (await isDeletedAccountEmail(email)) {
+      const isDeletedAccount = await withTimeout(
+        isDeletedAccountEmail(email),
+        false,
+        DELETED_ACCOUNT_CHECK_TIMEOUT_MS,
+      );
+
+      if (isDeletedAccount) {
         toast({
           title: "Account Not Found",
           description: "There is no account attached to this email. Please try again with a valid email, or sign up for a new account.",
           variant: "destructive",
         });
-        setIsLoading(false);
         return;
       }
 
@@ -58,41 +80,10 @@ const Login: React.FC = () => {
       if (error) {
         setLoginError(true);
       } else {
-        // Check for pending contributor invitations
-        const isContributorInvite = searchParams.get('contributor_invite') === 'true';
-        
-        try {
-          const { data: session } = await supabase.auth.getSession();
-          if (session?.session?.access_token) {
-            const { data: invitationData } = await supabase.functions.invoke(
-              'accept-contributor-invitation',
-              {
-                headers: {
-                  Authorization: `Bearer ${session.session.access_token}`
-                }
-              }
-            );
-            
-            if (invitationData?.invitations?.length > 0) {
-              toast({
-                title: "Welcome!",
-                description: `You now have access to ${invitationData.invitations.length} account(s).`,
-              });
-            } else if (!isContributorInvite) {
-              toast({
-                title: "Login Successful",
-                description: "Welcome back!",
-              });
-            }
-          }
-        } catch (inviteError) {
-          console.error('Error checking contributor invitations:', inviteError);
-          toast({
-            title: "Login Successful",
-            description: "Welcome back!",
-          });
-        }
-        
+        toast({
+          title: "Login Successful",
+          description: "Welcome back!",
+        });
         navigate(redirectTo);
       }
     } catch (error: any) {
