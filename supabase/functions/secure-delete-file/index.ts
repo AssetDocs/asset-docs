@@ -135,7 +135,7 @@ const RESOURCES: Record<string, ResourceDef> = {
     table: "vip_contact_attachments",
     bucket: "contact-attachments",
     pathColumn: "file_path",
-    ownership: "owner_only",
+    ownership: "shared_owner",
     finalize: "delete_row",
     label: "Contact attachment",
     labelColumn: "file_name",

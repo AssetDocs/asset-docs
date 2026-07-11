@@ -114,6 +114,16 @@ const CombinedMedia: React.FC = () => {
     }
   };
 
+  const refreshMediaFiles = async () => {
+    const [latestPhotos, latestVideos] = await Promise.all([
+      PropertyService.getAllUserFiles('photo'),
+      PropertyService.getAllUserFiles('video'),
+    ]);
+    setPhotos(latestPhotos);
+    setVideos(latestVideos);
+    return [...latestPhotos, ...latestVideos];
+  };
+
   const fetchFolders = async () => {
     if (!user || !accountId) return;
     const snapshot = accountId;
@@ -380,16 +390,36 @@ const CombinedMedia: React.FC = () => {
     if (isDeleting) return;
     setIsDeleting(true);
     try {
-      let deletedIds: string[] = [];
+      let attemptedIds: string[] = [];
+      let successfulResponseIds: string[] = [];
       if (bulkDeleteMode) {
-        const results = await Promise.all(selectedFiles.map(async id => {
+        attemptedIds = [...new Set(selectedFiles)];
+        const results = await Promise.all(attemptedIds.map(async id => {
           const file = allFiles.find(f => f.id === id);
           if (!file) return { id, ok: false };
           const result = await PropertyService.deletePropertyFileDetailed(file.id);
           return { id, ok: result.ok, error: result.error };
         }));
-        deletedIds = results.filter(result => result.ok).map(result => result.id);
-        const failCount = results.length - deletedIds.length;
+        successfulResponseIds = results.filter(result => result.ok).map(result => result.id);
+      } else if (itemToDelete) {
+        attemptedIds = [itemToDelete];
+        const file = allFiles.find(f => f.id === itemToDelete);
+        if (file) {
+          const result = await PropertyService.deletePropertyFileDetailed(file.id);
+          if (result.ok) {
+            successfulResponseIds = [itemToDelete];
+          }
+        }
+      }
+
+      const latestFiles = await refreshMediaFiles();
+      const remainingIds = new Set(latestFiles.map(file => file.id));
+      const deletedIds = attemptedIds.filter(
+        id => successfulResponseIds.includes(id) || !remainingIds.has(id)
+      );
+      const failCount = attemptedIds.length - deletedIds.length;
+
+      if (bulkDeleteMode) {
         if (failCount === 0) {
           toast({ title: "Success", description: `${deletedIds.length} file(s) deleted successfully` });
         } else if (deletedIds.length === 0) {
@@ -398,31 +428,16 @@ const CombinedMedia: React.FC = () => {
           toast({ title: "Partial delete", description: `${deletedIds.length} deleted, ${failCount} could not be fully deleted. Please try again.`, variant: "destructive" });
         }
       } else if (itemToDelete) {
-        const file = allFiles.find(f => f.id === itemToDelete);
-        if (file) {
-          const result = await PropertyService.deletePropertyFileDetailed(file.id);
-          if (result.ok) {
-            deletedIds = [itemToDelete];
-            toast({ title: "Success", description: "File deleted successfully" });
-          } else {
-            toast({
-              title: "Error",
-              description: result.retryable
-                ? "The file cleanup could not finish yet. Please try again."
-                : "The file could not be fully deleted. Please try again.",
-              variant: "destructive"
-            });
-          }
+        if (failCount === 0) {
+          toast({ title: "Success", description: "File deleted successfully" });
+        } else {
+          toast({
+            title: "Error",
+            description: "The file could not be fully deleted. Please try again.",
+            variant: "destructive"
+          });
         }
       }
-
-      if (deletedIds.length > 0) {
-        setPhotos(prev => prev.filter(file => !deletedIds.includes(file.id)));
-        setVideos(prev => prev.filter(file => !deletedIds.includes(file.id)));
-      }
-      
-      await fetchPhotos();
-      await fetchVideos();
       setSelectedFiles([]);
     } catch (error) {
       console.error('Error deleting file(s):', error);

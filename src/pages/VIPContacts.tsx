@@ -62,7 +62,12 @@ const VIPContacts: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
-  const { isReadOnly: isViewer, accountId: accountOwnerId } = useAccount();
+  const {
+    isReadOnly: isViewer,
+    ownerUserId,
+    canEdit,
+    loading: accountLoading,
+  } = useAccount();
   
   const [contacts, setContacts] = useState<VIPContact[]>([]);
   const [loading, setLoading] = useState(true);
@@ -98,13 +103,18 @@ const VIPContacts: React.FC = () => {
     is_emergency_contact: false
   });
 
-  const effectiveUserId = accountOwnerId || user?.id;
+  const effectiveUserId = ownerUserId;
+  const canManageContacts = canEdit && !!effectiveUserId;
 
   useEffect(() => {
+    if (accountLoading) return;
     if (effectiveUserId) {
       fetchContacts();
+    } else {
+      setContacts([]);
+      setLoading(false);
     }
-  }, [effectiveUserId]);
+  }, [accountLoading, effectiveUserId]);
 
   const fetchContacts = async () => {
     if (!effectiveUserId) return;
@@ -178,10 +188,10 @@ const VIPContacts: React.FC = () => {
       return;
     }
 
-    if (!effectiveUserId) {
+    if (!effectiveUserId || !canManageContacts) {
       toast({
         title: "Error",
-        description: "User not authenticated.",
+        description: "You do not have permission to save contacts in this workspace.",
         variant: "destructive"
       });
       return;
@@ -235,9 +245,12 @@ const VIPContacts: React.FC = () => {
       fetchContacts();
     } catch (error) {
       console.error('Error saving contact:', error);
+      const message = (error as any)?.message || '';
       toast({
         title: "Error",
-        description: "Failed to save contact.",
+        description: message.includes('row-level security')
+          ? "You do not have permission to save contacts in this workspace."
+          : "Failed to save contact.",
         variant: "destructive"
       });
     } finally {
@@ -368,7 +381,7 @@ const VIPContacts: React.FC = () => {
               <CardDescription>Important people to contact in case of emergency or death</CardDescription>
             </CardHeader>
             <CardContent>
-              {!isViewer && (
+              {canManageContacts && (
                 <Dialog open={isDialogOpen} onOpenChange={(open) => {
                   setIsDialogOpen(open);
                   if (!open) resetForm();
@@ -581,7 +594,7 @@ const VIPContacts: React.FC = () => {
                       </div>
                       <div className="flex flex-col items-end gap-2">
                         {renderPriorityStars(contact.priority)}
-                        {!isViewer && (
+                        {canManageContacts && (
                           <div className="flex gap-1">
                             <Button
                               variant="ghost"
@@ -684,7 +697,7 @@ const VIPContacts: React.FC = () => {
                           <ContactAttachments
                             contactId={contact.id}
                             userId={effectiveUserId}
-                            isViewer={isViewer}
+                            isViewer={!canManageContacts}
                             contactName={contact.name}
                           />
                         )}

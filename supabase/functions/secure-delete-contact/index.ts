@@ -8,7 +8,7 @@
  *
  * Flow:
  *  1. Authenticate caller via JWT.
- *  2. Fetch the contact; require row.user_id === caller (owner-only).
+ *  2. Fetch the contact; require Owner or Full Access for the owner workspace.
  *  3. List all attachments for the contact.
  *  4. For each attachment, delegate to secure-delete-file (which runs the
  *     same lease/retry storage-cleanup-then-row-delete flow used elsewhere).
@@ -76,7 +76,23 @@ serve(async (req) => {
       return json(500, { error: "lookup_failed" });
     }
     if (!contact) return json(404, { error: "not_found" });
-    if (contact.user_id !== callerId) return json(403, { error: "forbidden" });
+    if (contact.user_id !== callerId) {
+      const { data: allowed, error: accessErr } = await admin.rpc(
+        "has_account_access",
+        {
+          _user_id: callerId,
+          _owner_user_id: contact.user_id,
+          _min_role: "full_access",
+        },
+      );
+
+      if (accessErr) {
+        console.error("secure-delete-contact: access check failed", accessErr.message);
+        return json(500, { error: "authz_failed" });
+      }
+
+      if (!allowed) return json(403, { error: "forbidden" });
+    }
 
     // --- Enumerate attachments ----------------------------------------
     const { data: attachments, error: aErr } = await admin
@@ -140,8 +156,7 @@ serve(async (req) => {
     const { error: delErr } = await admin
       .from("vip_contacts")
       .delete()
-      .eq("id", id)
-      .eq("user_id", callerId);
+      .eq("id", id);
     if (delErr) {
       console.error("secure-delete-contact: contact delete failed", delErr.message);
       return json(500, { error: "delete_failed" });
