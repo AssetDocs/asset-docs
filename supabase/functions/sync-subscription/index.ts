@@ -27,8 +27,9 @@ function parseSubscriptionItems(items: Stripe.SubscriptionItem[]) {
     if (lookupKey.startsWith('standard_') || lookupKey.startsWith('premium_')) {
       planLookupKey = lookupKey;
       planPriceId = item.price.id;
+      // Single Asset Safe plan: both legacy keys map to the same 50 GB base
       plan = lookupKey.startsWith('premium_') ? 'premium' : 'standard';
-      baseStorageGb = plan === 'premium' ? 100 : 25;
+      baseStorageGb = 50;
     } else if (lookupKey === 'storage_25gb_monthly') {
       storageAddonBlocksQty = item.quantity || 0;
     }
