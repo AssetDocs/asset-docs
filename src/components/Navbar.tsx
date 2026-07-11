@@ -197,6 +197,14 @@ const Navbar: React.FC = () => {
                  </Button>
               </div>
             )}
+            {isAuthenticated && !onDashboard && (
+              <Button asChild size="sm" className="bg-brand-orange hover:bg-brand-orange/90 text-xs px-2 py-1 h-8">
+                <Link to="/account" aria-label="Go to Dashboard">
+                  <Home className="h-4 w-4 mr-1" />
+                  {translate('nav.dashboard')}
+                </Link>
+              </Button>
+            )}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="p-2 focus:outline-none"
