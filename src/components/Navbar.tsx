@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Menu, X, LogOut, User, Home } from 'lucide-react';
 import SearchBar from '@/components/SearchBar';
@@ -14,6 +14,8 @@ const Navbar: React.FC = () => {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const { translate } = useTranslation();
   const { isAuthenticated, signOut, profile } = useAuth();
+  const location = useLocation();
+  const onDashboard = location.pathname === '/account' || location.pathname.startsWith('/account/');
 
   const handleSearchToggle = () => {
     setIsSearchExpanded(!isSearchExpanded);
@@ -194,6 +196,14 @@ const Navbar: React.FC = () => {
                    <Link to="/pricing">{translate('nav.getStarted')}</Link>
                  </Button>
               </div>
+            )}
+            {isAuthenticated && !onDashboard && (
+              <Button asChild size="sm" className="bg-brand-orange hover:bg-brand-orange/90 text-xs px-2 py-1 h-8">
+                <Link to="/account" aria-label="Go to Dashboard">
+                  <Home className="h-4 w-4 mr-1" />
+                  {translate('nav.dashboard')}
+                </Link>
+              </Button>
             )}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}

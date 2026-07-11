@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
@@ -37,6 +38,11 @@ const Index: React.FC = () => {
     "@context": "https://schema.org",
     "@graph": [organizationSchema, webApplicationSchema, faqSchema(faqData), heroVideoData]
   };
+
+  const { user, loading } = useAuth();
+  if (!loading && user) {
+    return <Navigate to="/account" replace />;
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
