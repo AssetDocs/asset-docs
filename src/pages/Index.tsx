@@ -39,6 +39,11 @@ const Index: React.FC = () => {
     "@graph": [organizationSchema, webApplicationSchema, faqSchema(faqData), heroVideoData]
   };
 
+  const { user, loading } = useAuth();
+  if (!loading && user) {
+    return <Navigate to="/account" replace />;
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
       <SEOHead
