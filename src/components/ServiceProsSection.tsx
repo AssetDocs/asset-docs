@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -10,7 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Plus, Trash2, User, Building2, Wrench, DollarSign, Calendar, Phone, Mail, MapPin, Globe, Star } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Plus, Trash2, User, Building2, Wrench, DollarSign, Calendar, Phone, Mail, MapPin, Globe, Star, Search } from 'lucide-react';
 
 interface Contact {
   id?: string;
@@ -36,9 +37,13 @@ interface ServiceProvider {
   address: string;
   service_type: string;
   notes: string;
+  created_at?: string;
+  updated_at?: string;
   contacts: Contact[];
   projects: Project[];
 }
+
+type ProviderSort = 'created-desc' | 'name-asc' | 'service-type' | 'updated-desc' | 'recent-work';
 
 const SERVICE_TYPES = [
   'Electrician',
@@ -65,6 +70,11 @@ const ServiceProsSection: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [serviceTypeFilter, setServiceTypeFilter] = useState('all');
+  const [withContactsOnly, setWithContactsOnly] = useState(false);
+  const [withWorkHistoryOnly, setWithWorkHistoryOnly] = useState(false);
+  const [sortBy, setSortBy] = useState<ProviderSort>('created-desc');
 
   const [newProvider, setNewProvider] = useState<ServiceProvider>({
     company_name: '',
@@ -117,6 +127,8 @@ const ServiceProsSection: React.FC = () => {
             address: provider.address || '',
             service_type: provider.service_type || '',
             notes: provider.notes || '',
+            created_at: provider.created_at,
+            updated_at: provider.updated_at,
             contacts: (contactsRes.data || []).map(c => ({
               id: c.id,
               contact_name: c.contact_name || '',
@@ -148,6 +160,70 @@ const ServiceProsSection: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const filteredProviders = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+    const providerText = (provider: ServiceProvider) => [
+      provider.company_name,
+      provider.company_website,
+      provider.address,
+      provider.service_type,
+      provider.notes,
+      ...provider.contacts.flatMap(contact => [
+        contact.contact_name,
+        contact.contact_phone,
+        contact.contact_email,
+        contact.role,
+      ]),
+      ...provider.projects.flatMap(project => [
+        project.date_of_work,
+        project.work_completed,
+        project.project_cost,
+        project.notes,
+        project.satisfaction_rating ? `${project.satisfaction_rating} star` : '',
+      ]),
+    ].filter(Boolean).join(' ').toLowerCase();
+
+    const latestProjectTime = (provider: ServiceProvider) => Math.max(
+      0,
+      ...provider.projects.map(project => (
+        project.date_of_work
+          ? new Date(project.date_of_work).getTime()
+          : 0
+      )),
+    );
+
+    return providers
+      .filter(provider => !normalizedSearch || providerText(provider).includes(normalizedSearch))
+      .filter(provider => serviceTypeFilter === 'all' || provider.service_type === serviceTypeFilter)
+      .filter(provider => !withContactsOnly || provider.contacts.length > 0)
+      .filter(provider => !withWorkHistoryOnly || provider.projects.length > 0)
+      .sort((a, b) => {
+        switch (sortBy) {
+          case 'name-asc':
+            return a.company_name.localeCompare(b.company_name);
+          case 'service-type':
+            return (a.service_type || 'zz').localeCompare(b.service_type || 'zz')
+              || a.company_name.localeCompare(b.company_name);
+          case 'updated-desc':
+            return new Date(b.updated_at || b.created_at || 0).getTime()
+              - new Date(a.updated_at || a.created_at || 0).getTime()
+              || a.company_name.localeCompare(b.company_name);
+          case 'recent-work':
+            return latestProjectTime(b) - latestProjectTime(a)
+              || a.company_name.localeCompare(b.company_name);
+          case 'created-desc':
+          default:
+            return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+              || a.company_name.localeCompare(b.company_name);
+        }
+      });
+  }, [providers, searchTerm, serviceTypeFilter, sortBy, withContactsOnly, withWorkHistoryOnly]);
+
+  const hasActiveFilters = searchTerm.trim() !== ''
+    || serviceTypeFilter !== 'all'
+    || withContactsOnly
+    || withWorkHistoryOnly;
 
   const handleAddProvider = async () => {
     if (!user || !newProvider.company_name.trim()) {
@@ -545,130 +621,224 @@ const ServiceProsSection: React.FC = () => {
       {providers.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Your Service Providers ({providers.length})</CardTitle>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Search className="h-5 w-5 text-brand-blue" />
+              Find Trusted Professionals
+            </CardTitle>
+            <CardDescription>
+              Search service providers by company, type, contact details, notes, or work history.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Input
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Search companies, service types, contact names, phone numbers, notes, or work completed..."
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <Select value={serviceTypeFilter} onValueChange={setServiceTypeFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All service types" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All service types</SelectItem>
+                  {SERVICE_TYPES.map(type => (
+                    <SelectItem key={type} value={type}>{type}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={sortBy} onValueChange={(value) => setSortBy(value as ProviderSort)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sort providers" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="created-desc">Recently Added</SelectItem>
+                  <SelectItem value="updated-desc">Recently Updated</SelectItem>
+                  <SelectItem value="name-asc">Company Name A-Z</SelectItem>
+                  <SelectItem value="service-type">Service Type</SelectItem>
+                  <SelectItem value="recent-work">Recent Work</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <div className="flex flex-col gap-2 rounded-md border bg-white px-3 py-2">
+                <label className="flex items-center gap-2 text-sm">
+                  <Checkbox
+                    checked={withContactsOnly}
+                    onCheckedChange={(checked) => setWithContactsOnly(Boolean(checked))}
+                  />
+                  With contacts only
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <Checkbox
+                    checked={withWorkHistoryOnly}
+                    onCheckedChange={(checked) => setWithWorkHistoryOnly(Boolean(checked))}
+                  />
+                  With work history only
+                </label>
+              </div>
+            </div>
+
+            {hasActiveFilters && (
+              <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
+                <span>
+                  Showing {filteredProviders.length} of {providers.length} trusted professionals
+                  {searchTerm.trim() && <> for "{searchTerm.trim()}"</>}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSearchTerm('');
+                    setServiceTypeFilter('all');
+                    setWithContactsOnly(false);
+                    setWithWorkHistoryOnly(false);
+                  }}
+                >
+                  Clear filters
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {providers.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Your Service Providers ({filteredProviders.length})</CardTitle>
           </CardHeader>
           <CardContent>
-            <Accordion type="single" collapsible className="space-y-2">
-              {providers.map((provider) => (
-                <AccordionItem key={provider.id} value={provider.id || ''} className="border rounded-lg px-4">
-                  <AccordionTrigger className="hover:no-underline">
-                    <div className="flex items-center gap-3 text-left">
-                      <Building2 className="h-5 w-5 text-brand-blue flex-shrink-0" />
-                      <div>
-                        <div className="font-medium">{provider.company_name}</div>
-                        {provider.service_type && (
-                          <div className="text-sm text-muted-foreground">{provider.service_type}</div>
+            {filteredProviders.length === 0 ? (
+              <div className="py-8 text-center text-muted-foreground">
+                <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No matching trusted professionals found.</p>
+                <p className="text-sm">Try searching by company, service type, contact, phone number, or work history.</p>
+              </div>
+            ) : (
+              <Accordion type="single" collapsible className="space-y-2">
+                {filteredProviders.map((provider) => (
+                  <AccordionItem key={provider.id} value={provider.id || ''} className="border rounded-lg px-4">
+                    <AccordionTrigger className="hover:no-underline">
+                      <div className="flex items-center gap-3 text-left">
+                        <Building2 className="h-5 w-5 text-brand-blue flex-shrink-0" />
+                        <div>
+                          <div className="font-medium">{provider.company_name}</div>
+                          {provider.service_type && (
+                            <div className="text-sm text-muted-foreground">{provider.service_type}</div>
+                          )}
+                        </div>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pt-4 space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                        {provider.company_website && (
+                          <div className="flex items-center gap-2">
+                            <Globe className="h-4 w-4 text-muted-foreground" />
+                            <a href={provider.company_website} target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:underline">
+                              {provider.company_website}
+                            </a>
+                          </div>
+                        )}
+                        {provider.address && (
+                          <div className="flex items-center gap-2">
+                            <MapPin className="h-4 w-4 text-muted-foreground" />
+                            <span>{provider.address}</span>
+                          </div>
                         )}
                       </div>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="pt-4 space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                      {provider.company_website && (
-                        <div className="flex items-center gap-2">
-                          <Globe className="h-4 w-4 text-muted-foreground" />
-                          <a href={provider.company_website} target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:underline">
-                            {provider.company_website}
-                          </a>
-                        </div>
-                      )}
-                      {provider.address && (
-                        <div className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4 text-muted-foreground" />
-                          <span>{provider.address}</span>
-                        </div>
-                      )}
-                    </div>
 
-                    {provider.contacts.length > 0 && (
-                      <div className="space-y-2">
-                        <h4 className="font-medium text-sm">Contacts</h4>
-                        <div className="grid gap-2">
-                          {provider.contacts.map((contact) => (
-                            <div key={contact.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm p-2 bg-muted/50 rounded">
-                              {contact.contact_name && (
-                                <span className="flex items-center gap-1">
-                                  <User className="h-3 w-3" /> {contact.contact_name}
-                                  {contact.role && <span className="text-muted-foreground">({contact.role})</span>}
-                                </span>
-                              )}
-                              {contact.contact_phone && (
-                                <a href={`tel:${contact.contact_phone}`} className="flex items-center gap-1 text-brand-blue">
-                                  <Phone className="h-3 w-3" /> {contact.contact_phone}
-                                </a>
-                              )}
-                              {contact.contact_email && (
-                                <a href={`mailto:${contact.contact_email}`} className="flex items-center gap-1 text-brand-blue">
-                                  <Mail className="h-3 w-3" /> {contact.contact_email}
-                                </a>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {provider.projects.length > 0 && (
-                      <div className="space-y-2">
-                        <h4 className="font-medium text-sm">Work History</h4>
+                      {provider.contacts.length > 0 && (
                         <div className="space-y-2">
-                          {provider.projects.map((project) => (
-                            <div key={project.id} className="p-3 border rounded-md text-sm space-y-1">
-                              <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                                {project.date_of_work && (
+                          <h4 className="font-medium text-sm">Contacts</h4>
+                          <div className="grid gap-2">
+                            {provider.contacts.map((contact) => (
+                              <div key={contact.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm p-2 bg-muted/50 rounded">
+                                {contact.contact_name && (
                                   <span className="flex items-center gap-1">
-                                    <Calendar className="h-3 w-3" />
-                                    {new Date(project.date_of_work).toLocaleDateString()}
+                                    <User className="h-3 w-3" /> {contact.contact_name}
+                                    {contact.role && <span className="text-muted-foreground">({contact.role})</span>}
                                   </span>
                                 )}
-                                {project.project_cost && (
-                                  <span className="flex items-center gap-1 font-medium">
-                                    <DollarSign className="h-3 w-3" />
-                                    {parseFloat(project.project_cost).toLocaleString()}
-                                  </span>
+                                {contact.contact_phone && (
+                                  <a href={`tel:${contact.contact_phone}`} className="flex items-center gap-1 text-brand-blue">
+                                    <Phone className="h-3 w-3" /> {contact.contact_phone}
+                                  </a>
                                 )}
-                                {project.satisfaction_rating && (
-                                  <div className="flex items-center gap-0.5">
-                                    {[1, 2, 3, 4, 5].map((star) => (
-                                      <Star
-                                        key={star}
-                                        className={`h-3 w-3 ${
-                                          project.satisfaction_rating && project.satisfaction_rating >= star
-                                            ? 'fill-yellow-400 text-yellow-400'
-                                            : 'text-muted-foreground'
-                                        }`}
-                                      />
-                                    ))}
-                                  </div>
+                                {contact.contact_email && (
+                                  <a href={`mailto:${contact.contact_email}`} className="flex items-center gap-1 text-brand-blue">
+                                    <Mail className="h-3 w-3" /> {contact.contact_email}
+                                  </a>
                                 )}
                               </div>
-                              {project.work_completed && <p>{project.work_completed}</p>}
-                              {project.notes && <p className="text-muted-foreground">{project.notes}</p>}
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {provider.notes && (
-                      <div className="text-sm">
-                        <h4 className="font-medium">Notes</h4>
-                        <p className="text-muted-foreground">{provider.notes}</p>
-                      </div>
-                    )}
+                      {provider.projects.length > 0 && (
+                        <div className="space-y-2">
+                          <h4 className="font-medium text-sm">Work History</h4>
+                          <div className="space-y-2">
+                            {provider.projects.map((project) => (
+                              <div key={project.id} className="p-3 border rounded-md text-sm space-y-1">
+                                <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                                  {project.date_of_work && (
+                                    <span className="flex items-center gap-1">
+                                      <Calendar className="h-3 w-3" />
+                                      {new Date(project.date_of_work).toLocaleDateString()}
+                                    </span>
+                                  )}
+                                  {project.project_cost && (
+                                    <span className="flex items-center gap-1 font-medium">
+                                      <DollarSign className="h-3 w-3" />
+                                      {parseFloat(project.project_cost).toLocaleString()}
+                                    </span>
+                                  )}
+                                  {project.satisfaction_rating && (
+                                    <div className="flex items-center gap-0.5">
+                                      {[1, 2, 3, 4, 5].map((star) => (
+                                        <Star
+                                          key={star}
+                                          className={`h-3 w-3 ${
+                                            project.satisfaction_rating && project.satisfaction_rating >= star
+                                              ? 'fill-yellow-400 text-yellow-400'
+                                              : 'text-muted-foreground'
+                                          }`}
+                                        />
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                                {project.work_completed && <p>{project.work_completed}</p>}
+                                {project.notes && <p className="text-muted-foreground">{project.notes}</p>}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDeleteProvider(provider.id!)}
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete Provider
-                    </Button>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
+                      {provider.notes && (
+                        <div className="text-sm">
+                          <h4 className="font-medium">Notes</h4>
+                          <p className="text-muted-foreground">{provider.notes}</p>
+                        </div>
+                      )}
+
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDeleteProvider(provider.id!)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete Provider
+                      </Button>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            )}
           </CardContent>
         </Card>
       )}
