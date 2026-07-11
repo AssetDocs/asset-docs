@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -13,12 +13,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
 import { useAccount } from '@/contexts/AccountContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Edit, Trash2, Star, Phone, Mail, MapPin, User, ChevronLeft, ChevronDown, ChevronUp, Paperclip, AlertTriangle } from 'lucide-react';
+import { Plus, Edit, Trash2, Star, Phone, Mail, MapPin, User, ChevronLeft, ChevronDown, ChevronUp, Paperclip, AlertTriangle, Search } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface VIPContact {
   id: string;
@@ -35,6 +33,8 @@ interface VIPContact {
   created_at: string;
   updated_at: string;
 }
+
+type ContactSort = 'priority' | 'name-asc' | 'relationship' | 'created-desc' | 'updated-desc';
 
 const RELATIONSHIP_OPTIONS = [
   'Spouse/Partner',
@@ -61,7 +61,6 @@ const RELATIONSHIP_OPTIONS = [
 const VIPContacts: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user } = useAuth();
   const {
     isReadOnly: isViewer,
     ownerUserId,
@@ -75,6 +74,10 @@ const VIPContacts: React.FC = () => {
   const [editingContact, setEditingContact] = useState<VIPContact | null>(null);
   const [saving, setSaving] = useState(false);
   const [expandedContacts, setExpandedContacts] = useState<Set<string>>(new Set());
+  const [searchTerm, setSearchTerm] = useState('');
+  const [relationshipFilter, setRelationshipFilter] = useState('all');
+  const [emergencyOnly, setEmergencyOnly] = useState(false);
+  const [sortBy, setSortBy] = useState<ContactSort>('priority');
 
   const toggleExpanded = (contactId: string) => {
     setExpandedContacts(prev => {
@@ -105,6 +108,61 @@ const VIPContacts: React.FC = () => {
 
   const effectiveUserId = ownerUserId;
   const canManageContacts = canEdit && !!effectiveUserId;
+
+  const filteredContacts = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+    const matchesSearch = (contact: VIPContact) => {
+      if (!normalizedSearch) return true;
+
+      const emergencyLabel = (contact as any).is_emergency_contact
+        ? 'emergency emergency contact'
+        : '';
+      const searchable = [
+        contact.name,
+        contact.relationship,
+        contact.email,
+        contact.phone,
+        contact.address,
+        contact.city,
+        contact.state,
+        contact.zip_code,
+        contact.notes,
+        emergencyLabel,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+
+      return searchable.includes(normalizedSearch);
+    };
+
+    const sorted = contacts
+      .filter(contact => relationshipFilter === 'all' || contact.relationship === relationshipFilter)
+      .filter(contact => !emergencyOnly || (contact as any).is_emergency_contact === true)
+      .filter(matchesSearch)
+      .sort((a, b) => {
+        switch (sortBy) {
+          case 'name-asc':
+            return a.name.localeCompare(b.name);
+          case 'relationship':
+            return (a.relationship || 'zzz').localeCompare(b.relationship || 'zzz')
+              || a.name.localeCompare(b.name);
+          case 'created-desc':
+            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+              || a.name.localeCompare(b.name);
+          case 'updated-desc':
+            return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+              || a.name.localeCompare(b.name);
+          case 'priority':
+          default:
+            return b.priority - a.priority || a.name.localeCompare(b.name);
+        }
+      });
+
+    return sorted;
+  }, [contacts, emergencyOnly, relationshipFilter, searchTerm, sortBy]);
+
+  const hasActiveFilters = searchTerm.trim() !== '' || relationshipFilter !== 'all' || emergencyOnly;
 
   useEffect(() => {
     if (accountLoading) return;
@@ -549,6 +607,89 @@ const VIPContacts: React.FC = () => {
             </CardContent>
           </Card>
 
+          {contacts.length > 0 && (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="text-lg">Find VIP Contacts</CardTitle>
+                <CardDescription>Search, filter, and sort important people in this workspace.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Search contacts by name, relationship, phone, email, address, or notes..."
+                    className="pl-9"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
+                  <div className="space-y-2">
+                    <Label>Relationship</Label>
+                    <Select value={relationshipFilter} onValueChange={setRelationshipFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All relationships" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All relationships</SelectItem>
+                        {RELATIONSHIP_OPTIONS.map((option) => (
+                          <SelectItem key={option} value={option}>
+                            {option}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Sort by</Label>
+                    <Select value={sortBy} onValueChange={(value) => setSortBy(value as ContactSort)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sort by" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="priority">Priority</SelectItem>
+                        <SelectItem value="name-asc">Name A-Z</SelectItem>
+                        <SelectItem value="relationship">Relationship</SelectItem>
+                        <SelectItem value="created-desc">Recently Added</SelectItem>
+                        <SelectItem value="updated-desc">Recently Updated</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <label className="flex h-10 items-center gap-2 rounded-md border bg-background px-3 text-sm">
+                    <Checkbox
+                      checked={emergencyOnly}
+                      onCheckedChange={(checked) => setEmergencyOnly(checked === true)}
+                    />
+                    Emergency only
+                  </label>
+                </div>
+
+                {hasActiveFilters && (
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
+                    <span>
+                      Showing {filteredContacts.length} of {contacts.length} contacts
+                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setSearchTerm('');
+                        setRelationshipFilter('all');
+                        setEmergencyOnly(false);
+                      }}
+                    >
+                      Clear filters
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {loading ? (
             <div className="flex justify-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -557,13 +698,23 @@ const VIPContacts: React.FC = () => {
             <Card>
               <CardContent className="py-12 text-center">
                 <User className="h-12 w-12 mx-auto text-muted-foreground/40 mb-4" />
-                <p className="text-muted-foreground">No contacts yet.</p>
+                <p className="text-muted-foreground">No VIP contacts added yet.</p>
                 <p className="text-sm text-muted-foreground mt-1">Use the button above to add your first VIP contact.</p>
+              </CardContent>
+            </Card>
+          ) : filteredContacts.length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <Search className="h-12 w-12 mx-auto text-muted-foreground/40 mb-4" />
+                <p className="text-muted-foreground">No matching contacts found.</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Try searching by name, relationship, phone, email, or notes.
+                </p>
               </CardContent>
             </Card>
           ) : (
             <div className="space-y-4">
-              {contacts.map((contact) => (
+              {filteredContacts.map((contact) => (
                 <Card key={contact.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
@@ -683,7 +834,7 @@ const VIPContacts: React.FC = () => {
                         >
                           <span className="flex items-center gap-2 text-sm font-medium text-brand-blue">
                             <Paperclip className="h-4 w-4" />
-                            Attachments (Documents, Images, Voice Notes)
+                            Related Files & Notes
                           </span>
                           {expandedContacts.has(contact.id) ? (
                             <ChevronUp className="h-4 w-4 text-gray-500" />
