@@ -63,3 +63,13 @@ export function getPreferredInternalSecret(): string | null {
   }
   return Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? null;
 }
+
+/**
+ * Returns the Supabase service-role API key for admin database/storage calls.
+ * This is intentionally separate from `getPreferredInternalSecret()`: the
+ * x-internal-secret value authenticates scheduler/function calls, but it is not
+ * guaranteed to be a valid Supabase API key.
+ */
+export function getSupabaseServiceRoleKey(): string | null {
+  return Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? null;
+}

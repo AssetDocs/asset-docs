@@ -1,7 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.51.0'
 import Stripe from 'https://esm.sh/stripe@14.21.0'
 import { requireStepUp, getClientIp } from '../_shared/mfa.ts'
-import { isAuthorizedInternalCall, getPreferredInternalSecret } from '../_shared/internalSecret.ts'
+import { isAuthorizedInternalCall, getSupabaseServiceRoleKey } from '../_shared/internalSecret.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -370,7 +370,7 @@ Deno.serve(async (req) => {
     // Create Supabase client with service role key for admin operations
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      getPreferredInternalSecret() ?? '',
+      getSupabaseServiceRoleKey() ?? '',
       {
         auth: {
           autoRefreshToken: false,

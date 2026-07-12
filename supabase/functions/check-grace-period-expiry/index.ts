@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { isAuthorizedInternalCall, getPreferredInternalSecret } from "../_shared/internalSecret.ts";
+import { isAuthorizedInternalCall, getPreferredInternalSecret, getSupabaseServiceRoleKey } from "../_shared/internalSecret.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -24,7 +24,7 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = getPreferredInternalSecret()!;
+    const supabaseServiceKey = getSupabaseServiceRoleKey()!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     console.log("Checking for expired grace periods...");
