@@ -129,7 +129,7 @@ const AccountAssistance: React.FC = () => {
         if (uploadedDocs.length > 0) {
           const { error: docError } = await supabase
             .from("external_assistance_documents")
-            .insert(uploadedDocs.map((doc) => ({ ...doc, request_id: requestId, submission_token: submissionToken })));
+            .insert(uploadedDocs.map((doc) => ({ ...doc, request_id: requestId })));
           if (docError) throw docError;
         }
       }
