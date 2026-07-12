@@ -67,10 +67,10 @@ const AwarenessGuide: React.FC = () => {
         title="Home Risk Awareness Guide | Asset Safe"
         description="Identify hidden home risks from dryer vents to mold. Protect your property with proactive awareness and documentation strategies."
         keywords="home risks, property damage prevention, home maintenance guide, hidden home dangers, property protection tips"
-        canonicalUrl="https://www.getassetsafe.com/awareness-guide"
+        canonicalUrl="https://getassetsafe.com/awareness-guide"
         structuredData={breadcrumbSchema([
-          { name: 'Home', url: 'https://www.getassetsafe.com/' },
-          { name: 'Awareness Guide', url: 'https://www.getassetsafe.com/awareness-guide' }
+          { name: 'Home', url: 'https://getassetsafe.com/' },
+          { name: 'Awareness Guide', url: 'https://getassetsafe.com/awareness-guide' }
         ])}
       />
       <Navbar />

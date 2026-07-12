@@ -4,8 +4,8 @@
 import { Resend } from "https://esm.sh/resend@2.0.0";
 
 const FROM = "Asset Safe <support@assetsafe.net>";
-const LOGO = "https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg";
-const APP_URL = "https://www.getassetsafe.com";
+const LOGO = "https://getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg";
+const APP_URL = "https://getassetsafe.com";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 

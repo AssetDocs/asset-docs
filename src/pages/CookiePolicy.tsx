@@ -11,7 +11,7 @@ const CookiePolicy: React.FC = () => {
         title="Cookie Policy | Asset Safe"
         description="Learn how Asset Safe uses cookies to improve your experience. Manage your cookie preferences and understand our data practices."
         keywords="cookie policy, cookies, data privacy, cookie preferences, asset safe privacy"
-        canonicalUrl="https://www.getassetsafe.com/cookie-policy"
+        canonicalUrl="https://getassetsafe.com/cookie-policy"
       />
       <Navbar />
       

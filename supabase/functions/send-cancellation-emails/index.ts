@@ -20,7 +20,7 @@ interface Body {
 const brand = (inner: string) => `
 <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8fafc">
   <div style="text-align:center;padding:30px 20px 20px">
-    <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width:200px"/>
+    <img src="https://getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width:200px"/>
   </div>
   <div style="background:#ffffff;padding:30px 25px;margin:0 20px;border-radius:8px">${inner}</div>
   <div style="padding:20px;text-align:center"><p style="color:#9ca3af;font-size:12px;margin:0">This is an automated notification from Asset Safe.</p></div>
@@ -36,7 +36,7 @@ const ownerHtml = (name: string, periodEnd: string | null) => brand(`
     <li>After your billing period ends, your account moves to read-only mode so you can still view and export your information.</li>
     <li>You can reactivate at any time, or request permanent account deletion separately.</li>
   </ul>
-  <p style="margin:24px 0"><a href="https://www.getassetsafe.com/account" style="background:#ea580c;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none;font-weight:600">View Account</a></p>
+  <p style="margin:24px 0"><a href="https://getassetsafe.com/account" style="background:#ea580c;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none;font-weight:600">View Account</a></p>
   <p style="color:#6b7280;font-size:13px">Questions? Reply to this email or contact support@assetsafe.net.</p>
 `);
 
@@ -50,7 +50,7 @@ const auHtml = (name: string) => brand(`
   <p style="color:#374151;line-height:1.6">
     Now's a good time to download or export anything you may need from the shared account.
   </p>
-  <p style="margin:24px 0"><a href="https://www.getassetsafe.com/dashboard" style="background:#ea580c;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none;font-weight:600">Open Asset Safe</a></p>
+  <p style="margin:24px 0"><a href="https://getassetsafe.com/dashboard" style="background:#ea580c;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none;font-weight:600">Open Asset Safe</a></p>
   <p style="color:#6b7280;font-size:13px">If you have questions, please contact the account owner directly.</p>
 `);
 

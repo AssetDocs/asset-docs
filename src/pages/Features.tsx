@@ -46,8 +46,8 @@ const FeatureCategory = ({ title, children, defaultOpen = false }: {
 
 const Features: React.FC = () => {
   const breadcrumbs = breadcrumbSchema([
-    { name: 'Home', url: 'https://www.getassetsafe.com/' },
-    { name: 'Features', url: 'https://www.getassetsafe.com/features' }
+    { name: 'Home', url: 'https://getassetsafe.com/' },
+    { name: 'Features', url: 'https://getassetsafe.com/features' }
   ]);
 
   return (
@@ -56,7 +56,7 @@ const Features: React.FC = () => {
         title="Features - Documentation & Protection | Asset Safe"
         description="Comprehensive property documentation features for homeowners, renters, businesses, and landlords. Digital inventory, insurance claims support, legacy planning, and secure cloud storage."
         keywords="property documentation features, digital home inventory, insurance claims support, legacy locker, asset tracking, home inventory software"
-        canonicalUrl="https://www.getassetsafe.com/features"
+        canonicalUrl="https://getassetsafe.com/features"
         structuredData={breadcrumbs}
       />
       <Navbar />

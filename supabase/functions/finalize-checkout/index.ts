@@ -93,7 +93,7 @@ serve(async (req) => {
       });
     }
 
-    const origin = req.headers.get("origin") || "https://www.getassetsafe.com";
+    const origin = req.headers.get("origin") || "https://getassetsafe.com";
     const result = await fulfillCheckout(stripe, supabaseAdmin, session, {
       source: "finalize-checkout-recovery",
       origin,

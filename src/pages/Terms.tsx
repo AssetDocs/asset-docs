@@ -10,7 +10,7 @@ const Terms: React.FC = () => {
         title="Terms and Conditions | Asset Safe"
         description="Read the Asset Safe Terms of Service covering usage, subscription terms, billing, cancellations, data storage, privacy, and U.S.-only availability."
         keywords="asset safe terms, terms of service, usage policy, subscription terms, billing, cancellations, privacy policy, us only"
-        canonicalUrl="https://www.getassetsafe.com/terms"
+        canonicalUrl="https://getassetsafe.com/terms"
       />
       <Navbar />
       

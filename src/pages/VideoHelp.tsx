@@ -132,10 +132,10 @@ const VideoHelp: React.FC = () => {
         title="Video Tutorials & Help | Asset Safe"
         description="Watch step-by-step video tutorials on account setup, property documentation, photo uploads, and Asset Safe dashboard features."
         keywords="asset safe tutorials, video help, how to use asset safe, property documentation tutorial, home inventory walkthrough"
-        canonicalUrl="https://www.getassetsafe.com/video-help"
+        canonicalUrl="https://getassetsafe.com/video-help"
         structuredData={breadcrumbSchema([
-          { name: 'Home', url: 'https://www.getassetsafe.com/' },
-          { name: 'Video Help', url: 'https://www.getassetsafe.com/video-help' }
+          { name: 'Home', url: 'https://getassetsafe.com/' },
+          { name: 'Video Help', url: 'https://getassetsafe.com/video-help' }
         ])}
       />
       <Navbar />

@@ -911,7 +911,7 @@ async function handleCheckoutCompleted(
       const result = await fulfillCheckout(stripe, supabase, fullSession, {
         source: 'stripe-webhook',
         sourceEventId,
-        origin: 'https://www.getassetsafe.com',
+        origin: 'https://getassetsafe.com',
       });
       logStep('Shared fulfillCheckout result', result);
     } catch (err) {

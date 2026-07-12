@@ -56,7 +56,7 @@ const handler = async (req: Request): Promise<Response> => {
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
           <p style="font-size: 12px; color: #999; text-align: center;">
             Asset Safe - Secure Your Property Documentation<br>
-            <a href="https://www.getassetsafe.com" style="color: #2563eb;">www.getassetsafe.com</a>
+            <a href="https://getassetsafe.com" style="color: #2563eb;">getassetsafe.com</a>
           </p>
         </div>
       `,

@@ -14,7 +14,7 @@ const Partnership: React.FC = () => {
         title="Partnership Opportunities | Asset Safe"
         description="Explore partnership opportunities with Asset Safe. Insurance, real estate, and home service professionals welcome. Grow together."
         keywords="asset safe partnership, real estate partnership, insurance partnership, home service partnership, business collaboration"
-        canonicalUrl="https://www.getassetsafe.com/partnership"
+        canonicalUrl="https://getassetsafe.com/partnership"
       />
       <div className="container mx-auto px-6 py-12">
         <div className="max-w-4xl mx-auto">
@@ -30,7 +30,7 @@ const Partnership: React.FC = () => {
               <div className="space-y-2 text-muted-foreground">
                 <p><strong>Presented to:</strong> Chris Harden, RE/MAX Broker</p>
                 <p><strong>From:</strong> Michael Lewis, Founder – Asset Safe</p>
-                <p><strong>Contact:</strong> support@assetsafe.net | www.getassetsafe.com</p>
+                <p><strong>Contact:</strong> support@assetsafe.net | getassetsafe.com</p>
               </div>
             </CardHeader>
           </Card>
@@ -368,13 +368,13 @@ const Partnership: React.FC = () => {
                   </p>
                   <p className="flex items-center gap-2">
                     <span>🌐</span>
-                    <a href="https://www.getassetsafe.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">www.getassetsafe.com</a>
+                    <a href="https://getassetsafe.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">getassetsafe.com</a>
                   </p>
                 </div>
                 
                 <div className="mt-6">
                   <Button asChild className="w-full">
-                    <a href="https://www.getassetsafe.com" target="_blank" rel="noopener noreferrer">
+                    <a href="https://getassetsafe.com" target="_blank" rel="noopener noreferrer">
                       Go to Asset Safe Website
                     </a>
                   </Button>

@@ -127,7 +127,7 @@ const GiftCheckout: React.FC = () => {
       <SEOHead
         title="Gift Asset Safe — Complete Your Purchase"
         description="Give a full year of Asset Safe access. Secure checkout powered by Stripe."
-        canonicalUrl="https://www.getassetsafe.com/gift-checkout"
+        canonicalUrl="https://getassetsafe.com/gift-checkout"
       />
       <Navbar />
 

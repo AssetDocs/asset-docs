@@ -55,8 +55,8 @@ const Pricing: React.FC = () => {
       productSchema("Asset Safe Plan", "18.99", "One simple plan. Everything included. Secure asset documentation, cloud storage, legacy tools, and trusted access."),
       faqSchema(faqData),
       breadcrumbSchema([
-        { name: 'Home', url: 'https://www.getassetsafe.com/' },
-        { name: 'Pricing', url: 'https://www.getassetsafe.com/pricing' }
+        { name: 'Home', url: 'https://getassetsafe.com/' },
+        { name: 'Pricing', url: 'https://getassetsafe.com/pricing' }
       ])
     ]
   };
@@ -191,7 +191,7 @@ const Pricing: React.FC = () => {
         title="Asset Safe Plan — Everything Included | Asset Safe"
         description="One simple plan from $18.99/mo. Secure asset documentation, cloud storage, legacy tools, and trusted access — with flexible storage that grows."
         keywords="home inventory pricing, property documentation cost, digital asset management pricing, insurance inventory app cost, estate planning tools pricing"
-        canonicalUrl="https://www.getassetsafe.com/pricing"
+        canonicalUrl="https://getassetsafe.com/pricing"
         structuredData={structuredData}
       />
       <Navbar />

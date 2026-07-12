@@ -876,12 +876,12 @@ const BlogPost = () => {
         post.date,
         post.author,
         post.image,
-        `https://www.getassetsafe.com/blog/${slug}`
+        `https://getassetsafe.com/blog/${slug}`
       ),
       breadcrumbSchema([
-        { name: 'Home', url: 'https://www.getassetsafe.com/' },
-        { name: 'Blog', url: 'https://www.getassetsafe.com/blog' },
-        { name: post.title, url: `https://www.getassetsafe.com/blog/${slug}` }
+        { name: 'Home', url: 'https://getassetsafe.com/' },
+        { name: 'Blog', url: 'https://getassetsafe.com/blog' },
+        { name: post.title, url: `https://getassetsafe.com/blog/${slug}` }
       ])
     ]
   };
@@ -891,7 +891,7 @@ const BlogPost = () => {
       <SEOHead 
         title={`${post.title} | Asset Safe Blog`}
         description={post.content.substring(0, 160).replace(/<[^>]*>/g, '')}
-        canonicalUrl={`https://www.getassetsafe.com/blog/${slug}`}
+        canonicalUrl={`https://getassetsafe.com/blog/${slug}`}
         type="article"
         ogImage={post.image}
         structuredData={structuredData}

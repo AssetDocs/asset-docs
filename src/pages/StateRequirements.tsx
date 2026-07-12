@@ -16,10 +16,10 @@ const StateRequirements = () => {
         title="State Insurance Requirements | Asset Safe"
         description="Understand how insurance requirements and claim processes vary by state. Regional guidance for property documentation compliance and claims filing."
         keywords="state insurance requirements, insurance claims by state, regional insurance rules, property documentation compliance, state claim process"
-        canonicalUrl="https://www.getassetsafe.com/state-requirements"
+        canonicalUrl="https://getassetsafe.com/state-requirements"
         structuredData={breadcrumbSchema([
-          { name: 'Home', url: 'https://www.getassetsafe.com/' },
-          { name: 'State Requirements', url: 'https://www.getassetsafe.com/state-requirements' }
+          { name: 'Home', url: 'https://getassetsafe.com/' },
+          { name: 'State Requirements', url: 'https://getassetsafe.com/state-requirements' }
         ])}
       />
       <Navbar />

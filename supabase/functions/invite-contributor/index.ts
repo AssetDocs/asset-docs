@@ -147,7 +147,7 @@ serve(async (req: Request) => {
       existingUserId = newUser.user.id;
     }
 
-    const inviteLink = `https://www.getassetsafe.com/auth?mode=contributor&email=${encodeURIComponent(validated.contributor_email)}&token=${inviteToken}`;
+    const inviteLink = `https://getassetsafe.com/auth?mode=contributor&email=${encodeURIComponent(validated.contributor_email)}&token=${inviteToken}`;
     const safeInviterName = escapeHtml(inviterName || '');
     const safeContributorName = escapeHtml(`${validated.first_name} ${validated.last_name}`);
     const roleLabel = validated.role === 'full_access' ? 'Full Access' : 'Read Only';
@@ -164,7 +164,7 @@ serve(async (req: Request) => {
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8fafc;">
           <div style="text-align: center; padding: 30px 20px 20px;">
-            <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
+            <img src="https://getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
           </div>
 
           <div style="background: #ffffff; padding: 30px 25px; margin: 0 20px; border-radius: 8px;">

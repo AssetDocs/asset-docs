@@ -124,7 +124,7 @@ const Blog = () => {
         title="Blog - Property & Estate Planning Insights | Asset Safe"
         description="Expert insights on home inventory management, estate planning, insurance claims, and asset protection. Learn how to protect what matters most."
         keywords="property documentation blog, home inventory tips, estate planning insights, insurance claims guide, asset protection articles"
-        canonicalUrl="https://www.getassetsafe.com/blog"
+        canonicalUrl="https://getassetsafe.com/blog"
         structuredData={{
           "@context": "https://schema.org",
           "@graph": [
@@ -132,15 +132,15 @@ const Blog = () => {
               "@context": "https://schema.org",
               "@type": "CollectionPage",
               "name": "Asset Safe Blog",
-              "url": "https://www.getassetsafe.com/blog",
+              "url": "https://getassetsafe.com/blog",
               "description": "Expert insights on home inventory, estate planning, insurance claims, and asset protection."
             },
             {
               "@context": "https://schema.org",
               "@type": "BreadcrumbList",
               "itemListElement": [
-                { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.getassetsafe.com/" },
-                { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://www.getassetsafe.com/blog" }
+                { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://getassetsafe.com/" },
+                { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://getassetsafe.com/blog" }
               ]
             }
           ]

@@ -63,7 +63,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const supabase = createClient(supabaseUrl, serviceKey);
     const resend = new Resend(resendKey);
-    const accountUrl = "https://www.getassetsafe.com/account";
+    const accountUrl = "https://getassetsafe.com/account";
 
     const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(userId);
     if (authError || !authUser?.user) {
@@ -89,7 +89,7 @@ const handler = async (req: Request): Promise<Response> => {
       return `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8fafc;">
         <div style="text-align: center; padding: 30px 20px 20px;">
-          <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
+          <img src="https://getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
         </div>
         <div style="background: #ffffff; padding: 30px 25px; margin: 0 20px; border-radius: 8px;">
           <h2 style="color: #1f2937; margin: 0 0 20px; font-size: 22px;">${opts.icon} ${opts.title}</h2>

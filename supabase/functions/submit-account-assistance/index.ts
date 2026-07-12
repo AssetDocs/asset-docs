@@ -34,8 +34,8 @@ async function sendOwnerEmail(toEmail: string, requestId: string) {
       <p>Asset Safe received a continuity or account assistance inquiry that may relate to your account. <strong>No account changes have been made.</strong></p>
       <p>Our team will manually review this request before any action is considered. If you did not expect this inquiry, please let us know.</p>
       <div style="margin:24px 0">
-        <a href="https://www.getassetsafe.com/account" style="background:#0c2340;color:#fff;padding:10px 16px;border-radius:6px;text-decoration:none;display:inline-block;margin-right:8px">View Security Notice</a>
-        <a href="https://www.getassetsafe.com/contact" style="background:#fff;color:#0c2340;border:1px solid #0c2340;padding:10px 16px;border-radius:6px;text-decoration:none;display:inline-block">Contact Support</a>
+        <a href="https://getassetsafe.com/account" style="background:#0c2340;color:#fff;padding:10px 16px;border-radius:6px;text-decoration:none;display:inline-block;margin-right:8px">View Security Notice</a>
+        <a href="https://getassetsafe.com/contact" style="background:#fff;color:#0c2340;border:1px solid #0c2340;padding:10px 16px;border-radius:6px;text-decoration:none;display:inline-block">Contact Support</a>
       </div>
       <p style="color:#666;font-size:12px">Reference: ${requestId}</p>
     </div>`;

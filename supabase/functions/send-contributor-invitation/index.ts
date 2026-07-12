@@ -49,7 +49,7 @@ const handler = async (req: Request): Promise<Response> => {
       ? 'Can view, add, update, and manage information across the account, including certain settings and authorized users.'
       : 'Can view shared information but cannot make any changes.';
 
-    const inviteLink = `https://www.getassetsafe.com/auth?mode=contributor&email=${encodeURIComponent(contributor_email)}`;
+    const inviteLink = `https://getassetsafe.com/auth?mode=contributor&email=${encodeURIComponent(contributor_email)}`;
 
     const emailResponse = await resend.emails.send({
       from: "Asset Safe <noreply@assetsafe.net>",
@@ -58,7 +58,7 @@ const handler = async (req: Request): Promise<Response> => {
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8fafc;">
           <div style="text-align: center; padding: 30px 20px 20px;">
-            <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
+            <img src="https://getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
           </div>
 
           <div style="background: #ffffff; padding: 30px 25px; margin: 0 20px; border-radius: 8px;">

@@ -16,8 +16,8 @@ const Gift: React.FC = () => {
     "@graph": [
       productSchema("Asset Safe Gift Plan", "189", "One-year gift subscription — everything included. The perfect gift for homeowners and families."),
       breadcrumbSchema([
-        { name: 'Home', url: 'https://www.getassetsafe.com/' },
-        { name: 'Gift', url: 'https://www.getassetsafe.com/gift' }
+        { name: 'Home', url: 'https://getassetsafe.com/' },
+        { name: 'Gift', url: 'https://getassetsafe.com/gift' }
       ])
     ]
   };
@@ -59,7 +59,7 @@ const Gift: React.FC = () => {
         title="Gift Asset Safe - Give Protection & Peace of Mind"
         description="Give the gift of property protection. One-year gift subscriptions starting at $189. Perfect for new homeowners, newlyweds, and families. No auto-renew."
         keywords="gift subscription, home inventory gift, property protection gift, estate planning gift, digital vault gift, homeowner gift ideas"
-        canonicalUrl="https://www.getassetsafe.com/gift"
+        canonicalUrl="https://getassetsafe.com/gift"
         structuredData={structuredData}
       />
       <Navbar />

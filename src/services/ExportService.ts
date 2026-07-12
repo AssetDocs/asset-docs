@@ -1879,7 +1879,7 @@ export class ExportService {
         const medicationSignedMap: Record<string, string> = {};
         if (medicationsWithFiles.length > 0) {
           const paths = medicationsWithFiles.map((m: any) => m.file_path!);
-          const bucket = medicationsWithFiles[0].bucket_name || 'documents';
+          const bucket = (medicationsWithFiles[0] as any).bucket_name || 'documents';
           try {
             const { data: signedUrls } = await supabase.storage
               .from(bucket)

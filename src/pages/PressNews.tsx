@@ -559,10 +559,10 @@ const PressNews: React.FC = () => {
         title="Press & Insurance News | Asset Safe"
         description="Latest news on insurance claims, industry investigations, and property protection. Stay informed with curated articles and expert insights."
         keywords="insurance news, property protection news, insurance claims articles, industry investigations, home insurance updates"
-        canonicalUrl="https://www.getassetsafe.com/press-news"
+        canonicalUrl="https://getassetsafe.com/press-news"
         structuredData={breadcrumbSchema([
-          { name: 'Home', url: 'https://www.getassetsafe.com/' },
-          { name: 'Press & News', url: 'https://www.getassetsafe.com/press-news' }
+          { name: 'Home', url: 'https://getassetsafe.com/' },
+          { name: 'Press & News', url: 'https://getassetsafe.com/press-news' }
         ])}
       />
       <Navbar />
