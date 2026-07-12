@@ -27,7 +27,7 @@ const corsHeaders = {
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const CONFIRM_BASE_URL = 'https://www.getassetsafe.com/confirm-email-change';
+const CONFIRM_BASE_URL = 'https://getassetsafe.com/confirm-email-change';
 
 function randomToken(): string {
   const bytes = new Uint8Array(32);

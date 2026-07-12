@@ -26,8 +26,8 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Sending welcome email for:", { user_id, email, first_name });
 
     const fullName = first_name && last_name ? `${first_name} ${last_name}` : first_name || "there";
-    const dashboardUrl = "https://www.getassetsafe.com/welcome";
-    const baseUrl = "https://www.getassetsafe.com";
+    const dashboardUrl = "https://getassetsafe.com/welcome";
+    const baseUrl = "https://getassetsafe.com";
 
     const emailResponse = await resend.emails.send({
       from: "Asset Safe <noreply@assetsafe.net>",
@@ -36,7 +36,7 @@ const handler = async (req: Request): Promise<Response> => {
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8fafc;">
           <div style="text-align: center; padding: 30px 20px 20px;">
-            <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
+            <img src="https://getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
           </div>
 
           <div style="background: #ffffff; padding: 30px 25px; margin: 0 20px; border-radius: 8px;">

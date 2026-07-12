@@ -71,10 +71,10 @@ const Contact: React.FC = () => {
         title="Contact Us - Get Support | Asset Safe"
         description="Reach the Asset Safe team for questions about property documentation, account support, or partnership inquiries. We're here to help you stay organized and protected."
         keywords="contact asset safe, customer support, property documentation help, account support, partnership inquiry"
-        canonicalUrl="https://www.getassetsafe.com/contact"
+        canonicalUrl="https://getassetsafe.com/contact"
         structuredData={breadcrumbSchema([
-          { name: 'Home', url: 'https://www.getassetsafe.com/' },
-          { name: 'Contact', url: 'https://www.getassetsafe.com/contact' }
+          { name: 'Home', url: 'https://getassetsafe.com/' },
+          { name: 'Contact', url: 'https://getassetsafe.com/contact' }
         ])}
       />
       <Navbar />

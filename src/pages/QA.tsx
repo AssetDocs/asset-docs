@@ -20,8 +20,8 @@ const QA: React.FC = () => {
     "@graph": [
       faqSchema(faqData),
       breadcrumbSchema([
-        { name: 'Home', url: 'https://www.getassetsafe.com/' },
-        { name: 'FAQ', url: 'https://www.getassetsafe.com/qa' }
+        { name: 'Home', url: 'https://getassetsafe.com/' },
+        { name: 'FAQ', url: 'https://getassetsafe.com/qa' }
       ])
     ]
   };
@@ -32,7 +32,7 @@ const QA: React.FC = () => {
         title="FAQ - Common Questions Answered | Asset Safe"
         description="Find answers to common questions about digital home inventory, insurance documentation, Legacy Locker, pricing, and account security at Asset Safe."
         keywords="asset safe faq, home inventory questions, insurance documentation help, legacy locker faq, digital vault questions, property documentation support"
-        canonicalUrl="https://www.getassetsafe.com/qa"
+        canonicalUrl="https://getassetsafe.com/qa"
         structuredData={structuredData}
       />
       <Navbar />

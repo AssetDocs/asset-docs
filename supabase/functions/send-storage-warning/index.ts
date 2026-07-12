@@ -29,7 +29,7 @@ const handler = async (req: Request): Promise<Response> => {
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
     }
 
-    const upgradeUrl = "https://www.getassetsafe.com/account-settings?tab=subscription";
+    const upgradeUrl = "https://getassetsafe.com/account-settings?tab=subscription";
 
     const emailResponse = await resend.emails.send({
       from: "Asset Safe <noreply@assetsafe.net>",
@@ -38,7 +38,7 @@ const handler = async (req: Request): Promise<Response> => {
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8fafc;">
           <div style="text-align: center; padding: 30px 20px 20px;">
-            <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
+            <img src="https://getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
           </div>
 
           <div style="background: #ffffff; padding: 30px 25px; margin: 0 20px; border-radius: 8px;">

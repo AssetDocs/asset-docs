@@ -58,7 +58,7 @@ const Install = () => {
         title="Install the App | Asset Safe"
         description="Install Asset Safe on your phone or desktop for quick access. Available as a progressive web app on iOS, Android, and desktop browsers."
         keywords="install asset safe, asset safe app, progressive web app, home inventory app download, property documentation mobile app"
-        canonicalUrl="https://www.getassetsafe.com/install"
+        canonicalUrl="https://getassetsafe.com/install"
       />
       <Navbar />
       

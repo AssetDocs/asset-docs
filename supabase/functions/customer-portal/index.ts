@@ -83,7 +83,7 @@ serve(async (req) => {
       }
     }
 
-    const origin = req.headers.get("origin") || "https://www.getassetsafe.com";
+    const origin = req.headers.get("origin") || "https://getassetsafe.com";
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: customerId,
       return_url: `${origin}/account/settings?tab=manage`,

@@ -628,7 +628,7 @@ export async function fulfillCheckout(
       emailResult = await sendMagicLink(
         supabaseAdmin,
         resolvedEmail,
-        opts.origin ?? "https://www.getassetsafe.com",
+        opts.origin ?? "https://getassetsafe.com",
       );
     }
 

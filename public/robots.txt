@@ -84,4 +84,4 @@ Allow: /cookie-policy
 Allow: /subscription-agreement
 
 # Sitemap location
-Sitemap: https://www.getassetsafe.com/sitemap.xml
+Sitemap: https://getassetsafe.com/sitemap.xml

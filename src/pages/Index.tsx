@@ -28,7 +28,7 @@ const Index: React.FC = () => {
   const heroVideoData = videoSchema(
     "Asset Safe Introduction - Digital Home Inventory Platform",
     "Learn how Asset Safe helps you document, protect, and organize your property, assets, and critical information for insurance claims and estate planning.",
-    "https://www.getassetsafe.com/assets/youtube-cover-walkthrough.jpg",
+    "https://getassetsafe.com/assets/youtube-cover-walkthrough.jpg",
     "2025-01-01",
     undefined,
     "https://www.youtube.com/embed/DPnzWlqTN6Q",
@@ -53,7 +53,7 @@ const Index: React.FC = () => {
         title="Digital Home Inventory & Legacy Planning | Asset Safe"
         description="Document your home, belongings, and key records in one secure platform. Insurance-ready inventory, Legacy Locker, and estate planning tools."
         keywords="digital home inventory, property documentation, home inventory app, insurance claims documentation, legacy locker, estate planning vault, digital asset management, homeowner inventory system"
-        canonicalUrl="https://www.getassetsafe.com/"
+        canonicalUrl="https://getassetsafe.com/"
         structuredData={structuredData}
       />
       

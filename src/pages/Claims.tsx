@@ -22,8 +22,8 @@ const Claims: React.FC = () => {
         ]
       ),
       breadcrumbSchema([
-        { name: 'Home', url: 'https://www.getassetsafe.com/' },
-        { name: 'Claims', url: 'https://www.getassetsafe.com/claims' }
+        { name: 'Home', url: 'https://getassetsafe.com/' },
+        { name: 'Claims', url: 'https://getassetsafe.com/claims' }
       ])
     ]
   };
@@ -34,7 +34,7 @@ const Claims: React.FC = () => {
         title="Insurance Claims Documentation Guide - What You Need"
         description="Complete guide to insurance claims documentation. Learn what documents, photos, and proof you need to file property and contents insurance claims successfully."
         keywords="insurance claim documentation, what documents for insurance claim, proof of loss, insurance claim photos, home inventory for claim, property damage claim"
-        canonicalUrl="https://www.getassetsafe.com/claims"
+        canonicalUrl="https://getassetsafe.com/claims"
         structuredData={structuredData}
       />
       <Navbar />

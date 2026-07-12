@@ -17,11 +17,11 @@ const PhotographyGuide: React.FC = () => {
         title="Photography Guide for Documentation | Asset Safe"
         description="Best practices for photographing your assets. Lighting, angles, and tips to create insurance-ready property documentation photos."
         keywords="asset photography guide, home inventory photos, insurance documentation photos, property photography tips, how to photograph belongings"
-        canonicalUrl="https://www.getassetsafe.com/photography-guide"
+        canonicalUrl="https://getassetsafe.com/photography-guide"
         structuredData={breadcrumbSchema([
-          { name: 'Home', url: 'https://www.getassetsafe.com/' },
-          { name: 'Resources', url: 'https://www.getassetsafe.com/resources' },
-          { name: 'Photography Guide', url: 'https://www.getassetsafe.com/photography-guide' }
+          { name: 'Home', url: 'https://getassetsafe.com/' },
+          { name: 'Resources', url: 'https://getassetsafe.com/resources' },
+          { name: 'Photography Guide', url: 'https://getassetsafe.com/photography-guide' }
         ])}
       />
       <Navbar />

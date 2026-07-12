@@ -3,9 +3,9 @@ export const organizationSchema = {
   "@context": "https://schema.org",
   "@type": ["Organization", "LocalBusiness"],
   "name": "Asset Safe",
-  "url": "https://www.getassetsafe.com",
-  "logo": "https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg",
-  "image": "https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg",
+  "url": "https://getassetsafe.com",
+  "logo": "https://getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg",
+  "image": "https://getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg",
   "description": "Digital home inventory and legacy planning platform for comprehensive property documentation and asset protection.",
   "foundingDate": "2024",
   "email": "support@assetsafe.net",
@@ -19,7 +19,7 @@ export const organizationSchema = {
     "@type": "ContactPoint",
     "contactType": "Customer Support",
     "email": "support@assetsafe.net",
-    "url": "https://www.getassetsafe.com/contact"
+    "url": "https://getassetsafe.com/contact"
   },
   "sameAs": [
     "https://www.facebook.com/assetsafe",
@@ -43,7 +43,7 @@ export const productSchema = (planName: string, price: string, description: stri
     "price": price,
     "priceCurrency": "USD",
     "availability": "https://schema.org/InStock",
-    "url": "https://www.getassetsafe.com/pricing",
+    "url": "https://getassetsafe.com/pricing",
     "priceValidUntil": "2026-12-31"
   }
 });
@@ -79,7 +79,7 @@ export const webApplicationSchema = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
   "name": "Asset Safe",
-  "url": "https://www.getassetsafe.com",
+  "url": "https://getassetsafe.com",
   "applicationCategory": "BusinessApplication",
   "operatingSystem": "Web Browser",
   "offers": {
@@ -137,7 +137,7 @@ export const videoSchema = (
     "name": "Asset Safe",
     "logo": {
       "@type": "ImageObject",
-      "url": "https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg"
+      "url": "https://getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg"
     }
   }
 });
@@ -155,7 +155,7 @@ export const articleSchema = (
   "@type": "Article",
   "headline": title,
   "description": description,
-  "image": image || "https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg",
+  "image": image || "https://getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg",
   ...(url && { "url": url }),
   "author": {
     "@type": "Person",
@@ -166,7 +166,7 @@ export const articleSchema = (
     "name": "Asset Safe",
     "logo": {
       "@type": "ImageObject",
-      "url": "https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg"
+      "url": "https://getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg"
     }
   },
   "datePublished": datePublished,
@@ -207,7 +207,7 @@ export const serviceSchema = (
   "provider": {
     "@type": "Organization",
     "name": "Asset Safe",
-    "url": "https://www.getassetsafe.com"
+    "url": "https://getassetsafe.com"
   },
   "areaServed": {
     "@type": "Country",

@@ -153,7 +153,7 @@ const AccountAssistance: React.FC = () => {
   if (submitted) {
     return (
       <div className="flex flex-col min-h-screen bg-background">
-        <SEOHead title="Request Received | Asset Safe" description="Your account assistance request has been received." canonicalUrl="https://www.getassetsafe.com/account-assistance" />
+        <SEOHead title="Request Received | Asset Safe" description="Your account assistance request has been received." canonicalUrl="https://getassetsafe.com/account-assistance" />
         <Navbar />
         <main className="flex-grow container mx-auto px-4 py-16 max-w-2xl">
           <Card className="border-border">
@@ -182,7 +182,7 @@ const AccountAssistance: React.FC = () => {
       <SEOHead
         title="Continuity & Account Assistance | Asset Safe"
         description="If you need help regarding the account of a family member or loved one, the Asset Safe team can assist with continuity, preservation, billing, or account closure-related requests."
-        canonicalUrl="https://www.getassetsafe.com/account-assistance"
+        canonicalUrl="https://getassetsafe.com/account-assistance"
       />
       <Navbar />
       <main className="flex-grow container mx-auto px-4 py-10 max-w-3xl">

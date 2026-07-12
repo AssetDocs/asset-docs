@@ -52,10 +52,10 @@ const AssetDocumentation: React.FC = () => {
         title="Asset Documentation Types | Asset Safe"
         description="Understand asset categories: liquid, fixed, tangible, intangible, and operating assets. Learn what to document and why for insurance and estate planning."
         keywords="asset types, asset documentation, liquid assets, fixed assets, tangible assets, intangible assets, property documentation categories"
-        canonicalUrl="https://www.getassetsafe.com/asset-documentation"
+        canonicalUrl="https://getassetsafe.com/asset-documentation"
         structuredData={breadcrumbSchema([
-          { name: 'Home', url: 'https://www.getassetsafe.com/' },
-          { name: 'Asset Documentation', url: 'https://www.getassetsafe.com/asset-documentation' }
+          { name: 'Home', url: 'https://getassetsafe.com/' },
+          { name: 'Asset Documentation', url: 'https://getassetsafe.com/asset-documentation' }
         ])}
       />
       <Navbar />

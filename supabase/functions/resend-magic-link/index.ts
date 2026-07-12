@@ -85,7 +85,7 @@ serve(async (req) => {
     const stripeEmail = (session.customer_details?.email ?? "").toLowerCase().trim();
     if (!stripeEmail || stripeEmail !== row.email) return UNIFORM_OK();
 
-    const origin = req.headers.get("origin") || "https://www.getassetsafe.com";
+    const origin = req.headers.get("origin") || "https://getassetsafe.com";
     const { data: link, error: linkErr } = await supabaseAdmin.auth.admin.generateLink({
       type: "magiclink",
       email: row.email,

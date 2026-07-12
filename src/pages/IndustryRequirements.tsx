@@ -14,10 +14,10 @@ const IndustryRequirements: React.FC = () => {
         title="Industry Claims Requirements | Asset Safe"
         description="Complete guide to industry-standard insurance claims processes. Steps, documentation, and requirements for filing property and contents claims successfully."
         keywords="insurance claims process, industry requirements, claims documentation, property claim steps, insurance filing guide"
-        canonicalUrl="https://www.getassetsafe.com/industry-requirements"
+        canonicalUrl="https://getassetsafe.com/industry-requirements"
         structuredData={breadcrumbSchema([
-          { name: 'Home', url: 'https://www.getassetsafe.com/' },
-          { name: 'Industry Requirements', url: 'https://www.getassetsafe.com/industry-requirements' }
+          { name: 'Home', url: 'https://getassetsafe.com/' },
+          { name: 'Industry Requirements', url: 'https://getassetsafe.com/industry-requirements' }
         ])}
       />
       <Navbar />

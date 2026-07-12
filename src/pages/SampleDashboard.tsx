@@ -285,7 +285,7 @@ const SampleDashboard: React.FC = () => {
         title="Sample Dashboard Preview | Asset Safe"
         description="Preview the Asset Safe dashboard before signing up. See how property documentation, inventory tracking, and security features work in action."
         keywords="asset safe demo, sample dashboard, property documentation preview, home inventory demo, asset safe features preview"
-        canonicalUrl="https://www.getassetsafe.com/sample-dashboard"
+        canonicalUrl="https://getassetsafe.com/sample-dashboard"
       />
       <Navbar />
       

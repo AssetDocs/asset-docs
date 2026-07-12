@@ -10,14 +10,14 @@ const Testimonials: React.FC = () => {
     "@context": "https://schema.org",
     "@graph": [
       breadcrumbSchema([
-        { name: 'Home', url: 'https://www.getassetsafe.com/' },
-        { name: 'Testimonials', url: 'https://www.getassetsafe.com/testimonials' }
+        { name: 'Home', url: 'https://getassetsafe.com/' },
+        { name: 'Testimonials', url: 'https://getassetsafe.com/testimonials' }
       ]),
       {
         "@type": "WebPage",
         "name": "Customer Testimonials",
         "description": "Read what homeowners, business owners, and property managers say about Asset Safe.",
-        "url": "https://www.getassetsafe.com/testimonials"
+        "url": "https://getassetsafe.com/testimonials"
       }
     ]
   };
@@ -28,7 +28,7 @@ const Testimonials: React.FC = () => {
         title="Customer Testimonials - What Users Say About Asset Safe"
         description="Read real customer reviews about Asset Safe. Homeowners, business owners, and landlords share how digital documentation helped with insurance claims and asset protection."
         keywords="asset safe reviews, home inventory testimonials, property documentation reviews, insurance claim success stories, digital vault reviews"
-        canonicalUrl="https://www.getassetsafe.com/testimonials"
+        canonicalUrl="https://getassetsafe.com/testimonials"
         structuredData={structuredData}
       />
       <Navbar />

@@ -24,7 +24,7 @@ export async function sendInviteEmail(params: {
   const roleDescription = params.role === "full_access"
     ? "You'll be able to view, add, update, and manage information across the account."
     : "You'll be able to view important information, but not make changes.";
-  const inviteUrl = `https://www.getassetsafe.com/invite?token=${params.rawToken}&email=${encodeURIComponent(params.toEmail)}`;
+  const inviteUrl = `https://getassetsafe.com/invite?token=${params.rawToken}&email=${encodeURIComponent(params.toEmail)}`;
 
   try {
     const resend = new Resend(resendApiKey);
@@ -35,7 +35,7 @@ export async function sendInviteEmail(params: {
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8fafc;">
           <div style="text-align: center; padding: 30px 20px 20px;">
-            <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
+            <img src="https://getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
           </div>
           <div style="background: #ffffff; padding: 30px 25px; margin: 0 20px; border-radius: 8px;">
             <h2 style="color: #1f2937; margin: 0 0 20px; font-size: 22px;">You've Been Invited</h2>

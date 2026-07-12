@@ -172,7 +172,7 @@ serve(async (req) => {
       throw new Error(`No active price for ${lookupKey}`);
     }
     const price = prices.data[0];
-    const origin = req.headers.get("origin") || "https://www.getassetsafe.com";
+    const origin = req.headers.get("origin") || "https://getassetsafe.com";
 
     const session = await stripe.checkout.sessions.create({
       customer: reusedCustomerId,

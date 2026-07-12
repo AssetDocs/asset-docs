@@ -75,7 +75,7 @@ serve(async (req) => {
 
     const planLabel =
       (gift.plan_type || "standard").charAt(0).toUpperCase() + (gift.plan_type || "standard").slice(1);
-    const claimUrl = `https://www.getassetsafe.com/gift-claim?code=${encodeURIComponent(
+    const claimUrl = `https://getassetsafe.com/gift-claim?code=${encodeURIComponent(
       gift.gift_code,
     )}&token=${encodeURIComponent(claimToken)}`;
 
@@ -91,7 +91,7 @@ serve(async (req) => {
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8fafc;">
             <div style="text-align: center; padding: 30px 20px 20px;">
-              <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
+              <img src="https://getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
             </div>
             <div style="background: #ffffff; padding: 30px 25px; margin: 0 20px; border-radius: 8px;">
               <h2 style="color: #1f2937; margin: 0 0 20px; font-size: 22px;">🎁 You've Received a Gift!</h2>
@@ -145,7 +145,7 @@ serve(async (req) => {
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8fafc;">
               <div style="text-align: center; padding: 30px 20px 20px;">
-                <img src="https://www.getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
+                <img src="https://getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
               </div>
               <div style="background: #ffffff; padding: 30px 25px; margin: 0 20px; border-radius: 8px;">
                 <h2 style="color: #1f2937; margin: 0 0 20px; font-size: 22px;">🎁 Gift Sent Successfully!</h2>
