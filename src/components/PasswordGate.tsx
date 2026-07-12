@@ -136,7 +136,7 @@ const PasswordGate: React.FC<PasswordGateProps> = ({ onPasswordCorrect }) => {
           </form>
           
           <div className="mt-6 text-center text-sm text-muted-foreground">
-            <p>© 2025 Asset Safe. All rights reserved.</p>
+            <p>© 2026 Asset Safe. A product of Ellidair LLC. Developed in Texas, USA. All rights reserved.</p>
           </div>
         </CardContent>
       </Card>

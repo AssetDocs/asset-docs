@@ -51,7 +51,7 @@ const Terms: React.FC = () => {
               Violation of these copyright protections may subject the violator to legal action and monetary damages.
             </p>
             <p className="mt-4">
-              © 2026 Asset Safe™. A product of Ellidair LLC. All rights reserved under U.S. and international copyright law.
+              © 2026 Asset Safe. A product of Ellidair LLC. Developed in Texas, USA. All rights reserved under U.S. and international copyright law.
             </p>
           </section>
           
