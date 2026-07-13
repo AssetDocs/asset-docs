@@ -155,7 +155,9 @@ const Pricing: React.FC = () => {
     "Voice notes, damage reports, exports",
     "Memory Safe & Quick Notes",
     "MFA, full web platform access",
-    "Service Pros Directory"
+    "Family Archive",
+    "Property Profiles",
+    "Insights & Tools"
   ];
 
   const giftPlan = {
