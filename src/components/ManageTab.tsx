@@ -44,7 +44,9 @@ const planConfig = {
     "Voice notes, damage reports, exports",
     "Memory Safe & Quick Notes",
     "MFA, full web platform access",
-    "Service Pros Directory"
+    "Family Archive",
+    "Property Profiles",
+    "Insights & Tools"
   ],
   icon: <Shield className="h-6 w-6 text-primary" />,
 };

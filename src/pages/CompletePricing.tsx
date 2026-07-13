@@ -94,7 +94,9 @@ const CompletePricing: React.FC = () => {
     "Upgrades & Repairs Record",
     "Paint Code Reference",
     "Source Websites",
-    "Service Pros Directory"
+    "Family Archive",
+    "Property Profiles",
+    "Insights & Tools"
   ];
 
   const plans = [
