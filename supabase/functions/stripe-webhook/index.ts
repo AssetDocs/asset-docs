@@ -789,6 +789,8 @@ async function handleCheckoutCompleted(
         return;
       }
       const gift = rows[0];
+      const deliveryMethod = gift.delivery_method || session.metadata?.gift_delivery_method || 'recipient_email';
+      const isPurchaserCodeGift = deliveryMethod === 'purchaser_code';
 
       const giftTerm = session.metadata.gift_term || gift.term || 'yearly';
       const now = new Date();
@@ -815,7 +817,9 @@ async function handleCheckoutCompleted(
         .from('gift_subscriptions')
         .update({
           payment_status: 'paid',
-          status: gift.status === 'pending' ? 'paid' : gift.status,
+          status: gift.status === 'pending'
+            ? (isPurchaserCodeGift ? 'active_unclaimed' : 'paid')
+            : gift.status,
           paid_at: gift.paid_at ?? new Date().toISOString(),
           stripe_payment_intent_id: (session.payment_intent as string) ?? gift.stripe_payment_intent_id,
           stripe_subscription_id: session.mode === 'subscription'
@@ -831,7 +835,7 @@ async function handleCheckoutCompleted(
       }
 
       const deliveryDate = gift.delivery_date ? new Date(gift.delivery_date) : now;
-      if (deliveryDate.getTime() > Date.now()) {
+      if (!isPurchaserCodeGift && deliveryDate.getTime() > Date.now()) {
         logStep('Gift paid; delivery scheduled for future date', {
           giftId: gift.id,
           deliveryDate: deliveryDate.toISOString(),

@@ -5,6 +5,8 @@ import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Gift, CheckCircle, Loader2, Lock, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -17,8 +19,12 @@ const REASON_MESSAGES: Record<string, string> = {
   already_redeemed: 'This gift has already been redeemed.',
   expired: 'This gift has expired.',
   not_paid: 'The gift payment is still processing. Please try again in a minute.',
-  invalid_input: 'Missing gift code or token in the link.',
+  not_claimable: 'This Gift Code is no longer claimable.',
+  invalid_input: 'Missing Gift Code.',
 };
+
+const getErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : 'Failed to redeem this gift. Please try again.';
 
 const GiftClaim: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -29,17 +35,19 @@ const GiftClaim: React.FC = () => {
   const code = searchParams.get('code') || searchParams.get('gift_code') || '';
   const token = searchParams.get('token') || '';
 
+  const [manualCode, setManualCode] = useState(code);
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const redeemUrl = `/gift-claim?code=${encodeURIComponent(code)}&token=${encodeURIComponent(token)}`;
+  const activeCode = (manualCode.trim() || code).toUpperCase();
+  const redeemUrl = `/gift-claim?code=${encodeURIComponent(activeCode)}${token ? `&token=${encodeURIComponent(token)}` : ''}`;
   const loginUrl = `/auth?redirect=${encodeURIComponent(redeemUrl)}`;
   const signupUrl = `/signup?redirect=${encodeURIComponent(redeemUrl)}`;
 
   const handleClaim = async () => {
     if (!user) return;
-    if (!code || !token) {
+    if (!activeCode) {
       setError(REASON_MESSAGES.invalid_input);
       return;
     }
@@ -47,7 +55,7 @@ const GiftClaim: React.FC = () => {
     setError(null);
     try {
       const { data, error: invErr } = await supabase.functions.invoke('redeem-gift', {
-        body: { code, token },
+        body: { code: activeCode, token: token || undefined },
       });
       if (invErr) throw invErr;
       const result = data as { success: boolean; reason?: string };
@@ -58,8 +66,8 @@ const GiftClaim: React.FC = () => {
       } else {
         setError(REASON_MESSAGES[result?.reason || ''] || 'Failed to redeem this gift.');
       }
-    } catch (e: any) {
-      setError(e?.message || 'Failed to redeem this gift. Please try again.');
+    } catch (e: unknown) {
+      setError(getErrorMessage(e));
     } finally {
       setIsLoading(false);
     }
@@ -67,11 +75,11 @@ const GiftClaim: React.FC = () => {
 
   // Auto-claim once signed in
   useEffect(() => {
-    if (user && code && token && !success && !isLoading && !error) {
+    if (user && code && activeCode && !success && !isLoading && !error) {
       handleClaim();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, code, token]);
+  }, [user?.id, activeCode, token]);
 
   if (success) {
     return (
@@ -114,22 +122,31 @@ const GiftClaim: React.FC = () => {
               </div>
               <CardTitle className="text-2xl">Claim Your Gift Subscription</CardTitle>
               <CardDescription>
-                {code && token
-                  ? 'Sign in with the email address the gift was sent to.'
-                  : 'This page requires a valid gift link.'}
+                {activeCode
+                  ? token
+                    ? 'Sign in with the email address the gift was sent to.'
+                    : 'Sign in or create an account to claim this Gift Code.'
+                  : 'Enter your Gift Code to start claiming your subscription.'}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {(!code || !token) && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    This page must be opened from the secure link in your gift email.
-                  </AlertDescription>
-                </Alert>
+              {!code && (
+                <div className="space-y-2">
+                  <Label htmlFor="gift-code">Gift Code</Label>
+                  <Input
+                    id="gift-code"
+                    value={manualCode}
+                    onChange={(event) => {
+                      setManualCode(event.target.value);
+                      setError(null);
+                    }}
+                    placeholder="GIFT-XXXXXXXXXX"
+                    autoCapitalize="characters"
+                  />
+                </div>
               )}
 
-              {!user && code && token && (
+              {!user && activeCode && (
                 <Alert>
                   <Lock className="h-4 w-4" />
                   <AlertDescription>
@@ -146,7 +163,7 @@ const GiftClaim: React.FC = () => {
                 </Alert>
               )}
 
-              {user && code && token && isLoading && (
+              {user && activeCode && isLoading && (
                 <div className="flex items-center justify-center gap-2 py-6 text-muted-foreground">
                   <Loader2 className="h-5 w-5 animate-spin" />
                   <span>Claiming your gift…</span>
@@ -160,7 +177,7 @@ const GiftClaim: React.FC = () => {
                 </Alert>
               )}
 
-              {user && code && token && !isLoading && (
+              {user && activeCode && !isLoading && (
                 <Button onClick={handleClaim} className="w-full" size="lg">
                   Claim Gift
                 </Button>

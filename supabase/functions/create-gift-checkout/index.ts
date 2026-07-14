@@ -46,14 +46,31 @@ serve(async (req) => {
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
 
     const body = await req.json();
-    const { recipientEmail, fromName, giftMessage, purchaserEmail, recipientName, deliveryDate } = body ?? {};
+    const {
+      recipientEmail,
+      fromName,
+      giftMessage,
+      purchaserEmail,
+      recipientName,
+      deliveryDate,
+      deliveryMethod = "recipient_email",
+    } = body ?? {};
 
-    if (!recipientEmail || !fromName || !purchaserEmail) {
-      throw new Error("recipientEmail, fromName, and purchaserEmail are required");
+    if (!["recipient_email", "purchaser_code"].includes(deliveryMethod)) {
+      throw new Error("Invalid delivery method");
+    }
+    if (!fromName || !purchaserEmail) {
+      throw new Error("fromName and purchaserEmail are required");
+    }
+    if (deliveryMethod === "recipient_email" && !recipientEmail) {
+      throw new Error("recipientEmail is required");
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(recipientEmail) || !emailRegex.test(purchaserEmail)) {
+    if (
+      !emailRegex.test(purchaserEmail) ||
+      (deliveryMethod === "recipient_email" && !emailRegex.test(recipientEmail))
+    ) {
       throw new Error("Invalid email address");
     }
     if (fromName.length > 100 || (giftMessage && giftMessage.length > 1000)) {
@@ -61,7 +78,7 @@ serve(async (req) => {
     }
 
     let scheduledDeliveryDate = new Date();
-    if (deliveryDate) {
+    if (deliveryMethod === "recipient_email" && deliveryDate) {
       const dateOnly = String(deliveryDate).trim();
       if (!/^\d{4}-\d{2}-\d{2}$/.test(dateOnly)) {
         throw new Error("Invalid delivery date");
@@ -118,10 +135,11 @@ serve(async (req) => {
       gift_code: giftCode,
       plan_type: "standard",
       term: "yearly",
-      purchaser_email: purchaserEmail,
+      delivery_method: deliveryMethod,
+      purchaser_email: purchaserEmail.toLowerCase().trim(),
       purchaser_name: fromName,
-      recipient_email: recipientEmail,
-      recipient_name: recipientName || "",
+      recipient_email: deliveryMethod === "recipient_email" ? recipientEmail.toLowerCase().trim() : null,
+      recipient_name: deliveryMethod === "recipient_email" ? (recipientName || "") : "",
       gift_message: giftMessage || null,
       delivery_date: scheduledDeliveryDate.toISOString(),
       amount: 18900,
@@ -152,6 +170,7 @@ serve(async (req) => {
         gift: "true",
         gift_term: "yearly",
         gift_subscription_id: giftId,
+        gift_delivery_method: deliveryMethod,
       },
       billing_address_collection: "required",
       automatic_tax: { enabled: true },
@@ -162,6 +181,7 @@ serve(async (req) => {
           gift: "true",
           gift_subscription_id: giftId,
           gift_term: "yearly",
+          gift_delivery_method: deliveryMethod,
         },
         cancel_at_period_end: true,
       },

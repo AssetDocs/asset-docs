@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -19,23 +19,54 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
-import { Shield, Gift, CheckIcon, CalendarIcon, AlertCircle } from 'lucide-react';
+import { Shield, Gift, CheckIcon, CalendarIcon, AlertCircle, Mail, Ticket } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
+const deliveryMethods = ['recipient_email', 'purchaser_code'] as const;
+
 const formSchema = z.object({
+  deliveryMethod: z.enum(deliveryMethods),
   fromName: z.string().trim().min(2, 'Name must be at least 2 characters').max(100),
   purchaserEmail: z.string().email('Invalid email address').max(255),
-  recipientEmail: z.string().email('Invalid recipient email address').max(255),
+  recipientEmail: z.string().max(255).optional(),
   recipientName: z.string().max(100).optional(),
   giftMessage: z.string().max(1000).optional(),
-  deliveryDate: z.string().min(1, 'Please select a delivery option'),
+  deliveryDate: z.string().optional(),
   agreeToTerms: z.boolean().refine(val => val === true, {
     message: 'You must agree to the Terms of Service and Subscription Agreement to continue.',
   }),
+}).superRefine((values, ctx) => {
+  if (values.deliveryMethod !== 'recipient_email') return;
+
+  if (!values.recipientEmail) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['recipientEmail'],
+      message: 'Recipient email is required',
+    });
+  } else if (!z.string().email().safeParse(values.recipientEmail).success) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['recipientEmail'],
+      message: 'Invalid recipient email address',
+    });
+  }
+
+  if (!values.deliveryDate) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['deliveryDate'],
+      message: 'Please select a delivery option',
+    });
+  }
 });
 
 type FormValues = z.infer<typeof formSchema>;
+
+const getErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : "Failed to create checkout session. Please try again.";
 
 const GIFT_FEATURES = [
   "Unlimited properties",
@@ -51,14 +82,16 @@ const GIFT_FEATURES = [
 const GiftCheckout: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, profile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [consentError, setConsentError] = useState('');
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      fromName: '',
-      purchaserEmail: '',
+      deliveryMethod: 'recipient_email',
+      fromName: [profile?.first_name, profile?.last_name].filter(Boolean).join(' '),
+      purchaserEmail: user?.email || '',
       recipientEmail: '',
       recipientName: '',
       giftMessage: '',
@@ -68,6 +101,18 @@ const GiftCheckout: React.FC = () => {
   });
 
   const agreeToTerms = form.watch('agreeToTerms');
+  const deliveryMethod = form.watch('deliveryMethod');
+  const isPurchaserCode = deliveryMethod === 'purchaser_code';
+
+  useEffect(() => {
+    if (user?.email && !form.getValues('purchaserEmail')) {
+      form.setValue('purchaserEmail', user.email);
+    }
+    const profileName = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ');
+    if (profileName && !form.getValues('fromName')) {
+      form.setValue('fromName', profileName);
+    }
+  }, [form, profile?.first_name, profile?.last_name, user?.email]);
 
   const onSubmit = async (values: FormValues) => {
     setIsLoading(true);
@@ -92,12 +137,13 @@ const GiftCheckout: React.FC = () => {
       // Step 2: Create gift checkout session
       const { data, error } = await supabase.functions.invoke('create-gift-checkout', {
         body: {
-          recipientEmail: values.recipientEmail,
+          deliveryMethod: values.deliveryMethod,
+          recipientEmail: values.deliveryMethod === 'recipient_email' ? values.recipientEmail : undefined,
           recipientName: values.recipientName || '',
           fromName: values.fromName,
           giftMessage: values.giftMessage || '',
           purchaserEmail: values.purchaserEmail,
-          deliveryDate: values.deliveryDate,
+          deliveryDate: values.deliveryMethod === 'recipient_email' ? values.deliveryDate : undefined,
         },
       });
 
@@ -110,11 +156,11 @@ const GiftCheckout: React.FC = () => {
       } else {
         throw new Error('No checkout URL returned');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating gift checkout:', error);
       toast({
         title: "Checkout Failed",
-        description: error?.message || "Failed to create checkout session. Please try again.",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     } finally {
@@ -183,7 +229,66 @@ const GiftCheckout: React.FC = () => {
                           />
                         </div>
 
+                        <FormField
+                          control={form.control}
+                          name="deliveryMethod"
+                          render={({ field }) => (
+                            <FormItem className="space-y-3 pt-2">
+                              <FormLabel>How would you like to deliver this gift?</FormLabel>
+                              <FormControl>
+                                <RadioGroup
+                                  value={field.value}
+                                  onValueChange={(value) => {
+                                    field.onChange(value);
+                                    if (value === 'purchaser_code') {
+                                      form.setValue('recipientEmail', '');
+                                      form.setValue('recipientName', '');
+                                      form.setValue('deliveryDate', '');
+                                    }
+                                  }}
+                                  className="grid gap-3"
+                                >
+                                  <Label
+                                    htmlFor="delivery-recipient-email"
+                                    className={cn(
+                                      "flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors",
+                                      deliveryMethod === 'recipient_email' && "border-primary bg-primary/5"
+                                    )}
+                                  >
+                                    <RadioGroupItem value="recipient_email" id="delivery-recipient-email" className="mt-1" />
+                                    <Mail className="mt-0.5 h-5 w-5 text-primary" />
+                                    <span className="space-y-1">
+                                      <span className="block font-medium text-foreground">Email it to the recipient</span>
+                                      <span className="block text-sm font-normal text-muted-foreground">
+                                        We'll send the gift invitation directly to them now or on a scheduled date.
+                                      </span>
+                                    </span>
+                                  </Label>
+                                  <Label
+                                    htmlFor="delivery-purchaser-code"
+                                    className={cn(
+                                      "flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors",
+                                      deliveryMethod === 'purchaser_code' && "border-primary bg-primary/5"
+                                    )}
+                                  >
+                                    <RadioGroupItem value="purchaser_code" id="delivery-purchaser-code" className="mt-1" />
+                                    <Ticket className="mt-0.5 h-5 w-5 text-primary" />
+                                    <span className="space-y-1">
+                                      <span className="block font-medium text-foreground">Send the Gift Code to me</span>
+                                      <span className="block text-sm font-normal text-muted-foreground">
+                                        You'll receive a Gift Code and claim link that you can share whenever you're ready.
+                                      </span>
+                                    </span>
+                                  </Label>
+                                </RadioGroup>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
                         {/* Recipient Information */}
+                        {!isPurchaserCode && (
                         <div className="space-y-4 pt-2">
                           <h3 className="font-semibold text-foreground">Recipient Information</h3>
                           <FormField
@@ -276,25 +381,27 @@ const GiftCheckout: React.FC = () => {
                               </FormItem>
                             )}
                           />
-                          <FormField
-                            control={form.control}
-                            name="giftMessage"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Gift Message <span className="text-muted-foreground font-normal">(Optional)</span></FormLabel>
-                                <FormControl>
-                                  <Textarea
-                                    placeholder="Write a personal message for the recipient..."
-                                    className="resize-none"
-                                    rows={3}
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
                         </div>
+                        )}
+
+                        <FormField
+                          control={form.control}
+                          name="giftMessage"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Gift Message <span className="text-muted-foreground font-normal">(Optional)</span></FormLabel>
+                              <FormControl>
+                                <Textarea
+                                  placeholder={isPurchaserCode ? "Add a personal note to include with your Gift Code..." : "Write a personal message for the recipient..."}
+                                  className="resize-none"
+                                  rows={3}
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
                         {/* Consent Gate */}
                         <div className="pt-2 border-t border-border">
@@ -381,7 +488,7 @@ const GiftCheckout: React.FC = () => {
                         <span>No auto-renew. Recipient opts in after gift expires.</span>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        Secure payment powered by Stripe. Gift email delivered to recipient after purchase.
+                        Secure payment powered by Stripe. Choose direct recipient email or receive a Gift Code to share yourself.
                       </p>
                     </div>
                   </CardContent>

@@ -4,7 +4,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, Gift, Mail, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
+import { CheckCircle, Gift, Mail, Loader2, AlertCircle, RefreshCw, Copy, Ticket } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -16,7 +16,18 @@ type GiftStatus = {
   created_at?: string;
   delivered_at?: string | null;
   recipient_email_masked?: string;
+  delivery_method?: 'recipient_email' | 'purchaser_code';
+  gift_code?: string;
+  claim_link?: string;
 };
+
+type GiftResendResponse = {
+  success?: boolean;
+  error?: string;
+};
+
+const getErrorMessage = (error: unknown, fallback: string) =>
+  error instanceof Error ? error.message : fallback;
 
 const GiftSuccess: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -65,7 +76,6 @@ const GiftSuccess: React.FC = () => {
     };
     tick();
     return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchStatus]);
 
   const handleResend = async () => {
@@ -75,15 +85,16 @@ const GiftSuccess: React.FC = () => {
       const { data, error } = await supabase.functions.invoke('get-gift-status', {
         body: { sessionId, successToken, action: 'resend' },
       });
-      if (error || !(data as any)?.success) {
-        throw new Error((data as any)?.error || error?.message || 'Resend failed');
+      const result = data as GiftResendResponse | null;
+      if (error || !result?.success) {
+        throw new Error(result?.error || error?.message || 'Resend failed');
       }
       toast({ title: 'Resending', description: 'Gift email is on its way.' });
       setTimeout(fetchStatus, 1500);
-    } catch (e: any) {
+    } catch (e: unknown) {
       toast({
         title: 'Could not resend',
-        description: e?.message || 'Please try again in a few minutes.',
+        description: getErrorMessage(e, 'Please try again in a few minutes.'),
         variant: 'destructive',
       });
     } finally {
@@ -91,8 +102,24 @@ const GiftSuccess: React.FC = () => {
     }
   };
 
+  const copyToClipboard = async (label: string, value?: string) => {
+    if (!value) return;
+    try {
+      await navigator.clipboard.writeText(value);
+      toast({ title: `${label} copied`, description: 'Ready to share.' });
+    } catch {
+      toast({
+        title: 'Copy failed',
+        description: 'Please select and copy it manually.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const deliveryDate = status?.delivery_date ? new Date(status.delivery_date) : null;
+  const purchaserCode = status?.delivery_method === 'purchaser_code';
   const scheduled =
+    !purchaserCode &&
     status?.payment_status === 'paid' &&
     status?.delivery_status === 'not_sent' &&
     deliveryDate !== null &&
@@ -124,7 +151,7 @@ const GiftSuccess: React.FC = () => {
               </div>
               <CardTitle className="text-2xl">
                 {delivered
-                  ? 'Gift Delivered!'
+                  ? purchaserCode ? 'Your Gift Code Is Ready' : 'Gift Delivered!'
                   : scheduled
                     ? 'Gift Scheduled!'
                   : failed
@@ -133,7 +160,9 @@ const GiftSuccess: React.FC = () => {
               </CardTitle>
               <CardDescription className="text-lg">
                 {delivered
-                  ? 'The recipient has been notified by email.'
+                  ? purchaserCode
+                    ? "Share this code or claim link whenever you're ready. The recipient can use it to start their Asset Safe gift subscription."
+                    : 'The recipient has been notified by email.'
                   : scheduled
                     ? `The recipient email will be sent on ${deliveryDateLabel}.`
                   : failed
@@ -150,7 +179,11 @@ const GiftSuccess: React.FC = () => {
               ) : (
                 <>
                   <div className={`rounded-lg p-6 border ${delivered ? 'bg-green-50 border-green-200' : scheduled ? 'bg-blue-50 border-blue-200' : failed ? 'bg-amber-50 border-amber-200' : 'bg-secondary/10 border-border'}`}>
-                    <Gift className={`h-8 w-8 mx-auto mb-3 ${delivered ? 'text-green-600' : scheduled ? 'text-blue-600' : failed ? 'text-amber-600' : 'text-primary'}`} />
+                    {purchaserCode ? (
+                      <Ticket className={`h-8 w-8 mx-auto mb-3 ${delivered ? 'text-green-600' : failed ? 'text-amber-600' : 'text-primary'}`} />
+                    ) : (
+                      <Gift className={`h-8 w-8 mx-auto mb-3 ${delivered ? 'text-green-600' : scheduled ? 'text-blue-600' : failed ? 'text-amber-600' : 'text-primary'}`} />
+                    )}
                     {status?.recipient_email_masked && (
                       <p className="text-sm text-foreground/80">
                         Recipient: <strong>{status.recipient_email_masked}</strong>
@@ -165,7 +198,7 @@ const GiftSuccess: React.FC = () => {
                       <Mail className="h-4 w-4" />
                       <span>
                         {delivered
-                          ? 'Email delivered'
+                          ? purchaserCode ? 'Gift Code emailed to you' : 'Email delivered'
                           : scheduled
                             ? 'Email scheduled'
                           : failed
@@ -174,6 +207,40 @@ const GiftSuccess: React.FC = () => {
                       </span>
                     </div>
                   </div>
+
+                  {purchaserCode && status?.gift_code && status?.claim_link && (
+                    <div className="space-y-4 text-left">
+                      <div className="rounded-lg border bg-background p-4">
+                        <p className="text-xs font-medium uppercase text-muted-foreground">Gift Code</p>
+                        <p className="mt-1 break-all font-mono text-lg font-semibold text-foreground">{status.gift_code}</p>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="mt-3"
+                          onClick={() => copyToClipboard('Gift Code', status.gift_code)}
+                        >
+                          <Copy className="mr-2 h-4 w-4" />Copy Code
+                        </Button>
+                      </div>
+                      <div className="rounded-lg border bg-background p-4">
+                        <p className="text-xs font-medium uppercase text-muted-foreground">Claim Link</p>
+                        <p className="mt-1 break-all text-sm text-foreground">{status.claim_link}</p>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="mt-3"
+                          onClick={() => copyToClipboard('Claim Link', status.claim_link)}
+                        >
+                          <Copy className="mr-2 h-4 w-4" />Copy Claim Link
+                        </Button>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        This Gift Code does not expire unless it is refunded, cancelled, or manually voided.
+                      </p>
+                    </div>
+                  )}
 
                   {failed && (
                     <Button onClick={handleResend} disabled={resending} size="lg" className="w-full">
@@ -185,6 +252,7 @@ const GiftSuccess: React.FC = () => {
                     </Button>
                   )}
 
+                  {!purchaserCode && (
                   <div className="space-y-3 text-left text-sm text-muted-foreground">
                     <div className="flex items-start gap-2">
                       <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">1</span>
@@ -199,6 +267,7 @@ const GiftSuccess: React.FC = () => {
                       <span>Their 12-month subscription activates when they redeem the gift.</span>
                     </div>
                   </div>
+                  )}
 
                   <div className="flex flex-col sm:flex-row gap-3">
                     <Link to="/gift" className="flex-1">

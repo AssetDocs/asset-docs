@@ -40,8 +40,8 @@ serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const code: string | undefined = body.code;
     const token: string | undefined = body.token;
-    if (!code || !token) {
-      return new Response(JSON.stringify({ error: "code and token required" }), {
+    if (!code) {
+      return new Response(JSON.stringify({ error: "code required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -61,7 +61,7 @@ serve(async (req) => {
     }
     await supabase.from("rate_limits").insert({ identifier: rlKey, action: "gift_redeem" });
 
-    const tokenHash = await sha256Hex(token);
+    const tokenHash = token ? await sha256Hex(token) : null;
     const { data, error } = await supabase.rpc("redeem_gift", {
       _code: code,
       _token_hash: tokenHash,
