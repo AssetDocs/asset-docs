@@ -52,15 +52,6 @@ interface PaintCode {
 }
 
 
-interface ManualEntry {
-  id: string;
-  name: string;
-  description: string | null;
-  category: string | null;
-  estimated_value: number | null;
-  created_at: string;
-}
-
 interface UpgradeRepair {
   id: string;
   title: string;
@@ -115,8 +106,6 @@ const PropertyAllAssets: React.FC = () => {
   const [floorplans, setFloorplans] = useState<AssetDocument[]>([]);
   const [damageReports, setDamageReports] = useState<DamageReport[]>([]);
   const [paintCodes, setPaintCodes] = useState<PaintCode[]>([]);
-  
-  const [manualEntries, setManualEntries] = useState<ManualEntry[]>([]);
   const [upgradeRepairs, setUpgradeRepairs] = useState<UpgradeRepair[]>([]);
 
   const property = properties.find(p => p.id === propertyId);
@@ -144,7 +133,6 @@ const PropertyAllAssets: React.FC = () => {
         floorplanData,
         damageData,
         paintData,
-        manualData,
         upgradeData
       ] = await Promise.all([
         PropertyService.getPropertyFiles(propertyId, 'photo'),
@@ -154,7 +142,6 @@ const PropertyAllAssets: React.FC = () => {
         supabase.from('user_documents').select('id, document_name, file_name, file_url, file_path, created_at').eq('property_id', propertyId).eq('user_id', user.id).eq('pending_delete', false).eq('document_type', 'floorplan'),
         supabase.from('damage_reports').select('*').eq('property_id', propertyId).eq('user_id', user.id),
         supabase.from('paint_codes').select('*').eq('property_id', propertyId).eq('user_id', user.id),
-        supabase.from('items').select('*').eq('property_id', propertyId).eq('user_id', user.id),
         supabase.from('upgrade_repairs').select('*').eq('property_id', propertyId).eq('user_id', user.id)
       ]);
 
@@ -165,7 +152,6 @@ const PropertyAllAssets: React.FC = () => {
       setFloorplans((floorplanData.data || []) as AssetDocument[]);
       setDamageReports(damageData.data || []);
       setPaintCodes(paintData.data || []);
-      setManualEntries(manualData.data || []);
       setUpgradeRepairs(upgradeData.data || []);
     } catch (error) {
       console.error('Error fetching assets:', error);
@@ -220,8 +206,7 @@ const PropertyAllAssets: React.FC = () => {
   };
 
   const totalAssets = photos.length + videos.length + documents.length + assetDocuments.length +
-    floorplans.length + damageReports.length + paintCodes.length +
-    manualEntries.length + upgradeRepairs.length;
+    floorplans.length + damageReports.length + paintCodes.length + upgradeRepairs.length;
 
   if (loading) {
     return (
@@ -555,43 +540,6 @@ const PropertyAllAssets: React.FC = () => {
                         <Badge variant="outline" className="mt-2">
                           {paint.is_interior ? 'Interior' : 'Exterior'}
                         </Badge>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </AccordionContent>
-            </AccordionItem>
-
-            {/* Manual Entries / Inventory */}
-            <AccordionItem value="inventory" className="border rounded-lg bg-white">
-              <AccordionTrigger className="px-4 hover:no-underline">
-                <div className="flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-green-500" />
-                  <span className="font-semibold">Inventory Items</span>
-                  <Badge variant="outline">{manualEntries.length}</Badge>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="px-4 pb-4">
-                {manualEntries.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-4">No inventory items for this property</p>
-                ) : (
-                  <div className="space-y-2">
-                    {manualEntries.map((item) => (
-                      <Card key={item.id} className="p-3">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="font-medium">{item.name}</p>
-                            {item.description && (
-                              <p className="text-sm text-muted-foreground">{item.description}</p>
-                            )}
-                            {item.category && (
-                              <Badge variant="outline" className="mt-1">{item.category}</Badge>
-                            )}
-                          </div>
-                          {item.estimated_value && (
-                            <span className="font-semibold">{formatCurrency(item.estimated_value)}</span>
-                          )}
-                        </div>
                       </Card>
                     ))}
                   </div>
