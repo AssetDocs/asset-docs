@@ -81,7 +81,7 @@ interface AssetDocument {
 
 // Simple signed image component
 const SignedImage: React.FC<{ file: PropertyFile; className?: string }> = ({ file, className }) => {
-  const { signedUrl, isLoading } = useSignedUrl(file.file_path, file.bucket_name);
+  const { signedUrl, isLoading } = useSignedUrl(file.bucket_name, file.file_path);
   
   if (isLoading) {
     return <div className={`bg-muted animate-pulse ${className}`} />;
@@ -327,7 +327,7 @@ const PropertyAllAssets: React.FC = () => {
           </Card>
 
           {/* Assets Accordion */}
-          <Accordion type="multiple" defaultValue={['photos', 'videos', 'documents', 'floorplans']} className="space-y-4">
+          <Accordion type="multiple" className="space-y-4">
             {/* Photos */}
             <AccordionItem value="photos" className="border rounded-lg bg-white">
               <AccordionTrigger className="px-4 hover:no-underline">
