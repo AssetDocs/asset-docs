@@ -3850,7 +3850,6 @@ export type Database = {
         Row: {
           amount: number | null
           anonymized_at: string | null
-          cancelled_at: string | null
           claim_token_hash: string | null
           created_at: string
           currency: string | null
@@ -3858,7 +3857,6 @@ export type Database = {
           delivered_at: string | null
           delivery_attempted_at: string | null
           delivery_date: string
-          delivery_method: string
           delivery_status: string
           email_hash: string | null
           expires_at: string | null
@@ -3869,7 +3867,6 @@ export type Database = {
           gift_message: string | null
           id: string
           last_delivery_error: string | null
-          manually_voided_at: string | null
           paid_at: string | null
           payment_status: string
           plan_type: string
@@ -3892,7 +3889,6 @@ export type Database = {
           reminder_email_sent_at: string | null
           resend_purchaser_email_id: string | null
           resend_recipient_email_id: string | null
-          refunded_at: string | null
           status: string
           stripe_checkout_session_id: string | null
           stripe_payment_intent_id: string | null
@@ -3905,7 +3901,6 @@ export type Database = {
         Insert: {
           amount?: number | null
           anonymized_at?: string | null
-          cancelled_at?: string | null
           claim_token_hash?: string | null
           created_at?: string
           currency?: string | null
@@ -3913,7 +3908,6 @@ export type Database = {
           delivered_at?: string | null
           delivery_attempted_at?: string | null
           delivery_date: string
-          delivery_method?: string
           delivery_status?: string
           email_hash?: string | null
           expires_at?: string | null
@@ -3924,7 +3918,6 @@ export type Database = {
           gift_message?: string | null
           id?: string
           last_delivery_error?: string | null
-          manually_voided_at?: string | null
           paid_at?: string | null
           payment_status?: string
           plan_type: string
@@ -3947,7 +3940,6 @@ export type Database = {
           reminder_email_sent_at?: string | null
           resend_purchaser_email_id?: string | null
           resend_recipient_email_id?: string | null
-          refunded_at?: string | null
           status?: string
           stripe_checkout_session_id?: string | null
           stripe_payment_intent_id?: string | null
@@ -3960,7 +3952,6 @@ export type Database = {
         Update: {
           amount?: number | null
           anonymized_at?: string | null
-          cancelled_at?: string | null
           claim_token_hash?: string | null
           created_at?: string
           currency?: string | null
@@ -3968,7 +3959,6 @@ export type Database = {
           delivered_at?: string | null
           delivery_attempted_at?: string | null
           delivery_date?: string
-          delivery_method?: string
           delivery_status?: string
           email_hash?: string | null
           expires_at?: string | null
@@ -3979,7 +3969,6 @@ export type Database = {
           gift_message?: string | null
           id?: string
           last_delivery_error?: string | null
-          manually_voided_at?: string | null
           paid_at?: string | null
           payment_status?: string
           plan_type?: string
@@ -4002,7 +3991,6 @@ export type Database = {
           reminder_email_sent_at?: string | null
           resend_purchaser_email_id?: string | null
           resend_recipient_email_id?: string | null
-          refunded_at?: string | null
           status?: string
           stripe_checkout_session_id?: string | null
           stripe_payment_intent_id?: string | null
