@@ -28,7 +28,6 @@ interface UserRecord {
   ownerAccountNumber?: string | null;
   entitlement_source?: string | null;
   plan_lookup_key?: string | null;
-  displayRole?: 'owner' | 'full_au' | 'view_au' | 'authorized_user';
 }
 
 interface ContributorRecord {
@@ -229,13 +228,6 @@ const AdminUsers = () => {
             plan_status: entitlement?.status || user.plan_status || null,
             isContributor: isAU,
             contributorRole: auRole,
-            displayRole: auRole === 'full_access'
-              ? 'full_au'
-              : auRole === 'read_only'
-              ? 'view_au'
-              : isAU
-              ? 'authorized_user'
-              : 'owner',
             ownerEmail: ownerEmail || null,
             ownerName: ownerProfile ? `${ownerProfile.first_name || ''} ${ownerProfile.last_name || ''}`.trim() : null,
             ownerAccountNumber: ownerProfile?.account_number || null,
@@ -417,17 +409,21 @@ const AdminUsers = () => {
       return <Badge className="bg-primary">Owner</Badge>;
     }
 
+    return renderAuthorizedUserRoleBadge(user.contributorRole);
+  };
+
+  const renderAuthorizedUserRoleBadge = (role?: string | null) => {
     const badgeClass =
-      user.displayRole === 'full_au'
+      role === 'full_access' || role === 'administrator'
         ? 'border-green-200 bg-green-50 text-green-700'
-        : user.displayRole === 'view_au'
+        : role === 'read_only' || role === 'viewer'
         ? 'border-blue-200 bg-blue-50 text-blue-700'
         : '';
 
     const label =
-      user.displayRole === 'full_au'
+      role === 'full_access' || role === 'administrator'
         ? 'FULL AU'
-        : user.displayRole === 'view_au'
+        : role === 'read_only' || role === 'viewer'
         ? 'VIEW AU'
         : 'AU';
 
@@ -1076,18 +1072,7 @@ const AdminUsers = () => {
                               </TableCell>
                               <TableCell>{c.contributor_email || '-'}</TableCell>
                               <TableCell>
-                                <Badge
-                                  variant="outline"
-                                  className={
-                                    c.role === 'administrator'
-                                      ? 'border-green-500 text-green-600'
-                                      : c.role === 'viewer'
-                                      ? 'border-blue-500 text-blue-600'
-                                      : 'border-yellow-500 text-yellow-600'
-                                  }
-                                >
-                                  {c.role}
-                                </Badge>
+                                {renderAuthorizedUserRoleBadge(c.role)}
                               </TableCell>
                               <TableCell>
                                 <Badge variant={c.status === 'accepted' ? 'default' : 'secondary'}>
