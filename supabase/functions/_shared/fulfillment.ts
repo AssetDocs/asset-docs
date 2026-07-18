@@ -33,6 +33,22 @@ const log = (step: string, details?: unknown) => {
   );
 };
 
+function getAllowedOrigin(rawOrigin: string | null | undefined): string {
+  const fallback = "https://getassetsafe.com";
+  if (!rawOrigin) return fallback;
+  try {
+    const url = new URL(rawOrigin);
+    const isAssetSafe = url.protocol === "https:" && (
+      url.hostname === "getassetsafe.com" ||
+      url.hostname === "www.getassetsafe.com"
+    );
+    const isLocalDev = url.hostname === "localhost" || url.hostname === "127.0.0.1";
+    return isAssetSafe || isLocalDev ? url.origin : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -245,19 +261,12 @@ async function sendMagicLink(
   supabaseAdmin: any,
   email: string,
   origin: string,
+  sessionId: string,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   try {
-    const { data, error } = await supabaseAdmin.auth.admin.generateLink({
-      type: "magiclink",
-      email,
-      options: { redirectTo: `${origin}/auth/callback` },
-    });
-    if (error) return { ok: false, error: error.message };
-    const link = data?.properties?.action_link;
-    if (!link) return { ok: false, error: "no_action_link" };
-
     const resendKey = Deno.env.get("RESEND_API_KEY");
     if (!resendKey) return { ok: false, error: "missing_resend_key" };
+    const continueUrl = `${origin}/auth/continue?session_id=${encodeURIComponent(sessionId)}`;
 
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -273,9 +282,9 @@ async function sendMagicLink(
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color:#1a1a1a;">Payment Confirmed</h2>
             <p>Your Asset Safe subscription is active.</p>
-            <p>Click below to sign in (link expires in 1 hour):</p>
+            <p>Click below to continue account setup:</p>
             <p style="text-align:center;margin:32px 0;">
-              <a href="${link}" style="background:#f97316;color:#fff;padding:14px 28px;text-decoration:none;border-radius:8px;font-weight:bold;">Sign In to Asset Safe</a>
+              <a href="${continueUrl}" style="background:#f97316;color:#fff;padding:14px 28px;text-decoration:none;border-radius:8px;font-weight:bold;">Continue to Asset Safe</a>
             </p>
             <p style="color:#666;font-size:13px;">If you didn't expect this email, you can safely ignore it.</p>
           </div>
@@ -628,7 +637,8 @@ export async function fulfillCheckout(
       emailResult = await sendMagicLink(
         supabaseAdmin,
         resolvedEmail,
-        opts.origin ?? "https://getassetsafe.com",
+        getAllowedOrigin(opts.origin),
+        session.id,
       );
     }
 

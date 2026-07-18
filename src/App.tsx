@@ -38,6 +38,7 @@ import CreatePassword from "./pages/CreatePassword";
 import Onboarding from "./pages/Onboarding";
 import EmailVerification from "./pages/EmailVerification";
 import AuthCallback from "./pages/AuthCallback";
+import AuthContinue from "./pages/AuthContinue";
 import VerifyEmail from "./pages/VerifyEmail";
 import ConfirmEmailChange from "./pages/ConfirmEmailChange";
 import CompletePricing from "./pages/CompletePricing";
@@ -381,6 +382,7 @@ const AppContent = () => {
         <Route path="/login" element={<Navigate to="/auth" replace />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/auth/continue" element={<AuthContinue />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/email-verification" element={<EmailVerification />} />
         <Route path="/verify-email" element={<VerifyEmail />} />

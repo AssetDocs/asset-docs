@@ -7,13 +7,14 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const log = (step: string, details?: unknown) =>
-  console.log(`[RESEND-MAGIC-LINK] ${step}`, details === undefined ? "" : JSON.stringify(details));
-
-const UNIFORM_OK = () =>
-  new Response(JSON.stringify({ status: "sent" }), {
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-    status: 200,
+const json = (body: Record<string, unknown>, status = 200) =>
+  new Response(JSON.stringify(body), {
+    headers: {
+      ...corsHeaders,
+      "Content-Type": "application/json",
+      "Cache-Control": "no-store",
+    },
+    status,
   });
 
 function getAllowedOrigin(rawOrigin: string | null): string {
@@ -60,23 +61,28 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    const { session_id } = await req.json().catch(() => ({}));
+    if (!session_id || typeof session_id !== "string") {
+      return json({ error: "invalid_link" }, 400);
+    }
+
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
       { auth: { persistSession: false } },
     );
 
-    const { session_id } = await req.json().catch(() => ({}));
-    if (!session_id || typeof session_id !== "string") return UNIFORM_OK();
-
     const ip =
       req.headers.get("cf-connecting-ip") ||
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
       "unknown";
 
-    if (!(await rateLimit(supabaseAdmin, "resend_session", session_id, 3, 30))) return UNIFORM_OK();
-    if (!(await rateLimit(supabaseAdmin, "resend_ip", ip, 5, 60))) return UNIFORM_OK();
+    if (!(await rateLimit(supabaseAdmin, "mint_session", session_id, 8, 30))) {
+      return json({ error: "try_again_later" }, 429);
+    }
+    if (!(await rateLimit(supabaseAdmin, "mint_ip", ip, 20, 60))) {
+      return json({ error: "try_again_later" }, 429);
+    }
 
     const { data: row } = await supabaseAdmin
       .from("checkout_fulfillments")
@@ -84,62 +90,51 @@ serve(async (req) => {
       .eq("stripe_session_id", session_id)
       .maybeSingle();
 
-    if (!row || !row.email) return UNIFORM_OK();
-    if (!["fulfilled", "fulfilled_email_failed"].includes(row.status)) return UNIFORM_OK();
+    if (!row?.email || !["fulfilled", "fulfilled_email_failed"].includes(row.status)) {
+      return json({ error: "invalid_link" }, 400);
+    }
 
     const completed = row.completed_at ? new Date(row.completed_at).getTime() : 0;
-    if (Date.now() - completed > 24 * 60 * 60 * 1000) return UNIFORM_OK();
+    if (!completed || Date.now() - completed > 24 * 60 * 60 * 1000) {
+      return json({ error: "expired_link" }, 400);
+    }
 
-    if (!(await rateLimit(supabaseAdmin, "resend_email", row.email, 5, 60))) return UNIFORM_OK();
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeKey) return json({ error: "unavailable" }, 503);
 
-    // Verify against live Stripe session.
-    if (!stripeKey) return UNIFORM_OK();
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
     const session = await stripe.checkout.sessions.retrieve(session_id, {
       expand: ["customer_details"],
     });
     const stripeEmail = (session.customer_details?.email ?? "").toLowerCase().trim();
-    if (!stripeEmail || stripeEmail !== row.email) return UNIFORM_OK();
+    if (!stripeEmail || stripeEmail !== row.email) {
+      return json({ error: "invalid_link" }, 400);
+    }
 
-    const resendKey = Deno.env.get("RESEND_API_KEY");
-    if (resendKey) {
-      const origin = getAllowedOrigin(req.headers.get("origin"));
-      const continueUrl = `${origin}/auth/continue?session_id=${encodeURIComponent(session_id)}`;
-      await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${resendKey}`,
-        },
-        body: JSON.stringify({
-          from: "Asset Safe <noreply@assetsafe.net>",
-          to: [row.email],
-          subject: "Your sign-in link for Asset Safe",
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2>New sign-in link</h2>
-              <p>Click below to continue account setup:</p>
-              <p style="text-align:center;margin:32px 0;">
-                <a href="${continueUrl}" style="background:#f97316;color:#fff;padding:14px 28px;text-decoration:none;border-radius:8px;font-weight:bold;">Continue to Asset Safe</a>
-              </p>
-            </div>
-          `,
-        }),
-      });
+    const origin = getAllowedOrigin(req.headers.get("origin"));
+    const redirectTo = `${origin}/auth/callback?session_id=${encodeURIComponent(session_id)}`;
+    const { data: link, error: linkErr } = await supabaseAdmin.auth.admin.generateLink({
+      type: "magiclink",
+      email: row.email,
+      options: { redirectTo },
+    });
+
+    if (linkErr || !link?.properties?.action_link) {
+      return json({ error: "unavailable" }, 503);
     }
 
     await supabaseAdmin
       .from("checkout_fulfillments")
       .update({
         magic_link_sent_at: new Date().toISOString(),
-        magic_link_delivery_status: "resent",
+        magic_link_delivery_status: "minted",
         updated_at: new Date().toISOString(),
       })
       .eq("stripe_session_id", session_id);
 
-    return UNIFORM_OK();
+    return json({ redirect_url: link.properties.action_link });
   } catch (error) {
-    log("ERROR (returning uniform success)", { message: (error as Error).message });
-    return UNIFORM_OK();
+    console.error("[MINT-MAGIC-LINK] ERROR", { message: (error as Error).message });
+    return json({ error: "unavailable" }, 503);
   }
 });
