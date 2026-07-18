@@ -11,9 +11,10 @@ import AccountSwitcher from '@/components/AccountSwitcher';
 
 interface WelcomeBannerProps {
   onTabChange?: (tab: string) => void;
+  isFirstDashboardVisit?: boolean;
 }
 
-const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange }) => {
+const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange, isFirstDashboardVisit = false }) => {
   const { profile, user } = useAuth();
   const { accountName, ownerName, isOwner, hasMultipleAccounts } = useAccount();
   const navigate = useNavigate();
@@ -89,7 +90,7 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange }) => {
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div className="flex-1">
               <p className="text-white/80 text-sm font-medium">
-                Welcome back, {getFirstName()}!
+                {isFirstDashboardVisit ? 'Welcome' : 'Welcome back'}, {getFirstName()}!
               </p>
               <div className="flex items-center gap-3 mt-0.5">
                 {!isOwner && (

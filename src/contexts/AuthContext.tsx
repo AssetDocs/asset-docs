@@ -43,6 +43,7 @@ interface Profile {
   updated_at: string;
   password_set?: boolean;
   onboarding_complete?: boolean;
+  dashboard_welcome_seen_at?: string | null;
 }
 
 interface AuthContextType {

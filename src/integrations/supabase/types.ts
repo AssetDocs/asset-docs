@@ -5770,6 +5770,7 @@ export type Database = {
           cancellation_notice_sent_at: string | null
           created_at: string
           current_period_end: string | null
+          dashboard_welcome_seen_at: string | null
           first_name: string | null
           grace_period_ends_at: string | null
           household_income: string | null
@@ -5799,6 +5800,7 @@ export type Database = {
           cancellation_notice_sent_at?: string | null
           created_at?: string
           current_period_end?: string | null
+          dashboard_welcome_seen_at?: string | null
           first_name?: string | null
           grace_period_ends_at?: string | null
           household_income?: string | null
@@ -5828,6 +5830,7 @@ export type Database = {
           cancellation_notice_sent_at?: string | null
           created_at?: string
           current_period_end?: string | null
+          dashboard_welcome_seen_at?: string | null
           first_name?: string | null
           grace_period_ends_at?: string | null
           household_income?: string | null

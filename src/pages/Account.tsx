@@ -19,6 +19,7 @@ import SecureVault from '@/components/SecureVault';
 import FeedbackSection from '@/components/FeedbackSection';
 import AdminContributorPlanInfo from '@/components/AdminContributorPlanInfo';
 import WelcomeBanner from '@/components/WelcomeBanner';
+import FirstDashboardWelcomeModal from '@/components/FirstDashboardWelcomeModal';
 
 import SubscriptionEndingBanner from '@/components/SubscriptionEndingBanner';
 import ExpiredSubscriptionBanner from '@/components/ExpiredSubscriptionBanner';
@@ -51,13 +52,15 @@ import ContinuityRequestBanner from '@/components/continuity/ContinuityRequestBa
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
-import { recordDashboardResumeActivity } from '@/lib/dashboardResume';
+import { recordDashboardResumeActivity, type DashboardResumeActivityType } from '@/lib/dashboardResume';
 
 const Account: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [showTour, setShowTour] = useState(false);
+  const [welcomeModalOpen, setWelcomeModalOpen] = useState(false);
+  const [markingWelcomeSeen, setMarkingWelcomeSeen] = useState(false);
   const activeTab = searchParams.get('tab') || 'overview';
   const handleTabChange = (tab: string) => {
     if (tab === 'overview') {
@@ -69,6 +72,19 @@ const Account: React.FC = () => {
   const setActiveTab = handleTabChange;
   const { subscriptionTier } = useSubscription();
   const { isReadOnly: isViewer, showReadOnlyRestriction: showViewerRestriction, canEdit, accountId, isOwner } = useAccount();
+  const { user, profile, profileLoading, refreshProfile } = useAuth();
+  const isOverview = activeTab === 'overview';
+  const getFirstName = () => {
+    return profile?.first_name || user?.user_metadata?.first_name || user?.email?.split('@')[0] || 'there';
+  };
+  const shouldShowFirstDashboardWelcome = Boolean(
+    isOverview &&
+    isOwner &&
+    canEdit &&
+    user &&
+    profile &&
+    !profile.dashboard_welcome_seen_at
+  );
 
   // Scroll to top when tab changes
   useEffect(() => {
@@ -76,7 +92,7 @@ const Account: React.FC = () => {
   }, [activeTab]);
 
   useEffect(() => {
-    const activityByTab: Record<string, { type: any; label: string; route: string }> = {
+    const activityByTab: Record<string, { type: DashboardResumeActivityType; label: string; route: string }> = {
       'asset-documentation': {
         type: 'asset_documentation_opened',
         label: 'Open Asset Documentation',
@@ -150,13 +166,66 @@ const Account: React.FC = () => {
   }, [searchParams, toast]);
 
   useEffect(() => {
+    if (profileLoading) return;
+    if (user && !profile) return;
     const isNewUser = localStorage.getItem('isNewUser');
     const hasSeenTour = localStorage.getItem('hasSeenDashboardTour');
-    if (isNewUser && !hasSeenTour) {
+    if (isNewUser && !hasSeenTour && !shouldShowFirstDashboardWelcome) {
       setShowTour(true);
       localStorage.removeItem('isNewUser');
     }
-  }, []);
+  }, [profileLoading, profile, shouldShowFirstDashboardWelcome, user]);
+
+  useEffect(() => {
+    if (shouldShowFirstDashboardWelcome) {
+      setWelcomeModalOpen(true);
+    }
+  }, [shouldShowFirstDashboardWelcome]);
+
+  const markDashboardWelcomeSeen = async () => {
+    localStorage.removeItem('isNewUser');
+    localStorage.setItem('hasSeenDashboardTour', 'true');
+
+    if (!user || profile?.dashboard_welcome_seen_at || markingWelcomeSeen) return;
+
+    setMarkingWelcomeSeen(true);
+    try {
+      const seenAt = new Date().toISOString();
+      const { error } = await supabase
+        .from('profiles')
+        .update({ dashboard_welcome_seen_at: seenAt })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      await refreshProfile();
+    } catch (error) {
+      console.error('Error marking dashboard welcome seen:', error);
+    } finally {
+      setMarkingWelcomeSeen(false);
+    }
+  };
+
+  const dismissDashboardWelcome = () => {
+    setWelcomeModalOpen(false);
+    void markDashboardWelcomeSeen();
+  };
+
+  const handleDashboardWelcomeChoice = async (action: 'property' | 'authorized-user' | 'mfa') => {
+    setWelcomeModalOpen(false);
+    await markDashboardWelcomeSeen();
+
+    if (action === 'property') {
+      navigate('/account/properties/new');
+      return;
+    }
+
+    if (action === 'authorized-user') {
+      setActiveTab('access-activity');
+      return;
+    }
+
+    navigate('/account/settings?tab=security');
+  };
 
   const closeTour = () => {
     setShowTour(false);
@@ -192,8 +261,6 @@ const Account: React.FC = () => {
     return configs[activeTab] || { title: '', subtitle: '' };
   };
 
-  const isOverview = activeTab === 'overview';
-
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
@@ -215,7 +282,10 @@ const Account: React.FC = () => {
           {isOverview && (
             <>
               <div className="mb-4">
-                <WelcomeBanner onTabChange={setActiveTab} />
+                <WelcomeBanner
+                  onTabChange={setActiveTab}
+                  isFirstDashboardVisit={shouldShowFirstDashboardWelcome}
+                />
               </div>
               <SubscriptionEndingBanner />
               <ScheduledDeletionBanner />
@@ -445,6 +515,13 @@ const Account: React.FC = () => {
       </div>
 
       <Footer />
+      <FirstDashboardWelcomeModal
+        open={welcomeModalOpen && shouldShowFirstDashboardWelcome}
+        firstName={getFirstName()}
+        canManageDashboard={canEdit && isOwner}
+        onDismiss={dismissDashboardWelcome}
+        onChoose={handleDashboardWelcomeChoice}
+      />
       <DashboardTour isVisible={showTour} onClose={closeTour} />
     </div>
   );
