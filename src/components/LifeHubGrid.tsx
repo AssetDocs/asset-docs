@@ -24,7 +24,7 @@ const LifeHubGrid: React.FC<LifeHubGridProps> = ({ onTabChange }) => {
       <div>
         <h2 className="text-2xl font-bold text-foreground">Family Archive</h2>
         <p className="text-muted-foreground text-sm mt-1">
-          Everyday life, organized and protected.
+          Contacts · Notes · Records · Memories
         </p>
       </div>
 
