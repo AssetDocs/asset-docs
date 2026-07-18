@@ -54,6 +54,8 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
 import { recordDashboardResumeActivity, type DashboardResumeActivityType } from '@/lib/dashboardResume';
 
+const getDashboardWelcomeStorageKey = (userId: string) => `assetSafe.dashboardWelcomeSeen.${userId}`;
+
 const Account: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -61,6 +63,7 @@ const Account: React.FC = () => {
   const [showTour, setShowTour] = useState(false);
   const [welcomeModalOpen, setWelcomeModalOpen] = useState(false);
   const [markingWelcomeSeen, setMarkingWelcomeSeen] = useState(false);
+  const [dismissedDashboardWelcomeUserId, setDismissedDashboardWelcomeUserId] = useState<string | null>(null);
   const activeTab = searchParams.get('tab') || 'overview';
   const handleTabChange = (tab: string) => {
     if (tab === 'overview') {
@@ -77,14 +80,30 @@ const Account: React.FC = () => {
   const getFirstName = () => {
     return profile?.first_name || user?.user_metadata?.first_name || user?.email?.split('@')[0] || 'there';
   };
+  const hasDismissedDashboardWelcomeLocally = Boolean(user && dismissedDashboardWelcomeUserId === user.id);
   const shouldShowFirstDashboardWelcome = Boolean(
     isOverview &&
     isOwner &&
     canEdit &&
     user &&
     profile &&
-    !profile.dashboard_welcome_seen_at
+    !profile.dashboard_welcome_seen_at &&
+    !hasDismissedDashboardWelcomeLocally
   );
+
+  useEffect(() => {
+    if (!user) {
+      setDismissedDashboardWelcomeUserId(null);
+      return;
+    }
+
+    try {
+      const hasSeenLocally = localStorage.getItem(getDashboardWelcomeStorageKey(user.id)) === 'true';
+      setDismissedDashboardWelcomeUserId(hasSeenLocally ? user.id : null);
+    } catch {
+      setDismissedDashboardWelcomeUserId(null);
+    }
+  }, [user]);
 
   // Scroll to top when tab changes
   useEffect(() => {
@@ -185,6 +204,15 @@ const Account: React.FC = () => {
   const markDashboardWelcomeSeen = async () => {
     localStorage.removeItem('isNewUser');
     localStorage.setItem('hasSeenDashboardTour', 'true');
+
+    if (user) {
+      setDismissedDashboardWelcomeUserId(user.id);
+      try {
+        localStorage.setItem(getDashboardWelcomeStorageKey(user.id), 'true');
+      } catch {
+        // Ignore storage errors; the profile timestamp remains the durable record.
+      }
+    }
 
     if (!user || profile?.dashboard_welcome_seen_at || markingWelcomeSeen) return;
 
