@@ -28,6 +28,7 @@ interface UserRecord {
   ownerAccountNumber?: string | null;
   entitlement_source?: string | null;
   plan_lookup_key?: string | null;
+  displayRole?: 'owner' | 'full_au' | 'view_au' | 'authorized_user';
 }
 
 interface ContributorRecord {
@@ -187,7 +188,8 @@ const AdminUsers = () => {
         const auMembershipMap = new Map<string, any>();
         membershipsData?.forEach((m: any) => {
           if (m.role && m.role !== 'owner') {
-            if (!auMembershipMap.has(m.user_id)) {
+            const existing = auMembershipMap.get(m.user_id);
+            if (!existing || (existing.role !== 'full_access' && m.role === 'full_access')) {
               auMembershipMap.set(m.user_id, m);
             }
           }
@@ -227,6 +229,13 @@ const AdminUsers = () => {
             plan_status: entitlement?.status || user.plan_status || null,
             isContributor: isAU,
             contributorRole: auRole,
+            displayRole: auRole === 'full_access'
+              ? 'full_au'
+              : auRole === 'read_only'
+              ? 'view_au'
+              : isAU
+              ? 'authorized_user'
+              : 'owner',
             ownerEmail: ownerEmail || null,
             ownerName: ownerProfile ? `${ownerProfile.first_name || ''} ${ownerProfile.last_name || ''}`.trim() : null,
             ownerAccountNumber: ownerProfile?.account_number || null,
@@ -401,6 +410,54 @@ const AdminUsers = () => {
       style: 'currency',
       currency: currency || 'USD',
     }).format(amount / 100);
+  };
+
+  const renderRoleBadge = (user: UserRecord) => {
+    if (!user.isContributor) {
+      return <Badge className="bg-primary">Owner</Badge>;
+    }
+
+    const badgeClass =
+      user.displayRole === 'full_au'
+        ? 'border-green-200 bg-green-50 text-green-700'
+        : user.displayRole === 'view_au'
+        ? 'border-blue-200 bg-blue-50 text-blue-700'
+        : '';
+
+    const label =
+      user.displayRole === 'full_au'
+        ? 'FULL AU'
+        : user.displayRole === 'view_au'
+        ? 'VIEW AU'
+        : 'AU';
+
+    return (
+      <Badge variant="outline" className={badgeClass}>
+        {label}
+      </Badge>
+    );
+  };
+
+  const renderLinkedOwner = (user: UserRecord) => {
+    if (!user.isContributor || (!user.ownerAccountNumber && !user.ownerName && !user.ownerEmail)) {
+      return <span className="text-muted-foreground">-</span>;
+    }
+
+    return (
+      <div>
+        {user.ownerAccountNumber && (
+          <p className="text-xs font-mono font-semibold bg-muted px-2 py-1 rounded inline-block">
+            {user.ownerAccountNumber}
+          </p>
+        )}
+        {user.ownerName && (
+          <p className="text-xs text-muted-foreground mt-1">{user.ownerName}</p>
+        )}
+        {user.ownerEmail && (
+          <p className="text-xs text-muted-foreground">{user.ownerEmail}</p>
+        )}
+      </div>
+    );
   };
 
   const logSupportAccessReview = async (user: UserRecord) => {
@@ -637,32 +694,10 @@ const AdminUsers = () => {
                           </div>
                         </TableCell>
                         <TableCell>
-                          {user.isContributor ? (
-                            <Badge variant="outline">
-                              {user.contributorRole === 'full_access'
-                                ? 'Authorized User · Full Access'
-                                : user.contributorRole === 'read_only'
-                                ? 'Authorized User · Read Only'
-                                : `Authorized User${user.contributorRole ? ` · ${user.contributorRole}` : ''}`}
-                            </Badge>
-                          ) : (
-                            <Badge className="bg-primary">Owner</Badge>
-                          )}
+                          {renderRoleBadge(user)}
                         </TableCell>
                         <TableCell>
-                          {user.isContributor && user.ownerEmail ? (
-                            <div>
-                              <p className="text-sm font-medium">{user.ownerName || '-'}</p>
-                              <p className="text-xs text-muted-foreground">{user.ownerEmail}</p>
-                              {user.ownerAccountNumber && (
-                                <p className="text-xs font-mono text-muted-foreground mt-1">
-                                  {user.ownerAccountNumber}
-                                </p>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
+                          {renderLinkedOwner(user)}
                         </TableCell>
                         <TableCell>
                           {user.isContributor && !user.subscribed ? (
