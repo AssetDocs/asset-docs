@@ -226,7 +226,7 @@ const Pricing: React.FC = () => {
               <TabsContent value="for-you" className="mt-0">
 
                 {/* Billing Cycle Toggle */}
-                <div className="flex items-center justify-center mb-8">
+                <div className="flex flex-col items-center justify-center mb-8">
                   <Tabs value={billingCycle} onValueChange={(v) => setBillingCycle(v as 'monthly' | 'yearly')}>
                     <TabsList className="bg-muted rounded-full p-1">
                       <TabsTrigger
@@ -244,6 +244,9 @@ const Pricing: React.FC = () => {
                       </TabsTrigger>
                     </TabsList>
                   </Tabs>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Save $38.88 per year compared to monthly.
+                  </p>
                 </div>
                 
                 <div className="max-w-lg mx-auto">
