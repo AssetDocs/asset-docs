@@ -154,6 +154,11 @@ const AdminUsers = () => {
         const entitlementMap = new Map(
           entitlementsData?.map(e => [e.user_id, e]) || []
         );
+        const activeOwnerIds = new Set(
+          entitlementsData
+            ?.filter(e => e.status === 'active' || e.status === 'trialing')
+            .map(e => e.user_id) || []
+        );
 
         // Get user emails from auth.users via edge function
         let authEmails: Record<string, string | null> = {};
@@ -186,7 +191,8 @@ const AdminUsers = () => {
         // Build a map: user_id -> first active non-owner membership (Authorized User)
         const auMembershipMap = new Map<string, any>();
         membershipsData?.forEach((m: any) => {
-          if (m.role && m.role !== 'owner') {
+          const ownerId = m.accounts?.owner_user_id;
+          if (m.role && m.role !== 'owner' && ownerId && activeOwnerIds.has(ownerId)) {
             const existing = auMembershipMap.get(m.user_id);
             if (!existing || (existing.role !== 'full_access' && m.role === 'full_access')) {
               auMembershipMap.set(m.user_id, m);
@@ -259,7 +265,7 @@ const AdminUsers = () => {
 
         const ensureOwner = (ownerId: string) => {
           const ownerProfile = ownerProfileMap.get(ownerId);
-          if (!ownerProfile) return null;
+          if (!ownerProfile || !activeOwnerIds.has(ownerId)) return null;
           if (!ownersMap.has(ownerId)) {
             ownersMap.set(ownerId, {
               ownerId,
