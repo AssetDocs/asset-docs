@@ -68,6 +68,24 @@ type FormValues = z.infer<typeof formSchema>;
 const getErrorMessage = (error: unknown) =>
   error instanceof Error ? error.message : "Failed to create checkout session. Please try again.";
 
+const getCheckoutErrorMessage = async (error: unknown) => {
+  if (error && typeof error === 'object' && 'context' in error) {
+    const response = (error as { context?: Response }).context;
+    if (response) {
+      try {
+        const payload = await response.clone().json();
+        const message = typeof payload?.error === 'string' ? payload.error : 'Gift checkout failed. Please try again.';
+        const detail = [payload?.stage, payload?.errorId].filter(Boolean).join(' / ');
+        return detail ? `${message} (${detail})` : message;
+      } catch {
+        // Fall through to the generic helper when the function returns a non-JSON error.
+      }
+    }
+  }
+
+  return getErrorMessage(error);
+};
+
 const GIFT_FEATURES = [
   "Unlimited properties",
   "25GB secure cloud storage",
@@ -158,9 +176,10 @@ const GiftCheckout: React.FC = () => {
       }
     } catch (error: unknown) {
       console.error('Error creating gift checkout:', error);
+      const description = await getCheckoutErrorMessage(error);
       toast({
         title: "Checkout Failed",
-        description: getErrorMessage(error),
+        description,
         variant: "destructive",
       });
     } finally {

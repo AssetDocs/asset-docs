@@ -33,6 +33,7 @@ function genGiftCode(): string {
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  let stage = "startup";
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
@@ -40,11 +41,14 @@ serve(async (req) => {
   );
 
   try {
+    stage = "started";
     logStep("Function started");
 
+    stage = "stripe_secret";
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
 
+    stage = "parse_request";
     const body = await req.json();
     const {
       recipientEmail,
@@ -56,6 +60,7 @@ serve(async (req) => {
       deliveryMethod = "recipient_email",
     } = body ?? {};
 
+    stage = "validate_request";
     if (!["recipient_email", "purchaser_code"].includes(deliveryMethod)) {
       throw new Error("Invalid delivery method");
     }
@@ -77,6 +82,12 @@ serve(async (req) => {
       throw new Error("Input exceeds maximum length");
     }
 
+    const normalizedPurchaserEmail = purchaserEmail.toLowerCase().trim();
+    const normalizedRecipientEmail = deliveryMethod === "recipient_email"
+      ? recipientEmail.toLowerCase().trim()
+      : null;
+
+    stage = "schedule_delivery";
     let scheduledDeliveryDate = new Date();
     if (deliveryMethod === "recipient_email" && deliveryDate) {
       const dateOnly = String(deliveryDate).trim();
@@ -98,10 +109,11 @@ serve(async (req) => {
     }
 
     // Verify consent (logged in last 30 minutes)
+    stage = "verify_consent";
     const { data: consentData } = await supabase
       .from("user_consents")
       .select("id")
-      .eq("user_email", purchaserEmail.toLowerCase().trim())
+      .eq("user_email", normalizedPurchaserEmail)
       .eq("consent_type", "gift_checkout")
       .gte("created_at", new Date(Date.now() - 30 * 60 * 1000).toISOString())
       .limit(1);
@@ -114,11 +126,16 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
+    stage = "lookup_gift_price";
     const prices = await stripe.prices.list({ lookup_keys: ["asset_safe_gift_annual"], active: true, limit: 1 });
     if (!prices.data.length) throw new Error("Gift price 'asset_safe_gift_annual' not found in Stripe.");
-    const priceId = prices.data[0].id;
+    const giftPrice = prices.data[0];
+    const priceId = giftPrice.id;
+    const checkoutMode = giftPrice.type === "recurring" ? "subscription" : "payment";
+    logStep("Gift price resolved", { priceId, priceType: giftPrice.type, checkoutMode });
 
-    const customers = await stripe.customers.list({ email: purchaserEmail, limit: 1 });
+    stage = "lookup_customer";
+    const customers = await stripe.customers.list({ email: normalizedPurchaserEmail, limit: 1 });
     const customerId = customers.data.length > 0 ? customers.data[0].id : undefined;
 
     const origin = req.headers.get("origin") || "https://getassetsafe.com";
@@ -130,15 +147,16 @@ serve(async (req) => {
     const successTokenHash = await sha256Hex(successToken);
     const successTokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
+    stage = "insert_gift_record";
     const { error: insertError } = await supabase.from("gift_subscriptions").insert({
       id: giftId,
       gift_code: giftCode,
       plan_type: "standard",
       term: "yearly",
       delivery_method: deliveryMethod,
-      purchaser_email: purchaserEmail.toLowerCase().trim(),
+      purchaser_email: normalizedPurchaserEmail,
       purchaser_name: fromName,
-      recipient_email: deliveryMethod === "recipient_email" ? recipientEmail.toLowerCase().trim() : null,
+      recipient_email: normalizedRecipientEmail,
       recipient_name: deliveryMethod === "recipient_email" ? (recipientName || "") : "",
       gift_message: giftMessage || null,
       delivery_date: scheduledDeliveryDate.toISOString(),
@@ -159,34 +177,39 @@ serve(async (req) => {
     // success_url built server-side WITH the success token
     const successUrl = `${origin}/gift-success?session_id={CHECKOUT_SESSION_ID}&t=${encodeURIComponent(successToken)}`;
 
-    const session = await stripe.checkout.sessions.create({
+    const metadata = {
+      gift: "true",
+      gift_term: "yearly",
+      gift_subscription_id: giftId,
+      gift_delivery_method: deliveryMethod,
+    };
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
       customer: customerId,
-      customer_email: customerId ? undefined : purchaserEmail,
+      customer_email: customerId ? undefined : normalizedPurchaserEmail,
       line_items: [{ price: priceId, quantity: 1 }],
-      mode: "subscription",
+      mode: checkoutMode,
       success_url: successUrl,
       cancel_url: `${origin}/gift-checkout`,
-      metadata: {
-        gift: "true",
-        gift_term: "yearly",
-        gift_subscription_id: giftId,
-        gift_delivery_method: deliveryMethod,
-      },
+      metadata,
       billing_address_collection: "required",
       automatic_tax: { enabled: true },
-      customer_creation: customerId ? undefined : "always",
       customer_update: customerId ? { name: "auto", address: "auto" } : undefined,
-      subscription_data: {
-        metadata: {
-          gift: "true",
-          gift_subscription_id: giftId,
-          gift_term: "yearly",
-          gift_delivery_method: deliveryMethod,
-        },
-        cancel_at_period_end: true,
-      },
-    });
+    };
 
+    if (checkoutMode === "subscription") {
+      sessionParams.subscription_data = {
+        metadata,
+        cancel_at_period_end: true,
+      };
+    } else {
+      sessionParams.customer_creation = customerId ? undefined : "always";
+      sessionParams.payment_intent_data = { metadata };
+    }
+
+    stage = "create_stripe_checkout_session";
+    const session = await stripe.checkout.sessions.create(sessionParams);
+
+    stage = "persist_checkout_session";
     await supabase
       .from("gift_subscriptions")
       .update({ stripe_session_id: session.id, stripe_checkout_session_id: session.id })
@@ -201,9 +224,9 @@ serve(async (req) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     const errorId = crypto.randomUUID();
-    logStep("ERROR", { errorId, message: errorMessage });
+    logStep("ERROR", { errorId, stage, message: errorMessage });
     return new Response(
-      JSON.stringify({ error: "Gift checkout failed. Please try again.", errorId }),
+      JSON.stringify({ error: "Gift checkout failed. Please try again.", errorId, stage }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 },
     );
   }
