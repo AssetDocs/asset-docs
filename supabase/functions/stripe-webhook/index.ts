@@ -32,16 +32,11 @@ function parseSubscriptionItems(items: Stripe.SubscriptionItem[]) {
       lookupKey === 'asset_safe_annual' ||
       lookupKey === 'asset_safe_gift_annual'
     ) {
-      // Base plan item
+      // The Asset Safe Plan: all billing options map to the same 25 GB base.
       planLookupKey = lookupKey;
       planPriceId = item.price.id;
-      if (lookupKey.startsWith('premium_')) {
-        plan = 'premium';
-        baseStorageGb = 100;
-      } else {
-        plan = 'standard';
-        baseStorageGb = 25;
-      }
+      plan = 'standard';
+      baseStorageGb = 25;
     } else if (lookupKey === 'storage_25gb_monthly') {
       // Storage add-on - quantity-based
       storageAddonBlocksQty = item.quantity || 0;

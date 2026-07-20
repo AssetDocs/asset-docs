@@ -73,7 +73,7 @@ const CompletePricing: React.FC = () => {
     ],
     premium: [
       "Unlimited properties",
-      "50GB secure cloud storage (+25GB add-on available)",
+      "25 GB Secure Storage Included (+25 GB add-ons available)",
       "⭐ Shared access with authorized users",
       "⭐ Legacy Locker (family continuity & instructions)",
       "⭐ Emergency Access Sharing",

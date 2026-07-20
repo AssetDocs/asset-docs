@@ -132,7 +132,7 @@ const Partnership: React.FC = () => {
                 <h3 className="text-xl font-semibold mb-2">3. Affiliate Revenue Program</h3>
                 <p className="mb-2">Agents receive a unique referral code to share with clients.</p>
                 <p className="text-muted-foreground">
-                  💸 Earn commissions on each paid subscription while offering clients real protection.
+                  💸 Earn commissions on each Asset Safe Plan purchase while offering clients real protection.
                 </p>
               </div>
 

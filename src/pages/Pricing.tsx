@@ -145,7 +145,7 @@ const Pricing: React.FC = () => {
 
   const unifiedFeatures = [
     "Unlimited properties",
-    "50GB secure cloud storage (+ add-ons available)",
+    "25 GB Secure Storage Included",
     "Photo, video & document uploads",
     "Room-by-room inventory organization",
     "Secure Vault (Legacy & Digital Access)",
@@ -166,7 +166,7 @@ const Pricing: React.FC = () => {
     description: "Give a full year of protection. Everything included.",
     features: [
       "Unlimited properties",
-      "50GB secure cloud storage",
+      "25 GB Secure Storage Included",
       "Legacy Locker + Authorized Users",
       "Emergency Access Sharing",
       "Full platform access — everything included",
@@ -177,8 +177,8 @@ const Pricing: React.FC = () => {
 
   const StorageNotation = () => (
     <div className="text-center text-sm text-muted-foreground mt-4 space-y-1">
-      <p>50GB ≈ ~3,000 photos or substantial video</p>
-      <p>+25GB add-on available anytime from your account</p>
+      <p>Enough for thousands of photos, important documents, floorplans, and videos.</p>
+      <p>Need more storage? Add another 25 GB anytime for $4.99/month.</p>
     </div>
   );
 

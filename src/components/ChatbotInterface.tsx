@@ -65,7 +65,7 @@ const ChatbotInterface: React.FC = () => {
     
     // Simple response logic based on keywords
     if (normalizedInput.includes('pricing') || normalizedInput.includes('cost') || normalizedInput.includes('price')) {
-      return "Asset Safe is one simple plan that includes unlimited properties and 50GB of secure cloud storage, with an optional 25GB add-on if you need more space. You can view full pricing details on our Pricing page.";
+      return "The Asset Safe Plan includes unlimited properties and 25 GB Secure Storage Included. Need more storage? Add another 25 GB anytime for $4.99/month. You can view full pricing details on our Pricing page.";
     }
     
     if (normalizedInput.includes('value') || normalizedInput.includes('valuation')) {

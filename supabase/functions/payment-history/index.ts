@@ -80,7 +80,7 @@ serve(async (req) => {
     const customerId = customerData.data[0].id;
     logStep("Found Stripe customer", { customerId });
 
-    // Get invoices (paid subscription charges)
+    // Get invoices (Asset Safe Plan charges)
     const invoicesResponse = await fetch(`https://api.stripe.com/v1/invoices?customer=${customerId}&status=paid&limit=20`, {
       headers: {
         'Authorization': `Bearer ${stripeKey}`,

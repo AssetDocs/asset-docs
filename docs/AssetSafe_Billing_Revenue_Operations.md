@@ -91,7 +91,7 @@ Triggered when Stripe reports `unpaid`, `incomplete_expired`, `canceled`, **or**
 - At `expires_at`: Stripe fires `customer.subscription.deleted` → standard cancellation path. Gift recipient enters the same 7-day grace + read-only flow as any cancelled paying customer.
 
 ### 3.5 Storage overage behavior
-- Base storage is the plan default (50 GB for the current Asset Safe plan), tracked in `entitlements.base_storage_gb`.
+- Base storage is the plan default (25 GB for The Asset Safe Plan), tracked in `entitlements.base_storage_gb`.
 - Add-ons sold as 25 GB blocks (`add-storage-25gb`) tracked in `entitlements.storage_addon_blocks_qty`. Total = base + qty × 25.
 - `profiles.storage_quota_gb` mirrors the total for back-compat reads.
 - `storage_usage` table holds per-account computed usage (`count_account_scoped_storage_usage` migration).

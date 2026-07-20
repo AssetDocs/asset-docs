@@ -55,10 +55,10 @@ Deno.serve(async (req) => {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: 'Storage Add-on - 50GB',
-              description: 'Additional 50GB of secure cloud storage',
+              name: 'Storage Add-on - 25GB',
+              description: 'Additional 25GB of secure cloud storage',
             },
-            unit_amount: 999, // $9.99
+            unit_amount: 499, // $4.99
             recurring: {
               interval: 'month',
             },
@@ -73,12 +73,12 @@ Deno.serve(async (req) => {
       metadata: {
         user_id: user.id,
         type: 'storage_addon',
-        storage_amount_gb: '50',
+        storage_amount_gb: '25',
       },
       subscription_data: {
         metadata: {
           type: 'storage_addon',
-          storage_amount_gb: '50',
+          storage_amount_gb: '25',
         },
       },
     });

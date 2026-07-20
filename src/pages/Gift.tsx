@@ -28,7 +28,7 @@ const Gift: React.FC = () => {
     description: "Give a full year of protection. Everything included.",
     features: [
       "Unlimited properties",
-      "50GB secure cloud storage",
+      "25 GB Secure Storage Included",
       "Legacy Locker + Authorized Users",
       "Emergency Access Sharing",
       "Full platform access — everything included",

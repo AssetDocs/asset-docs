@@ -232,7 +232,7 @@ const SystemArchitectureFlowcharts: React.FC = () => {
               <div className="flex flex-col items-center gap-2">
                 <FlowNode type="database" label="auth.users" sublabel="Admin API create (or fetch if exists)" />
                 <Arrow />
-                <FlowNode type="database" label="entitlements" sublabel="plan: 'standard', status: 'active', 50GB" />
+                <FlowNode type="database" label="entitlements" sublabel="plan: 'standard', status: 'active', 25GB" />
               </div>
             </div>
 
@@ -646,7 +646,7 @@ const SystemArchitectureFlowcharts: React.FC = () => {
                 <ul className="text-xs text-emerald-600 space-y-1">
                   <li>• $18.99/mo + tax</li>
                   <li>• Full feature suite (no tiers)</li>
-                  <li>• 50GB base storage</li>
+                  <li>• 25 GB base storage</li>
                   <li>• Cancel anytime via portal</li>
                   <li>• Lookup key: asset_safe_monthly</li>
                 </ul>
@@ -656,7 +656,7 @@ const SystemArchitectureFlowcharts: React.FC = () => {
                 <ul className="text-xs text-teal-600 space-y-1">
                   <li>• $189/yr + tax (~$15.75/mo)</li>
                   <li>• Full feature suite (no tiers)</li>
-                  <li>• 50GB base storage</li>
+                  <li>• 25 GB base storage</li>
                   <li>• Billed yearly via portal</li>
                   <li>• Lookup key: asset_safe_annual</li>
                 </ul>
@@ -691,7 +691,7 @@ const SystemArchitectureFlowcharts: React.FC = () => {
                 <div className="flex flex-col items-center">
                   <FlowNode type="database" label="entitlements" sublabel="Source of truth" />
                   <Arrow />
-                  <span className="text-xs text-muted-foreground">plan, status, current_period_end, 50GB</span>
+                  <span className="text-xs text-muted-foreground">plan, status, current_period_end, 25GB</span>
                 </div>
               </div>
               

@@ -34,7 +34,7 @@ const planConfig = {
   description: "One simple plan. Everything included.",
   features: [
     "Unlimited properties",
-    "50GB secure cloud storage (+ add-ons available)",
+    "25 GB Secure Storage Included (+25 GB add-ons available)",
     "Photo, video & document uploads",
     "Room-by-room inventory organization",
     "Secure Vault & Password Catalog",
@@ -388,8 +388,8 @@ const ManageTab: React.FC = () => {
   };
 
   const hasActivePlan = subscriptionStatus.plan_status === 'active' || subscriptionStatus.plan_status === 'canceling' || subscriptionStatus.subscribed;
-  const totalStorageGb = subscriptionStatus.total_storage_gb || subscriptionStatus.storage_quota_gb || 50;
-  const baseStorageGb = subscriptionStatus.base_storage_gb || 50;
+  const totalStorageGb = subscriptionStatus.total_storage_gb || subscriptionStatus.storage_quota_gb || 25;
+  const baseStorageGb = subscriptionStatus.base_storage_gb || 25;
   const addOnBlocks = subscriptionStatus.storage_addon_blocks_qty || 0;
   const addOnStorageGb = addOnBlocks * 25;
   const hasStorageAddOn = addOnStorageGb > 0;

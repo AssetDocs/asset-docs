@@ -86,7 +86,7 @@ const CompassPartnership = () => {
                 </div>
                 <div className="p-3 bg-muted rounded-lg col-span-2">
                   <CheckCircle2 className="w-4 h-4 text-primary mb-1" />
-                  <p className="text-sm">50GB base storage with optional 25GB add-ons</p>
+                  <p className="text-sm">25 GB Secure Storage Included with optional 25 GB add-ons</p>
                 </div>
               </div>
             </div>

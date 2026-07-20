@@ -83,7 +83,7 @@ serve(async (req) => {
       throw new Error(`Unsupported plan: ${lookupKey}`);
     }
 
-    // Resolve authenticated user (optional for base plans).
+    // Resolve authenticated user (optional for The Asset Safe Plan checkout).
     let user: { id: string; email: string } | null = null;
     const authHeader = req.headers.get("Authorization");
     if (authHeader) {

@@ -97,12 +97,12 @@ serve(async (req) => {
         
         // Determine plan tier based on amount
         if (amount >= 18900) {
-          planId = "premium";
-          propertyLimit = 10;
-          storageQuotaGb = 50;
+          planId = "standard";
+          propertyLimit = 999999;
+          storageQuotaGb = 25;
         } else if (amount >= 12900) {
           planId = "standard";
-          propertyLimit = 5;
+          propertyLimit = 999999;
           storageQuotaGb = 25;
         }
 

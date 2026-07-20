@@ -614,7 +614,7 @@ const SystemInfrastructure = () => {
                       <li>• Legacy Locker Mode</li>
                       <li>• Emergency Vault Sharing</li>
                       <li>• Executor/Continuity Protection</li>
-                      <li>• 50GB storage (+25GB add-on)</li>
+                      <li>• 25 GB storage (+25 GB add-ons)</li>
                     </ul>
                   </div>
                   <div className="p-4 border rounded-lg">
@@ -670,7 +670,7 @@ const SystemInfrastructure = () => {
                     </TableRow>
                     <TableRow>
                       <TableCell className="font-medium">Storage Limits</TableCell>
-                      <TableCell className="text-sm">Asset Safe plan: 50GB base, +25GB add-on — enforced at upload</TableCell>
+                      <TableCell className="text-sm">The Asset Safe Plan: 25 GB base, +25 GB add-ons — enforced at upload</TableCell>
                       <TableCell><Badge className="bg-green-100 text-green-800">Done</Badge></TableCell>
                     </TableRow>
                   </TableBody>

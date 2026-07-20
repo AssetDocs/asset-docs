@@ -35,7 +35,7 @@ const PricingPlans: React.FC = () => {
       "Priority email support"
     ],
     medium: [
-      "50GB secure cloud storage",
+      "25 GB Secure Storage Included",
       "25 user accounts",
       "Unlimited photo and video uploads",
       "Document uploads",

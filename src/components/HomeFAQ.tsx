@@ -30,7 +30,7 @@ const HomeFAQ: React.FC = () => {
     },
     {
       question: "How many properties can I document?",
-      answer: "The Asset Safe plan includes unlimited properties and 50GB of secure cloud storage, with an optional 25GB add-on if you need more space — ideal for homeowners, landlords, estate managers, and multi-property owners alike."
+      answer: "The Asset Safe Plan includes unlimited properties and 25 GB Secure Storage Included. Need more storage? Add another 25 GB anytime for $4.99/month — ideal for homeowners, landlords, estate managers, and multi-property owners alike."
     },
     {
       question: "Can I share access with family members or professionals?",

@@ -26,7 +26,7 @@ const WELCOME_MESSAGE = "Hi! I can help you understand how Asset Safe works, cho
 const KNOWLEDGE_BASE = {
   plans: {
     keywords: ['plan', 'pricing', 'cost', 'subscription', 'price', 'tier', 'monthly', 'annual', 'right for me'],
-    response: `Asset Safe is one simple plan that covers everything:\n\n**Asset Safe Plan**\n• Unlimited properties\n• 50GB secure cloud storage (+25GB add-on available)\n• Photo, video, and document uploads\n• Legacy Locker, Authorized Users, and shared vault access\n• Priority support\n\nNeed more space? You can add a 25GB storage block at any time from your account. Visit our [Pricing page](/pricing) for full details.`
+    response: `Asset Safe is one simple plan that covers everything:\n\n**The Asset Safe Plan**\n• Unlimited properties\n• 25 GB Secure Storage Included\n• Photo, video, and document uploads\n• Legacy Locker, Authorized Users, and shared vault access\n• Priority support\n\nNeed more space? Add another 25 GB anytime for $4.99/month. Visit our [Pricing page](/pricing) for full details.`
   },
   insurance: {
     keywords: ['insurance', 'claim', 'coverage', 'damage', 'loss', 'proof', 'documentation for insurance'],

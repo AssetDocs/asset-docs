@@ -192,35 +192,11 @@ const FAQAccordion: React.FC = () => {
           <AccordionItem value="using-6">
             <AccordionTrigger className="text-lg font-medium">How much storage do I need?</AccordionTrigger>
             <AccordionContent>
-              <p className="mb-4">
-                Storage needs vary depending on how you use the platform and the types of files you upload. Below is a general reference based on common file sizes:
+              <p className="text-muted-foreground">
+                The Asset Safe Plan includes 25 GB Secure Storage Included, enough for thousands of photos,
+                important documents, floorplans, and videos. Need more storage? Add another 25 GB anytime
+                for $4.99/month.
               </p>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left py-2">Storage</th>
-                      <th className="text-left py-2">Photos (~3 MB)</th>
-                      <th className="text-left py-2">1080p Video</th>
-                      <th className="text-left py-2">4K Video</th>
-                    </tr>
-                  </thead>
-                  <tbody className="text-muted-foreground">
-                    <tr className="border-b">
-                      <td className="py-2 font-medium">25 GB</td>
-                      <td className="py-2">~8,300 photos</td>
-                      <td className="py-2">~25 minutes</td>
-                      <td className="py-2">~6.5 minutes</td>
-                    </tr>
-                    <tr>
-              <td className="py-2 font-medium">50 GB</td>
-                      <td className="py-2">~16,600 photos (~3 MB each)</td>
-                      <td className="py-2">~50 minutes</td>
-                      <td className="py-2">~13 minutes</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
             </AccordionContent>
           </AccordionItem>
           

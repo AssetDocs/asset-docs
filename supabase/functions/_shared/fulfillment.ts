@@ -366,7 +366,7 @@ async function upsertBaseEntitlement(
   details: ReturnType<typeof extractSessionDetails>,
   sourceEventId: string,
 ) {
-  const baseStorageGb = 50;
+  const baseStorageGb = 25;
   const { error } = await supabaseAdmin.from("entitlements").upsert(
     {
       user_id: userId,
@@ -544,7 +544,7 @@ export async function fulfillCheckout(
       }
       resolvedUserId = claimedUser.user.id;
     } else {
-      // No metadata.user_id — base plans only (anonymous checkout).
+      // No metadata.user_id: The Asset Safe Plan checkout only (anonymous checkout).
       if (isStorageAddon) {
         return await markManualReview(
           supabaseAdmin,
