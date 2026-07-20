@@ -17,7 +17,7 @@ WHERE (
 
 UPDATE public.profiles p
 SET
-  subscription_tier = 'standard',
+  plan_id = 'standard',
   storage_quota_gb = e.total_storage_gb,
   updated_at = now()
 FROM public.entitlements e
@@ -162,7 +162,7 @@ BEGIN
 
   UPDATE public.profiles
   SET plan_status = 'active',
-      subscription_tier = 'standard',
+      plan_id = 'standard',
       current_period_end = v_activation_end,
       storage_quota_gb = 25,
       updated_at = now()
@@ -174,7 +174,6 @@ BEGIN
     subscribed,
     subscription_tier,
     subscription_end,
-    plan_status,
     updated_at
   )
   VALUES (
@@ -183,7 +182,6 @@ BEGIN
     true,
     'standard',
     v_activation_end,
-    'active',
     now()
   )
   ON CONFLICT (email) DO UPDATE SET
@@ -191,7 +189,6 @@ BEGIN
     subscribed = true,
     subscription_tier = 'standard',
     subscription_end = EXCLUDED.subscription_end,
-    plan_status = 'active',
     updated_at = now();
 
   RETURN jsonb_build_object(
