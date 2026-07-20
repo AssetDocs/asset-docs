@@ -449,7 +449,7 @@ const Pricing: React.FC = () => {
                     features={giftPlan.features}
                     recommended={true}
                     buttonText="Gift This Plan"
-                    onClick={() => window.location.href = `/gift-checkout?plan=${giftPlan.planType}`}
+                    onClick={() => window.location.href = '/gift-checkout'}
                   />
                 </div>
 
