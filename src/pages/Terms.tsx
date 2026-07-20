@@ -20,7 +20,12 @@ const Terms: React.FC = () => {
           Effective Date: [Month Day, 2026] &nbsp;·&nbsp; Last Updated: [Month Day, 2026]
         </p>
 
-        <div className="prose prose-lg max-w-none">
+        <div className="prose prose-lg max-w-none
+          [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:text-primary [&_h2]:mt-10 [&_h2]:mb-4
+          [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:mt-6 [&_h3]:mb-3
+          [&_p]:pl-4 [&_p]:text-foreground [&_p]:leading-relaxed [&_p]:mb-4
+          [&_ul]:pl-8 [&_ul]:mb-4 [&_li]:text-foreground [&_li]:mb-1
+        ">
           <p>
             These Terms and Conditions constitute a legally binding agreement between you and Ellidair LLC, doing business as Asset Safe ("Asset Safe," "we," "us," or "our"), concerning your access to and use of the Asset Safe website, account dashboard, subscription services, storage services, gift subscriptions, and related features, content, communications, and support services (collectively, the "Service").
           </p>
