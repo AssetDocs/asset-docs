@@ -3857,6 +3857,7 @@ export type Database = {
           delivered_at: string | null
           delivery_attempted_at: string | null
           delivery_date: string
+          delivery_method: string
           delivery_status: string
           email_hash: string | null
           expires_at: string | null
@@ -3879,7 +3880,7 @@ export type Database = {
           recipient_deleted_account_id: string | null
           recipient_email: string | null
           recipient_email_sent_at: string | null
-          recipient_name: string
+          recipient_name: string | null
           recipient_user_id: string | null
           redeemed: boolean | null
           redeemed_at: string | null
@@ -3908,6 +3909,7 @@ export type Database = {
           delivered_at?: string | null
           delivery_attempted_at?: string | null
           delivery_date: string
+          delivery_method?: string
           delivery_status?: string
           email_hash?: string | null
           expires_at?: string | null
@@ -3930,7 +3932,7 @@ export type Database = {
           recipient_deleted_account_id?: string | null
           recipient_email?: string | null
           recipient_email_sent_at?: string | null
-          recipient_name: string
+          recipient_name?: string | null
           recipient_user_id?: string | null
           redeemed?: boolean | null
           redeemed_at?: string | null
@@ -3959,6 +3961,7 @@ export type Database = {
           delivered_at?: string | null
           delivery_attempted_at?: string | null
           delivery_date?: string
+          delivery_method?: string
           delivery_status?: string
           email_hash?: string | null
           expires_at?: string | null
@@ -3981,7 +3984,7 @@ export type Database = {
           recipient_deleted_account_id?: string | null
           recipient_email?: string | null
           recipient_email_sent_at?: string | null
-          recipient_name?: string
+          recipient_name?: string | null
           recipient_user_id?: string | null
           redeemed?: boolean | null
           redeemed_at?: string | null
