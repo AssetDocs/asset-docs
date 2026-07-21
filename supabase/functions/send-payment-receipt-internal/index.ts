@@ -120,10 +120,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     const planName =
       planType === 'asset_safe_gift_annual' || planType === 'gift_annual'
-        ? 'Asset Safe Gift Plan - 1 Year'
-        : planType === 'premium'
-          ? 'Premium Plan'
-          : 'Standard Plan';
+        ? 'The Asset Safe Plan (Gift - 1 Year)'
+        : 'The Asset Safe Plan';
 
     // Render the email template
     const html = await renderAsync(
