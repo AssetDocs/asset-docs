@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.51.0";
 import { fulfillCheckout } from "../_shared/fulfillment.ts";
+import { getPreferredInternalSecret } from "../_shared/internalSecret.ts";
 
 
 const corsHeaders = {
@@ -871,20 +872,29 @@ async function handleCheckoutCompleted(
       }
 
       // 3. Invoke send-gift-email via internal secret
-      const internalSecret = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      const internalSecret = getPreferredInternalSecret() ?? serviceRoleKey;
       const sendUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-gift-email`;
       const res = await fetch(sendUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-internal-secret': internalSecret,
-          'Authorization': `Bearer ${internalSecret}`,
+          'Authorization': `Bearer ${serviceRoleKey}`,
         },
         body: JSON.stringify({ giftId: gift.id, claimToken: newClaimToken }),
       });
       if (!res.ok) {
         const text = await res.text().catch(() => '');
         logStep('ERROR: send-gift-email returned non-2xx', { status: res.status, body: text });
+        await supabase
+          .from('gift_subscriptions')
+          .update({
+            delivery_status: 'failed',
+            last_delivery_error: `send-gift-email ${res.status}: ${text.slice(0, 500)}`,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', gift.id);
       } else {
         logStep('Gift email dispatched', { giftId: gift.id });
       }
@@ -1219,7 +1229,9 @@ async function sendPaymentReceipt(supabase: any, session: Stripe.Checkout.Sessio
         amount: session.amount_total || 0,
         currency: session.currency || 'usd',
         transactionId: session.id,
-        planType: session.metadata?.plan_lookup_key || session.metadata?.plan_type || 'standard'
+        planType: session.metadata?.gift === 'true'
+          ? 'asset_safe_gift_annual'
+          : session.metadata?.plan_lookup_key || session.metadata?.plan_type || 'standard'
       }
     });
   } catch (error) {

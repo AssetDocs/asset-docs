@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -31,6 +31,7 @@ const getErrorMessage = (error: unknown, fallback: string) =>
 
 const GiftSuccess: React.FC = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const sessionId = searchParams.get('session_id');
   const successToken = searchParams.get('t');
@@ -130,6 +131,12 @@ const GiftSuccess: React.FC = () => {
   const deliveryDateLabel = deliveryDate
     ? deliveryDate.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
     : null;
+
+  useEffect(() => {
+    if (!delivered) return;
+    const timer = setTimeout(() => navigate('/gift', { replace: true }), 1800);
+    return () => clearTimeout(timer);
+  }, [delivered, navigate]);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -268,15 +275,6 @@ const GiftSuccess: React.FC = () => {
                     </div>
                   </div>
                   )}
-
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <Link to="/gift" className="flex-1">
-                      <Button variant="outline" size="lg" className="w-full">Give Another Gift</Button>
-                    </Link>
-                    <Link to="/" className="flex-1">
-                      <Button size="lg" className="w-full">Return Home</Button>
-                    </Link>
-                  </div>
                 </>
               )}
             </CardContent>

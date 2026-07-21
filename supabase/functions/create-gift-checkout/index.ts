@@ -145,7 +145,7 @@ serve(async (req) => {
     const giftCode = genGiftCode();
     const successToken = base64url(crypto.getRandomValues(new Uint8Array(32)));
     const successTokenHash = await sha256Hex(successToken);
-    const successTokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    const successTokenExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
     stage = "insert_gift_record";
     const { error: insertError } = await supabase.from("gift_subscriptions").insert({

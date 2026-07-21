@@ -6,6 +6,18 @@ verify_jwt = false
 [functions.create-gift-checkout]
 verify_jwt = false
 
+[functions.get-gift-status]
+verify_jwt = false
+
+[functions.send-gift-email]
+verify_jwt = false
+
+[functions.send-payment-receipt-internal]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
+
 [functions.finalize-checkout]
 verify_jwt = false
 

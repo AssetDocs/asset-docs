@@ -118,7 +118,12 @@ const handler = async (req: Request): Promise<Response> => {
       day: 'numeric',
     });
 
-    const planName = planType === 'premium' ? 'Premium Plan' : 'Standard Plan';
+    const planName =
+      planType === 'asset_safe_gift_annual' || planType === 'gift_annual'
+        ? 'Asset Safe Gift Plan - 1 Year'
+        : planType === 'premium'
+          ? 'Premium Plan'
+          : 'Standard Plan';
 
     // Render the email template
     const html = await renderAsync(

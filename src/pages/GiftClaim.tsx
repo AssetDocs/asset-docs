@@ -20,6 +20,7 @@ const REASON_MESSAGES: Record<string, string> = {
   expired: 'This gift has expired.',
   not_paid: 'The gift payment is still processing. Please try again in a minute.',
   not_claimable: 'This Gift Code is no longer claimable.',
+  active_subscription_exists: 'This account already has an active paid subscription. The gift was not applied, so your current subscription remains unchanged. Please contact support before using this gift.',
   invalid_input: 'Missing Gift Code.',
 };
 
