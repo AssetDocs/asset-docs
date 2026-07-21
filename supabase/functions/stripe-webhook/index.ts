@@ -849,7 +849,7 @@ async function handleCheckoutCompleted(
       const newHash = Array.from(new Uint8Array(newHashBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
 
       // Eligible if not_sent/failed, or sending+stale
-      const { data: locked, error: lockErr } = await supabase
+      let lockQuery = supabase
         .from('gift_subscriptions')
         .update({
           delivery_status: 'sending',
@@ -858,8 +858,11 @@ async function handleCheckoutCompleted(
           updated_at: new Date().toISOString(),
         })
         .eq('id', gift.id)
-        .or(`delivery_status.in.(not_sent,failed),and(delivery_status.eq.sending,delivery_attempted_at.lt.${tenMinAgo})`)
-        .select('id');
+        .eq('delivery_status', gift.delivery_status);
+      if (gift.delivery_status === 'sending' && gift.delivery_attempted_at) {
+        lockQuery = lockQuery.eq('delivery_attempted_at', gift.delivery_attempted_at);
+      }
+      const { data: locked, error: lockErr } = await lockQuery.select('id');
 
       if (lockErr) {
         logStep('ERROR acquiring sending lock', lockErr);

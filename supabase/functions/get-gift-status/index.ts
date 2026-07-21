@@ -116,7 +116,7 @@ serve(async (req) => {
       // Acquire sending lock + rotate claim token
       const newToken = base64url(crypto.getRandomValues(new Uint8Array(32)));
       const newHash = await sha256Hex(newToken);
-      const { data: lockedRows, error: lockErr } = await supabase
+      let lockQuery = supabase
         .from("gift_subscriptions")
         .update({
           delivery_status: "sending",
@@ -125,8 +125,11 @@ serve(async (req) => {
           updated_at: new Date().toISOString(),
         })
         .eq("id", gift.id)
-        .in("delivery_status", ["not_sent", "failed", "sending"])
-        .select("id");
+        .eq("delivery_status", gift.delivery_status);
+      if (gift.delivery_status === "sending" && gift.delivery_attempted_at) {
+        lockQuery = lockQuery.eq("delivery_attempted_at", gift.delivery_attempted_at);
+      }
+      const { data: lockedRows, error: lockErr } = await lockQuery.select("id");
       if (lockErr || !lockedRows || lockedRows.length === 0) {
         return new Response(JSON.stringify({ error: "lock_failed" }), {
           status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },

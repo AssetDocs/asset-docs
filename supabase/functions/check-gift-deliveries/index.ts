@@ -77,7 +77,7 @@ serve(async (req) => {
       const claimToken = base64url(crypto.getRandomValues(new Uint8Array(32)));
       const claimTokenHash = await sha256Hex(claimToken);
 
-      const { data: locked, error: lockError } = await supabase
+      let lockQuery = supabase
         .from("gift_subscriptions")
         .update({
           delivery_status: "sending",
@@ -86,8 +86,11 @@ serve(async (req) => {
           updated_at: new Date().toISOString(),
         })
         .eq("id", gift.id)
-        .or(`delivery_status.in.(not_sent,failed),and(delivery_status.eq.sending,delivery_attempted_at.lt.${tenMinAgo})`)
-        .select("id");
+        .eq("delivery_status", gift.delivery_status);
+      if (gift.delivery_status === "sending" && gift.delivery_attempted_at) {
+        lockQuery = lockQuery.eq("delivery_attempted_at", gift.delivery_attempted_at);
+      }
+      const { data: locked, error: lockError } = await lockQuery.select("id");
 
       if (lockError || !locked || locked.length === 0) {
         console.error("[CHECK-GIFT-DELIVERIES] lock failed", {
