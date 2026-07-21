@@ -14,7 +14,7 @@ const HeroSection: React.FC = () => {
               Everything you own.<br />Protected in one place.
             </h1>
             <p className="text-lg md:text-xl mb-4 animate-fade-in text-white/75 font-medium">
-              Your family's assets — secured today, ready for generations.
+              Your family's assets — secured today, ready when it matters most.
             </p>
             <p className="text-xl mb-4 animate-slide-up text-white/85">
               Capture, protect, and organize what matters — all in one system, so you're ready when it counts.
