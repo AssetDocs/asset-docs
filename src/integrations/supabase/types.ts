@@ -3850,6 +3850,7 @@ export type Database = {
         Row: {
           amount: number | null
           anonymized_at: string | null
+          cancelled_at: string | null
           claim_token_hash: string | null
           created_at: string
           currency: string | null
@@ -3868,6 +3869,7 @@ export type Database = {
           gift_message: string | null
           id: string
           last_delivery_error: string | null
+          manually_voided_at: string | null
           paid_at: string | null
           payment_status: string
           plan_type: string
@@ -3886,6 +3888,7 @@ export type Database = {
           redeemed_at: string | null
           redeemed_by_user_id: string | null
           redemption_status: string
+          refunded_at: string | null
           reminder_email_sent: boolean | null
           reminder_email_sent_at: string | null
           resend_purchaser_email_id: string | null
@@ -3894,6 +3897,7 @@ export type Database = {
           stripe_checkout_session_id: string | null
           stripe_payment_intent_id: string | null
           stripe_session_id: string | null
+          stripe_subscription_id: string | null
           success_token_expires_at: string | null
           success_token_hash: string | null
           term: string | null
@@ -3902,6 +3906,7 @@ export type Database = {
         Insert: {
           amount?: number | null
           anonymized_at?: string | null
+          cancelled_at?: string | null
           claim_token_hash?: string | null
           created_at?: string
           currency?: string | null
@@ -3920,6 +3925,7 @@ export type Database = {
           gift_message?: string | null
           id?: string
           last_delivery_error?: string | null
+          manually_voided_at?: string | null
           paid_at?: string | null
           payment_status?: string
           plan_type: string
@@ -3938,6 +3944,7 @@ export type Database = {
           redeemed_at?: string | null
           redeemed_by_user_id?: string | null
           redemption_status?: string
+          refunded_at?: string | null
           reminder_email_sent?: boolean | null
           reminder_email_sent_at?: string | null
           resend_purchaser_email_id?: string | null
@@ -3946,6 +3953,7 @@ export type Database = {
           stripe_checkout_session_id?: string | null
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
+          stripe_subscription_id?: string | null
           success_token_expires_at?: string | null
           success_token_hash?: string | null
           term?: string | null
@@ -3954,6 +3962,7 @@ export type Database = {
         Update: {
           amount?: number | null
           anonymized_at?: string | null
+          cancelled_at?: string | null
           claim_token_hash?: string | null
           created_at?: string
           currency?: string | null
@@ -3972,6 +3981,7 @@ export type Database = {
           gift_message?: string | null
           id?: string
           last_delivery_error?: string | null
+          manually_voided_at?: string | null
           paid_at?: string | null
           payment_status?: string
           plan_type?: string
@@ -3990,6 +4000,7 @@ export type Database = {
           redeemed_at?: string | null
           redeemed_by_user_id?: string | null
           redemption_status?: string
+          refunded_at?: string | null
           reminder_email_sent?: boolean | null
           reminder_email_sent_at?: string | null
           resend_purchaser_email_id?: string | null
@@ -3998,6 +4009,7 @@ export type Database = {
           stripe_checkout_session_id?: string | null
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
+          stripe_subscription_id?: string | null
           success_token_expires_at?: string | null
           success_token_hash?: string | null
           term?: string | null
@@ -8247,6 +8259,10 @@ export type Database = {
       claim_property_file_delete: {
         Args: { p_file_id: string; p_now?: string; p_stale_before: string }
         Returns: boolean
+      }
+      cleanup_abandoned_gift_checkouts: {
+        Args: { _older_than?: string }
+        Returns: number
       }
       clear_last_used_account_if_revoked: {
         Args: { _account_id: string; _user_id: string }
