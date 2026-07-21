@@ -4,6 +4,19 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { isAuthorizedInternalCall } from "../_shared/internalSecret.ts";
+import {
+  ACCOUNT_URL,
+  PRICING_URL,
+  buildPurchaserCodeHtml,
+  buildPurchaserCodeText,
+  buildPurchaserConfirmationHtml,
+  buildPurchaserConfirmationText,
+  buildRecipientRedemptionHtml,
+  buildRecipientRedemptionText,
+  purchaserCodeSubject,
+  purchaserConfirmationSubject,
+  recipientRedemptionSubject,
+} from "./templates.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -12,40 +25,26 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-internal-secret",
 };
 
-const log = (s: string, d?: any) =>
+const log = (s: string, d?: unknown) =>
   console.log(`[SEND-GIFT-EMAIL] ${s}${d ? " - " + JSON.stringify(d) : ""}`);
 
-function escapeHtml(value: unknown): string {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-}
-
-function logoHeader(): string {
-  return `
-    <div style="text-align: center; padding: 30px 20px 20px;">
-      <img src="https://getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg" alt="Asset Safe" style="max-width: 200px;" />
-    </div>
-  `;
-}
-
-function emailShell(content: string): string {
-  return `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8fafc;">
-      ${logoHeader()}
-      <div style="background: #ffffff; padding: 30px 25px; margin: 0 20px; border-radius: 8px;">
-        ${content}
-      </div>
-      <div style="padding: 20px; text-align: center;">
-        <p style="color: #9ca3af; font-size: 12px; margin: 0;">
-          Questions? Contact us at <a href="mailto:support@assetsafe.net" style="color: #1e40af;">support@assetsafe.net</a>.
-        </p>
-      </div>
-    </div>
-  `;
+async function resolvePurchaserSecondaryCta(
+  supabase: ReturnType<typeof createClient>,
+  gift: { purchaser_user_id?: string | null },
+): Promise<string> {
+  try {
+    if (!gift.purchaser_user_id) return PRICING_URL;
+    const { data } = await supabase
+      .from("entitlements")
+      .select("status")
+      .eq("user_id", gift.purchaser_user_id)
+      .maybeSingle();
+    const status = (data as { status?: string } | null)?.status;
+    const active = status && ["active", "trialing", "grace"].includes(status);
+    return active ? ACCOUNT_URL : PRICING_URL;
+  } catch {
+    return PRICING_URL;
+  }
 }
 
 serve(async (req) => {
@@ -112,8 +111,6 @@ serve(async (req) => {
       });
     }
 
-    const planLabel =
-      (gift.plan_type || "standard").charAt(0).toUpperCase() + (gift.plan_type || "standard").slice(1);
     const claimUrl = isPurchaserCode
       ? `https://getassetsafe.com/gift-claim?code=${encodeURIComponent(gift.gift_code)}`
       : `https://getassetsafe.com/gift-claim?code=${encodeURIComponent(gift.gift_code)}&token=${encodeURIComponent(claimToken)}`;
@@ -127,49 +124,19 @@ serve(async (req) => {
         const purRes = await resend.emails.send({
           from: "Asset Safe <noreply@assetsafe.net>",
           to: [gift.purchaser_email],
-          subject: "Your Asset Safe Gift Code is ready",
-          html: emailShell(`
-            <h2 style="color: #1f2937; margin: 0 0 20px; font-size: 22px;">Your Asset Safe Gift Code is ready</h2>
-            <p style="color: #374151; line-height: 1.6; margin: 0 0 20px;">
-              Your Asset Safe Gift Code is ready. You can share this code or claim link whenever you're ready. The recipient will use it to claim their one-year Asset Safe gift subscription.
-            </p>
-            <div style="background: #f8fafc; border: 1px solid #dbeafe; padding: 16px; border-radius: 6px; margin: 0 0 20px;">
-              <p style="color: #6b7280; font-size: 13px; margin: 0 0 6px; text-transform: uppercase; letter-spacing: .04em;">Gift Code</p>
-              <p style="color: #1f2937; font-size: 24px; font-weight: 700; margin: 0;">${escapeHtml(gift.gift_code)}</p>
-            </div>
-            <div style="text-align: center; margin: 0 0 20px;">
-              <a href="${claimUrl}" style="background-color: #1e40af; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
-                Open Claim Link
-              </a>
-            </div>
-            <ol style="color: #374151; line-height: 1.8; padding-left: 20px; margin: 0 0 20px;">
-              <li>Send the Gift Code or claim link to your recipient.</li>
-              <li>They sign in or create an account.</li>
-              <li>Their one-year Asset Safe gift subscription activates when they claim it.</li>
-            </ol>
-            ${gift.gift_message ? `
-              <div style="background: #f8fafc; border-left: 4px solid #1e40af; padding: 12px 16px; border-radius: 4px; margin: 0 0 20px;">
-                <p style="color: #374151; margin: 0; font-style: italic;">"${escapeHtml(gift.gift_message)}"</p>
-              </div>
-            ` : ""}
-            <p style="color: #6b7280; font-size: 13px; line-height: 1.5; margin: 0;">
-              Gift Codes do not expire unless refunded, cancelled, or manually voided.
-            </p>
-            <p style="color: #6b7280; font-size: 13px; line-height: 1.5; margin: 16px 0 0;">
-              Fallback claim link:<br/>
-              <a href="${claimUrl}" style="color: #1e40af; word-break: break-all;">${claimUrl}</a>
-            </p>
-          `),
-          text: `Your Asset Safe Gift Code is ready.
-
-Gift Code: ${gift.gift_code}
-Claim Link: ${claimUrl}
-
-Share this code or claim link whenever you're ready. The recipient will use it to claim their one-year Asset Safe gift subscription.
-
-Gift Codes do not expire unless refunded, cancelled, or manually voided.
-
-Questions? Contact support@assetsafe.net.`,
+          subject: purchaserCodeSubject(),
+          html: buildPurchaserCodeHtml({
+            giftCode: gift.gift_code,
+            claimUrl,
+            giftMessage: gift.gift_message,
+            purchaserEmail: gift.purchaser_email,
+          }),
+          text: buildPurchaserCodeText({
+            giftCode: gift.gift_code,
+            claimUrl,
+            giftMessage: gift.gift_message,
+            purchaserEmail: gift.purchaser_email,
+          }),
         });
         purchaserEmailId = purRes.data?.id ?? null;
         if (purRes.error) lastError = `purchaser: ${purRes.error.message}`;
@@ -180,38 +147,18 @@ Questions? Contact support@assetsafe.net.`,
       }
     } else {
       try {
+        const recData = {
+          gifterName: gift.purchaser_name,
+          recipientEmail: gift.recipient_email,
+          giftMessage: gift.gift_message,
+          claimUrl,
+        };
         const recRes = await resend.emails.send({
           from: "Asset Safe <noreply@assetsafe.net>",
           to: [gift.recipient_email],
-          subject: "You've received a gift subscription to Asset Safe!",
-          html: emailShell(`
-            <h2 style="color: #1f2937; margin: 0 0 20px; font-size: 22px;">You've Received a Gift!</h2>
-            <p style="color: #374151; line-height: 1.6; margin: 0 0 20px;">
-              <strong>${escapeHtml(gift.purchaser_name)}</strong> has gifted you a <strong>${escapeHtml(planLabel)} Plan</strong> subscription to Asset Safe.
-            </p>
-            ${gift.gift_message ? `
-              <div style="background: #f8fafc; border-left: 4px solid #1e40af; padding: 12px 16px; border-radius: 4px; margin: 0 0 20px;">
-                <p style="color: #374151; margin: 0; font-style: italic;">"${escapeHtml(gift.gift_message)}"</p>
-              </div>
-            ` : ""}
-            <p style="color: #374151; line-height: 1.6; margin: 0 0 10px; font-weight: 600;">How to redeem:</p>
-            <ol style="color: #374151; line-height: 1.8; padding-left: 20px; margin: 0 0 25px;">
-              <li>Click the secure button below</li>
-              <li>Sign in (or create an account) using <strong>${escapeHtml(gift.recipient_email)}</strong></li>
-              <li>Your gift will be applied automatically</li>
-            </ol>
-            <div style="text-align: center; margin: 0 0 20px;">
-              <a href="${claimUrl}" style="background-color: #1e40af; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
-                Redeem Your Gift
-              </a>
-            </div>
-            <p style="color: #6b7280; font-size: 13px; line-height: 1.5; margin: 0 0 20px;">
-              This secure link is unique to you. For your protection, the gift can only be redeemed by ${escapeHtml(gift.recipient_email)}.
-            </p>
-            <p style="color: #9ca3af; font-size: 12px; margin: 0;">
-              This gift subscription is valid for 12 months from activation.
-            </p>
-          `),
+          subject: recipientRedemptionSubject(gift.purchaser_name),
+          html: buildRecipientRedemptionHtml(recData),
+          text: buildRecipientRedemptionText(recData),
         });
         recipientEmailId = recRes.data?.id ?? null;
         if (recRes.error) lastError = `recipient: ${recRes.error.message}`;
@@ -223,17 +170,18 @@ Questions? Contact support@assetsafe.net.`,
 
       if (!isResend && gift.purchaser_email && !gift.purchaser_email_sent_at) {
         try {
+          const secondaryCtaUrl = await resolvePurchaserSecondaryCta(supabase, gift);
+          const purData = {
+            recipientEmail: gift.recipient_email,
+            recipientName: gift.recipient_name,
+            secondaryCtaUrl,
+          };
           const purRes = await resend.emails.send({
             from: "Asset Safe <noreply@assetsafe.net>",
             to: [gift.purchaser_email],
-            subject: `Gift Subscription Sent - ${gift.recipient_email}`,
-            html: emailShell(`
-              <h2 style="color: #1f2937; margin: 0 0 20px; font-size: 22px;">Gift Sent Successfully!</h2>
-              <p style="color: #374151; line-height: 1.6; margin: 0 0 20px;">
-                Your gift of a <strong>${escapeHtml(planLabel)} Plan</strong> has been delivered to <strong>${escapeHtml(gift.recipient_email)}</strong>.
-              </p>
-              <p style="color: #374151; line-height: 1.6;">Thank you for giving the gift of Asset Safe!</p>
-            `),
+            subject: purchaserConfirmationSubject(),
+            html: buildPurchaserConfirmationHtml(purData),
+            text: buildPurchaserConfirmationText(purData),
           });
           purchaserEmailId = purRes.data?.id ?? null;
           if (purRes.error && !lastError) lastError = `purchaser: ${purRes.error.message}`;
