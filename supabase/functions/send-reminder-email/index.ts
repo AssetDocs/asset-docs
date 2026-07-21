@@ -42,7 +42,7 @@ const handler = async (req: Request): Promise<Response> => {
 
             <div style="background: #fef3cd; border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: 4px; margin: 0 0 20px;">
               <p style="color: #92400e; margin: 0; font-size: 14px;">
-                Your ${planDisplayName} subscription from gift code <strong>${gift_code}</strong> expires in 1 month.
+                Your Asset Safe Plan subscription from gift code <strong>${gift_code}</strong> expires in 1 month.
               </p>
             </div>
 
