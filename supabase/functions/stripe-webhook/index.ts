@@ -813,9 +813,9 @@ async function handleCheckoutCompleted(
         .from('gift_subscriptions')
         .update({
           payment_status: 'paid',
-          status: gift.status === 'pending'
-            ? (isPurchaserCodeGift ? 'active_unclaimed' : 'paid')
-            : gift.status,
+          // A completed payment is authoritative even when an earlier,
+          // out-of-order failure/expiry event reached us first.
+          status: isPurchaserCodeGift ? 'active_unclaimed' : 'paid',
           paid_at: gift.paid_at ?? new Date().toISOString(),
           stripe_payment_intent_id: (session.payment_intent as string) ?? gift.stripe_payment_intent_id,
           stripe_subscription_id: session.mode === 'subscription'
@@ -863,7 +863,15 @@ async function handleCheckoutCompleted(
 
       if (lockErr) {
         logStep('ERROR acquiring sending lock', lockErr);
-        return;
+        await supabase
+          .from('gift_subscriptions')
+          .update({
+            delivery_status: 'failed',
+            last_delivery_error: `sending lock failed: ${lockErr.message}`.slice(0, 500),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', gift.id);
+        throw new Error(`gift sending lock failed: ${lockErr.message}`);
       }
       if (!locked || locked.length === 0) {
         // Already sending recently or already sent — idempotent skip
@@ -875,15 +883,29 @@ async function handleCheckoutCompleted(
       const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
       const internalSecret = getPreferredInternalSecret() ?? serviceRoleKey;
       const sendUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-gift-email`;
-      const res = await fetch(sendUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-internal-secret': internalSecret,
-          'Authorization': `Bearer ${serviceRoleKey}`,
-        },
-        body: JSON.stringify({ giftId: gift.id, claimToken: newClaimToken }),
-      });
+      let res: Response;
+      try {
+        res = await fetch(sendUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-internal-secret': internalSecret,
+            'Authorization': `Bearer ${serviceRoleKey}`,
+          },
+          body: JSON.stringify({ giftId: gift.id, claimToken: newClaimToken }),
+        });
+      } catch (sendError) {
+        const message = (sendError as Error).message;
+        await supabase
+          .from('gift_subscriptions')
+          .update({
+            delivery_status: 'failed',
+            last_delivery_error: `send-gift-email fetch failed: ${message}`.slice(0, 500),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', gift.id);
+        throw new Error(`gift email dispatch failed: ${message}`);
+      }
       if (!res.ok) {
         const text = await res.text().catch(() => '');
         logStep('ERROR: send-gift-email returned non-2xx', { status: res.status, body: text });
@@ -900,6 +922,7 @@ async function handleCheckoutCompleted(
       }
     } catch (giftError) {
       logStep('Error in gift flow', { error: (giftError as Error).message });
+      throw giftError;
     }
     return; // Skip regular subscription processing for gifts
   }

@@ -39,6 +39,7 @@ const GiftSuccess: React.FC = () => {
   const [status, setStatus] = useState<GiftStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [resending, setResending] = useState(false);
+  const [isDelayed, setIsDelayed] = useState(false);
 
   const fetchStatus = useCallback(async () => {
     if (!sessionId || !successToken) return;
@@ -54,10 +55,13 @@ const GiftSuccess: React.FC = () => {
     }
   }, [sessionId, successToken]);
 
-  // Poll every 5s up to ~30s while not delivered
+  // Poll quickly during normal webhook fulfillment, then continue at a lower
+  // frequency so a recovered/scheduled worker delivery never leaves this page
+  // permanently frozen.
   useEffect(() => {
     let cancelled = false;
     let attempts = 0;
+    let timer: ReturnType<typeof setTimeout> | undefined;
     const tick = async () => {
       if (cancelled) return;
       attempts += 1;
@@ -69,14 +73,15 @@ const GiftSuccess: React.FC = () => {
         latest?.delivery_status === 'not_sent' &&
         latestDeliveryDate !== null &&
         latestDeliveryDate.getTime() > Date.now();
-      const stop =
-        attempts >= 7 ||
-        isScheduled ||
-        (latest?.delivery_status === 'sent' || latest?.delivery_status === 'failed');
-      if (!stop && !cancelled) setTimeout(tick, 5000);
+      if (attempts >= 7 && latest?.delivery_status !== 'sent') setIsDelayed(true);
+      const stop = isScheduled || latest?.delivery_status === 'sent';
+      if (!stop && !cancelled) timer = setTimeout(tick, attempts < 7 ? 5000 : 15000);
     };
     tick();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
   }, [fetchStatus]);
 
   const handleResend = async () => {
@@ -146,7 +151,7 @@ const GiftSuccess: React.FC = () => {
           <Card className="text-center">
             <CardHeader>
               <div className="flex justify-center mb-4">
-                {isLoading || inProgress ? (
+                {isLoading || (inProgress && !isDelayed) ? (
                   <Loader2 className="h-16 w-16 text-primary animate-spin" />
                 ) : delivered ? (
                   <CheckCircle className="h-16 w-16 text-green-500" />
@@ -161,7 +166,7 @@ const GiftSuccess: React.FC = () => {
                   ? purchaserCode ? 'Your Gift Code Is Ready' : 'Gift Delivered!'
                   : scheduled
                     ? 'Gift Scheduled!'
-                  : failed
+                    : failed || isDelayed
                     ? 'Gift Purchase Successful'
                     : 'Processing Your Gift...'}
               </CardTitle>
@@ -172,8 +177,8 @@ const GiftSuccess: React.FC = () => {
                     : 'The recipient has been notified by email.'
                   : scheduled
                     ? `The recipient email will be sent on ${deliveryDateLabel}.`
-                  : failed
-                    ? 'We had trouble sending the email - you can try again below.'
+                   : failed || isDelayed
+                     ? 'Payment is confirmed, but the gift email is delayed. You can try delivery again below.'
                     : 'Finalizing payment and sending the gift notification.'}
               </CardDescription>
             </CardHeader>
@@ -249,7 +254,7 @@ const GiftSuccess: React.FC = () => {
                     </div>
                   )}
 
-                  {failed && (
+                  {(failed || isDelayed) && !purchaserCode && (
                     <Button onClick={handleResend} disabled={resending} size="lg" className="w-full">
                       {resending ? (
                         <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Resending...</>
