@@ -44,10 +44,7 @@ const handler = async (req: Request): Promise<Response> => {
       firstName = profileData?.first_name || user.user_metadata?.first_name || 'there';
     }
 
-    const planNames: { [key: string]: string } = {
-      'basic': 'Basic', 'standard': 'Standard', 'premium': 'Premium', 'enterprise': 'Enterprise',
-    };
-    const planName = planNames[subscription_tier] || subscription_tier;
+    const planName = 'Asset Safe';
     const billingDate = new Date(current_period_end).toLocaleDateString('en-US', {
       year: 'numeric', month: 'long', day: 'numeric',
     });
@@ -57,7 +54,7 @@ const handler = async (req: Request): Promise<Response> => {
     const emailResponse = await resend.emails.send({
       from: "Asset Safe <noreply@assetsafe.net>",
       to: [email],
-      subject: `Welcome to Asset Safe — Your ${planName} Plan is Active!`,
+      subject: `Welcome to Asset Safe — Your Plan is Active!`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8fafc;">
           <div style="text-align: center; padding: 30px 20px 20px;">
@@ -68,7 +65,7 @@ const handler = async (req: Request): Promise<Response> => {
             <h2 style="color: #1f2937; margin: 0 0 20px; font-size: 22px;">Welcome to Asset Safe!</h2>
 
             <p style="color: #374151; line-height: 1.6; margin: 0 0 20px;">
-              Hi ${firstName}, your account is now active! You're on the <strong>${planName} Plan</strong>.
+              Hi ${firstName}, your account is now active! You're on <strong>The Asset Safe Plan</strong>.
             </p>
 
             <p style="color: #374151; line-height: 1.6; margin: 0 0 15px; font-weight: 600;">You now have access to:</p>

@@ -25,7 +25,6 @@ const handler = async (req: Request): Promise<Response> => {
     const { recipient_email, recipient_name, plan_type, gift_code }: ReminderEmailRequest = await req.json();
     console.log('Sending reminder email to:', recipient_email);
 
-    const planDisplayName = plan_type === 'basic' ? 'Basic' : plan_type === 'standard' ? 'Standard' : 'Premium';
     const billingUrl = "https://getassetsafe.com/login";
 
     const emailResponse = await resend.emails.send({
