@@ -108,26 +108,27 @@ Deno.serve(async (req) => {
     auth: { persistSession: false },
   });
 
+  // Use a plain insert instead of PostgREST upsert. The database uniqueness
+  // rule is a partial index (provider_event_id IS NOT NULL), which PostgREST
+  // cannot target through on_conflict and previously caused every webhook to
+  // return 500. A duplicate provider event is an idempotent success.
   const { error } = await supabase
     .from("email_deliverability_events")
-    .upsert(
-      {
-        provider: "resend",
-        provider_event_id: providerEventId,
-        provider_message_id: data?.email_id ?? data?.id ?? null,
-        event_type: eventType,
-        email_stream: data?.tags?.stream ?? data?.tags?.category ?? null,
-        recipient_email_hash,
-        recipient_domain,
-        from_email: data?.from ?? null,
-        subject: data?.subject ?? null,
-        occurred_at,
-        raw_payload: event,
-      },
-      { onConflict: "provider,provider_event_id", ignoreDuplicates: true },
-    );
+    .insert({
+      provider: "resend",
+      provider_event_id: providerEventId,
+      provider_message_id: data?.email_id ?? data?.id ?? null,
+      event_type: eventType,
+      email_stream: data?.tags?.stream ?? data?.tags?.category ?? null,
+      recipient_email_hash,
+      recipient_domain,
+      from_email: data?.from ?? null,
+      subject: data?.subject ?? null,
+      occurred_at,
+      raw_payload: event,
+    });
 
-  if (error) {
+  if (error && error.code !== "23505") {
     console.error("resend-webhook: insert failed", error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,

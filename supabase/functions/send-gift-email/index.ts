@@ -271,7 +271,13 @@ Questions? Contact support@assetsafe.net.`,
       .from("gift_subscriptions")
       .update(updates)
       .eq("id", gift.id);
-    if (updErr) log("Failed to update gift row", updErr);
+    if (updErr) {
+      log("Failed to update gift row", updErr);
+      return new Response(JSON.stringify({ error: "Gift email was accepted but delivery state could not be saved" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     return new Response(
       JSON.stringify({ success: sent, recipientEmailId, purchaserEmailId, error: sent ? null : lastError }),

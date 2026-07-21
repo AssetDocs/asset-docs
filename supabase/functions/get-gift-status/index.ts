@@ -136,19 +136,38 @@ serve(async (req) => {
       const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
       const internalSecret = getPreferredInternalSecret() ?? serviceRoleKey;
       const sendUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-gift-email`;
-      const res = await fetch(sendUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-internal-secret": internalSecret,
-          Authorization: `Bearer ${serviceRoleKey}`,
-        },
-        body: JSON.stringify({ giftId: gift.id, claimToken: newToken, resend: true }),
-      });
-      const sendBody = await res.json().catch(() => ({}));
-      return new Response(JSON.stringify({ success: res.ok, send: sendBody }), {
-        status: res.ok ? 200 : 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      try {
+        const res = await fetch(sendUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-internal-secret": internalSecret,
+            Authorization: `Bearer ${serviceRoleKey}`,
+          },
+          body: JSON.stringify({ giftId: gift.id, claimToken: newToken, resend: true }),
+        });
+        const sendBody = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          await supabase.from("gift_subscriptions").update({
+            delivery_status: "failed",
+            last_delivery_error: `send-gift-email ${res.status}: ${JSON.stringify(sendBody)}`.slice(0, 500),
+            updated_at: new Date().toISOString(),
+          }).eq("id", gift.id);
+        }
+        return new Response(JSON.stringify({ success: res.ok, send: sendBody }), {
+          status: res.ok ? 200 : 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      } catch (sendError) {
+        const message = (sendError as Error).message;
+        await supabase.from("gift_subscriptions").update({
+          delivery_status: "failed",
+          last_delivery_error: `send-gift-email fetch failed: ${message}`.slice(0, 500),
+          updated_at: new Date().toISOString(),
+        }).eq("id", gift.id);
+        return new Response(JSON.stringify({ success: false, error: "delivery_failed" }), {
+          status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     return new Response(JSON.stringify({ error: "unknown_action" }), {

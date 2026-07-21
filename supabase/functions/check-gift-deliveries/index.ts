@@ -75,17 +75,34 @@ serve(async (req) => {
       }
 
       const sendUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-gift-email`;
-      const res = await fetch(sendUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-internal-secret": internalSecret,
-          Authorization: `Bearer ${serviceRoleKey}`,
-        },
-        body: JSON.stringify({ giftId: gift.id, claimToken }),
-      });
-      const sendBody = await res.json().catch(() => ({}));
-      results.push({ gift_id: gift.id, success: res.ok, send: sendBody });
+      try {
+        const res = await fetch(sendUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-internal-secret": internalSecret,
+            Authorization: `Bearer ${serviceRoleKey}`,
+          },
+          body: JSON.stringify({ giftId: gift.id, claimToken }),
+        });
+        const sendBody = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          await supabase.from("gift_subscriptions").update({
+            delivery_status: "failed",
+            last_delivery_error: `send-gift-email ${res.status}: ${JSON.stringify(sendBody)}`.slice(0, 500),
+            updated_at: new Date().toISOString(),
+          }).eq("id", gift.id);
+        }
+        results.push({ gift_id: gift.id, success: res.ok, send: sendBody });
+      } catch (sendError) {
+        const message = (sendError as Error).message;
+        await supabase.from("gift_subscriptions").update({
+          delivery_status: "failed",
+          last_delivery_error: `send-gift-email fetch failed: ${message}`.slice(0, 500),
+          updated_at: new Date().toISOString(),
+        }).eq("id", gift.id);
+        results.push({ gift_id: gift.id, success: false, error: message });
+      }
     }
 
     return new Response(
