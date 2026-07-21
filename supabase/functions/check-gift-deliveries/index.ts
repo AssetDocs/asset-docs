@@ -66,7 +66,11 @@ serve(async (req) => {
       .order("delivery_date", { ascending: true })
       .limit(50);
 
-    if (queryError) throw queryError;
+    if (queryError) {
+      console.error("[CHECK-GIFT-DELIVERIES] candidate query failed", queryError);
+      throw queryError;
+    }
+    console.log("[CHECK-GIFT-DELIVERIES] candidates", { count: gifts?.length ?? 0 });
 
     const results: Array<Record<string, unknown>> = [];
     for (const gift of gifts ?? []) {
@@ -86,6 +90,11 @@ serve(async (req) => {
         .select("id");
 
       if (lockError || !locked || locked.length === 0) {
+        console.error("[CHECK-GIFT-DELIVERIES] lock failed", {
+          giftId: gift.id,
+          error: lockError?.message ?? null,
+          lockedCount: locked?.length ?? 0,
+        });
         results.push({ gift_id: gift.id, success: false, error: lockError?.message || "lock_failed" });
         continue;
       }
