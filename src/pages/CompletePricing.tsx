@@ -1,30 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SubscriptionPlan from '@/components/SubscriptionPlan';
-import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { CheckIcon, Zap, Shield, Star } from 'lucide-react';
+import { CheckIcon } from 'lucide-react';
 
 const CompletePricing: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const location = useLocation();
-  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Get user info from URL params
   const searchParams = new URLSearchParams(location.search);
   const email = searchParams.get('email');
-  const firstName = searchParams.get('firstName');
-  const lastName = searchParams.get('lastName');
-  const phone = searchParams.get('phone');
-  const heardAbout = searchParams.get('heardAbout');
 
-  const handleSubscribe = async (planType: string) => {
+  const handleSubscribe = async () => {
     if (!email) {
       toast({
         title: "Error",
@@ -36,18 +30,15 @@ const CompletePricing: React.FC = () => {
 
     setIsLoading(true);
     try {
-      // Create Stripe checkout session
-      const lookupKey = `${planType}_monthly`;
+      // Preserve internal lookup key — single plan billed monthly.
       const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-checkout', {
-        body: { 
-          planLookupKey: lookupKey,
+        body: {
+          planLookupKey: 'asset_safe_monthly',
           email,
         },
       });
-      
+
       if (checkoutError) throw checkoutError;
-      
-      // Redirect to Stripe checkout
       window.location.href = checkoutData.url;
     } catch (error) {
       console.error('Error processing checkout:', error);
@@ -61,69 +52,27 @@ const CompletePricing: React.FC = () => {
     }
   };
 
-  const planDifferences = {
-    standard: [
-      "Unlimited properties",
-      "25GB secure cloud storage",
-      "Guided home inventory system",
-      "Secure Vault (owner-only access)",
-      "Password Catalog (personal use)",
-      "Claim-ready documentation exports",
-      "Simple, ongoing protection for your home"
-    ],
-    premium: [
-      "Unlimited properties",
-      "25 GB Secure Storage Included (+25 GB add-ons available)",
-      "⭐ Shared access with authorized users",
-      "⭐ Legacy Locker (family continuity & instructions)",
-      "⭐ Emergency Access Sharing",
-      "⭐ Protection that extends beyond you"
-    ]
-  };
-
-  const commonFeatures = [
+  const planFeatures = [
+    "Unlimited properties",
+    "25 GB Secure Storage Included (+25 GB add-ons available)",
     "Photo, video, and document uploads",
     "Room-by-room inventory organization",
-    "Voice notes and item details",
-    "Secure Vault & Password Catalog",
-    "Claim-ready documentation exports (available anytime)",
-    "Multi-factor authentication",
-    "Full web platform access",
-    "Post-damage documentation reports",
-    "Manual Entries",
-    "Upgrades & Repairs Record",
-    "Paint Code Reference",
-    "Source Websites",
+    "Secure Vault (Legacy & Digital Access)",
+    "Legacy Locker (family continuity & instructions)",
+    "Authorized Users",
+    "Emergency Access Sharing",
+    "Voice notes, damage reports, exports",
+    "Memory Safe & Quick Notes",
+    "MFA, full web platform access",
     "Family Archive",
     "Property Profiles",
-    "Insights & Tools"
-  ];
-
-  const plans = [
-    {
-      title: "Standard (Homeowner Plan)",
-      price: "$12.99",
-      description: "For individuals documenting and protecting their home.",
-      features: planDifferences.standard,
-      planType: "standard",
-      icon: <Zap className="h-6 w-6" />,
-      popular: false
-    },
-    {
-      title: "Premium (Legacy & Business Protection)",
-      price: "$18.99",
-      description: "For families, business owners, and anyone who wants shared protection and continuity.",
-      features: planDifferences.premium,
-      planType: "premium",
-      icon: <Star className="h-6 w-6" />,
-      popular: true
-    }
+    "Insights & Tools",
   ];
 
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
-      
+
       {/* Hero Section */}
       <section className="py-16 bg-gradient-to-b from-primary/10 to-background">
         <div className="container mx-auto px-4 text-center">
@@ -132,7 +81,7 @@ const CompletePricing: React.FC = () => {
           </div>
           <h1 className="text-4xl font-bold mb-4">Complete Your Subscription</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-6">
-            Your email has been verified! Choose your plan and complete your billing information to get started.
+            Your email has been verified! Complete your billing information to activate The Asset Safe Plan.
           </p>
           {email && (
             <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 max-w-md mx-auto">
@@ -142,80 +91,35 @@ const CompletePricing: React.FC = () => {
           )}
         </div>
       </section>
-      
-      {/* Subscription Plans Section */}
+
+      {/* Subscription Plan Section */}
       <section className="py-16 bg-secondary/5">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Choose Your Plan</h2>
+            <h2 className="text-3xl font-bold mb-4">The Asset Safe Plan</h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-4">
-              Select the perfect plan for your property management needs
+              One simple plan. Everything included.
             </p>
             <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 max-w-md mx-auto space-y-1">
-              <p className="text-sm text-muted-foreground">No long-term contract. Cancel anytime</p>
+              <p className="text-sm text-muted-foreground">No long-term contract. Cancel anytime.</p>
               <p className="text-xs text-muted-foreground">🇺🇸 Paid subscriptions are currently available to U.S. billing addresses only.</p>
             </div>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {plans.map((plan) => (
-              <div key={plan.title} className="relative">
-                {!plan.popular && (
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-                    <span className="bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
-                      Basic Protection
-                    </span>
-                  </div>
-                )}
-                {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-                    <span className="bg-amber-500 text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
-                      <Star className="h-3 w-3" /> Most Popular for Families and Businesses
-                    </span>
-                  </div>
-                )}
-                <SubscriptionPlan
-                  title={plan.title}
-                  price={plan.price}
-                  description={plan.description}
-                  features={plan.features}
-                  buttonText={isLoading ? "Processing..." : "Choose Plan"}
-                  onClick={() => handleSubscribe(plan.planType)}
-                />
-              </div>
-            ))}
-          </div>
 
-          {/* Common Features */}
-          <div className="mt-12 max-w-4xl mx-auto">
-            <div className="bg-muted/30 rounded-lg p-8">
-              <h3 className="text-xl font-semibold text-center mb-4">Included in Both Plans</h3>
-              <p className="text-sm text-muted-foreground text-center mb-4">
-                Billed monthly. No long-term contract. Cancel anytime.
-              </p>
-              <p className="text-sm text-muted-foreground text-center mb-6">
-                All plans include full access to your data and complete exports anytime.
-              </p>
-              <p className="text-sm font-medium text-center mb-6">
-                Everything you need to fully document and protect your home:
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
-                {commonFeatures.map((feature, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <div className="h-5 w-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                      <svg className="h-3 w-3 text-primary" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                        <path d="M5 13l4 4L19 7"></path>
-                      </svg>
-                    </div>
-                    <span className="text-foreground">{feature}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+          <div className="max-w-lg mx-auto">
+            <SubscriptionPlan
+              title="Asset Safe Plan"
+              price="$18.99"
+              description="No long-term contract. Cancel anytime."
+              features={planFeatures}
+              buttonText={isLoading ? "Processing..." : "Continue to Checkout"}
+              recommended
+              onClick={handleSubscribe}
+            />
           </div>
         </div>
       </section>
-      
+
       <Footer />
     </div>
   );

@@ -120,8 +120,8 @@ const PaymentHistory: React.FC<PaymentHistoryProps> = ({ embedded = false }) => 
                     <span className="font-semibold">
                       ${payment.amount.toFixed(2)} {payment.currency}
                     </span>
-                    <Badge variant={getSubscriptionBadgeVariant(payment.subscriptionType)}>
-                      {payment.subscriptionType.charAt(0).toUpperCase() + payment.subscriptionType.slice(1)}
+                    <Badge variant="default">
+                      Asset Safe Plan
                     </Badge>
                   </div>
                   <div className="text-sm text-muted-foreground">

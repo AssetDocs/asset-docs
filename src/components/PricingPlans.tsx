@@ -151,7 +151,7 @@ const PricingPlans: React.FC = () => {
               <SubscriptionPlan
                 title="Small Business"
                 price="$49.99"
-                description="For small businesses with basic asset documentation needs."
+                description="For small businesses with essential asset documentation needs."
                 features={businessFeatures.small}
                 buttonText="Get Started"
               />
