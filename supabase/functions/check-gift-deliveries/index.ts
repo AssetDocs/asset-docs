@@ -14,6 +14,22 @@ async function sha256Hex(input: string): Promise<string> {
   return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+async function isAuthorizedServiceKeyCall(req: Request): Promise<boolean> {
+  const apiKey = req.headers.get("apikey");
+  const authorization = req.headers.get("authorization");
+  if (!apiKey || authorization !== `Bearer ${apiKey}`) return false;
+
+  try {
+    const response = await fetch(`${Deno.env.get("SUPABASE_URL")}/auth/v1/admin/users?page=1&per_page=1`, {
+      headers: { apikey: apiKey, Authorization: authorization },
+    });
+    await response.text();
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
 function base64url(bytes: Uint8Array): string {
   return btoa(String.fromCharCode(...bytes)).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
 }
@@ -21,7 +37,7 @@ function base64url(bytes: Uint8Array): string {
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
-  if (!isAuthorizedInternalCall(req)) {
+  if (!isAuthorizedInternalCall(req) && !(await isAuthorizedServiceKeyCall(req))) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
