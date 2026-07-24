@@ -31,7 +31,7 @@ const GiftClaim: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
 
   const code = searchParams.get('code') || searchParams.get('gift_code') || '';
   const token = searchParams.get('token') || '';
@@ -61,9 +61,24 @@ const GiftClaim: React.FC = () => {
       if (invErr) throw invErr;
       const result = data as { success: boolean; reason?: string };
       if (result?.success) {
+        if (user?.id) {
+          const { error: setupError } = await supabase
+            .from('profiles')
+            .update({
+              password_set: true,
+              onboarding_complete: true,
+            } as any)
+            .eq('user_id', user.id);
+
+          if (setupError) {
+            console.warn('[GiftClaim] Could not normalize recipient setup flags:', setupError);
+          }
+
+          await refreshProfile();
+        }
         setSuccess(true);
         toast({ title: 'Gift Claimed!', description: 'Your subscription is now active.' });
-        setTimeout(() => navigate('/account'), 2500);
+        setTimeout(() => navigate('/account', { replace: true }), 2500);
       } else {
         setError(REASON_MESSAGES[result?.reason || ''] || 'Failed to redeem this gift.');
       }

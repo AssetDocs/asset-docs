@@ -23,6 +23,9 @@ const getSafeRedirect = (redirect: string | null) => {
   return redirect;
 };
 
+const isGiftRedirect = (redirect: string) =>
+  redirect.startsWith('/gift-claim') || redirect.startsWith('/redeem');
+
 const Auth: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -164,6 +167,20 @@ const Auth: React.FC = () => {
         }
       } else {
         const { data: session } = await supabase.auth.getSession();
+
+        if (isGiftRedirect(redirectTo) && session?.session?.user?.id) {
+          const { error: setupError } = await supabase
+            .from('profiles')
+            .update({
+              password_set: true,
+              onboarding_complete: true,
+            } as any)
+            .eq('user_id', session.session.user.id);
+
+          if (setupError) {
+            console.warn('[Auth] Could not normalize gift recipient setup flags:', setupError);
+          }
+        }
         
         if (isContributorMode) {
           try {
