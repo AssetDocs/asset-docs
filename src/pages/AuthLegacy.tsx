@@ -18,6 +18,11 @@ interface SignInFormData {
   remember?: boolean;
 }
 
+const getSafeRedirect = (redirect: string | null) => {
+  if (!redirect || !redirect.startsWith('/') || redirect.startsWith('//')) return '/account';
+  return redirect;
+};
+
 const Auth: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -25,6 +30,7 @@ const Auth: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, signIn, signUp } = useAuth();
+  const redirectTo = getSafeRedirect(searchParams.get('redirect'));
   const [isContributorMode, setIsContributorMode] = useState(false);
   const [contributorEmail, setContributorEmail] = useState('');
   const [contributorToken, setContributorToken] = useState('');
@@ -121,9 +127,9 @@ const Auth: React.FC = () => {
   // If user is already logged in and NOT in contributor mode, redirect
   useEffect(() => {
     if (user && !isContributorMode) {
-      navigate('/account');
+      navigate(redirectTo, { replace: true });
     }
-  }, [user, navigate, isContributorMode]);
+  }, [user, navigate, isContributorMode, redirectTo]);
 
   const onSignIn = async (data: SignInFormData) => {
     setIsLoading(true);
@@ -196,7 +202,7 @@ const Auth: React.FC = () => {
             description: "You have successfully signed in.",
           });
         }
-        navigate('/account');
+        navigate(redirectTo);
       }
     } catch (error: any) {
       console.error('Sign in error:', error);

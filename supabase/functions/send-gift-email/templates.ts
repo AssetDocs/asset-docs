@@ -169,7 +169,7 @@ export function buildRecipientRedemptionHtml(d: RecipientRedemptionData): string
       </a>
     </div>
     <p style="color: #6b7280; font-size: 13px; line-height: 1.5; margin: 0 0 16px;">
-      This secure link is unique to you. For your protection, the gift can only be redeemed using <strong>${escapeHtml(d.recipientEmail)}</strong>.
+      This secure link is unique to you. For your protection, the gift can only be redeemed using <strong>${escapeHtml(d.recipientEmail)}</strong>. After your account is secured, you can update your email address in Settings.
     </p>
     <p style="color: #6b7280; font-size: 13px; line-height: 1.5; margin: 0 0 16px;">
       Your 12-month subscription begins when your gift is activated. The gift itself does not expire before redemption.
@@ -201,7 +201,7 @@ How to redeem:
 
 Redeem your gift: ${d.claimUrl}
 
-This secure link is unique to you. For your protection, the gift can only be redeemed using ${d.recipientEmail}.
+This secure link is unique to you. For your protection, the gift can only be redeemed using ${d.recipientEmail}. After your account is secured, you can update your email address in Settings.
 
 Your 12-month subscription begins when your gift is activated. The gift itself does not expire before redemption.
 

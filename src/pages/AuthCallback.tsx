@@ -86,6 +86,11 @@ const AuthCallback = () => {
 
     async function routeAuthenticatedUser(session: any, redirectTo?: string | null) {
       try {
+        if (redirectTo?.startsWith('/gift-claim') || redirectTo?.startsWith('/redeem')) {
+          window.location.href = redirectTo;
+          return;
+        }
+
         const { data: profileData } = await supabase
           .from('profiles')
           .select('password_set, onboarding_complete')

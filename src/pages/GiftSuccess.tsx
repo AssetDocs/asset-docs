@@ -137,12 +137,6 @@ const GiftSuccess: React.FC = () => {
     ? deliveryDate.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
     : null;
 
-  useEffect(() => {
-    if (!delivered) return;
-    const timer = setTimeout(() => navigate('/gift', { replace: true }), 1800);
-    return () => clearTimeout(timer);
-  }, [delivered, navigate]);
-
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
@@ -262,6 +256,17 @@ const GiftSuccess: React.FC = () => {
                         <><RefreshCw className="h-4 w-4 mr-2" />Resend gift email</>
                       )}
                     </Button>
+                  )}
+
+                  {(delivered || scheduled) && (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <Button type="button" size="lg" onClick={() => navigate('/gift')}>
+                        Give Another Gift
+                      </Button>
+                      <Button type="button" size="lg" variant="outline" onClick={() => navigate('/')}>
+                        Back Home
+                      </Button>
+                    </div>
                   )}
 
                   {!purchaserCode && (
