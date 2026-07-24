@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { Link, Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
@@ -17,7 +16,6 @@ import CTASection from '@/components/CTASection';
 import { organizationSchema, webApplicationSchema, faqSchema, videoSchema } from '@/utils/structuredData';
 
 const Index: React.FC = () => {
-  const location = useLocation();
   const faqData = [
     { question: "What is a digital home inventory?", answer: "A digital home inventory is a comprehensive record of your property and possessions, including photos, videos, receipts, and detailed descriptions. It serves as proof of ownership for insurance claims, estate planning, and property documentation." },
     { question: "How does Asset Safe protect my data?", answer: "Asset Safe uses enterprise-grade encryption, secure cloud storage, and follows industry best practices for data protection. All files are encrypted both in transit and at rest." },
@@ -39,13 +37,6 @@ const Index: React.FC = () => {
     "@context": "https://schema.org",
     "@graph": [organizationSchema, webApplicationSchema, faqSchema(faqData), heroVideoData]
   };
-
-  const { user, loading } = useAuth();
-  const allowAuthenticatedHome = Boolean((location.state as { allowAuthenticatedHome?: boolean } | null)?.allowAuthenticatedHome);
-
-  if (!loading && user && !allowAuthenticatedHome) {
-    return <Navigate to="/account" replace />;
-  }
 
   return (
     <div className="flex flex-col min-h-screen">
