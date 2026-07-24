@@ -3846,12 +3846,88 @@ export type Database = {
         }
         Relationships: []
       }
+      gift_email_verifications: {
+        Row: {
+          attempt_count: number
+          claim_token_hash: string | null
+          claiming_user_id: string
+          code_hash: string
+          consumed_at: string | null
+          created_at: string
+          expires_at: string
+          gift_subscription_id: string
+          id: string
+          last_sent_at: string | null
+          max_attempts: number
+          recipient_email: string
+          recipient_email_normalized: string
+          request_ip_hash: string | null
+          status: string
+          updated_at: string
+          user_agent_hash: string | null
+          verified_at: string | null
+        }
+        Insert: {
+          attempt_count?: number
+          claim_token_hash?: string | null
+          claiming_user_id: string
+          code_hash: string
+          consumed_at?: string | null
+          created_at?: string
+          expires_at: string
+          gift_subscription_id: string
+          id?: string
+          last_sent_at?: string | null
+          max_attempts?: number
+          recipient_email: string
+          recipient_email_normalized: string
+          request_ip_hash?: string | null
+          status?: string
+          updated_at?: string
+          user_agent_hash?: string | null
+          verified_at?: string | null
+        }
+        Update: {
+          attempt_count?: number
+          claim_token_hash?: string | null
+          claiming_user_id?: string
+          code_hash?: string
+          consumed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          gift_subscription_id?: string
+          id?: string
+          last_sent_at?: string | null
+          max_attempts?: number
+          recipient_email?: string
+          recipient_email_normalized?: string
+          request_ip_hash?: string | null
+          status?: string
+          updated_at?: string
+          user_agent_hash?: string | null
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gift_email_verifications_gift_subscription_id_fkey"
+            columns: ["gift_subscription_id"]
+            isOneToOne: false
+            referencedRelation: "gift_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gift_subscriptions: {
         Row: {
           amount: number | null
           anonymized_at: string | null
           cancelled_at: string | null
+          claim_status: string | null
           claim_token_hash: string | null
+          claimed_account_id: string | null
+          claimed_at: string | null
+          claimed_auth_email: string | null
+          claimed_by_user_id: string | null
           created_at: string
           currency: string | null
           deleted_account_id: string | null
@@ -3881,7 +3957,9 @@ export type Database = {
           purchaser_user_id: string | null
           recipient_deleted_account_id: string | null
           recipient_email: string | null
+          recipient_email_normalized: string | null
           recipient_email_sent_at: string | null
+          recipient_email_verified_at: string | null
           recipient_name: string | null
           recipient_user_id: string | null
           redeemed: boolean | null
@@ -3902,12 +3980,18 @@ export type Database = {
           success_token_hash: string | null
           term: string | null
           updated_at: string
+          verification_method: string | null
         }
         Insert: {
           amount?: number | null
           anonymized_at?: string | null
           cancelled_at?: string | null
+          claim_status?: string | null
           claim_token_hash?: string | null
+          claimed_account_id?: string | null
+          claimed_at?: string | null
+          claimed_auth_email?: string | null
+          claimed_by_user_id?: string | null
           created_at?: string
           currency?: string | null
           deleted_account_id?: string | null
@@ -3937,7 +4021,9 @@ export type Database = {
           purchaser_user_id?: string | null
           recipient_deleted_account_id?: string | null
           recipient_email?: string | null
+          recipient_email_normalized?: string | null
           recipient_email_sent_at?: string | null
+          recipient_email_verified_at?: string | null
           recipient_name?: string | null
           recipient_user_id?: string | null
           redeemed?: boolean | null
@@ -3958,12 +4044,18 @@ export type Database = {
           success_token_hash?: string | null
           term?: string | null
           updated_at?: string
+          verification_method?: string | null
         }
         Update: {
           amount?: number | null
           anonymized_at?: string | null
           cancelled_at?: string | null
+          claim_status?: string | null
           claim_token_hash?: string | null
+          claimed_account_id?: string | null
+          claimed_at?: string | null
+          claimed_auth_email?: string | null
+          claimed_by_user_id?: string | null
           created_at?: string
           currency?: string | null
           deleted_account_id?: string | null
@@ -3993,7 +4085,9 @@ export type Database = {
           purchaser_user_id?: string | null
           recipient_deleted_account_id?: string | null
           recipient_email?: string | null
+          recipient_email_normalized?: string | null
           recipient_email_sent_at?: string | null
+          recipient_email_verified_at?: string | null
           recipient_name?: string | null
           recipient_user_id?: string | null
           redeemed?: boolean | null
@@ -4014,8 +4108,16 @@ export type Database = {
           success_token_hash?: string | null
           term?: string | null
           updated_at?: string
+          verification_method?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "gift_subscriptions_claimed_account_id_fkey"
+            columns: ["claimed_account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "gift_subscriptions_deleted_account_id_fkey"
             columns: ["deleted_account_id"]
