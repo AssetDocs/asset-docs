@@ -22,6 +22,26 @@ interface SignUpFormData {
   giftCode: string;
 }
 
+const getSafeRedirect = (redirect: string | null) => {
+  if (!redirect || !redirect.startsWith('/') || redirect.startsWith('//')) return null;
+  return redirect;
+};
+
+const isGiftRedirect = (redirect: string | null) =>
+  !!redirect && (redirect.startsWith('/gift-claim') || redirect.startsWith('/redeem'));
+
+const getGiftClaimParams = (redirect: string | null) => {
+  if (!redirect) return { code: '', token: '' };
+  const query = redirect.split('?')[1] || '';
+  const params = new URLSearchParams(query);
+  return {
+    code: params.get('code') || params.get('gift_code') || '',
+    token: params.get('token') || '',
+  };
+};
+
+const GIFT_SIGNUP_EMAIL_MESSAGE = 'Please use the email that your gift subscription was sent to.';
+
 const Signup: React.FC = () => {
   const [searchParams] = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
@@ -37,7 +57,8 @@ const Signup: React.FC = () => {
   const contributorEmail = searchParams.get('email');
   const isContributorMode = searchParams.get('mode') === 'contributor';
   const isInviteMode = searchParams.get('mode') === 'invite';
-  const redirectParam = searchParams.get('redirect');
+  const redirectParam = getSafeRedirect(searchParams.get('redirect'));
+  const giftRedirect = isGiftRedirect(redirectParam) ? redirectParam : null;
   const inviteEmail = isInviteMode ? searchParams.get('email') || '' : '';
 
   const signUpForm = useForm<SignUpFormData>({
@@ -81,9 +102,9 @@ const Signup: React.FC = () => {
   // invite landing manually after sign-in so the invite is accepted first).
   useEffect(() => {
     if (user && !isInviteMode) {
-      navigate('/account');
+      navigate(giftRedirect || '/account');
     }
-  }, [user, navigate, isInviteMode]);
+  }, [user, navigate, isInviteMode, giftRedirect]);
 
   const onSignUp = async (data: SignUpFormData) => {
     setEmailExistsError(false);
@@ -99,7 +120,32 @@ const Signup: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const { error, data: signUpData } = await signUp(data.email, data.password, data.firstName, data.lastName, data.giftCode?.trim() || undefined);
+      if (giftRedirect) {
+        const { code, token } = getGiftClaimParams(giftRedirect);
+        if (code && token) {
+          const { data: validation, error: validationError } = await supabase.functions.invoke('validate-gift-signup-email', {
+            body: { code, token, email: data.email },
+          });
+
+          if (validationError || validation?.allowed !== true) {
+            toast({
+              title: "Sign Up Failed",
+              description: GIFT_SIGNUP_EMAIL_MESSAGE,
+              variant: "destructive",
+            });
+            return;
+          }
+        }
+      }
+
+      const { error, data: signUpData } = await signUp(
+        data.email,
+        data.password,
+        data.firstName,
+        data.lastName,
+        data.giftCode?.trim() || undefined,
+        giftRedirect || undefined,
+      );
 
       if (error) {
         // Check for various Supabase "user already exists" error variations
@@ -163,6 +209,8 @@ const Signup: React.FC = () => {
             console.error('Invite auto-confirm error:', e);
           }
           navigate(redirectParam, { replace: true, state: accessToken ? { accessToken } : undefined });
+        } else if (giftRedirect && signUpData?.session) {
+          navigate(giftRedirect, { replace: true });
         } else {
           // Redirect to welcome page for email verification prompt
           const giftCodeParam = data.giftCode?.trim() ? `?giftCode=${encodeURIComponent(data.giftCode.trim())}` : '';
@@ -173,7 +221,7 @@ const Signup: React.FC = () => {
       console.error('Sign up error:', error);
       toast({
         title: "Sign Up Failed",
-        description: error.message || "An error occurred during sign up. Please try again.",
+        description: giftRedirect ? GIFT_SIGNUP_EMAIL_MESSAGE : (error.message || "An error occurred during sign up. Please try again."),
         variant: "destructive",
       });
     } finally {

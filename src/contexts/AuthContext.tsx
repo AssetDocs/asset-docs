@@ -52,7 +52,7 @@ interface AuthContextType {
   profile: Profile | null;
   loading: boolean;
   profileLoading: boolean;
-  signUp: (email: string, password: string, firstName?: string, lastName?: string, giftCode?: string) => Promise<{ error: any; data?: any }>;
+  signUp: (email: string, password: string, firstName?: string, lastName?: string, giftCode?: string, redirectTo?: string) => Promise<{ error: any; data?: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -209,7 +209,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => { cancelled = true; };
   }, [user?.id]); // re-run only when the user ID changes
 
-  const signUp = async (email: string, password: string, firstName?: string, lastName?: string, giftCode?: string) => {
+  const signUp = async (email: string, password: string, firstName?: string, lastName?: string, giftCode?: string, redirectTo?: string) => {
     if (await isDeletedAccountEmail(email)) {
       return {
         data: null,
@@ -217,7 +217,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
     }
 
-    const redirectUrl = `${window.location.origin}/auth/callback`;
+    const redirectUrl = redirectTo
+      ? `${window.location.origin}/auth/callback?type=signup&redirect_to=${encodeURIComponent(redirectTo)}`
+      : `${window.location.origin}/auth/callback`;
     const { data, error } = await supabase.auth.signUp({
       email,
       password,

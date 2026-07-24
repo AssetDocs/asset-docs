@@ -11,6 +11,7 @@ import { Gift, CheckCircle, Loader2, Lock, AlertCircle, Mail, ShieldCheck } from
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAccount } from '@/contexts/AccountContext';
 
 const REASON_MESSAGES: Record<string, string> = {
   invalid_token: 'This gift link is invalid or has been replaced by a newer one. Ask the purchaser to resend it.',
@@ -43,6 +44,7 @@ const GiftClaim: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, refreshProfile } = useAuth();
+  const { refreshAccount } = useAccount();
 
   const code = searchParams.get('code') || searchParams.get('gift_code') || '';
   const token = searchParams.get('token') || '';
@@ -78,6 +80,7 @@ const GiftClaim: React.FC = () => {
       }
 
       await refreshProfile();
+      await refreshAccount();
     }
 
     setSuccess(true);
