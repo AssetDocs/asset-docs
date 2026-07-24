@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -7,14 +7,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Gift, CheckCircle, Loader2, Lock, AlertCircle } from 'lucide-react';
+import { Gift, CheckCircle, Loader2, Lock, AlertCircle, Mail, ShieldCheck } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
 const REASON_MESSAGES: Record<string, string> = {
   invalid_token: 'This gift link is invalid or has been replaced by a newer one. Ask the purchaser to resend it.',
-  wrong_email: 'This gift can only be redeemed by the email address it was sent to. Please sign in with that address.',
+  wrong_email: 'This gift was sent to a different email address. Verify that gifted email below, or sign in with that address.',
+  verification_required: 'This gift was sent to a different email address. Verify that gifted email to apply it to this account.',
+  verification_expired: 'That verification code has expired. Send a new code to continue.',
+  invalid_verification_code: 'That verification code is not correct. Please check the email and try again.',
+  too_many_attempts: 'Too many incorrect attempts. Send a new code to continue.',
   legacy_link_needs_resend: 'This older gift link is no longer valid. Ask the purchaser (or our support team) to resend a new link.',
   already_redeemed: 'This gift has already been redeemed.',
   expired: 'This gift has expired.',
@@ -22,6 +26,13 @@ const REASON_MESSAGES: Record<string, string> = {
   not_claimable: 'This Gift Code is no longer claimable.',
   active_subscription_exists: 'This account already has an active paid subscription. The gift was not applied, so your current subscription remains unchanged. Please contact support before using this gift.',
   invalid_input: 'Missing Gift Code.',
+};
+
+type GiftFunctionResult = {
+  success?: boolean;
+  reason?: string;
+  recipient_email_masked?: string;
+  expires_at?: string;
 };
 
 const getErrorMessage = (error: unknown) =>
@@ -40,18 +51,79 @@ const GiftClaim: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [verificationRequired, setVerificationRequired] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [maskedRecipientEmail, setMaskedRecipientEmail] = useState<string | null>(null);
+  const [verificationExpiresAt, setVerificationExpiresAt] = useState<string | null>(null);
+  const [isStartingVerification, setIsStartingVerification] = useState(false);
+  const [isVerifyingCode, setIsVerifyingCode] = useState(false);
 
   const activeCode = (manualCode.trim() || code).toUpperCase();
   const redeemUrl = `/gift-claim?code=${encodeURIComponent(activeCode)}${token ? `&token=${encodeURIComponent(token)}` : ''}`;
   const loginUrl = `/auth?redirect=${encodeURIComponent(redeemUrl)}`;
   const signupUrl = `/signup?redirect=${encodeURIComponent(redeemUrl)}`;
 
-  const handleClaim = async () => {
+  const finishSuccessfulClaim = useCallback(async () => {
+    if (user?.id) {
+      const { error: setupError } = await supabase
+        .from('profiles')
+        .update({
+          password_set: true,
+          onboarding_complete: true,
+        } as any)
+        .eq('user_id', user.id);
+
+      if (setupError) {
+        console.warn('[GiftClaim] Could not normalize recipient setup flags:', setupError);
+      }
+
+      await refreshProfile();
+    }
+
+    setSuccess(true);
+    toast({ title: 'Gift Claimed!', description: 'Your subscription is now active.' });
+    setTimeout(() => navigate('/account', { replace: true }), 2500);
+  }, [navigate, refreshProfile, toast, user?.id]);
+
+  const startEmailVerification = useCallback(async () => {
+    if (!user || !activeCode || !token) return;
+
+    setIsStartingVerification(true);
+    setError(null);
+    try {
+      const { data, error: invErr } = await supabase.functions.invoke('start-gift-email-verification', {
+        body: { code: activeCode, token },
+      });
+      if (invErr) throw invErr;
+
+      const result = data as GiftFunctionResult;
+      if (result?.success) {
+        if (result.recipient_email_masked) setMaskedRecipientEmail(result.recipient_email_masked);
+        if (result.expires_at) setVerificationExpiresAt(result.expires_at);
+        setVerificationRequired(result.recipient_email_masked ? true : verificationRequired);
+        if (result.recipient_email_masked) {
+          toast({
+            title: 'Verification code sent',
+            description: `Check ${result.recipient_email_masked} for a six-digit code.`,
+          });
+        }
+      } else {
+        setError(REASON_MESSAGES[result?.reason || ''] || 'Could not send the verification code.');
+      }
+    } catch (e: unknown) {
+      setError(getErrorMessage(e));
+    } finally {
+      setIsStartingVerification(false);
+    }
+  }, [activeCode, token, toast, user, verificationRequired]);
+
+  const handleClaim = useCallback(async () => {
     if (!user) return;
     if (!activeCode) {
       setError(REASON_MESSAGES.invalid_input);
       return;
     }
+
     setIsLoading(true);
     setError(null);
     try {
@@ -59,26 +131,13 @@ const GiftClaim: React.FC = () => {
         body: { code: activeCode, token: token || undefined },
       });
       if (invErr) throw invErr;
-      const result = data as { success: boolean; reason?: string };
+
+      const result = data as GiftFunctionResult;
       if (result?.success) {
-        if (user?.id) {
-          const { error: setupError } = await supabase
-            .from('profiles')
-            .update({
-              password_set: true,
-              onboarding_complete: true,
-            } as any)
-            .eq('user_id', user.id);
-
-          if (setupError) {
-            console.warn('[GiftClaim] Could not normalize recipient setup flags:', setupError);
-          }
-
-          await refreshProfile();
-        }
-        setSuccess(true);
-        toast({ title: 'Gift Claimed!', description: 'Your subscription is now active.' });
-        setTimeout(() => navigate('/account', { replace: true }), 2500);
+        await finishSuccessfulClaim();
+      } else if (result?.reason === 'verification_required' || result?.reason === 'wrong_email') {
+        setVerificationRequired(true);
+        await startEmailVerification();
       } else {
         setError(REASON_MESSAGES[result?.reason || ''] || 'Failed to redeem this gift.');
       }
@@ -87,15 +146,40 @@ const GiftClaim: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  }, [activeCode, finishSuccessfulClaim, startEmailVerification, token, user]);
+
+  const handleVerifyCode = async () => {
+    if (!user || !activeCode || verificationCode.length !== 6) {
+      setError(REASON_MESSAGES.invalid_verification_code);
+      return;
+    }
+
+    setIsVerifyingCode(true);
+    setError(null);
+    try {
+      const { data, error: invErr } = await supabase.functions.invoke('verify-gift-email-code', {
+        body: { code: activeCode, token, verificationCode },
+      });
+      if (invErr) throw invErr;
+
+      const result = data as GiftFunctionResult;
+      if (result?.success) {
+        await finishSuccessfulClaim();
+      } else {
+        setError(REASON_MESSAGES[result?.reason || ''] || 'Could not verify that code.');
+      }
+    } catch (e: unknown) {
+      setError(getErrorMessage(e));
+    } finally {
+      setIsVerifyingCode(false);
+    }
   };
 
-  // Auto-claim once signed in
   useEffect(() => {
-    if (user && code && activeCode && !success && !isLoading && !error) {
+    if (user && code && activeCode && !success && !isLoading && !error && !verificationRequired) {
       handleClaim();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, activeCode, token]);
+  }, [activeCode, code, error, handleClaim, isLoading, success, user, verificationRequired]);
 
   if (success) {
     return (
@@ -140,7 +224,7 @@ const GiftClaim: React.FC = () => {
               <CardDescription>
                 {activeCode
                   ? token
-                    ? 'Sign in with the email address the gift was sent to.'
+                    ? 'Sign in or create an account. If this gift was sent to another email you control, you can verify it here.'
                     : 'Sign in or create an account to claim this Gift Code.'
                   : 'Enter your Gift Code to start claiming your subscription.'}
               </CardDescription>
@@ -155,6 +239,7 @@ const GiftClaim: React.FC = () => {
                     onChange={(event) => {
                       setManualCode(event.target.value);
                       setError(null);
+                      setVerificationRequired(false);
                     }}
                     placeholder="GIFT-XXXXXXXXXX"
                     autoCapitalize="characters"
@@ -166,7 +251,7 @@ const GiftClaim: React.FC = () => {
                 <Alert>
                   <Lock className="h-4 w-4" />
                   <AlertDescription>
-                    Sign in or create an account to redeem your gift.
+                    Sign in or create an account to redeem your gift. Existing Asset Safe users can use their current account.
                     <div className="flex flex-col sm:flex-row gap-2 mt-3">
                       <Button asChild size="sm">
                         <Link to={signupUrl}>Create Account & Redeem</Link>
@@ -179,10 +264,67 @@ const GiftClaim: React.FC = () => {
                 </Alert>
               )}
 
-              {user && activeCode && isLoading && (
+              {user && activeCode && isLoading && !verificationRequired && (
                 <div className="flex items-center justify-center gap-2 py-6 text-muted-foreground">
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  <span>Claiming your gift…</span>
+                  <span>Claiming your gift...</span>
+                </div>
+              )}
+
+              {user && activeCode && verificationRequired && (
+                <div className="space-y-4 rounded-lg border bg-background p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="rounded-full bg-primary/10 p-2">
+                      <Mail className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="font-semibold">Verify the gifted email</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Enter the six-digit code sent to {maskedRecipientEmail || 'the gifted email'} to apply this gift to your signed-in account.
+                      </p>
+                      {verificationExpiresAt && (
+                        <p className="text-xs text-muted-foreground">
+                          Code expires at {new Date(verificationExpiresAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="gift-email-code">Verification Code</Label>
+                    <Input
+                      id="gift-email-code"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      value={verificationCode}
+                      onChange={(event) => {
+                        setVerificationCode(event.target.value.replace(/\D/g, '').slice(0, 6));
+                        setError(null);
+                      }}
+                      placeholder="123456"
+                      className="text-center text-lg tracking-[0.4em]"
+                    />
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button
+                      onClick={handleVerifyCode}
+                      disabled={verificationCode.length !== 6 || isVerifyingCode}
+                      className="flex-1"
+                    >
+                      {isVerifyingCode ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ShieldCheck className="mr-2 h-4 w-4" />}
+                      Verify & Claim
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={startEmailVerification}
+                      disabled={isStartingVerification}
+                    >
+                      {isStartingVerification ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4" />}
+                      Send New Code
+                    </Button>
+                  </div>
                 </div>
               )}
 
@@ -193,7 +335,7 @@ const GiftClaim: React.FC = () => {
                 </Alert>
               )}
 
-              {user && activeCode && !isLoading && (
+              {user && activeCode && !isLoading && !verificationRequired && (
                 <Button onClick={handleClaim} className="w-full" size="lg">
                   Claim Gift
                 </Button>

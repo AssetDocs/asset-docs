@@ -59,7 +59,11 @@ serve(async (req) => {
         status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    await supabase.from("rate_limits").insert({ identifier: rlKey, action: "gift_redeem" });
+    await supabase.from("rate_limits").insert({
+      identifier: rlKey,
+      action: "gift_redeem",
+      window_start: new Date().toISOString(),
+    });
 
     const tokenHash = token ? await sha256Hex(token) : null;
     const { data, error } = await supabase.rpc("redeem_gift", {

@@ -160,8 +160,9 @@ export function buildRecipientRedemptionHtml(d: RecipientRedemptionData): string
     <p style="color: #374151; line-height: 1.6; margin: 0 0 10px; font-weight: 600;">How to redeem:</p>
     <ol style="color: #374151; line-height: 1.8; padding-left: 20px; margin: 0 0 25px;">
       <li>Click the secure button below.</li>
-      <li>Sign in&mdash;or create an account&mdash;using <strong>${escapeHtml(d.recipientEmail)}</strong>.</li>
-      <li>Your gift will be applied automatically.</li>
+      <li>Sign in or create an account. Existing Asset Safe users can use their current account.</li>
+      <li>If your account uses a different email, verify <strong>${escapeHtml(d.recipientEmail)}</strong> during redemption.</li>
+      <li>Your gift will be applied automatically after verification.</li>
     </ol>
     <div style="text-align: center; margin: 0 0 20px;">
       <a href="${d.claimUrl}" style="background-color: #1e40af; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
@@ -169,7 +170,7 @@ export function buildRecipientRedemptionHtml(d: RecipientRedemptionData): string
       </a>
     </div>
     <p style="color: #6b7280; font-size: 13px; line-height: 1.5; margin: 0 0 16px;">
-      This secure link is unique to you. For your protection, the gift can only be redeemed using <strong>${escapeHtml(d.recipientEmail)}</strong>. After your account is secured, you can update your email address in Settings.
+      This secure link is unique to you and reserved for <strong>${escapeHtml(d.recipientEmail)}</strong>. If you already have an Asset Safe account under another email, you can verify this gifted email during redemption and apply the gift to your existing account.
     </p>
     <p style="color: #6b7280; font-size: 13px; line-height: 1.5; margin: 0 0 16px;">
       Your 12-month subscription begins when your gift is activated. The gift itself does not expire before redemption.
@@ -180,7 +181,7 @@ export function buildRecipientRedemptionHtml(d: RecipientRedemptionData): string
   `, recipientRedemptionPreheader());
 }
 
-export function buildRecipientRedemptionText(d: RecipientRedemptionData): string {
+function buildRecipientRedemptionTextLegacy(d: RecipientRedemptionData): string {
   const gifter = (d.gifterName ?? "").trim();
   const openingLine = gifter.length > 0
     ? `${gifter} has gifted you a subscription to ${PLAN_NAME}.`
@@ -202,6 +203,37 @@ How to redeem:
 Redeem your gift: ${d.claimUrl}
 
 This secure link is unique to you. For your protection, the gift can only be redeemed using ${d.recipientEmail}. After your account is secured, you can update your email address in Settings.
+
+Your 12-month subscription begins when your gift is activated. The gift itself does not expire before redemption.
+
+Setup only takes a few minutes. Once redeemed, you can create your first property and begin organizing at your own pace.
+
+Questions? Contact ${SUPPORT_EMAIL}.`;
+}
+
+export function buildRecipientRedemptionText(d: RecipientRedemptionData): string {
+  const gifter = (d.gifterName ?? "").trim();
+  const openingLine = gifter.length > 0
+    ? `${gifter} has gifted you a subscription to ${PLAN_NAME}.`
+    : `Someone has gifted you a subscription to ${PLAN_NAME}.`;
+  const message = (d.giftMessage ?? "").trim();
+  const messageBlock = message.length > 0 ? `\n\nMessage from your gifter:\n"${message}"` : "";
+
+  return `You've Received a Gift!
+
+${openingLine}
+
+You're one step closer to having your important property records, family information, and essential documents organized and protected in one secure place.${messageBlock}
+
+How to redeem:
+1. Open the secure link below.
+2. Sign in or create an account. Existing Asset Safe users can use their current account.
+3. If your account uses a different email, verify ${d.recipientEmail} during redemption.
+4. Your gift will be applied automatically after verification.
+
+Redeem your gift: ${d.claimUrl}
+
+This secure link is unique to you and reserved for ${d.recipientEmail}. If you already have an Asset Safe account under another email, you can verify this gifted email during redemption and apply the gift to your existing account.
 
 Your 12-month subscription begins when your gift is activated. The gift itself does not expire before redemption.
 
