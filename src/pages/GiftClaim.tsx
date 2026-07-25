@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAccount } from '@/contexts/AccountContext';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 
 const REASON_MESSAGES: Record<string, string> = {
   invalid_token: 'This gift link is invalid or has been replaced by a newer one. Ask the purchaser to resend it.',
@@ -45,6 +46,7 @@ const GiftClaim: React.FC = () => {
   const { toast } = useToast();
   const { user, refreshProfile } = useAuth();
   const { refreshAccount } = useAccount();
+  const { refreshSubscription } = useSubscription();
 
   const code = searchParams.get('code') || searchParams.get('gift_code') || '';
   const token = searchParams.get('token') || '';
@@ -81,12 +83,13 @@ const GiftClaim: React.FC = () => {
 
       await refreshProfile();
       await refreshAccount();
+      await refreshSubscription();
     }
 
     setSuccess(true);
     toast({ title: 'Gift Claimed!', description: 'Your subscription is now active.' });
     setTimeout(() => navigate('/account', { replace: true }), 2500);
-  }, [navigate, refreshProfile, toast, user?.id]);
+  }, [navigate, refreshAccount, refreshProfile, refreshSubscription, toast, user?.id]);
 
   const startEmailVerification = useCallback(async () => {
     if (!user || !activeCode || !token) return;
