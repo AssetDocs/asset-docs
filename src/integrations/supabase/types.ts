@@ -8963,6 +8963,20 @@ export type Database = {
         Args: { p_account_id: string }
         Returns: undefined
       }
+      start_gift_email_verification: {
+        Args: {
+          _claim_token_hash: string
+          _claiming_user_id: string
+          _code_hash: string
+          _expires_at: string
+          _gift_subscription_id: string
+          _recipient_email: string
+          _request_ip_hash?: string
+          _user_agent_hash?: string
+          _verification_id: string
+        }
+        Returns: Json
+      }
       submit_continuity_dispute: {
         Args: { _reason: string; _token: string }
         Returns: Json
