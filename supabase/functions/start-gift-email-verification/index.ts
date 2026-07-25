@@ -117,31 +117,42 @@ serve(async (req) => {
     const ipHash = await sha256Hex(ip);
     const uaHash = await sha256Hex(req.headers.get("user-agent") ?? "unknown");
 
-    await supabase
-      .from("gift_email_verifications")
-      .update({ status: "cancelled", updated_at: new Date().toISOString() })
-      .eq("gift_subscription_id", gift.id)
-      .eq("claiming_user_id", user.id)
-      .eq("status", "pending");
-
-    const { error: insertErr } = await supabase.from("gift_email_verifications").insert({
-      id: verificationId,
-      gift_subscription_id: gift.id,
-      claiming_user_id: user.id,
-      recipient_email: recipientEmail,
-      recipient_email_normalized: recipientEmail,
-      claim_token_hash: tokenHash,
-      code_hash: codeHash,
-      expires_at: expiresAt,
-      last_sent_at: new Date().toISOString(),
-      request_ip_hash: ipHash,
-      user_agent_hash: uaHash,
+    const { data: verificationStart, error: verificationErr } = await supabase.rpc("start_gift_email_verification", {
+      _verification_id: verificationId,
+      _gift_subscription_id: gift.id,
+      _claiming_user_id: user.id,
+      _recipient_email: recipientEmail,
+      _claim_token_hash: tokenHash,
+      _code_hash: codeHash,
+      _expires_at: expiresAt,
+      _request_ip_hash: ipHash,
+      _user_agent_hash: uaHash,
     });
 
-    if (insertErr) return json({ error: "verification_create_failed", detail: insertErr.message }, 500);
+    if (verificationErr) {
+      return json({ error: "verification_create_failed", detail: verificationErr.message }, 500);
+    }
+
+    if (verificationStart?.success === false) {
+      return json({ success: false, reason: verificationStart.reason || "verification_create_failed" }, 409);
+    }
+
+    const cancelVerification = async () => {
+      await supabase
+        .from("gift_email_verifications")
+        .update({ status: "cancelled", updated_at: new Date().toISOString() })
+        .eq("id", verificationId);
+      await supabase
+        .from("gift_subscriptions")
+        .update({ claim_status: "verification_required", updated_at: new Date().toISOString() })
+        .eq("id", gift.id);
+    };
 
     const resendKey = Deno.env.get("RESEND_API_KEY");
-    if (!resendKey) return json({ error: "missing_resend_key" }, 500);
+    if (!resendKey) {
+      await cancelVerification();
+      return json({ error: "missing_resend_key" }, 500);
+    }
 
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
@@ -181,21 +192,9 @@ This code expires in ${CODE_TTL_MINUTES} minutes. If you did not request this, y
 
     if (!emailRes.ok) {
       const detail = await emailRes.text().catch(() => "");
-      await supabase
-        .from("gift_email_verifications")
-        .update({ status: "cancelled", updated_at: new Date().toISOString() })
-        .eq("id", verificationId);
+      await cancelVerification();
       return json({ error: "email_send_failed", detail: detail.slice(0, 300) }, 502);
     }
-
-    await supabase
-      .from("gift_subscriptions")
-      .update({
-        claim_status: "verification_sent",
-        recipient_email_normalized: recipientEmail,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", gift.id);
 
     return json({
       success: true,
