@@ -1,15 +1,8 @@
-Apply migration `supabase/migrations/20260724230000_guard_gift_subscriber_upsert.sql`.
+Deploy the following Supabase Edge Functions to the connected project (`leotcbfpqiekgkgumecn`) using `supabase--deploy_edge_functions`:
 
-## What it does
-Replaces `public.redeem_gift(text, text, text, uuid)` so the final `INSERT ... ON CONFLICT (email)` on `public.subscribers` no longer hijacks a row that belongs to a different user. New guard:
+1. `expire-gift-entitlements`
+2. `check-gift-reminders`
+3. `check-subscription`
+4. `send-gift-email`
 
-- On email conflict, only update when `subscribers.user_id IS NULL` or already equals the redeemer.
-- Preserves the existing `user_id` via `COALESCE(public.subscribers.user_id, EXCLUDED.user_id)`.
-- All other redemption logic (accounts, memberships, entitlements, profiles, gift_email_verifications consumption) is unchanged.
-- Re-applies `REVOKE ... FROM PUBLIC, anon, authenticated` and `GRANT EXECUTE ... TO service_role`, then `NOTIFY pgrst, 'reload schema'`.
-
-## Steps
-1. Run the migration SQL as authored in the file.
-2. No code, edge function, or frontend changes required — signature is unchanged.
-
-Switch to build mode to apply.
+No code, migration, or config changes. After deploy, report per-function success/failure and link to Edge Function logs for verification.
