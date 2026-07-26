@@ -87,6 +87,15 @@ serve(async (req) => {
     const normalizedRecipientEmail = deliveryMethod === "recipient_email"
       ? recipientEmail.toLowerCase().trim()
       : null;
+    let purchaserUserId: string | null = null;
+    const authHeader = req.headers.get("Authorization");
+    if (authHeader?.startsWith("Bearer ")) {
+      const jwt = authHeader.replace("Bearer ", "");
+      const { data: authData } = await supabase.auth.getUser(jwt);
+      if (authData?.user?.email?.toLowerCase() === normalizedPurchaserEmail) {
+        purchaserUserId = authData.user.id;
+      }
+    }
 
     if (
       deliveryMethod === "recipient_email" &&
@@ -167,6 +176,7 @@ serve(async (req) => {
       term: "yearly",
       delivery_method: deliveryMethod,
       purchaser_email: normalizedPurchaserEmail,
+      purchaser_user_id: purchaserUserId,
       purchaser_name: fromName,
       recipient_email: normalizedRecipientEmail,
       recipient_name: deliveryMethod === "recipient_email" ? (recipientName || "") : "",

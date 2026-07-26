@@ -9,6 +9,9 @@ verify_jwt = false
 [functions.get-gift-status]
 verify_jwt = false
 
+[functions.list-purchased-gifts]
+verify_jwt = true
+
 [functions.validate-gift-signup-email]
 verify_jwt = false
 

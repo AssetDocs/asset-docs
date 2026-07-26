@@ -15,7 +15,7 @@ import { useAccount } from '@/contexts/AccountContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 
 const REASON_MESSAGES: Record<string, string> = {
-  invalid_token: 'This gift link is invalid or has been replaced by a newer one. Ask the purchaser to resend it.',
+  invalid_token: 'This gift link is invalid or has been replaced by a newer one. Ask the purchaser to sign in and resend it from the Gift page.',
   wrong_email: 'This gift was sent to a different email address. Verify that gifted email below, or sign in with that address.',
   verification_required: 'This gift was sent to a different email address. Verify that gifted email to apply it to this account.',
   verification_expired: 'That verification code has expired. Send a new code to continue.',

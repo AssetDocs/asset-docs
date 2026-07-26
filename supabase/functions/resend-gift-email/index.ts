@@ -1,6 +1,7 @@
 // resend-gift-email — authenticated resend for purchaser or admin.
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getPreferredInternalSecret } from "../_shared/internalSecret.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -87,10 +88,20 @@ serve(async (req) => {
         status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    if (gift.redeemed === true || gift.redemption_status === "redeemed") {
+      return new Response(JSON.stringify({ error: "already_redeemed" }), {
+        status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (gift.delivery_date && new Date(gift.delivery_date).getTime() > Date.now()) {
+      return new Response(JSON.stringify({ error: "scheduled", delivery_date: gift.delivery_date }), {
+        status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
     const eligible =
-      ["not_sent", "failed"].includes(gift.delivery_status) ||
+      ["not_sent", "failed", "sent"].includes(gift.delivery_status) ||
       (gift.delivery_status === "sending" && gift.delivery_attempted_at && gift.delivery_attempted_at < tenMinAgo);
     if (!eligible) {
       return new Response(JSON.stringify({ error: "in_progress" }), {
@@ -117,14 +128,15 @@ serve(async (req) => {
       });
     }
 
-    const internalSecret = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const internalSecret = getPreferredInternalSecret() ?? serviceRoleKey;
     const sendUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-gift-email`;
     const res = await fetch(sendUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "x-internal-secret": internalSecret,
-        Authorization: `Bearer ${internalSecret}`,
+        Authorization: `Bearer ${serviceRoleKey}`,
       },
       body: JSON.stringify({ giftId: gift.id, claimToken: newToken, resend: true }),
     });
