@@ -40,6 +40,25 @@ const getAuthErrorCopy = (code: string, description: string) => {
   };
 };
 
+const getSafeRedirectPath = (rawRedirect: string | null) => {
+  if (!rawRedirect) return null;
+
+  try {
+    const parsed = new URL(rawRedirect, window.location.origin);
+    const nestedRedirect = parsed.searchParams.get('redirect_to');
+    if (parsed.pathname === '/auth/callback' && nestedRedirect) {
+      return getSafeRedirectPath(nestedRedirect);
+    }
+    const path = `${parsed.pathname}${parsed.search}${parsed.hash}`;
+    return path.startsWith('/') && !path.startsWith('//') ? path : null;
+  } catch {
+    return rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') ? rawRedirect : null;
+  }
+};
+
+const isGiftRedirect = (redirectTo: string | null) =>
+  !!redirectTo && (redirectTo.startsWith('/gift-claim') || redirectTo.startsWith('/redeem'));
+
 const AuthCallback = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -85,9 +104,10 @@ const AuthCallback = () => {
     }
 
     async function routeAuthenticatedUser(session: any, redirectTo?: string | null) {
+      const safeRedirect = getSafeRedirectPath(redirectTo ?? null);
       try {
-        if (redirectTo?.startsWith('/gift-claim') || redirectTo?.startsWith('/redeem')) {
-          window.location.href = redirectTo;
+        if (isGiftRedirect(safeRedirect)) {
+          window.location.href = safeRedirect;
           return;
         }
 
@@ -109,8 +129,8 @@ const AuthCallback = () => {
           navigate('/welcome/create-password', { replace: true });
         } else if (!profileData?.onboarding_complete) {
           navigate('/onboarding', { replace: true });
-        } else if (redirectTo) {
-          window.location.href = redirectTo;
+        } else if (safeRedirect) {
+          window.location.href = safeRedirect;
         } else {
           navigate('/account', { replace: true });
         }
@@ -152,7 +172,7 @@ const AuthCallback = () => {
       try {
         const token_hash = searchParams.get('token_hash');
         const type = searchParams.get('type');
-        const redirect_to = searchParams.get('redirect_to');
+        const redirect_to = getSafeRedirectPath(searchParams.get('redirect_to'));
 
         if (!token_hash || !type) {
           setCallbackError({
@@ -227,11 +247,17 @@ const AuthCallback = () => {
         if (type === 'signup' || type === 'email_change_confirm_new') {
           toast({
             title: 'Email Verified Successfully!',
-            description: isContributor
+            description: isGiftRedirect(redirect_to)
+              ? 'Your email is verified. Redeeming your gift...'
+              : isContributor
               ? 'Your contributor account is ready. Redirecting to dashboard...'
               : 'Welcome! Redirecting to your dashboard...',
           });
-          navigate(redirect_to || '/account', { replace: true });
+          if (isGiftRedirect(redirect_to) && data.session) {
+            await routeAuthenticatedUser(data.session, redirect_to);
+          } else {
+            navigate(redirect_to || '/account', { replace: true });
+          }
           return;
         }
 

@@ -28,6 +28,23 @@ interface AuthEmailPayload {
   };
 }
 
+function getFinalRedirectPath(rawRedirect?: string | null): string {
+  if (!rawRedirect) return "/account";
+
+  try {
+    const parsed = new URL(rawRedirect, "https://getassetsafe.com");
+    const nestedRedirect = parsed.searchParams.get("redirect_to");
+    if (parsed.pathname === "/auth/callback" && nestedRedirect) {
+      return getFinalRedirectPath(nestedRedirect);
+    }
+    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+  } catch {
+    return rawRedirect.startsWith("/") && !rawRedirect.startsWith("//")
+      ? rawRedirect
+      : "/account";
+  }
+}
+
 serve(async (req: Request): Promise<Response> => {
   // DEBUG: Log immediately when ANY request comes in
   console.log("=== SEND-AUTH-EMAIL FUNCTION CALLED ===");
@@ -85,7 +102,8 @@ serve(async (req: Request): Promise<Response> => {
 
     const displayName = user.user_metadata?.first_name || "Valued User";
     const appUrl = "https://getassetsafe.com";
-    const confirmationUrl = `${appUrl}/auth/callback?token_hash=${email_data.token_hash}&type=${email_data.email_action_type}&redirect_to=${encodeURIComponent(email_data.redirect_to || "/account")}`;
+    const finalRedirect = getFinalRedirectPath(email_data.redirect_to);
+    const confirmationUrl = `${appUrl}/auth/callback?token_hash=${email_data.token_hash}&type=${email_data.email_action_type}&redirect_to=${encodeURIComponent(finalRedirect)}`;
 
     let subject = "";
     let html = "";

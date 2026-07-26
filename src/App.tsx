@@ -384,6 +384,7 @@ const AppContent = () => {
         <Route path="/auth" element={<Auth />} />
         <Route path="/auth/continue" element={<AuthContinue />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/auth/callback/*" element={<AuthCallback />} />
         <Route path="/email-verification" element={<EmailVerification />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/confirm-email-change" element={<ConfirmEmailChange />} />
