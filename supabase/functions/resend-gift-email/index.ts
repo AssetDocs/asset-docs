@@ -120,7 +120,7 @@ serve(async (req) => {
         updated_at: new Date().toISOString(),
       })
       .eq("id", gift.id)
-      .in("delivery_status", ["not_sent", "failed", "sending"])
+      .in("delivery_status", ["not_sent", "failed", "sending", "sent"])
       .select("id");
     if (lockErr || !locked || locked.length === 0) {
       return new Response(JSON.stringify({ error: "lock_failed" }), {

@@ -25,6 +25,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import PaymentHistory from '@/components/PaymentHistory';
 import CancelSubscriptionDialog from '@/components/billing/CancelSubscriptionDialog';
 import DeleteAccountDialog from '@/components/account/DeleteAccountDialog';
+import GiftPurchaseHistory from '@/components/GiftPurchaseHistory';
 
 const planConfig = {
   title: "Asset Safe Plan",
@@ -468,6 +469,8 @@ const ManageTab: React.FC = () => {
 
     return (
       <div className="space-y-6">
+        <GiftPurchaseHistory />
+
         <Card>
           <CardHeader>
             <CardTitle>Complete Your Subscription</CardTitle>
@@ -592,6 +595,7 @@ const ManageTab: React.FC = () => {
   // ===== SUBSCRIBED VIEW =====
   return (
     <div className="space-y-6">
+      <GiftPurchaseHistory />
 
       {/* 1 — Manage Payment Methods & Invoices */}
       <Card>

@@ -84,10 +84,13 @@ export function buildPurchaserConfirmationHtml(d: PurchaserConfirmationData): st
       </a>
     </div>
     <div style="text-align: center; margin: 0 0 24px;">
-      <a href="${d.secondaryCtaUrl}" style="color: #1e40af; text-decoration: none; padding: 10px 20px; border: 1px solid #1e40af; border-radius: 6px; display: inline-block; font-weight: 500; font-size: 14px;">
-        Secure Your Own Account
+      <a href="${giftUrl}" style="color: #1e40af; text-decoration: none; padding: 10px 20px; border: 1px solid #1e40af; border-radius: 6px; display: inline-block; font-weight: 500; font-size: 14px;">
+        Manage This Gift
       </a>
     </div>
+    <p style="color: #6b7280; font-size: 13px; line-height: 1.5; margin: 0 0 16px;">
+      To view delivery status or resend the invite later, create an Asset Safe account or sign in using your purchaser email address.
+    </p>
     <p style="color: #374151; line-height: 1.6; margin: 0;">
       Thank you for giving something practical, meaningful, and built to last.
     </p>
@@ -109,7 +112,9 @@ You've given them a secure place to organize important property records, family 
 They'll receive a separate email with a secure link to redeem their gift.
 
 Send another gift: ${giftUrl}
-Secure your own account: ${d.secondaryCtaUrl}
+Manage this gift: ${giftUrl}
+
+To view delivery status or resend the invite later, create an Asset Safe account or sign in using your purchaser email address.
 
 Thank you for giving something practical, meaningful, and built to last.
 

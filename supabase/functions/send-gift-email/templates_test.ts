@@ -44,19 +44,20 @@ Deno.test("purchaser confirmation primary CTA links to production gift page", ()
   assertStringIncludes(html, "Send Another Gift");
 });
 
-Deno.test("purchaser confirmation secondary CTA uses provided account/pricing URL", () => {
+Deno.test("purchaser confirmation secondary CTA links to gift management", () => {
   const htmlActive = buildPurchaserConfirmationHtml({
     recipientEmail: "r@example.com",
     secondaryCtaUrl: ACCOUNT_URL,
   });
-  assertStringIncludes(htmlActive, `href="${ACCOUNT_URL}"`);
-  assertStringIncludes(htmlActive, "Secure Your Own Account");
+  assertStringIncludes(htmlActive, `href="${GIFT_URL}"`);
+  assertStringIncludes(htmlActive, "Manage This Gift");
+  assertStringIncludes(htmlActive, "using your purchaser email address");
 
   const htmlInactive = buildPurchaserConfirmationHtml({
     recipientEmail: "r@example.com",
     secondaryCtaUrl: PRICING_URL,
   });
-  assertStringIncludes(htmlInactive, `href="${PRICING_URL}"`);
+  assertStringIncludes(htmlInactive, `href="${GIFT_URL}"`);
 });
 
 Deno.test("purchaser confirmation subject line", () => {
@@ -73,7 +74,8 @@ Deno.test("purchaser confirmation plain-text mirrors HTML essentials", () => {
   assertStringIncludes(txt, "recipient@example.com");
   assertStringIncludes(txt, "Example Recipient");
   assertStringIncludes(txt, GIFT_URL);
-  assertStringIncludes(txt, ACCOUNT_URL);
+  assertStringIncludes(txt, "Manage this gift");
+  assertStringIncludes(txt, "purchaser email address");
   assertStringIncludes(txt, "support@assetsafe.net");
 });
 
