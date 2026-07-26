@@ -168,8 +168,19 @@ const GiftPurchaseHistory: React.FC<GiftPurchaseHistoryProps> = ({
             Loading gift purchases...
           </div>
         ) : purchasedGifts.length === 0 ? (
-          <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-            No gift purchases are linked to this account yet. If you purchased as a guest, use the same purchaser email when creating or signing in to your account.
+          <div className="rounded-lg border border-dashed bg-primary/5 p-5 text-center">
+            <h3 className="text-lg font-semibold text-foreground">
+              Give the Gift of Protection and Peace of Mind
+            </h3>
+            <p className="mt-1 text-sm font-medium text-brand-orange">
+              Practical, Not Disposable - A gift that provides long-term value
+            </p>
+            <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground">
+              Gift a full year of Asset Safe access. Once you send a gift from this account, delivery and redemption details will appear here.
+            </p>
+            <Button className="mt-4" onClick={() => navigate('/gift')}>
+              Gift the Asset Safe Plan
+            </Button>
           </div>
         ) : (
           purchasedGifts.map((gift) => {
