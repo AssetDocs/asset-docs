@@ -143,7 +143,7 @@ const Signup: React.FC = () => {
         data.password,
         data.firstName,
         data.lastName,
-        data.giftCode?.trim() || undefined,
+        giftRedirect ? undefined : data.giftCode?.trim() || undefined,
         giftRedirect || undefined,
       );
 
@@ -213,7 +213,7 @@ const Signup: React.FC = () => {
           navigate(giftRedirect, { replace: true });
         } else {
           // Redirect to welcome page for email verification prompt
-          const giftCodeParam = data.giftCode?.trim() ? `?giftCode=${encodeURIComponent(data.giftCode.trim())}` : '';
+          const giftCodeParam = !giftRedirect && data.giftCode?.trim() ? `?giftCode=${encodeURIComponent(data.giftCode.trim())}` : '';
           navigate(`/welcome${giftCodeParam}`);
         }
       }
@@ -446,16 +446,16 @@ const Signup: React.FC = () => {
                   )}
                 />
 
-                {/* Gift Code Field - for lifetime access */}
+                {!giftRedirect && (
                 <FormField
                   control={signUpForm.control}
                   name="giftCode"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Gift Code (Optional)</FormLabel>
+                      <FormLabel>Lifetime Access Code (Optional)</FormLabel>
                       <FormControl>
                         <Input 
-                          placeholder="Enter gift code if you have one"
+                          placeholder="Enter lifetime access code if you have one"
                           {...field}
                           onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                         />
@@ -469,6 +469,7 @@ const Signup: React.FC = () => {
                     </FormItem>
                   )}
                 />
+                )}
 
 
 

@@ -137,6 +137,12 @@ const GiftSuccess: React.FC = () => {
     ? deliveryDate.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
     : null;
 
+  useEffect(() => {
+    if (purchaserCode || (!delivered && !scheduled)) return;
+    const timer = window.setTimeout(() => navigate('/gift', { replace: true }), 3500);
+    return () => window.clearTimeout(timer);
+  }, [delivered, navigate, purchaserCode, scheduled]);
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
@@ -245,20 +251,23 @@ const GiftSuccess: React.FC = () => {
                       <p className="text-sm text-muted-foreground">
                         This Gift Code does not expire unless it is refunded, cancelled, or manually voided.
                       </p>
+                      <p className="text-sm font-medium text-amber-700">
+                        Anyone who redeems this code becomes the recipient. Keep it private until you share it with the person you choose.
+                      </p>
                     </div>
                   )}
 
-                  {(failed || isDelayed) && !purchaserCode && (
+                  {(failed || isDelayed) && (
                     <Button onClick={handleResend} disabled={resending} size="lg" className="w-full">
                       {resending ? (
                         <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Resending...</>
                       ) : (
-                        <><RefreshCw className="h-4 w-4 mr-2" />Resend gift email</>
+                        <><RefreshCw className="h-4 w-4 mr-2" />{purchaserCode ? 'Retry gift code email' : 'Resend gift email'}</>
                       )}
                     </Button>
                   )}
 
-                  {(delivered || scheduled) && (
+                  {(delivered || scheduled) && purchaserCode && (
                     <div className="grid gap-3 sm:grid-cols-2">
                       <Button type="button" size="lg" onClick={() => navigate('/gift')}>
                         Give Another Gift
@@ -277,13 +286,18 @@ const GiftSuccess: React.FC = () => {
                     </div>
                     <div className="flex items-start gap-2">
                       <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">2</span>
-                      <span>They sign in (or create an account) using the gifted email address.</span>
+                      <span>They sign in or create an account. Existing users can verify the gifted email if their account uses another address.</span>
                     </div>
                     <div className="flex items-start gap-2">
                       <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">3</span>
                       <span>Their 12-month subscription activates when they redeem the gift.</span>
                     </div>
                   </div>
+                  )}
+                  {(delivered || scheduled) && !purchaserCode && (
+                    <p className="text-sm text-muted-foreground">
+                      Returning you to the gift page...
+                    </p>
                   )}
                 </>
               )}

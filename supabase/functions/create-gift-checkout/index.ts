@@ -58,6 +58,7 @@ serve(async (req) => {
       recipientName,
       deliveryDate,
       deliveryMethod = "recipient_email",
+      allowSelfGift = false,
     } = body ?? {};
 
     stage = "validate_request";
@@ -86,6 +87,17 @@ serve(async (req) => {
     const normalizedRecipientEmail = deliveryMethod === "recipient_email"
       ? recipientEmail.toLowerCase().trim()
       : null;
+
+    if (
+      deliveryMethod === "recipient_email" &&
+      normalizedRecipientEmail === normalizedPurchaserEmail &&
+      allowSelfGift !== true
+    ) {
+      return new Response(
+        JSON.stringify({ error: "This looks like your own email. Please confirm self-gift delivery before continuing.", code: "self_gift" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 },
+      );
+    }
 
     stage = "schedule_delivery";
     let scheduledDeliveryDate = new Date();

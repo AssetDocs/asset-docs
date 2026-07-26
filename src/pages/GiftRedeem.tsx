@@ -26,10 +26,10 @@ type LegacyGift = {
 type PageState = 'loading' | 'redirecting' | 'legacy_valid' | 'invalid' | 'expired' | 'already_redeemed' | 'success';
 
 /**
- * Legacy /redeem?token= route.
- * Attempts to resolve the token to a gift_subscriptions gift_code and redirects
- * to /gift-claim?code=<gift_code>. Falls back to inline legacy redemption if
- * no gift_subscriptions record exists (purely old data).
+ * Deprecated legacy /redeem?token= route.
+ * Modern gift_subscriptions gifts must flow through /gift-claim and the
+ * redeem_gift RPC. This page is kept only to bridge old rows in the legacy
+ * gifts table that have no matching gift_subscriptions record.
  */
 const GiftRedeem: React.FC = () => {
   const [searchParams] = useSearchParams();

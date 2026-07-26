@@ -103,6 +103,7 @@ const GiftCheckout: React.FC = () => {
   const { user, profile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [consentError, setConsentError] = useState('');
+  const [selfGiftConfirmed, setSelfGiftConfirmed] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -120,7 +121,17 @@ const GiftCheckout: React.FC = () => {
 
   const agreeToTerms = form.watch('agreeToTerms');
   const deliveryMethod = form.watch('deliveryMethod');
+  const purchaserEmail = form.watch('purchaserEmail');
+  const recipientEmail = form.watch('recipientEmail');
   const isPurchaserCode = deliveryMethod === 'purchaser_code';
+  const isSelfGift =
+    deliveryMethod === 'recipient_email' &&
+    Boolean(purchaserEmail.trim().toLowerCase()) &&
+    purchaserEmail.trim().toLowerCase() === (recipientEmail || '').trim().toLowerCase();
+
+  useEffect(() => {
+    if (!isSelfGift) setSelfGiftConfirmed(false);
+  }, [isSelfGift]);
 
   useEffect(() => {
     if (user?.email && !form.getValues('purchaserEmail')) {
@@ -137,6 +148,16 @@ const GiftCheckout: React.FC = () => {
     setConsentError('');
 
     try {
+      if (isSelfGift && !selfGiftConfirmed) {
+        toast({
+          title: "Confirm self-gift",
+          description: "This recipient email matches your email. Confirm below if you intentionally want the gift sent to yourself.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
       // Step 1: Log consent
       const { data: consentData, error: consentError } = await supabase.functions.invoke('log-consent', {
         body: {
@@ -162,6 +183,7 @@ const GiftCheckout: React.FC = () => {
           giftMessage: values.giftMessage || '',
           purchaserEmail: values.purchaserEmail,
           deliveryDate: values.deliveryMethod === 'recipient_email' ? values.deliveryDate : undefined,
+          allowSelfGift: isSelfGift && selfGiftConfirmed,
         },
       });
 
@@ -233,6 +255,21 @@ const GiftCheckout: React.FC = () => {
                               </FormItem>
                             )}
                           />
+                          {isSelfGift && (
+                            <Alert className="border-amber-300 bg-amber-50">
+                              <AlertCircle className="h-4 w-4 text-amber-700" />
+                              <AlertDescription className="space-y-3 text-amber-900">
+                                <p>This looks like your own email. If you meant to subscribe for yourself, use the regular pricing page. If you intentionally want to send yourself a gift code by email, confirm below.</p>
+                                <label className="flex items-start gap-2 text-sm">
+                                  <Checkbox
+                                    checked={selfGiftConfirmed}
+                                    onCheckedChange={(checked) => setSelfGiftConfirmed(checked === true)}
+                                  />
+                                  <span>I understand this gift invitation will be sent to my own email.</span>
+                                </label>
+                              </AlertDescription>
+                            </Alert>
+                          )}
                           <FormField
                             control={form.control}
                             name="purchaserEmail"

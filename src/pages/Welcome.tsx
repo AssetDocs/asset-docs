@@ -13,7 +13,8 @@ const Welcome: React.FC = () => {
   const [isResending, setIsResending] = useState(false);
   const [isValidatingCode, setIsValidatingCode] = useState(false);
   
-  // Get gift code from URL if present
+  // Legacy lifetime access code from URL if present. Modern gift
+  // subscriptions are redeemed through /gift-claim, not this screen.
   const giftCode = searchParams.get('giftCode');
 
   // Prevent back navigation
@@ -31,7 +32,7 @@ const Welcome: React.FC = () => {
     };
   }, []);
 
-  // Validate lifetime gift code and activate subscription
+  // Validate legacy lifetime access code and activate subscription
   const validateGiftCode = async (userId: string) => {
     if (!giftCode) return false;
     
@@ -48,7 +49,7 @@ const Welcome: React.FC = () => {
 
       if (data?.success) {
         toast({
-          title: "🎁 Gift Code Applied!",
+          title: "Lifetime Access Code Applied",
           description: "You now have lifetime access to Asset Safe. Welcome!",
         });
         return true;
@@ -58,7 +59,7 @@ const Welcome: React.FC = () => {
         return false;
       }
     } catch (err) {
-      console.error('Error validating gift code:', err);
+      console.error('Error validating lifetime access code:', err);
       return false;
     } finally {
       setIsValidatingCode(false);
@@ -70,7 +71,7 @@ const Welcome: React.FC = () => {
     const { data: { user } } = await supabase.auth.getUser();
     // Only redirect if user exists AND email is confirmed
     if (user?.email_confirmed_at) {
-      // If gift code present, validate it first
+      // If legacy lifetime access code is present, validate it first
       if (giftCode) {
         const isValid = await validateGiftCode(user.id);
         if (isValid) {
@@ -156,17 +157,17 @@ const Welcome: React.FC = () => {
             </p>
           </div>
 
-          {/* Gift Code Notice */}
+          {/* Legacy Lifetime Access Code Notice */}
           {giftCode && (
             <div className="bg-green-50 dark:bg-green-900/20 border-2 border-green-400 dark:border-green-600 rounded-lg p-6 mb-6">
               <div className="flex items-center justify-center gap-2 text-green-900 dark:text-green-100 font-medium">
                 <Gift className="w-5 h-5" />
-                <span>Gift Code: {giftCode}</span>
+                <span>Lifetime Access Code: {giftCode}</span>
               </div>
               <p className="text-center text-sm text-green-800 dark:text-green-200 mt-2">
                 {isValidatingCode 
-                  ? "Validating your gift code..." 
-                  : "Your gift code will be applied after email verification."}
+                  ? "Validating your lifetime access code..." 
+                  : "Your lifetime access code will be applied after email verification."}
               </p>
             </div>
           )}
@@ -178,7 +179,7 @@ const Welcome: React.FC = () => {
             </p>
             <p className="text-center text-sm text-yellow-800 dark:text-yellow-200 mt-2">
               {giftCode 
-                ? "Once you verify your email, your gift code will be applied and you'll have instant access."
+                ? "Once you verify your email, your lifetime access code will be applied and you'll have instant access."
                 : "Once you verify your email, you'll be automatically redirected to complete your subscription."}
             </p>
             <div className="flex justify-center mt-4">

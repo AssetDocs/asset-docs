@@ -24,6 +24,7 @@ import FirstDashboardWelcomeModal from '@/components/FirstDashboardWelcomeModal'
 
 import SubscriptionEndingBanner from '@/components/SubscriptionEndingBanner';
 import ExpiredSubscriptionBanner from '@/components/ExpiredSubscriptionBanner';
+import GiftExpiringBanner from '@/components/GiftExpiringBanner';
 import GracePeriodBanner from '@/components/GracePeriodBanner';
 import ScheduledDeletionBanner from '@/components/account/ScheduledDeletionBanner';
 import SecurityProgress from '@/components/SecurityProgress';
@@ -300,6 +301,7 @@ const Account: React.FC = () => {
           {/* Viewer Restriction Banner */}
           <ViewerRestrictionBanner />
           <GracePeriodBanner />
+          <GiftExpiringBanner />
           <ExpiredSubscriptionBanner
             onReactivate={() => navigate('/account/settings?tab=manage')}
             onExport={() => setActiveTab('export')}

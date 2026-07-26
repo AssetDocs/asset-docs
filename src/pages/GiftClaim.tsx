@@ -26,7 +26,7 @@ const REASON_MESSAGES: Record<string, string> = {
   expired: 'This gift has expired.',
   not_paid: 'The gift payment is still processing. Please try again in a minute.',
   not_claimable: 'This Gift Code is no longer claimable.',
-  active_subscription_exists: 'This account already has an active paid subscription. The gift was not applied, so your current subscription remains unchanged. Please contact support before using this gift.',
+  active_subscription_exists: 'This account already has an active paid subscription. The gift was not applied, so your current subscription remains unchanged.',
   invalid_input: 'Missing Gift Code.',
 };
 
@@ -66,6 +66,7 @@ const GiftClaim: React.FC = () => {
   const redeemUrl = `/gift-claim?code=${encodeURIComponent(activeCode)}${token ? `&token=${encodeURIComponent(token)}` : ''}`;
   const loginUrl = `/auth?redirect=${encodeURIComponent(redeemUrl)}`;
   const signupUrl = `/signup?redirect=${encodeURIComponent(redeemUrl)}`;
+  const activeSubscriptionBlocked = error === REASON_MESSAGES.active_subscription_exists;
 
   const finishSuccessfulClaim = useCallback(async () => {
     if (user?.id) {
@@ -337,7 +338,38 @@ const GiftClaim: React.FC = () => {
               {error && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
+                  <AlertDescription>
+                    <div className="space-y-3">
+                      <p>{error}</p>
+                      {activeSubscriptionBlocked ? (
+                        <div className="space-y-2">
+                          <p className="font-medium">This gift has not been consumed. Keep the code or link for later, or contact support so we can help apply it appropriately.</p>
+                          <div className="flex flex-col sm:flex-row gap-2">
+                            <Button asChild variant="secondary" size="sm">
+                              <a href="mailto:support@assetsafe.net?subject=Gift%20subscription%20help">Contact support</a>
+                            </Button>
+                            <Button type="button" variant="outline" size="sm" onClick={() => navigate('/account')}>
+                              Return to account
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        user && activeCode && (
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => {
+                              setError(null);
+                              handleClaim();
+                            }}
+                          >
+                            Try Again
+                          </Button>
+                        )
+                      )}
+                    </div>
+                  </AlertDescription>
                 </Alert>
               )}
 
