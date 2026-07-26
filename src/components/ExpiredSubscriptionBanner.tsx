@@ -6,6 +6,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { useAccountStatus } from '@/hooks/useAccountStatus';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 import { supabase } from '@/integrations/supabase/client';
 
 interface Props {
@@ -16,6 +17,7 @@ interface Props {
 
 const ExpiredSubscriptionBanner: React.FC<Props> = ({ onReactivate, onExport, onDelete }) => {
   const { isReadOnly, accountStatus, loading } = useAccountStatus();
+  const { subscriptionStatus } = useSubscription();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [scheduledDate, setScheduledDate] = useState<string | null>(null);
@@ -43,12 +45,16 @@ const ExpiredSubscriptionBanner: React.FC<Props> = ({ onReactivate, onExport, on
 
   const title =
     accountStatus === 'expired_read_only'
-      ? 'Subscription Expired'
+      ? subscriptionStatus.entitlement_source === 'gift'
+        ? 'Gift Plan Ended'
+        : 'Subscription Expired'
       : 'Account Deletion Requested';
 
   const message =
     accountStatus === 'expired_read_only'
-      ? 'Your records remain securely stored and available in read-only mode. You can continue viewing your information, exporting your data, reactivating your subscription, or requesting permanent account deletion.'
+      ? subscriptionStatus.entitlement_source === 'gift'
+        ? 'Your gifted Asset Safe Plan has ended. Your files remain preserved, and any Authorized User access to another person\'s account remains separate. Reactivate with a monthly or yearly plan to continue uploads, edits, and other paid account features.'
+        : 'Your records remain securely stored and available in read-only mode. You can continue viewing your information, exporting your data, reactivating your subscription, or requesting permanent account deletion.'
       : `Your account is scheduled for deletion${formattedDate ? ` on ${formattedDate}` : ''}. You retain read-only access until ${formattedDate ? `that date` : 'the scheduled date'}. You can still export your data or reverse this request from Account Settings.`;
 
   return (

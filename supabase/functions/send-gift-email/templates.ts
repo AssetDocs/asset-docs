@@ -304,3 +304,188 @@ Gift Codes do not expire unless refunded, cancelled, or manually voided.
 
 Questions? Contact ${SUPPORT_EMAIL}.`;
 }
+
+export type GiftExpirationNoticeType = "thirty_day" | "fifteen_day" | "three_day" | "expiration_day";
+
+export interface GiftExpirationNoticeData {
+  noticeType: GiftExpirationNoticeType;
+  firstName: string;
+  expirationDate: string;
+}
+
+const giftExpirationNoticeCopy: Record<GiftExpirationNoticeType, {
+  subject: string;
+  preheader: string;
+  heading: string;
+  cta: string;
+  body: (d: GiftExpirationNoticeData) => string;
+  text: (d: GiftExpirationNoticeData) => string;
+}> = {
+  thirty_day: {
+    subject: "Your gifted Asset Safe Plan ends in 30 days",
+    preheader: "Your files remain protected, and continuing your account only takes a moment.",
+    heading: "Your Asset Safe Plan continues for 30 more days",
+    cta: "Continue Your Asset Safe Plan",
+    body: (d) => `
+      <p style="color: #374151; line-height: 1.6; margin: 0 0 16px;">Hi ${escapeHtml(d.firstName)},</p>
+      <p style="color: #374151; line-height: 1.6; margin: 0 0 16px;">
+        The 12-month Asset Safe Plan you received as a gift will end on <strong>${escapeHtml(d.expirationDate)}</strong>.
+      </p>
+      <p style="color: #374151; line-height: 1.6; margin: 0 0 16px;">
+        Over the past year, Asset Safe has provided a secure place for your property records, important documents, family information, photos, and other details you may need when it matters most.
+      </p>
+      <p style="color: #374151; line-height: 1.6; margin: 0 0 16px;">Your gift will not renew automatically.</p>
+      <p style="color: #374151; line-height: 1.6; margin: 0 0 24px;">
+        To continue adding, updating, and organizing information without interruption, you can continue with your own monthly or yearly Asset Safe Plan.
+      </p>
+      <p style="color: #6b7280; font-size: 13px; line-height: 1.5; margin: 20px 0 0;">
+        Your existing files will remain preserved. If you are an Authorized User on another person's account, that access will remain separate and will not be affected by the expiration of your personal gift plan.
+      </p>
+      <p style="color: #374151; line-height: 1.6; margin: 16px 0 0;">
+        Thank you for making Asset Safe part of how you protect and organize what matters.
+      </p>
+    `,
+    text: (d) => `Your Asset Safe Plan continues for 30 more days
+
+Hi ${d.firstName},
+
+The 12-month Asset Safe Plan you received as a gift will end on ${d.expirationDate}.
+
+Over the past year, Asset Safe has provided a secure place for your property records, important documents, family information, photos, and other details you may need when it matters most.
+
+Your gift will not renew automatically.
+
+To continue adding, updating, and organizing information without interruption, you can continue with your own monthly or yearly Asset Safe Plan.
+
+Continue Your Asset Safe Plan: ${PRICING_URL}
+
+Your existing files will remain preserved. If you are an Authorized User on another person's account, that access will remain separate and will not be affected by the expiration of your personal gift plan.
+
+Thank you for making Asset Safe part of how you protect and organize what matters.`,
+  },
+  fifteen_day: {
+    subject: "15 days remain on your gifted Asset Safe Plan",
+    preheader: "Continue your account to keep all Asset Safe features active.",
+    heading: "Keep your Asset Safe account active",
+    cta: "Keep Your Account Active",
+    body: (d) => `
+      <p style="color: #374151; line-height: 1.6; margin: 0 0 16px;">Hi ${escapeHtml(d.firstName)},</p>
+      <p style="color: #374151; line-height: 1.6; margin: 0 0 16px;">
+        Your gifted Asset Safe Plan is scheduled to end on <strong>${escapeHtml(d.expirationDate)}</strong>.
+      </p>
+      <p style="color: #374151; line-height: 1.6; margin: 0 0 16px;">
+        To avoid interruption to uploads, updates, and other paid account features, continue with a monthly or yearly Asset Safe Plan before that date.
+      </p>
+      <p style="color: #374151; line-height: 1.6; margin: 0 0 24px;">
+        Your files will not be deleted when the gift term ends. They will remain preserved under Asset Safe's account-retention policy.
+      </p>
+      <p style="color: #6b7280; font-size: 13px; line-height: 1.5; margin: 20px 0 0;">
+        Access to accounts where you are an Authorized User will remain available and is not dependent on your personal subscription.
+      </p>
+    `,
+    text: (d) => `Keep your Asset Safe account active
+
+Hi ${d.firstName},
+
+Your gifted Asset Safe Plan is scheduled to end on ${d.expirationDate}.
+
+To avoid interruption to uploads, updates, and other paid account features, continue with a monthly or yearly Asset Safe Plan before that date.
+
+Your files will not be deleted when the gift term ends. They will remain preserved under Asset Safe's account-retention policy.
+
+Keep Your Account Active: ${PRICING_URL}
+
+Access to accounts where you are an Authorized User will remain available and is not dependent on your personal subscription.`,
+  },
+  three_day: {
+    subject: "Your gifted Asset Safe Plan ends in 3 days",
+    preheader: "Continue your account before {{expiration_date}} to avoid interruption.",
+    heading: "Your gift plan is almost complete",
+    cta: "Continue Your Protection",
+    body: (d) => `
+      <p style="color: #374151; line-height: 1.6; margin: 0 0 16px;">Hi ${escapeHtml(d.firstName)},</p>
+      <p style="color: #374151; line-height: 1.6; margin: 0 0 16px;">
+        Your gifted Asset Safe Plan ends on <strong>${escapeHtml(d.expirationDate)}</strong>.
+      </p>
+      <p style="color: #374151; line-height: 1.6; margin: 0 0 24px;">
+        Continue your account now to keep uploading, updating, and organizing your records without interruption.
+      </p>
+      <p style="color: #6b7280; font-size: 13px; line-height: 1.5; margin: 20px 0 0;">
+        Your existing files will remain preserved. Expiration will not remove your login or affect access to other accounts where you are an Authorized User.
+      </p>
+      <p style="color: #1e40af; font-size: 13px; line-height: 1.5; margin: 16px 0 0;">
+        <a href="${PRICING_URL}" style="color: #1e40af;">View monthly and yearly options</a>
+      </p>
+    `,
+    text: (d) => `Your gift plan is almost complete
+
+Hi ${d.firstName},
+
+Your gifted Asset Safe Plan ends on ${d.expirationDate}.
+
+Continue your account now to keep uploading, updating, and organizing your records without interruption.
+
+Continue Your Protection: ${PRICING_URL}
+
+Your existing files will remain preserved. Expiration will not remove your login or affect access to other accounts where you are an Authorized User.
+
+View monthly and yearly options: ${PRICING_URL}`,
+  },
+  expiration_day: {
+    subject: "Your gifted Asset Safe Plan has ended",
+    preheader: "Your files remain preserved, and you can reactivate your account anytime.",
+    heading: "Your gifted Asset Safe Plan has ended",
+    cta: "Reactivate Your Account",
+    body: (d) => `
+      <p style="color: #374151; line-height: 1.6; margin: 0 0 16px;">Hi ${escapeHtml(d.firstName)},</p>
+      <p style="color: #374151; line-height: 1.6; margin: 0 0 16px;">
+        The 12-month Asset Safe Plan you received as a gift ended on <strong>${escapeHtml(d.expirationDate)}</strong>.
+      </p>
+      <p style="color: #374151; line-height: 1.6; margin: 0 0 16px;">
+        Your files and account information remain preserved. However, uploads, edits, and other paid account features may now be limited until you reactivate your account.
+      </p>
+      <p style="color: #374151; line-height: 1.6; margin: 0 0 24px;">
+        You can continue with a monthly or yearly Asset Safe Plan at any time.
+      </p>
+      <p style="color: #6b7280; font-size: 13px; line-height: 1.5; margin: 20px 0 0;">
+        If you are an Authorized User on another person's account, that access remains available and is not affected by the expiration of your personal plan.
+      </p>
+    `,
+    text: (d) => `Your gifted Asset Safe Plan has ended
+
+Hi ${d.firstName},
+
+The 12-month Asset Safe Plan you received as a gift ended on ${d.expirationDate}.
+
+Your files and account information remain preserved. However, uploads, edits, and other paid account features may now be limited until you reactivate your account.
+
+You can continue with a monthly or yearly Asset Safe Plan at any time.
+
+Reactivate Your Account: ${PRICING_URL}
+
+If you are an Authorized User on another person's account, that access remains available and is not affected by the expiration of your personal plan.`,
+  },
+};
+
+export function giftExpirationNoticeSubject(noticeType: GiftExpirationNoticeType): string {
+  return giftExpirationNoticeCopy[noticeType].subject;
+}
+
+export function buildGiftExpirationNoticeHtml(d: GiftExpirationNoticeData): string {
+  const copy = giftExpirationNoticeCopy[d.noticeType];
+  return emailShell(`
+    <h2 style="color: #1f2937; margin: 0 0 20px; font-size: 22px;">${escapeHtml(copy.heading)}</h2>
+    ${copy.body(d)}
+    <div style="text-align: center; margin: 24px 0 0;">
+      <a href="${PRICING_URL}" style="background-color: #1e40af; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
+        ${escapeHtml(copy.cta)}
+      </a>
+    </div>
+  `, copy.preheader.replace("{{expiration_date}}", d.expirationDate));
+}
+
+export function buildGiftExpirationNoticeText(d: GiftExpirationNoticeData): string {
+  return `${giftExpirationNoticeCopy[d.noticeType].text(d)}
+
+Questions? Contact ${SUPPORT_EMAIL}.`;
+}

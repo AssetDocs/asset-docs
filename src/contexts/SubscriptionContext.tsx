@@ -19,6 +19,7 @@ interface SubscriptionStatus {
   storage_addon_blocks_qty?: number;
   total_storage_gb?: number;
   cancel_at_period_end?: boolean;
+  entitlement_source?: string;
   billing_status?: string; // 'active' | 'gifted' | 'expired'
 }
 

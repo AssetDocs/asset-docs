@@ -11,6 +11,21 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
 };
 
+const activeStatuses = ["active", "trialing"];
+
+function isEffectivelyActive(entitlement: any): boolean {
+  if (!entitlement) return false;
+  if (!activeStatuses.includes(entitlement.status)) return false;
+
+  const isGift = entitlement.entitlement_source === "gift";
+  const expiration = entitlement.expires_at || entitlement.current_period_end;
+  if (isGift && expiration && new Date(expiration).getTime() <= Date.now()) {
+    return false;
+  }
+
+  return true;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -64,10 +79,14 @@ serve(async (req) => {
     let storageQuotaGb = entitlement?.total_storage_gb || 0;
 
     if (entitlement) {
-      isSubscribed = entitlement.status === 'active' || entitlement.status === 'trialing';
+      isSubscribed = isEffectivelyActive(entitlement);
       subscriptionTier = entitlement.plan;
-      planStatus = entitlement.status;
+      planStatus = isSubscribed ? entitlement.status : (entitlement.entitlement_source === 'gift' ? 'expired' : entitlement.status);
       currentPeriodEnd = entitlement.current_period_end;
+      if (!isSubscribed && entitlement.entitlement_source === 'gift') {
+        subscriptionTier = 'free';
+        storageQuotaGb = 0;
+      }
     }
 
     // If user doesn't have their own subscription, check contributor access
@@ -87,7 +106,7 @@ serve(async (req) => {
           .eq("user_id", contributorAccess.account_owner_id)
           .maybeSingle();
 
-        if (ownerEntitlement && (ownerEntitlement.status === 'active' || ownerEntitlement.status === 'trialing')) {
+        if (ownerEntitlement && isEffectivelyActive(ownerEntitlement)) {
           logStep("User has contributor access", { ownerPlan: ownerEntitlement.plan });
           isSubscribed = true;
           subscriptionTier = ownerEntitlement.plan;
@@ -98,6 +117,7 @@ serve(async (req) => {
       }
     }
 
+    const expiredGiftEntitlement = entitlement?.entitlement_source === 'gift' && !isEffectivelyActive(entitlement);
     const response = {
       subscribed: isSubscribed,
       subscription_tier: subscriptionTier,
@@ -109,13 +129,15 @@ serve(async (req) => {
       trial_end: planStatus === 'trialing' ? currentPeriodEnd : null,
       // New fields from hardened entitlements
       plan_lookup_key: entitlement?.plan_lookup_key || null,
-      base_storage_gb: entitlement?.base_storage_gb || 0,
-      storage_addon_blocks_qty: entitlement?.storage_addon_blocks_qty || 0,
-      total_storage_gb: entitlement?.total_storage_gb || 0,
+      base_storage_gb: expiredGiftEntitlement ? 0 : (entitlement?.base_storage_gb || 0),
+      storage_addon_blocks_qty: expiredGiftEntitlement ? 0 : (entitlement?.storage_addon_blocks_qty || 0),
+      total_storage_gb: expiredGiftEntitlement ? 0 : (entitlement?.total_storage_gb || 0),
       cancel_at_period_end: entitlement?.cancel_at_period_end || false,
       stripe_subscription_id: entitlement?.stripe_subscription_id || null,
       entitlement_source: entitlement?.entitlement_source || 'stripe',
-      billing_status: entitlement?.billing_status || null,
+      billing_status: expiredGiftEntitlement
+        ? 'expired'
+        : (entitlement?.billing_status || null),
     };
 
     logStep("Returning subscription status", response);

@@ -18,6 +18,11 @@ verify_jwt = false
 [functions.send-payment-receipt-internal]
 verify_jwt = false
 
+# Internal cron-invoked sweeper - authenticates via x-internal-secret header.
+# Expires redeemed gift entitlements and sends 30/15/3/day-of notices.
+[functions.expire-gift-entitlements]
+verify_jwt = false
+
 [functions.stripe-webhook]
 verify_jwt = false
 
