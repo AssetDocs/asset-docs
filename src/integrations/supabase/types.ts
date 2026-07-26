@@ -3047,6 +3047,7 @@ export type Database = {
           created_at: string
           current_period_end: string | null
           entitlement_source: string
+          expired_at: string | null
           expires_at: string | null
           id: string
           plan: string
@@ -3069,6 +3070,7 @@ export type Database = {
           created_at?: string
           current_period_end?: string | null
           entitlement_source?: string
+          expired_at?: string | null
           expires_at?: string | null
           id?: string
           plan?: string
@@ -3091,6 +3093,7 @@ export type Database = {
           created_at?: string
           current_period_end?: string | null
           entitlement_source?: string
+          expired_at?: string | null
           expires_at?: string | null
           id?: string
           plan?: string
@@ -3937,6 +3940,10 @@ export type Database = {
           delivery_method: string
           delivery_status: string
           email_hash: string | null
+          expiration_15_day_email_sent_at: string | null
+          expiration_3_day_email_sent_at: string | null
+          expiration_30_day_email_sent_at: string | null
+          expiration_day_email_sent_at: string | null
           expires_at: string | null
           failed_at: string | null
           failure_reason: string | null
@@ -4001,6 +4008,10 @@ export type Database = {
           delivery_method?: string
           delivery_status?: string
           email_hash?: string | null
+          expiration_15_day_email_sent_at?: string | null
+          expiration_3_day_email_sent_at?: string | null
+          expiration_30_day_email_sent_at?: string | null
+          expiration_day_email_sent_at?: string | null
           expires_at?: string | null
           failed_at?: string | null
           failure_reason?: string | null
@@ -4065,6 +4076,10 @@ export type Database = {
           delivery_method?: string
           delivery_status?: string
           email_hash?: string | null
+          expiration_15_day_email_sent_at?: string | null
+          expiration_3_day_email_sent_at?: string | null
+          expiration_30_day_email_sent_at?: string | null
+          expiration_day_email_sent_at?: string | null
           expires_at?: string | null
           failed_at?: string | null
           failure_reason?: string | null
@@ -8349,6 +8364,17 @@ export type Database = {
         Args: { p_email: string; p_gift_code: string; p_ip_address: unknown }
         Returns: Json
       }
+      claim_due_gift_expiration_notices: {
+        Args: { p_limit?: number }
+        Returns: {
+          expiration_date: string
+          gift_id: string
+          notice_type: string
+          purchaser_email: string
+          recipient_email: string
+          recipient_first_name: string
+        }[]
+      }
       claim_gift_subscription: { Args: { p_gift_code: string }; Returns: Json }
       claim_property_deletion: {
         Args: {
@@ -8497,6 +8523,16 @@ export type Database = {
         }[]
       }
       expire_continuity_export_authorizations: { Args: never; Returns: number }
+      expire_gift_entitlements: {
+        Args: { p_limit?: number }
+        Returns: {
+          expiration_date: string
+          gift_id: string
+          purchaser_email: string
+          recipient_email: string
+          user_id: string
+        }[]
+      }
       expire_grace_periods: { Args: never; Returns: number }
       finalize_property_deletion: {
         Args: { p_lease_token: string; p_property_id: string }

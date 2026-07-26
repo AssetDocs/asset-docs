@@ -7,7 +7,7 @@ import {
   buildGiftExpirationNoticeText,
   giftExpirationNoticeSubject,
   type GiftExpirationNoticeType,
-} from "../send-gift-email/templates.ts";
+} from "./templates.ts";
 
 const JOB_NAME = "expire-gift-entitlements";
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
