@@ -217,8 +217,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
     }
 
-    const redirectUrl = redirectTo
-      ? `${window.location.origin}/auth/callback?type=signup&redirect_to=${encodeURIComponent(redirectTo)}`
+    const safeRedirectTo = redirectTo?.startsWith('/') && !redirectTo.startsWith('//')
+      ? redirectTo
+      : null;
+    const redirectUrl = safeRedirectTo
+      ? `${window.location.origin}${safeRedirectTo}`
       : `${window.location.origin}/auth/callback`;
     const { data, error } = await supabase.auth.signUp({
       email,

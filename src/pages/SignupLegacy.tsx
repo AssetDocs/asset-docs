@@ -11,6 +11,7 @@ import { Eye, EyeOff, ArrowLeft, ShieldCheck } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { storeGiftRedirect } from '@/lib/giftRedirect';
 
 interface SignUpFormData {
   firstName: string;
@@ -60,6 +61,12 @@ const Signup: React.FC = () => {
   const redirectParam = getSafeRedirect(searchParams.get('redirect'));
   const giftRedirect = isGiftRedirect(redirectParam) ? redirectParam : null;
   const inviteEmail = isInviteMode ? searchParams.get('email') || '' : '';
+
+  useEffect(() => {
+    if (giftRedirect) {
+      storeGiftRedirect(giftRedirect);
+    }
+  }, [giftRedirect]);
 
   const signUpForm = useForm<SignUpFormData>({
     defaultValues: {
@@ -121,6 +128,7 @@ const Signup: React.FC = () => {
     setIsLoading(true);
     try {
       if (giftRedirect) {
+        storeGiftRedirect(giftRedirect);
         const { code, token } = getGiftClaimParams(giftRedirect);
         if (code && token) {
           const { data: validation, error: validationError } = await supabase.functions.invoke('validate-gift-signup-email', {

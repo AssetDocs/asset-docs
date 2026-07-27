@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, Eye, EyeOff, MailOpen } from 'lucide-react';
+import { getStoredGiftRedirect } from '@/lib/giftRedirect';
 
 const CreatePassword = () => {
   const { user, profile, loading, refreshProfile } = useAuth();
@@ -41,10 +42,18 @@ const CreatePassword = () => {
 
   // guard: already fully set up → go to dashboard
   useEffect(() => {
-    if (!loading && profile?.onboarding_complete) {
+    if (loading) return;
+
+    const giftRedirect = getStoredGiftRedirect();
+    if (user && giftRedirect) {
+      navigate(giftRedirect, { replace: true });
+      return;
+    }
+
+    if (profile?.onboarding_complete || profile?.password_set) {
       navigate('/account', { replace: true });
     }
-  }, [loading, profile, navigate]);
+  }, [loading, profile, user, navigate]);
 
   // Pre-fill name from contributors table (invited user flow)
   useEffect(() => {

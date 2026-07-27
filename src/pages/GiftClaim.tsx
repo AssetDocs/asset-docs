@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAccount } from '@/contexts/AccountContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
+import { clearStoredGiftRedirect, storeGiftRedirect } from '@/lib/giftRedirect';
 
 const REASON_MESSAGES: Record<string, string> = {
   invalid_token: 'This gift link is invalid or has been replaced by a newer one. Ask the purchaser to sign in and resend it from the Gift page.',
@@ -68,6 +69,12 @@ const GiftClaim: React.FC = () => {
   const signupUrl = `/signup?redirect=${encodeURIComponent(redeemUrl)}`;
   const activeSubscriptionBlocked = error === REASON_MESSAGES.active_subscription_exists;
 
+  useEffect(() => {
+    if (activeCode && token) {
+      storeGiftRedirect(redeemUrl);
+    }
+  }, [activeCode, redeemUrl, token]);
+
   const finishSuccessfulClaim = useCallback(async () => {
     if (user?.id) {
       const { error: setupError } = await supabase
@@ -88,6 +95,7 @@ const GiftClaim: React.FC = () => {
     }
 
     setSuccess(true);
+    clearStoredGiftRedirect();
     toast({ title: 'Gift Claimed!', description: 'Your subscription is now active.' });
     setTimeout(() => navigate('/account', { replace: true }), 2500);
   }, [navigate, refreshAccount, refreshProfile, refreshSubscription, toast, user?.id]);

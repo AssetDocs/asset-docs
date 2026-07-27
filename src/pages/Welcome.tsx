@@ -5,6 +5,7 @@ import { Video, BookOpen, CheckCircle2, RefreshCw, Gift } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { getStoredGiftRedirect } from '@/lib/giftRedirect';
 
 const Welcome: React.FC = () => {
   const navigate = useNavigate();
@@ -71,6 +72,12 @@ const Welcome: React.FC = () => {
     const { data: { user } } = await supabase.auth.getUser();
     // Only redirect if user exists AND email is confirmed
     if (user?.email_confirmed_at) {
+      const giftRedirect = getStoredGiftRedirect();
+      if (giftRedirect) {
+        navigate(giftRedirect, { replace: true });
+        return;
+      }
+
       // If legacy lifetime access code is present, validate it first
       if (giftCode) {
         const isValid = await validateGiftCode(user.id);
@@ -80,7 +87,7 @@ const Welcome: React.FC = () => {
           return;
         }
       }
-      // Redirect to pricing to choose a plan
+      // Redirect standard verified users to pricing to choose a plan
       navigate('/pricing');
     }
   };
@@ -108,11 +115,16 @@ const Welcome: React.FC = () => {
         return;
       }
 
+      const giftRedirect = getStoredGiftRedirect();
+      const emailRedirectTo = giftRedirect
+        ? `${window.location.origin}${giftRedirect}`
+        : `${window.location.origin}/auth/callback?type=signup&redirect_to=/welcome${giftCode ? `?giftCode=${encodeURIComponent(giftCode)}` : ''}`;
+
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email: user.email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?type=signup&redirect_to=/welcome${giftCode ? `?giftCode=${encodeURIComponent(giftCode)}` : ''}`,
+          emailRedirectTo,
         },
       });
 

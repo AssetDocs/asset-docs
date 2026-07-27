@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle, CheckCircle2, Loader2, Mail } from 'lucide-react';
+import { getStoredGiftRedirect, isGiftRedirectPath } from '@/lib/giftRedirect';
 
 type CallbackErrorState = {
   code: string;
@@ -56,8 +57,7 @@ const getSafeRedirectPath = (rawRedirect: string | null) => {
   }
 };
 
-const isGiftRedirect = (redirectTo: string | null) =>
-  !!redirectTo && (redirectTo.startsWith('/gift-claim') || redirectTo.startsWith('/redeem'));
+const isGiftRedirect = (redirectTo: string | null) => isGiftRedirectPath(redirectTo);
 
 const AuthCallback = () => {
   const [searchParams] = useSearchParams();
@@ -104,7 +104,7 @@ const AuthCallback = () => {
     }
 
     async function routeAuthenticatedUser(session: any, redirectTo?: string | null) {
-      const safeRedirect = getSafeRedirectPath(redirectTo ?? null);
+      const safeRedirect = getSafeRedirectPath(redirectTo ?? null) || getStoredGiftRedirect();
       try {
         if (isGiftRedirect(safeRedirect)) {
           window.location.href = safeRedirect;
@@ -172,7 +172,7 @@ const AuthCallback = () => {
       try {
         const token_hash = searchParams.get('token_hash');
         const type = searchParams.get('type');
-        const redirect_to = getSafeRedirectPath(searchParams.get('redirect_to'));
+        const redirect_to = getSafeRedirectPath(searchParams.get('redirect_to')) || getStoredGiftRedirect();
 
         if (!token_hash || !type) {
           setCallbackError({
