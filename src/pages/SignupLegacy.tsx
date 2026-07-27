@@ -367,6 +367,11 @@ const Signup: React.FC = () => {
                           This invitation was sent to this email address and can't be changed.
                         </p>
                       )}
+                      {giftRedirect && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Use the email address where you received this gift invitation. After your account is verified and the gift is redeemed, you can update your account email in settings.
+                        </p>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
