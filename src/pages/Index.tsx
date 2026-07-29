@@ -14,6 +14,9 @@ import ScrollProgressCue from '@/components/ScrollProgressCue';
 import ComparisonSection from '@/components/ComparisonSection';
 import CTASection from '@/components/CTASection';
 import { organizationSchema, webApplicationSchema, faqSchema, videoSchema } from '@/utils/structuredData';
+import introVideo from '@/assets/asset-safe-intro.mp4.asset.json';
+import introPoster from '@/assets/asset-safe-intro-poster.jpg.asset.json';
+
 
 const Index: React.FC = () => {
   const faqData = [
