@@ -14,6 +14,9 @@ import ScrollProgressCue from '@/components/ScrollProgressCue';
 import ComparisonSection from '@/components/ComparisonSection';
 import CTASection from '@/components/CTASection';
 import { organizationSchema, webApplicationSchema, faqSchema, videoSchema } from '@/utils/structuredData';
+import introVideo from '@/assets/asset-safe-intro.mp4.asset.json';
+import introPoster from '@/assets/asset-safe-intro-poster.jpg.asset.json';
+
 
 const Index: React.FC = () => {
   const faqData = [
@@ -26,12 +29,13 @@ const Index: React.FC = () => {
   const heroVideoData = videoSchema(
     "Asset Safe Introduction - Digital Home Inventory Platform",
     "Learn how Asset Safe helps you document, protect, and organize your property, assets, and critical information for insurance claims and estate planning.",
-    "https://getassetsafe.com/assets/youtube-cover-walkthrough.jpg",
+    `https://getassetsafe.com${introPoster.url}`,
     "2025-01-01",
+    `https://getassetsafe.com${introVideo.url}`,
     undefined,
-    "https://www.youtube.com/embed/DPnzWlqTN6Q",
-    "PT3M"
+    "PT1M"
   );
+
 
   const structuredData = {
     "@context": "https://schema.org",

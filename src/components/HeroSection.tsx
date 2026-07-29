@@ -3,6 +3,9 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import ShareButton from '@/components/ShareButton';
 import { Link } from 'react-router-dom';
+import introVideo from '@/assets/asset-safe-intro.mp4.asset.json';
+import introPoster from '@/assets/asset-safe-intro-poster.jpg.asset.json';
+
 
 const HeroSection: React.FC = () => {
   return (
@@ -32,24 +35,25 @@ const HeroSection: React.FC = () => {
             
           </div>
           
-          {/* YouTube Video */}
+          {/* Self-hosted intro video */}
           <div className="lg:w-1/3 lg:self-start lg:mt-4">
             <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-4 animate-fade-in">
               <div className="aspect-video">
-                <iframe 
-                  width="100%" 
-                  height="100%" 
-                  src="https://www.youtube.com/embed/-ok43t_aGgs?controls=0"
-                  title="YouTube video player"
-                  frameBorder="0" 
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                  referrerPolicy="strict-origin-when-cross-origin" 
-                  allowFullScreen
-                  className="w-full h-full rounded-lg"
+                <video
+                  src={introVideo.url}
+                  poster={introPoster.url}
+                  controls
+                  playsInline
+                  preload="metadata"
+                  controlsList="nodownload noremoteplayback"
+                  disablePictureInPicture
+                  title="Asset Safe Introduction"
+                  className="w-full h-full rounded-lg bg-black object-cover"
                 />
               </div>
             </div>
           </div>
+
         </div>
       </div>
     </section>
