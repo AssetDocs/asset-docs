@@ -26,12 +26,13 @@ const Index: React.FC = () => {
   const heroVideoData = videoSchema(
     "Asset Safe Introduction - Digital Home Inventory Platform",
     "Learn how Asset Safe helps you document, protect, and organize your property, assets, and critical information for insurance claims and estate planning.",
-    "https://getassetsafe.com/assets/youtube-cover-walkthrough.jpg",
+    `https://getassetsafe.com${introPoster.url}`,
     "2025-01-01",
+    `https://getassetsafe.com${introVideo.url}`,
     undefined,
-    "https://www.youtube.com/embed/DPnzWlqTN6Q",
-    "PT3M"
+    "PT1M"
   );
+
 
   const structuredData = {
     "@context": "https://schema.org",
