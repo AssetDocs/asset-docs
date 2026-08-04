@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import legacyLockerLogo from '@/assets/legacy-locker-logo.png';
+import legacyLockerVideo from '@/assets/legacy-locker-intro.mp4.asset.json';
+import legacyLockerPoster from '@/assets/legacy-locker-intro-poster.jpg.asset.json';
 
 const LegacyLockerSection: React.FC = () => {
   const [whatItIsOpen, setWhatItIsOpen] = useState(false);
@@ -44,18 +46,18 @@ const LegacyLockerSection: React.FC = () => {
               </div>
             </div>
             <div className="flex-1 w-full max-w-md lg:max-w-none">
-              <div className="relative w-full aspect-video rounded-lg overflow-hidden shadow-lg">
-                <iframe 
-                  width="100%" 
-                  height="100%" 
-                  src="https://www.youtube.com/embed/V9MvVbn7qfg?controls=0" 
+              <div className="relative w-full aspect-video rounded-lg overflow-hidden shadow-lg bg-black">
+                <video
+                  src={legacyLockerVideo.url}
+                  poster={legacyLockerPoster.url}
+                  controls
+                  playsInline
+                  preload="metadata"
+                  controlsList="nodownload noremoteplayback"
+                  disablePictureInPicture
+                  className="absolute inset-0 w-full h-full object-cover"
                   title="Legacy Locker Introduction Video"
-                  frameBorder="0" 
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                  referrerPolicy="strict-origin-when-cross-origin" 
-                  allowFullScreen
-                  className="absolute inset-0"
-                ></iframe>
+                />
               </div>
             </div>
           </div>
