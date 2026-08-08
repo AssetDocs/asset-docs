@@ -406,7 +406,7 @@ const Account: React.FC = () => {
 
             {/* Asset Documentation Grid */}
             <TabsContent value="asset-documentation">
-              <AssetDocumentationGrid />
+              <AssetDocumentationGrid autoOpenAdd={autoOpenAddValue === 'scan' ? 'scan' : autoOpenAdd ? 'selector' : null} />
             </TabsContent>
 
             {/* Password Catalog - opens SecureVault focused on passwords */}
@@ -503,7 +503,7 @@ const Account: React.FC = () => {
                   <h2 className="text-2xl font-bold text-foreground">{getSectionConfig().title}</h2>
                   <p className="text-muted-foreground text-sm mt-1">{getSectionConfig().subtitle}</p>
                 </div>
-                <ServiceProsSection />
+                <ServiceProsSection autoOpenAdd={autoOpenAdd} />
               </div>
             </TabsContent>
 
@@ -513,12 +513,9 @@ const Account: React.FC = () => {
                   <h2 className="text-2xl font-bold text-foreground">{getSectionConfig().title}</h2>
                   <p className="text-muted-foreground text-sm mt-1">{getSectionConfig().subtitle}</p>
                 </div>
-                <UpgradesRepairsSection />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="smart-calendar">
-              <SmartCalendar />
+                <UpgradesRepairsSection autoOpenAdd={autoOpenAdd} />
+...
+              <SmartCalendar autoOpenAdd={autoOpenAdd} />
             </TabsContent>
 
             <TabsContent value="quick-notes">
@@ -532,19 +529,17 @@ const Account: React.FC = () => {
             </TabsContent>
 
             <TabsContent value="notes-traditions">
-              <NotesAndTraditions />
+              <NotesAndTraditions autoOpenAdd={autoOpenAdd} />
             </TabsContent>
 
             <TabsContent value="family-recipes">
-              <FamilyRecipes />
-            </TabsContent>
-
-            <TabsContent value="medication-list">
-              <FamilyMedications onNavigate={setActiveTab} />
+              <FamilyRecipes autoOpenAdd={autoOpenAdd} />
+...
+              <FamilyMedications onNavigate={setActiveTab} autoOpenAdd={autoOpenAdd} />
             </TabsContent>
 
             <TabsContent value="important-locations">
-              <ImportantLocations onNavigate={setActiveTab} />
+              <ImportantLocations onNavigate={setActiveTab} autoOpenAdd={autoOpenAdd} />
             </TabsContent>
 
             <TabsContent value="memory-safe">
