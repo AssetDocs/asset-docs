@@ -60,6 +60,15 @@ const AssetDocumentationGrid: React.FC<AssetDocumentationGridProps> = ({ autoOpe
   const [rooms, setRooms] = useState<any[]>([]);
   const [isFinding, setIsFinding] = useState(false);
 
+  // UI hint only: opens the existing chooser/scanner. Never performs work.
+  useEffect(() => {
+    if (!autoOpenAdd || !canEdit) return;
+    if (autoOpenAdd === 'scan') setScannerOpen(true);
+    else setSelectorOpen(true);
+  }, [autoOpenAdd, canEdit]);
+
+
+
   const { uploadSingleFile } = useFileUpload({
     bucket: 'documents',
     onError: (error) => {
