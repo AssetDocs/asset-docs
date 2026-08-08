@@ -126,16 +126,16 @@ const DashboardQuickAdd: React.FC = () => {
           type="button"
           onClick={openChooser}
           aria-label="Add documentation, family information, or property details"
-          className="w-full h-auto rounded-xl bg-brand-blue hover:bg-brand-lightBlue text-primary-foreground py-4 px-5 flex flex-col items-center gap-1 shadow-sm"
+          className="w-full rounded-xl bg-background border-2 border-brand-blue hover:bg-brand-blue/5 text-brand-blue py-2.5 px-4 flex flex-col items-center gap-0.5"
         >
-          <span className="flex items-center gap-2 text-lg font-bold">
-            <Plus className="h-5 w-5" />
+          <span className="flex items-center gap-1.5 text-base font-bold">
+            <Plus className="h-4 w-4" />
             Add
           </span>
-          <span className="text-xs font-normal opacity-90 text-center">
-            Quickly add documentation, family information, or property details.
-          </span>
         </Button>
+        <p className="text-center text-xs text-muted-foreground mt-1.5">
+          Quickly add documentation and details
+        </p>
         <div className="border-t border-border mt-4" />
       </div>
 
