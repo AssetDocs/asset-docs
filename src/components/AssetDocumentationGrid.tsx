@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AssetTypeSelector, { type AssetUploadType } from './AssetTypeSelector';
+import { resolveAssetUploadDestination } from '@/lib/assetUploadRouting';
 import ScanToPDF from './ScanToPDF';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAccount } from '@/contexts/AccountContext';
@@ -35,7 +36,12 @@ const getItemNames = (itemValues: unknown): string[] => {
     .map(String);
 };
 
-const AssetDocumentationGrid: React.FC = () => {
+interface AssetDocumentationGridProps {
+  /** UI hint only: 'selector' opens the upload-type chooser, 'scan' opens the scanner. */
+  autoOpenAdd?: 'selector' | 'scan' | null;
+}
+
+const AssetDocumentationGrid: React.FC<AssetDocumentationGridProps> = ({ autoOpenAdd = null }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { accountId, ownerUserId, canEdit, showReadOnlyRestriction } = useAccount();
