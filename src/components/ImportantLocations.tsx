@@ -61,6 +61,8 @@ type LocationSort = 'updated-desc' | 'created-desc' | 'name-asc' | 'category' | 
 
 interface ImportantLocationsProps {
   onNavigate?: (tab: string) => void;
+  /** UI hint only: opens the existing add dialog. Never performs work. */
+  autoOpenAdd?: boolean;
 }
 
 const ALL_VALUE = 'all';

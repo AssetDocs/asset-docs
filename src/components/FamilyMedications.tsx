@@ -95,7 +95,11 @@ const CATEGORIES = [
 ];
 
 interface FamilyMedicationsProps {
-...
+  onNavigate?: (tab: string) => void;
+  /** UI hint only: opens the existing add dialog. Never performs work. */
+  autoOpenAdd?: boolean;
+}
+
 const FamilyMedications: React.FC<FamilyMedicationsProps> = ({ onNavigate, autoOpenAdd = false }) => {
   const { user } = useAuth();
   const { ownerUserId, canEdit, showReadOnlyRestriction } = useAccount();
