@@ -122,7 +122,7 @@ const VIPContacts: React.FC = () => {
     next.delete('add');
     const query = next.toString();
     navigate(`/account/contacts${query ? `?${query}` : ''}`, { replace: true });
-  }, [searchParams, canManageContacts, navigate, setSearchParams]);
+  }, [searchParams, canManageContacts, navigate]);
 
 
   const filteredContacts = useMemo(() => {
