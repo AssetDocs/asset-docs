@@ -26,13 +26,23 @@ interface RecipeEntry {
   created_at: string;
 }
 
-const FamilyRecipes: React.FC = () => {
+interface FamilyRecipesProps {
+  /** UI hint only: opens the existing add dialog. Never performs work. */
+  autoOpenAdd?: boolean;
+}
+
+const FamilyRecipes: React.FC<FamilyRecipesProps> = ({ autoOpenAdd = false }) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { subscriptionTier, storageQuotaGb } = useSubscription();
   const [recipes, setRecipes] = useState<RecipeEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (autoOpenAdd) setIsOpen(true);
+  }, [autoOpenAdd]);
+
   const [editingRecipe, setEditingRecipe] = useState<RecipeEntry | null>(null);
   const [recipeName, setRecipeName] = useState('');
   const [createdByPerson, setCreatedByPerson] = useState('');

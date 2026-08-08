@@ -63,13 +63,23 @@ const SERVICE_TYPES = [
   'Other'
 ];
 
-const ServiceProsSection: React.FC = () => {
+interface ServiceProsSectionProps {
+  /** UI hint only: opens the existing add form. Never performs work. */
+  autoOpenAdd?: boolean;
+}
+
+const ServiceProsSection: React.FC<ServiceProsSectionProps> = ({ autoOpenAdd = false }) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [providers, setProviders] = useState<ServiceProvider[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+
+  useEffect(() => {
+    if (autoOpenAdd) setShowAddForm(true);
+  }, [autoOpenAdd]);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [serviceTypeFilter, setServiceTypeFilter] = useState('all');
   const [withContactsOnly, setWithContactsOnly] = useState(false);

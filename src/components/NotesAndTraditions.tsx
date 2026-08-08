@@ -27,13 +27,23 @@ interface NoteEntry {
   created_at: string;
 }
 
-const NotesAndTraditions: React.FC = () => {
+interface NotesAndTraditionsProps {
+  /** UI hint only: opens the existing add dialog. Never performs work. */
+  autoOpenAdd?: boolean;
+}
+
+const NotesAndTraditions: React.FC<NotesAndTraditionsProps> = ({ autoOpenAdd = false }) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { subscriptionTier, storageQuotaGb } = useSubscription();
   const [notes, setNotes] = useState<NoteEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (autoOpenAdd) setIsOpen(true);
+  }, [autoOpenAdd]);
+
   const [editingNote, setEditingNote] = useState<NoteEntry | null>(null);
   const [title, setTitle] = useState('');
   const [subject, setSubject] = useState('');

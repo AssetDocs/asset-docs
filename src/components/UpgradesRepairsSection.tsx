@@ -89,11 +89,21 @@ const defaultVendor: Vendor = {
   email: ''
 };
 
-const UpgradesRepairsSection: React.FC = () => {
+interface UpgradesRepairsSectionProps {
+  /** UI hint only: opens the existing add form. Never performs work. */
+  autoOpenAdd?: boolean;
+}
+
+const UpgradesRepairsSection: React.FC<UpgradesRepairsSectionProps> = ({ autoOpenAdd = false }) => {
   const { toast } = useToast();
   const { user } = useAuth();
   const { subscriptionTier, storageQuotaGb } = useSubscription();
   const [isAdding, setIsAdding] = useState(false);
+
+  useEffect(() => {
+    if (autoOpenAdd) setIsAdding(true);
+  }, [autoOpenAdd]);
+
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);

@@ -95,12 +95,8 @@ const CATEGORIES = [
 ];
 
 interface FamilyMedicationsProps {
-  onNavigate?: (tab: string) => void;
-}
-
-const clean = (value: string) => value.trim() || null;
-
-const FamilyMedications: React.FC<FamilyMedicationsProps> = ({ onNavigate }) => {
+...
+const FamilyMedications: React.FC<FamilyMedicationsProps> = ({ onNavigate, autoOpenAdd = false }) => {
   const { user } = useAuth();
   const { ownerUserId, canEdit, showReadOnlyRestriction } = useAccount();
   const { subscriptionTier, storageQuotaGb } = useSubscription();
