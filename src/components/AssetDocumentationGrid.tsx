@@ -319,24 +319,12 @@ const AssetDocumentationGrid: React.FC = () => {
 
   const handleTypeSelect = (type: AssetUploadType) => {
     setSelectorOpen(false);
-    if (type === 'scan_to_pdf') {
+    const destination = resolveAssetUploadDestination(type);
+    if (destination.kind === 'scan') {
       setScannerOpen(true);
       return;
     }
-    switch (type) {
-      case 'photo':
-        navigate('/account/media/upload?tab=photos');
-        break;
-      case 'video':
-        navigate('/account/media/upload?tab=videos');
-        break;
-      case 'insurance_policy':
-        navigate('/account/insurance/new');
-        break;
-      default:
-        navigate(`/account/documents/upload?type=${type}`);
-        break;
-    }
+    navigate(destination.to);
   };
 
   const handlePDFReady = async (pdfFile: File) => {

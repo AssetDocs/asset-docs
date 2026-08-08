@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DashboardGridCard } from './DashboardGridCard';
+import DashboardQuickAdd from './DashboardQuickAdd';
 import { ExportAssetsButton } from './ExportAssetsButton';
 import { ExportService } from '@/services/ExportService';
 import DocumentationChecklist from '@/components/DocumentationChecklist';
@@ -140,6 +141,9 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
     <div className="space-y-6">
       {/* Main Grid - 2 columns */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* Global Quick Add shortcut / visual divider */}
+        <DashboardQuickAdd />
+
         {/* Row 1: Red */}
         <DashboardGridCard
           icon={<FolderOpen className="h-6 w-6" />}
