@@ -104,6 +104,11 @@ const ImportantLocations: React.FC<ImportantLocationsProps> = ({ onNavigate }) =
   const [properties, setProperties] = useState<PropertyOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (autoOpenAdd) setIsOpen(true);
+  }, [autoOpenAdd]);
+
   const [editingLocation, setEditingLocation] = useState<ImportantLocation | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [isSaving, setIsSaving] = useState(false);

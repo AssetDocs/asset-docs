@@ -109,6 +109,11 @@ const FamilyMedications: React.FC<FamilyMedicationsProps> = ({ onNavigate, autoO
   const [medications, setMedications] = useState<MedicationEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (autoOpenAdd) setIsOpen(true);
+  }, [autoOpenAdd]);
+
   const [editingMedication, setEditingMedication] = useState<MedicationEntry | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
