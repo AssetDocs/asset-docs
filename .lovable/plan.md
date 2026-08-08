@@ -9,9 +9,18 @@
 - **Account context / permissions**: `src/contexts/AccountContext.tsx` exposes `accountId`, `isOwner`, `role`, `isReadOnly`, `canEdit`. Destination modules already enforce this; the chooser will additionally hide itself when `canEdit` is false.
 - **Analytics**: `src/lib/track.ts` `track(event, props)` already exists and will be reused.
 
-## Honest constraint to flag up front
+## Decision on the auto-open mechanism
 
-Family Archive and Insights & Tools create forms are **internal to their section components**. There is no reusable exported form to call from a modal. To avoid duplicating those forms, the shortcut will **navigate to the module and ask it to open its own existing add form**, via a tiny opt-in signal — an `autoOpenAdd` boolean prop passed down from `Account.tsx` when the URL carries `&add=1`. Each affected section gets a ~3-line `useEffect` that flips its existing state (no new form code, no new mutations). If you would rather not touch those section files at all, the fallback is to navigate to the module without auto-opening the form (user taps the module's own Add button) — say the word and I'll switch to that.
+Family Archive and Insights & Tools create forms are **internal to their section components**. There is no reusable exported form to call from a modal. So the shortcut will **navigate to the module and ask it to open its own existing add form**, via a lightweight UI hint — an `autoOpenAdd` boolean prop passed down from `Account.tsx` when the URL carries `&add=1`. Each affected section gets a small `useEffect` that flips its existing open state (no new form code, no new mutations). Auto-open is the chosen behavior, not the "press Add again" fallback.
+
+### `add=1` safeguards (binding rules)
+
+- `add=1` means only "open this module's existing create UI" — never "perform an action". It triggers no creation, mutation, upload, or database write.
+- The destination component stays the source of truth for whether its add form may open; permission, entitlement, validation, and account-context checks all run unchanged.
+- If the user lacks permission or entitlement, the auto-open request is ignored and the module renders its normal restricted state.
+- The flag is consumed once: after opening, `add` is stripped from the URL via `navigate(..., { replace: true })` so a refresh does not reopen the form.
+- Stripping `add` preserves every other query parameter (`tab`, and any module-specific params) byte-for-byte.
+
 
 ## What gets built
 
@@ -22,9 +31,10 @@ Family Archive and Insights & Tools create forms are **internal to their section
 2. **Chooser dialog** (single `Dialog`, internal step state — no stacked overlays):
    - Step 1 "What would you like to add?" / "Choose where your new information belongs." → Asset Documentation, Family Archive, Insights & Tools (existing card/icon styling).
    - Step 2 for Family Archive and Insights & Tools: vertical list of the real create actions above, with a **Back** action returning to step 1.
-   - Asset Documentation: closes the chooser and opens the existing `AssetTypeSelector`, wired to the same routing logic as `AssetDocumentationGrid.handleTypeSelect` (extracted into a shared helper so there is one source of truth, not a copy).
-3. **`DashboardGrid.tsx`** — render `DashboardQuickAdd` at the top of the grid, directly above the Asset Documentation / Family Archive cards, spanning both columns, with divider spacing above and below.
-4. **`Account.tsx`** — pass `autoOpenAdd` into the affected tab sections when `?add=1` is present.
+   - Asset Documentation: closes the chooser and opens the existing `AssetTypeSelector`.
+3. **Shared upload-routing helper** (new, small) — `AssetDocumentationGrid.handleTypeSelect`'s routing map is extracted into one helper/hook consumed by **both** the Asset Documentation upload button and Dashboard Quick Add, so the two entry points cannot drift.
+4. **`DashboardGrid.tsx`** — render `DashboardQuickAdd` at the top of the grid, directly above the Asset Documentation / Family Archive cards, spanning both columns, with divider spacing above and below.
+5. **`Account.tsx`** — pass `autoOpenAdd` into the affected tab sections when `?add=1` is present, then strip the flag per the safeguards above.
 
 ## Placement
 
