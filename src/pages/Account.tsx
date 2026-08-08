@@ -514,7 +514,10 @@ const Account: React.FC = () => {
                   <p className="text-muted-foreground text-sm mt-1">{getSectionConfig().subtitle}</p>
                 </div>
                 <UpgradesRepairsSection autoOpenAdd={autoOpenAdd} />
-...
+              </div>
+            </TabsContent>
+
+            <TabsContent value="smart-calendar">
               <SmartCalendar autoOpenAdd={autoOpenAdd} />
             </TabsContent>
 
@@ -534,7 +537,9 @@ const Account: React.FC = () => {
 
             <TabsContent value="family-recipes">
               <FamilyRecipes autoOpenAdd={autoOpenAdd} />
-...
+            </TabsContent>
+
+            <TabsContent value="medication-list">
               <FamilyMedications onNavigate={setActiveTab} autoOpenAdd={autoOpenAdd} />
             </TabsContent>
 
