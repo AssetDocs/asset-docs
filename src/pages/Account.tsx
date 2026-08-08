@@ -79,6 +79,29 @@ const Account: React.FC = () => {
   const { isReadOnly: isViewer, showReadOnlyRestriction: showViewerRestriction, canEdit, accountId, isOwner } = useAccount();
   const { user, profile, profileLoading, refreshProfile } = useAuth();
   const isOverview = activeTab === 'overview';
+
+  // `?add=` is a UI hint only: it asks the destination section to open its own
+  // existing create UI. It never triggers a mutation, upload, or write. The flag
+  // is consumed once and removed from the URL (all other params preserved), and
+  // it is ignored when the active account/role cannot edit.
+  const addParam = searchParams.get('add');
+  const [autoOpenAddFor, setAutoOpenAddFor] = useState<{ tab: string; value: string } | null>(null);
+
+  useEffect(() => {
+    if (!addParam) return;
+    if (canEdit) {
+      setAutoOpenAddFor({ tab: activeTab, value: addParam });
+    }
+    const next = new URLSearchParams(searchParams);
+    next.delete('add');
+    const query = next.toString();
+    navigate(`/account${query ? `?${query}` : ''}`, { replace: true });
+  }, [addParam, activeTab, canEdit, searchParams, navigate]);
+
+  const autoOpenAddValue = autoOpenAddFor?.tab === activeTab ? autoOpenAddFor?.value : null;
+  const autoOpenAdd = Boolean(autoOpenAddValue);
+
+
   const getFirstName = () => {
     return profile?.first_name || user?.user_metadata?.first_name || user?.email?.split('@')[0] || 'there';
   };
