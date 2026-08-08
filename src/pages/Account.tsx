@@ -79,6 +79,29 @@ const Account: React.FC = () => {
   const { isReadOnly: isViewer, showReadOnlyRestriction: showViewerRestriction, canEdit, accountId, isOwner } = useAccount();
   const { user, profile, profileLoading, refreshProfile } = useAuth();
   const isOverview = activeTab === 'overview';
+
+  // `?add=` is a UI hint only: it asks the destination section to open its own
+  // existing create UI. It never triggers a mutation, upload, or write. The flag
+  // is consumed once and removed from the URL (all other params preserved), and
+  // it is ignored when the active account/role cannot edit.
+  const addParam = searchParams.get('add');
+  const [autoOpenAddFor, setAutoOpenAddFor] = useState<{ tab: string; value: string } | null>(null);
+
+  useEffect(() => {
+    if (!addParam) return;
+    if (canEdit) {
+      setAutoOpenAddFor({ tab: activeTab, value: addParam });
+    }
+    const next = new URLSearchParams(searchParams);
+    next.delete('add');
+    const query = next.toString();
+    navigate(`/account${query ? `?${query}` : ''}`, { replace: true });
+  }, [addParam, activeTab, canEdit, searchParams, navigate]);
+
+  const autoOpenAddValue = autoOpenAddFor?.tab === activeTab ? autoOpenAddFor?.value : null;
+  const autoOpenAdd = Boolean(autoOpenAddValue);
+
+
   const getFirstName = () => {
     return profile?.first_name || user?.user_metadata?.first_name || user?.email?.split('@')[0] || 'there';
   };
@@ -383,7 +406,7 @@ const Account: React.FC = () => {
 
             {/* Asset Documentation Grid */}
             <TabsContent value="asset-documentation">
-              <AssetDocumentationGrid />
+              <AssetDocumentationGrid autoOpenAdd={autoOpenAddValue === 'scan' ? 'scan' : autoOpenAdd ? 'selector' : null} />
             </TabsContent>
 
             {/* Password Catalog - opens SecureVault focused on passwords */}
@@ -480,7 +503,7 @@ const Account: React.FC = () => {
                   <h2 className="text-2xl font-bold text-foreground">{getSectionConfig().title}</h2>
                   <p className="text-muted-foreground text-sm mt-1">{getSectionConfig().subtitle}</p>
                 </div>
-                <ServiceProsSection />
+                <ServiceProsSection autoOpenAdd={autoOpenAdd} />
               </div>
             </TabsContent>
 
@@ -490,12 +513,12 @@ const Account: React.FC = () => {
                   <h2 className="text-2xl font-bold text-foreground">{getSectionConfig().title}</h2>
                   <p className="text-muted-foreground text-sm mt-1">{getSectionConfig().subtitle}</p>
                 </div>
-                <UpgradesRepairsSection />
+                <UpgradesRepairsSection autoOpenAdd={autoOpenAdd} />
               </div>
             </TabsContent>
 
             <TabsContent value="smart-calendar">
-              <SmartCalendar />
+              <SmartCalendar autoOpenAdd={autoOpenAdd} />
             </TabsContent>
 
             <TabsContent value="quick-notes">
@@ -509,19 +532,19 @@ const Account: React.FC = () => {
             </TabsContent>
 
             <TabsContent value="notes-traditions">
-              <NotesAndTraditions />
+              <NotesAndTraditions autoOpenAdd={autoOpenAdd} />
             </TabsContent>
 
             <TabsContent value="family-recipes">
-              <FamilyRecipes />
+              <FamilyRecipes autoOpenAdd={autoOpenAdd} />
             </TabsContent>
 
             <TabsContent value="medication-list">
-              <FamilyMedications onNavigate={setActiveTab} />
+              <FamilyMedications onNavigate={setActiveTab} autoOpenAdd={autoOpenAdd} />
             </TabsContent>
 
             <TabsContent value="important-locations">
-              <ImportantLocations onNavigate={setActiveTab} />
+              <ImportantLocations onNavigate={setActiveTab} autoOpenAdd={autoOpenAdd} />
             </TabsContent>
 
             <TabsContent value="memory-safe">

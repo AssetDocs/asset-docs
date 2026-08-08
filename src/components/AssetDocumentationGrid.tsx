@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AssetTypeSelector, { type AssetUploadType } from './AssetTypeSelector';
+import { resolveAssetUploadDestination } from '@/lib/assetUploadRouting';
 import ScanToPDF from './ScanToPDF';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAccount } from '@/contexts/AccountContext';
@@ -35,7 +36,12 @@ const getItemNames = (itemValues: unknown): string[] => {
     .map(String);
 };
 
-const AssetDocumentationGrid: React.FC = () => {
+interface AssetDocumentationGridProps {
+  /** UI hint only: 'selector' opens the upload-type chooser, 'scan' opens the scanner. */
+  autoOpenAdd?: 'selector' | 'scan' | null;
+}
+
+const AssetDocumentationGrid: React.FC<AssetDocumentationGridProps> = ({ autoOpenAdd = null }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { accountId, ownerUserId, canEdit, showReadOnlyRestriction } = useAccount();
@@ -53,6 +59,15 @@ const AssetDocumentationGrid: React.FC = () => {
   const [properties, setProperties] = useState<any[]>([]);
   const [rooms, setRooms] = useState<any[]>([]);
   const [isFinding, setIsFinding] = useState(false);
+
+  // UI hint only: opens the existing chooser/scanner. Never performs work.
+  useEffect(() => {
+    if (!autoOpenAdd || !canEdit) return;
+    if (autoOpenAdd === 'scan') setScannerOpen(true);
+    else setSelectorOpen(true);
+  }, [autoOpenAdd, canEdit]);
+
+
 
   const { uploadSingleFile } = useFileUpload({
     bucket: 'documents',
@@ -319,24 +334,12 @@ const AssetDocumentationGrid: React.FC = () => {
 
   const handleTypeSelect = (type: AssetUploadType) => {
     setSelectorOpen(false);
-    if (type === 'scan_to_pdf') {
+    const destination = resolveAssetUploadDestination(type);
+    if (destination.kind === 'scan') {
       setScannerOpen(true);
       return;
     }
-    switch (type) {
-      case 'photo':
-        navigate('/account/media/upload?tab=photos');
-        break;
-      case 'video':
-        navigate('/account/media/upload?tab=videos');
-        break;
-      case 'insurance_policy':
-        navigate('/account/insurance/new');
-        break;
-      default:
-        navigate(`/account/documents/upload?type=${type}`);
-        break;
-    }
+    navigate(destination.to);
   };
 
   const handlePDFReady = async (pdfFile: File) => {

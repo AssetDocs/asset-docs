@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ContactAttachments from '@/components/ContactAttachments';
@@ -60,6 +60,7 @@ const RELATIONSHIP_OPTIONS = [
 
 const VIPContacts: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const {
     isReadOnly: isViewer,
@@ -108,6 +109,21 @@ const VIPContacts: React.FC = () => {
 
   const effectiveUserId = ownerUserId;
   const canManageContacts = canEdit && !!effectiveUserId;
+
+  // `?add=1` is a UI hint only: it opens the existing add dialog and is then
+  // removed from the URL (all other params preserved). It never writes data.
+  useEffect(() => {
+    if (searchParams.get('add') !== '1') return;
+    if (canManageContacts) {
+      setEditingContact(null);
+      setIsDialogOpen(true);
+    }
+    const next = new URLSearchParams(searchParams);
+    next.delete('add');
+    const query = next.toString();
+    navigate(`/account/contacts${query ? `?${query}` : ''}`, { replace: true });
+  }, [searchParams, canManageContacts, navigate]);
+
 
   const filteredContacts = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();

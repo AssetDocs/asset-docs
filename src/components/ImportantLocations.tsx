@@ -61,6 +61,8 @@ type LocationSort = 'updated-desc' | 'created-desc' | 'name-asc' | 'category' | 
 
 interface ImportantLocationsProps {
   onNavigate?: (tab: string) => void;
+  /** UI hint only: opens the existing add dialog. Never performs work. */
+  autoOpenAdd?: boolean;
 }
 
 const ALL_VALUE = 'all';
@@ -102,6 +104,11 @@ const ImportantLocations: React.FC<ImportantLocationsProps> = ({ onNavigate }) =
   const [properties, setProperties] = useState<PropertyOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (autoOpenAdd) setIsOpen(true);
+  }, [autoOpenAdd]);
+
   const [editingLocation, setEditingLocation] = useState<ImportantLocation | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [isSaving, setIsSaving] = useState(false);

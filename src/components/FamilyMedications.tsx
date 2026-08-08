@@ -96,11 +96,11 @@ const CATEGORIES = [
 
 interface FamilyMedicationsProps {
   onNavigate?: (tab: string) => void;
+  /** UI hint only: opens the existing add dialog. Never performs work. */
+  autoOpenAdd?: boolean;
 }
 
-const clean = (value: string) => value.trim() || null;
-
-const FamilyMedications: React.FC<FamilyMedicationsProps> = ({ onNavigate }) => {
+const FamilyMedications: React.FC<FamilyMedicationsProps> = ({ onNavigate, autoOpenAdd = false }) => {
   const { user } = useAuth();
   const { ownerUserId, canEdit, showReadOnlyRestriction } = useAccount();
   const { subscriptionTier, storageQuotaGb } = useSubscription();
@@ -109,6 +109,11 @@ const FamilyMedications: React.FC<FamilyMedicationsProps> = ({ onNavigate }) => 
   const [medications, setMedications] = useState<MedicationEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (autoOpenAdd) setIsOpen(true);
+  }, [autoOpenAdd]);
+
   const [editingMedication, setEditingMedication] = useState<MedicationEntry | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useCalendarEvents, CalendarEvent, CalendarEventCategory, CalendarEventStatus, CalendarEventInsert } from '@/hooks/useCalendarEvents';
 import { useSuggestedEvents, SuggestedEvent } from '@/hooks/useSuggestedEvents';
 import { useProperties } from '@/hooks/useProperties';
@@ -14,11 +14,21 @@ import { Plus, CalendarDays, List, LayoutGrid, FileText } from 'lucide-react';
 import { format, isSameDay } from 'date-fns';
 import CalendarEventCard from './calendar/CalendarEventCard';
 
-const SmartCalendar: React.FC = () => {
+interface SmartCalendarProps {
+  /** UI hint only: opens the existing new-event dialog. Never performs work. */
+  autoOpenAdd?: boolean;
+}
+
+const SmartCalendar: React.FC<SmartCalendarProps> = ({ autoOpenAdd = false }) => {
   const [view, setView] = useState<'month' | 'list'>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (autoOpenAdd) setModalOpen(true);
+  }, [autoOpenAdd]);
+
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
   const [prefill, setPrefill] = useState<Partial<CalendarEventInsert> | undefined>();
   const [templatesOpen, setTemplatesOpen] = useState(false);
