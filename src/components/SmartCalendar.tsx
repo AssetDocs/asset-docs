@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useCalendarEvents, CalendarEvent, CalendarEventCategory, CalendarEventStatus, CalendarEventInsert } from '@/hooks/useCalendarEvents';
 import { useSuggestedEvents, SuggestedEvent } from '@/hooks/useSuggestedEvents';
 import { useProperties } from '@/hooks/useProperties';
