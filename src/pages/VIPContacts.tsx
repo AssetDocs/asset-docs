@@ -60,6 +60,7 @@ const RELATIONSHIP_OPTIONS = [
 
 const VIPContacts: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const {
     isReadOnly: isViewer,
