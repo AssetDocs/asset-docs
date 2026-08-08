@@ -31,9 +31,10 @@ Family Archive and Insights & Tools create forms are **internal to their section
 2. **Chooser dialog** (single `Dialog`, internal step state — no stacked overlays):
    - Step 1 "What would you like to add?" / "Choose where your new information belongs." → Asset Documentation, Family Archive, Insights & Tools (existing card/icon styling).
    - Step 2 for Family Archive and Insights & Tools: vertical list of the real create actions above, with a **Back** action returning to step 1.
-   - Asset Documentation: closes the chooser and opens the existing `AssetTypeSelector`, wired to the same routing logic as `AssetDocumentationGrid.handleTypeSelect` (extracted into a shared helper so there is one source of truth, not a copy).
-3. **`DashboardGrid.tsx`** — render `DashboardQuickAdd` at the top of the grid, directly above the Asset Documentation / Family Archive cards, spanning both columns, with divider spacing above and below.
-4. **`Account.tsx`** — pass `autoOpenAdd` into the affected tab sections when `?add=1` is present.
+   - Asset Documentation: closes the chooser and opens the existing `AssetTypeSelector`.
+3. **Shared upload-routing helper** (new, small) — `AssetDocumentationGrid.handleTypeSelect`'s routing map is extracted into one helper/hook consumed by **both** the Asset Documentation upload button and Dashboard Quick Add, so the two entry points cannot drift.
+4. **`DashboardGrid.tsx`** — render `DashboardQuickAdd` at the top of the grid, directly above the Asset Documentation / Family Archive cards, spanning both columns, with divider spacing above and below.
+5. **`Account.tsx`** — pass `autoOpenAdd` into the affected tab sections when `?add=1` is present, then strip the flag per the safeguards above.
 
 ## Placement
 
