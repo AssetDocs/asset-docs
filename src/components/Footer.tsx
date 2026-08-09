@@ -87,7 +87,7 @@ const Footer: React.FC = () => {
                 <li>
                   <Link to="/install" className="text-gray-300 hover:text-white transition-colors text-sm flex items-center gap-1">
                     <Smartphone className="h-3 w-3" />
-                    Install App
+                    Add to Home Screen
                   </Link>
                 </li>
                 <li>

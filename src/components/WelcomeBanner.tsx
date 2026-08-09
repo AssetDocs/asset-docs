@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp, Home, Settings, Smartphone, Users, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,6 +8,22 @@ import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useDashboardResumePrompt } from '@/hooks/useDashboardResumePrompt';
 import AccountSwitcher from '@/components/AccountSwitcher';
+import { track } from '@/lib/track';
+
+type MobilePlatform = 'ios-safari' | 'ios-other' | 'android' | 'other';
+
+function detectMobilePlatform(): MobilePlatform {
+  if (typeof navigator === 'undefined') return 'other';
+  const ua = navigator.userAgent;
+  const isIOS = /iPad|iPhone|iPod/.test(ua) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (isIOS) {
+    const isSafari = /^((?!CriOS|FxiOS|EdgiOS|EdgiOS|OPiOS|GoogleApp).)*Safari/.test(ua);
+    return isSafari ? 'ios-safari' : 'ios-other';
+  }
+  if (/Android/.test(ua)) return 'android';
+  return 'other';
+}
 
 interface WelcomeBannerProps {
   onTabChange?: (tab: string) => void;
@@ -18,12 +34,19 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange, isFirstDashb
   const { profile, user } = useAuth();
   const { accountName, ownerName, isOwner, hasMultipleAccounts } = useAccount();
   const navigate = useNavigate();
+  const location = useLocation();
   const isMobile = useIsMobile();
   const [accountNumber, setAccountNumber] = useState('');
   const [hideInstallPrompt, setHideInstallPrompt] = useState(false);
   const [isAppInstalled, setIsAppInstalled] = useState(false);
   const [isInstallPromptCollapsed, setIsInstallPromptCollapsed] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [platform, setPlatform] = useState<MobilePlatform>('other');
   const resumePrompt = useDashboardResumePrompt();
+
+  useEffect(() => {
+    setPlatform(detectMobilePlatform());
+  }, []);
 
   useEffect(() => {
     const fetchAccountNumber = async () => {
@@ -73,6 +96,7 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange, isFirstDashb
   const handleDismissInstallPrompt = () => {
     setHideInstallPrompt(true);
     localStorage.setItem('installPromptDismissed', 'true');
+    track('mobile_home_shortcut_dismissed', { platform });
   };
 
   const handleToggleInstallPromptCollapse = () => {
@@ -81,7 +105,22 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange, isFirstDashb
     localStorage.setItem('installPromptCollapsed', String(newState));
   };
 
+  const handleShowInstructions = () => {
+    track('mobile_home_shortcut_help_opened', { platform });
+    setShowInstructions(true);
+    setIsInstallPromptCollapsed(false);
+    if (location.pathname !== '/account') {
+      navigate('/account', { replace: true });
+    }
+  };
+
   const showMobileInstallPrompt = isMobile && !isAppInstalled && !hideInstallPrompt;
+
+  useEffect(() => {
+    if (showMobileInstallPrompt) {
+      track('mobile_home_shortcut_prompt_shown', { platform });
+    }
+  }, [showMobileInstallPrompt, platform]);
 
   return (
     <div className="space-y-3 h-full">
@@ -174,7 +213,7 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange, isFirstDashb
                 <ChevronUp className="h-4 w-4" />
               )}
               <Smartphone className="h-5 w-5" />
-              <span className="text-sm">One-Tap Mobile Access</span>
+              <span className="text-sm">Add Asset Safe to Your Home Screen</span>
             </button>
             <button
               onClick={handleDismissInstallPrompt}
@@ -182,7 +221,7 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange, isFirstDashb
               aria-label="Dismiss"
             >
               <X className="h-3.5 w-3.5" />
-              <span>Don't show again</span>
+              <span>Maybe Later</span>
             </button>
           </div>
           {!isInstallPromptCollapsed && (
@@ -190,17 +229,73 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange, isFirstDashb
               <div className="flex-1">
                 <p className="font-semibold text-sm">Add Asset Safe to Your Home Screen</p>
                 <p className="text-white/90 text-xs mt-1">
-                  One-tap access to your dashboard, even during emergencies with limited internet.
+                  Get quick, app-like access to your Asset Safe dashboard right from your home screen.
                 </p>
-                <Button
-                  asChild
-                  size="sm"
-                  className="mt-2 bg-white text-brand-orange hover:bg-white/90 font-medium"
-                >
-                  <Link to="/install">
-                    Learn How
-                  </Link>
-                </Button>
+                {showInstructions ? (
+                  <div className="mt-3 space-y-3 text-xs text-white/95 bg-white/10 rounded-md p-3">
+                    {platform === 'ios-safari' && (
+                      <div>
+                        <p className="font-semibold mb-1">On iPhone & iPad (Safari):</p>
+                        <ol className="list-decimal list-inside space-y-1">
+                          <li>Tap the <strong>Share</strong> button in Safari.</li>
+                          <li>Scroll down and tap <strong>Add to Home Screen</strong>.</li>
+                          <li>Tap <strong>Add</strong>.</li>
+                        </ol>
+                        <p className="mt-2 text-white/80">
+                          Asset Safe will appear on your home screen and open directly to your dashboard sign-in or account.
+                        </p>
+                      </div>
+                    )}
+                    {platform === 'ios-other' && (
+                      <div>
+                        <p className="font-semibold mb-1">On iPhone & iPad:</p>
+                        <p>
+                          For the easiest setup, open Asset Safe in Safari and go to your dashboard before adding it to your home screen.
+                        </p>
+                        <ol className="list-decimal list-inside space-y-1 mt-2">
+                          <li>In Safari, tap the <strong>Share</strong> button.</li>
+                          <li>Scroll down and tap <strong>Add to Home Screen</strong>.</li>
+                          <li>Tap <strong>Add</strong>.</li>
+                        </ol>
+                        <p className="mt-2 text-white/80">
+                          Asset Safe will appear on your home screen and open directly to your dashboard sign-in or account.
+                        </p>
+                      </div>
+                    )}
+                    {platform === 'android' && (
+                      <div>
+                        <p className="font-semibold mb-1">On Android (Chrome):</p>
+                        <ol className="list-decimal list-inside space-y-1">
+                          <li>Open the Chrome menu (⋮).</li>
+                          <li>Choose <strong>Add to Home screen</strong> or the shortcut option shown by Chrome.</li>
+                          <li>Confirm.</li>
+                        </ol>
+                        <p className="mt-2 text-white/80">
+                          Asset Safe will appear on your home screen and open directly to your dashboard sign-in or account.
+                        </p>
+                      </div>
+                    )}
+                    {platform === 'other' && (
+                      <div>
+                        <p className="font-semibold mb-1">Add Asset Safe to your home screen:</p>
+                        <p>
+                          Use your browser's <strong>Add to Home Screen</strong> or shortcut option, then confirm.
+                        </p>
+                        <p className="mt-2 text-white/80">
+                          Asset Safe will appear on your home screen and open directly to your dashboard sign-in or account.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <Button
+                    size="sm"
+                    className="mt-2 bg-white text-brand-orange hover:bg-white/90 font-medium"
+                    onClick={handleShowInstructions}
+                  >
+                    Show Me How
+                  </Button>
+                )}
               </div>
             </div>
           )}
