@@ -65,3 +65,33 @@ Build + TypeScript no-emit check, then Playwright at mobile viewport: prompt ren
 ## Known limitation (documented, not fixed here)
 
 Unauthenticated deep links to nested protected routes (e.g. `/account/contacts`) lose the original destination and return to `/account` after login. Follow-up candidate only.
+
+## Approved refinements (revision)
+
+### Android copy
+Use, without emphasizing "Install app":
+"Open the Chrome menu (⋮) → choose **Add to Home screen** or the shortcut option shown by Chrome → confirm."
+
+### Prompt wording
+- Headline: "Add Asset Safe to Your Home Screen"
+- Supporting copy: "Get quick, app-like access to your Asset Safe dashboard right from your home screen."
+- Primary CTA: "Show Me How"; secondary: "Maybe Later" (rename the current "Don't show again" control, same localStorage persistence).
+- Confirmation line: "Asset Safe will appear on your home screen for quick, app-like access to your dashboard."
+
+### /install page rewrite (no offline claims)
+- Title: "Add Asset Safe to Your Home Screen"; subtitle: "Quick, app-like access to your Asset Safe dashboard".
+- Intro: "Asset Safe works directly from your browser and can be added to your device's home screen for quick access to your dashboard."
+- Benefits list becomes exactly: one-tap access to your dashboard / opens directly to your Asset Safe sign-in or account / uses the same secure Asset Safe experience as the full website.
+- Delete the entire "Important Notes About Offline Access" card and any wording implying cached or offline access.
+- Section titles become action-oriented: "How to add Asset Safe to your home screen in Chrome", etc.; "Confirm installation" becomes "Confirm the shortcut". Result lines describe home-screen access, not "standalone app" or "app-style window".
+- URLs in steps point to `https://getassetsafe.com/account` (replacing the homepage and the `assetsafe.net` reference).
+- Remove the `beforeinstallprompt` "Install Now" button/listener and the "already installed" card's app-install framing.
+- SEOHead title/description/keywords lose "install the app" and "progressive web app" phrasing in favor of home-screen/dashboard-access wording.
+
+### Terminology audit results (customer-facing only)
+- `src/components/Footer.tsx:90` — change the visible label "Install App" to "Add to Home Screen" (link target unchanged).
+- `src/pages/HabitatPilot.tsx:168` — "One-tap access via mobile home screen" already compliant; leave as-is.
+- Internal/technical occurrences left untouched: `src/main.tsx` comment, `src/utils/structuredData.ts` comment, admin-only `RoadmapTab.tsx` and `AdminLegalAgreements.tsx`, and `StateRequirements.tsx` (about government apps, unrelated).
+
+### Unchanged
+Routing, `/account` shortcut targeting, auth, service-worker cleanup, manifest absence, mobile detection, dismissal persistence, subscription logic, dashboard behavior, public site structure. No "Why isn't Asset Safe in the App Store?" explainer in this pass.
