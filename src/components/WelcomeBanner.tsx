@@ -29,12 +29,14 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange, isFirstDashb
   const [isAppInstalled, setIsAppInstalled] = useState(false);
   const [isInstallPromptCollapsed, setIsInstallPromptCollapsed] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
-  const [platform, setPlatform] = useState<MobilePlatform>('other');
+  const [platform, setPlatform] = useState('unknown');
   const resumePrompt = useDashboardResumePrompt();
 
   useEffect(() => {
-    setPlatform(detectMobilePlatform());
+    const env = detectEnvironment();
+    setPlatform(`${env.device}:${env.browser}`);
   }, []);
+
 
   useEffect(() => {
     const fetchAccountNumber = async () => {
