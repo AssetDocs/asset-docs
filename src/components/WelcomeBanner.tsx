@@ -295,11 +295,6 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange, isFirstDashb
           )}
         </div>
       )}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 };
