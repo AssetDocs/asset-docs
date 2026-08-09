@@ -222,62 +222,18 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange, isFirstDashb
                   Get quick, app-like access to your Asset Safe dashboard right from your home screen.
                 </p>
                 {showInstructions ? (
-                  <div className="mt-3 space-y-3 text-xs text-white/95 bg-white/10 rounded-md p-3">
-                    {platform === 'ios-safari' && (
-                      <div>
-                        <p className="font-semibold mb-1">On iPhone & iPad (Safari):</p>
-                        <ol className="list-decimal list-inside space-y-1">
-                          <li>Tap the <strong>Share</strong> button in Safari.</li>
-                          <li>Scroll down and tap <strong>Add to Home Screen</strong>.</li>
-                          <li>Tap <strong>Add</strong>.</li>
-                        </ol>
-                        <p className="mt-2 text-white/80">
-                          Asset Safe will appear on your home screen and open directly to your dashboard sign-in or account.
-                        </p>
-                      </div>
-                    )}
-                    {platform === 'ios-other' && (
-                      <div>
-                        <p className="font-semibold mb-1">On iPhone & iPad:</p>
-                        <p>
-                          For the easiest setup, open Asset Safe in Safari and go to your dashboard before adding it to your home screen.
-                        </p>
-                        <ol className="list-decimal list-inside space-y-1 mt-2">
-                          <li>In Safari, tap the <strong>Share</strong> button.</li>
-                          <li>Scroll down and tap <strong>Add to Home Screen</strong>.</li>
-                          <li>Tap <strong>Add</strong>.</li>
-                        </ol>
-                        <p className="mt-2 text-white/80">
-                          Asset Safe will appear on your home screen and open directly to your dashboard sign-in or account.
-                        </p>
-                      </div>
-                    )}
-                    {platform === 'android' && (
-                      <div>
-                        <p className="font-semibold mb-1">On Android (Chrome):</p>
-                        <ol className="list-decimal list-inside space-y-1">
-                          <li>Open the Chrome menu (⋮).</li>
-                          <li>Choose <strong>Add to Home screen</strong> or the shortcut option shown by Chrome.</li>
-                          <li>Confirm.</li>
-                        </ol>
-                        <p className="mt-2 text-white/80">
-                          Asset Safe will appear on your home screen and open directly to your dashboard sign-in or account.
-                        </p>
-                      </div>
-                    )}
-                    {platform === 'other' && (
-                      <div>
-                        <p className="font-semibold mb-1">Add Asset Safe to your home screen:</p>
-                        <p>
-                          Use your browser's <strong>Add to Home Screen</strong> or shortcut option, then confirm.
-                        </p>
-                        <p className="mt-2 text-white/80">
-                          Asset Safe will appear on your home screen and open directly to your dashboard sign-in or account.
-                        </p>
-                      </div>
-                    )}
+                  <div className="mt-3">
+                    <HomeScreenInstructions
+                      variant="banner"
+                      onSelectionChange={(device, browser) =>
+                        track('mobile_home_shortcut_browser_selected', {
+                          platform: `${device}:${browser}`,
+                        })
+                      }
+                    />
                   </div>
                 ) : (
+
                   <Button
                     size="sm"
                     className="mt-2 bg-white text-brand-orange hover:bg-white/90 font-medium"
