@@ -74,12 +74,6 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange, isFirstDashb
     if (collapsed === 'true') setIsInstallPromptCollapsed(true);
   }, []);
 
-  useEffect(() => {
-    if (showMobileInstallPrompt) {
-      track('mobile_home_shortcut_prompt_shown', { platform });
-    }
-  }, [showMobileInstallPrompt, platform]);
-
   const getDisplayName = () => {
     const firstName = profile?.first_name || user?.user_metadata?.first_name || '';
     const lastName = profile?.last_name || user?.user_metadata?.last_name || '';
