@@ -1,44 +1,37 @@
-# Turnstile Enforcement: Current State and Remaining Work
+# Land the Turnstile Diff via GitHub, Then Validate
 
-## Verified current state
+## Confirmed state of this project's source
 
-A search of `src/` and `supabase/functions/` found **zero references to Turnstile anywhere in the code**. There is no `Turnstile.tsx` component, no widget in any form, and no `siteverify` call in any Edge Function. The only Turnstile artifacts that exist are:
+Re-checked just now: `src/components/security/` does not exist, `supabase/functions/_shared/` contains no `turnstile.ts`, and a case-insensitive search for "turnstile" across `src/` and `supabase/` returns zero hits. The only Turnstile artifacts here are `VITE_TURNSTILE_SITE_KEY` in `.env` and the `TURNSTILE_SECRET_KEY` project secret.
 
-- `VITE_TURNSTILE_SITE_KEY` in `.env`
-- `TURNSTILE_SECRET_KEY` stored as a project secret
+So this is a source-sync gap, exactly as you described. Your local diff is the authoritative version; nothing should be rewritten here.
 
-So this is not a branch/deploy mismatch — the component and form wiring were never written. Redeploying the current code state would change nothing. Turnstile is enforced only where Supabase Auth enforces it natively (and only once enabled in the dashboard).
+## Urgent sequencing note
 
-## What to build
+Turnstile is already enabled in Supabase Auth > CAPTCHA, but the deployed frontend has no `captchaToken` wiring. That means native signup, password reset, and magic-link calls are being rejected by Supabase right now. Two options:
 
-### 1. Frontend widget component
-New `src/components/Turnstile.tsx`:
-- Loads the Cloudflare challenge script once (idempotent, no duplicate script tags).
-- Renders an invisible/managed widget, reads the site key from `import.meta.env.VITE_TURNSTILE_SITE_KEY`.
-- Exposes `onToken(token)` plus a `reset()` handle so the token can be refreshed after a failed submit (tokens are single-use).
-- If the site key is absent, renders nothing and reports "unconfigured" so local dev never blocks.
+- **Preferred:** push the diff and deploy immediately, closing the window in minutes.
+- **If the push will take a while:** temporarily disable Auth CAPTCHA in the dashboard, then re-enable it right after the frontend deploy lands.
 
-### 2. Wire the public forms
-Each form gates submit until a token exists and sends `captchaToken` in the function payload:
-- `src/pages/Contact.tsx` → `send-contact-email`
-- `src/pages/Feedback.tsx` → `send-feedback-email`
-- `src/pages/AccountAssistance.tsx` → `submit-account-assistance`
-- `src/components/LeadCaptureModal.tsx` → `submit-lead`
+## Steps
 
-`lead-capture` has no frontend caller in this codebase; it will get server-side verification too, so any external caller must supply a token.
+1. **You push from Codex.** Commit the Turnstile changes and push to the connected repo's default branch. Lovable's two-way GitHub sync pulls them into this project automatically.
+2. **I confirm the sync.** Re-run the searches and verify the expected files are present: `src/components/security/Turnstile.tsx`, `supabase/functions/_shared/turnstile.ts`, `captchaToken` in the auth call sites, and `siteverify` in the five public functions.
+3. **I deploy the Edge Functions** from the synced state: `send-contact-email`, `send-feedback-email`, `submit-account-assistance`, `submit-lead`, `lead-capture`.
+4. **You publish the frontend** so the widget and `captchaToken` wiring go live.
+5. **I run staging validation** (below).
 
-### 3. Server-side verification
-New `supabase/functions/_shared/turnstile.ts`:
-- `verifyTurnstile(token, ip)` POSTs to `https://challenges.cloudflare.com/turnstile/v0/siteverify` with `TURNSTILE_SECRET_KEY`.
-- Returns a clean pass/fail; on failure the caller returns HTTP 400 with a generic "Captcha verification failed" message (no raw provider detail).
-- Fails **closed** when the secret is present. If `TURNSTILE_SECRET_KEY` is missing, log a warning and allow through, so a secret rotation gap doesn't take down the contact form.
+Your two deviations from my earlier draft are accepted as-is and I will not change them: the helper reads `TURNSTILE_SECRET_KEY`, and it **fails closed** when the secret is missing. Fail-closed is the right call now that the secret is configured — I'll note in validation that a future secret rotation gap would hard-fail these forms, which is the intended tradeoff.
 
-Then add the check as the first step (after CORS, before existing validation and before any DB write or email send) in: `send-contact-email`, `send-feedback-email`, `submit-account-assistance`, `submit-lead`, `lead-capture`. Existing IP rate limiting stays in place as a second layer.
+## Validation I'll run after the deploy
 
-### 4. Deploy and validate
-- Deploy the five Edge Functions.
-- Validation: typecheck; call each function with no token and confirm a 400 captcha rejection; call with an invalid token and confirm the same; then submit each form in the preview and confirm a real submission still succeeds end to end.
+- Typecheck against `tsconfig.app.json`.
+- Curl each of the five functions with no `captchaToken` and confirm a clean 400-class rejection with a generic message (no raw provider or Postgres detail leaking — `lead-capture` was the previous offender).
+- Curl with a bogus token and confirm the same rejection path.
+- Browser pass in the preview: submit Contact, Feedback, Account Assistance, and the Lead Capture modal with the real widget and confirm each succeeds end to end (row written, email sent).
+- Browser pass on the auth flows now that Auth CAPTCHA is live: signup, forgot password, and magic link each complete without a captcha error.
+- Security scan for any new critical findings.
 
-## Still yours to do in the Supabase dashboard
+## Notes
 
-Auth CAPTCHA for native flows (signup, password reset, magic link) cannot be toggled from code. In Supabase → Authentication → Settings → CAPTCHA, select Turnstile, paste site key `0x4AAAAAAELSA62CLlzmSg_l` and the rotated secret, and enable it. Note that once enabled, the app's own auth calls (`signUp`, `resetPasswordForEmail`, magic link) must pass `options.captchaToken` or they will start failing — say the word and I'll wire the widget into the login/signup/forgot-password screens in the same pass.
+I cannot read your Codex workspace, so I will not write, package, or reconstruct any of the Turnstile code. If a file arrives partially synced or a conflict appears during sync, I'll report exactly what's missing rather than filling the gap myself.
