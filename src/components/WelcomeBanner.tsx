@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp, Home, Settings, Smartphone, Users, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,6 +8,22 @@ import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useDashboardResumePrompt } from '@/hooks/useDashboardResumePrompt';
 import AccountSwitcher from '@/components/AccountSwitcher';
+import { track } from '@/lib/track';
+
+type MobilePlatform = 'ios-safari' | 'ios-other' | 'android' | 'other';
+
+function detectMobilePlatform(): MobilePlatform {
+  if (typeof navigator === 'undefined') return 'other';
+  const ua = navigator.userAgent;
+  const isIOS = /iPad|iPhone|iPod/.test(ua) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (isIOS) {
+    const isSafari = /^((?!CriOS|FxiOS|EdgiOS|EdgiOS|OPiOS|GoogleApp).)*Safari/.test(ua);
+    return isSafari ? 'ios-safari' : 'ios-other';
+  }
+  if (/Android/.test(ua)) return 'android';
+  return 'other';
+}
 
 interface WelcomeBannerProps {
   onTabChange?: (tab: string) => void;
