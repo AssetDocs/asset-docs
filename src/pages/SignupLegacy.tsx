@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { storeGiftRedirect } from '@/lib/giftRedirect';
+import Turnstile, { getTurnstileUserMessage, type TurnstileHandle } from '@/components/security/Turnstile';
 
 interface SignUpFormData {
   firstName: string;
@@ -50,6 +51,7 @@ const Signup: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [emailExistsError, setEmailExistsError] = useState(false);
   const [isContributorSignup, setIsContributorSignup] = useState(false);
+  const turnstileRef = useRef<TurnstileHandle>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, signUp, signIn } = useAuth();
@@ -127,6 +129,8 @@ const Signup: React.FC = () => {
 
     setIsLoading(true);
     try {
+      const captchaToken = await turnstileRef.current?.getToken();
+
       if (giftRedirect) {
         storeGiftRedirect(giftRedirect);
         const { code, token } = getGiftClaimParams(giftRedirect);
@@ -153,6 +157,7 @@ const Signup: React.FC = () => {
         data.lastName,
         giftRedirect ? undefined : data.giftCode?.trim() || undefined,
         giftRedirect || undefined,
+        captchaToken,
       );
 
       if (error) {
@@ -229,9 +234,12 @@ const Signup: React.FC = () => {
       console.error('Sign up error:', error);
       toast({
         title: "Sign Up Failed",
-        description: giftRedirect ? GIFT_SIGNUP_EMAIL_MESSAGE : (error.message || "An error occurred during sign up. Please try again."),
+        description: error?.message?.startsWith?.('turnstile_')
+          ? getTurnstileUserMessage(error)
+          : giftRedirect ? GIFT_SIGNUP_EMAIL_MESSAGE : (error.message || "An error occurred during sign up. Please try again."),
         variant: "destructive",
       });
+      turnstileRef.current?.reset();
     } finally {
       setIsLoading(false);
     }
@@ -513,7 +521,8 @@ const Signup: React.FC = () => {
                     </FormItem>
                   )}
                 />
-                
+                <Turnstile ref={turnstileRef} />
+
                 <Button
                   type="submit" 
                   className="w-full bg-brand-blue hover:bg-brand-blue/90"

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { InventoryChecklistPDFService } from '@/services/InventoryChecklistPDFService';
+import Turnstile, { getTurnstileUserMessage, type TurnstileHandle } from '@/components/security/Turnstile';
 
 interface LeadCaptureModalProps {
   isOpen: boolean;
@@ -54,6 +55,7 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
   const [marketingConsent, setMarketingConsent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessState, setShowSuccessState] = useState(false);
+  const turnstileRef = useRef<TurnstileHandle>(null);
   const { toast } = useToast();
 
   const handleInputChange = (field: string, value: string) => {
@@ -78,6 +80,7 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
     setIsSubmitting(true);
 
     try {
+      const turnstileToken = await turnstileRef.current?.getToken();
       const { data, error } = await supabase.functions.invoke('submit-lead', {
         body: {
           name: formData.name,
@@ -86,7 +89,8 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
           state: formData.state,
           how_heard: formData.howHeard,
           marketing_consent: marketingConsent,
-          honeypot: formData.honeypot
+          honeypot: formData.honeypot,
+          turnstileToken
         }
       });
 
@@ -113,11 +117,15 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
       // Show success state with call-to-action
       setShowSuccessState(true);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error submitting lead:', error);
+      turnstileRef.current?.reset();
+      const errorMessage = error instanceof Error ? error.message : '';
       toast({
         title: "Error",
-        description: error.message || "There was an error saving your information. Please try again.",
+        description: errorMessage.startsWith('turnstile_')
+          ? getTurnstileUserMessage(error)
+          : errorMessage || "There was an error saving your information. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -254,6 +262,8 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({
                   I would like to receive marketing emails about new features, tips, and special offers
                 </Label>
               </div>
+
+              <Turnstile ref={turnstileRef} />
 
               <Button 
                 type="submit" 

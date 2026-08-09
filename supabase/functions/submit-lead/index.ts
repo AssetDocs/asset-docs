@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { turnstileErrorResponse, verifyTurnstileToken } from "../_shared/turnstile.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,6 +15,7 @@ interface LeadSubmission {
   how_heard: string;
   marketing_consent?: boolean;
   honeypot?: string; // Hidden field to catch bots
+  turnstileToken?: string;
 }
 
 const supabase = createClient(
@@ -173,6 +175,8 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const leadData: LeadSubmission = await req.json();
+    const turnstile = await verifyTurnstileToken(leadData.turnstileToken, req);
+    if (!turnstile.ok) return turnstileErrorResponse(turnstile, corsHeaders);
     
     // Get client IP and user agent
     const clientIP = req.headers.get('x-forwarded-for') || 

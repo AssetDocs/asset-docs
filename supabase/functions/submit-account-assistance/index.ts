@@ -3,6 +3,7 @@
 // always log audit events and queue owner notifications without exposing any
 // information about whether an account exists.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { turnstileErrorResponse, verifyTurnstileToken } from "../_shared/turnstile.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -55,6 +56,9 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json();
+    const turnstile = await verifyTurnstileToken(body.turnstileToken, req);
+    if (!turnstile.ok) return turnstileErrorResponse(turnstile, corsHeaders);
+
     const requester_name = clean(body.requester_name, 200);
     const requester_email = clean(body.requester_email, 320);
     const requester_phone = clean(body.requester_phone, 60);
