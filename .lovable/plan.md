@@ -1,39 +1,35 @@
-# Add to Home Screen: OS + Browser Aware Instructions
+# Review: Codex column-guard migration vs. the planned security fix
 
-Today both the dashboard prompt (`WelcomeBanner`) and `/install` detect only the OS (`android`, `ios-safari`, `ios-other`, `desktop`) and each has its own duplicated detection function. Android always shows Chrome wording, which is why an Android + Edge user sees Chrome steps. There is no way to manually pick a different browser.
+Both approaches target the same two findings (`contributors_self_role_escalation`, `gift_subscriptions_claim_field_tampering`) with the same correct pattern: keep the existing UPDATE policies, add `BEFORE UPDATE` trigger guards that freeze every non-action column for user-initiated updates.
 
-## What changes
+## Where Codex is better than the Lovable plan
 
-1. One shared detection + instruction module used by both surfaces.
-2. Detection returns a device (Android / iPhone-iPad / Desktop / Unknown) and a browser (Chrome, Edge, Firefox, Samsung Internet, Safari, Unknown), with a confidence flag.
-3. A single compact selector, "Instructions for: [Microsoft Edge on Android ▾]", above the steps. The detected combination is preselected; changing it swaps the steps in place with no navigation.
-4. When the browser can't be confidently identified: no Chrome fallback. Show "Choose your browser" with the OS preselected and steps appearing only after a browser is chosen. If neither can be identified, a full device + browser selector.
-5. Copy stays standardized: headline "Add Asset Safe to Your Home Screen", support line "Get quick, app-like access to your Asset Safe dashboard right from your home screen.", detection label "Using Microsoft Edge on Android", fallback "Using a different browser?", confirmation "Asset Safe will appear on your home screen for quick, app-like access to your dashboard."
+- **Column coverage.** The Lovable draft froze only a subset of `gift_subscriptions` columns (plan, amount, expiry, status, Stripe ids). Codex freezes all 66 columns except the claim/redeem action columns, and adds `term`, `currency`, `claimed_*`, verification, reminder, and anonymization fields. Verified against the live column list — no gaps.
+- **Service-role detection.** The Lovable draft used `auth.uid() IS NULL` as a proxy for "internal write", which is weak. Codex's `public.is_service_role() OR current_setting('role', true) = 'service_role'` is the correct, repo-consistent check.
+- **Contributors semantics.** Codex additionally pins the status transition to `pending -> accepted|declined`, auto-stamps `accepted_at`, and rejects `accepted_at` on decline. The draft did not handle `accepted_at`.
 
-## Instruction content (per combination)
+## Discrepancies that need action
 
-- **Android / Chrome** — menu (⋮) → Add to Home screen or the shortcut option shown by Chrome → confirm.
-- **Android / Edge** — menu (⋯, bottom bar) → Add to phone → Add to Home screen (Edge labels the entry point differently from Chrome, so the wording is Edge-specific rather than reused).
-- **Android / Firefox** — menu (⋮) → Add to Home screen (Firefox may present it under a "Install"/shortcut entry) → confirm.
-- **Android / Samsung Internet** — menu (☰) → Add page to → Home screen → Add.
-- **Android / Other** — generic: open the browser menu, look for Add to Home screen or a shortcut option, confirm; note that not every Android browser offers it.
-- **iPhone / iPad / Safari** — Share → scroll → Add to Home Screen → Add.
-- **iPhone / iPad / Chrome, Edge, Firefox, Other** — these can add a shortcut in recent versions but the path varies, so the guidance points to the reliable path: open Asset Safe in Safari, go to your dashboard, then Share → Add to Home Screen. No claim is made about a feature existing in a browser that we can't verify.
-- **Desktop combinations** stay on `/install` only, presented separately from the mobile selector.
+1. **Blocking issue: internal DB-side writers are not exempt.** `is_service_role()` reads the JWT role, and `current_setting('role')` is not `service_role` for pg_cron / direct-DB execution. These existing `SECURITY DEFINER` functions write `gift_subscriptions` with no JWT present and would now fail with `42501`:
+   `expire_gift_entitlements`, `claim_due_gift_expiration_notices`, `cleanup_abandoned_gift_checkouts`, `anonymize_user_data`, `process_deleted_account_retention`.
+   Fix: extend the service bypass in the gift guard (and the contributors guard, which `anonymize_user_data`/retention also touch) to include the repo's existing `public.is_trusted_db_writer()` helper, so `session_user IN ('postgres','supabase_auth_admin')` with no HTTP JWT is treated as internal.
 
-## Where it appears
+2. **Admin bypass removed.** The Lovable plan exempted `has_app_role(auth.uid(),'admin')`. Codex does not. This is acceptable and stricter — admins hold only SELECT policies on both tables and all admin write paths (`backfill-gift-session`, refund/dispute review, contributor tooling) go through edge functions using the service role. No change needed; noting it as an intentional divergence.
 
-- **Dashboard prompt** (`WelcomeBanner`): keeps the same orange strip, same location, same "Show Me How" toggle, same inline area — no modal. The selector plus steps render inside that existing panel. The existing behavior of ensuring the user is on `/account` before showing instructions is unchanged.
-- **/install**: replaces the fixed Chrome/Safari cards with the same detection label + selector + one instruction card. Desktop instructions preserved in their own section.
+3. **Contributors owner check uses `OLD.account_owner_id` only.** Effectively equivalent, since the contributor branch freezes `account_owner_id`. No change needed.
 
-## Untouched
+4. **Delivery mechanism.** The uploaded file must be applied through the database migration tool rather than dropped into `supabase/migrations/` by hand, so it is recorded and executed the same way as the rest of the history.
 
-`/account` shortcut targeting, authentication, prompt placement, localStorage dismissal/collapse keys, service-worker cleanup, continued absence of a manifest, subscriptions, dashboard functionality, Authorized User behavior. This is instruction-selection UX only.
+5. **Your separate observation is correct.** Pre-existing `gift_subscriptions` service-role UPDATE policies that reference `OLD`/`NEW` are invalid as policy expressions and belong in triggers. Out of scope for these two findings; worth a follow-up cleanup pass.
 
-## Technical notes
+## Verified compatibility (no change required)
 
-- New `src/lib/homeScreenInstructions.ts`: `detectEnvironment()` returning `{ device, browser, confident }` and a keyed instruction table (`android:edge`, `ios:safari`, …) with title, ordered steps and optional note. Token order matters — check `EdgA`/`EdgiOS`, `SamsungBrowser`, `CriOS`, `FxiOS`, `OPR/OPiOS` before generic `Chrome`, and treat iOS Safari as Safari only when no competing iOS token is present.
-- Both `WelcomeBanner.tsx` and `Install.tsx` delete their local `detectMobilePlatform`/`detectPlatform` and consume the shared module.
-- Selector uses the existing shadcn `Select` primitive with grouped options (Android, iPhone/iPad, plus Desktop on `/install`).
-- `track()` events kept and extended with the detected device/browser and a manual-override event.
-- Verification: `tsgo` typecheck plus Playwright runs with spoofed user agents for Android Chrome/Edge/Firefox/Samsung, iOS Safari/Chrome/Edge, an unknown Android UA and an unknown platform, asserting the preselected label and that manual override swaps the steps.
+- `claim_gift_subscription` (the RPC the UI actually calls) sets only `redeemed`, `redeemed_at`, `redeemed_by_user_id`, `recipient_user_id`, `updated_at` and leaves `status = 'paid'` — passes the guard unchanged.
+- Existing `BEFORE UPDATE` triggers on both tables are `update_*_updated_at` and `audit_*`; trigger name ordering puts the new guards first, and `updated_at` is not frozen, so no conflict.
+
+## Proposed implementation
+
+1. Apply the uploaded migration via the migration tool, with one amendment: both guard functions compute
+   `v_is_service := public.is_service_role() OR current_setting('role', true) = 'service_role' OR public.is_trusted_db_writer()`.
+2. Re-check the two guards against the live column lists after apply (no unfrozen non-action columns).
+3. Mark only `contributors_self_role_escalation` and `gift_subscriptions_claim_field_tampering` as fixed; leave every other finding untouched.
