@@ -1,60 +1,67 @@
-# Global "+ Add" Dashboard CTA
+# Mobile "Add to Home Screen" Refinement (points shortcut at /account)
 
-## Audit of what exists today
+## Audit findings (verified)
 
-- **Dashboard**: `src/components/DashboardGrid.tsx`, rendered from `src/pages/Account.tsx` (tab state is driven by the `?tab=` URL param; `setActiveTab` writes the URL).
-- **Asset Documentation upload chooser**: `src/components/AssetTypeSelector.tsx` (the "What are you uploading?" modal, 12 types). It is opened today from `src/components/AssetDocumentationGrid.tsx`, whose `handleTypeSelect` routes to existing flows (`/account/media/upload?tab=photos|videos`, `/account/documents/upload?type=…`, `/account/insurance/new`, scan-to-PDF). This modal is directly reusable from the dashboard.
-- **Family Archive modules**: `LifeHubGrid.tsx` lists VIP Contacts (`/account/contacts`), Voice Notes, Trusted Professionals, Notes & Traditions, Family Recipes, Medication List, Important Locations, Memory Safe. Their create forms live **inside** each section component (`NotesAndTraditions`, `FamilyRecipes`, `FamilyMedications`, `ImportantLocations`, `ServiceProsSection`, `VoiceNotesSection`, `MemorySafe`) as internal state (`isOpen` / `showAddForm` / record button). They are not exported as standalone reusable dialogs.
-- **Insights & Tools**: `InsightsToolsGrid.tsx` — real create actions exist for Upgrades & Repairs (`setIsAdding`), Paint Codes, Smart Calendar, Quick Notes, Manual Entry Items (`/inventory`). Source Websites is a reference/reporting list and will be excluded.
-- **Account context / permissions**: `src/contexts/AccountContext.tsx` exposes `accountId`, `isOwner`, `role`, `isReadOnly`, `canEdit`. Destination modules already enforce this; the chooser will additionally hide itself when `canEdit` is false.
-- **Analytics**: `src/lib/track.ts` `track(event, props)` already exists and will be reused.
+- Existing mobile prompt: `src/components/WelcomeBanner.tsx` (the orange "One-Tap Mobile Access" strip). It renders only inside the authenticated dashboard banner.
+- Current behavior: collapsible strip with a "Learn How" button that links to the separate `/install` page, plus a "Don't show again" dismiss.
+- Dismissal persistence: `localStorage` keys `installPromptDismissed` and `installPromptCollapsed`. No DB state.
+- Visibility gate: `useIsMobile()` + not `display-mode: standalone` + not dismissed.
+- Instruction content lives on `src/pages/Install.tsx` — a full public page with Navbar/Footer, Chrome/Edge/iOS Safari sections, `beforeinstallprompt` handling, and offline-caching claims.
+- No `manifest` link and no manifest file exist; `src/main.tsx` unregisters service workers and clears caches. Only `mobile-web-app-capable`, `apple-mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style`, `apple-mobile-web-app-title` meta tags in `index.html`.
+- `/install` instructions currently tell users to visit `https://getassetsafe.com` (Chrome) and `https://assetsafe.net` (iOS) — i.e. the marketing homepage, which is the exact problem: the shortcut captures whatever URL is open.
 
-## Decision on the auto-open mechanism
+## Problem
 
-Family Archive and Insights & Tools create forms are **internal to their section components**. There is no reusable exported form to call from a modal. So the shortcut will **navigate to the module and ask it to open its own existing add form**, via a lightweight UI hint — an `autoOpenAdd` boolean prop passed down from `Account.tsx` when the URL carries `&add=1`. Each affected section gets a small `useEffect` that flips its existing open state (no new form code, no new mutations). Auto-open is the chosen behavior, not the "press Add again" fallback.
+Without a manifest/`start_url`, the home-screen shortcut records the currently open URL. Today users are pointed at the homepage (or are on a nested `/account/...` route), so their icon does not open the dashboard.
 
-### `add=1` safeguards (binding rules)
+## Fix
 
-- `add=1` means only "open this module's existing create UI" — never "perform an action". It triggers no creation, mutation, upload, or database write.
-- The destination component stays the source of truth for whether its add form may open; permission, entitlement, validation, and account-context checks all run unchanged.
-- If the user lacks permission or entitlement, the auto-open request is ignored and the module renders its normal restricted state.
-- The flag is consumed once: after opening, `add` is stripped from the URL via `navigate(..., { replace: true })` so a refresh does not reopen the form.
-- Stripping `add` preserves every other query parameter (`tab`, and any module-specific params) byte-for-byte.
+Keep one prompt, in `WelcomeBanner`, and make the help flow put the browser on `/account` before showing device-specific instructions inline.
 
+### 1. Reuse and extend the existing prompt
 
-## What gets built
+- Replace the "Learn How" link-to-`/install` with a "Show Me How" action that:
+  1. If `location.pathname !== '/account'`, calls React Router `navigate('/account', { replace: true })` (client-side, session and account context untouched).
+  2. Expands an inline instructions panel inside the same orange strip (no new modal system, no redesign).
+- Detect platform with simple user-agent checks already used on `/install`: iOS (iPad/iPhone/iPod, including iPadOS desktop-mode), Android, other. Also detect non-Safari on iOS (Chrome/Firefox/Edge iOS tokens) to show the Safari note.
+- Keep dismissal/collapse behavior and both localStorage keys exactly as-is.
 
-1. **`DashboardQuickAdd.tsx`** (new) — full-width CTA button + the chooser dialog.
-   - CTA: full-width, solid Asset Safe accent, white text, `Plus` icon, large touch target, rounded per design system, `aria-label="Add documentation, family information, or property details"`.
-   - Helper text: "Quickly add documentation, family information, or property details."
-   - Hidden when `!canEdit` (read-only roles).
-2. **Chooser dialog** (single `Dialog`, internal step state — no stacked overlays):
-   - Step 1 "What would you like to add?" / "Choose where your new information belongs." → Asset Documentation, Family Archive, Insights & Tools (existing card/icon styling).
-   - Step 2 for Family Archive and Insights & Tools: vertical list of the real create actions above, with a **Back** action returning to step 1.
-   - Asset Documentation: closes the chooser and opens the existing `AssetTypeSelector`.
-3. **Shared upload-routing helper** (new, small) — `AssetDocumentationGrid.handleTypeSelect`'s routing map is extracted into one helper/hook consumed by **both** the Asset Documentation upload button and Dashboard Quick Add, so the two entry points cannot drift.
-4. **`DashboardGrid.tsx`** — render `DashboardQuickAdd` at the top of the grid, directly above the Asset Documentation / Family Archive cards, spanning both columns, with divider spacing above and below.
-5. **`Account.tsx`** — pass `autoOpenAdd` into the affected tab sections when `?add=1` is present, then strip the flag per the safeguards above.
+### 2. Copy
 
-## Placement
+Headline: **Add Asset Safe to Your Home Screen**
+Subcopy: "Get quick access to your Asset Safe dashboard right from your home screen."
+Confirmation line under both instruction sets: "Asset Safe will appear on your home screen and open directly to your dashboard sign-in or account."
 
-```text
-Welcome / Account Banner
-Security Progress
-Authorized Users / Legacy Admin / Storage
-------------------------------
-+ Add
-------------------------------
-Asset Documentation | Family Archive
-Documentation Checklist
-Secure Vault
-...
-```
+iOS steps: Tap the Share button in Safari → Scroll down and tap Add to Home Screen → Tap Add.
+Non-Safari iOS note: "For the easiest setup, open Asset Safe in Safari and go to your dashboard before adding it to your home screen."
 
-## Not changed
+Android/Chrome steps: Open the Chrome menu (⋮) → Choose Add to Home screen (or the equivalent shortcut option Chrome shows) → Confirm.
 
-No schema, RLS, storage buckets, entitlement/subscription logic, routing architecture, active-account behavior, upload validation, property linking, or unrelated refactors. Existing direct navigation into each section keeps working unchanged. Analytics reuses `track()` with `dashboard_add_opened`, `dashboard_add_category_selected`, and per-destination events; no content values are logged.
+No "download", "install the app", "native app", or App Store language in the prompt.
+
+### 3. Update /install to match
+
+Leave the page in place and keep its layout, but fix the misleading parts: point the URL guidance at `https://getassetsafe.com/account` instead of the homepage, drop the offline/secure-caching claims (no service worker exists), and drop the `beforeinstallprompt` "Install Now" button and its event listener since there is no manifest for Chrome to install against.
+
+### 4. Explicitly out of scope
+
+- No manifest, `start_url`, scope, service worker, offline caching, workbox, or PWA plugin. The service-worker cleanup in `src/main.tsx` stays untouched.
+- Existing meta tags stay as they are (iOS standalone launch behavior preserved).
+- No changes to auth, public marketing routes, or desktop behavior.
+
+### 5. Analytics (optional, existing helper only)
+
+Use `track()` from `src/lib/track.ts` for `mobile_home_shortcut_prompt_shown`, `mobile_home_shortcut_help_opened`, `mobile_home_shortcut_dismissed`. No payload beyond platform string.
+
+## Files to change
+
+- `src/components/WelcomeBanner.tsx` — navigate-to-`/account` + inline platform-specific instructions + copy.
+- `src/pages/Install.tsx` — corrected URLs, removed offline claims and `beforeinstallprompt` block.
 
 ## Verification
 
-Build + TypeScript no-emit check, then a Playwright pass on the dashboard: CTA visible in the right slot, chooser opens, Asset Documentation opens the existing type modal and routes to the real photo/document upload pages, Family Archive and Insights choosers open their modules with the add form up, Back and Escape behave, and a mobile-width layout check.
+Build + TypeScript no-emit check, then Playwright at mobile viewport: prompt renders on `/account`; from a nested route the help action lands on `/account` with the session intact; iOS vs Android instruction branches render correct text; dismissal persists across reload; desktop shows no prompt; confirm no manifest link and no SW registration.
+
+## Known limitation (documented, not fixed here)
+
+Unauthenticated deep links to nested protected routes (e.g. `/account/contacts`) lose the original destination and return to `/account` after login. Follow-up candidate only.
