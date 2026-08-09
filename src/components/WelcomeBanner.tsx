@@ -116,6 +116,12 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange, isFirstDashb
 
   const showMobileInstallPrompt = isMobile && !isAppInstalled && !hideInstallPrompt;
 
+  useEffect(() => {
+    if (showMobileInstallPrompt) {
+      track('mobile_home_shortcut_prompt_shown', { platform });
+    }
+  }, [showMobileInstallPrompt, platform]);
+
   return (
     <div className="space-y-3 h-full">
       <div className="bg-gradient-to-r from-brand-blue to-brand-lightBlue p-6 rounded-lg text-white">
