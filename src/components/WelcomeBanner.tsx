@@ -96,12 +96,22 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange, isFirstDashb
   const handleDismissInstallPrompt = () => {
     setHideInstallPrompt(true);
     localStorage.setItem('installPromptDismissed', 'true');
+    track('mobile_home_shortcut_dismissed', { platform });
   };
 
   const handleToggleInstallPromptCollapse = () => {
     const newState = !isInstallPromptCollapsed;
     setIsInstallPromptCollapsed(newState);
     localStorage.setItem('installPromptCollapsed', String(newState));
+  };
+
+  const handleShowInstructions = () => {
+    track('mobile_home_shortcut_help_opened', { platform });
+    setShowInstructions(true);
+    setIsInstallPromptCollapsed(false);
+    if (location.pathname !== '/account') {
+      navigate('/account', { replace: true });
+    }
   };
 
   const showMobileInstallPrompt = isMobile && !isAppInstalled && !hideInstallPrompt;
