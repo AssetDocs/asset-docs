@@ -1,32 +1,44 @@
-# Inactivity Logout: Findings and Proposal
+# Turnstile Enforcement: Current State and Remaining Work
 
-## Findings — status: NOT IMPLEMENTED
+## Verified current state
 
-What I checked and found:
+A search of `src/` and `supabase/functions/` found **zero references to Turnstile anywhere in the code**. There is no `Turnstile.tsx` component, no widget in any form, and no `siteverify` call in any Edge Function. The only Turnstile artifacts that exist are:
 
-- `src/contexts/AuthContext.tsx` has no idle timer, no activity listeners, and no scheduled sign-out. The only `signOut` call is user-initiated (`scope: 'local'`).
-- `src/integrations/supabase/client.ts` uses `autoRefreshToken: true` with a persisted session, so the session refreshes indefinitely as long as the tab exists. In practice a logged-in user stays logged in until they explicitly sign out.
-- No global activity tracking exists anywhere: no `mousemove`/`keydown`/`visibilitychange`/`lastActivity` handling outside unrelated UI (sidebar hover, CRM table).
-- The only "inactivity" timers in the codebase are unrelated features: chatbot follow-up prompt (`src/components/AskAssetSafe.tsx`) and autosave debounce (`src/components/LegacyLocker.tsx`).
-- MFA step-up (`src/hooks/useMfaStepUp.ts`, `mfa_step_up_sessions`) expires only the elevated-action window, not the login session.
-- The admin launch checklist (`src/components/admin/SecurityChecklist.tsx`) lists "Check session timeout + logout behavior" as an open P1 item — consistent with the feature being absent.
+- `VITE_TURNSTILE_SITE_KEY` in `.env`
+- `TURNSTILE_SECRET_KEY` stored as a project secret
 
-Verdict: needs implementation. Sensitive data (vault, financial, legacy locker) is reachable from a session that never idles out.
+So this is not a branch/deploy mismatch — the component and form wiring were never written. Redeploying the current code state would change nothing. Turnstile is enforced only where Supabase Auth enforces it natively (and only once enabled in the dashboard).
 
-## Proposal
+## What to build
 
-Add a single app-wide idle session manager:
+### 1. Frontend widget component
+New `src/components/Turnstile.tsx`:
+- Loads the Cloudflare challenge script once (idempotent, no duplicate script tags).
+- Renders an invisible/managed widget, reads the site key from `import.meta.env.VITE_TURNSTILE_SITE_KEY`.
+- Exposes `onToken(token)` plus a `reset()` handle so the token can be refreshed after a failed submit (tokens are single-use).
+- If the site key is absent, renders nothing and reports "unconfigured" so local dev never blocks.
 
-- New `src/hooks/useIdleLogout.ts`: tracks activity (pointer, key, scroll, touch, visibility) with a throttled timestamp stored in `localStorage` so multiple tabs share one idle clock.
-- Timeouts: 30 minutes idle → sign out; warning dialog at 28 minutes with "Stay signed in" and "Log out now".
-- New `src/components/IdleWarningDialog.tsx`: shadcn dialog with countdown, using existing semantic tokens.
-- Wire into `AuthContext` (or a small provider inside it) so it only runs when a session exists, and clears on sign-out.
-- On timeout: `supabase.auth.signOut({ scope: 'local' })`, then redirect to `/auth?reason=timeout` with a toast "Signed out due to inactivity."
-- Optional: log a `user_activity_logs` entry (`session_timeout`) reusing `useActivityLog`.
+### 2. Wire the public forms
+Each form gates submit until a token exists and sends `captchaToken` in the function payload:
+- `src/pages/Contact.tsx` → `send-contact-email`
+- `src/pages/Feedback.tsx` → `send-feedback-email`
+- `src/pages/AccountAssistance.tsx` → `submit-account-assistance`
+- `src/components/LeadCaptureModal.tsx` → `submit-lead`
 
-## Technical notes
+`lead-capture` has no frontend caller in this codebase; it will get server-side verification too, so any external caller must supply a token.
 
-- Idle clock in `localStorage` (`as_last_activity`) + `storage` event listener keeps tabs in sync and avoids one background tab logging out an active one.
-- Timer must survive laptop sleep: compare `Date.now()` against the stored timestamp on `visibilitychange` and on interval tick rather than relying on a single long `setTimeout`.
-- Do not disable `autoRefreshToken`; idle logout is a client-side policy layered on top of it.
-- No database or edge-function changes required.
+### 3. Server-side verification
+New `supabase/functions/_shared/turnstile.ts`:
+- `verifyTurnstile(token, ip)` POSTs to `https://challenges.cloudflare.com/turnstile/v0/siteverify` with `TURNSTILE_SECRET_KEY`.
+- Returns a clean pass/fail; on failure the caller returns HTTP 400 with a generic "Captcha verification failed" message (no raw provider detail).
+- Fails **closed** when the secret is present. If `TURNSTILE_SECRET_KEY` is missing, log a warning and allow through, so a secret rotation gap doesn't take down the contact form.
+
+Then add the check as the first step (after CORS, before existing validation and before any DB write or email send) in: `send-contact-email`, `send-feedback-email`, `submit-account-assistance`, `submit-lead`, `lead-capture`. Existing IP rate limiting stays in place as a second layer.
+
+### 4. Deploy and validate
+- Deploy the five Edge Functions.
+- Validation: typecheck; call each function with no token and confirm a 400 captcha rejection; call with an invalid token and confirm the same; then submit each form in the preview and confirm a real submission still succeeds end to end.
+
+## Still yours to do in the Supabase dashboard
+
+Auth CAPTCHA for native flows (signup, password reset, magic link) cannot be toggled from code. In Supabase → Authentication → Settings → CAPTCHA, select Turnstile, paste site key `0x4AAAAAAELSA62CLlzmSg_l` and the rotated secret, and enable it. Note that once enabled, the app's own auth calls (`signUp`, `resetPasswordForEmail`, magic link) must pass `options.captchaToken` or they will start failing — say the word and I'll wire the widget into the login/signup/forgot-password screens in the same pass.
