@@ -34,12 +34,19 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange, isFirstDashb
   const { profile, user } = useAuth();
   const { accountName, ownerName, isOwner, hasMultipleAccounts } = useAccount();
   const navigate = useNavigate();
+  const location = useLocation();
   const isMobile = useIsMobile();
   const [accountNumber, setAccountNumber] = useState('');
   const [hideInstallPrompt, setHideInstallPrompt] = useState(false);
   const [isAppInstalled, setIsAppInstalled] = useState(false);
   const [isInstallPromptCollapsed, setIsInstallPromptCollapsed] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [platform, setPlatform] = useState<MobilePlatform>('other');
   const resumePrompt = useDashboardResumePrompt();
+
+  useEffect(() => {
+    setPlatform(detectMobilePlatform());
+  }, []);
 
   useEffect(() => {
     const fetchAccountNumber = async () => {
