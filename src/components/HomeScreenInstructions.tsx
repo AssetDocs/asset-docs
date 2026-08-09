@@ -85,7 +85,10 @@ const HomeScreenInstructions: React.FC<HomeScreenInstructionsProps> = ({
         <span className={`text-xs whitespace-nowrap ${labelClass}`}>Instructions for:</span>
         <Select value={selection} onValueChange={handleChange}>
           <SelectTrigger className={`${triggerClass} max-w-[240px]`} aria-label="Device and browser">
-            <SelectValue placeholder="Select device and browser" />
+            <SelectValue placeholder="Select device and browser">
+              {selection ? getEnvironmentLabel(device, browser) : undefined}
+            </SelectValue>
+
           </SelectTrigger>
           <SelectContent>
             {groups.map((group) => (
