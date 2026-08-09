@@ -2,35 +2,16 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Smartphone, Check, Apple, Chrome, Shield, ChevronLeft } from "lucide-react";
+import { Smartphone, Check, Shield, ChevronLeft } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
-
-type MobilePlatform = 'ios-safari' | 'ios-other' | 'android' | 'desktop';
-
-function detectPlatform(): MobilePlatform {
-  if (typeof navigator === 'undefined') return 'desktop';
-  const ua = navigator.userAgent;
-  const isIOS = /iPad|iPhone|iPod/.test(ua) ||
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  if (isIOS) {
-    const isSafari = /^((?!CriOS|FxiOS|EdgiOS|OPiOS|GoogleApp).)*Safari/.test(ua);
-    return isSafari ? 'ios-safari' : 'ios-other';
-  }
-  if (/Android/.test(ua)) return 'android';
-  return 'desktop';
-}
-
-const CONFIRMATION =
-  "Asset Safe will appear on your home screen and open directly to your dashboard sign-in or account.";
+import HomeScreenInstructions from "@/components/HomeScreenInstructions";
 
 const Install = () => {
-  const [platform, setPlatform] = useState<MobilePlatform>('desktop');
   const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
-    setPlatform(detectPlatform());
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setIsStandalone(true);
     }
@@ -65,7 +46,7 @@ const Install = () => {
             <Smartphone className="w-16 h-16 mx-auto text-brand-orange" />
             <h1 className="text-3xl font-bold text-foreground">Add Asset Safe to Your Home Screen</h1>
             <p className="text-lg text-muted-foreground font-medium">
-              Quick, app-like access to your Asset Safe dashboard
+              Get quick, app-like access to your Asset Safe dashboard right from your home screen.
             </p>
             <div className="text-left bg-muted/50 rounded-lg p-6 space-y-4">
               <p className="text-muted-foreground">
@@ -98,93 +79,18 @@ const Install = () => {
             </Card>
           ) : (
             <>
-              {/* Android / Chrome */}
-              {(platform === 'android' || platform === 'desktop') && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Chrome className="w-6 h-6" />
-                      Chrome (Android, Windows, Mac)
-                    </CardTitle>
-                    <CardDescription>
-                      How to add Asset Safe to your home screen in Chrome
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <ol className="list-decimal list-inside space-y-3 text-muted-foreground">
-                      <li>Open <strong>Chrome</strong> and go to <strong>getassetsafe.com/account</strong></li>
-                      <li>Tap or click the <strong>menu icon (⋮)</strong> in the top-right corner</li>
-                      <li>Choose <strong>Add to Home screen</strong> or the shortcut option shown by Chrome</li>
-                      <li>Confirm the shortcut</li>
-                    </ol>
-                    <div className="mt-4 p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-md">
-                      <p className="text-sm text-green-800 dark:text-green-200">
-                        ✅ {CONFIRMATION}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* iOS Safari */}
-              {platform === 'ios-safari' && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Apple className="w-6 h-6" />
-                      Safari (iPhone & iPad)
-                    </CardTitle>
-                    <CardDescription>
-                      How to add Asset Safe to your home screen on iOS
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <ol className="list-decimal list-inside space-y-3 text-muted-foreground">
-                      <li>Open <strong>Safari</strong> and go to <strong>getassetsafe.com/account</strong></li>
-                      <li>Tap the <strong>Share</strong> button (square with arrow)</li>
-                      <li>Scroll down and tap <strong>Add to Home Screen</strong></li>
-                      <li>Tap <strong>Add</strong></li>
-                    </ol>
-                    <div className="mt-4 p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-md">
-                      <p className="text-sm text-green-800 dark:text-green-200">
-                        ✅ {CONFIRMATION}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* iOS non-Safari */}
-              {platform === 'ios-other' && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Apple className="w-6 h-6" />
-                      iPhone & iPad
-                    </CardTitle>
-                    <CardDescription>
-                      Safari gives the most reliable Add to Home Screen experience
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="text-muted-foreground font-medium">
-                      For the easiest setup, open Asset Safe in Safari and go to your dashboard before
-                      adding it to your home screen.
-                    </p>
-                    <ol className="list-decimal list-inside space-y-3 text-muted-foreground">
-                      <li>In <strong>Safari</strong>, go to <strong>getassetsafe.com/account</strong></li>
-                      <li>Tap the <strong>Share</strong> button</li>
-                      <li>Scroll down and tap <strong>Add to Home Screen</strong></li>
-                      <li>Tap <strong>Add</strong></li>
-                    </ol>
-                    <div className="mt-4 p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-md">
-                      <p className="text-sm text-green-800 dark:text-green-200">
-                        ✅ {CONFIRMATION}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+              <Card>
+                <CardHeader>
+                  <CardTitle>How to add it</CardTitle>
+                  <CardDescription>
+                    Open <strong>getassetsafe.com/account</strong> first, then follow the steps for
+                    your device and browser.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <HomeScreenInstructions variant="page" includeDesktop />
+                </CardContent>
+              </Card>
 
               {/* Security Reminder */}
               <Card>
