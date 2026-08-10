@@ -32,12 +32,14 @@ Turnstile tokens are single-use and expire after ~5 minutes, so a token consumed
 
 ## B. Auth regression test, then stop
 
-After A1–A3 and before any other work:
+After A1–A4 and before any other work:
 
 - Typecheck (`tsconfig.app.json`).
 - Manual browser pass on the live host: sign-in, sign-up, forgot password → reset → post-reset landing, magic-link resend, signup-verification resend, contributor/invited sign-in, subscription-checkout signup, account-deletion re-auth.
+- **Token-reuse case (explicit):** valid CAPTCHA + wrong password → correct the password → submit again → confirm a fresh token is obtained and sign-in succeeds. Run this on `/auth` sign-in, contributor sign-in, and Delete Account re-auth.
 - One custom public form (Contact) end to end to confirm nothing regressed.
-- Report results here. **No cleanup or additional security scope until those results are reviewed.**
+- Report results here. **Stop after the regression report — do not proceed to C, D, or E.**
+
 
 ## Deferred — not in this pass
 
