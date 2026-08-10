@@ -1,51 +1,44 @@
-# Phase A — Repair Live Auth CAPTCHA Gaps (Items 1–3 only)
+# Phase A Staging Regression Gate
 
-Scope is limited to what is breaking live authentication right now. Items 4–7 from the audit are deferred and recorded at the bottom as separate future passes. Smallest possible changes; full Auth regression test before anything else is touched.
+No code changes. This plan defines how the regression pass gets executed and reported, and flags two blockers that decide who runs which test.
 
-## A1. Give each Turnstile widget its own ref (`src/pages/AuthLegacy.tsx`)
+## Blockers to resolve before the pass
 
-One `turnstileRef` (line 46) is passed to two rendered widgets — line 479 (contributor/invited form) and line 632 (sign-in form). Change: add a second ref (`signInTurnstileRef`, `contributorTurnstileRef`), point each `<Turnstile>` and each `getToken()` call at its own instance. No behavior change beyond correct targeting.
+1. **Headless browsers cannot clear the live widget.** Earlier live checks on `getassetsafe.com/contact` ended in `turnstile_timeout` because the managed challenge flags headless Chromium. That is correct fail-closed behavior, but it means any flow that must produce a real Turnstile token cannot be driven automatically against the current widget configuration.
+2. **Cloudflare test credentials need a staging widget, not the production one.** Using the official always-pass / always-fail / already-spent test keys requires swapping the site key the staging build loads (`VITE_TURNSTILE_SITE_KEY`) and the secret the Edge Functions read (`TURNSTILE_SECRET_KEY`). That is an environment change on a deployed target, so it is a deliberate step, not something folded into the test run.
 
-## A2. Stop contributor sign-in when CAPTCHA acquisition fails (`src/pages/AuthLegacy.tsx`)
+Given those, the pass splits into two tracks.
 
-Line 330 currently does `getToken().catch(() => undefined)` and calls `signIn` regardless, surfacing a raw Supabase captcha error. Change: wrap in try/catch, abort before `signIn`, show `getTurnstileUserMessage(err)`, reset the widget — identical to the `onSignIn` path.
+## Track 1 — automated, with Cloudflare test keys on staging
 
-## A3. Audit each remaining Auth call individually
+Prerequisite: staging/preview is configured with Cloudflare's test site key (always-pass) and matching test secret. Then headless runs can complete real submissions and the following are scripted:
 
-Six call sites hit Supabase Auth with no `captchaToken`. Each is handled on its own merits, not by blanket-adding a widget.
+- Normal `/auth` sign-in.
+- Normal sign-in: wrong password, then correct password, asserting a second `getToken()` call and a fresh token on the retry request.
+- Signup.
+- Forgot-password request.
+- Create Password magic-link resend.
+- Welcome signup-verification resend.
+- Email Verification resend.
+- Subscription-checkout signup.
+- Contact form end-to-end, asserting the Edge Function returns success (real siteverify path against the test secret).
+- Always-fail secret: Contact form returns the friendly `bot_check_failed` message, HTTP 403, and no email is sent.
+- Already-spent secret: Contact form returns `bot_check_expired` and the widget resets.
 
-| Call site | Call | Decision |
-| --- | --- | --- |
-| `src/pages/CreatePassword.tsx:148` | post-reset `signInWithPassword` | Internal transition, no user-facing form. No widget. Attempt the sign-in; on **any** failure (no error-string matching) fail safely into `/auth` with "Your password has been created. Please sign in with your new password." Never strand the user. |
-| `src/pages/CreatePassword.tsx:81` | `signInWithOtp` (resend magic link) | User-initiated form with an email input → add a widget + token. |
-| `src/components/account/DeleteAccountDialog.tsx:75` | re-auth `signInWithPassword` | Inspect `useMfaStepUp` / `mfa-step-up` **only** to see if it is already a drop-in for this exact operation. If adopting it requires any redesign or UX change, keep the existing password re-auth as-is and add the CAPTCHA token Supabase requires — a compatibility shim, not a new control. Deletion's auth model is revisited separately. |
-| `src/pages/Welcome.tsx:123` | `auth.resend({type:'signup'})` | User-clicked resend on a public-ish page → add a widget + token. |
-| `src/pages/EmailVerification.tsx:19` | `auth.resend({type:'signup'})` | Same → add a widget + token. |
-| `src/pages/DevInviteAccept.tsx:90` | `signInWithPassword` after invite activation | Internal transition on an already token-verified page. No widget, no error-string matching — on any failure send the user to `/auth` with a clear contextual message. |
+## Track 2 — manual on staging (state-changing or challenge-dependent)
 
-Every added token follows the existing pattern exactly: `getToken()` → on failure abort with `getTurnstileUserMessage`, reset widget, never call Auth without a token.
+Run by you in a real browser on the staging host:
 
-## A4. No token reuse
+- Contributor/invited sign-in succeeds.
+- Contributor sign-in with CAPTCHA acquisition forced to fail (block `challenges.cloudflare.com`): friendly retry message shown, and **no** Supabase Auth request in the network tab.
+- Password reset completes and lands correctly; if automatic post-reset sign-in fails, user arrives at `/auth` with the contextual message and the underlying reason appears in the safe diagnostic log, not on screen.
+- Delete Account re-auth: correct password with CAPTCHA succeeds; wrong password → retry → fresh token → correct password succeeds. Uses a dedicated throwaway test account.
+- DevInviteAccept succeeds where expected; forced auto-sign-in failure falls back to `/auth` cleanly.
 
-Turnstile tokens are single-use and expire after ~5 minutes, so a token consumed by a failed Auth attempt cannot be resubmitted. `Turnstile.getToken()` already calls `reset()` before `execute()`, so each call yields a fresh token — the requirement is that every retry path calls `getToken()` again rather than caching the value in state, and that the widget is reset after any Auth or CAPTCHA failure where another submission is possible. Audit each touched surface for a cached token variable.
+## Reporting
 
+Single table: flow, test performed, expected result, actual result, pass/fail, safe diagnostic. Any failure that needs more than a narrow Phase A/Turnstile fix stops the pass and gets reported instead of fixed. No dead-code cleanup, no rate limiting, no gift hardening.
 
-## B. Auth regression test, then stop
+## Decision needed
 
-After A1–A4 and before any other work:
-
-- Typecheck (`tsconfig.app.json`).
-- Run the complete browser regression suite in staging/deployment preview before production. After staging passes, perform only a limited production smoke test with controlled test accounts/data.
-- Manual browser pass on the staging/deployment-preview host using the configured Turnstile staging/test setup: sign-in, sign-up, forgot password → reset → post-reset landing, magic-link resend, signup-verification resend, contributor/invited sign-in, subscription-checkout signup, account-deletion re-auth.
-- Production smoke test only after staging passes, limited to: normal sign-in, one resend flow, the Contact form, and optionally account deletion with a dedicated test account.
-- Where an internal automatic Auth transition falls back to `/auth`, preserve the underlying failure in the existing safe diagnostic/logging path, while showing only the contextual friendly message to the user. Do not expose raw Supabase/Auth errors.
-- **Token-reuse case (explicit):** valid CAPTCHA + wrong password → correct the password → submit again → confirm a fresh token is obtained and sign-in succeeds. Run this on `/auth` sign-in, contributor sign-in, and Delete Account re-auth.
-- One custom public form (Contact) end to end to confirm nothing regressed.
-- Report results here. **Stop after the regression report — do not proceed to C, D, or E.**
-
-
-## Deferred — not in this pass
-
-- **C. Dead-code cleanup (audit items 4–5).** No deletion yet. Produce proof of no callers for `src/pages/Login.tsx` (router, lazy imports, tests, old redirect paths, email links, docs, magic-link/recovery callbacks) and for the `lead-capture` function (frontend, cron/scheduled jobs, external forms, webhooks/Zapier, marketing integrations, historical clients). Removal happens in its own commit.
-- **D. Centralized durable rate limiting (audit item 7).** Its own project. Current per-instance in-memory limits in `send-contact-email` / `send-feedback-email` are not durable across Edge Function instances and should not be treated as sufficient. Inventory every public and email-triggering endpoint, then pick one shared mechanism.
-- **E. Phase 2 Gift Abuse Protection Audit (audit item 6).** Gift flow stays out of Phase 1. For `validate-lifetime-code`, `start-gift-email-verification`, `verify-gift-email-code`, `redeem-gift`, evaluate in this order: attempt limits, per-gift / per-email / per-IP throttling, expiration, one-time-use, lockout/cooldown, generic failure messages. Turnstile only where it demonstrably adds value — not on every redemption because the endpoint is public.
+Whether to point staging at Cloudflare's test keys (unlocks Track 1 automation) or keep the production widget on staging (then all 14 flows become manual Track 2 work).
