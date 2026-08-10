@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Mail, CheckCircle, RefreshCw, ArrowLeft } from 'lucide-react';
+import Turnstile, { getTurnstileUserMessage, type TurnstileHandle } from '@/components/security/Turnstile';
 
 const EmailVerification: React.FC = () => {
   const [isResending, setIsResending] = useState(false);
+  const turnstileRef = useRef<TurnstileHandle>(null);
   const { toast } = useToast();
 
   const handleResendVerification = async () => {
