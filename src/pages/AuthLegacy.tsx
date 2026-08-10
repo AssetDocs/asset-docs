@@ -476,6 +476,8 @@ const Auth: React.FC = () => {
                   </label>
                 </div>
 
+                <Turnstile ref={turnstileRef} />
+
                 <Button 
                   type="submit" 
                   className="w-full"
