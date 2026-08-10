@@ -16,14 +16,19 @@ Six call sites hit Supabase Auth with no `captchaToken`. Each is handled on its 
 
 | Call site | Call | Decision |
 | --- | --- | --- |
-| `src/pages/CreatePassword.tsx:148` | post-reset `signInWithPassword` | Internal transition, no user-facing form. Prefer **not** to plumb a widget: attempt sign-in, and if Supabase rejects for captcha, fall through to the existing sign-in page with a clear message instead of stranding the user. Confirm whether automatic re-login is still the wanted UX before adding plumbing. |
+| `src/pages/CreatePassword.tsx:148` | post-reset `signInWithPassword` | Internal transition, no user-facing form. No widget. Attempt the sign-in; on **any** failure (no error-string matching) fail safely into `/auth` with "Your password has been created. Please sign in with your new password." Never strand the user. |
 | `src/pages/CreatePassword.tsx:81` | `signInWithOtp` (resend magic link) | User-initiated form with an email input → add a widget + token. |
-| `src/components/account/DeleteAccountDialog.tsx:75` | re-auth `signInWithPassword` | Security purpose here is **step-up auth, not bot protection**. First check whether the existing step-up/MFA mechanism (`useMfaStepUp` / `mfa-step-up`) can replace the raw password re-auth. If the password call stays, supply a token only because Supabase requires it — documented as a compatibility shim, not a new control. |
+| `src/components/account/DeleteAccountDialog.tsx:75` | re-auth `signInWithPassword` | Inspect `useMfaStepUp` / `mfa-step-up` **only** to see if it is already a drop-in for this exact operation. If adopting it requires any redesign or UX change, keep the existing password re-auth as-is and add the CAPTCHA token Supabase requires — a compatibility shim, not a new control. Deletion's auth model is revisited separately. |
 | `src/pages/Welcome.tsx:123` | `auth.resend({type:'signup'})` | User-clicked resend on a public-ish page → add a widget + token. |
 | `src/pages/EmailVerification.tsx:19` | `auth.resend({type:'signup'})` | Same → add a widget + token. |
-| `src/pages/DevInviteAccept.tsx:90` | `signInWithPassword` after invite activation | Internal transition on an already token-verified page. Same treatment as CreatePassword:148 — graceful fallback preferred over new plumbing. |
+| `src/pages/DevInviteAccept.tsx:90` | `signInWithPassword` after invite activation | Internal transition on an already token-verified page. No widget, no error-string matching — on any failure send the user to `/auth` with a clear contextual message. |
 
 Every added token follows the existing pattern exactly: `getToken()` → on failure abort with `getTurnstileUserMessage`, reset widget, never call Auth without a token.
+
+## A4. No token reuse
+
+Turnstile tokens are single-use and expire after ~5 minutes, so a token consumed by a failed Auth attempt cannot be resubmitted. `Turnstile.getToken()` already calls `reset()` before `execute()`, so each call yields a fresh token — the requirement is that every retry path calls `getToken()` again rather than caching the value in state, and that the widget is reset after any Auth or CAPTCHA failure where another submission is possible. Audit each touched surface for a cached token variable.
+
 
 ## B. Auth regression test, then stop
 
