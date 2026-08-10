@@ -53,7 +53,7 @@ interface AuthContextType {
   loading: boolean;
   profileLoading: boolean;
   signUp: (email: string, password: string, firstName?: string, lastName?: string, giftCode?: string, redirectTo?: string, captchaToken?: string) => Promise<{ error: any; data?: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string, captchaToken?: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   isAuthenticated: boolean;
@@ -235,8 +235,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error, data };
   };
 
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const signIn = async (email: string, password: string, captchaToken?: string) => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+      options: { captchaToken },
+    });
     return { error };
   };
 

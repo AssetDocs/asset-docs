@@ -77,7 +77,8 @@ const Login: React.FC = () => {
         return;
       }
 
-      const { error } = await signIn(email, password);
+      const captchaToken = await turnstileRef.current?.getToken();
+      const { error } = await signIn(email, password, captchaToken);
       
       if (error) {
         setLoginError(true);
@@ -89,9 +90,12 @@ const Login: React.FC = () => {
         navigate(redirectTo);
       }
     } catch (error: any) {
+      turnstileRef.current?.reset();
       toast({
         title: "Error",
-        description: error.message || "An unexpected error occurred.",
+        description: error?.message?.startsWith?.('turnstile_')
+          ? getTurnstileUserMessage(error)
+          : error.message || "An unexpected error occurred.",
         variant: "destructive",
       });
     } finally {
