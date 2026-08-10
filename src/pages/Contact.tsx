@@ -13,7 +13,6 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { MessageCircle, HelpCircle, ChevronLeft } from 'lucide-react';
 import { breadcrumbSchema } from '@/utils/structuredData';
-import Turnstile, { getTurnstileUserMessage, type TurnstileHandle } from '@/components/security/Turnstile';
 
 interface ContactFormData {
   name: string;
@@ -26,7 +25,6 @@ interface ContactFormData {
 const Contact: React.FC = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const turnstileRef = React.useRef<TurnstileHandle>(null);
   const form = useForm<ContactFormData>({
     defaultValues: {
       name: '',
@@ -41,10 +39,8 @@ const Contact: React.FC = () => {
     setIsSubmitting(true);
     try {
       console.log('Contact form submitted:', data);
-      const turnstileToken = await turnstileRef.current?.getToken();
-      
       const { error } = await supabase.functions.invoke('send-contact-email', {
-        body: { ...data, turnstileToken }
+        body: { ...data }
       });
 
       if (error) {
@@ -58,12 +54,9 @@ const Contact: React.FC = () => {
       form.reset();
     } catch (error) {
       console.error('Error sending contact email:', error);
-      turnstileRef.current?.reset();
       toast({
         title: "Error Sending Message",
-        description: error instanceof Error && error.message.startsWith('turnstile_')
-          ? getTurnstileUserMessage(error)
-          : "There was a problem sending your message. Please try again or contact us directly at support@assetsafe.net",
+        description: "There was a problem sending your message. Please try again or contact us directly at support@assetsafe.net",
         variant: "destructive",
       });
     } finally {
@@ -241,7 +234,6 @@ const Contact: React.FC = () => {
                     </FormItem>
                   )}
                 />
-                <Turnstile ref={turnstileRef} />
 
                 <Button 
                   type="submit" 

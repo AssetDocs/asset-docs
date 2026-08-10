@@ -1,6 +1,5 @@
 // @ts-nocheck
 import React, { useEffect, useRef, useState } from 'react';
-import Turnstile, { getTurnstileUserMessage, type TurnstileHandle } from '@/components/security/Turnstile';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,7 +38,6 @@ const DeleteAccountDialog: React.FC<Props> = ({ open, onClose, onScheduled }) =>
   const [impact, setImpact] = useState<any | null>(null);
   const [loadingImpact, setLoadingImpact] = useState(false);
   const [password, setPassword] = useState('');
-  const turnstileRef = useRef<TurnstileHandle>(null);
   const [reauthError, setReauthError] = useState('');
   const [reason, setReason] = useState('');
   const [comments, setComments] = useState('');
@@ -74,20 +72,9 @@ const DeleteAccountDialog: React.FC<Props> = ({ open, onClose, onScheduled }) =>
       setReauthError('Please enter your password');
       return;
     }
-    // Step-up authentication remains the security control here. The Turnstile
-    // token is only a compatibility shim so the Auth call satisfies Supabase's
-    // globally enabled CAPTCHA protection. A fresh token per attempt.
-    let captchaToken: string | undefined;
-    try {
-      captchaToken = await turnstileRef.current?.getToken();
-    } catch (captchaError: any) {
-      turnstileRef.current?.reset();
-      setReauthError(getTurnstileUserMessage(captchaError));
-      return;
-    }
-    const { error } = await supabase.auth.signInWithPassword({ email: user.email, password, options: { captchaToken } });
+    // Step-up authentication remains the security control here.
+    const { error } = await supabase.auth.signInWithPassword({ email: user.email, password });
     if (error) {
-      turnstileRef.current?.reset();
       setReauthError('Password incorrect. Please try again.');
       return;
     }
@@ -169,7 +156,6 @@ const DeleteAccountDialog: React.FC<Props> = ({ open, onClose, onScheduled }) =>
             <div className="space-y-2 py-2">
               <Label htmlFor="pw">Password</Label>
               <Input id="pw" type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoFocus />
-              <Turnstile ref={turnstileRef} />
               {reauthError && <p className="text-sm text-destructive">{reauthError}</p>}
             </div>
             <DialogFooter className="gap-2">

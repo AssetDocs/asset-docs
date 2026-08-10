@@ -16,7 +16,6 @@ import { toast } from '@/hooks/use-toast';
 import { MessageSquare } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
-import Turnstile, { getTurnstileUserMessage, type TurnstileHandle } from '@/components/security/Turnstile';
 
 const feedbackSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -34,7 +33,6 @@ type FeedbackFormData = z.infer<typeof feedbackSchema>;
 
 const Feedback: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const turnstileRef = useRef<TurnstileHandle>(null);
   
   const form = useForm<FeedbackFormData>({
     resolver: zodResolver(feedbackSchema),
@@ -52,7 +50,6 @@ const Feedback: React.FC = () => {
   const onSubmit = async (data: FeedbackFormData) => {
     setIsSubmitting(true);
     try {
-      const turnstileToken = await turnstileRef.current?.getToken();
       const { error } = await supabase.functions.invoke('send-feedback-email', {
         body: {
           name: data.name,
@@ -62,7 +59,6 @@ const Feedback: React.FC = () => {
           currentUser: data.currentUser,
           npsScore: data.npsScore,
           improvement: data.improvement,
-          turnstileToken,
         },
       });
 
@@ -75,12 +71,9 @@ const Feedback: React.FC = () => {
       form.reset();
     } catch (error) {
       console.error('Error submitting feedback:', error);
-      turnstileRef.current?.reset();
       toast({
         title: "Error",
-        description: error instanceof Error && error.message.startsWith('turnstile_')
-          ? getTurnstileUserMessage(error)
-          : "Failed to submit feedback. Please try again.",
+        description: "Failed to submit feedback. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -248,8 +241,6 @@ const Feedback: React.FC = () => {
                   </FormItem>
                 )}
               />
-
-              <Turnstile ref={turnstileRef} />
 
               <Button 
                 type="submit" 

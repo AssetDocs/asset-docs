@@ -1,7 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
-import { turnstileErrorResponse, verifyTurnstileToken } from "../_shared/turnstile.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -52,9 +51,6 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const body = await req.json();
-    const turnstile = await verifyTurnstileToken(body.turnstileToken, req);
-    if (!turnstile.ok) return turnstileErrorResponse(turnstile, corsHeaders);
-
     const validatedData = feedbackEmailSchema.parse(body);
     const { name, email, phone, hearAboutUs, currentUser, npsScore, improvement } = validatedData;
 
