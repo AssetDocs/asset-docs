@@ -28,9 +28,8 @@ Playwright, headless, against `http://localhost:8080` with the dummy always-pass
 - Welcome signup-verification resend.
 - Email Verification resend.
 - Subscription-checkout signup.
-- Contact form submit reaches the Edge Function with a token.
+- **Contact client/server enforcement + Siteverify contract test** (not a successful deployed end-to-end Siteverify test): the form submit reaches the Edge Function carrying a token, the function enforces verification, and the Siteverify contract is exercised via the matrix above.
 - Dummy always-fail sitekey: each of the above surfaces the friendly security-check message and makes no Supabase Auth call.
-- Siteverify matrix as described in the constraint section above.
 
 Test accounts: dedicated throwaway addresses, created and reused within the run, never real customer records.
 
