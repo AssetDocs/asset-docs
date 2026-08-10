@@ -17,7 +17,6 @@ import { DELETED_ACCOUNT_MESSAGE, isDeletedAccountEmail } from '@/utils/deletedA
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { CheckIcon, Shield, Star, Zap } from 'lucide-react';
-import Turnstile, { getTurnstileUserMessage, type TurnstileHandle } from '@/components/security/Turnstile';
 
 const formSchema = z.object({
   firstName: z.string().min(2, 'First name must be at least 2 characters'),
@@ -45,7 +44,6 @@ const SubscriptionCheckout: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState('');
-  const turnstileRef = useRef<TurnstileHandle>(null);
   
   // Get plan info from URL params or state
   const searchParams = new URLSearchParams(location.search);
@@ -119,8 +117,6 @@ const SubscriptionCheckout: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const captchaToken = await turnstileRef.current?.getToken();
-
       if (await isDeletedAccountEmail(data.email)) {
         throw new Error(DELETED_ACCOUNT_MESSAGE);
       }
@@ -136,7 +132,6 @@ const SubscriptionCheckout: React.FC = () => {
         email: data.email,
         password: data.password,
         options: {
-          captchaToken,
           emailRedirectTo: redirectUrl,
           data: {
             first_name: data.firstName,
@@ -156,12 +151,9 @@ const SubscriptionCheckout: React.FC = () => {
       console.error('Error creating account:', error);
       toast({
         title: "Error",
-        description: error?.message?.startsWith?.('turnstile_')
-          ? getTurnstileUserMessage(error)
-          : error.message || "Failed to create account. Please try again.",
+        description: error.message || "Failed to create account. Please try again.",
         variant: "destructive",
       });
-      turnstileRef.current?.reset();
     } finally {
       setIsLoading(false);
     }
@@ -407,8 +399,6 @@ const SubscriptionCheckout: React.FC = () => {
                         </FormItem>
                       )}
                     />
-
-                    <Turnstile ref={turnstileRef} />
 
                     <Button 
                       type="submit" 

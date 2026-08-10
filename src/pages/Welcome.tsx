@@ -6,14 +6,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { getStoredGiftRedirect } from '@/lib/giftRedirect';
-import Turnstile, { getTurnstileUserMessage, type TurnstileHandle } from '@/components/security/Turnstile';
 
 const Welcome: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [isResending, setIsResending] = useState(false);
-  const turnstileRef = useRef<TurnstileHandle>(null);
   const [isValidatingCode, setIsValidatingCode] = useState(false);
   
   // Legacy lifetime access code from URL if present. Modern gift
@@ -122,26 +120,11 @@ const Welcome: React.FC = () => {
         ? `${window.location.origin}${giftRedirect}`
         : `${window.location.origin}/auth/callback?type=signup&redirect_to=/welcome${giftCode ? `?giftCode=${encodeURIComponent(giftCode)}` : ''}`;
 
-      // Fresh Turnstile token per attempt — never cached, never reused.
-      let captchaToken: string | undefined;
-      try {
-        captchaToken = await turnstileRef.current?.getToken();
-      } catch (captchaError: any) {
-        turnstileRef.current?.reset();
-        toast({
-          title: "Security Check Failed",
-          description: getTurnstileUserMessage(captchaError),
-          variant: "destructive",
-        });
-        return;
-      }
-
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email: user.email,
         options: {
           emailRedirectTo,
-          captchaToken,
         },
       });
 
@@ -212,7 +195,6 @@ const Welcome: React.FC = () => {
                 : "Once you verify your email, you'll be automatically redirected to complete your subscription."}
             </p>
             <div className="flex flex-col items-center gap-3 mt-4">
-              <Turnstile ref={turnstileRef} />
               <Button
                 variant="outline"
                 onClick={handleResendEmail}

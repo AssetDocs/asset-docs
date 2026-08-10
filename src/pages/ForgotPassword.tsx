@@ -8,14 +8,12 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ArrowLeft, Mail, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import Turnstile, { getTurnstileUserMessage, type TurnstileHandle } from '@/components/security/Turnstile';
 
 const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const { toast } = useToast();
-  const turnstileRef = useRef<TurnstileHandle>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,9 +30,7 @@ const ForgotPassword: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const captchaToken = await turnstileRef.current?.getToken();
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        captchaToken,
         redirectTo: `${window.location.origin}/auth/callback?type=recovery`,
       });
 
@@ -45,15 +41,6 @@ const ForgotPassword: React.FC = () => {
       setEmailSent(true);
     } catch (error: any) {
       console.error('Password reset error:', error);
-      turnstileRef.current?.reset();
-      if (error?.message?.startsWith?.('turnstile_')) {
-        toast({
-          title: "Verification Failed",
-          description: getTurnstileUserMessage(error),
-          variant: "destructive",
-        });
-        return;
-      }
       // Generic message to prevent email enumeration
       toast({
         title: "Request Received",
@@ -68,9 +55,7 @@ const ForgotPassword: React.FC = () => {
   const handleResend = async () => {
     setIsLoading(true);
     try {
-      const captchaToken = await turnstileRef.current?.getToken();
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        captchaToken,
         redirectTo: `${window.location.origin}/auth/callback?type=recovery`,
       });
 
@@ -83,12 +68,9 @@ const ForgotPassword: React.FC = () => {
         description: "A new password reset link has been sent to your email.",
       });
     } catch (error: any) {
-      turnstileRef.current?.reset();
       toast({
         title: "Error",
-        description: error?.message?.startsWith?.('turnstile_')
-          ? getTurnstileUserMessage(error)
-          : "Unable to resend email. Please try again.",
+        description: "Unable to resend email. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -120,8 +102,6 @@ const ForgotPassword: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Turnstile ref={turnstileRef} />
-
             {emailSent ? (
               <Alert className="border-green-500 bg-green-50 dark:bg-green-900/20">
                 <CheckCircle className="h-5 w-5 text-green-600" />
