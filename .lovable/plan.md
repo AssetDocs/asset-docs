@@ -51,7 +51,7 @@ Auth-path files (also drop the `captchaToken` argument at the call site):
 | `src/pages/EmailVerification.tsx` | ref, mount, token on verification resend |
 | `src/pages/SubscriptionCheckout.tsx` | ref, mount, token on checkout signup |
 | `src/components/account/DeleteAccountDialog.tsx` | ref, mount, token on password re-auth (step-up remains the control, unchanged) |
-| `src/pages/Login.tsx` | ref, mount, tokens (file is not on the live `/login` route but is reverted for consistency) |
+| `src/pages/Login.tsx` | **no change** — unreachable dead route, left as-is unless it breaks typecheck |
 
 `src/contexts/AuthContext.tsx`:
 - `signIn(email, password, captchaToken?)` → drop the third parameter and `options: { captchaToken }`
