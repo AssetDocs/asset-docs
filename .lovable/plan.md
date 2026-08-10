@@ -10,9 +10,14 @@ Supabase Auth CAPTCHA is currently **enabled** in the dashboard. Auth enforcemen
 
 Order of operations:
 
-1. **First:** disable CAPTCHA protection in the Supabase dashboard (Authentication → Attack Protection / CAPTCHA → off). Verify one sign-in still works with the currently deployed frontend (it will — sending a token to a disabled check is harmless).
-2. **Then:** deploy the code rollback below (frontend + Edge Functions).
-3. **Then:** run the focused regression set.
+1. **First (yours, in the dashboard):** Supabase → Authentication → Bot and Abuse Protection → disable CAPTCHA.
+2. **Prove the toggle took effect on the currently deployed frontend**, before any code ships:
+   - `/auth` with correct credentials → signs in normally
+   - `/auth` with wrong credentials → ordinary "invalid login credentials" behavior, with **no** CAPTCHA-related error text
+   Only proceed once both are observed. A visually flipped toggle is not proof.
+3. **Then:** deploy the frontend rollback below.
+4. **Then:** redeploy the five affected Edge Functions without Siteverify enforcement.
+5. **Then:** run the seven-flow regression set and stop.
 
 This ordering means there is no window where Auth is broken.
 
@@ -22,10 +27,15 @@ This ordering means there is no window where Auth is broken.
 
 **None.** `supabase/migrations/` contains zero references to `turnstile` or `captcha`. Nothing to revert, nothing to report. No database work in this rollback.
 
-### Files to delete (Turnstile-only, no other purpose)
+### Files left in place (made unused, deleted later)
+
+Per your safeguard, the rollback commit does **not** delete anything. These become dead but stay on disk so the rollback is trivially reversible:
 
 - `src/components/security/Turnstile.tsx` — widget component, `TurnstileHandle`, `getTurnstileUserMessage`, Cloudflare script loader
-- `supabase/functions/_shared/turnstile.ts` — `verifyTurnstileToken`, `turnstileErrorResponse`, `getClientIp` (only consumer is Turnstile enforcement)
+- `supabase/functions/_shared/turnstile.ts` — `verifyTurnstileToken`, `turnstileErrorResponse`, `getClientIp`
+- `src/pages/Login.tsx` — unreachable (live `/login` redirects to `/auth`); **left untouched** unless its Turnstile imports break build/typecheck. If they do, the import and plumbing are removed there too and it is called out in the report.
+
+Physical deletion of these three, plus the unused env/secret references, is deferred to a separate cleanup commit after production stability is confirmed.
 
 ### Frontend: remove import, ref, token acquisition, reset/error branch, and `<Turnstile />` mount
 
@@ -41,12 +51,11 @@ Auth-path files (also drop the `captchaToken` argument at the call site):
 | `src/pages/EmailVerification.tsx` | ref, mount, token on verification resend |
 | `src/pages/SubscriptionCheckout.tsx` | ref, mount, token on checkout signup |
 | `src/components/account/DeleteAccountDialog.tsx` | ref, mount, token on password re-auth (step-up remains the control, unchanged) |
-| `src/pages/Login.tsx` | ref, mount, tokens (file is not on the live `/login` route but is reverted for consistency) |
+| `src/pages/Login.tsx` | **no change** — unreachable dead route, left as-is unless it breaks typecheck |
 
 `src/contexts/AuthContext.tsx`:
-- `signIn(email, password, captchaToken?)` → drop the third parameter and `options: { captchaToken }`
-- `signUp(..., captchaToken?)` → drop the parameter and the `captchaToken` field passed to `supabase.auth.signUp`
-- update the matching signatures on the context type
+- `signIn` / `signUp` stop forwarding `options: { captchaToken }` to `supabase.auth.*` — this is the change that actually restores pre-Turnstile behavior.
+- The trailing optional `captchaToken?` parameter stays on both signatures (accepted and ignored). Keeping it means untouched `Login.tsx` still typechecks and the deferred-deletion safeguard holds. It is removed in the later cleanup commit alongside the files.
 
 Custom-form files (drop `turnstileToken` from the request body):
 - `src/pages/Contact.tsx`
