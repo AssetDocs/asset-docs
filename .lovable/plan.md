@@ -12,23 +12,24 @@ The server side is not cleanly separable. This project uses an external Supabase
 - Dummy token + dummy always-pass secret, called against Cloudflare siteverify directly → expect `success: true`. Confirms the token format and the verification contract the shared helper relies on.
 - Dummy already-spent secret → expect `timeout-or-duplicate`, which the helper maps to `bot_check_expired`.
 
-If you would rather exercise the true client → function → siteverify → email path end to end, that requires a maintenance window where the shared secret is temporarily the dummy pass secret. Flagging it as your call; the default above avoids touching production.
+The shared production `TURNSTILE_SECRET_KEY` is not altered for testing under any circumstance. No maintenance-window secret swap. The genuine token → deployed Edge Function → production Siteverify path is proven later by the controlled real-browser staging and production smoke tests, not by automation.
+
+Backlog note (not Phase A work): the absence of an isolated backend staging environment — separate Edge Functions and secrets — is what forces this split. Worth fixing for future Stripe, Resend, auth, gift, and security testing.
 
 ## Track 1 — automated (dummy sitekey on the sandbox dev host)
 
 Playwright, headless, against `http://localhost:8080` with the dummy always-pass sitekey injected:
 
 - Normal `/auth` sign-in.
-- Sign-in retry: wrong password → correct password. Asserts a second `getToken()` and a distinct token value on the retry request.
+- Sign-in retry: wrong password → correct password. Asserts the retry calls `getToken()` again, performs the expected widget reset/re-execution, and sends a newly acquired token rather than one cached in application state. Does **not** assert that dummy token strings differ — Cloudflare's testing sitekey returns a fixed dummy token, so string uniqueness is not a valid signal.
 - Signup.
 - Forgot-password request.
 - Create Password magic-link resend.
 - Welcome signup-verification resend.
 - Email Verification resend.
 - Subscription-checkout signup.
-- Contact form submit reaches the Edge Function with a token.
+- **Contact client/server enforcement + Siteverify contract test** (not a successful deployed end-to-end Siteverify test): the form submit reaches the Edge Function carrying a token, the function enforces verification, and the Siteverify contract is exercised via the matrix above.
 - Dummy always-fail sitekey: each of the above surfaces the friendly security-check message and makes no Supabase Auth call.
-- Siteverify matrix as described in the constraint section above.
 
 Test accounts: dedicated throwaway addresses, created and reused within the run, never real customer records.
 
