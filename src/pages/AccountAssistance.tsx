@@ -13,7 +13,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ChevronLeft, Heart, ShieldCheck, Upload, X, CheckCircle2 } from "lucide-react";
-import Turnstile, { getTurnstileUserMessage, type TurnstileHandle } from "@/components/security/Turnstile";
 
 const RELATIONSHIPS = [
   { v: "spouse", l: "Spouse" }, { v: "child", l: "Child" }, { v: "parent", l: "Parent" },
@@ -58,7 +57,6 @@ const AccountAssistance: React.FC = () => {
   const { toast } = useToast();
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState<string | null>(null);
-  const turnstileRef = useRef<TurnstileHandle>(null);
 
   const [form, setForm] = useState({
     requester_name: "", requester_email: "", requester_phone: "", requester_relationship: "",
@@ -100,9 +98,8 @@ const AccountAssistance: React.FC = () => {
     setSubmitting(true);
     let requestId: string | null = null;
     try {
-      const turnstileToken = await turnstileRef.current?.getToken();
       const { data, error } = await supabase.functions.invoke("submit-account-assistance", {
-        body: { ...form, acknowledgements: ack, documents: [], turnstileToken },
+        body: { ...form, acknowledgements: ack, documents: [] },
       });
       if (error) throw error;
       const response = data as AssistanceSubmissionResponse | null;
@@ -139,11 +136,6 @@ const AccountAssistance: React.FC = () => {
 
       setSubmitted(requestId || "received");
     } catch (err: unknown) {
-      turnstileRef.current?.reset();
-      if (err instanceof Error && err.message.startsWith("turnstile_")) {
-        toast({ title: "Verification failed", description: getTurnstileUserMessage(err), variant: "destructive" });
-        return;
-      }
       if (requestId) {
         toast({
           title: "Request received",
@@ -322,8 +314,6 @@ const AccountAssistance: React.FC = () => {
               ))}
             </CardContent>
           </Card>
-
-          <Turnstile ref={turnstileRef} />
 
           <Button type="submit" disabled={!canSubmit || submitting} className="w-full bg-brand-blue hover:bg-brand-blue/90 text-white">
             {submitting ? "Submitting..." : "Submit Assistance Request"}
