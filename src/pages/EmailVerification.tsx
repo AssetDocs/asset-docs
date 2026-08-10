@@ -18,11 +18,26 @@ const EmailVerification: React.FC = () => {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (user?.email) {
+        // Fresh Turnstile token per attempt — never cached, never reused.
+        let captchaToken: string | undefined;
+        try {
+          captchaToken = await turnstileRef.current?.getToken();
+        } catch (captchaError: any) {
+          turnstileRef.current?.reset();
+          toast({
+            title: "Security Check Failed",
+            description: getTurnstileUserMessage(captchaError),
+            variant: "destructive",
+          });
+          return;
+        }
+
         const { error } = await supabase.auth.resend({
           type: 'signup',
           email: user.email,
           options: {
-            emailRedirectTo: `${window.location.origin}/account/settings?tab=subscription`
+            emailRedirectTo: `${window.location.origin}/account/settings?tab=subscription`,
+            captchaToken,
           }
         });
 
