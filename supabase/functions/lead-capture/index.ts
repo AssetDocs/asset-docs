@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { turnstileErrorResponse, verifyTurnstileToken } from "../_shared/turnstile.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -19,9 +18,6 @@ serve(async (req) => {
     );
 
     const body = await req.json();
-    const turnstile = await verifyTurnstileToken(body.turnstileToken, req);
-    if (!turnstile.ok) return turnstileErrorResponse(turnstile, corsHeaders);
-
     const { email, first_name, last_name, phone, company, utm, referrer } = body;
 
     console.log('Processing lead capture:', { email, company });
