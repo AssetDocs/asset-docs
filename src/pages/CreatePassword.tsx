@@ -242,6 +242,7 @@ const CreatePassword = () => {
                   required
                 />
               </div>
+              <Turnstile ref={turnstileRef} />
               <Button type="submit" className="w-full" size="lg" disabled={resending}>
                 {resending ? 'Sending...' : 'Resend Sign-In Link'}
               </Button>
