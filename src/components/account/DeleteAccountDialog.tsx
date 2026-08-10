@@ -169,6 +169,7 @@ const DeleteAccountDialog: React.FC<Props> = ({ open, onClose, onScheduled }) =>
             <div className="space-y-2 py-2">
               <Label htmlFor="pw">Password</Label>
               <Input id="pw" type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoFocus />
+              <Turnstile ref={turnstileRef} />
               {reauthError && <p className="text-sm text-destructive">{reauthError}</p>}
             </div>
             <DialogFooter className="gap-2">
