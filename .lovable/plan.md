@@ -54,9 +54,8 @@ Auth-path files (also drop the `captchaToken` argument at the call site):
 | `src/pages/Login.tsx` | **no change** — unreachable dead route, left as-is unless it breaks typecheck |
 
 `src/contexts/AuthContext.tsx`:
-- `signIn(email, password, captchaToken?)` → drop the third parameter and `options: { captchaToken }`
-- `signUp(..., captchaToken?)` → drop the parameter and the `captchaToken` field passed to `supabase.auth.signUp`
-- update the matching signatures on the context type
+- `signIn` / `signUp` stop forwarding `options: { captchaToken }` to `supabase.auth.*` — this is the change that actually restores pre-Turnstile behavior.
+- The trailing optional `captchaToken?` parameter stays on both signatures (accepted and ignored). Keeping it means untouched `Login.tsx` still typechecks and the deferred-deletion safeguard holds. It is removed in the later cleanup commit alongside the files.
 
 Custom-form files (drop `turnstileToken` from the request body):
 - `src/pages/Contact.tsx`
