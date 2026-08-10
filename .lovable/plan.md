@@ -1,55 +1,94 @@
-# Fix: Authorized User invite acceptance error
+# Turnstile / CAPTCHA Rollback Plan (audit-first)
 
-## What actually happened
+Phase A regression testing is paused. The AU invitation `email_mismatch` failure is **not** touched by this plan.
 
-Confirmed from the live database and Edge Function logs:
+Objective: restore the exact pre-Turnstile user behavior. Nothing else changes. All Turnstile code stays in Git history and can be reinstated later.
 
-- An invite was created today at 13:13:43 UTC for `michaeljlewis2@gmail.com` (account `dbf24c5f…`, role Full Access). It is still `status = pending` — acceptance never completed.
-- One minute later, `accept-invite` logged: `RPC error: { code: "P0001", message: "email_mismatch" }`.
-- The signed-in session at that moment belonged to `support@assetsafe.net` (the owner), per the `check-subscription` / `accept-contributor-invitation` logs from the same seconds.
+## Critical sequencing (must be respected)
 
-So the backend behaved correctly: `accept_invite_atomic` refuses to attach an invite to a user whose email differs from the invited address. The invite link was opened in a browser already signed in as a different user.
+Supabase Auth CAPTCHA is currently **enabled** in the dashboard. Auth enforcement is server-side, so if the frontend stops sending `captchaToken` while enforcement is still on, every sign-in/signup/reset immediately fails with `captcha protection: request disallowed`.
 
-Two real defects remain:
+Order of operations:
 
-1. **The user sees a raw platform error.** `accept-invite` returns a friendly, mapped message ("This invitation was sent to a different email address…") with a 403 status. But `supabase.functions.invoke` throws a `FunctionsHttpError` on any non-2xx, and `src/pages/InviteLanding.tsx` does `if (error) throw error`, discarding the JSON body. The user only sees "Edge Function returned a non-2xx status code". Every mapped error (expired, already used, account unavailable, rate limited) is currently hidden the same way.
+1. **First:** disable CAPTCHA protection in the Supabase dashboard (Authentication → Attack Protection / CAPTCHA → off). Verify one sign-in still works with the currently deployed frontend (it will — sending a token to a disabled check is harmless).
+2. **Then:** deploy the code rollback below (frontend + Edge Functions).
+3. **Then:** run the focused regression set.
 
-2. **No identity guard before accepting.** The page auto-accepts using whatever session exists. If the wrong account is signed in, the only outcome is a failure — with no explanation, no indication of which email the invite was for, and no way to switch accounts.
+This ordering means there is no window where Auth is broken.
 
-## Changes
+## Audit: everything introduced specifically for Turnstile
 
-### 1. Surface the real message (`src/pages/InviteLanding.tsx`)
+### Database migrations
 
-When `invoke` returns an error, read the response body before falling back:
+**None.** `supabase/migrations/` contains zero references to `turnstile` or `captcha`. Nothing to revert, nothing to report. No database work in this rollback.
 
-- Use `error.context` (a `Response`) when present, parse JSON, and use its `error` field as the message.
-- Keep the existing generic fallback if the body can't be read.
-- Log the raw error to the console for diagnostics; show only the friendly message in the UI.
+### Files to delete (Turnstile-only, no other purpose)
 
-### 2. Pre-flight identity check
+- `src/components/security/Turnstile.tsx` — widget component, `TurnstileHandle`, `getTurnstileUserMessage`, Cloudflare script loader
+- `supabase/functions/_shared/turnstile.ts` — `verifyTurnstileToken`, `turnstileErrorResponse`, `getClientIp` (only consumer is Turnstile enforcement)
 
-Add a lightweight lookup so the page can compare the invited email against the signed-in email *before* calling `accept-invite`:
+### Frontend: remove import, ref, token acquisition, reset/error branch, and `<Turnstile />` mount
 
-- Reuse the existing invite-preview path if one exists; otherwise add a `verify-invite` style read that returns only `{ email_masked, role, status }` for a token hash — no membership mutation, no PII beyond a masked address.
-- If the signed-in email doesn't match, skip the accept call and show a dedicated state:
-  - "This invitation was sent to a different email address."
-  - Shows the masked invited address and the currently signed-in address.
-  - Buttons: **Sign out and continue** (signs out, returns to `/invite?token=…` so they can sign in or create the correct account) and **Go to dashboard**.
+Auth-path files (also drop the `captchaToken` argument at the call site):
 
-If adding a preview endpoint is undesirable, the same UX can be driven purely off the 403 `email_mismatch` response from `accept-invite` — the mismatch state renders after the failed call instead of before it. This is the smaller change and is the fallback if you prefer no new endpoint.
+| File | What comes out |
+|---|---|
+| `src/pages/AuthLegacy.tsx` | both refs (`turnstileRef`, `contributorTurnstileRef`), both widget mounts, token acquisition for password sign-in and contributor sign-in, Turnstile error branches |
+| `src/pages/SignupLegacy.tsx` | ref, mount, token before `signUp`, `turnstile_` error branch |
+| `src/pages/ForgotPassword.tsx` | ref, mount, tokens on reset-email and magic-link paths |
+| `src/pages/CreatePassword.tsx` | ref, mount, token on magic-link resend |
+| `src/pages/Welcome.tsx` | ref, mount, token on signup-confirmation resend |
+| `src/pages/EmailVerification.tsx` | ref, mount, token on verification resend |
+| `src/pages/SubscriptionCheckout.tsx` | ref, mount, token on checkout signup |
+| `src/components/account/DeleteAccountDialog.tsx` | ref, mount, token on password re-auth (step-up remains the control, unchanged) |
+| `src/pages/Login.tsx` | ref, mount, tokens (file is not on the live `/login` route but is reverted for consistency) |
 
-### 3. Distinct copy for the other mapped failures
+`src/contexts/AuthContext.tsx`:
+- `signIn(email, password, captchaToken?)` → drop the third parameter and `options: { captchaToken }`
+- `signUp(..., captchaToken?)` → drop the parameter and the `captchaToken` field passed to `supabase.auth.signUp`
+- update the matching signatures on the context type
 
-Map the returned messages to their own presentation in the error state (expired → offer "request a new invite" text; already used → suggest signing in and going to the dashboard). No new backend logic; only wording and available buttons.
+Custom-form files (drop `turnstileToken` from the request body):
+- `src/pages/Contact.tsx`
+- `src/pages/Feedback.tsx`
+- `src/pages/AccountAssistance.tsx`
+- `src/components/LeadCaptureModal.tsx`
 
-## Out of scope
+Each of these keeps its existing validation, rate limiting, toasts, and success/error handling; only the Turnstile acquisition/reset/error branch and the widget are removed.
 
-- No change to `accept_invite_atomic`. The email check is a correct security control and stays as-is.
-- No change to invite creation, token hashing, expiry, or rate limits.
-- The existing pending invite for `michaeljlewis2@gmail.com` stays valid until 2026-08-17 and will accept normally once opened while signed in as that address.
+### Edge Functions: remove server-side Siteverify enforcement
 
-## Verification
+Remove the `_shared/turnstile.ts` import and the two-line verify/short-circuit at the top of each handler, then redeploy:
 
-- Open the invite link while signed in as the owner: expect the mismatch state with both addresses and a sign-out action, not a platform error string.
-- Open the same link while signed in as the invited address: expect success, membership row created, redirect to `/account`.
-- Force an expired/canceled token: expect the specific mapped message, not "non-2xx status code".
+- `supabase/functions/send-contact-email/index.ts`
+- `supabase/functions/send-feedback-email/index.ts`
+- `supabase/functions/submit-account-assistance/index.ts`
+- `supabase/functions/submit-lead/index.ts` (also drop `turnstileToken?` from its request interface)
+- `supabase/functions/lead-capture/index.ts`
+
+Everything else in these functions is preserved: Zod schemas, HTML escaping, per-IP in-memory rate limits, submission cataloging, Resend delivery, error IDs.
+
+### Environment / config dependencies
+
+- `.env`: `VITE_TURNSTILE_SITE_KEY` becomes unused. Recommend leaving the line in place (harmless, and it makes reinstatement trivial) — the code no longer reads it.
+- Supabase secret `TURNSTILE_SECRET_KEY`: becomes unused. **Do not delete.** Keeping it costs nothing and avoids re-provisioning later.
+- Cloudflare Turnstile widget + hostname allowlist: leave as-is. No action.
+- Supabase dashboard: CAPTCHA protection turned **off** (step 1 above). This is the only configuration change.
+
+### Explicitly not touched
+
+Auth flows themselves, RLS, MFA/step-up, backup codes, Authorized User invite creation/acceptance/RPCs, gift flows, billing/Stripe, account deletion logic beyond the removed widget, input validation, per-IP and `rate-limit-check` rate limiting, and the `20260808000100` column-guard triggers all remain exactly as they are. No dead-code cleanup, no rate-limit redesign, no gift hardening, no refactors.
+
+## Post-rollback regression set
+
+Run after the dashboard toggle and the deploy:
+
+1. Password sign-in on `/auth` — success and wrong-password paths
+2. Signup on `/signup` — confirmation email sent
+3. Forgot password — reset email sent; reset link completes and signs in
+4. AU invitation acceptance — open the pending invite for the invited address, membership created, redirect to `/account` (the separate `email_mismatch` UX issue remains open and unaddressed)
+5. Subscription checkout signup — reaches Stripe checkout
+6. Account deletion re-auth — password re-auth succeeds, step-up still enforced
+7. Contact form — submits, Edge Function returns 200, email delivered
+
+Any failure that is not caused by a leftover Turnstile reference gets reported, not patched, in this pass.
