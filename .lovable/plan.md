@@ -1,48 +1,55 @@
-# Phase A Staging Regression Gate — Approved Decision
+# Fix: Authorized User invite acceptance error
 
-Decision: run Track 1 with Cloudflare's official dummy Turnstile credentials (no new real widget), staging/preview only, then run Track 2 manually in a real browser. Production keys and configuration stay untouched. No code changes to accommodate headless testing; the production Managed widget challenging automated browsers is expected and correct.
+## What actually happened
 
-## One constraint that shapes execution
+Confirmed from the live database and Edge Function logs:
 
-The frontend side is clean: `VITE_TURNSTILE_SITE_KEY` is a build-time Vite value, so the sandbox dev host can load the dummy always-pass sitekey without affecting the published build or production.
+- An invite was created today at 13:13:43 UTC for `michaeljlewis2@gmail.com` (account `dbf24c5f…`, role Full Access). It is still `status = pending` — acceptance never completed.
+- One minute later, `accept-invite` logged: `RPC error: { code: "P0001", message: "email_mismatch" }`.
+- The signed-in session at that moment belonged to `support@assetsafe.net` (the owner), per the `check-subscription` / `accept-contributor-invitation` logs from the same seconds.
 
-The server side is not cleanly separable. This project uses an external Supabase instance with a single `TURNSTILE_SECRET_KEY` secret shared by the deployed Edge Functions. Overwriting it with the dummy always-pass secret would apply to production traffic too, and the dummy always-fail secret would break every live public form for the duration of the test. So the Contact-form siteverify matrix runs as a direct request-level test against Cloudflare's siteverify endpoint plus the deployed function, using dummy tokens, rather than by repointing the shared secret:
+So the backend behaved correctly: `accept_invite_atomic` refuses to attach an invite to a user whose email differs from the invited address. The invite link was opened in a browser already signed in as a different user.
 
-- Dummy token + current production secret → expect `bot_check_failed` (403) from the deployed function. Confirms fail-closed and the friendly message.
-- Dummy token + dummy always-pass secret, called against Cloudflare siteverify directly → expect `success: true`. Confirms the token format and the verification contract the shared helper relies on.
-- Dummy already-spent secret → expect `timeout-or-duplicate`, which the helper maps to `bot_check_expired`.
+Two real defects remain:
 
-The shared production `TURNSTILE_SECRET_KEY` is not altered for testing under any circumstance. No maintenance-window secret swap. The genuine token → deployed Edge Function → production Siteverify path is proven later by the controlled real-browser staging and production smoke tests, not by automation.
+1. **The user sees a raw platform error.** `accept-invite` returns a friendly, mapped message ("This invitation was sent to a different email address…") with a 403 status. But `supabase.functions.invoke` throws a `FunctionsHttpError` on any non-2xx, and `src/pages/InviteLanding.tsx` does `if (error) throw error`, discarding the JSON body. The user only sees "Edge Function returned a non-2xx status code". Every mapped error (expired, already used, account unavailable, rate limited) is currently hidden the same way.
 
-Backlog note (not Phase A work): the absence of an isolated backend staging environment — separate Edge Functions and secrets — is what forces this split. Worth fixing for future Stripe, Resend, auth, gift, and security testing.
+2. **No identity guard before accepting.** The page auto-accepts using whatever session exists. If the wrong account is signed in, the only outcome is a failure — with no explanation, no indication of which email the invite was for, and no way to switch accounts.
 
-## Track 1 — automated (dummy sitekey on the sandbox dev host)
+## Changes
 
-Playwright, headless, against `http://localhost:8080` with the dummy always-pass sitekey injected:
+### 1. Surface the real message (`src/pages/InviteLanding.tsx`)
 
-- Normal `/auth` sign-in.
-- Sign-in retry: wrong password → correct password. Asserts the retry calls `getToken()` again, performs the expected widget reset/re-execution, and sends a newly acquired token rather than one cached in application state. Does **not** assert that dummy token strings differ — Cloudflare's testing sitekey returns a fixed dummy token, so string uniqueness is not a valid signal.
-- Signup.
-- Forgot-password request.
-- Create Password magic-link resend.
-- Welcome signup-verification resend.
-- Email Verification resend.
-- Subscription-checkout signup.
-- **Contact client/server enforcement + Siteverify contract test** (not a successful deployed end-to-end Siteverify test): the form submit reaches the Edge Function carrying a token, the function enforces verification, and the Siteverify contract is exercised via the matrix above.
-- Dummy always-fail sitekey: each of the above surfaces the friendly security-check message and makes no Supabase Auth call.
+When `invoke` returns an error, read the response body before falling back:
 
-Test accounts: dedicated throwaway addresses, created and reused within the run, never real customer records.
+- Use `error.context` (a `Response`) when present, parse JSON, and use its `error` field as the message.
+- Keep the existing generic fallback if the body can't be read.
+- Log the raw error to the console for diagnostics; show only the friendly message in the UI.
 
-## Track 2 — manual, real browser on staging
+### 2. Pre-flight identity check
 
-Flows automation cannot safely represent:
+Add a lightweight lookup so the page can compare the invited email against the signed-in email *before* calling `accept-invite`:
 
-- Contributor/invited sign-in succeeds.
-- Contributor sign-in with `challenges.cloudflare.com` blocked: friendly retry message, and no Supabase Auth request in the network tab.
-- Password reset completes and lands correctly; forced post-reset auto-sign-in failure lands on `/auth` with the contextual message, underlying reason in the safe diagnostic log only.
-- Delete Account re-auth: correct password succeeds with CAPTCHA; wrong password → retry → fresh token → correct password succeeds. Dedicated test account.
-- DevInviteAccept succeeds where expected; forced auto-sign-in failure falls back to `/auth` cleanly.
+- Reuse the existing invite-preview path if one exists; otherwise add a `verify-invite` style read that returns only `{ email_masked, role, status }` for a token hash — no membership mutation, no PII beyond a masked address.
+- If the signed-in email doesn't match, skip the accept call and show a dedicated state:
+  - "This invitation was sent to a different email address."
+  - Shows the masked invited address and the currently signed-in address.
+  - Buttons: **Sign out and continue** (signs out, returns to `/invite?token=…` so they can sign in or create the correct account) and **Go to dashboard**.
 
-## Reporting
+If adding a preview endpoint is undesirable, the same UX can be driven purely off the 403 `email_mismatch` response from `accept-invite` — the mismatch state renders after the failed call instead of before it. This is the smaller change and is the fallback if you prefer no new endpoint.
 
-One consolidated table: flow, test performed, expected result, actual result, pass/fail, safe diagnostic. Stop after the report. Any failure needing more than a narrow Phase A/Turnstile fix is reported, not fixed. No dead-code cleanup, no centralized rate limiting, no gift hardening. Limited production smoke test only after the full staging gate passes.
+### 3. Distinct copy for the other mapped failures
+
+Map the returned messages to their own presentation in the error state (expired → offer "request a new invite" text; already used → suggest signing in and going to the dashboard). No new backend logic; only wording and available buttons.
+
+## Out of scope
+
+- No change to `accept_invite_atomic`. The email check is a correct security control and stays as-is.
+- No change to invite creation, token hashing, expiry, or rate limits.
+- The existing pending invite for `michaeljlewis2@gmail.com` stays valid until 2026-08-17 and will accept normally once opened while signed in as that address.
+
+## Verification
+
+- Open the invite link while signed in as the owner: expect the mismatch state with both addresses and a sign-out action, not a platform error string.
+- Open the same link while signed in as the invited address: expect success, membership row created, redirect to `/account`.
+- Force an expired/canceled token: expect the specific mapped message, not "non-2xx status code".
