@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { isDeletedAccountEmail } from '@/utils/deletedAccountGuard';
+import Turnstile, { getTurnstileUserMessage, type TurnstileHandle } from '@/components/security/Turnstile';
 
 interface SignInFormData {
   email: string;
@@ -42,6 +43,7 @@ const Auth: React.FC = () => {
   const [contributorPassword, setContributorPassword] = useState('');
   const [contributorConfirmPassword, setContributorConfirmPassword] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const turnstileRef = useRef<TurnstileHandle>(null);
 
   const signInForm = useForm<SignInFormData>({
     defaultValues: {
@@ -147,7 +149,21 @@ const Auth: React.FC = () => {
         return;
       }
 
-      const { error } = await signIn(data.email, data.password);
+      let captchaToken: string | undefined;
+      try {
+        captchaToken = await turnstileRef.current?.getToken();
+      } catch (captchaError: any) {
+        turnstileRef.current?.reset();
+        toast({
+          title: "Security Check Failed",
+          description: getTurnstileUserMessage(captchaError),
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      const { error } = await signIn(data.email, data.password, captchaToken);
 
       if (error) {
         if (error.message.includes('Invalid login credentials')) {
@@ -311,7 +327,8 @@ const Auth: React.FC = () => {
       }
 
       // Now sign in with the new password
-      const { error: signInError } = await signIn(contributorEmail, contributorPassword);
+      const contributorCaptcha = await turnstileRef.current?.getToken().catch(() => undefined);
+      const { error: signInError } = await signIn(contributorEmail, contributorPassword, contributorCaptcha);
 
       if (signInError) {
         // Account was created but sign-in failed — tell user to sign in manually
@@ -458,6 +475,8 @@ const Auth: React.FC = () => {
                     </Link>
                   </label>
                 </div>
+
+                <Turnstile ref={turnstileRef} />
 
                 <Button 
                   type="submit" 
@@ -610,6 +629,8 @@ const Auth: React.FC = () => {
                    )}
                  />
                  
+                 <Turnstile ref={turnstileRef} />
+
                  <Button 
                    type="submit" 
                    className="w-full bg-brand-blue hover:bg-brand-blue/90"
