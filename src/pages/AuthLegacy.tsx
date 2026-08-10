@@ -11,7 +11,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { isDeletedAccountEmail } from '@/utils/deletedAccountGuard';
-import Turnstile, { getTurnstileUserMessage, type TurnstileHandle } from '@/components/security/Turnstile';
 
 interface SignInFormData {
   email: string;
@@ -43,8 +42,6 @@ const Auth: React.FC = () => {
   const [contributorPassword, setContributorPassword] = useState('');
   const [contributorConfirmPassword, setContributorConfirmPassword] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const turnstileRef = useRef<TurnstileHandle>(null);
-  const contributorTurnstileRef = useRef<TurnstileHandle>(null);
 
   const signInForm = useForm<SignInFormData>({
     defaultValues: {
@@ -150,21 +147,7 @@ const Auth: React.FC = () => {
         return;
       }
 
-      let captchaToken: string | undefined;
-      try {
-        captchaToken = await turnstileRef.current?.getToken();
-      } catch (captchaError: any) {
-        turnstileRef.current?.reset();
-        toast({
-          title: "Security Check Failed",
-          description: getTurnstileUserMessage(captchaError),
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      const { error } = await signIn(data.email, data.password, captchaToken);
+      const { error } = await signIn(data.email, data.password);
 
       if (error) {
         if (error.message.includes('Invalid login credentials')) {
@@ -328,23 +311,7 @@ const Auth: React.FC = () => {
       }
 
       // Now sign in with the new password
-      // Now sign in with the new password. Acquire a fresh Turnstile token —
-      // never attempt the Auth call without one, and never reuse a token.
-      let contributorCaptcha: string | undefined;
-      try {
-        contributorCaptcha = await contributorTurnstileRef.current?.getToken();
-      } catch (captchaError: any) {
-        contributorTurnstileRef.current?.reset();
-        toast({
-          title: "Account Created!",
-          description: `${getTurnstileUserMessage(captchaError)} Your account is set up — please sign in with your new password.`,
-        });
-        setIsContributorMode(false);
-        signInForm.setValue('email', contributorEmail);
-        return;
-      }
-
-      const { error: signInError } = await signIn(contributorEmail, contributorPassword, contributorCaptcha);
+      const { error: signInError } = await signIn(contributorEmail, contributorPassword);
 
       if (signInError) {
         // Account was created but sign-in failed — tell user to sign in manually
@@ -492,7 +459,6 @@ const Auth: React.FC = () => {
                   </label>
                 </div>
 
-                <Turnstile ref={contributorTurnstileRef} />
 
 
                 <Button 
@@ -646,7 +612,6 @@ const Auth: React.FC = () => {
                    )}
                  />
                  
-                 <Turnstile ref={turnstileRef} />
 
                  <Button 
                    type="submit" 
