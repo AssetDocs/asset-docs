@@ -209,7 +209,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => { cancelled = true; };
   }, [user?.id]); // re-run only when the user ID changes
 
-  const signUp = async (email: string, password: string, firstName?: string, lastName?: string, giftCode?: string, redirectTo?: string, captchaToken?: string) => {
+  const signUp = async (email: string, password: string, firstName?: string, lastName?: string, giftCode?: string, redirectTo?: string, _captchaToken?: string) => {
     if (await isDeletedAccountEmail(email)) {
       return {
         data: null,
@@ -227,7 +227,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       email,
       password,
       options: {
-        captchaToken,
         emailRedirectTo: redirectUrl,
         data: { first_name: firstName || '', last_name: lastName || '' }
       }
@@ -235,11 +234,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error, data };
   };
 
-  const signIn = async (email: string, password: string, captchaToken?: string) => {
+  // captchaToken is accepted but intentionally ignored: Turnstile enforcement was
+  // rolled back. Parameter retained so unreachable callers still typecheck; it is
+  // removed in the follow-up cleanup commit.
+  const signIn = async (email: string, password: string, _captchaToken?: string) => {
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
-      options: { captchaToken },
     });
     return { error };
   };
