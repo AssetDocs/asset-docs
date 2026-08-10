@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, Eye, EyeOff, MailOpen } from 'lucide-react';
 import { getStoredGiftRedirect } from '@/lib/giftRedirect';
+import Turnstile, { getTurnstileUserMessage, type TurnstileHandle } from '@/components/security/Turnstile';
 
 const CreatePassword = () => {
   const { user, profile, loading, refreshProfile } = useAuth();
@@ -30,6 +31,7 @@ const CreatePassword = () => {
   const [resendEmail, setResendEmail] = useState('');
   const [resendSent, setResendSent] = useState(false);
   const [resending, setResending] = useState(false);
+  const turnstileRef = useRef<TurnstileHandle>(null);
 
   // detect expired OTP from URL hash
   useEffect(() => {
@@ -78,13 +80,24 @@ const CreatePassword = () => {
     }
     setResending(true);
     try {
+      // Fresh Turnstile token per attempt — never cached, never reused.
+      let captchaToken: string | undefined;
+      try {
+        captchaToken = await turnstileRef.current?.getToken();
+      } catch (captchaError: any) {
+        turnstileRef.current?.reset();
+        toast({ title: 'Security Check Failed', description: getTurnstileUserMessage(captchaError), variant: 'destructive' });
+        return;
+      }
+
       const { error } = await supabase.auth.signInWithOtp({
         email: resendEmail,
-        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+        options: { emailRedirectTo: `${window.location.origin}/auth/callback`, captchaToken },
       });
       if (error) throw error;
       setResendSent(true);
     } catch (err: any) {
+      turnstileRef.current?.reset();
       toast({ title: 'Error', description: err.message || 'Failed to send link.', variant: 'destructive' });
     } finally {
       setResending(false);
