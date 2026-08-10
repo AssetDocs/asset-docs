@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Mail, CheckCircle, RefreshCw, ArrowLeft } from 'lucide-react';
+import Turnstile, { getTurnstileUserMessage, type TurnstileHandle } from '@/components/security/Turnstile';
 
 const EmailVerification: React.FC = () => {
   const [isResending, setIsResending] = useState(false);
+  const turnstileRef = useRef<TurnstileHandle>(null);
   const { toast } = useToast();
 
   const handleResendVerification = async () => {
@@ -16,11 +18,26 @@ const EmailVerification: React.FC = () => {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (user?.email) {
+        // Fresh Turnstile token per attempt — never cached, never reused.
+        let captchaToken: string | undefined;
+        try {
+          captchaToken = await turnstileRef.current?.getToken();
+        } catch (captchaError: any) {
+          turnstileRef.current?.reset();
+          toast({
+            title: "Security Check Failed",
+            description: getTurnstileUserMessage(captchaError),
+            variant: "destructive",
+          });
+          return;
+        }
+
         const { error } = await supabase.auth.resend({
           type: 'signup',
           email: user.email,
           options: {
-            emailRedirectTo: `${window.location.origin}/account/settings?tab=subscription`
+            emailRedirectTo: `${window.location.origin}/account/settings?tab=subscription`,
+            captchaToken,
           }
         });
 
@@ -99,6 +116,9 @@ const EmailVerification: React.FC = () => {
             </div>
 
             <div className="space-y-3">
+              <div className="flex justify-center">
+                <Turnstile ref={turnstileRef} />
+              </div>
               <Button 
                 onClick={handleResendVerification}
                 disabled={isResending}

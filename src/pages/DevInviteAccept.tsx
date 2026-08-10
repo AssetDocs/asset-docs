@@ -86,14 +86,28 @@ const DevInviteAccept: React.FC = () => {
         throw new Error(data.error);
       }
 
-      // Sign in with the dev lead's new credentials
+      // Sign in with the dev lead's new credentials. This is an internal
+      // transition on an already token-verified page, so no CAPTCHA widget is
+      // plumbed here. On ANY failure (no error-string matching) record the
+      // reason for diagnostics and send the user to /auth with a contextual
+      // message — never surface the raw Auth error.
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: email,
         password: password,
       });
-      
+
       if (signInError) {
-        throw signInError;
+        console.error('[DevInviteAccept] automatic sign-in after activation failed', {
+          code: (signInError as any)?.code ?? null,
+          status: (signInError as any)?.status ?? null,
+          message: signInError.message,
+        });
+        toast({
+          title: "Account Activated",
+          description: "Your account is ready. Please sign in with your new password.",
+        });
+        navigate('/auth', { replace: true });
+        return;
       }
 
       // Success - the invitation has been accepted

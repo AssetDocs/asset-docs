@@ -44,6 +44,7 @@ const Auth: React.FC = () => {
   const [contributorConfirmPassword, setContributorConfirmPassword] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const turnstileRef = useRef<TurnstileHandle>(null);
+  const contributorTurnstileRef = useRef<TurnstileHandle>(null);
 
   const signInForm = useForm<SignInFormData>({
     defaultValues: {
@@ -327,7 +328,22 @@ const Auth: React.FC = () => {
       }
 
       // Now sign in with the new password
-      const contributorCaptcha = await turnstileRef.current?.getToken().catch(() => undefined);
+      // Now sign in with the new password. Acquire a fresh Turnstile token —
+      // never attempt the Auth call without one, and never reuse a token.
+      let contributorCaptcha: string | undefined;
+      try {
+        contributorCaptcha = await contributorTurnstileRef.current?.getToken();
+      } catch (captchaError: any) {
+        contributorTurnstileRef.current?.reset();
+        toast({
+          title: "Account Created!",
+          description: `${getTurnstileUserMessage(captchaError)} Your account is set up — please sign in with your new password.`,
+        });
+        setIsContributorMode(false);
+        signInForm.setValue('email', contributorEmail);
+        return;
+      }
+
       const { error: signInError } = await signIn(contributorEmail, contributorPassword, contributorCaptcha);
 
       if (signInError) {
@@ -476,7 +492,8 @@ const Auth: React.FC = () => {
                   </label>
                 </div>
 
-                <Turnstile ref={turnstileRef} />
+                <Turnstile ref={contributorTurnstileRef} />
+
 
                 <Button 
                   type="submit" 

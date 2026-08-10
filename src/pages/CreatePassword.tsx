@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, Eye, EyeOff, MailOpen } from 'lucide-react';
 import { getStoredGiftRedirect } from '@/lib/giftRedirect';
+import Turnstile, { getTurnstileUserMessage, type TurnstileHandle } from '@/components/security/Turnstile';
 
 const CreatePassword = () => {
   const { user, profile, loading, refreshProfile } = useAuth();
@@ -30,6 +31,7 @@ const CreatePassword = () => {
   const [resendEmail, setResendEmail] = useState('');
   const [resendSent, setResendSent] = useState(false);
   const [resending, setResending] = useState(false);
+  const turnstileRef = useRef<TurnstileHandle>(null);
 
   // detect expired OTP from URL hash
   useEffect(() => {
@@ -78,13 +80,24 @@ const CreatePassword = () => {
     }
     setResending(true);
     try {
+      // Fresh Turnstile token per attempt — never cached, never reused.
+      let captchaToken: string | undefined;
+      try {
+        captchaToken = await turnstileRef.current?.getToken();
+      } catch (captchaError: any) {
+        turnstileRef.current?.reset();
+        toast({ title: 'Security Check Failed', description: getTurnstileUserMessage(captchaError), variant: 'destructive' });
+        return;
+      }
+
       const { error } = await supabase.auth.signInWithOtp({
         email: resendEmail,
-        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+        options: { emailRedirectTo: `${window.location.origin}/auth/callback`, captchaToken },
       });
       if (error) throw error;
       setResendSent(true);
     } catch (err: any) {
+      turnstileRef.current?.reset();
       toast({ title: 'Error', description: err.message || 'Failed to send link.', variant: 'destructive' });
     } finally {
       setResending(false);
@@ -143,9 +156,29 @@ const CreatePassword = () => {
       // refreshSession() alone is unreliable because updateUser() triggers
       // internal auth events that race with the refresh. signInWithPassword()
       // establishes a brand-new session with email_confirmed_at populated.
+      //
+      // This is an internal transition, not a user-facing sign-in form: no
+      // CAPTCHA widget is plumbed here. If it cannot complete for ANY reason
+      // (network, Auth config, CAPTCHA enforcement, malformed session) we
+      // record the reason for diagnostics and fail safely into /auth rather
+      // than stranding the user. We never match on provider error strings and
+      // never surface the raw error.
       const email = user?.email;
       if (email) {
-        await supabase.auth.signInWithPassword({ email, password });
+        const { error: autoSignInError } = await supabase.auth.signInWithPassword({ email, password });
+        if (autoSignInError) {
+          console.error('[CreatePassword] automatic sign-in after password creation failed', {
+            code: (autoSignInError as any)?.code ?? null,
+            status: (autoSignInError as any)?.status ?? null,
+            message: autoSignInError.message,
+          });
+          toast({
+            title: 'Password Created',
+            description: 'Your password has been created. Please sign in with your new password.',
+          });
+          navigate('/auth', { replace: true });
+          return;
+        }
       }
 
       // Re-fetch contributor status so isContributor = true before ProtectedRoute evaluates.
@@ -209,6 +242,7 @@ const CreatePassword = () => {
                   required
                 />
               </div>
+              <Turnstile ref={turnstileRef} />
               <Button type="submit" className="w-full" size="lg" disabled={resending}>
                 {resending ? 'Sending...' : 'Resend Sign-In Link'}
               </Button>
