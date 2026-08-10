@@ -156,9 +156,29 @@ const CreatePassword = () => {
       // refreshSession() alone is unreliable because updateUser() triggers
       // internal auth events that race with the refresh. signInWithPassword()
       // establishes a brand-new session with email_confirmed_at populated.
+      //
+      // This is an internal transition, not a user-facing sign-in form: no
+      // CAPTCHA widget is plumbed here. If it cannot complete for ANY reason
+      // (network, Auth config, CAPTCHA enforcement, malformed session) we
+      // record the reason for diagnostics and fail safely into /auth rather
+      // than stranding the user. We never match on provider error strings and
+      // never surface the raw error.
       const email = user?.email;
       if (email) {
-        await supabase.auth.signInWithPassword({ email, password });
+        const { error: autoSignInError } = await supabase.auth.signInWithPassword({ email, password });
+        if (autoSignInError) {
+          console.error('[CreatePassword] automatic sign-in after password creation failed', {
+            code: (autoSignInError as any)?.code ?? null,
+            status: (autoSignInError as any)?.status ?? null,
+            message: autoSignInError.message,
+          });
+          toast({
+            title: 'Password Created',
+            description: 'Your password has been created. Please sign in with your new password.',
+          });
+          navigate('/auth', { replace: true });
+          return;
+        }
       }
 
       // Re-fetch contributor status so isContributor = true before ProtectedRoute evaluates.
