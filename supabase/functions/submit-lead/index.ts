@@ -14,7 +14,6 @@ interface LeadSubmission {
   how_heard: string;
   marketing_consent?: boolean;
   honeypot?: string; // Hidden field to catch bots
-  turnstileToken?: string;
 }
 
 const supabase = createClient(
