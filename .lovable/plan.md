@@ -35,7 +35,10 @@ Turnstile tokens are single-use and expire after ~5 minutes, so a token consumed
 After A1–A4 and before any other work:
 
 - Typecheck (`tsconfig.app.json`).
-- Manual browser pass on the live host: sign-in, sign-up, forgot password → reset → post-reset landing, magic-link resend, signup-verification resend, contributor/invited sign-in, subscription-checkout signup, account-deletion re-auth.
+- Run the complete browser regression suite in staging/deployment preview before production. After staging passes, perform only a limited production smoke test with controlled test accounts/data.
+- Manual browser pass on the staging/deployment-preview host using the configured Turnstile staging/test setup: sign-in, sign-up, forgot password → reset → post-reset landing, magic-link resend, signup-verification resend, contributor/invited sign-in, subscription-checkout signup, account-deletion re-auth.
+- Production smoke test only after staging passes, limited to: normal sign-in, one resend flow, the Contact form, and optionally account deletion with a dedicated test account.
+- Where an internal automatic Auth transition falls back to `/auth`, preserve the underlying failure in the existing safe diagnostic/logging path, while showing only the contextual friendly message to the user. Do not expose raw Supabase/Auth errors.
 - **Token-reuse case (explicit):** valid CAPTCHA + wrong password → correct the password → submit again → confirm a fresh token is obtained and sign-in succeeds. Run this on `/auth` sign-in, contributor sign-in, and Delete Account re-auth.
 - One custom public form (Contact) end to end to confirm nothing regressed.
 - Report results here. **Stop after the regression report — do not proceed to C, D, or E.**
