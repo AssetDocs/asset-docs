@@ -1,44 +1,47 @@
-# Phase A Staging Regression Gate
+# Phase A Staging Regression Gate — Approved Decision
 
-No code changes. This plan defines how the regression pass gets executed and reported, and flags two blockers that decide who runs which test.
+Decision: run Track 1 with Cloudflare's official dummy Turnstile credentials (no new real widget), staging/preview only, then run Track 2 manually in a real browser. Production keys and configuration stay untouched. No code changes to accommodate headless testing; the production Managed widget challenging automated browsers is expected and correct.
 
-## Blockers to resolve before the pass
+## One constraint that shapes execution
 
-1. **Headless browsers cannot clear the live widget.** Earlier live checks on `getassetsafe.com/contact` ended in `turnstile_timeout` because the managed challenge flags headless Chromium. That is correct fail-closed behavior, but it means any flow that must produce a real Turnstile token cannot be driven automatically against the current widget configuration.
-2. **Cloudflare test credentials need a staging widget, not the production one.** Using the official always-pass / always-fail / already-spent test keys requires swapping the site key the staging build loads (`VITE_TURNSTILE_SITE_KEY`) and the secret the Edge Functions read (`TURNSTILE_SECRET_KEY`). That is an environment change on a deployed target, so it is a deliberate step, not something folded into the test run.
+The frontend side is clean: `VITE_TURNSTILE_SITE_KEY` is a build-time Vite value, so the sandbox dev host can load the dummy always-pass sitekey without affecting the published build or production.
 
-Given those, the pass splits into two tracks.
+The server side is not cleanly separable. This project uses an external Supabase instance with a single `TURNSTILE_SECRET_KEY` secret shared by the deployed Edge Functions. Overwriting it with the dummy always-pass secret would apply to production traffic too, and the dummy always-fail secret would break every live public form for the duration of the test. So the Contact-form siteverify matrix runs as a direct request-level test against Cloudflare's siteverify endpoint plus the deployed function, using dummy tokens, rather than by repointing the shared secret:
 
-## Track 1 — automated, with Cloudflare test keys on staging
+- Dummy token + current production secret → expect `bot_check_failed` (403) from the deployed function. Confirms fail-closed and the friendly message.
+- Dummy token + dummy always-pass secret, called against Cloudflare siteverify directly → expect `success: true`. Confirms the token format and the verification contract the shared helper relies on.
+- Dummy already-spent secret → expect `timeout-or-duplicate`, which the helper maps to `bot_check_expired`.
 
-Prerequisite: staging/preview is configured with Cloudflare's test site key (always-pass) and matching test secret. Then headless runs can complete real submissions and the following are scripted:
+If you would rather exercise the true client → function → siteverify → email path end to end, that requires a maintenance window where the shared secret is temporarily the dummy pass secret. Flagging it as your call; the default above avoids touching production.
+
+## Track 1 — automated (dummy sitekey on the sandbox dev host)
+
+Playwright, headless, against `http://localhost:8080` with the dummy always-pass sitekey injected:
 
 - Normal `/auth` sign-in.
-- Normal sign-in: wrong password, then correct password, asserting a second `getToken()` call and a fresh token on the retry request.
+- Sign-in retry: wrong password → correct password. Asserts a second `getToken()` and a distinct token value on the retry request.
 - Signup.
 - Forgot-password request.
 - Create Password magic-link resend.
 - Welcome signup-verification resend.
 - Email Verification resend.
 - Subscription-checkout signup.
-- Contact form end-to-end, asserting the Edge Function returns success (real siteverify path against the test secret).
-- Always-fail secret: Contact form returns the friendly `bot_check_failed` message, HTTP 403, and no email is sent.
-- Already-spent secret: Contact form returns `bot_check_expired` and the widget resets.
+- Contact form submit reaches the Edge Function with a token.
+- Dummy always-fail sitekey: each of the above surfaces the friendly security-check message and makes no Supabase Auth call.
+- Siteverify matrix as described in the constraint section above.
 
-## Track 2 — manual on staging (state-changing or challenge-dependent)
+Test accounts: dedicated throwaway addresses, created and reused within the run, never real customer records.
 
-Run by you in a real browser on the staging host:
+## Track 2 — manual, real browser on staging
+
+Flows automation cannot safely represent:
 
 - Contributor/invited sign-in succeeds.
-- Contributor sign-in with CAPTCHA acquisition forced to fail (block `challenges.cloudflare.com`): friendly retry message shown, and **no** Supabase Auth request in the network tab.
-- Password reset completes and lands correctly; if automatic post-reset sign-in fails, user arrives at `/auth` with the contextual message and the underlying reason appears in the safe diagnostic log, not on screen.
-- Delete Account re-auth: correct password with CAPTCHA succeeds; wrong password → retry → fresh token → correct password succeeds. Uses a dedicated throwaway test account.
+- Contributor sign-in with `challenges.cloudflare.com` blocked: friendly retry message, and no Supabase Auth request in the network tab.
+- Password reset completes and lands correctly; forced post-reset auto-sign-in failure lands on `/auth` with the contextual message, underlying reason in the safe diagnostic log only.
+- Delete Account re-auth: correct password succeeds with CAPTCHA; wrong password → retry → fresh token → correct password succeeds. Dedicated test account.
 - DevInviteAccept succeeds where expected; forced auto-sign-in failure falls back to `/auth` cleanly.
 
 ## Reporting
 
-Single table: flow, test performed, expected result, actual result, pass/fail, safe diagnostic. Any failure that needs more than a narrow Phase A/Turnstile fix stops the pass and gets reported instead of fixed. No dead-code cleanup, no rate limiting, no gift hardening.
-
-## Decision needed
-
-Whether to point staging at Cloudflare's test keys (unlocks Track 1 automation) or keep the production widget on staging (then all 14 flows become manual Track 2 work).
+One consolidated table: flow, test performed, expected result, actual result, pass/fail, safe diagnostic. Stop after the report. Any failure needing more than a narrow Phase A/Turnstile fix is reported, not fixed. No dead-code cleanup, no centralized rate limiting, no gift hardening. Limited production smoke test only after the full staging gate passes.
