@@ -116,6 +116,9 @@ const EmailVerification: React.FC = () => {
             </div>
 
             <div className="space-y-3">
+              <div className="flex justify-center">
+                <Turnstile ref={turnstileRef} />
+              </div>
               <Button 
                 onClick={handleResendVerification}
                 disabled={isResending}
