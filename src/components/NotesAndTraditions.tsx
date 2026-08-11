@@ -6,13 +6,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { BookOpen, Plus, Trash2, Edit, Upload, FileText, X } from 'lucide-react';
+import { BookOpen, Plus, Trash2, Edit, Upload, FileText, X, Folder } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { StorageService, buildFamilyArchivePath } from '@/services/StorageService';
 import { useSubscription } from '@/contexts/SubscriptionContext';
+import NotesTraditionFolders, { NoteFolderItem } from '@/components/NotesTraditionFolders';
+import CreateFolderModal from '@/components/CreateFolderModal';
+import EditFolderModal from '@/components/EditFolderModal';
+
 
 interface NoteEntry {
   id: string;
