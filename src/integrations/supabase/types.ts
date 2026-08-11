@@ -5428,6 +5428,36 @@ export type Database = {
         }
         Relationships: []
       }
+      notes_tradition_folders: {
+        Row: {
+          created_at: string
+          description: string | null
+          folder_name: string
+          gradient_color: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          folder_name: string
+          gradient_color?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          folder_name?: string
+          gradient_color?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notes_traditions: {
         Row: {
           bucket_name: string | null
@@ -5440,6 +5470,7 @@ export type Database = {
           file_path: string | null
           file_size: number | null
           file_url: string | null
+          folder_id: string | null
           holiday: string | null
           id: string
           pending_delete: boolean
@@ -5460,6 +5491,7 @@ export type Database = {
           file_path?: string | null
           file_size?: number | null
           file_url?: string | null
+          folder_id?: string | null
           holiday?: string | null
           id?: string
           pending_delete?: boolean
@@ -5480,6 +5512,7 @@ export type Database = {
           file_path?: string | null
           file_size?: number | null
           file_url?: string | null
+          folder_id?: string | null
           holiday?: string | null
           id?: string
           pending_delete?: boolean
@@ -5489,7 +5522,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "notes_traditions_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "notes_tradition_folders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notification_preferences: {
         Row: {

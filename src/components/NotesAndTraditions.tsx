@@ -6,13 +6,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { BookOpen, Plus, Trash2, Edit, Upload, FileText, X } from 'lucide-react';
+import { BookOpen, Plus, Trash2, Edit, Upload, FileText, X, Folder } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { StorageService, buildFamilyArchivePath } from '@/services/StorageService';
 import { useSubscription } from '@/contexts/SubscriptionContext';
+import NotesTraditionFolders, { NoteFolderItem } from '@/components/NotesTraditionFolders';
+import CreateFolderModal from '@/components/CreateFolderModal';
+import EditFolderModal from '@/components/EditFolderModal';
+
 
 interface NoteEntry {
   id: string;
@@ -24,6 +29,7 @@ interface NoteEntry {
   file_url: string | null;
   file_path: string | null;
   bucket_name: string | null;
+  folder_id: string | null;
   created_at: string;
 }
 
@@ -49,13 +55,22 @@ const NotesAndTraditions: React.FC<NotesAndTraditionsProps> = ({ autoOpenAdd = f
   const [subject, setSubject] = useState('');
   const [holiday, setHoliday] = useState('');
   const [content, setContent] = useState('');
+  const [folderId, setFolderId] = useState<string>('none');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Folder state
+  const [folders, setFolders] = useState<NoteFolderItem[]>([]);
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+  const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
+  const [folderToEdit, setFolderToEdit] = useState<NoteFolderItem | null>(null);
+  const [folderToDelete, setFolderToDelete] = useState<string | null>(null);
+
   useEffect(() => {
     fetchNotes();
-  }, [user]);
+    fetchFolders();
+  }, [user?.id]);
 
   const fetchNotes = async () => {
     if (!user) return;
@@ -75,14 +90,78 @@ const NotesAndTraditions: React.FC<NotesAndTraditionsProps> = ({ autoOpenAdd = f
     }
   };
 
+  const fetchFolders = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('notes_tradition_folders')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      setFolders((data || []) as NoteFolderItem[]);
+    } catch (error) {
+      console.error('Error fetching note folders:', error);
+    }
+  };
+
+  const handleCreateFolder = async (name: string, description: string, color: string) => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('notes_tradition_folders')
+        .insert({ user_id: user.id, folder_name: name, description: description || null, gradient_color: color })
+        .select()
+        .single();
+      if (error) throw error;
+      setFolders((prev) => [...prev, data as NoteFolderItem]);
+      setIsCreateFolderOpen(false);
+      toast({ title: 'Folder created', description: `"${name}" is ready.` });
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Failed to create folder.', variant: 'destructive' });
+    }
+  };
+
+  const handleSaveFolder = async (id: string, name: string, description: string, color: string) => {
+    try {
+      const { error } = await supabase
+        .from('notes_tradition_folders')
+        .update({ folder_name: name, description: description || null, gradient_color: color })
+        .eq('id', id);
+      if (error) throw error;
+      setFolders((prev) => prev.map((f) => (f.id === id ? { ...f, folder_name: name, description: description || null, gradient_color: color } : f)));
+      setFolderToEdit(null);
+      toast({ title: 'Folder updated' });
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Failed to update folder.', variant: 'destructive' });
+    }
+  };
+
+  const confirmDeleteFolder = async () => {
+    if (!folderToDelete) return;
+    try {
+      const { error } = await supabase.from('notes_tradition_folders').delete().eq('id', folderToDelete);
+      if (error) throw error;
+      setFolders((prev) => prev.filter((f) => f.id !== folderToDelete));
+      if (selectedFolder === folderToDelete) setSelectedFolder(null);
+      setFolderToDelete(null);
+      fetchNotes();
+      toast({ title: 'Folder deleted', description: 'Notes in it were moved to unfiled.' });
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Failed to delete folder.', variant: 'destructive' });
+    }
+  };
+
   const resetForm = () => {
     setTitle('');
     setSubject('');
     setHoliday('');
     setContent('');
+    setFolderId('none');
     setSelectedFile(null);
     setEditingNote(null);
   };
+
 
   const handleSave = async () => {
     if (!user || !title.trim()) {
@@ -126,6 +205,7 @@ const NotesAndTraditions: React.FC<NotesAndTraditionsProps> = ({ autoOpenAdd = f
             subject: subject.trim() || null,
             holiday: holiday.trim() || null,
             content: content.trim() || null,
+            folder_id: folderId === 'none' ? null : folderId,
             ...fileData,
           })
           .eq('id', editingNote.id);
@@ -140,6 +220,7 @@ const NotesAndTraditions: React.FC<NotesAndTraditionsProps> = ({ autoOpenAdd = f
             subject: subject.trim() || null,
             holiday: holiday.trim() || null,
             content: content.trim() || null,
+            folder_id: folderId === 'none' ? null : folderId,
             ...fileData,
           });
         if (error) throw error;
@@ -194,21 +275,49 @@ const NotesAndTraditions: React.FC<NotesAndTraditionsProps> = ({ autoOpenAdd = f
     setSubject(note.subject || '');
     setHoliday(note.holiday || '');
     setContent(note.content || '');
+    setFolderId(note.folder_id || 'none');
     setSelectedFile(null);
     setIsOpen(true);
   };
 
+  const folderCounts = notes.reduce((acc: Record<string, number>, note) => {
+    if (note.folder_id) acc[note.folder_id] = (acc[note.folder_id] || 0) + 1;
+    return acc;
+  }, {});
+
+  const visibleNotes = selectedFolder ? notes.filter((n) => n.folder_id === selectedFolder) : notes;
+  const selectedFolderName = folders.find((f) => f.id === selectedFolder)?.folder_name;
+
   return (
-    <div className="space-y-4">
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="lg:col-span-1">
+        <NotesTraditionFolders
+          folders={folders}
+          selectedFolder={selectedFolder}
+          onFolderSelect={setSelectedFolder}
+          totalCount={notes.length}
+          counts={folderCounts}
+          onCreateFolder={() => setIsCreateFolderOpen(true)}
+          onEditFolder={setFolderToEdit}
+          onDeleteFolder={setFolderToDelete}
+        />
+      </div>
+
+      <div className="lg:col-span-3 space-y-4">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-brand-blue" />
             Notes & Traditions
           </CardTitle>
-          <p className="text-sm text-muted-foreground">Capture family traditions, stories, and important notes.</p>
+          <p className="text-sm text-muted-foreground">
+            {selectedFolderName
+              ? `Viewing folder: ${selectedFolderName}`
+              : 'Capture family traditions, stories, and important notes.'}
+          </p>
         </CardHeader>
         <CardContent>
+
           <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
             <DialogTrigger asChild>
               <Button className="w-full bg-brand-blue hover:bg-brand-blue/90">
@@ -240,6 +349,21 @@ const NotesAndTraditions: React.FC<NotesAndTraditionsProps> = ({ autoOpenAdd = f
                   <Textarea id="note-content" value={content} onChange={(e) => setContent(e.target.value)} placeholder="Write your note, tradition, or story here..." rows={5} />
                 </div>
                 <div>
+                  <Label htmlFor="note-folder">Folder</Label>
+                  <Select value={folderId} onValueChange={setFolderId}>
+                    <SelectTrigger id="note-folder">
+                      <SelectValue placeholder="Select a folder (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No folder</SelectItem>
+                      {folders.map((folder) => (
+                        <SelectItem key={folder.id} value={folder.id}>{folder.folder_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+
                   <Label>Or Upload a File</Label>
                   <div className="mt-1">
                     {selectedFile ? (
@@ -267,17 +391,19 @@ const NotesAndTraditions: React.FC<NotesAndTraditionsProps> = ({ autoOpenAdd = f
 
       {isLoading ? (
         <div className="text-center py-8 text-muted-foreground">Loading...</div>
-      ) : notes.length === 0 ? (
+      ) : visibleNotes.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
             <BookOpen className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
-            <p className="text-muted-foreground">No notes or traditions yet.</p>
+            <p className="text-muted-foreground">
+              {selectedFolder ? 'No notes in this folder yet.' : 'No notes or traditions yet.'}
+            </p>
             <p className="text-sm text-muted-foreground mt-1">Add your first note to preserve family stories and traditions.</p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {notes.map((note) => (
+          {visibleNotes.map((note) => (
             <Card key={note.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between">
@@ -308,6 +434,12 @@ const NotesAndTraditions: React.FC<NotesAndTraditionsProps> = ({ autoOpenAdd = f
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="space-y-1">
+                  {note.folder_id && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Folder className="h-3 w-3" />
+                      {folders.find((f) => f.id === note.folder_id)?.folder_name || 'Folder'}
+                    </p>
+                  )}
                   {note.subject && <p className="text-sm text-muted-foreground"><span className="font-medium">Subject:</span> {note.subject}</p>}
                   {note.holiday && <p className="text-sm text-muted-foreground"><span className="font-medium">Holiday:</span> {note.holiday}</p>}
                   {note.content && <p className="text-sm mt-2 line-clamp-3">{note.content}</p>}
@@ -324,8 +456,41 @@ const NotesAndTraditions: React.FC<NotesAndTraditionsProps> = ({ autoOpenAdd = f
           ))}
         </div>
       )}
+      </div>
+
+      <CreateFolderModal
+        isOpen={isCreateFolderOpen}
+        onClose={() => setIsCreateFolderOpen(false)}
+        onCreateFolder={handleCreateFolder}
+        titleOverride="Create Notes Folder"
+        descriptionOverride="Organize your notes and traditions into folders."
+        placeholderOverride="e.g. Holiday Traditions"
+      />
+
+      <EditFolderModal
+        isOpen={!!folderToEdit}
+        onClose={() => setFolderToEdit(null)}
+        onSave={handleSaveFolder}
+        folder={folderToEdit}
+      />
+
+      <AlertDialog open={!!folderToDelete} onOpenChange={(open) => { if (!open) setFolderToDelete(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Folder</AlertDialogTitle>
+            <AlertDialogDescription>
+              Notes inside this folder will not be deleted — they'll become unfiled.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteFolder}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
+
 
 export default NotesAndTraditions;
