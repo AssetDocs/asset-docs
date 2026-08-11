@@ -467,7 +467,7 @@ export function buildAssetDocPath(opts: {
  */
 export function buildFamilyArchivePath(opts: {
   userId: string;
-  section: 'family-recipes' | 'notes-traditions' | 'medication-list' | 'memory-safe';
+  section: 'family-recipes' | 'notes-traditions' | 'family-traditions' | 'medication-list' | 'memory-safe';
   folderId?: string | null;
   file: File;
 }): string {

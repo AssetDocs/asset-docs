@@ -18,7 +18,6 @@ import NotesTraditionFolders, { NoteFolderItem } from '@/components/NotesTraditi
 import CreateFolderModal from '@/components/CreateFolderModal';
 import EditFolderModal from '@/components/EditFolderModal';
 
-
 interface NoteEntry {
   id: string;
   title: string;
@@ -33,12 +32,12 @@ interface NoteEntry {
   created_at: string;
 }
 
-interface NotesAndTraditionsProps {
+interface NotesSectionProps {
   /** UI hint only: opens the existing add dialog. Never performs work. */
   autoOpenAdd?: boolean;
 }
 
-const NotesAndTraditions: React.FC<NotesAndTraditionsProps> = ({ autoOpenAdd = false }) => {
+const NotesSection: React.FC<NotesSectionProps> = ({ autoOpenAdd = false }) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { subscriptionTier, storageQuotaGb } = useSubscription();
@@ -80,6 +79,7 @@ const NotesAndTraditions: React.FC<NotesAndTraditionsProps> = ({ autoOpenAdd = f
         .from('notes_traditions')
         .select('*')
         .eq('user_id', user.id)
+        .eq('record_type', 'note')
         .order('created_at', { ascending: false });
       if (error) throw error;
       setNotes((data || []) as NoteEntry[]);
@@ -162,7 +162,6 @@ const NotesAndTraditions: React.FC<NotesAndTraditionsProps> = ({ autoOpenAdd = f
     setEditingNote(null);
   };
 
-
   const handleSave = async () => {
     if (!user || !title.trim()) {
       toast({ title: 'Error', description: 'Title is required.', variant: 'destructive' });
@@ -216,6 +215,7 @@ const NotesAndTraditions: React.FC<NotesAndTraditionsProps> = ({ autoOpenAdd = f
           .from('notes_traditions')
           .insert({
             user_id: user.id,
+            record_type: 'note',
             title: title.trim(),
             subject: subject.trim() || null,
             holiday: holiday.trim() || null,
@@ -308,12 +308,12 @@ const NotesAndTraditions: React.FC<NotesAndTraditionsProps> = ({ autoOpenAdd = f
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-brand-blue" />
-            Notes & Traditions
+            Notes
           </CardTitle>
           <p className="text-sm text-muted-foreground">
             {selectedFolderName
               ? `Viewing folder: ${selectedFolderName}`
-              : 'Capture family traditions, stories, and important notes.'}
+              : 'Keep important thoughts, reminders, lists, instructions, and information in one place.'}
           </p>
         </CardHeader>
         <CardContent>
@@ -322,31 +322,31 @@ const NotesAndTraditions: React.FC<NotesAndTraditionsProps> = ({ autoOpenAdd = f
             <DialogTrigger asChild>
               <Button className="w-full bg-brand-blue hover:bg-brand-blue/90">
                 <Plus className="h-4 w-4 mr-2" />
-                Add Note or Tradition
+                Add Note
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader>
-                <DialogTitle>{editingNote ? 'Edit Note' : 'Add Note or Tradition'}</DialogTitle>
+                <DialogTitle>{editingNote ? 'Edit Note' : 'Add Note'}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="note-title">Title *</Label>
-                  <Input id="note-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Grandma's Holiday Tradition" />
+                  <Input id="note-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Storage unit access code" />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label htmlFor="note-subject">Subject</Label>
-                    <Input id="note-subject" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="e.g. Family Story" />
+                    <Input id="note-subject" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="e.g. Household" />
                   </div>
                   <div>
-                    <Label htmlFor="note-holiday">Holiday / Occasion</Label>
-                    <Input id="note-holiday" value={holiday} onChange={(e) => setHoliday(e.target.value)} placeholder="e.g. Christmas" />
+                    <Label htmlFor="note-holiday">Occasion</Label>
+                    <Input id="note-holiday" value={holiday} onChange={(e) => setHoliday(e.target.value)} placeholder="Optional" />
                   </div>
                 </div>
                 <div>
                   <Label htmlFor="note-content">Details</Label>
-                  <Textarea id="note-content" value={content} onChange={(e) => setContent(e.target.value)} placeholder="Write your note, tradition, or story here..." rows={5} />
+                  <Textarea id="note-content" value={content} onChange={(e) => setContent(e.target.value)} placeholder="Write your note here..." rows={5} />
                 </div>
                 <div>
                   <Label htmlFor="note-folder">Folder</Label>
@@ -396,9 +396,9 @@ const NotesAndTraditions: React.FC<NotesAndTraditionsProps> = ({ autoOpenAdd = f
           <CardContent className="py-12 text-center">
             <BookOpen className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
             <p className="text-muted-foreground">
-              {selectedFolder ? 'No notes in this folder yet.' : 'No notes or traditions yet.'}
+              {selectedFolder ? 'No notes in this folder yet.' : 'No notes yet.'}
             </p>
-            <p className="text-sm text-muted-foreground mt-1">Add your first note to preserve family stories and traditions.</p>
+            <p className="text-sm text-muted-foreground mt-1">Add your first note to keep important information in one place.</p>
           </CardContent>
         </Card>
       ) : (
@@ -441,7 +441,7 @@ const NotesAndTraditions: React.FC<NotesAndTraditionsProps> = ({ autoOpenAdd = f
                     </p>
                   )}
                   {note.subject && <p className="text-sm text-muted-foreground"><span className="font-medium">Subject:</span> {note.subject}</p>}
-                  {note.holiday && <p className="text-sm text-muted-foreground"><span className="font-medium">Holiday:</span> {note.holiday}</p>}
+                  {note.holiday && <p className="text-sm text-muted-foreground"><span className="font-medium">Occasion:</span> {note.holiday}</p>}
                   {note.content && <p className="text-sm mt-2 line-clamp-3">{note.content}</p>}
                   {note.file_name && (
                     <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
@@ -463,8 +463,8 @@ const NotesAndTraditions: React.FC<NotesAndTraditionsProps> = ({ autoOpenAdd = f
         onClose={() => setIsCreateFolderOpen(false)}
         onCreateFolder={handleCreateFolder}
         titleOverride="Create Notes Folder"
-        descriptionOverride="Organize your notes and traditions into folders."
-        placeholderOverride="e.g. Holiday Traditions"
+        descriptionOverride="Organize your notes into folders."
+        placeholderOverride="e.g. Household Info"
       />
 
       <EditFolderModal
@@ -492,5 +492,4 @@ const NotesAndTraditions: React.FC<NotesAndTraditionsProps> = ({ autoOpenAdd = f
   );
 };
 
-
-export default NotesAndTraditions;
+export default NotesSection;

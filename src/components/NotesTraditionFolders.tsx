@@ -56,7 +56,7 @@ const NotesTraditionFolders: React.FC<NotesTraditionFoldersProps> = ({
             <BookOpen className="h-4 w-4 text-white" />
           </div>
           <div className="flex-1 text-left min-w-0">
-            <div className="font-medium text-sm">All Notes & Traditions</div>
+            <div className="font-medium text-sm">All Notes</div>
             <div className="text-xs text-muted-foreground">View everything</div>
           </div>
           <Badge variant="secondary" className="ml-2">{totalCount}</Badge>

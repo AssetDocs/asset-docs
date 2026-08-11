@@ -5475,6 +5475,7 @@ export type Database = {
           id: string
           pending_delete: boolean
           pending_delete_at: string | null
+          record_type: string
           subject: string | null
           title: string
           updated_at: string
@@ -5496,6 +5497,7 @@ export type Database = {
           id?: string
           pending_delete?: boolean
           pending_delete_at?: string | null
+          record_type?: string
           subject?: string | null
           title: string
           updated_at?: string
@@ -5517,6 +5519,7 @@ export type Database = {
           id?: string
           pending_delete?: boolean
           pending_delete_at?: string | null
+          record_type?: string
           subject?: string | null
           title?: string
           updated_at?: string

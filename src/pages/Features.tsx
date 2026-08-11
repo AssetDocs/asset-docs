@@ -130,7 +130,8 @@ const Features: React.FC = () => {
                       <FeatureCard icon={Contact} title="VIP Contacts" description="Your most important contacts with priority levels." />
                       <FeatureCard icon={Mic} title="Voice Notes" description="Record and store voice memos for your records." />
                       <FeatureCard icon={Briefcase} title="Trusted Professionals" description="Track your trusted service providers and contractors." />
-                      <FeatureCard icon={BookOpen} title="Notes & Traditions" description="Capture family traditions, stories, and important notes." />
+                      <FeatureCard icon={BookOpen} title="Notes" description="Keep important notes, reminders, and information in one place." />
+                      <FeatureCard icon={BookOpen} title="Family Traditions" description="Preserve family traditions, stories, and customs." />
                       <FeatureCard icon={ChefHat} title="Family Recipes" description="Preserve cherished family recipes for generations." />
                       <FeatureCard icon={Archive} title="Memory Safe" description="A protected place for the memories you want to keep — and pass on." />
                     </div>

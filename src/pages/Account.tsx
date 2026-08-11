@@ -33,7 +33,8 @@ import DashboardGrid from '@/components/DashboardGrid';
 import PersonalWorkspacePreview from '@/components/personal-workspace/PersonalWorkspacePreview';
 import InsightsToolsGrid from '@/components/InsightsToolsGrid';
 import LifeHubGrid from '@/components/LifeHubGrid';
-import NotesAndTraditions from '@/components/NotesAndTraditions';
+import NotesSection from '@/components/NotesSection';
+import FamilyTraditions from '@/components/FamilyTraditions';
 import QuickNotesSection from '@/components/QuickNotesSection';
 import FamilyRecipes from '@/components/FamilyRecipes';
 import FamilyMedications from '@/components/FamilyMedications';
@@ -303,7 +304,8 @@ const Account: React.FC = () => {
       'upgrades-repairs': { title: 'Upgrades & Repairs', subtitle: 'Document property improvements and repair history.' },
       'smart-calendar': { title: 'Smart Calendar', subtitle: 'Reminders, records, and timelines — all in one place.' },
       'quick-notes': { title: 'Quick Notes', subtitle: 'Jot down quick reminders or thoughts.' },
-      'notes-traditions': { title: 'Notes & Traditions', subtitle: 'Capture family traditions, stories, and important notes.' },
+      'notes': { title: 'Notes', subtitle: 'Keep important notes, reminders, and information in one place.' },
+      'family-traditions': { title: 'Family Traditions', subtitle: 'Preserve family traditions, stories, and customs.' },
       'family-recipes': { title: 'Family Recipes', subtitle: 'Preserve cherished family recipes for generations.' },
       'medication-list': { title: 'Medication List', subtitle: 'A simple family-reference list for medications, pharmacies, and related notes.' },
       'important-locations': { title: 'Important Locations', subtitle: 'Record where important documents, keys, keepsakes, and physical items are stored.' },
@@ -367,7 +369,7 @@ const Account: React.FC = () => {
                   Back to Dashboard
                 </Button>
 
-                {['voice-notes', 'service-pros', 'notes-traditions', 'family-recipes', 'medication-list', 'important-locations', 'memory-safe'].includes(activeTab) && (
+                {['voice-notes', 'service-pros', 'notes', 'family-traditions', 'family-recipes', 'medication-list', 'important-locations', 'memory-safe'].includes(activeTab) && (
                   <Button
                     onClick={() => {
                       setActiveTab('life-hub');
@@ -531,8 +533,12 @@ const Account: React.FC = () => {
               </div>
             </TabsContent>
 
-            <TabsContent value="notes-traditions">
-              <NotesAndTraditions autoOpenAdd={autoOpenAdd} />
+            <TabsContent value="notes">
+              <NotesSection autoOpenAdd={autoOpenAdd} />
+            </TabsContent>
+
+            <TabsContent value="family-traditions">
+              <FamilyTraditions autoOpenAdd={autoOpenAdd} />
             </TabsContent>
 
             <TabsContent value="family-recipes">
