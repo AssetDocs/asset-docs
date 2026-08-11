@@ -31,10 +31,12 @@
 ## Proposed change (smallest safe path)
 
 **Migration (one column, no new tables)**
-- Add `record_type text NOT NULL DEFAULT 'note'` to `public.notes_traditions`, constrained to `'note' | 'tradition'` (validation via CHECK on an immutable value set).
+- Add `record_type text NOT NULL DEFAULT 'note'` to `public.notes_traditions` — NOT NULL with a default so any in-flight insert during deployment stays valid.
+- CHECK constraint restricting values to `'note' | 'tradition'`.
+- Safeguard CHECK: a tradition row can never carry a folder — `record_type <> 'tradition' OR folder_id IS NULL`, enforced at the database level so even direct client mutation cannot file a tradition into a folder.
 - Existing 4 rows become `record_type = 'note'`.
-- Folders remain notes-only; `folder_id` is simply never set for traditions.
 - No RLS/grant changes required (policies are column-agnostic).
+- No compatibility redirect from `tab=notes-traditions` — no users depend on that route.
 
 **UI**
 1. `LifeHubGrid.tsx`: replace the combined card with two cards, same visual style/color:
