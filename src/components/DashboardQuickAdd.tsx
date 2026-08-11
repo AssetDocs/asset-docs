@@ -46,7 +46,8 @@ interface AddOption {
 const familyArchiveOptions: AddOption[] = [
   { label: 'VIP Contact', description: 'Add an important contact', icon: Contact, to: '/account/contacts?add=1' },
   { label: 'Trusted Professional', description: 'Add a service provider or contractor', icon: Briefcase, to: '/account?tab=service-pros&add=1' },
-  { label: 'Note / Tradition', description: 'Capture a family note or tradition', icon: BookOpen, to: '/account?tab=notes-traditions&add=1' },
+  { label: 'Note', description: 'Capture an important note', icon: BookOpen, to: '/account?tab=notes&add=1' },
+  { label: 'Family Tradition', description: 'Preserve a family tradition or story', icon: Sparkles, to: '/account?tab=family-traditions&add=1' },
   { label: 'Voice Note', description: 'Record a voice memo', icon: Mic, to: '/account?tab=voice-notes' },
   { label: 'Family Recipe', description: 'Preserve a family recipe', icon: ChefHat, to: '/account?tab=family-recipes&add=1' },
   { label: 'Medication', description: 'Add to the family medication list', icon: Pill, to: '/account?tab=medication-list&add=1' },
