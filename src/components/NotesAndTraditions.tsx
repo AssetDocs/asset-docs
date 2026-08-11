@@ -349,6 +349,21 @@ const NotesAndTraditions: React.FC<NotesAndTraditionsProps> = ({ autoOpenAdd = f
                   <Textarea id="note-content" value={content} onChange={(e) => setContent(e.target.value)} placeholder="Write your note, tradition, or story here..." rows={5} />
                 </div>
                 <div>
+                  <Label htmlFor="note-folder">Folder</Label>
+                  <Select value={folderId} onValueChange={setFolderId}>
+                    <SelectTrigger id="note-folder">
+                      <SelectValue placeholder="Select a folder (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No folder</SelectItem>
+                      {folders.map((folder) => (
+                        <SelectItem key={folder.id} value={folder.id}>{folder.folder_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+
                   <Label>Or Upload a File</Label>
                   <div className="mt-1">
                     {selectedFile ? (
