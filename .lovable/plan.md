@@ -1,69 +1,35 @@
-# Complete Turnstile / Supabase CAPTCHA Rollback
+# Fix: Invite error messaging in Authorized Users
 
-## Confirmed diagnosis
+The backend is behaving correctly — a duplicate pending invite returns 409. The defect is that the frontend collapses every non-2xx response into one generic red toast, so the owner sees "we couldn't send the invitation" instead of "this one is already pending, use Resend."
 
-- The active sign-in route is `/auth`, rendered by `AuthLegacy.tsx`; `/login` redirects to it.
-- The current source no longer acquires a Turnstile token on `/auth`, and `AuthContext.signIn()` no longer sends `captchaToken` to Supabase.
-- The production error shown — `captcha protection: request disallowed (no captcha_token found)` — is returned by Supabase Auth before password validation. This confirms Auth CAPTCHA enforcement is still enabled server-side while the rolled-back frontend intentionally sends no token.
-- The current public-form callers and the five affected Edge Functions no longer enforce Turnstile.
-- No migration contains Turnstile or CAPTCHA changes, so no database migration rollback is needed.
-- The first rollback commit intentionally retained dead Turnstile artifacts. This pass will remove those artifacts to restore the codebase fully to its pre-Turnstile state.
+Scope: frontend error handling only, in `src/components/AuthorizedUsersTab.tsx`.
 
-## Rollback sequence
+## What changes
 
-### 1. Disable the remaining server-side enforcement first
+1. **Read the Edge Function error body safely.** When `supabase.functions.invoke('send-invite')` returns an error, inspect it as a `FunctionsHttpError` and read `err.context.status` plus the JSON body (wrapped in try/catch — a body that isn't JSON must not throw).
 
-In Supabase Dashboard → Authentication → Bot and Abuse Protection, disable CAPTCHA/Turnstile for the project.
+2. **Map only known statuses to safe copy:**
+   - `409` → "An invitation is already pending for this email. Use Resend under Pending Invitations if you'd like to send it again."
+   - `403` → surface the `error` string returned by `send-invite` (owner / eligibility message), falling back to the generic message if absent.
+   - `429` → "Too many invitation attempts. Please wait a moment and try again."
+   - anything else (5xx, network, no status, unparseable body) → keep the existing generic "We couldn't send the invitation. Please try again in a moment."
 
-Immediately verify on the currently published `/auth` page:
+   No arbitrary backend string is displayed outside the 403 case; unknown errors always become the generic message. Raw errors keep going to `console.error` only.
 
-1. Wrong password returns the normal invalid-credentials message, not a CAPTCHA error.
-2. Correct credentials create a session and redirect to `/account`.
+3. **409 presentation.** Show it as guidance rather than a failure: inline message plus a non-destructive toast titled "Invitation already pending" so the row already visible under Pending Invitations reads as the next action.
 
-Do not make another frontend deployment before this check; the production frontend already sends no token and is the correct probe for the dashboard setting.
+4. **Pre-flight duplicate check (optional enhancement, included).** Before invoking the function, compare the trimmed lowercase email against the already-loaded `pendingInvites`. On match, show the same 409 guidance immediately and skip the call. The server-side 409 stays as the real enforcement.
 
-### 2. Remove every remaining Turnstile artifact
+## Not touched
 
-After Auth CAPTCHA is confirmed off:
+`send-invite`, the unique partial index, owner/eligibility RPCs, rate limiting, token hashing, delivery-status tracking, and the Resend flow all stay exactly as they are.
 
-- Delete the retained `src/components/security/Turnstile.tsx` widget.
-- Delete the retained `supabase/functions/_shared/turnstile.ts` verifier.
-- Restore the unreachable `src/pages/Login.tsx` to its pre-Turnstile implementation so no alternate/dead auth page contains CAPTCHA behavior.
-- Remove the optional ignored `captchaToken` parameters and rollback comments from the `AuthContext` interface and `signIn`/`signUp` implementations.
-- Remove `VITE_TURNSTILE_SITE_KEY` from the frontend environment file.
-- Confirm there are no remaining source references to Turnstile, `captchaToken`, `turnstileToken`, Siteverify, or bot-check response codes.
+## Verification
 
-The unused Supabase secret `TURNSTILE_SECRET_KEY` may remain stored because it cannot enforce anything without code or Auth CAPTCHA configuration. Cloudflare hostname configuration can also remain; neither affects the app after this rollback.
-
-### 3. Preserve unrelated work
-
-Use targeted reversal of Turnstile-only changes introduced by the Turnstile commits rather than reverting whole commits. Preserve all later changes to gifts, Authorized Users, redirects, deleted-account handling, validation, rate limiting, email delivery, MFA/step-up, billing, RLS, and UI.
-
-No migrations, tables, policies, Auth email settings, or AU invitation logic will be changed.
-
-### 4. Validate and publish
-
-- Run a full Turnstile/CAPTCHA reference audit.
-- Run the project typecheck/build validation.
-- Publish only the frontend cleanup.
-- Redeploy the five public-form functions only if their deployed revisions differ from the already rolled-back source:
-  - `send-contact-email`
-  - `send-feedback-email`
-  - `submit-account-assistance`
-  - `submit-lead`
-  - `lead-capture`
-
-## Focused regression suite
-
-| Flow | Expected post-rollback result |
-|---|---|
-| `/auth` wrong password | Normal invalid-credentials response; no CAPTCHA text |
-| `/auth` valid password | Session created; redirect to `/account` |
-| Signup | Request accepted and confirmation email sent without CAPTCHA |
-| Forgot/reset password | Reset email sent and password reset completes |
-| AU invitation acceptance | Runs without CAPTCHA dependency; any remaining `email_mismatch`/invite failure is reported separately |
-| Subscription checkout signup | Account creation proceeds to Stripe checkout |
-| Account deletion re-auth | Password re-auth works; existing step-up controls remain |
-| Contact form | Edge Function accepts the original payload and completes email delivery |
-
-Stop after reporting this matrix. Do not repair unrelated defects found during regression testing.
+- New valid invite → sends and appears in Pending Invitations.
+- Duplicate pending invite → 409 guidance (and the pre-flight path) shows the Resend instruction.
+- Resend on that pending invite → still works.
+- Non-owner attempt → the safe 403 message from the function.
+- Rate-limited attempt → friendly 429 message.
+- Forced unexpected failure → generic fallback retained.
+- Typecheck clean.
