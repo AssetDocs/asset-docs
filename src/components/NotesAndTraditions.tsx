@@ -275,21 +275,49 @@ const NotesAndTraditions: React.FC<NotesAndTraditionsProps> = ({ autoOpenAdd = f
     setSubject(note.subject || '');
     setHoliday(note.holiday || '');
     setContent(note.content || '');
+    setFolderId(note.folder_id || 'none');
     setSelectedFile(null);
     setIsOpen(true);
   };
 
+  const folderCounts = notes.reduce((acc: Record<string, number>, note) => {
+    if (note.folder_id) acc[note.folder_id] = (acc[note.folder_id] || 0) + 1;
+    return acc;
+  }, {});
+
+  const visibleNotes = selectedFolder ? notes.filter((n) => n.folder_id === selectedFolder) : notes;
+  const selectedFolderName = folders.find((f) => f.id === selectedFolder)?.folder_name;
+
   return (
-    <div className="space-y-4">
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="lg:col-span-1">
+        <NotesTraditionFolders
+          folders={folders}
+          selectedFolder={selectedFolder}
+          onFolderSelect={setSelectedFolder}
+          totalCount={notes.length}
+          counts={folderCounts}
+          onCreateFolder={() => setIsCreateFolderOpen(true)}
+          onEditFolder={setFolderToEdit}
+          onDeleteFolder={setFolderToDelete}
+        />
+      </div>
+
+      <div className="lg:col-span-3 space-y-4">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-brand-blue" />
             Notes & Traditions
           </CardTitle>
-          <p className="text-sm text-muted-foreground">Capture family traditions, stories, and important notes.</p>
+          <p className="text-sm text-muted-foreground">
+            {selectedFolderName
+              ? `Viewing folder: ${selectedFolderName}`
+              : 'Capture family traditions, stories, and important notes.'}
+          </p>
         </CardHeader>
         <CardContent>
+
           <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
             <DialogTrigger asChild>
               <Button className="w-full bg-brand-blue hover:bg-brand-blue/90">
