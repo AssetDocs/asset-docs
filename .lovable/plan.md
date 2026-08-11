@@ -31,10 +31,12 @@
 ## Proposed change (smallest safe path)
 
 **Migration (one column, no new tables)**
-- Add `record_type text NOT NULL DEFAULT 'note'` to `public.notes_traditions`, constrained to `'note' | 'tradition'` (validation via CHECK on an immutable value set).
+- Add `record_type text NOT NULL DEFAULT 'note'` to `public.notes_traditions` — NOT NULL with a default so any in-flight insert during deployment stays valid.
+- CHECK constraint restricting values to `'note' | 'tradition'`.
+- Safeguard CHECK: a tradition row can never carry a folder — `record_type <> 'tradition' OR folder_id IS NULL`, enforced at the database level so even direct client mutation cannot file a tradition into a folder.
 - Existing 4 rows become `record_type = 'note'`.
-- Folders remain notes-only; `folder_id` is simply never set for traditions.
 - No RLS/grant changes required (policies are column-agnostic).
+- No compatibility redirect from `tab=notes-traditions` — no users depend on that route.
 
 **UI**
 1. `LifeHubGrid.tsx`: replace the combined card with two cards, same visual style/color:
@@ -52,7 +54,4 @@
 **Untouched**: Auth, MFA, AU invitations, gifts, billing, retention/deletion behavior, storage buckets/policies, other Family Archive modules, `secure-delete-file` (same table, same resource key).
 
 ## Verification after implementation
-Notes card opens Notes; Traditions card opens Family Traditions; folders create/edit/delete/filter in Notes only; no folder UI in Traditions; the 4 existing records appear under Notes; attachment upload/read/delete works in both; Quick Add routes and auto-opens the right dialog; `tsgo --noEmit` clean.
-
-## Open decision
-Migration and code will be submitted only after you approve this audit. The migration is a single additive column with a default — no data rewrite, no bucket work.
+Notes card opens Notes; Traditions card opens Family Traditions; folders create/edit/delete/filter in Notes only; no folder UI in Traditions; the 4 existing records appear under Notes; a tradition with a `folder_id` is rejected by the database even via direct client mutation; attachment upload/read/delete works on both paths; Quick Add routes and auto-opens the right dialog; `tsgo --noEmit` clean.
