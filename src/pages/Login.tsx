@@ -1,5 +1,5 @@
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,7 +13,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { isDeletedAccountEmail } from '@/utils/deletedAccountGuard';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
-import Turnstile, { getTurnstileUserMessage, type TurnstileHandle } from '@/components/security/Turnstile';
 
 const DELETED_ACCOUNT_CHECK_TIMEOUT_MS = 4000;
 
@@ -44,7 +43,6 @@ const Login: React.FC = () => {
   const [loginError, setLoginError] = useState(false);
   const { signIn, user } = useAuth();
   const { toast } = useToast();
-  const turnstileRef = useRef<TurnstileHandle>(null);
 
   // Get redirect URL from params (e.g., for gift code users)
   const redirectTo = searchParams.get('redirect') || '/account';
@@ -77,8 +75,7 @@ const Login: React.FC = () => {
         return;
       }
 
-      const captchaToken = await turnstileRef.current?.getToken();
-      const { error } = await signIn(email, password, captchaToken);
+      const { error } = await signIn(email, password);
       
       if (error) {
         setLoginError(true);
@@ -90,12 +87,9 @@ const Login: React.FC = () => {
         navigate(redirectTo);
       }
     } catch (error: any) {
-      turnstileRef.current?.reset();
       toast({
         title: "Error",
-        description: error?.message?.startsWith?.('turnstile_')
-          ? getTurnstileUserMessage(error)
-          : error.message || "An unexpected error occurred.",
+        description: error.message || "An unexpected error occurred.",
         variant: "destructive",
       });
     } finally {
@@ -115,11 +109,9 @@ const Login: React.FC = () => {
 
     setIsMagicLinkLoading(true);
     try {
-      const captchaToken = await turnstileRef.current?.getToken();
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          captchaToken,
           emailRedirectTo: `${window.location.origin}/auth/callback?type=magiclink&redirect_to=${encodeURIComponent(redirectTo)}`,
         },
       });
@@ -132,12 +124,9 @@ const Login: React.FC = () => {
         description: "Check your email for a sign-in link.",
       });
     } catch (error: any) {
-      turnstileRef.current?.reset();
       toast({
         title: "Error",
-        description: error?.message?.startsWith?.('turnstile_')
-          ? getTurnstileUserMessage(error)
-          : error.message || "Failed to send magic link.",
+        description: error.message || "Failed to send magic link.",
         variant: "destructive",
       });
     } finally {
@@ -264,8 +253,6 @@ const Login: React.FC = () => {
             >
               {isLoading ? 'Signing In...' : 'Sign In'}
             </Button>
-
-            <Turnstile ref={turnstileRef} />
 
             <div className="relative my-4">
               <Separator />
