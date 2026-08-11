@@ -31,6 +31,7 @@ import {
   Palette,
   CalendarDays,
   Package,
+  Sparkles,
 } from 'lucide-react';
 
 type Step = 'root' | 'family-archive' | 'insights-tools';
