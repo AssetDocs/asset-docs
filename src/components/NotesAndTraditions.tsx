@@ -29,6 +29,7 @@ interface NoteEntry {
   file_url: string | null;
   file_path: string | null;
   bucket_name: string | null;
+  folder_id: string | null;
   created_at: string;
 }
 
@@ -54,13 +55,22 @@ const NotesAndTraditions: React.FC<NotesAndTraditionsProps> = ({ autoOpenAdd = f
   const [subject, setSubject] = useState('');
   const [holiday, setHoliday] = useState('');
   const [content, setContent] = useState('');
+  const [folderId, setFolderId] = useState<string>('none');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Folder state
+  const [folders, setFolders] = useState<NoteFolderItem[]>([]);
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+  const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
+  const [folderToEdit, setFolderToEdit] = useState<NoteFolderItem | null>(null);
+  const [folderToDelete, setFolderToDelete] = useState<string | null>(null);
+
   useEffect(() => {
     fetchNotes();
-  }, [user]);
+    fetchFolders();
+  }, [user?.id]);
 
   const fetchNotes = async () => {
     if (!user) return;
@@ -80,14 +90,78 @@ const NotesAndTraditions: React.FC<NotesAndTraditionsProps> = ({ autoOpenAdd = f
     }
   };
 
+  const fetchFolders = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('notes_tradition_folders')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      setFolders((data || []) as NoteFolderItem[]);
+    } catch (error) {
+      console.error('Error fetching note folders:', error);
+    }
+  };
+
+  const handleCreateFolder = async (name: string, description: string, color: string) => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('notes_tradition_folders')
+        .insert({ user_id: user.id, folder_name: name, description: description || null, gradient_color: color })
+        .select()
+        .single();
+      if (error) throw error;
+      setFolders((prev) => [...prev, data as NoteFolderItem]);
+      setIsCreateFolderOpen(false);
+      toast({ title: 'Folder created', description: `"${name}" is ready.` });
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Failed to create folder.', variant: 'destructive' });
+    }
+  };
+
+  const handleSaveFolder = async (id: string, name: string, description: string, color: string) => {
+    try {
+      const { error } = await supabase
+        .from('notes_tradition_folders')
+        .update({ folder_name: name, description: description || null, gradient_color: color })
+        .eq('id', id);
+      if (error) throw error;
+      setFolders((prev) => prev.map((f) => (f.id === id ? { ...f, folder_name: name, description: description || null, gradient_color: color } : f)));
+      setFolderToEdit(null);
+      toast({ title: 'Folder updated' });
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Failed to update folder.', variant: 'destructive' });
+    }
+  };
+
+  const confirmDeleteFolder = async () => {
+    if (!folderToDelete) return;
+    try {
+      const { error } = await supabase.from('notes_tradition_folders').delete().eq('id', folderToDelete);
+      if (error) throw error;
+      setFolders((prev) => prev.filter((f) => f.id !== folderToDelete));
+      if (selectedFolder === folderToDelete) setSelectedFolder(null);
+      setFolderToDelete(null);
+      fetchNotes();
+      toast({ title: 'Folder deleted', description: 'Notes in it were moved to unfiled.' });
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Failed to delete folder.', variant: 'destructive' });
+    }
+  };
+
   const resetForm = () => {
     setTitle('');
     setSubject('');
     setHoliday('');
     setContent('');
+    setFolderId('none');
     setSelectedFile(null);
     setEditingNote(null);
   };
+
 
   const handleSave = async () => {
     if (!user || !title.trim()) {
