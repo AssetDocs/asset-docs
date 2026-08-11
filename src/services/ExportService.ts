@@ -1582,18 +1582,28 @@ export class ExportService {
         });
       }
 
-      // Fetch Notes & Traditions attachments
+      // Fetch Notes and Family Traditions attachments
       const { data: notesTraditions, error: notesTraditionsError } = await supabase
         .from('notes_traditions')
-        .select('id, title, file_name, file_path, file_url, bucket_name, created_at')
+        .select('id, title, file_name, file_path, file_url, bucket_name, record_type, created_at')
         .eq('user_id', userId);
 
       if (!notesTraditionsError && notesTraditions) {
-        await addStorageRowsToArchive(notesTraditions, {
-          folder: 'notes-traditions',
-          fallbackName: 'note-tradition',
+        const notesOnly = notesTraditions.filter((row: any) => row.record_type !== 'tradition');
+        const traditionsOnly = notesTraditions.filter((row: any) => row.record_type === 'tradition');
+
+        await addStorageRowsToArchive(notesOnly, {
+          folder: 'notes',
+          fallbackName: 'note',
           bucketForRow: row => row.bucket_name || 'documents',
-          nameForRow: row => archiveFileName(row.file_name, row.file_path, `${row.title || 'note-tradition'}-${row.id}`)
+          nameForRow: row => archiveFileName(row.file_name, row.file_path, `${row.title || 'note'}-${row.id}`)
+        });
+
+        await addStorageRowsToArchive(traditionsOnly, {
+          folder: 'family-traditions',
+          fallbackName: 'family-tradition',
+          bucketForRow: row => row.bucket_name || 'documents',
+          nameForRow: row => archiveFileName(row.file_name, row.file_path, `${row.title || 'family-tradition'}-${row.id}`)
         });
       }
 
