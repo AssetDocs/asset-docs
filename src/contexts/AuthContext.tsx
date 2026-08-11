@@ -52,8 +52,8 @@ interface AuthContextType {
   profile: Profile | null;
   loading: boolean;
   profileLoading: boolean;
-  signUp: (email: string, password: string, firstName?: string, lastName?: string, giftCode?: string, redirectTo?: string, captchaToken?: string) => Promise<{ error: any; data?: any }>;
-  signIn: (email: string, password: string, captchaToken?: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, firstName?: string, lastName?: string, giftCode?: string, redirectTo?: string) => Promise<{ error: any; data?: any }>;
+  signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   isAuthenticated: boolean;
@@ -209,7 +209,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => { cancelled = true; };
   }, [user?.id]); // re-run only when the user ID changes
 
-  const signUp = async (email: string, password: string, firstName?: string, lastName?: string, giftCode?: string, redirectTo?: string, _captchaToken?: string) => {
+  const signUp = async (email: string, password: string, firstName?: string, lastName?: string, giftCode?: string, redirectTo?: string) => {
     if (await isDeletedAccountEmail(email)) {
       return {
         data: null,
@@ -234,10 +234,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error, data };
   };
 
-  // captchaToken is accepted but intentionally ignored: Turnstile enforcement was
-  // rolled back. Parameter retained so unreachable callers still typecheck; it is
-  // removed in the follow-up cleanup commit.
-  const signIn = async (email: string, password: string, _captchaToken?: string) => {
+  const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
