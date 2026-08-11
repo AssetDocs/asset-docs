@@ -10,6 +10,7 @@ import {
   Archive,
   Pill,
   MapPin,
+  Sparkles,
 } from 'lucide-react';
 
 interface LifeHubGridProps {
