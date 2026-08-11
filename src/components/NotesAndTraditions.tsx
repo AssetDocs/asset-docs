@@ -391,17 +391,19 @@ const NotesAndTraditions: React.FC<NotesAndTraditionsProps> = ({ autoOpenAdd = f
 
       {isLoading ? (
         <div className="text-center py-8 text-muted-foreground">Loading...</div>
-      ) : notes.length === 0 ? (
+      ) : visibleNotes.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
             <BookOpen className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
-            <p className="text-muted-foreground">No notes or traditions yet.</p>
+            <p className="text-muted-foreground">
+              {selectedFolder ? 'No notes in this folder yet.' : 'No notes or traditions yet.'}
+            </p>
             <p className="text-sm text-muted-foreground mt-1">Add your first note to preserve family stories and traditions.</p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {notes.map((note) => (
+          {visibleNotes.map((note) => (
             <Card key={note.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between">
@@ -432,6 +434,12 @@ const NotesAndTraditions: React.FC<NotesAndTraditionsProps> = ({ autoOpenAdd = f
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="space-y-1">
+                  {note.folder_id && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Folder className="h-3 w-3" />
+                      {folders.find((f) => f.id === note.folder_id)?.folder_name || 'Folder'}
+                    </p>
+                  )}
                   {note.subject && <p className="text-sm text-muted-foreground"><span className="font-medium">Subject:</span> {note.subject}</p>}
                   {note.holiday && <p className="text-sm text-muted-foreground"><span className="font-medium">Holiday:</span> {note.holiday}</p>}
                   {note.content && <p className="text-sm mt-2 line-clamp-3">{note.content}</p>}
@@ -448,8 +456,41 @@ const NotesAndTraditions: React.FC<NotesAndTraditionsProps> = ({ autoOpenAdd = f
           ))}
         </div>
       )}
+      </div>
+
+      <CreateFolderModal
+        isOpen={isCreateFolderOpen}
+        onClose={() => setIsCreateFolderOpen(false)}
+        onCreateFolder={handleCreateFolder}
+        titleOverride="Create Notes Folder"
+        descriptionOverride="Organize your notes and traditions into folders."
+        placeholderOverride="e.g. Holiday Traditions"
+      />
+
+      <EditFolderModal
+        isOpen={!!folderToEdit}
+        onClose={() => setFolderToEdit(null)}
+        onSave={handleSaveFolder}
+        folder={folderToEdit}
+      />
+
+      <AlertDialog open={!!folderToDelete} onOpenChange={(open) => { if (!open) setFolderToDelete(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Folder</AlertDialogTitle>
+            <AlertDialogDescription>
+              Notes inside this folder will not be deleted — they'll become unfiled.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteFolder}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
+
 
 export default NotesAndTraditions;
