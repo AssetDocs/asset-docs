@@ -205,6 +205,7 @@ const NotesAndTraditions: React.FC<NotesAndTraditionsProps> = ({ autoOpenAdd = f
             subject: subject.trim() || null,
             holiday: holiday.trim() || null,
             content: content.trim() || null,
+            folder_id: folderId === 'none' ? null : folderId,
             ...fileData,
           })
           .eq('id', editingNote.id);
@@ -219,6 +220,7 @@ const NotesAndTraditions: React.FC<NotesAndTraditionsProps> = ({ autoOpenAdd = f
             subject: subject.trim() || null,
             holiday: holiday.trim() || null,
             content: content.trim() || null,
+            folder_id: folderId === 'none' ? null : folderId,
             ...fileData,
           });
         if (error) throw error;
