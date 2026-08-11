@@ -62,16 +62,28 @@ const LifeHubGrid: React.FC<LifeHubGridProps> = ({ onTabChange }) => {
           variant="compact"
         />
 
-        {/* Notes & Traditions */}
+        {/* Notes */}
         <DashboardGridCard
           icon={<BookOpen className="h-5 w-5" />}
-          title="Notes & Traditions"
-          description="Capture family traditions, stories, and important notes."
+          title="Notes"
+          description="Keep important notes, reminders, and information in one place."
           actionLabel="View Notes"
-          onClick={() => onTabChange('notes-traditions')}
+          onClick={() => onTabChange('notes')}
           color="rose"
           variant="compact"
         />
+
+        {/* Family Traditions */}
+        <DashboardGridCard
+          icon={<Sparkles className="h-5 w-5" />}
+          title="Family Traditions"
+          description="Preserve family traditions, stories, and customs."
+          actionLabel="View Traditions"
+          onClick={() => onTabChange('family-traditions')}
+          color="rose"
+          variant="compact"
+        />
+
 
         {/* Family Recipes */}
         <DashboardGridCard
