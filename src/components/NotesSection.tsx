@@ -1,0 +1,495 @@
+// @ts-nocheck
+import React, { useState, useEffect, useRef } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { BookOpen, Plus, Trash2, Edit, Upload, FileText, X, Folder } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { StorageService, buildFamilyArchivePath } from '@/services/StorageService';
+import { useSubscription } from '@/contexts/SubscriptionContext';
+import NotesTraditionFolders, { NoteFolderItem } from '@/components/NotesTraditionFolders';
+import CreateFolderModal from '@/components/CreateFolderModal';
+import EditFolderModal from '@/components/EditFolderModal';
+
+interface NoteEntry {
+  id: string;
+  title: string;
+  subject: string | null;
+  holiday: string | null;
+  content: string | null;
+  file_name: string | null;
+  file_url: string | null;
+  file_path: string | null;
+  bucket_name: string | null;
+  folder_id: string | null;
+  created_at: string;
+}
+
+interface NotesSectionProps {
+  /** UI hint only: opens the existing add dialog. Never performs work. */
+  autoOpenAdd?: boolean;
+}
+
+const NotesSection: React.FC<NotesSectionProps> = ({ autoOpenAdd = false }) => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const { subscriptionTier, storageQuotaGb } = useSubscription();
+  const [notes, setNotes] = useState<NoteEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (autoOpenAdd) setIsOpen(true);
+  }, [autoOpenAdd]);
+
+  const [editingNote, setEditingNote] = useState<NoteEntry | null>(null);
+  const [title, setTitle] = useState('');
+  const [subject, setSubject] = useState('');
+  const [holiday, setHoliday] = useState('');
+  const [content, setContent] = useState('');
+  const [folderId, setFolderId] = useState<string>('none');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Folder state
+  const [folders, setFolders] = useState<NoteFolderItem[]>([]);
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+  const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
+  const [folderToEdit, setFolderToEdit] = useState<NoteFolderItem | null>(null);
+  const [folderToDelete, setFolderToDelete] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchNotes();
+    fetchFolders();
+  }, [user?.id]);
+
+  const fetchNotes = async () => {
+    if (!user) return;
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('notes_traditions')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('record_type', 'note')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      setNotes((data || []) as NoteEntry[]);
+    } catch (error) {
+      console.error('Error fetching notes:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchFolders = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('notes_tradition_folders')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      setFolders((data || []) as NoteFolderItem[]);
+    } catch (error) {
+      console.error('Error fetching note folders:', error);
+    }
+  };
+
+  const handleCreateFolder = async (name: string, description: string, color: string) => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('notes_tradition_folders')
+        .insert({ user_id: user.id, folder_name: name, description: description || null, gradient_color: color })
+        .select()
+        .single();
+      if (error) throw error;
+      setFolders((prev) => [...prev, data as NoteFolderItem]);
+      setIsCreateFolderOpen(false);
+      toast({ title: 'Folder created', description: `"${name}" is ready.` });
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Failed to create folder.', variant: 'destructive' });
+    }
+  };
+
+  const handleSaveFolder = async (id: string, name: string, description: string, color: string) => {
+    try {
+      const { error } = await supabase
+        .from('notes_tradition_folders')
+        .update({ folder_name: name, description: description || null, gradient_color: color })
+        .eq('id', id);
+      if (error) throw error;
+      setFolders((prev) => prev.map((f) => (f.id === id ? { ...f, folder_name: name, description: description || null, gradient_color: color } : f)));
+      setFolderToEdit(null);
+      toast({ title: 'Folder updated' });
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Failed to update folder.', variant: 'destructive' });
+    }
+  };
+
+  const confirmDeleteFolder = async () => {
+    if (!folderToDelete) return;
+    try {
+      const { error } = await supabase.from('notes_tradition_folders').delete().eq('id', folderToDelete);
+      if (error) throw error;
+      setFolders((prev) => prev.filter((f) => f.id !== folderToDelete));
+      if (selectedFolder === folderToDelete) setSelectedFolder(null);
+      setFolderToDelete(null);
+      fetchNotes();
+      toast({ title: 'Folder deleted', description: 'Notes in it were moved to unfiled.' });
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Failed to delete folder.', variant: 'destructive' });
+    }
+  };
+
+  const resetForm = () => {
+    setTitle('');
+    setSubject('');
+    setHoliday('');
+    setContent('');
+    setFolderId('none');
+    setSelectedFile(null);
+    setEditingNote(null);
+  };
+
+  const handleSave = async () => {
+    if (!user || !title.trim()) {
+      toast({ title: 'Error', description: 'Title is required.', variant: 'destructive' });
+      return;
+    }
+    setIsSaving(true);
+    let uploadedPath: string | null = null;
+    try {
+      let fileData: { file_path?: string; file_url?: string; file_name?: string; file_size?: number; bucket_name?: string } = {};
+
+      if (selectedFile) {
+        // Quota check against owner (self, since Family Archive is owner-only)
+        const quota = await StorageService.canUploadFile(user.id, selectedFile.size, subscriptionTier, storageQuotaGb);
+        if (!quota.canUpload) {
+          toast({ title: 'Upload blocked', description: quota.reason, variant: 'destructive' });
+          setIsSaving(false);
+          return;
+        }
+        const fullPath = buildFamilyArchivePath({
+          userId: user.id,
+          section: 'notes-traditions',
+          file: selectedFile,
+        });
+        const result = await StorageService.uploadFileToPath(selectedFile, 'documents', fullPath, user.id);
+        uploadedPath = result.path;
+        fileData = {
+          file_path: result.path,
+          file_url: result.url,
+          file_name: selectedFile.name, // original name preserved only in metadata
+          file_size: selectedFile.size,
+          bucket_name: 'documents',
+        };
+      }
+
+      if (editingNote) {
+        const { error } = await supabase
+          .from('notes_traditions')
+          .update({
+            title: title.trim(),
+            subject: subject.trim() || null,
+            holiday: holiday.trim() || null,
+            content: content.trim() || null,
+            folder_id: folderId === 'none' ? null : folderId,
+            ...fileData,
+          })
+          .eq('id', editingNote.id);
+        if (error) throw error;
+        toast({ title: 'Updated', description: 'Note updated successfully.' });
+      } else {
+        const { error } = await supabase
+          .from('notes_traditions')
+          .insert({
+            user_id: user.id,
+            record_type: 'note',
+            title: title.trim(),
+            subject: subject.trim() || null,
+            holiday: holiday.trim() || null,
+            content: content.trim() || null,
+            folder_id: folderId === 'none' ? null : folderId,
+            ...fileData,
+          });
+        if (error) throw error;
+        toast({ title: 'Saved', description: 'Note added successfully.' });
+      }
+
+      uploadedPath = null; // committed
+      resetForm();
+      setIsOpen(false);
+      fetchNotes();
+    } catch (error: any) {
+      console.error('Error saving note:', error);
+      if (uploadedPath) {
+        await StorageService.tryCleanupObject('documents', uploadedPath);
+      }
+      toast({ title: 'Error', description: error.message || 'Failed to save note.', variant: 'destructive' });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const note = notes.find(n => n.id === id);
+      if (note?.file_path) {
+        const { data, error } = await supabase.functions.invoke('secure-delete-file', {
+          body: { resource: 'notes_tradition_attachment', id },
+        });
+        if (error || (data as any)?.error) {
+          toast({
+            title: 'Attachment cleanup failed',
+            description:
+              'The note was not deleted. Retry the cleanup from /account/cleanup, then delete this note again to finish.',
+            variant: 'destructive',
+          });
+          return;
+        }
+      }
+      const { error } = await supabase.from('notes_traditions').delete().eq('id', id);
+      if (error) throw error;
+      toast({ title: 'Deleted', description: 'Note removed.' });
+      fetchNotes();
+    } catch (error) {
+      console.error('Error deleting note:', error);
+      toast({ title: 'Error', description: 'Failed to delete note.', variant: 'destructive' });
+    }
+  };
+
+  const openEdit = (note: NoteEntry) => {
+    setEditingNote(note);
+    setTitle(note.title);
+    setSubject(note.subject || '');
+    setHoliday(note.holiday || '');
+    setContent(note.content || '');
+    setFolderId(note.folder_id || 'none');
+    setSelectedFile(null);
+    setIsOpen(true);
+  };
+
+  const folderCounts = notes.reduce((acc: Record<string, number>, note) => {
+    if (note.folder_id) acc[note.folder_id] = (acc[note.folder_id] || 0) + 1;
+    return acc;
+  }, {});
+
+  const visibleNotes = selectedFolder ? notes.filter((n) => n.folder_id === selectedFolder) : notes;
+  const selectedFolderName = folders.find((f) => f.id === selectedFolder)?.folder_name;
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="lg:col-span-1">
+        <NotesTraditionFolders
+          folders={folders}
+          selectedFolder={selectedFolder}
+          onFolderSelect={setSelectedFolder}
+          totalCount={notes.length}
+          counts={folderCounts}
+          onCreateFolder={() => setIsCreateFolderOpen(true)}
+          onEditFolder={setFolderToEdit}
+          onDeleteFolder={setFolderToDelete}
+        />
+      </div>
+
+      <div className="lg:col-span-3 space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BookOpen className="h-5 w-5 text-brand-blue" />
+            Notes
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            {selectedFolderName
+              ? `Viewing folder: ${selectedFolderName}`
+              : 'Keep important thoughts, reminders, lists, instructions, and information in one place.'}
+          </p>
+        </CardHeader>
+        <CardContent>
+
+          <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
+            <DialogTrigger asChild>
+              <Button className="w-full bg-brand-blue hover:bg-brand-blue/90">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Note
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>{editingNote ? 'Edit Note' : 'Add Note'}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="note-title">Title *</Label>
+                  <Input id="note-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Storage unit access code" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="note-subject">Subject</Label>
+                    <Input id="note-subject" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="e.g. Household" />
+                  </div>
+                  <div>
+                    <Label htmlFor="note-holiday">Occasion</Label>
+                    <Input id="note-holiday" value={holiday} onChange={(e) => setHoliday(e.target.value)} placeholder="Optional" />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="note-content">Details</Label>
+                  <Textarea id="note-content" value={content} onChange={(e) => setContent(e.target.value)} placeholder="Write your note here..." rows={5} />
+                </div>
+                <div>
+                  <Label htmlFor="note-folder">Folder</Label>
+                  <Select value={folderId} onValueChange={setFolderId}>
+                    <SelectTrigger id="note-folder">
+                      <SelectValue placeholder="Select a folder (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No folder</SelectItem>
+                      {folders.map((folder) => (
+                        <SelectItem key={folder.id} value={folder.id}>{folder.folder_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+
+                  <Label>Or Upload a File</Label>
+                  <div className="mt-1">
+                    {selectedFile ? (
+                      <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-3">
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm truncate flex-1">{selectedFile.name}</span>
+                        <Button variant="ghost" size="sm" onClick={() => setSelectedFile(null)}><X className="h-4 w-4" /></Button>
+                      </div>
+                    ) : (
+                      <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                        <Upload className="h-4 w-4 mr-1" />Choose File
+                      </Button>
+                    )}
+                    <input ref={fileInputRef} type="file" className="hidden" accept="image/*,.pdf,.doc,.docx,.txt" onChange={(e) => setSelectedFile(e.target.files?.[0] || null)} />
+                  </div>
+                </div>
+                <Button onClick={handleSave} disabled={isSaving} className="w-full">
+                  {isSaving ? 'Saving...' : editingNote ? 'Update Note' : 'Save Note'}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </CardContent>
+      </Card>
+
+      {isLoading ? (
+        <div className="text-center py-8 text-muted-foreground">Loading...</div>
+      ) : visibleNotes.length === 0 ? (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <BookOpen className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
+            <p className="text-muted-foreground">
+              {selectedFolder ? 'No notes in this folder yet.' : 'No notes yet.'}
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">Add your first note to keep important information in one place.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {visibleNotes.map((note) => (
+            <Card key={note.id} className="hover:shadow-md transition-shadow">
+              <CardHeader className="pb-2">
+                <div className="flex items-start justify-between">
+                  <CardTitle className="text-base">{note.title}</CardTitle>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="sm" onClick={() => openEdit(note)} className="h-8 w-8 p-0">
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive hover:text-destructive">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Note</AlertDialogTitle>
+                          <AlertDialogDescription>Are you sure you want to delete "{note.title}"? This cannot be undone.</AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDelete(note.id)}>Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="space-y-1">
+                  {note.folder_id && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Folder className="h-3 w-3" />
+                      {folders.find((f) => f.id === note.folder_id)?.folder_name || 'Folder'}
+                    </p>
+                  )}
+                  {note.subject && <p className="text-sm text-muted-foreground"><span className="font-medium">Subject:</span> {note.subject}</p>}
+                  {note.holiday && <p className="text-sm text-muted-foreground"><span className="font-medium">Occasion:</span> {note.holiday}</p>}
+                  {note.content && <p className="text-sm mt-2 line-clamp-3">{note.content}</p>}
+                  {note.file_name && (
+                    <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
+                      <FileText className="h-3 w-3" />
+                      <span className="truncate">{note.file_name}</span>
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground mt-3">{new Date(note.created_at).toLocaleDateString()}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+      </div>
+
+      <CreateFolderModal
+        isOpen={isCreateFolderOpen}
+        onClose={() => setIsCreateFolderOpen(false)}
+        onCreateFolder={handleCreateFolder}
+        titleOverride="Create Notes Folder"
+        descriptionOverride="Organize your notes into folders."
+        placeholderOverride="e.g. Household Info"
+      />
+
+      <EditFolderModal
+        isOpen={!!folderToEdit}
+        onClose={() => setFolderToEdit(null)}
+        onSave={handleSaveFolder}
+        folder={folderToEdit}
+      />
+
+      <AlertDialog open={!!folderToDelete} onOpenChange={(open) => { if (!open) setFolderToDelete(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Folder</AlertDialogTitle>
+            <AlertDialogDescription>
+              Notes inside this folder will not be deleted — they'll become unfiled.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteFolder}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+};
+
+export default NotesSection;
