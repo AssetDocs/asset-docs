@@ -54,7 +54,4 @@
 **Untouched**: Auth, MFA, AU invitations, gifts, billing, retention/deletion behavior, storage buckets/policies, other Family Archive modules, `secure-delete-file` (same table, same resource key).
 
 ## Verification after implementation
-Notes card opens Notes; Traditions card opens Family Traditions; folders create/edit/delete/filter in Notes only; no folder UI in Traditions; the 4 existing records appear under Notes; attachment upload/read/delete works in both; Quick Add routes and auto-opens the right dialog; `tsgo --noEmit` clean.
-
-## Open decision
-Migration and code will be submitted only after you approve this audit. The migration is a single additive column with a default — no data rewrite, no bucket work.
+Notes card opens Notes; Traditions card opens Family Traditions; folders create/edit/delete/filter in Notes only; no folder UI in Traditions; the 4 existing records appear under Notes; a tradition with a `folder_id` is rejected by the database even via direct client mutation; attachment upload/read/delete works on both paths; Quick Add routes and auto-opens the right dialog; `tsgo --noEmit` clean.
