@@ -129,6 +129,47 @@ const AuthorizedUsersTab: React.FC = () => {
     setPendingInvites(data || []);
   };
 
+  const GENERIC_INVITE_ERROR = 'We couldn\u2019t send the invitation. Please try again in a moment.';
+  const DUPLICATE_INVITE_MESSAGE =
+    "An invitation is already pending for this email. Use Resend under Pending Invitations if you'd like to send it again.";
+
+  // Curated 403 copy. We never render an arbitrary server string — only these
+  // two known authorization/eligibility outcomes from send-invite are mapped.
+  const map403 = (serverMessage: string | undefined): string => {
+    const m = (serverMessage || '').toLowerCase();
+    if (m.includes('owner')) {
+      return 'Only the account owner can send invitations.';
+    }
+    if (m.includes('eligible') || m.includes('subscription') || m.includes('entitle')) {
+      return 'This account isn\u2019t currently eligible to add Authorized Users.';
+    }
+    return GENERIC_INVITE_ERROR;
+  };
+
+  /** Safely extract { status, message } from a functions-invoke error. */
+  const readInvokeError = async (err: any): Promise<{ status?: number; message?: string }> => {
+    const res = err?.context;
+    const status = typeof res?.status === 'number' ? res.status : undefined;
+    let message: string | undefined;
+    try {
+      if (res && typeof res.json === 'function') {
+        const body = await res.clone?.().json?.() ?? await res.json();
+        if (body && typeof body.error === 'string') message = body.error;
+      }
+    } catch {
+      // Non-JSON or already-consumed body — fall through to generic handling.
+    }
+    return { status, message };
+  };
+
+  const showDuplicateGuidance = () => {
+    setInviteError(DUPLICATE_INVITE_MESSAGE);
+    toast({
+      title: 'Invitation already pending',
+      description: DUPLICATE_INVITE_MESSAGE,
+    });
+  };
+
   const handleInvite = async () => {
     setInviteError(null);
 
@@ -138,6 +179,14 @@ const AuthorizedUsersTab: React.FC = () => {
     }
     if (!accountId) {
       toast({ title: 'No active account', description: 'Please reload and try again.', variant: 'destructive' });
+      return;
+    }
+
+    // Pre-flight UX check only. The database unique index remains the real
+    // enforcement — the server 409 path below is still handled.
+    const normalized = email.trim().toLowerCase();
+    if (pendingInvites.some((inv) => (inv.email || '').toLowerCase() === normalized)) {
+      showDuplicateGuidance();
       return;
     }
 
@@ -151,7 +200,27 @@ const AuthorizedUsersTab: React.FC = () => {
         headers: { Authorization: `Bearer ${session.session.access_token}` },
       });
 
-      if (error) throw error;
+      if (error) {
+        const { status, message } = await readInvokeError(error);
+        console.error('[AuthorizedUsersTab] invite error:', status, error);
+
+        if (status === 409) {
+          showDuplicateGuidance();
+          return;
+        }
+
+        let userMsg = GENERIC_INVITE_ERROR;
+        if (status === 403) {
+          userMsg = map403(message);
+        } else if (status === 429) {
+          userMsg = 'Too many invitation attempts. Please wait a moment and try again.';
+        }
+
+        setInviteError(userMsg);
+        toast({ title: 'Error sending invitation', description: userMsg, variant: 'destructive' });
+        return;
+      }
+
       if (data?.success === false) throw new Error(data.error || 'Failed to send invitation.');
 
       const deliveryStatus = data?.delivery_status as 'sent' | 'failed' | undefined;
@@ -184,15 +253,15 @@ const AuthorizedUsersTab: React.FC = () => {
     } catch (err: any) {
       // Sanitize: never show raw stack/internal error text to the user.
       console.error('[AuthorizedUsersTab] invite error:', err);
-      const msg = 'We couldn\u2019t send the invitation. Please try again in a moment.';
-      setInviteError(msg);
+      setInviteError(GENERIC_INVITE_ERROR);
       toast({
         title: 'Error sending invitation',
-        description: msg,
+        description: GENERIC_INVITE_ERROR,
         variant: 'destructive',
       });
     } finally {
       setLoading(false);
+      fetchPendingInvites();
     }
   };
 
