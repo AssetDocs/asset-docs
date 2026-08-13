@@ -12,7 +12,6 @@ import EmergencyInstructions from '@/components/EmergencyInstructions';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useAccount } from '@/contexts/AccountContext';
-import { useUnreadNotifications } from '@/hooks/useUnreadNotifications';
 import { useCalendarNotifications } from '@/hooks/useCalendarNotifications';
 import AssetValuesSection from '@/components/AssetValuesSection';
 import { recordDashboardResumeActivity } from '@/lib/dashboardResume';
