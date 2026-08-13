@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronUp, Smartphone, X, Settings, Home, ClipboardList } from 'lucide-react';
+import { ChevronDown, ChevronUp, Smartphone, X, Settings, Home, Users } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAccount } from '@/contexts/AccountContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -150,34 +150,40 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange, isFirstDashb
                   )}
                 </div>
               )}
-              <div className="flex flex-wrap gap-2 mt-4">
-                <Button asChild variant="outline" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 border-yellow-400">
-                  <Link to="/account/settings">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Account Settings
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 border-yellow-400">
-                  <Link to="/account/properties">
-                    <Home className="mr-2 h-4 w-4" />
-                    Property Profiles
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" className="bg-white/90 hover:bg-white text-brand-blue border-white/90">
-                  <Link to="/account/activity">
-                    <ClipboardList className="mr-2 h-4 w-4" />
-                    Activity Log
-                  </Link>
-                </Button>
-              </div>
             </div>
 
-            <div className="flex flex-col gap-2 sm:items-end justify-center">
+            <div className="flex flex-col gap-2 sm:items-end">
               {accountNumber && (
                 <span className="text-white/90 font-medium text-sm bg-white/20 px-3 py-1 rounded-md">
                   Account #: {accountNumber}
                 </span>
               )}
+              <div className="flex gap-2 mt-1">
+                <Link
+                  to="/account/settings"
+                  title="Account Settings"
+                  className="flex flex-col items-center justify-center gap-1 bg-white/15 hover:bg-white/25 transition-colors rounded-lg w-[72px] h-[56px] text-white/90 hover:text-white"
+                >
+                  <Settings className="h-4 w-4" />
+                  <span className="text-[10px] font-medium leading-tight">Settings</span>
+                </Link>
+                <Link
+                  to="/account/properties"
+                  title="Property Profiles"
+                  className="flex flex-col items-center justify-center gap-1 bg-white/15 hover:bg-white/25 transition-colors rounded-lg w-[72px] h-[56px] text-white/90 hover:text-white"
+                >
+                  <Home className="h-4 w-4" />
+                  <span className="text-[10px] font-medium leading-tight">Properties</span>
+                </Link>
+                <Link
+                  to="/account?tab=access-activity"
+                  title="Authorized Users"
+                  className="flex flex-col items-center justify-center gap-1 bg-white/15 hover:bg-white/25 transition-colors rounded-lg w-[72px] h-[56px] text-white/90 hover:text-white"
+                >
+                  <Users className="h-4 w-4" />
+                  <span className="text-[10px] font-medium leading-tight">Users</span>
+                </Link>
+              </div>
             </div>
           </div>
 
