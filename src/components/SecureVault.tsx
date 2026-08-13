@@ -187,9 +187,11 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
     } catch (error) {
       console.error('Error fetching vault status:', error);
     } finally {
+      hasLoadedRef.current = true;
       setLoading(false);
     }
   };
+
 
   // Determines whether the unlock modal should run in setup or unlock mode.
   // Setup mode = we have no wrapped vault key AND no legacy localStorage hash.
