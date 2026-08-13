@@ -81,10 +81,16 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
   
   const hasDelegateChanges = selectedDelegateId !== originalDelegateId || gracePeriodDays !== originalGracePeriodDays;
 
+  // Track whether the initial load already happened so background refreshes
+  // (e.g. Supabase TOKEN_REFRESHED when the tab regains focus) don't swap the
+  // vault out for a loading screen and unmount in-progress forms.
+  const hasLoadedRef = React.useRef(false);
+
   useEffect(() => {
     fetchVaultStatus();
     fetchContributorsList();
-  }, [user]);
+  }, [user?.id]);
+
 
   const fetchContributorsList = async () => {
     if (!user) return;
