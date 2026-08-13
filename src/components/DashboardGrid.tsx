@@ -229,18 +229,6 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           color="green"
         />
 
-        {/* Row 4: Blue */}
-        <DashboardGridCard
-          icon={<Home className="h-6 w-6" />}
-          title="Property Profiles"
-          description="Keep track of your properties and manage important details."
-          tags={['All Homes', 'Vacation Houses', 'Rentals']}
-          actionLabel="View Profiles"
-          actionIcon={<Home className="h-4 w-4" />}
-          onClick={() => rememberAndNavigate('/account/properties', 'property_opened', 'Open Property Profiles')}
-          color="blue"
-        />
-
         {/* Asset Values Collapsible Bar */}
         <div className="md:col-span-2">
           <div className="w-full bg-card border border-border rounded-lg overflow-hidden">
@@ -256,44 +244,13 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
               </div>
               <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${isAssetValuesOpen ? '' : '-rotate-90'}`} />
             </button>
-            {isAssetValuesOpen && (
+            {isAssetValueOpen && (
               <div className="px-4 pb-4 pt-2 border-t border-border">
                 <AssetValuesSection />
               </div>
             )}
           </div>
         </div>
-
-        <DashboardGridCard
-          icon={
-            <div className="relative">
-              <Settings className="h-6 w-6" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-2 -right-2 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold leading-none">
-                  {unreadCount > 99 ? '99+' : unreadCount}
-                </span>
-              )}
-            </div>
-          }
-          title="Account Settings"
-          description="Manage your account details, security, and preferences."
-          tags={['Plan', 'Billing', 'Alerts']}
-          actionLabel="Account Settings"
-          actionIcon={<Settings className="h-4 w-4" />}
-          onClick={() => navigate('/account/settings')}
-          color="blue"
-        />
-
-        <DashboardGridCard
-          icon={<Users className="h-6 w-6" />}
-          title="Access & Activity"
-          description="Authorized users and recent actions."
-          tags={['Invite Users', 'Roles', 'Activity Log']}
-          actionLabel="Manage Access & Activity"
-          actionIcon={<Users className="h-4 w-4" />}
-          onClick={() => rememberAndOpen('access-activity', 'authorized_users_opened', 'Manage Authorized Users')}
-          color="blue"
-        />
         {/* Emergency Instructions Collapsible */}
         <div className="md:col-span-2">
           <EmergencyInstructions onNavigate={onTabChange} />
