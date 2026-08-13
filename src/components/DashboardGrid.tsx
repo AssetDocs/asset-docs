@@ -17,12 +17,9 @@ import { useCalendarNotifications } from '@/hooks/useCalendarNotifications';
 import AssetValuesSection from '@/components/AssetValuesSection';
 import { recordDashboardResumeActivity } from '@/lib/dashboardResume';
 import {
-  Settings,
-  Home,
   FolderOpen,
   Key,
   Shield,
-  Users,
   Wrench,
   Heart,
   FileDown,
@@ -31,7 +28,6 @@ import {
   Loader2,
   DollarSign,
   ChevronDown,
-  Bell,
   LockKeyhole,
   LockOpen,
 } from 'lucide-react';
