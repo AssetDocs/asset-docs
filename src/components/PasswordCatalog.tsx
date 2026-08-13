@@ -445,14 +445,10 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
         description: isVaultEncrypted ? "Password encrypted and saved securely" : "Password saved successfully",
       });
 
-      setFormData({
-        websiteName: '',
-        websiteUrl: '',
-        username: '',
-        accountTypeDisplay: '',
-        password: '',
-        notes: '',
-      });
+      setFormData(emptyPasswordForm);
+      clearDraft(PASSWORD_DRAFT, user?.id);
+      setDraftRestored(false);
+
 
       // Refresh list
       if (isVaultEncrypted && sessionMasterPassword) {
