@@ -1,70 +1,42 @@
-# Knowledge Hub Consolidation — Audit + Plan
+# Keep Secure Vault / Digital Access form input intact when switching tabs
 
-## Part 1: Audit of current state (verified in code)
+## What's happening
 
-### Dashboard cards (`src/components/DashboardGrid.tsx`)
-- Asset Documentation → tab `asset-documentation` (renders `AssetDocumentationGrid`)
-- Family Archive → tab `life-hub` (renders `LifeHubGrid`)
-- Insights & Tools → tab `insights-tools` (renders `InsightsToolsGrid`)
-- Legacy Locker, Digital Access, Property Profiles, Asset Values — unrelated, untouched
+Verified in the code:
 
-### Family Archive sub-grid (`LifeHubGrid.tsx`) — 9 cards
-VIP Contacts (`navigate('/account/contacts')`), Voice Notes (`voice-notes`), Trusted Professionals (`service-pros`), Notes (`notes`), Family Traditions (`family-traditions`), Family Recipes (`family-recipes`), Medication List (`medication-list`), Important Locations (`important-locations`), Memory Safe (`memory-safe`)
+- `src/components/SecureVault.tsx` runs its data fetch effect with a `[user]` dependency and sets `loading` to `true` while it runs. When the browser tab regains focus, Supabase fires a `TOKEN_REFRESHED` event that produces a new `user` object, so the effect re-runs, the vault renders its loading state, and the child forms (`PasswordCatalog`, `LegacyLocker`) unmount. Anything typed but not yet saved is discarded with the component state.
+- `src/components/PasswordCatalog.tsx` (Digital Access) keeps `formData`, `accountFormData`, and `editData` purely in component state with no draft persistence at all.
+- `src/components/LegacyLocker.tsx` already debounce-saves a draft, but into plaintext `localStorage` under `legacyLocker_formDraft` — which both survives sign-out and stores sensitive vault content unencrypted on disk.
 
-### Insights & Tools sub-grid (`InsightsToolsGrid.tsx`) — 6 cards
-Smart Calendar (`smart-calendar`), Manual Entry Items (`navigate('/inventory')`), Upgrades & Repairs (`upgrades-repairs`), Source Websites (`source-websites`), Paint Codes (`paint-codes`), Quick Notes (`quick-notes`)
+So the disappearing text has two causes: an avoidable remount on tab refocus, and no draft retention for Digital Access.
 
-### Tab hosts (`src/pages/Account.tsx`)
-Every module above is a `TabsContent` block with its own component; several already accept `autoOpenAdd`: `ServiceProsSection`, `UpgradesRepairsSection`, `SmartCalendar`, `NotesSection`, `FamilyTraditions`, `FamilyRecipes`, `FamilyMedications`, `ImportantLocations`. Section titles/subtitles come from a `getSectionConfig()` map (lines ~292-312). Two "back" strips exist: one for Family Archive tabs → `life-hub`, one for Insights tabs → `insights-tools`.
+## The fix
 
-### Quick Add (`DashboardQuickAdd.tsx`)
-Three-way root chooser (`asset_documentation` / `family_archive` / `insights_tools`), then flat option lists with `?add=1` links. Asset Documentation branch delegates to `AssetTypeSelector` + `resolveAssetUploadDestination` (`src/lib/assetUploadRouting.ts`). Insights list includes Manual Entry Item → `/inventory`.
+### 1. Stop the remount on tab refocus (root cause)
 
-### Quick Notes storage (audit item — has its own silo)
-`QuickNotesSection.tsx` reads/writes table **`public.user_notes`** (title, content, file_name, file_path, bucket_name), scoped by `user_id` (not `account_id`), with per-user RLS. Files live in the existing `documents` bucket. It is also wired into `ExportService` (line ~1572), `delete-account` cleanup, and the storage-orphan reconciliation SQL. **Notes** is a different table: `public.notes_traditions` (with `record_type` + `folder_id`), scoped by account.
-Conclusion: retiring Quick Notes as a destination is safe UI-wise, but the records are NOT interchangeable — no migration, no deletion in this pass.
+- Change the effect dependency in `SecureVault.tsx` from `user` to `user?.id` so a token refresh for the same user no longer re-triggers the fetch (this matches the project-wide rule already used elsewhere).
+- Only show the full-page loading state on the initial load; background refreshes keep the current UI mounted so child form state survives.
 
-### Manual Entry Items
-Nav-only entry to route `/inventory` (`src/pages/Inventory.tsx`, uses `AddInventoryItemForm`). `ManualEntrySection.tsx` exists but is not mounted by Inventory. Relocating it under Asset Documentation is a pure navigation change.
+### 2. Add draft retention for Digital Access
 
-### Purely navigation vs. schema
-- Purely navigation: everything in this plan.
-- Schema/storage/RLS changes required: **none**. No migration will be proposed.
+- Add a small draft helper that keeps unsaved form values for the Digital Access add/edit forms and restores them if the component does remount during the same unlocked session.
+- Store drafts in `sessionStorage` (cleared when the browser tab closes), not `localStorage`, and clear a draft as soon as the entry saves successfully or the user cancels/clears the form.
+- Show a subtle "Unsaved draft restored" hint when a draft is re-applied so the user knows why fields are pre-filled.
 
-## Part 2: Proposed implementation (after your approval)
+### 3. Tighten the existing Legacy Locker draft
 
-### New files
-- `src/components/KnowledgeHubGrid.tsx` — section headings + cards only, `onTabChange`/`navigate` props, no data access.
-- `src/components/hubs/ContactsHub.tsx` — VIP Contacts | Trusted Professionals selector (navigation only).
-- `src/components/hubs/NotesHub.tsx` — Written Notes | Voice Notes.
-- `src/components/hubs/TraditionsRecipesHub.tsx` — Family Traditions | Family Recipes.
+- Move the Legacy Locker draft from `localStorage` to the same `sessionStorage`-based helper, keyed per user, so sensitive vault text is not left on disk after the tab closes or the user signs out.
+- Clear the draft on vault lock, sign-out, and successful save.
 
-### Knowledge Hub layout
-```text
-PEOPLE & CARE
-Contacts | Medication List
+## Scope and safety
 
-NOTES & FAMILY
-Notes | Family Traditions & Recipes | Memory Safe
+- No schema, storage, RLS, or Edge Function changes.
+- No change to encryption, unlock/passphrase flow, permissions, or what gets written to the database — drafts are client-side only and never replace a real save.
+- Files touched: `src/components/SecureVault.tsx`, `src/components/PasswordCatalog.tsx`, `src/components/LegacyLocker.tsx`, plus one new small draft-storage utility.
 
-PROPERTY & HOUSEHOLD
-Important Locations | Paint Codes | Upgrades & Repairs | Source Websites
+## Verification
 
-PLANNING
-Smart Calendar
-```
-Existing `DashboardGridCard` compact style retained; headings are small uppercase muted text, no extra containers. Card copy as you supplied.
-
-### Changed files
-- `src/pages/Account.tsx`: add tabs `knowledge-hub`, `contacts-hub`, `notes-hub`, `traditions-recipes-hub`; add their `getSectionConfig()` entries; repoint both existing "back" strips to the correct hub level; keep `life-hub` and `insights-tools` as working aliases that render the Knowledge Hub (no dead links from bookmarks/emails). `quick-notes` tab content stays mounted but is no longer linked from any grid.
-- `src/components/DashboardGrid.tsx`: replace the Family Archive and Insights & Tools cards with one Knowledge Hub card — "Contacts · Notes · Property Details · Records · Memories" — carrying over the calendar badge; add `Manual Entry` to the Asset Documentation card's tag list.
-- `src/components/AssetDocumentationGrid.tsx`: add a Manual Entry card that navigates to `/inventory` (nav only).
-- `src/components/DashboardQuickAdd.tsx`: root becomes Asset Documentation | Knowledge Hub; Knowledge Hub lists Note, Voice Note, VIP Contact, Trusted Professional, Medication, Family Tradition, Family Recipe, Important Location, Upgrade/Repair, Paint Code, Calendar Entry, Manual Entry Item moves to the Asset Documentation branch. Existing `?add=1` targets reused verbatim.
-- `src/components/InsightsToolsGrid.tsx` / `src/components/LifeHubGrid.tsx`: retained but unlinked (removal deferred; no dead-code cleanup in this pass).
-- Terminology-only text updates where "Family Archive"/"Insights & Tools" appear in dashboard-facing copy.
-
-### Explicitly out of scope
-Auth, MFA, AU invites, gift flows, Stripe/billing, subscriptions, RLS, storage buckets, retention/deletion, and every module's own create/edit/delete behavior. No component renames or refactors.
-
-### Open decision
-Quick Add currently has no "Source Website" create action — recommend leaving it out of Quick Add. Quick Notes: recommend retiring the destination only (tab kept reachable by direct URL so existing `user_notes` records stay viewable/exportable) and adding no new "Quick Note" shortcut, since Notes covers it.
+- Type in a Digital Access entry, switch to another browser tab, come back: fields still populated, vault still unlocked, no loading flash.
+- Same check inside Legacy Locker sections.
+- Save an entry, then reopen the form: it starts empty (draft cleared).
+- Sign out and back in: no leftover draft content.
