@@ -150,6 +150,26 @@ const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onTabChange, isFirstDashb
                   )}
                 </div>
               )}
+              <div className="flex flex-wrap gap-2 mt-4">
+                <Button asChild variant="outline" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 border-yellow-400">
+                  <Link to="/account/settings">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Account Settings
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 border-yellow-400">
+                  <Link to="/account/properties">
+                    <Home className="mr-2 h-4 w-4" />
+                    Property Profiles
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="bg-white/90 hover:bg-white text-brand-blue border-white/90">
+                  <Link to="/account/activity">
+                    <ClipboardList className="mr-2 h-4 w-4" />
+                    Activity Log
+                  </Link>
+                </Button>
+              </div>
             </div>
 
             <div className="flex flex-col gap-2 sm:items-end justify-center">
