@@ -45,7 +45,6 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
   const [isAssetValuesOpen, setIsAssetValuesOpen] = useState(() => {
     return localStorage.getItem('assetValuesDropdownOpen') === 'true';
   });
-  const { unreadCount } = useUnreadNotifications();
   const { todayCount: calendarTodayCount } = useCalendarNotifications();
   const { isEncrypted } = useVaultEncryptionStatus();
 
