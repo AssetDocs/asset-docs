@@ -599,15 +599,10 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
         description: isVaultEncrypted ? "Financial account encrypted and saved securely" : "Financial account saved successfully",
       });
 
-      setAccountFormData({
-        accountType: '',
-        accountName: '',
-        institutionName: '',
-        accountNumber: '',
-        routingNumber: '',
-        currentBalance: '',
-        notes: '',
-      });
+      setAccountFormData(emptyAccountForm);
+      clearDraft(ACCOUNT_DRAFT, user?.id);
+      setDraftRestored(false);
+
 
       if (isVaultEncrypted && sessionMasterPassword) {
         fetchAccounts(sessionMasterPassword);
