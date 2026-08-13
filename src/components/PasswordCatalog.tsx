@@ -107,16 +107,19 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState({ websiteName: '', websiteUrl: '', username: '', password: '', notes: '' });
   
-  const [formData, setFormData] = useState({
+  const PASSWORD_DRAFT = 'digitalAccess.password';
+  const ACCOUNT_DRAFT = 'digitalAccess.financialAccount';
+
+  const emptyPasswordForm = {
     websiteName: '',
     websiteUrl: '',
     username: '',
     password: '',
     notes: '',
     accountTypeDisplay: '',
-  });
+  };
 
-  const [accountFormData, setAccountFormData] = useState({
+  const emptyAccountForm = {
     accountType: '',
     accountName: '',
     institutionName: '',
@@ -124,7 +127,34 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
     routingNumber: '',
     currentBalance: '',
     notes: '',
-  });
+  };
+
+  const [formData, setFormData] = useState(
+    () => loadDraft<typeof emptyPasswordForm>(PASSWORD_DRAFT, user?.id) ?? emptyPasswordForm
+  );
+
+  const [accountFormData, setAccountFormData] = useState(
+    () => loadDraft<typeof emptyAccountForm>(ACCOUNT_DRAFT, user?.id) ?? emptyAccountForm
+  );
+
+  const [draftRestored, setDraftRestored] = useState(
+    () =>
+      draftHasContent(loadDraft(PASSWORD_DRAFT, user?.id)) ||
+      draftHasContent(loadDraft(ACCOUNT_DRAFT, user?.id))
+  );
+
+  // Persist unsaved input so switching browser tabs (which can remount the vault
+  // on a token refresh) doesn't lose work. Cleared on save / cancel / sign-out.
+  useEffect(() => {
+    if (draftHasContent(formData)) saveDraft(PASSWORD_DRAFT, user?.id, formData);
+    else clearDraft(PASSWORD_DRAFT, user?.id);
+  }, [formData, user?.id]);
+
+  useEffect(() => {
+    if (draftHasContent(accountFormData)) saveDraft(ACCOUNT_DRAFT, user?.id, accountFormData);
+    else clearDraft(ACCOUNT_DRAFT, user?.id);
+  }, [accountFormData, user?.id]);
+
 
   const handleUnlockClick = async () => {
     // Setup vs unlock is decided server-side: presence of wrapped key OR a
