@@ -720,7 +720,15 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
             </button>
           </p>
         </div>
+        {draftRestored && (
+          <Alert>
+            <AlertDescription className="text-xs">
+              Unsaved draft restored — your in-progress entry was kept from earlier in this session.
+            </AlertDescription>
+          </Alert>
+        )}
         {/* Add Password Form */}
+
         <form onSubmit={handleSubmit} className="space-y-4 p-4 border rounded-lg bg-muted/30">
           <h4 className="font-semibold flex items-center gap-2">
             <Plus className="h-4 w-4" />
