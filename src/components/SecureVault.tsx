@@ -112,7 +112,9 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
     if (!user) return;
     
     try {
-      setLoading(true);
+      // Only block the UI on the very first load.
+      if (!hasLoadedRef.current) setLoading(true);
+
       
       // First check if user is an admin contributor
       const { data: contributorData } = await supabase
