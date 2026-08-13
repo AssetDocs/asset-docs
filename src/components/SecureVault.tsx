@@ -81,10 +81,16 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
   
   const hasDelegateChanges = selectedDelegateId !== originalDelegateId || gracePeriodDays !== originalGracePeriodDays;
 
+  // Track whether the initial load already happened so background refreshes
+  // (e.g. Supabase TOKEN_REFRESHED when the tab regains focus) don't swap the
+  // vault out for a loading screen and unmount in-progress forms.
+  const hasLoadedRef = React.useRef(false);
+
   useEffect(() => {
     fetchVaultStatus();
     fetchContributorsList();
-  }, [user]);
+  }, [user?.id]);
+
 
   const fetchContributorsList = async () => {
     if (!user) return;
@@ -106,7 +112,9 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
     if (!user) return;
     
     try {
-      setLoading(true);
+      // Only block the UI on the very first load.
+      if (!hasLoadedRef.current) setLoading(true);
+
       
       // First check if user is an admin contributor
       const { data: contributorData } = await supabase
@@ -179,9 +187,11 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
     } catch (error) {
       console.error('Error fetching vault status:', error);
     } finally {
+      hasLoadedRef.current = true;
       setLoading(false);
     }
   };
+
 
   // Determines whether the unlock modal should run in setup or unlock mode.
   // Setup mode = we have no wrapped vault key AND no legacy localStorage hash.

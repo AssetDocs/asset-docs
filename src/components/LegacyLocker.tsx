@@ -28,6 +28,11 @@ import TrustInformation from './TrustInformation';
 import { RecoveryDelegateSelector } from './RecoveryDelegateSelector';
 import { RecoveryRequestDialog } from './RecoveryRequestDialog';
 import { RecoveryRequestAlert } from './RecoveryRequestAlert';
+import { saveDraft, loadDraft, clearDraft } from '@/utils/formDrafts';
+
+const LEGACY_LOCKER_DRAFT = 'legacyLocker.form';
+
+
 
 interface LegacyLockerData {
   id?: string;
@@ -219,32 +224,40 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
     charitable_giving: '',
   });
   
-  // Save form data to localStorage as draft
+  // Save form data as a session-scoped draft (sessionStorage — cleared when the
+  // tab closes or the user signs out, so sensitive text isn't left on disk).
   const saveDraftToLocalStorage = useCallback((data: LegacyLockerData) => {
+    saveDraft(LEGACY_LOCKER_DRAFT, null, data);
+  }, []);
+
+  // Clear draft (called after successful save)
+  const clearDraftFromLocalStorage = useCallback(() => {
+    clearDraft(LEGACY_LOCKER_DRAFT, null);
+  }, []);
+
+  // One-time migration: remove any legacy plaintext localStorage draft.
+  useEffect(() => {
     try {
-      localStorage.setItem('legacyLocker_formDraft', JSON.stringify(data));
-    } catch (e) {
-      console.error('Failed to save draft:', e);
+      const legacy = localStorage.getItem('legacyLocker_formDraft');
+      if (legacy) {
+        if (!loadDraft(LEGACY_LOCKER_DRAFT, null)) {
+          saveDraft(LEGACY_LOCKER_DRAFT, null, JSON.parse(legacy));
+        }
+        localStorage.removeItem('legacyLocker_formDraft');
+      }
+    } catch {
+      localStorage.removeItem('legacyLocker_formDraft');
     }
   }, []);
 
-  // Clear draft from localStorage (called after successful save)
-  const clearDraftFromLocalStorage = useCallback(() => {
-    localStorage.removeItem('legacyLocker_formDraft');
-  }, []);
-
-  // Load draft from localStorage on mount (only if no existing data from DB)
+  // Load draft on mount (only if no existing data from DB)
   useEffect(() => {
-    const savedDraft = localStorage.getItem('legacyLocker_formDraft');
+    const savedDraft = loadDraft<Partial<LegacyLockerData>>(LEGACY_LOCKER_DRAFT, null);
     if (savedDraft && !existingData) {
-      try {
-        const parsed = JSON.parse(savedDraft);
-        setFormData(prev => ({ ...prev, ...parsed }));
-      } catch (e) {
-        console.error('Failed to parse draft:', e);
-      }
+      setFormData(prev => ({ ...prev, ...savedDraft }));
     }
   }, [existingData]);
+
 
   // Auto-save draft with debounce when formData changes
   useEffect(() => {

@@ -17,6 +17,8 @@ import MasterPasswordModal from './MasterPasswordModal';
 import { encryptPassword, decryptPassword } from '@/utils/encryption';
 import { unlockOrUpgradeVault, setVaultKey } from '@/lib/vaultKey';
 import { ensureDelegateKeypair } from '@/lib/delegateKeypair';
+import { saveDraft, loadDraft, clearDraft, draftHasContent } from '@/utils/formDrafts';
+
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
@@ -107,16 +109,19 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState({ websiteName: '', websiteUrl: '', username: '', password: '', notes: '' });
   
-  const [formData, setFormData] = useState({
+  const PASSWORD_DRAFT = 'digitalAccess.password';
+  const ACCOUNT_DRAFT = 'digitalAccess.financialAccount';
+
+  const emptyPasswordForm = {
     websiteName: '',
     websiteUrl: '',
     username: '',
     password: '',
     notes: '',
     accountTypeDisplay: '',
-  });
+  };
 
-  const [accountFormData, setAccountFormData] = useState({
+  const emptyAccountForm = {
     accountType: '',
     accountName: '',
     institutionName: '',
@@ -124,7 +129,34 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
     routingNumber: '',
     currentBalance: '',
     notes: '',
-  });
+  };
+
+  const [formData, setFormData] = useState(
+    () => loadDraft<typeof emptyPasswordForm>(PASSWORD_DRAFT, user?.id) ?? emptyPasswordForm
+  );
+
+  const [accountFormData, setAccountFormData] = useState(
+    () => loadDraft<typeof emptyAccountForm>(ACCOUNT_DRAFT, user?.id) ?? emptyAccountForm
+  );
+
+  const [draftRestored, setDraftRestored] = useState(
+    () =>
+      draftHasContent(loadDraft(PASSWORD_DRAFT, user?.id)) ||
+      draftHasContent(loadDraft(ACCOUNT_DRAFT, user?.id))
+  );
+
+  // Persist unsaved input so switching browser tabs (which can remount the vault
+  // on a token refresh) doesn't lose work. Cleared on save / cancel / sign-out.
+  useEffect(() => {
+    if (draftHasContent(formData)) saveDraft(PASSWORD_DRAFT, user?.id, formData);
+    else clearDraft(PASSWORD_DRAFT, user?.id);
+  }, [formData, user?.id]);
+
+  useEffect(() => {
+    if (draftHasContent(accountFormData)) saveDraft(ACCOUNT_DRAFT, user?.id, accountFormData);
+    else clearDraft(ACCOUNT_DRAFT, user?.id);
+  }, [accountFormData, user?.id]);
+
 
   const handleUnlockClick = async () => {
     // Setup vs unlock is decided server-side: presence of wrapped key OR a
@@ -413,14 +445,10 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
         description: isVaultEncrypted ? "Password encrypted and saved securely" : "Password saved successfully",
       });
 
-      setFormData({
-        websiteName: '',
-        websiteUrl: '',
-        username: '',
-        accountTypeDisplay: '',
-        password: '',
-        notes: '',
-      });
+      setFormData(emptyPasswordForm);
+      clearDraft(PASSWORD_DRAFT, user?.id);
+      setDraftRestored(false);
+
 
       // Refresh list
       if (isVaultEncrypted && sessionMasterPassword) {
@@ -571,15 +599,10 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
         description: isVaultEncrypted ? "Financial account encrypted and saved securely" : "Financial account saved successfully",
       });
 
-      setAccountFormData({
-        accountType: '',
-        accountName: '',
-        institutionName: '',
-        accountNumber: '',
-        routingNumber: '',
-        currentBalance: '',
-        notes: '',
-      });
+      setAccountFormData(emptyAccountForm);
+      clearDraft(ACCOUNT_DRAFT, user?.id);
+      setDraftRestored(false);
+
 
       if (isVaultEncrypted && sessionMasterPassword) {
         fetchAccounts(sessionMasterPassword);
@@ -697,7 +720,15 @@ const PasswordCatalog: React.FC<PasswordCatalogProps> = ({
             </button>
           </p>
         </div>
+        {draftRestored && (
+          <Alert>
+            <AlertDescription className="text-xs">
+              Unsaved draft restored — your in-progress entry was kept from earlier in this session.
+            </AlertDescription>
+          </Alert>
+        )}
         {/* Add Password Form */}
+
         <form onSubmit={handleSubmit} className="space-y-4 p-4 border rounded-lg bg-muted/30">
           <h4 className="font-semibold flex items-center gap-2">
             <Plus className="h-4 w-4" />

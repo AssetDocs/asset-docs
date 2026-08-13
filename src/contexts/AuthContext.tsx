@@ -4,6 +4,8 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { SecurityAlertService } from '@/services/SecurityAlertService';
 import { DELETED_ACCOUNT_MESSAGE, isDeletedAccountEmail } from '@/utils/deletedAccountGuard';
+import { clearAllDrafts } from '@/utils/formDrafts';
+
 
 // Helper to check if we've already alerted for this session (persisted in localStorage)
 const ALERTED_SESSIONS_KEY = 'alerted_login_sessions';
@@ -257,11 +259,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
+    // Drop any unsaved sensitive form drafts before tearing down the session.
+    clearAllDrafts();
     try {
       await supabase.auth.signOut({ scope: 'local' });
     } catch {
       // Ignore errors — always clear local state
     }
+
     // Nuclear fallback: purge all Supabase auth tokens from localStorage
     try {
       const keysToRemove = Object.keys(localStorage).filter(
