@@ -28,6 +28,11 @@ import TrustInformation from './TrustInformation';
 import { RecoveryDelegateSelector } from './RecoveryDelegateSelector';
 import { RecoveryRequestDialog } from './RecoveryRequestDialog';
 import { RecoveryRequestAlert } from './RecoveryRequestAlert';
+import { saveDraft, loadDraft, clearDraft } from '@/utils/formDrafts';
+
+const LEGACY_LOCKER_DRAFT = 'legacyLocker.form';
+
+
 
 interface LegacyLockerData {
   id?: string;
