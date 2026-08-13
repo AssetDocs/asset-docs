@@ -17,6 +17,8 @@ import MasterPasswordModal from './MasterPasswordModal';
 import { encryptPassword, decryptPassword } from '@/utils/encryption';
 import { unlockOrUpgradeVault, setVaultKey } from '@/lib/vaultKey';
 import { ensureDelegateKeypair } from '@/lib/delegateKeypair';
+import { saveDraft, loadDraft, clearDraft, draftHasContent } from '@/utils/formDrafts';
+
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
