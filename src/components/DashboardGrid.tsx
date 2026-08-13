@@ -244,7 +244,7 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
               </div>
               <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${isAssetValuesOpen ? '' : '-rotate-90'}`} />
             </button>
-            {isAssetValueOpen && (
+            {isAssetValuesOpen && (
               <div className="px-4 pb-4 pt-2 border-t border-border">
                 <AssetValuesSection />
               </div>
