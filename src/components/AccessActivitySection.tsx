@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Shield, Users, Eye, Lock, UserPlus, Clock, ChevronDown, ChevronUp, KeyRound } from 'lucide-react';
+import { Shield, Users, Eye, Lock, UserPlus, Clock, ChevronDown, ChevronUp, KeyRound, ExternalLink } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useActivityLog, ActivityLogEntry } from '@/hooks/useActivityLog';
 import { formatDistanceToNow } from 'date-fns';
