@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Shield, Users, Eye, Lock, UserPlus, Clock, ChevronDown, ChevronUp, KeyRound } from 'lucide-react';
+import { Shield, Users, Eye, Lock, UserPlus, Clock, ChevronDown, ChevronUp, KeyRound, ExternalLink } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useActivityLog, ActivityLogEntry } from '@/hooks/useActivityLog';
 import { formatDistanceToNow } from 'date-fns';
@@ -110,6 +111,14 @@ const AccessActivitySection: React.FC = () => {
                 </span>
                 {activityOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
               </CardTitle>
+              <Link
+                to="/account/activity"
+                className="text-sm text-primary hover:text-primary/80 flex items-center gap-1 mt-1 w-fit"
+                onClick={(e) => e.stopPropagation()}
+              >
+                View full activity log
+                <ExternalLink className="h-3 w-3" />
+              </Link>
             </CardHeader>
           </CollapsibleTrigger>
           <CollapsibleContent>
