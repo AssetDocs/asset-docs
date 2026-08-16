@@ -848,7 +848,18 @@ Deno.serve(async (req) => {
       console.log('[DELETE-ACCOUNT] Error deleting contributors:', error);
     }
 
+    // Forensic audit rows are retained (they record what was deleted), but any
+    // human-readable label/metadata is stripped so no PII survives deletion.
+    try {
+      await supabaseAdmin.rpc('anonymize_content_audit_events', {
+        _owner_user_id: targetAccountId,
+      });
+    } catch (error) {
+      console.log('[DELETE-ACCOUNT] Error anonymizing content audit events:', error);
+    }
+
     // Tombstone already inserted by anonymize_user_data RPC above.
+
     // Delete the user account using admin client
     const { error: deleteUserError } = await supabaseAdmin.auth.admin.deleteUser(targetAccountId);
 
