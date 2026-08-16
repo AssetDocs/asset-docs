@@ -1,83 +1,75 @@
-# Time-Stamp & Activity-Record Audit
+# Account Audit Trail — Implementation Plan
 
-## What I checked
+Confirms the layered architecture: content rows keep reliable timestamps, a new database-level audit trail becomes the forensic record, and `user_activity_logs` stays the curated human-readable feed. Account scope and actor identity are never conflated.
 
-Live production database (`leotcbfpqiekgkgumecn`): every table's timestamp columns, every trigger, the contents of `user_activity_logs`, plus every place the app writes activity records in code.
+## Verification of the existing `audit_logs` table
 
-## Finding 1 — Row timestamps: essentially complete
+Checked before committing to it. Verdict: **not suitable as-is for broad content auditing.**
 
-Every user-content table has `created_at`, and all but three also have `updated_at` maintained automatically by a `BEFORE UPDATE` database trigger (not by the client, so it cannot be skipped or faked from the browser).
+- It has `user_id`, `action`, `table_name`, `record_id`, `old_values`, `new_values`, `ip_address`, `user_agent`, `created_at`, plus deletion-anonymization columns.
+- It has **no `account_id`** and no actor-type concept, so it cannot express "whose account" vs "who acted".
+- Its trigger function copies **entire rows** via `to_jsonb(OLD)` / `to_jsonb(NEW)` — exactly the sensitive-data duplication to avoid across password, financial, trust, medication, and document tables.
+- Its `user_id` has a foreign key to `auth.users`, so audit rows are coupled to the user record's continued existence.
 
-Covered with both create + update stamps: properties, items, documents, all folder tables (photo/video/document/memory-safe/notes/legacy-locker), memory safe items, family recipes, medications, important locations, notes, traditions, legacy locker + voice notes, password catalog, financial accounts, financial loans, insurance policies, trust information, VIP contacts + attachments, damage reports, manual damage entries, upgrades/repairs, emergency instructions, quick notes, tax returns, receipts, calendar events, service providers, paint codes, contributors.
+Decision: leave `audit_logs` untouched for its current role (admin/role/billing evidence on `contributors`, `user_roles`, `gift_subscriptions`) and create a dedicated content-audit table designed for this purpose.
 
-Gaps (create stamp only, no modification stamp):
-- `property_files`
-- `legacy_locker_files`
-- `account_memberships`
+## Step 1 — Close the three `updated_at` gaps
 
-## Finding 2 — Who made the change is NOT recorded on the row
+Add `updated_at` plus a `BEFORE UPDATE` trigger to `property_files`, `legacy_locker_files`, and `account_memberships`, backfilled from `created_at`.
 
-Content rows carry a `user_id`, but that is the **account owner** the record belongs to — it is not the person who performed the action. There is no `created_by` / `updated_by` on any content table. So for a record touched by an Authorized User, the row itself cannot tell you whether the owner or the AU created or edited it.
+## Step 2 — Fix the Authorized-User scoping bug
 
-## Finding 3 — The activity log exists but covers only a fraction of activity
+The shared logging helper currently writes the signed-in user into both the account field and the actor field, so AU activity files under the AU instead of the account being modified.
 
-`user_activity_logs` is well designed: it already has actor, category, action, resource type/name, free-form details, IP address, user agent, and timestamp. But it is only written from a handful of places:
+- Resolve the active account from the existing account context and write it as the account scope.
+- Write the acting authenticated user as the actor.
+- Add an actor type so the feed can render "Owner" vs "Authorized User".
+- Apply the same correction to the edge functions that insert activity rows (invite, cancel, accept, revoke, role change), which currently stamp the caller into both fields.
+- Existing rows are left as they are; no rewriting of history.
 
-| Recorded today | Not recorded |
-|---|---|
-| Property create / update / delete | All Family Archive modules (recipes, medications, locations, memory safe, notes, traditions) |
-| Inventory item create / edit / delete | Legacy Locker entries, files, voice notes |
-| File uploads through the shared upload hook | Digital Access / password catalog entries |
-| Vault access, encryption removal | Financial accounts, loans, insurance, trust info |
-| MFA enable/disable, backup codes | VIP contacts, calendar events, emergency instructions |
-| Authorized-user invite / cancel / accept / remove | Document + photo + video deletions, all folder create/rename/delete |
+## Step 3 — Database-level content audit trail
 
-Production data confirms this: only 15 distinct action types have ever been logged.
+New append-only table capturing every insert, update, and delete on user-content tables:
 
-## Finding 4 — Authorized-User activity lands in the wrong log
+- `account_id` — whose data changed
+- `actor_user_id` — who performed it (no foreign key to `auth.users`, so evidence survives account deletion)
+- `actor_type` — owner, authorized user, service role, or system/cron
+- `table_name`, `record_id`
+- `operation` — INSERT / UPDATE / DELETE
+- `changed_fields` — array of column names only, for updates
+- `record_label` — human-readable name/title when the table has one
+- `metadata` — small non-sensitive descriptors only
+- `occurred_at`
 
-The shared logging helper stamps both the owner field and the actor field with the currently signed-in user. When an Authorized User works inside someone else's account, the entry is filed under the AU's own history instead of the account being modified. The owner therefore cannot see AU activity, and the account has no consolidated record.
+Sensitive-data policy, enforced inside the trigger:
 
-## Finding 5 — Deletions largely leave no trace
+- Updates record **which fields changed, never the values**.
+- A central deny-list redacts password fields, encryption payloads, tokens, document contents/paths, financial identifiers, and similar columns — they never appear even as labels' contents.
+- Deletes preserve only what is needed to identify what disappeared: record id, label where safe, account, actor, timestamp. No full row snapshot.
 
-Only property and inventory-item deletions are logged. Every other delete path removes the row outright with no tombstone and no log entry, so after a deletion there is no record that the item ever existed or who removed it. Database-level audit triggers writing to `audit_logs` exist on only three tables: `contributors`, `user_roles`, `gift_subscriptions`.
+Behavior guarantees to build and verify:
 
-## Summary
+- Fires for browser writes, edge-function/service-role writes, and direct SQL alike.
+- Cascaded deletes and bulk operations produce one row per affected record.
+- Account deletion and anonymization do not orphan or cascade-remove audit rows; the account-deletion path anonymizes identifiers instead of deleting evidence.
+- Audit rows are readable only by admin/dev workspace roles; no insert/update/delete from client roles.
 
-Timestamps: in place and reliable. Attribution and deletion evidence: the significant gaps.
+## Step 4 — Keep `user_activity_logs` curated
 
----
+Triggers do **not** write into `user_activity_logs`. It remains the readable account history for Access & Activity, written intentionally at meaningful moments, so low-level updates never flood the feed. Coverage can be extended module by module later as a separate pass.
 
-## Options moving forward
+## Step 5 — Deferred
 
-### Option A — Database-level audit triggers (recommended)
-Attach a generic audit trigger to every user-content table that writes an insert/update/delete record (table, row id, actor from the session, account scope, changed fields, timestamp) into a single audit table.
+`created_by` / `updated_by` columns only if attribution needs to appear directly beside records in the UI.
 
-- Captures **everything**, including deletions, and including writes made by edge functions or direct SQL — nothing can bypass it.
-- One migration; no per-module code changes; no UI change.
-- Cost: audit volume grows; needs the retention sweep already documented in the retention runbook.
+## Retention
 
-### Option B — Extend the app-side activity log
-Add logging calls to every module that currently lacks them, and fix the owner/actor scoping so AU actions file under the account being modified.
+Forensic content audit follows the long administrative window; `user_activity_logs` keeps its shorter user-visible window. The retention sweep operates on the audit rows' own timestamps and never depends on the referenced content row or user still existing.
 
-- Produces user-readable entries that fit the existing Access & Activity screens.
-- Cost: many touch points; anything not routed through the app (edge functions, admin SQL) is still invisible.
+## Post-implementation verification
 
-### Option C — Add `created_by` / `updated_by` columns
-Stamp the acting user directly on each content row via trigger.
+Explicitly exercised before this is called done: service-role writes, edge-function writes, Authorized-User writes, owner writes, hard deletes, cascaded deletes, bulk deletes, account deletion/anonymization, and confirmation that no redacted field's value appears anywhere in the audit table.
 
-- Cheapest way to answer "who last touched this record" at a glance.
-- Does not record history — only the latest actor — and still says nothing about deletions.
+## Out of scope
 
-### Recommended sequence
-1. Close the three missing `updated_at` gaps (Finding 1).
-2. Option A for complete, tamper-resistant coverage including deletions.
-3. Fix the AU owner/actor scoping bug (Finding 4) so the existing Access & Activity views become accurate.
-4. Option C afterward if you want at-a-glance attribution in the UI.
-5. Optionally surface a subset in the existing activity screens later — no display work is required for the record itself to exist.
-
-## Technical notes
-
-- New audit writes would target the existing `audit_logs` / `user_activity_logs` structures rather than a new table, so existing retention sweepers and admin views keep working.
-- Audit tables stay append-only with admin-scoped read policies, matching the audit-log retention runbook.
-- Retention windows already documented (7 years admin audit, 2 years user activity) would apply unchanged.
+No UI changes, no soft-delete/tombstone columns, no changes to auth, billing, or module behavior.
