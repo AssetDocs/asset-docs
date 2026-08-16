@@ -7662,6 +7662,7 @@ export type Database = {
         Row: {
           action_category: string
           action_type: string
+          actor_type: string | null
           actor_user_id: string | null
           anonymized_at: string | null
           created_at: string
@@ -7679,6 +7680,7 @@ export type Database = {
         Insert: {
           action_category: string
           action_type: string
+          actor_type?: string | null
           actor_user_id?: string | null
           anonymized_at?: string | null
           created_at?: string
@@ -7696,6 +7698,7 @@ export type Database = {
         Update: {
           action_category?: string
           action_type?: string
+          actor_type?: string | null
           actor_user_id?: string | null
           anonymized_at?: string | null
           created_at?: string
