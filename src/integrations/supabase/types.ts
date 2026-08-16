@@ -1210,6 +1210,7 @@ export type Database = {
           account_id: string | null
           actor_type: Database["public"]["Enums"]["audit_actor_type"]
           actor_user_id: string | null
+          anonymized_at: string | null
           changed_fields: string[]
           event_source: Database["public"]["Enums"]["audit_event_source"]
           id: string
@@ -1226,6 +1227,7 @@ export type Database = {
           account_id?: string | null
           actor_type?: Database["public"]["Enums"]["audit_actor_type"]
           actor_user_id?: string | null
+          anonymized_at?: string | null
           changed_fields?: string[]
           event_source?: Database["public"]["Enums"]["audit_event_source"]
           id?: string
@@ -1242,6 +1244,7 @@ export type Database = {
           account_id?: string | null
           actor_type?: Database["public"]["Enums"]["audit_actor_type"]
           actor_user_id?: string | null
+          anonymized_at?: string | null
           changed_fields?: string[]
           event_source?: Database["public"]["Enums"]["audit_event_source"]
           id?: string
@@ -8380,6 +8383,10 @@ export type Database = {
           p_override_user_id?: string
         }
         Returns: Json
+      }
+      anonymize_content_audit_events: {
+        Args: { _owner_user_id: string }
+        Returns: number
       }
       anonymize_user_data: {
         Args: { p_deleted_by?: string; p_email: string; p_user_id: string }
