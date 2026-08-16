@@ -1,75 +1,101 @@
-# Account Audit Trail — Implementation Plan
+# Knowledge Hub — Dashboard and Navigation Simplification
 
-Confirms the layered architecture: content rows keep reliable timestamps, a new database-level audit trail becomes the forensic record, and `user_activity_logs` stays the curated human-readable feed. Account scope and actor identity are never conflated.
+Combine Family Archive and Insights & Tools into one top-level section called Knowledge Hub. This is a navigation and presentation reorganization. Existing modules keep their own tables, forms, permissions, and business logic.
 
-## Verification of the existing `audit_logs` table
+## The new Knowledge Hub
 
-Checked before committing to it. Verdict: **not suitable as-is for broad content auditing.**
+One flat, grouped screen with eight top-level cards. Wrapper screens only where modules are genuinely the same kind of thing.
 
-- It has `user_id`, `action`, `table_name`, `record_id`, `old_values`, `new_values`, `ip_address`, `user_agent`, `created_at`, plus deletion-anonymization columns.
-- It has **no `account_id`** and no actor-type concept, so it cannot express "whose account" vs "who acted".
-- Its trigger function copies **entire rows** via `to_jsonb(OLD)` / `to_jsonb(NEW)` — exactly the sensitive-data duplication to avoid across password, financial, trust, medication, and document tables.
-- Its `user_id` has a foreign key to `auth.users`, so audit rows are coupled to the user record's continued existence.
+```text
+Knowledge Hub
+  People & Care
+    Contacts ........... wrapper -> VIP Contacts | Trusted Professionals
+    Medication List .... direct
+  Notes & Family
+    Notes .............. wrapper -> Written Notes | Voice Notes
+    Family Traditions & Recipes ... wrapper -> Traditions | Recipes
+    Memory Safe ........ direct
+  Property & Household
+    Important Locations .. direct
+    Paint Codes .......... direct
+    Upgrades & Repairs ... direct
+    Source Websites ...... direct
+  Planning
+    Smart Calendar ....... direct
+```
 
-Decision: leave `audit_logs` untouched for its current role (admin/role/billing evidence on `contributors`, `user_roles`, `gift_subscriptions`) and create a dedicated content-audit table designed for this purpose.
+Wrappers are navigation only. Each one is a small screen of cards that link to the existing modules — no shared storage, no merged forms, no combined CRUD.
 
-## Step 1 — Close the three `updated_at` gaps
+## Dashboard changes
 
-Add `updated_at` plus a `BEFORE UPDATE` trigger to `property_files`, `legacy_locker_files`, and `account_memberships`, backfilled from `created_at`.
+The Family Archive and Insights & Tools cards are replaced by a single card:
 
-## Step 2 — Fix the Authorized-User scoping bug
+- **Knowledge Hub** — "Contacts · Notes · Property Details · Records · Memories"
 
-The shared logging helper currently writes the signed-in user into both the account field and the actor field, so AU activity files under the AU instead of the account being modified.
+Everything else on the dashboard stays where it is: Asset Documentation, the Secure Vault banner, Legacy Locker, Digital Access, MFA, Asset Values, Emergency Instructions, the export/download row, and Post Damage Report.
 
-- Resolve the active account from the existing account context and write it as the account scope.
-- Write the acting authenticated user as the actor.
-- Add an actor type so the feed can render "Owner" vs "Authorized User".
-- Apply the same correction to the edge functions that insert activity rows (invite, cancel, accept, revoke, role change), which currently stamp the caller into both fields.
-- Existing rows are left as they are; no rewriting of history.
+The Smart Calendar "due today" badge currently shown on the Insights & Tools card moves onto the Knowledge Hub card so nothing time-sensitive becomes less visible.
 
-## Step 3 — Database-level content audit trail
+## Quick Add changes
 
-New append-only table capturing every insert, update, and delete on user-content tables:
+The chooser drops from three categories to two: **Asset Documentation** and **Knowledge Hub**. The Knowledge Hub step lists the same create shortcuts that exist today, regrouped to match the new structure.
 
-- `account_id` — whose data changed
-- `actor_user_id` — who performed it (no foreign key to `auth.users`, so evidence survives account deletion)
-- `actor_type` — owner, authorized user, service role, or system/cron
-- `table_name`, `record_id`
-- `operation` — INSERT / UPDATE / DELETE
-- `changed_fields` — array of column names only, for updates
-- `record_label` — human-readable name/title when the table has one
-- `metadata` — small non-sensitive descriptors only
-- `occurred_at`
+Two adjustments inside it:
 
-Sensitive-data policy, enforced inside the trigger:
+- **Quick Note** stays as a shortcut, but now opens the standard Notes add form.
+- **Manual Entry Item** moves under Asset Documentation, since it is another way to document an asset.
 
-- Updates record **which fields changed, never the values**.
-- A central deny-list redacts password fields, encryption payloads, tokens, document contents/paths, financial identifiers, and similar columns — they never appear even as labels' contents.
-- Deletes preserve only what is needed to identify what disappeared: record id, label where safe, account, actor, timestamp. No full row snapshot.
+Every shortcut keeps working the way it does now: `add=1` only asks an existing screen to open its own create UI. It never bypasses permissions and never performs the write itself.
 
-Behavior guarantees to build and verify:
+## Quick Notes retirement (the one real data change)
 
-- Fires for browser writes, edge-function/service-role writes, and direct SQL alike.
-- Cascaded deletes and bulk operations produce one row per affected record.
-- Account deletion and anonymization do not orphan or cascade-remove audit rows; the account-deletion path anonymizes identifiers instead of deleting evidence.
-- Audit rows are readable only by admin/dev workspace roles; no insert/update/delete from client roles.
+Quick Notes and Notes are two separate systems today, not one feature with two views. Quick Notes writes to `user_notes`; Notes writes to `notes_traditions`. There is **1** Quick Notes record in the database, belonging to **1** account.
 
-## Step 4 — Keep `user_activity_logs` curated
+Approach:
 
-Triggers do **not** write into `user_activity_logs`. It remains the readable account history for Access & Activity, written intentionally at meaningful moments, so low-level updates never flood the feed. Coverage can be extended module by module later as a separate pass.
+1. One-time, auditable migration of that record into the main Notes system, preserving title, content, attachment, and original timestamps.
+2. Verify the migrated note appears correctly in Notes, including its attachment.
+3. Remove Quick Notes from navigation and stop all new writes to it.
+4. Keep "Quick Note" only as a Quick Add shortcut into the standard Notes add form.
+5. **Do not drop the `user_notes` table** in this update. Schema removal is a later cleanup once the migration is confirmed, so rollback stays easy.
 
-## Step 5 — Deferred
+The attachment file itself is not moved — it already lives in the `documents` bucket and the migrated record keeps pointing at the same path. No storage policy changes.
 
-`created_by` / `updated_by` columns only if attribution needs to appear directly beside records in the UI.
+## Naming scope
 
-## Retention
-
-Forensic content audit follows the long administrative window; `user_activity_logs` keeps its shorter user-visible window. The retention sweep operates on the audit rows' own timestamps and never depends on the referenced content row or user still existing.
-
-## Post-implementation verification
-
-Explicitly exercised before this is called done: service-role writes, edge-function writes, Authorized-User writes, owner writes, hard deletes, cascaded deletes, bulk deletes, account deletion/anonymization, and confirmation that no redacted field's value appears anywhere in the audit table.
+Rename in the live dashboard and in the customer-facing demo surfaces (Sample Dashboard, Video Help). Hold pricing and Terms copy for a separate deliberate marketing and legal review, so this update does not quietly alter legal text.
 
 ## Out of scope
 
-No UI changes, no soft-delete/tombstone columns, no changes to auth, billing, or module behavior.
+No changes to Auth, MFA, Authorized Users, gifts, billing, RLS, storage policies, retention/deletion, the audit trail, or any unrelated backend system. No module is merged or rewritten because it is being grouped differently.
+
+## Technical notes
+
+**Files touched (UI/routing):**
+- `src/components/DashboardGrid.tsx` — replace the two cards with the Knowledge Hub card; move the calendar badge.
+- `src/components/LifeHubGrid.tsx` + `src/components/InsightsToolsGrid.tsx` — replaced by a single `KnowledgeHubGrid.tsx` with the four group headings.
+- New wrapper components: `ContactsHub`, `NotesHub`, `TraditionsRecipesHub`.
+- `src/components/DashboardQuickAdd.tsx` — two root categories; regrouped option list; `Step` type becomes `'root' | 'knowledge-hub'`.
+- `src/pages/Account.tsx` — add `knowledge-hub` plus the three wrapper tabs to the tab set and `getSectionConfig`; retarget the contextual back buttons ("Back to Family Archive" / "Back to Insights & Tools" become "Back to Knowledge Hub", or to the relevant wrapper).
+- `src/lib/assetUploadRouting.ts` — add the Manual Entry destination so Asset Documentation and Quick Add cannot drift.
+- `src/components/AssetDocumentationGrid.tsx` — surface Manual Entry Items.
+
+**Legacy links must not break.** These already exist in the wild and in stored data:
+- `?tab=life-hub` and `?tab=insights-tools` — bookmarks, and `dashboardResume.familyArchive` values already persisted as `destination_route` in `dashboard_resume_activities` rows. Both tab keys will resolve to the Knowledge Hub rather than dead-ending.
+- `src/lib/dashboardResume.ts` — `familyArchive` route key updated, old rows still resolve.
+- `src/pages/Inventory.tsx` — `parentRoute` currently points at `?tab=insights-tools`; retarget to Asset Documentation.
+- `src/pages/VIPContacts.tsx` — "back to Family Archive" retargets to the Contacts wrapper.
+
+**Quick Notes migration mapping** (`user_notes` -> `notes_traditions`): `user_id`, `content`, `title` (fallback title where null, since the target requires one), `file_name`, `file_path`, `bucket_name`, `created_at`, `updated_at` preserved; `record_type` set to `'note'`; `folder_id` left null so it lands in the unfiled view. Run as a data migration, not a schema migration. The write is captured in `content_audit_events` automatically.
+
+**Read-only and Authorized User behavior** is inherited unchanged — wrappers render existing modules, and Quick Add still hides itself when the active account cannot edit.
+
+## Verification
+
+- Knowledge Hub reachable from the dashboard; all eleven modules reachable in at most two clicks.
+- Old `?tab=life-hub` and `?tab=insights-tools` links land somewhere sensible.
+- Back navigation from every module returns to the right parent.
+- Every Quick Add shortcut opens the correct create UI, including Quick Note -> Notes and Manual Entry -> Asset Documentation.
+- The migrated Quick Note is visible in Notes with its attachment intact.
+- Smart Calendar badge still appears when items are due today.
+- Read-only Authorized User sees the same structure without create actions.
