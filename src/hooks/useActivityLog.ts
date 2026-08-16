@@ -8,7 +8,9 @@ export interface ActivityLogEntry {
   id: string;
   user_id: string;
   actor_user_id: string | null;
+  actor_type?: string | null;
   action_type: string;
+
   action_category: string;
   resource_type: string | null;
   resource_id: string | null;

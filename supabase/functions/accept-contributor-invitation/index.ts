@@ -133,6 +133,7 @@ serve(async (req: Request) => {
             .insert({
               user_id: invitation.account_owner_id,
               actor_user_id: user.id,
+              actor_type: 'authorized_user',
               action_type: 'contributor_access',
               action_category: 'contributor',
               resource_type: 'account',
