@@ -179,6 +179,7 @@ serve(async (req: Request) => {
       await supabaseAdmin.from("user_activity_logs").insert({
         user_id: user.id,
         actor_user_id: user.id,
+        actor_type: "owner",
         action_type: "invite_sent",
         action_category: "authorized_users",
         resource_type: "invite",
