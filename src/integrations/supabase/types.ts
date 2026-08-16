@@ -408,6 +408,7 @@ export type Database = {
           role: Database["public"]["Enums"]["membership_role"]
           role_changed_at: string | null
           status: string
+          updated_at: string
           user_id: string
         }
         Insert: {
@@ -421,6 +422,7 @@ export type Database = {
           role?: Database["public"]["Enums"]["membership_role"]
           role_changed_at?: string | null
           status?: string
+          updated_at?: string
           user_id: string
         }
         Update: {
@@ -434,6 +436,7 @@ export type Database = {
           role?: Database["public"]["Enums"]["membership_role"]
           role_changed_at?: string | null
           status?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: [
@@ -1201,6 +1204,84 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      content_audit_events: {
+        Row: {
+          account_id: string | null
+          actor_type: Database["public"]["Enums"]["audit_actor_type"]
+          actor_user_id: string | null
+          changed_fields: string[]
+          event_source: Database["public"]["Enums"]["audit_event_source"]
+          id: string
+          metadata: Json
+          occurred_at: string
+          operation: string
+          owner_user_id: string | null
+          record_id: string | null
+          record_label: string | null
+          request_id: string | null
+          table_name: string
+        }
+        Insert: {
+          account_id?: string | null
+          actor_type?: Database["public"]["Enums"]["audit_actor_type"]
+          actor_user_id?: string | null
+          changed_fields?: string[]
+          event_source?: Database["public"]["Enums"]["audit_event_source"]
+          id?: string
+          metadata?: Json
+          occurred_at?: string
+          operation: string
+          owner_user_id?: string | null
+          record_id?: string | null
+          record_label?: string | null
+          request_id?: string | null
+          table_name: string
+        }
+        Update: {
+          account_id?: string | null
+          actor_type?: Database["public"]["Enums"]["audit_actor_type"]
+          actor_user_id?: string | null
+          changed_fields?: string[]
+          event_source?: Database["public"]["Enums"]["audit_event_source"]
+          id?: string
+          metadata?: Json
+          occurred_at?: string
+          operation?: string
+          owner_user_id?: string | null
+          record_id?: string | null
+          record_label?: string | null
+          request_id?: string | null
+          table_name?: string
+        }
+        Relationships: []
+      }
+      content_audit_field_policy: {
+        Row: {
+          created_at: string
+          label_columns: string[]
+          metadata_columns: string[]
+          notes: string | null
+          table_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          label_columns?: string[]
+          metadata_columns?: string[]
+          notes?: string | null
+          table_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          label_columns?: string[]
+          metadata_columns?: string[]
+          notes?: string | null
+          table_name?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       continuity_account_freezes: {
         Row: {
@@ -4825,6 +4906,7 @@ export type Database = {
           file_url: string
           folder_id: string | null
           id: string
+          updated_at: string
           user_id: string
         }
         Insert: {
@@ -4837,6 +4919,7 @@ export type Database = {
           file_url: string
           folder_id?: string | null
           id?: string
+          updated_at?: string
           user_id: string
         }
         Update: {
@@ -4849,6 +4932,7 @@ export type Database = {
           file_url?: string
           folder_id?: string | null
           id?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: [
@@ -6118,6 +6202,7 @@ export type Database = {
           property_id: string
           source: string | null
           tags: string[] | null
+          updated_at: string
           user_id: string
         }
         Insert: {
@@ -6142,6 +6227,7 @@ export type Database = {
           property_id: string
           source?: string | null
           tags?: string[] | null
+          updated_at?: string
           user_id: string
         }
         Update: {
@@ -6166,6 +6252,7 @@ export type Database = {
           property_id?: string
           source?: string | null
           tags?: string[] | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: [
@@ -8507,6 +8594,7 @@ export type Database = {
         Args: { _request_id: string }
         Returns: string
       }
+      current_audit_request_id: { Args: never; Returns: string }
       end_maintenance_mode: { Args: { p_id?: string }; Returns: number }
       enforce_continuity_execution_guard: {
         Args: { _request_id: string }
@@ -9090,6 +9178,20 @@ export type Database = {
         | "developer"
         | "qa"
         | "owner"
+      audit_actor_type:
+        | "owner"
+        | "authorized_user"
+        | "admin"
+        | "service_role"
+        | "system"
+        | "cron"
+      audit_event_source:
+        | "browser"
+        | "edge_function"
+        | "service_role"
+        | "database_trigger"
+        | "admin"
+        | "system"
       calendar_event_category:
         | "home_property"
         | "maintenance_care"
@@ -9272,6 +9374,22 @@ export const Constants = {
         "developer",
         "qa",
         "owner",
+      ],
+      audit_actor_type: [
+        "owner",
+        "authorized_user",
+        "admin",
+        "service_role",
+        "system",
+        "cron",
+      ],
+      audit_event_source: [
+        "browser",
+        "edge_function",
+        "service_role",
+        "database_trigger",
+        "admin",
+        "system",
       ],
       calendar_event_category: [
         "home_property",
