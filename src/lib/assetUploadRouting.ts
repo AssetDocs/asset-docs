@@ -19,6 +19,9 @@ export function resolveAssetUploadDestination(type: AssetUploadType): AssetUploa
       return { kind: 'route', to: '/account/media/upload?tab=videos' };
     case 'insurance_policy':
       return { kind: 'route', to: '/account/insurance/new' };
+    case 'manual_entry':
+      // Existing Manual Entry screen — unchanged behavior, new parent section.
+      return { kind: 'route', to: '/inventory' };
     default:
       return { kind: 'route', to: `/account/documents/upload?type=${type}` };
   }

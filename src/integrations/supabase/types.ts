@@ -5560,6 +5560,7 @@ export type Database = {
           folder_id: string | null
           holiday: string | null
           id: string
+          migrated_from_user_note_id: string | null
           pending_delete: boolean
           pending_delete_at: string | null
           record_type: string
@@ -5582,6 +5583,7 @@ export type Database = {
           folder_id?: string | null
           holiday?: string | null
           id?: string
+          migrated_from_user_note_id?: string | null
           pending_delete?: boolean
           pending_delete_at?: string | null
           record_type?: string
@@ -5604,6 +5606,7 @@ export type Database = {
           folder_id?: string | null
           holiday?: string | null
           id?: string
+          migrated_from_user_note_id?: string | null
           pending_delete?: boolean
           pending_delete_at?: string | null
           record_type?: string

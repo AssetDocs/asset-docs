@@ -31,11 +31,12 @@ import SecurityProgress from '@/components/SecurityProgress';
 import MFADropdown from '@/components/MFADropdown';
 import DashboardGrid from '@/components/DashboardGrid';
 import PersonalWorkspacePreview from '@/components/personal-workspace/PersonalWorkspacePreview';
-import InsightsToolsGrid from '@/components/InsightsToolsGrid';
-import LifeHubGrid from '@/components/LifeHubGrid';
+import KnowledgeHubGrid from '@/components/KnowledgeHubGrid';
+import ContactsHub from '@/components/knowledge-hub/ContactsHub';
+import NotesHub from '@/components/knowledge-hub/NotesHub';
+import TraditionsRecipesHub from '@/components/knowledge-hub/TraditionsRecipesHub';
 import NotesSection from '@/components/NotesSection';
 import FamilyTraditions from '@/components/FamilyTraditions';
-import QuickNotesSection from '@/components/QuickNotesSection';
 import FamilyRecipes from '@/components/FamilyRecipes';
 import FamilyMedications from '@/components/FamilyMedications';
 import ImportantLocations from '@/components/ImportantLocations';
@@ -56,6 +57,12 @@ import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
 import { recordDashboardResumeActivity, type DashboardResumeActivityType } from '@/lib/dashboardResume';
+import {
+  normalizeAccountTab,
+  isLegacyAccountTab,
+  getAccountTabParent,
+  accountTabRoute,
+} from '@/lib/knowledgeHubNavigation';
 
 const getDashboardWelcomeStorageKey = (userId: string) => `assetSafe.dashboardWelcomeSeen.${userId}`;
 
@@ -67,15 +74,23 @@ const Account: React.FC = () => {
   const [welcomeModalOpen, setWelcomeModalOpen] = useState(false);
   const [markingWelcomeSeen, setMarkingWelcomeSeen] = useState(false);
   const [dismissedDashboardWelcomeUserId, setDismissedDashboardWelcomeUserId] = useState<string | null>(null);
-  const activeTab = searchParams.get('tab') || 'overview';
+  // Canonical tab resolution: legacy keys (life-hub, insights-tools, quick-notes)
+  // are normalized here and nowhere else.
+  const rawTab = searchParams.get('tab');
+  const activeTab = normalizeAccountTab(rawTab);
   const handleTabChange = (tab: string) => {
-    if (tab === 'overview') {
-      navigate('/account');
-      return;
-    }
-    navigate(`/account?tab=${encodeURIComponent(tab)}`);
+    navigate(accountTabRoute(normalizeAccountTab(tab)));
   };
   const setActiveTab = handleTabChange;
+
+  // Rewrite legacy deep links to their canonical tab, preserving other params.
+  useEffect(() => {
+    if (!isLegacyAccountTab(rawTab)) return;
+    const next = new URLSearchParams(searchParams);
+    next.set('tab', activeTab);
+    navigate(`/account?${next.toString()}`, { replace: true });
+  }, [rawTab, activeTab, searchParams, navigate]);
+
   const { subscriptionTier } = useSubscription();
   const { isReadOnly: isViewer, showReadOnlyRestriction: showViewerRestriction, canEdit, accountId, isOwner } = useAccount();
   const { user, profile, profileLoading, refreshProfile } = useAuth();
@@ -143,10 +158,10 @@ const Account: React.FC = () => {
         label: 'Open Asset Documentation',
         route: '/account?tab=asset-documentation',
       },
-      'life-hub': {
+      'knowledge-hub': {
         type: 'family_archive_opened',
-        label: 'Open Family Archive',
-        route: '/account?tab=life-hub',
+        label: 'Open Knowledge Hub',
+        route: '/account?tab=knowledge-hub',
       },
       'password-catalog': {
         type: 'digital_access_opened',
@@ -292,8 +307,11 @@ const Account: React.FC = () => {
       'asset-documentation': { title: 'Asset Documentation', subtitle: 'Claim-ready proof for your home and belongings.' },
       'password-catalog': { title: 'Digital Access', subtitle: 'Encrypted storage for everyday online accounts.' },
       'legacy-locker': { title: 'Legacy Locker', subtitle: 'Guidance and access when you can\'t be there.' },
-      'insights-tools': { title: 'Insights & Tools', subtitle: 'Track values, manage repairs, and organize property details.' },
-      'life-hub': { title: 'Family Archive', subtitle: 'Everyday life, organized and protected.' },
+      'knowledge-hub': { title: 'Knowledge Hub', subtitle: 'Contacts · Notes · Property Details · Records · Memories' },
+      'contacts': { title: 'Contacts', subtitle: 'The people you rely on — personal and professional.' },
+      'notes-hub': { title: 'Notes', subtitle: 'Keep important notes, reminders, and information in one place.' },
+      'traditions-recipes': { title: 'Family Traditions & Recipes', subtitle: 'The customs and cooking you want remembered.' },
+
       
       'asset-values': { title: 'Asset Values', subtitle: 'Track the estimated value of your documented assets.' },
       'source-websites': { title: 'Source Websites', subtitle: 'Save product sources and reference links.' },
@@ -303,7 +321,7 @@ const Account: React.FC = () => {
       'service-pros': { title: 'Trusted Professionals', subtitle: 'Track your trusted service providers and contractors.' },
       'upgrades-repairs': { title: 'Upgrades & Repairs', subtitle: 'Document property improvements and repair history.' },
       'smart-calendar': { title: 'Smart Calendar', subtitle: 'Reminders, records, and timelines — all in one place.' },
-      'quick-notes': { title: 'Quick Notes', subtitle: 'Jot down quick reminders or thoughts.' },
+      
       'notes': { title: 'Notes', subtitle: 'Keep important notes, reminders, and information in one place.' },
       'family-traditions': { title: 'Family Traditions', subtitle: 'Preserve family traditions, stories, and customs.' },
       'family-recipes': { title: 'Family Recipes', subtitle: 'Preserve cherished family recipes for generations.' },
@@ -354,13 +372,12 @@ const Account: React.FC = () => {
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             {/* Back Navigation Buttons */}
+            {/* Back Navigation Buttons — all pushes, so browser Back retraces the
+                same path the UI took (no replace-state surprises). */}
             {!isOverview && (
               <div className="w-full flex flex-wrap gap-2">
                 <Button
-                  onClick={() => {
-                    setActiveTab('overview');
-                    navigate('/account', { replace: true });
-                  }}
+                  onClick={() => setActiveTab('overview')}
                   variant="outline"
                   size="sm"
                   className="bg-white text-brand-orange border-brand-orange hover:bg-brand-orange/10"
@@ -369,35 +386,21 @@ const Account: React.FC = () => {
                   Back to Dashboard
                 </Button>
 
-                {['voice-notes', 'service-pros', 'notes', 'family-traditions', 'family-recipes', 'medication-list', 'important-locations', 'memory-safe'].includes(activeTab) && (
-                  <Button
-                    onClick={() => {
-                      setActiveTab('life-hub');
-                      navigate('/account?tab=life-hub', { replace: true });
-                    }}
-                    variant="outline"
-                    size="sm"
-                    className="bg-white text-brand-orange border-brand-orange hover:bg-brand-orange/10"
-                  >
-                    <ChevronLeft className="h-4 w-4 mr-1" />
-                    Back to Family Archive
-                  </Button>
-                )}
-
-                {['source-websites', 'paint-codes', 'upgrades-repairs', 'smart-calendar'].includes(activeTab) && (
-                  <Button
-                    onClick={() => {
-                      setActiveTab('insights-tools');
-                      navigate('/account?tab=insights-tools', { replace: true });
-                    }}
-                    variant="outline"
-                    size="sm"
-                    className="bg-white text-brand-orange border-brand-orange hover:bg-brand-orange/10"
-                  >
-                    <ChevronLeft className="h-4 w-4 mr-1" />
-                    Back to Insights & Tools
-                  </Button>
-                )}
+                {(() => {
+                  const parent = getAccountTabParent(activeTab);
+                  if (!parent) return null;
+                  return (
+                    <Button
+                      onClick={() => setActiveTab(parent.tab)}
+                      variant="outline"
+                      size="sm"
+                      className="bg-white text-brand-orange border-brand-orange hover:bg-brand-orange/10"
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-1" />
+                      Back to {parent.label}
+                    </Button>
+                  );
+                })()}
               </div>
             )}
 
@@ -437,14 +440,22 @@ const Account: React.FC = () => {
             </TabsContent>
 
 
-            {/* Insights & Tools Sub-Grid */}
-            <TabsContent value="insights-tools">
-              <InsightsToolsGrid onTabChange={setActiveTab} />
+            {/* Knowledge Hub Sub-Grid */}
+            <TabsContent value="knowledge-hub">
+              <KnowledgeHubGrid onTabChange={setActiveTab} />
             </TabsContent>
 
-            {/* Life Hub Sub-Grid */}
-            <TabsContent value="life-hub">
-              <LifeHubGrid onTabChange={setActiveTab} />
+            {/* Knowledge Hub wrappers (navigation only) */}
+            <TabsContent value="contacts">
+              <ContactsHub onTabChange={setActiveTab} />
+            </TabsContent>
+
+            <TabsContent value="notes-hub">
+              <NotesHub onTabChange={setActiveTab} />
+            </TabsContent>
+
+            <TabsContent value="traditions-recipes">
+              <TraditionsRecipesHub onTabChange={setActiveTab} />
             </TabsContent>
 
             <TabsContent value="asset-values">
@@ -523,15 +534,6 @@ const Account: React.FC = () => {
               <SmartCalendar autoOpenAdd={autoOpenAdd} />
             </TabsContent>
 
-            <TabsContent value="quick-notes">
-              <div className="space-y-4">
-                <div>
-                  <h2 className="text-2xl font-bold text-foreground">{getSectionConfig().title}</h2>
-                  <p className="text-muted-foreground text-sm mt-1">{getSectionConfig().subtitle}</p>
-                </div>
-                <QuickNotesSection />
-              </div>
-            </TabsContent>
 
             <TabsContent value="notes">
               <NotesSection autoOpenAdd={autoOpenAdd} />

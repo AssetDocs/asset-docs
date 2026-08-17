@@ -436,13 +436,13 @@ const VIPContacts: React.FC = () => {
               Back to Dashboard
             </Button>
             <Button
-              onClick={() => navigate('/account?tab=life-hub')}
+              onClick={() => navigate('/account?tab=contacts')}
               variant="outline"
               size="sm"
               className="bg-white text-brand-orange border-brand-orange hover:bg-brand-orange/10"
             >
               <ChevronLeft className="h-4 w-4 mr-1" />
-              Back to Family Archive
+              Back to Contacts
             </Button>
           </div>
 

@@ -19,7 +19,9 @@ import {
   FileText, 
   Home,
   Map,
-  Files
+  Files,
+  Package
+
 } from 'lucide-react';
 
 export type AssetUploadType = 
@@ -34,6 +36,7 @@ export type AssetUploadType =
   | 'appraisal' 
   | 'title_deed' 
   | 'floorplan'
+  | 'manual_entry'
   | 'other';
 
 interface AssetTypeOption {
@@ -109,6 +112,12 @@ const assetTypes: AssetTypeOption[] = [
     label: 'Floorplan',
     description: 'Layouts, room plans,\nor builder plans',
     icon: Map,
+  },
+  {
+    type: 'manual_entry',
+    label: 'Manual Entry Item',
+    description: 'Add an item and its\nvalue manually',
+    icon: Package,
   },
   {
     type: 'other',

@@ -173,8 +173,8 @@ const Inventory: React.FC = () => {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <DashboardBreadcrumb 
           hidePageName
-          parentRoute="/account?tab=insights-tools"
-          parentLabel="Back to Insights & Tools"
+          parentRoute="/account?tab=asset-documentation"
+          parentLabel="Back to Asset Documentation"
         />
         
         <div className="mb-8">
