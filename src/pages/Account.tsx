@@ -370,6 +370,7 @@ const Account: React.FC = () => {
             </>
           )}
 
+          <AccountTabErrorBoundary resetKey={activeTab}>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             {/* Back Navigation Buttons */}
             {/* Back Navigation Buttons — all pushes, so browser Back retraces the
