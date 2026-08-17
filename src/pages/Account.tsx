@@ -440,14 +440,22 @@ const Account: React.FC = () => {
             </TabsContent>
 
 
-            {/* Insights & Tools Sub-Grid */}
-            <TabsContent value="insights-tools">
-              <InsightsToolsGrid onTabChange={setActiveTab} />
+            {/* Knowledge Hub Sub-Grid */}
+            <TabsContent value="knowledge-hub">
+              <KnowledgeHubGrid onTabChange={setActiveTab} />
             </TabsContent>
 
-            {/* Life Hub Sub-Grid */}
-            <TabsContent value="life-hub">
-              <LifeHubGrid onTabChange={setActiveTab} />
+            {/* Knowledge Hub wrappers (navigation only) */}
+            <TabsContent value="contacts">
+              <ContactsHub onTabChange={setActiveTab} />
+            </TabsContent>
+
+            <TabsContent value="notes-hub">
+              <NotesHub onTabChange={setActiveTab} />
+            </TabsContent>
+
+            <TabsContent value="traditions-recipes">
+              <TraditionsRecipesHub onTabChange={setActiveTab} />
             </TabsContent>
 
             <TabsContent value="asset-values">
