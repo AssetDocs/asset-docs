@@ -372,13 +372,12 @@ const Account: React.FC = () => {
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             {/* Back Navigation Buttons */}
+            {/* Back Navigation Buttons — all pushes, so browser Back retraces the
+                same path the UI took (no replace-state surprises). */}
             {!isOverview && (
               <div className="w-full flex flex-wrap gap-2">
                 <Button
-                  onClick={() => {
-                    setActiveTab('overview');
-                    navigate('/account', { replace: true });
-                  }}
+                  onClick={() => setActiveTab('overview')}
                   variant="outline"
                   size="sm"
                   className="bg-white text-brand-orange border-brand-orange hover:bg-brand-orange/10"
@@ -387,35 +386,21 @@ const Account: React.FC = () => {
                   Back to Dashboard
                 </Button>
 
-                {['voice-notes', 'service-pros', 'notes', 'family-traditions', 'family-recipes', 'medication-list', 'important-locations', 'memory-safe'].includes(activeTab) && (
-                  <Button
-                    onClick={() => {
-                      setActiveTab('life-hub');
-                      navigate('/account?tab=life-hub', { replace: true });
-                    }}
-                    variant="outline"
-                    size="sm"
-                    className="bg-white text-brand-orange border-brand-orange hover:bg-brand-orange/10"
-                  >
-                    <ChevronLeft className="h-4 w-4 mr-1" />
-                    Back to Family Archive
-                  </Button>
-                )}
-
-                {['source-websites', 'paint-codes', 'upgrades-repairs', 'smart-calendar'].includes(activeTab) && (
-                  <Button
-                    onClick={() => {
-                      setActiveTab('insights-tools');
-                      navigate('/account?tab=insights-tools', { replace: true });
-                    }}
-                    variant="outline"
-                    size="sm"
-                    className="bg-white text-brand-orange border-brand-orange hover:bg-brand-orange/10"
-                  >
-                    <ChevronLeft className="h-4 w-4 mr-1" />
-                    Back to Insights & Tools
-                  </Button>
-                )}
+                {(() => {
+                  const parent = getAccountTabParent(activeTab);
+                  if (!parent) return null;
+                  return (
+                    <Button
+                      onClick={() => setActiveTab(parent.tab)}
+                      variant="outline"
+                      size="sm"
+                      className="bg-white text-brand-orange border-brand-orange hover:bg-brand-orange/10"
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-1" />
+                      Back to {parent.label}
+                    </Button>
+                  );
+                })()}
               </div>
             )}
 
