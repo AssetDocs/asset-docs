@@ -112,6 +112,12 @@ const assetTypes: AssetTypeOption[] = [
     icon: Map,
   },
   {
+    type: 'manual_entry',
+    label: 'Manual Entry Item',
+    description: 'Add an item and its\nvalue manually',
+    icon: Package,
+  },
+  {
     type: 'other',
     label: 'Other',
     description: 'Other important\ndocuments',
