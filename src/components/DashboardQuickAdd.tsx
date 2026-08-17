@@ -153,20 +153,14 @@ const DashboardQuickAdd: React.FC = () => {
                 {
                   key: 'asset_documentation' as const,
                   label: 'Asset Documentation',
-                  description: 'Photos, videos, policies, receipts, and records.',
+                  description: 'Photos, videos, policies, receipts, manual entries, and records.',
                   icon: FolderOpen,
                 },
                 {
-                  key: 'family_archive' as const,
-                  label: 'Family Archive',
-                  description: 'Contacts, notes, recipes, locations, and memories.',
+                  key: 'knowledge_hub' as const,
+                  label: 'Knowledge Hub',
+                  description: 'Contacts, notes, recipes, locations, property details, and calendar.',
                   icon: Heart,
-                },
-                {
-                  key: 'insights_tools' as const,
-                  label: 'Insights & Tools',
-                  description: 'Repairs, paint codes, calendar entries, and item values.',
-                  icon: Wrench,
                 },
               ].map(option => (
                 <Button
