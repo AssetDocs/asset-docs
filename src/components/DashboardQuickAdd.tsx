@@ -18,7 +18,7 @@ import {
   ChevronRight,
   FolderOpen,
   Heart,
-  Wrench,
+  
   Contact,
   Briefcase,
   BookOpen,
@@ -30,7 +30,7 @@ import {
   Hammer,
   Palette,
   CalendarDays,
-  Package,
+  
   Sparkles,
 } from 'lucide-react';
 
