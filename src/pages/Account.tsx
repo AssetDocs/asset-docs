@@ -54,6 +54,7 @@ import AccountContinuityInstructions from '@/components/AccountContinuityInstruc
 import ContinuityPreferencesPage from '@/components/continuity/ContinuityPreferencesPage';
 import ContinuityRequestBanner from '@/components/continuity/ContinuityRequestBanner';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
+import AccountTabErrorBoundary from '@/components/AccountTabErrorBoundary';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
 import { recordDashboardResumeActivity, type DashboardResumeActivityType } from '@/lib/dashboardResume';
