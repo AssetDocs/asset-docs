@@ -307,8 +307,11 @@ const Account: React.FC = () => {
       'asset-documentation': { title: 'Asset Documentation', subtitle: 'Claim-ready proof for your home and belongings.' },
       'password-catalog': { title: 'Digital Access', subtitle: 'Encrypted storage for everyday online accounts.' },
       'legacy-locker': { title: 'Legacy Locker', subtitle: 'Guidance and access when you can\'t be there.' },
-      'insights-tools': { title: 'Insights & Tools', subtitle: 'Track values, manage repairs, and organize property details.' },
-      'life-hub': { title: 'Family Archive', subtitle: 'Everyday life, organized and protected.' },
+      'knowledge-hub': { title: 'Knowledge Hub', subtitle: 'Contacts · Notes · Property Details · Records · Memories' },
+      'contacts': { title: 'Contacts', subtitle: 'The people you rely on — personal and professional.' },
+      'notes-hub': { title: 'Notes', subtitle: 'Keep important notes, reminders, and information in one place.' },
+      'traditions-recipes': { title: 'Family Traditions & Recipes', subtitle: 'The customs and cooking you want remembered.' },
+
       
       'asset-values': { title: 'Asset Values', subtitle: 'Track the estimated value of your documented assets.' },
       'source-websites': { title: 'Source Websites', subtitle: 'Save product sources and reference links.' },
