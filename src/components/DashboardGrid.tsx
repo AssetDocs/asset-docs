@@ -212,13 +212,15 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           </div>
         </div>
 
+        {/* Documentation Checklist - collapsed by default */}
+        <div id="documentation-checklist" className="md:col-span-2">
+          <DocumentationChecklist />
+        </div>
+
         {/* MFA Dropdown - security control near restricted sections */}
         <div className="md:col-span-2">
           <MFADropdown />
         </div>
-
-
-
 
         {/* Asset Values Collapsible Bar */}
         <div className="md:col-span-2">
@@ -242,14 +244,10 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
             )}
           </div>
         </div>
+
         {/* Emergency Instructions Collapsible */}
         <div className="md:col-span-2">
           <EmergencyInstructions onNavigate={onTabChange} />
-        </div>
-
-        {/* Documentation Checklist - collapsed by default */}
-        <div id="documentation-checklist" className="md:col-span-2">
-          <DocumentationChecklist />
         </div>
       </div>
 
