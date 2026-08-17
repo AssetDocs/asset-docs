@@ -158,10 +158,10 @@ const Account: React.FC = () => {
         label: 'Open Asset Documentation',
         route: '/account?tab=asset-documentation',
       },
-      'life-hub': {
+      'knowledge-hub': {
         type: 'family_archive_opened',
-        label: 'Open Family Archive',
-        route: '/account?tab=life-hub',
+        label: 'Open Knowledge Hub',
+        route: '/account?tab=knowledge-hub',
       },
       'password-catalog': {
         type: 'digital_access_opened',
