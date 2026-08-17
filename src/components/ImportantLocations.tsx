@@ -96,7 +96,7 @@ const SENSITIVE_HINT_PATTERN = /\b(password|passcode|safe combination|combinatio
 
 const clean = (value: string) => value.trim() || null;
 
-const ImportantLocations: React.FC<ImportantLocationsProps> = ({ onNavigate }) => {
+const ImportantLocations: React.FC<ImportantLocationsProps> = ({ onNavigate, autoOpenAdd = false }) => {
   const { user } = useAuth();
   const { ownerUserId, canEdit, showReadOnlyRestriction } = useAccount();
   const { toast } = useToast();
