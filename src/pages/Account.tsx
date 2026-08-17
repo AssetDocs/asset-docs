@@ -321,7 +321,7 @@ const Account: React.FC = () => {
       'service-pros': { title: 'Trusted Professionals', subtitle: 'Track your trusted service providers and contractors.' },
       'upgrades-repairs': { title: 'Upgrades & Repairs', subtitle: 'Document property improvements and repair history.' },
       'smart-calendar': { title: 'Smart Calendar', subtitle: 'Reminders, records, and timelines — all in one place.' },
-      'quick-notes': { title: 'Quick Notes', subtitle: 'Jot down quick reminders or thoughts.' },
+      
       'notes': { title: 'Notes', subtitle: 'Keep important notes, reminders, and information in one place.' },
       'family-traditions': { title: 'Family Traditions', subtitle: 'Preserve family traditions, stories, and customs.' },
       'family-recipes': { title: 'Family Recipes', subtitle: 'Preserve cherished family recipes for generations.' },
