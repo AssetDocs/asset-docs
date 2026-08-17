@@ -137,7 +137,25 @@ const DashboardQuickAdd: React.FC = () => {
     navigate(destination.to);
   };
 
-  const optionList = knowledgeHubOptions;
+  const renderOption = (option: AddOption) => (
+    <Button
+      key={option.label}
+      variant="outline"
+      className="h-auto w-full justify-start gap-3 py-3 px-4 text-left hover:border-brand-blue hover:bg-brand-blue/5"
+      onClick={() => goTo(option.to)}
+    >
+      <span className="w-9 h-9 rounded-full bg-yellow text-yellow-foreground flex items-center justify-center flex-shrink-0">
+        <option.icon className="h-4 w-4" />
+      </span>
+      <span className="flex-1 min-w-0">
+        <span className="block font-medium text-sm">{option.label}</span>
+        <span className="block text-xs text-muted-foreground whitespace-normal">
+          {option.description}
+        </span>
+      </span>
+      <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+    </Button>
+  );
 
   return (
     <>
