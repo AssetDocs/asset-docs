@@ -57,6 +57,12 @@ import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
 import { recordDashboardResumeActivity, type DashboardResumeActivityType } from '@/lib/dashboardResume';
+import {
+  normalizeAccountTab,
+  isLegacyAccountTab,
+  getAccountTabParent,
+  accountTabRoute,
+} from '@/lib/knowledgeHubNavigation';
 
 const getDashboardWelcomeStorageKey = (userId: string) => `assetSafe.dashboardWelcomeSeen.${userId}`;
 
@@ -68,15 +74,23 @@ const Account: React.FC = () => {
   const [welcomeModalOpen, setWelcomeModalOpen] = useState(false);
   const [markingWelcomeSeen, setMarkingWelcomeSeen] = useState(false);
   const [dismissedDashboardWelcomeUserId, setDismissedDashboardWelcomeUserId] = useState<string | null>(null);
-  const activeTab = searchParams.get('tab') || 'overview';
+  // Canonical tab resolution: legacy keys (life-hub, insights-tools, quick-notes)
+  // are normalized here and nowhere else.
+  const rawTab = searchParams.get('tab');
+  const activeTab = normalizeAccountTab(rawTab);
   const handleTabChange = (tab: string) => {
-    if (tab === 'overview') {
-      navigate('/account');
-      return;
-    }
-    navigate(`/account?tab=${encodeURIComponent(tab)}`);
+    navigate(accountTabRoute(normalizeAccountTab(tab)));
   };
   const setActiveTab = handleTabChange;
+
+  // Rewrite legacy deep links to their canonical tab, preserving other params.
+  useEffect(() => {
+    if (!isLegacyAccountTab(rawTab)) return;
+    const next = new URLSearchParams(searchParams);
+    next.set('tab', activeTab);
+    navigate(`/account?${next.toString()}`, { replace: true });
+  }, [rawTab, activeTab, searchParams, navigate]);
+
   const { subscriptionTier } = useSubscription();
   const { isReadOnly: isViewer, showReadOnlyRestriction: showViewerRestriction, canEdit, accountId, isOwner } = useAccount();
   const { user, profile, profileLoading, refreshProfile } = useAuth();
