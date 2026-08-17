@@ -170,11 +170,6 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           color="red"
         />
 
-        {/* Documentation Checklist - collapsed by default */}
-        <div id="documentation-checklist" className="md:col-span-2">
-          <DocumentationChecklist />
-        </div>
-
         {/* Secure Vault Banner */}
         <div className="md:col-span-2 bg-amber-50 border border-amber-200 rounded-lg px-5 py-4 flex items-center gap-3">
           <div className="flex-1">
