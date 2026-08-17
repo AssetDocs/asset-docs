@@ -239,6 +239,11 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
         <div className="md:col-span-2">
           <EmergencyInstructions onNavigate={onTabChange} />
         </div>
+
+        {/* Documentation Checklist - collapsed by default */}
+        <div id="documentation-checklist" className="md:col-span-2">
+          <DocumentationChecklist />
+        </div>
       </div>
 
       {/* Bottom Utility Row - 3 columns (orange) */}
