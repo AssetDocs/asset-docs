@@ -135,7 +135,8 @@ const ImportantLocations: React.FC<ImportantLocationsProps> = ({ onNavigate }) =
         .eq('user_id', targetUserId)
         .order('updated_at', { ascending: false });
       if (error) throw error;
-      setLocations((data || []) as ImportantLocation[]);
+      const rows = ((data || []) as ImportantLocation[]).filter((row: any) => !row?.pending_delete);
+      setLocations(rows);
     } catch (error) {
       console.error('Error fetching important locations:', error);
       toast({
