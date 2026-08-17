@@ -179,8 +179,8 @@ const DashboardQuickAdd: React.FC = () => {
       </div>
 
       <Dialog open={open} onOpenChange={closeChooser}>
-        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col overflow-hidden">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>
               {step === 'root'
                 ? 'What would you like to add?'
@@ -193,43 +193,8 @@ const DashboardQuickAdd: React.FC = () => {
             </DialogDescription>
           </DialogHeader>
 
-          {step === 'root' ? (
-            <div className="grid grid-cols-1 gap-3 py-2">
-              {[
-                {
-                  key: 'asset_documentation' as const,
-                  label: 'Asset Documentation',
-                  description: 'Photos, videos, policies, receipts, manual entries, and records.',
-                  icon: FolderOpen,
-                },
-                {
-                  key: 'knowledge_hub' as const,
-                  label: 'Knowledge Hub',
-                  description: 'Contacts, notes, recipes, locations, property details, and calendar.',
-                  icon: Heart,
-                },
-              ].map(option => (
-                <Button
-                  key={option.key}
-                  variant="outline"
-                  className="h-auto w-full justify-start gap-3 py-4 px-4 text-left hover:border-brand-blue hover:bg-brand-blue/5"
-                  onClick={() => selectCategory(option.key)}
-                >
-                  <span className="w-10 h-10 rounded-full bg-yellow text-yellow-foreground flex items-center justify-center flex-shrink-0">
-                    <option.icon className="h-5 w-5" />
-                  </span>
-                  <span className="flex-1 min-w-0">
-                    <span className="block font-medium text-sm">{option.label}</span>
-                    <span className="block text-xs text-muted-foreground whitespace-normal">
-                      {option.description}
-                    </span>
-                  </span>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                </Button>
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-3 py-2">
+          {step !== 'root' && (
+            <div className="flex-shrink-0">
               <Button
                 variant="ghost"
                 size="sm"
@@ -239,17 +204,34 @@ const DashboardQuickAdd: React.FC = () => {
                 <ChevronLeft className="h-4 w-4 mr-1" />
                 Back
               </Button>
+            </div>
+          )}
 
-              <div className="grid grid-cols-1 gap-2">
-                {optionList.map(option => (
+          <div className="flex-1 min-h-0 overflow-y-auto py-2">
+            {step === 'root' ? (
+              <div className="grid grid-cols-1 gap-3">
+                {[
+                  {
+                    key: 'asset_documentation' as const,
+                    label: 'Asset Documentation',
+                    description: 'Photos, videos, documents, receipts, records, and assets.',
+                    icon: FolderOpen,
+                  },
+                  {
+                    key: 'knowledge_hub' as const,
+                    label: 'Knowledge Hub',
+                    description: 'Contacts, notes, household information, reminders, and family records.',
+                    icon: Heart,
+                  },
+                ].map(option => (
                   <Button
-                    key={option.label}
+                    key={option.key}
                     variant="outline"
-                    className="h-auto w-full justify-start gap-3 py-3 px-4 text-left hover:border-brand-blue hover:bg-brand-blue/5"
-                    onClick={() => goTo(option.to)}
+                    className="h-auto w-full justify-start gap-3 py-4 px-4 text-left hover:border-brand-blue hover:bg-brand-blue/5"
+                    onClick={() => selectCategory(option.key)}
                   >
-                    <span className="w-9 h-9 rounded-full bg-yellow text-yellow-foreground flex items-center justify-center flex-shrink-0">
-                      <option.icon className="h-4 w-4" />
+                    <span className="w-10 h-10 rounded-full bg-yellow text-yellow-foreground flex items-center justify-center flex-shrink-0">
+                      <option.icon className="h-5 w-5" />
                     </span>
                     <span className="flex-1 min-w-0">
                       <span className="block font-medium text-sm">{option.label}</span>
@@ -261,10 +243,24 @@ const DashboardQuickAdd: React.FC = () => {
                   </Button>
                 ))}
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="space-y-4">
+                {knowledgeHubGroups.map(group => (
+                  <div key={group.heading} className="space-y-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-1">
+                      {group.heading}
+                    </p>
+                    <div className="grid grid-cols-1 gap-2">
+                      {group.options.map(renderOption)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
+
 
       <AssetTypeSelector
         open={assetSelectorOpen}
