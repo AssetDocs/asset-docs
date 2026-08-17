@@ -26,7 +26,7 @@ const KnowledgeHubGrid: React.FC<KnowledgeHubGridProps> = ({ onTabChange }) => {
       <div>
         <h2 className="text-2xl font-bold text-foreground">Knowledge Hub</h2>
         <p className="text-muted-foreground text-sm mt-1">
-          Contacts · Notes · Property Details · Records · Memories
+          Contacts · Notes · Property Details · Memories
         </p>
       </div>
 
