@@ -151,13 +151,22 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
         />
 
         <DashboardGridCard
-          icon={<Heart className="h-6 w-6" />}
-          title="Family Archive"
+          icon={
+            <div className="relative">
+              <Heart className="h-6 w-6" />
+              {calendarTodayCount > 0 && (
+                <span className="absolute -top-2 -right-2 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold leading-none">
+                  {calendarTodayCount > 99 ? '99+' : calendarTodayCount}
+                </span>
+              )}
+            </div>
+          }
+          title="Knowledge Hub"
           description="Everyday life, organized and protected."
-          tags={['VIP Contacts', 'Voice Notes', 'Trusted Pros', 'Notes', 'Family Traditions', 'Family Recipes', 'Medication List']}
-          actionLabel="Open Family Archive"
+          tags={['Contacts', 'Notes', 'Property Details', 'Records', 'Memories']}
+          actionLabel="Open Knowledge Hub"
           actionIcon={<FolderOpen className="h-4 w-4" />}
-          onClick={() => rememberAndOpen('life-hub', 'family_archive_opened', 'Open Family Archive')}
+          onClick={() => rememberAndOpen('knowledge-hub', 'family_archive_opened', 'Open Knowledge Hub')}
           color="red"
         />
 
