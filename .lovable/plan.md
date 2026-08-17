@@ -1,110 +1,80 @@
-# Knowledge Hub — Dashboard and Navigation Simplification
+# Global "+ Add" — Align Quick Add With Knowledge Hub
 
-Combine Family Archive and Insights & Tools into one top-level section called Knowledge Hub. This is a navigation and presentation reorganization. Existing modules keep their own tables, forms, permissions, and business logic.
+Quick Add becomes a two-choice shortcut that mirrors the new dashboard: **Asset Documentation** or **Knowledge Hub**. It only finds the right existing form faster — no new forms, no writes, no permission decisions.
 
-## The new Knowledge Hub
+## Current state (verified)
 
-One flat, grouped screen with **10 top-level destinations** (Contacts, Medication List, Notes, Family Traditions & Recipes, Memory Safe, Important Locations, Paint Codes, Upgrades & Repairs, Source Websites, Smart Calendar). Wrapper screens only where modules are genuinely the same kind of thing.
+Part of this work already landed with the Knowledge Hub consolidation:
+
+- Quick Add root already shows exactly two categories: Asset Documentation and Knowledge Hub. Family Archive and Insights & Tools are gone.
+- Asset Documentation still routes through `AssetTypeSelector` + `assetUploadRouting.ts`, and `manual_entry` is already a selectable type routing to the existing Manual Entry screen (`/inventory`) from one shared definition.
+- Knowledge Hub Quick Add is a single flat list of 12 shortcuts using `?add=1`.
+
+What remains is presentation and routing polish described below.
+
+## 1. Group the Knowledge Hub list
+
+Replace the flat list with four subtle section labels (small uppercase muted text, not buttons, not an extra step). Every action stays one click from this screen.
 
 ```text
-Knowledge Hub
-  People & Care
-    Contacts ........... wrapper -> VIP Contacts | Trusted Professionals
-    Medication List .... direct
-  Notes & Family
-    Notes .............. wrapper -> Written Notes | Voice Notes
-    Family Traditions & Recipes ... wrapper -> Traditions | Recipes
-    Memory Safe ........ direct
-  Property & Household
-    Important Locations .. direct
-    Paint Codes .......... direct
-    Upgrades & Repairs ... direct
-    Source Websites ...... direct
-  Planning
-    Smart Calendar ....... direct
+PEOPLE & CARE          NOTES & FAMILY        PROPERTY & HOUSEHOLD    PLANNING
+  VIP Contact            Quick Note            Important Location      Calendar Entry
+  Trusted Professional   Voice Note            Paint Code
+  Medication             Family Tradition      Upgrade / Repair
+                         Family Recipe         Source Website
+                         Memory
 ```
 
-Wrappers are navigation only. Each one is a small screen of cards that link to the existing modules — no shared storage, no merged forms, no combined CRUD.
+Modal design is unchanged (icon, title, short description, chevron, Back, close X). The header and Back stay fixed; only the choices area scrolls.
 
-**Wrapper rule (non-negotiable):** a wrapper screen preserves the current active-account/workspace context and does **not** fetch or mutate module data itself. It renders navigation choices and passes control to the existing module destination. Wrappers must not grow their own queries, counts, lists, or write actions.
+## 2. Labels and copy
 
-The 10 top-level destinations resolve to **13 underlying modules** through the three wrappers: VIP Contacts, Trusted Professionals, Medication List, Written Notes, Voice Notes, Traditions, Recipes, Memory Safe, Important Locations, Paint Codes, Upgrades & Repairs, Source Websites, Smart Calendar.
+| Action | Copy |
+| --- | --- |
+| VIP Contact | Add an important personal contact. |
+| Trusted Professional | Add a trusted service provider or professional. |
+| Medication | Add to the medication reference list. |
+| Quick Note (renamed from "Note") | Jot down a reminder, instruction, or thought. |
+| Voice Note | Record a voice memo. |
+| Family Tradition | Preserve a family tradition or story. |
+| Family Recipe | Preserve a favorite family recipe. |
+| Memory | Add a memory to Memory Safe. |
+| Important Location | Record where something important is stored. |
+| Paint Code | Save a paint color, brand, room, and finish. |
+| Upgrade / Repair | Document a property improvement or repair. |
+| Source Website | Save a useful product, supplier, or reference link. |
+| Calendar Entry | Create a reminder or calendar event. |
 
-## Dashboard changes
+Root copy: Asset Documentation — "Photos, videos, documents, receipts, records, and assets." Knowledge Hub — "Contacts, notes, household information, reminders, and family records."
 
-The Family Archive and Insights & Tools cards are replaced by a single card:
+"Quick Note" is a convenience label only. It opens the standard Written Note form in the Notes module; records land in the normal Notes system, never `user_notes`. The old table is not dropped.
 
-- **Knowledge Hub** — "Contacts · Notes · Property Details · Records · Memories"
+## 3. Inclusion decisions (based on what each module actually supports)
 
-Everything else on the dashboard stays where it is: Asset Documentation, the Secure Vault banner, Legacy Locker, Digital Access, MFA, Asset Values, Emergency Instructions, the export/download row, and Post Damage Report.
+- **Source Website — include.** The module has a real "Add Website" toggle, so `add=1` can open it. This needs a small addition to that section so it responds to the flag.
+- **Memory — include.** Memory Safe already has a dedicated create route, so the shortcut simply navigates there.
+- **Voice Note — include, no auto-open.** Recording requires a user gesture for microphone access, so the shortcut lands on the Voice Notes screen with the recorder ready and does not auto-start.
+- **Paint Code — include, no auto-open.** Its add form is already visible on the page, so no flag is needed.
 
-The Smart Calendar "due today" badge currently shown on the Insights & Tools card moves onto the Knowledge Hub card so nothing time-sensitive becomes less visible.
+## 4. Guardrails (unchanged behavior to preserve)
 
-## Quick Add changes
-
-The chooser drops from three categories to two: **Asset Documentation** and **Knowledge Hub**. The Knowledge Hub step lists the same create shortcuts that exist today, regrouped to match the new structure.
-
-Two adjustments inside it:
-
-- **Quick Note** stays as a shortcut, but now opens the standard Notes add form.
-- **Manual Entry Item** moves under Asset Documentation, since it is another way to document an asset.
-
-Every shortcut keeps working the way it does now: `add=1` only asks an existing screen to open its own create UI. It never bypasses permissions and never performs the write itself.
-
-## Quick Notes retirement (the one real data change)
-
-Quick Notes and Notes are two separate systems today, not one feature with two views. Quick Notes writes to `user_notes`; Notes writes to `notes_traditions`. There is **1** Quick Notes record in the database, belonging to **1** account.
-
-Approach:
-
-1. **Pre-migration count check.** Confirm the source count is exactly 1 and record the row's `user_id`, title, file reference, and timestamps before anything moves.
-2. **One-time, guarded migration** of that record into the main Notes system, preserving title, content, attachment reference, and original timestamps where technically supported.
-3. **The migration must be idempotent.** It only inserts rows that have no matching Notes record already, so re-running it can never create duplicates. Re-running is a no-op.
-4. **Post-migration verification:** migrated target count = 1; `user_id` matches the source; file reference matches the source; timestamps preserved; source count unchanged; no duplicate Notes rows created. Any mismatch stops the rollout.
-5. Verify the migrated note renders correctly in Notes, including its attachment, in the app.
-6. Remove Quick Notes from navigation and stop all new writes to it.
-7. Keep "Quick Note" only as a Quick Add shortcut into the standard Notes add form.
-8. **Do not drop the `user_notes` table** in this update. Schema removal is a later cleanup once the migration is confirmed, so rollback stays easy.
-
-The attachment file itself is not moved — it already lives in the `documents` bucket and the migrated record keeps pointing at the same path. No storage policy changes.
-
-## Naming scope
-
-Rename in the live dashboard and in the customer-facing demo surfaces (Sample Dashboard, Video Help). Hold pricing and Terms copy for a separate deliberate marketing and legal review, so this update does not quietly alter legal text.
-
-## Out of scope
-
-No changes to Auth, MFA, Authorized Users, gifts, billing, RLS, storage policies, retention/deletion, the audit trail, or any unrelated backend system. No module is merged or rewritten because it is being grouped differently.
+- Quick Add is hidden for read-only users via the existing account context; it never decides ownership, account, workspace, permission, entitlement, or Authorized User rights.
+- Navigation stays within the active workspace — no account switching.
+- `add=1` is only a request that the destination open its existing create UI. Destinations consume it and strip only that parameter with replace navigation, preserving other query values.
+- No write happens until the destination form is submitted.
 
 ## Technical notes
 
-**Files touched (UI/routing):**
-- `src/components/DashboardGrid.tsx` — replace the two cards with the Knowledge Hub card; move the calendar badge.
-- `src/components/LifeHubGrid.tsx` + `src/components/InsightsToolsGrid.tsx` — replaced by a single `KnowledgeHubGrid.tsx` with the four group headings.
-- New wrapper components: `ContactsHub`, `NotesHub`, `TraditionsRecipesHub`.
-- `src/components/DashboardQuickAdd.tsx` — two root categories; regrouped option list; `Step` type becomes `'root' | 'knowledge-hub'`.
-- `src/pages/Account.tsx` — add `knowledge-hub` plus the three wrapper tabs to the tab set and `getSectionConfig`; retarget the contextual back buttons ("Back to Family Archive" / "Back to Insights & Tools" become "Back to Knowledge Hub", or to the relevant wrapper).
-- `src/lib/assetUploadRouting.ts` — add the Manual Entry destination so Asset Documentation and Quick Add cannot drift.
-- `src/components/AssetDocumentationGrid.tsx` — surface Manual Entry Items.
-
-**Legacy links must not break.** These already exist in the wild and in stored data:
-- `?tab=life-hub` and `?tab=insights-tools` — bookmarks, and `dashboardResume.familyArchive` values already persisted as `destination_route` in `dashboard_resume_activities` rows. Both tab keys will resolve to the Knowledge Hub rather than dead-ending.
-- `src/lib/dashboardResume.ts` — `familyArchive` route key updated, old rows still resolve.
-- `src/pages/Inventory.tsx` — `parentRoute` currently points at `?tab=insights-tools`; retarget to Asset Documentation.
-- `src/pages/VIPContacts.tsx` — "back to Family Archive" retargets to the Contacts wrapper.
-
-**Quick Notes migration mapping** (`user_notes` -> `notes_traditions`): `user_id`, `content`, `title` (fallback title where null, since the target requires one), `file_name`, `file_path`, `bucket_name`, `created_at`, `updated_at` preserved; `record_type` set to `'note'`; `folder_id` left null so it lands in the unfiled view. Run as a data migration, not a schema migration. The write is captured in `content_audit_events` automatically.
-
-**Read-only and Authorized User behavior** is inherited unchanged — wrappers render existing modules, and Quick Add still hides itself when the active account cannot edit.
+- `src/components/DashboardQuickAdd.tsx`: restructure `knowledgeHubOptions` into grouped sections (`{ heading, options[] }`), rename "Note" to "Quick Note", update descriptions, add the Source Website entry, keep a single option-row renderer. Make the dialog body scroll while the header/Back remain fixed.
+- `src/components/SourceWebsitesSection.tsx`: read `add=1` from the URL, open the existing add form once, then strip only `add` with `replace: true`. Same pattern already used in `VIPContacts.tsx` and other modules — no CRUD or query changes.
+- `src/lib/assetUploadRouting.ts` remains the single Manual Entry routing definition shared by Asset Documentation and Quick Add. No change needed.
+- No schema, RLS, storage, auth, billing, or destination-form changes.
 
 ## Verification
 
-- Knowledge Hub reachable from the dashboard; all 10 top-level destinations and all 13 underlying modules reachable in at most two clicks.
-- Old `?tab=life-hub` and `?tab=insights-tools` links land somewhere sensible.
-- Back navigation from every module returns to the right parent.
-- Every Quick Add shortcut opens the correct create UI, including Quick Note -> Notes and Manual Entry -> Asset Documentation.
-- Quick Notes migration passes its pre/post verification checks, and a second run creates no duplicates.
-- The migrated Quick Note is visible in Notes with its attachment intact.
-- Wrapper screens issue no data fetches or writes of their own.
-- Smart Calendar badge still appears when items are due today.
-- Read-only Authorized User sees the same structure without create actions.
+- Root shows exactly two categories; no Family Archive or Insights & Tools wording anywhere in Quick Add.
+- Asset Documentation choices all still work; Manual Entry Item opens the same workflow reached from the Asset Documentation page.
+- Each Knowledge Hub shortcut lands on the correct existing destination, auto-opens its add UI where supported, and stays in the active workspace.
+- Quick Note opens the standard Notes add form and saves to the Notes system, not `user_notes`.
+- Read-only users see no Quick Add button.
+- Note: authenticated end-to-end checks can't be automated for this project's external Supabase setup, so the account-scoped items need one manual click-through.
