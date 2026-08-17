@@ -307,7 +307,7 @@ const Account: React.FC = () => {
       'asset-documentation': { title: 'Asset Documentation', subtitle: 'Claim-ready proof for your home and belongings.' },
       'password-catalog': { title: 'Digital Access', subtitle: 'Encrypted storage for everyday online accounts.' },
       'legacy-locker': { title: 'Legacy Locker', subtitle: 'Guidance and access when you can\'t be there.' },
-      'knowledge-hub': { title: 'Knowledge Hub', subtitle: 'Contacts · Notes · Property Details · Records · Memories' },
+      'knowledge-hub': { title: 'Knowledge Hub', subtitle: 'Contacts · Notes · Property Details · Memories' },
       'contacts': { title: 'Contacts', subtitle: 'The people you rely on — personal and professional.' },
       'notes-hub': { title: 'Notes', subtitle: 'Keep important notes, reminders, and information in one place.' },
       'traditions-recipes': { title: 'Family Traditions & Recipes', subtitle: 'The customs and cooking you want remembered.' },
