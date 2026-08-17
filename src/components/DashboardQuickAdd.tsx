@@ -109,7 +109,7 @@ const DashboardQuickAdd: React.FC = () => {
     navigate(destination.to);
   };
 
-  const optionList = step === 'family-archive' ? familyArchiveOptions : insightsToolsOptions;
+  const optionList = knowledgeHubOptions;
 
   return (
     <>
