@@ -99,10 +99,12 @@ No changes to Auth, MFA, Authorized Users, gifts, billing, RLS, storage policies
 
 ## Verification
 
-- Knowledge Hub reachable from the dashboard; all eleven modules reachable in at most two clicks.
+- Knowledge Hub reachable from the dashboard; all 10 top-level destinations and all 13 underlying modules reachable in at most two clicks.
 - Old `?tab=life-hub` and `?tab=insights-tools` links land somewhere sensible.
 - Back navigation from every module returns to the right parent.
 - Every Quick Add shortcut opens the correct create UI, including Quick Note -> Notes and Manual Entry -> Asset Documentation.
+- Quick Notes migration passes its pre/post verification checks, and a second run creates no duplicates.
 - The migrated Quick Note is visible in Notes with its attachment intact.
+- Wrapper screens issue no data fetches or writes of their own.
 - Smart Calendar badge still appears when items are due today.
 - Read-only Authorized User sees the same structure without create actions.
