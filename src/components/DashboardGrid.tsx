@@ -170,42 +170,45 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           color="red"
         />
 
-        {/* Secure Vault Banner */}
-        <div className="md:col-span-2 bg-amber-50 border border-amber-200 rounded-lg px-5 py-4 flex items-center gap-3">
-          <div className="flex-1">
-            <p className="text-sm font-bold text-amber-900">🔒 Secure Vault</p>
-            <p className="text-xs text-amber-700 mt-0.5">A single encrypted space for digital access and legacy planning.</p>
+        {/* Secure Vault — merged banner + cards */}
+        <div className="md:col-span-2 bg-amber-50 border border-amber-200 rounded-lg overflow-hidden">
+          {/* Secure Vault Banner */}
+          <div className="px-5 py-4 flex items-center gap-3 border-b border-amber-200/60">
+            <div className="flex-1">
+              <p className="text-sm font-bold text-amber-900">🔒 Secure Vault</p>
+              <p className="text-xs text-amber-700 mt-0.5">A single encrypted space for digital access and legacy planning.</p>
+            </div>
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-semibold uppercase tracking-wide border border-amber-200 flex-shrink-0">
+              {vaultBadgeIcon}
+              {vaultBadge}
+            </span>
           </div>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-semibold uppercase tracking-wide border border-amber-200 flex-shrink-0">
-            {vaultBadgeIcon}
-            {vaultBadge}
-          </span>
-        </div>
 
-        {/* Secure Vault Cards - wrapped in light yellow container */}
-        <div className="md:col-span-2 bg-amber-50 border border-amber-200 rounded-lg p-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <DashboardGridCard
-              icon={<Shield className="h-6 w-6" />}
-              title="Legacy Locker"
-              description="Guidance and access when you can't be there."
-              tags={['Instructions', 'Access', 'Recovery']}
-              actionLabel="Open Legacy Locker"
-              actionIcon={<Shield className="h-4 w-4" />}
-              onClick={() => rememberAndOpen('legacy-locker', 'legacy_locker_opened', 'Complete Legacy Locker details')}
-              color="yellow"
-            />
+          {/* Secure Vault Cards */}
+          <div className="p-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <DashboardGridCard
+                icon={<Shield className="h-6 w-6" />}
+                title="Legacy Locker"
+                description="Guidance and access when you can't be there."
+                tags={['Instructions', 'Access', 'Recovery']}
+                actionLabel="Open Legacy Locker"
+                actionIcon={<Shield className="h-4 w-4" />}
+                onClick={() => rememberAndOpen('legacy-locker', 'legacy_locker_opened', 'Complete Legacy Locker details')}
+                color="yellow"
+              />
 
-            <DashboardGridCard
-              icon={<Key className="h-6 w-6" />}
-              title="Digital Access"
-              description="Your most private information, fully encrypted."
-              tags={['Websites', 'Logins', 'Sensitive Data']}
-              actionLabel="Open Digital Access"
-              actionIcon={<Key className="h-4 w-4" />}
-              onClick={() => rememberAndOpen('password-catalog', 'digital_access_opened', 'Open Digital Access')}
-              color="yellow"
-            />
+              <DashboardGridCard
+                icon={<Key className="h-6 w-6" />}
+                title="Digital Access"
+                description="Your most private information, fully encrypted."
+                tags={['Websites', 'Logins', 'Sensitive Data']}
+                actionLabel="Open Digital Access"
+                actionIcon={<Key className="h-4 w-4" />}
+                onClick={() => rememberAndOpen('password-catalog', 'digital_access_opened', 'Open Digital Access')}
+                color="yellow"
+              />
+            </div>
           </div>
         </div>
 
