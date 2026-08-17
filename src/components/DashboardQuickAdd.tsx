@@ -138,9 +138,7 @@ const DashboardQuickAdd: React.FC = () => {
             <DialogTitle>
               {step === 'root'
                 ? 'What would you like to add?'
-                : step === 'family-archive'
-                  ? 'Add to Family Archive'
-                  : 'Add with Insights & Tools'}
+                : 'Add to Knowledge Hub'}
             </DialogTitle>
             <DialogDescription>
               {step === 'root'
