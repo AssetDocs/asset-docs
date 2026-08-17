@@ -34,7 +34,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 
-type Step = 'root' | 'family-archive' | 'insights-tools';
+type Step = 'root' | 'knowledge-hub';
 
 interface AddOption {
   label: string;
@@ -44,23 +44,19 @@ interface AddOption {
   to: string;
 }
 
-const familyArchiveOptions: AddOption[] = [
+const knowledgeHubOptions: AddOption[] = [
   { label: 'VIP Contact', description: 'Add an important contact', icon: Contact, to: '/account/contacts?add=1' },
   { label: 'Trusted Professional', description: 'Add a service provider or contractor', icon: Briefcase, to: '/account?tab=service-pros&add=1' },
-  { label: 'Note', description: 'Capture an important note', icon: BookOpen, to: '/account?tab=notes&add=1' },
-  { label: 'Family Tradition', description: 'Preserve a family tradition or story', icon: Sparkles, to: '/account?tab=family-traditions&add=1' },
-  { label: 'Voice Note', description: 'Record a voice memo', icon: Mic, to: '/account?tab=voice-notes' },
-  { label: 'Family Recipe', description: 'Preserve a family recipe', icon: ChefHat, to: '/account?tab=family-recipes&add=1' },
   { label: 'Medication', description: 'Add to the family medication list', icon: Pill, to: '/account?tab=medication-list&add=1' },
-  { label: 'Important Location', description: 'Record where something is stored', icon: MapPin, to: '/account?tab=important-locations&add=1' },
+  { label: 'Note', description: 'Capture an important note', icon: BookOpen, to: '/account?tab=notes&add=1' },
+  { label: 'Voice Note', description: 'Record a voice memo', icon: Mic, to: '/account?tab=voice-notes' },
+  { label: 'Family Tradition', description: 'Preserve a family tradition or story', icon: Sparkles, to: '/account?tab=family-traditions&add=1' },
+  { label: 'Family Recipe', description: 'Preserve a family recipe', icon: ChefHat, to: '/account?tab=family-recipes&add=1' },
   { label: 'Memory', description: 'Add a memory to Memory Safe', icon: Archive, to: '/account/memory-safe/upload' },
-];
-
-const insightsToolsOptions: AddOption[] = [
-  { label: 'Upgrade / Repair', description: 'Document an improvement or repair', icon: Hammer, to: '/account?tab=upgrades-repairs&add=1' },
+  { label: 'Important Location', description: 'Record where something is stored', icon: MapPin, to: '/account?tab=important-locations&add=1' },
   { label: 'Paint Code', description: 'Save a paint color, brand, and finish', icon: Palette, to: '/account?tab=paint-codes' },
+  { label: 'Upgrade / Repair', description: 'Document an improvement or repair', icon: Hammer, to: '/account?tab=upgrades-repairs&add=1' },
   { label: 'Calendar Entry', description: 'Create a reminder or event', icon: CalendarDays, to: '/account?tab=smart-calendar&add=1' },
-  { label: 'Manual Entry Item', description: 'Add an item and its value manually', icon: Package, to: '/inventory' },
 ];
 
 const DashboardQuickAdd: React.FC = () => {
