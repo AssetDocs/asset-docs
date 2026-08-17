@@ -215,26 +215,8 @@ const DashboardGrid: React.FC<DashboardGridProps> = ({ onTabChange }) => {
           <MFADropdown />
         </div>
 
-        {/* Row 3: Green */}
-        <DashboardGridCard
-          icon={
-            <div className="relative">
-              <Wrench className="h-6 w-6" />
-              {calendarTodayCount > 0 && (
-                <span className="absolute -top-2 -right-2 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold leading-none">
-                  {calendarTodayCount > 99 ? '99+' : calendarTodayCount}
-                </span>
-              )}
-            </div>
-          }
-          title="Insights & Tools"
-          description="Track values, manage repairs, and organize property details."
-          tags={['Smart Calendar', 'Asset Values', 'Manual Entry', 'Upgrades & Repairs', 'Source Websites', 'Paint Codes']}
-          actionLabel="Open Tools"
-          actionIcon={<Wrench className="h-4 w-4" />}
-          onClick={() => rememberAndOpen('insights-tools', 'insights_tools_opened', 'Open Insights & Tools')}
-          color="green"
-        />
+
+
 
         {/* Asset Values Collapsible Bar */}
         <div className="md:col-span-2">
