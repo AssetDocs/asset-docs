@@ -1,5 +1,6 @@
 // @ts-nocheck
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,6 +39,26 @@ const SourceWebsitesSection: React.FC = () => {
       loadWebsites();
     }
   }, [user]);
+
+  // `?add=1` is a UI hint only: it opens the existing add form once per
+  // navigation event, then the flag is stripped so stale URL state can't
+  // re-open the form after the user closes it manually.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const addConsumedRef = useRef(false);
+
+  useEffect(() => {
+    if (searchParams.get('add') !== '1') {
+      addConsumedRef.current = false;
+      return;
+    }
+    if (addConsumedRef.current) return;
+    addConsumedRef.current = true;
+    setShowAddForm(true);
+    const next = new URLSearchParams(searchParams);
+    next.delete('add');
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams]);
+
 
   const loadWebsites = async () => {
     if (!user?.id) return;

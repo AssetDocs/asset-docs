@@ -26,6 +26,7 @@ import {
   ChefHat,
   Pill,
   MapPin,
+  Globe,
   Archive,
   Hammer,
   Palette,
@@ -44,20 +45,47 @@ interface AddOption {
   to: string;
 }
 
-const knowledgeHubOptions: AddOption[] = [
-  { label: 'VIP Contact', description: 'Add an important contact', icon: Contact, to: '/account/contacts?add=1' },
-  { label: 'Trusted Professional', description: 'Add a service provider or contractor', icon: Briefcase, to: '/account?tab=service-pros&add=1' },
-  { label: 'Medication', description: 'Add to the family medication list', icon: Pill, to: '/account?tab=medication-list&add=1' },
-  { label: 'Note', description: 'Capture an important note', icon: BookOpen, to: '/account?tab=notes&add=1' },
-  { label: 'Voice Note', description: 'Record a voice memo', icon: Mic, to: '/account?tab=voice-notes' },
-  { label: 'Family Tradition', description: 'Preserve a family tradition or story', icon: Sparkles, to: '/account?tab=family-traditions&add=1' },
-  { label: 'Family Recipe', description: 'Preserve a family recipe', icon: ChefHat, to: '/account?tab=family-recipes&add=1' },
-  { label: 'Memory', description: 'Add a memory to Memory Safe', icon: Archive, to: '/account/memory-safe/upload' },
-  { label: 'Important Location', description: 'Record where something is stored', icon: MapPin, to: '/account?tab=important-locations&add=1' },
-  { label: 'Paint Code', description: 'Save a paint color, brand, and finish', icon: Palette, to: '/account?tab=paint-codes' },
-  { label: 'Upgrade / Repair', description: 'Document an improvement or repair', icon: Hammer, to: '/account?tab=upgrades-repairs&add=1' },
-  { label: 'Calendar Entry', description: 'Create a reminder or event', icon: CalendarDays, to: '/account?tab=smart-calendar&add=1' },
+interface AddGroup {
+  heading: string;
+  options: AddOption[];
+}
+
+const knowledgeHubGroups: AddGroup[] = [
+  {
+    heading: 'People & Care',
+    options: [
+      { label: 'VIP Contact', description: 'Add an important personal contact.', icon: Contact, to: '/account/contacts?add=1' },
+      { label: 'Trusted Professional', description: 'Add a trusted service provider or professional.', icon: Briefcase, to: '/account?tab=service-pros&add=1' },
+      { label: 'Medication', description: 'Add to the medication reference list.', icon: Pill, to: '/account?tab=medication-list&add=1' },
+    ],
+  },
+  {
+    heading: 'Notes & Family',
+    options: [
+      { label: 'Quick Note', description: 'Jot down a reminder, instruction, or thought.', icon: BookOpen, to: '/account?tab=notes&add=1' },
+      { label: 'Voice Note', description: 'Record a voice note.', icon: Mic, to: '/account?tab=voice-notes' },
+      { label: 'Family Tradition', description: 'Preserve a family tradition or story.', icon: Sparkles, to: '/account?tab=family-traditions&add=1' },
+      { label: 'Family Recipe', description: 'Preserve a favorite family recipe.', icon: ChefHat, to: '/account?tab=family-recipes&add=1' },
+      { label: 'Add Memory', description: 'Add an important memory to Memory Safe.', icon: Archive, to: '/account/memory-safe/upload' },
+    ],
+  },
+  {
+    heading: 'Property & Household',
+    options: [
+      { label: 'Important Location', description: 'Record where something important is stored.', icon: MapPin, to: '/account?tab=important-locations&add=1' },
+      { label: 'Paint Code', description: 'Save a paint color, brand, room, and finish.', icon: Palette, to: '/account?tab=paint-codes' },
+      { label: 'Upgrade / Repair', description: 'Document a property improvement or repair.', icon: Hammer, to: '/account?tab=upgrades-repairs&add=1' },
+      { label: 'Source Website', description: 'Save a useful product, supplier, or reference link.', icon: Globe, to: '/account?tab=source-websites&add=1' },
+    ],
+  },
+  {
+    heading: 'Planning',
+    options: [
+      { label: 'Calendar Entry', description: 'Create a reminder or calendar event.', icon: CalendarDays, to: '/account?tab=smart-calendar&add=1' },
+    ],
+  },
 ];
+
 
 const DashboardQuickAdd: React.FC = () => {
   const navigate = useNavigate();
@@ -109,7 +137,25 @@ const DashboardQuickAdd: React.FC = () => {
     navigate(destination.to);
   };
 
-  const optionList = knowledgeHubOptions;
+  const renderOption = (option: AddOption) => (
+    <Button
+      key={option.label}
+      variant="outline"
+      className="h-auto w-full justify-start gap-3 py-3 px-4 text-left hover:border-brand-blue hover:bg-brand-blue/5"
+      onClick={() => goTo(option.to)}
+    >
+      <span className="w-9 h-9 rounded-full bg-yellow text-yellow-foreground flex items-center justify-center flex-shrink-0">
+        <option.icon className="h-4 w-4" />
+      </span>
+      <span className="flex-1 min-w-0">
+        <span className="block font-medium text-sm">{option.label}</span>
+        <span className="block text-xs text-muted-foreground whitespace-normal">
+          {option.description}
+        </span>
+      </span>
+      <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+    </Button>
+  );
 
   return (
     <>
@@ -133,8 +179,8 @@ const DashboardQuickAdd: React.FC = () => {
       </div>
 
       <Dialog open={open} onOpenChange={closeChooser}>
-        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col overflow-hidden">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>
               {step === 'root'
                 ? 'What would you like to add?'
@@ -147,43 +193,8 @@ const DashboardQuickAdd: React.FC = () => {
             </DialogDescription>
           </DialogHeader>
 
-          {step === 'root' ? (
-            <div className="grid grid-cols-1 gap-3 py-2">
-              {[
-                {
-                  key: 'asset_documentation' as const,
-                  label: 'Asset Documentation',
-                  description: 'Photos, videos, policies, receipts, manual entries, and records.',
-                  icon: FolderOpen,
-                },
-                {
-                  key: 'knowledge_hub' as const,
-                  label: 'Knowledge Hub',
-                  description: 'Contacts, notes, recipes, locations, property details, and calendar.',
-                  icon: Heart,
-                },
-              ].map(option => (
-                <Button
-                  key={option.key}
-                  variant="outline"
-                  className="h-auto w-full justify-start gap-3 py-4 px-4 text-left hover:border-brand-blue hover:bg-brand-blue/5"
-                  onClick={() => selectCategory(option.key)}
-                >
-                  <span className="w-10 h-10 rounded-full bg-yellow text-yellow-foreground flex items-center justify-center flex-shrink-0">
-                    <option.icon className="h-5 w-5" />
-                  </span>
-                  <span className="flex-1 min-w-0">
-                    <span className="block font-medium text-sm">{option.label}</span>
-                    <span className="block text-xs text-muted-foreground whitespace-normal">
-                      {option.description}
-                    </span>
-                  </span>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                </Button>
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-3 py-2">
+          {step !== 'root' && (
+            <div className="flex-shrink-0">
               <Button
                 variant="ghost"
                 size="sm"
@@ -193,17 +204,34 @@ const DashboardQuickAdd: React.FC = () => {
                 <ChevronLeft className="h-4 w-4 mr-1" />
                 Back
               </Button>
+            </div>
+          )}
 
-              <div className="grid grid-cols-1 gap-2">
-                {optionList.map(option => (
+          <div className="flex-1 min-h-0 overflow-y-auto py-2">
+            {step === 'root' ? (
+              <div className="grid grid-cols-1 gap-3">
+                {[
+                  {
+                    key: 'asset_documentation' as const,
+                    label: 'Asset Documentation',
+                    description: 'Photos, videos, documents, receipts, records, and assets.',
+                    icon: FolderOpen,
+                  },
+                  {
+                    key: 'knowledge_hub' as const,
+                    label: 'Knowledge Hub',
+                    description: 'Contacts, notes, household information, reminders, and family records.',
+                    icon: Heart,
+                  },
+                ].map(option => (
                   <Button
-                    key={option.label}
+                    key={option.key}
                     variant="outline"
-                    className="h-auto w-full justify-start gap-3 py-3 px-4 text-left hover:border-brand-blue hover:bg-brand-blue/5"
-                    onClick={() => goTo(option.to)}
+                    className="h-auto w-full justify-start gap-3 py-4 px-4 text-left hover:border-brand-blue hover:bg-brand-blue/5"
+                    onClick={() => selectCategory(option.key)}
                   >
-                    <span className="w-9 h-9 rounded-full bg-yellow text-yellow-foreground flex items-center justify-center flex-shrink-0">
-                      <option.icon className="h-4 w-4" />
+                    <span className="w-10 h-10 rounded-full bg-yellow text-yellow-foreground flex items-center justify-center flex-shrink-0">
+                      <option.icon className="h-5 w-5" />
                     </span>
                     <span className="flex-1 min-w-0">
                       <span className="block font-medium text-sm">{option.label}</span>
@@ -215,10 +243,24 @@ const DashboardQuickAdd: React.FC = () => {
                   </Button>
                 ))}
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="space-y-4">
+                {knowledgeHubGroups.map(group => (
+                  <div key={group.heading} className="space-y-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground px-1">
+                      {group.heading}
+                    </p>
+                    <div className="grid grid-cols-1 gap-2">
+                      {group.options.map(renderOption)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
+
 
       <AssetTypeSelector
         open={assetSelectorOpen}
