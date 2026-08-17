@@ -26,6 +26,7 @@ import {
   ChefHat,
   Pill,
   MapPin,
+  Globe,
   Archive,
   Hammer,
   Palette,
@@ -44,20 +45,47 @@ interface AddOption {
   to: string;
 }
 
-const knowledgeHubOptions: AddOption[] = [
-  { label: 'VIP Contact', description: 'Add an important contact', icon: Contact, to: '/account/contacts?add=1' },
-  { label: 'Trusted Professional', description: 'Add a service provider or contractor', icon: Briefcase, to: '/account?tab=service-pros&add=1' },
-  { label: 'Medication', description: 'Add to the family medication list', icon: Pill, to: '/account?tab=medication-list&add=1' },
-  { label: 'Note', description: 'Capture an important note', icon: BookOpen, to: '/account?tab=notes&add=1' },
-  { label: 'Voice Note', description: 'Record a voice memo', icon: Mic, to: '/account?tab=voice-notes' },
-  { label: 'Family Tradition', description: 'Preserve a family tradition or story', icon: Sparkles, to: '/account?tab=family-traditions&add=1' },
-  { label: 'Family Recipe', description: 'Preserve a family recipe', icon: ChefHat, to: '/account?tab=family-recipes&add=1' },
-  { label: 'Memory', description: 'Add a memory to Memory Safe', icon: Archive, to: '/account/memory-safe/upload' },
-  { label: 'Important Location', description: 'Record where something is stored', icon: MapPin, to: '/account?tab=important-locations&add=1' },
-  { label: 'Paint Code', description: 'Save a paint color, brand, and finish', icon: Palette, to: '/account?tab=paint-codes' },
-  { label: 'Upgrade / Repair', description: 'Document an improvement or repair', icon: Hammer, to: '/account?tab=upgrades-repairs&add=1' },
-  { label: 'Calendar Entry', description: 'Create a reminder or event', icon: CalendarDays, to: '/account?tab=smart-calendar&add=1' },
+interface AddGroup {
+  heading: string;
+  options: AddOption[];
+}
+
+const knowledgeHubGroups: AddGroup[] = [
+  {
+    heading: 'People & Care',
+    options: [
+      { label: 'VIP Contact', description: 'Add an important personal contact.', icon: Contact, to: '/account/contacts?add=1' },
+      { label: 'Trusted Professional', description: 'Add a trusted service provider or professional.', icon: Briefcase, to: '/account?tab=service-pros&add=1' },
+      { label: 'Medication', description: 'Add to the medication reference list.', icon: Pill, to: '/account?tab=medication-list&add=1' },
+    ],
+  },
+  {
+    heading: 'Notes & Family',
+    options: [
+      { label: 'Quick Note', description: 'Jot down a reminder, instruction, or thought.', icon: BookOpen, to: '/account?tab=notes&add=1' },
+      { label: 'Voice Note', description: 'Record a voice note.', icon: Mic, to: '/account?tab=voice-notes' },
+      { label: 'Family Tradition', description: 'Preserve a family tradition or story.', icon: Sparkles, to: '/account?tab=family-traditions&add=1' },
+      { label: 'Family Recipe', description: 'Preserve a favorite family recipe.', icon: ChefHat, to: '/account?tab=family-recipes&add=1' },
+      { label: 'Add Memory', description: 'Add an important memory to Memory Safe.', icon: Archive, to: '/account/memory-safe/upload' },
+    ],
+  },
+  {
+    heading: 'Property & Household',
+    options: [
+      { label: 'Important Location', description: 'Record where something important is stored.', icon: MapPin, to: '/account?tab=important-locations&add=1' },
+      { label: 'Paint Code', description: 'Save a paint color, brand, room, and finish.', icon: Palette, to: '/account?tab=paint-codes' },
+      { label: 'Upgrade / Repair', description: 'Document a property improvement or repair.', icon: Hammer, to: '/account?tab=upgrades-repairs&add=1' },
+      { label: 'Source Website', description: 'Save a useful product, supplier, or reference link.', icon: Globe, to: '/account?tab=source-websites&add=1' },
+    ],
+  },
+  {
+    heading: 'Planning',
+    options: [
+      { label: 'Calendar Entry', description: 'Create a reminder or calendar event.', icon: CalendarDays, to: '/account?tab=smart-calendar&add=1' },
+    ],
+  },
 ];
+
 
 const DashboardQuickAdd: React.FC = () => {
   const navigate = useNavigate();
