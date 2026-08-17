@@ -534,15 +534,6 @@ const Account: React.FC = () => {
               <SmartCalendar autoOpenAdd={autoOpenAdd} />
             </TabsContent>
 
-            <TabsContent value="quick-notes">
-              <div className="space-y-4">
-                <div>
-                  <h2 className="text-2xl font-bold text-foreground">{getSectionConfig().title}</h2>
-                  <p className="text-muted-foreground text-sm mt-1">{getSectionConfig().subtitle}</p>
-                </div>
-                <QuickNotesSection />
-              </div>
-            </TabsContent>
 
             <TabsContent value="notes">
               <NotesSection autoOpenAdd={autoOpenAdd} />
