@@ -135,7 +135,8 @@ const ImportantLocations: React.FC<ImportantLocationsProps> = ({ onNavigate }) =
         .eq('user_id', targetUserId)
         .order('updated_at', { ascending: false });
       if (error) throw error;
-      setLocations((data || []) as ImportantLocation[]);
+      const rows = ((data || []) as ImportantLocation[]).filter((row: any) => !row?.pending_delete);
+      setLocations(rows);
     } catch (error) {
       console.error('Error fetching important locations:', error);
       toast({
@@ -176,6 +177,11 @@ const ImportantLocations: React.FC<ImportantLocationsProps> = ({ onNavigate }) =
 
   const filteredLocations = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
+    const name = (entry: ImportantLocation) => String(entry?.item_name || '');
+    const time = (value?: string | null) => {
+      const parsed = value ? new Date(value).getTime() : 0;
+      return Number.isFinite(parsed) ? parsed : 0;
+    };
     const searchableText = (entry: ImportantLocation) => [
       entry.item_name,
       entry.category,
@@ -195,21 +201,20 @@ const ImportantLocations: React.FC<ImportantLocationsProps> = ({ onNavigate }) =
       .sort((a, b) => {
         switch (sortBy) {
           case 'created-desc':
-            return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
-              || a.item_name.localeCompare(b.item_name);
+            return time(b.created_at) - time(a.created_at)
+              || name(a).localeCompare(name(b));
           case 'name-asc':
-            return a.item_name.localeCompare(b.item_name);
+            return name(a).localeCompare(name(b));
           case 'category':
             return (a.category || 'zz').localeCompare(b.category || 'zz')
-              || a.item_name.localeCompare(b.item_name);
+              || name(a).localeCompare(name(b));
           case 'property':
             return (propertyName(a.property_id) || 'zz').localeCompare(propertyName(b.property_id) || 'zz')
-              || a.item_name.localeCompare(b.item_name);
+              || name(a).localeCompare(name(b));
           case 'updated-desc':
           default:
-            return new Date(b.updated_at || b.created_at || 0).getTime()
-              - new Date(a.updated_at || a.created_at || 0).getTime()
-              || a.item_name.localeCompare(b.item_name);
+            return (time(b.updated_at) || time(b.created_at)) - (time(a.updated_at) || time(a.created_at))
+              || name(a).localeCompare(name(b));
         }
       });
   }, [locations, searchTerm, categoryFilter, propertyFilter, roomFilter, sortBy, properties]);
