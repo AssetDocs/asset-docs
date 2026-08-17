@@ -79,7 +79,7 @@ const DashboardQuickAdd: React.FC = () => {
     if (!nextOpen) setStep('root');
   };
 
-  const selectCategory = (category: 'asset_documentation' | 'family_archive' | 'insights_tools') => {
+  const selectCategory = (category: 'asset_documentation' | 'knowledge_hub') => {
     track('dashboard_add_category_selected', { category });
     if (category === 'asset_documentation') {
       track('dashboard_add_asset_documentation');
@@ -88,13 +88,8 @@ const DashboardQuickAdd: React.FC = () => {
       setAssetSelectorOpen(true);
       return;
     }
-    if (category === 'family_archive') {
-      track('dashboard_add_family_archive');
-      setStep('family-archive');
-      return;
-    }
-    track('dashboard_add_insights_tools');
-    setStep('insights-tools');
+    track('dashboard_add_knowledge_hub');
+    setStep('knowledge-hub');
   };
 
   const goTo = (to: string) => {
