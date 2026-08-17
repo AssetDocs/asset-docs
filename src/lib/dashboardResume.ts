@@ -63,7 +63,7 @@ export async function recordDashboardResumeActivity(input: DashboardResumeActivi
 
 export const dashboardResumeRoutes = {
   assetDocumentation: '/account?tab=asset-documentation',
-  familyArchive: '/account?tab=life-hub',
+  familyArchive: '/account?tab=knowledge-hub',
   authorizedUsers: '/account?tab=access-activity',
   legacyAdmin: '/account?tab=access-activity',
   legacyLocker: '/account?tab=legacy-locker',
