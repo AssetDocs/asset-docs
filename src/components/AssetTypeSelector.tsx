@@ -19,7 +19,9 @@ import {
   FileText, 
   Home,
   Map,
-  Files
+  Files,
+  Package
+
 } from 'lucide-react';
 
 export type AssetUploadType = 
