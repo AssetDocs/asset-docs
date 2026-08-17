@@ -571,6 +571,7 @@ const Account: React.FC = () => {
             </TabsContent>
 
           </Tabs>
+          </AccountTabErrorBoundary>
 
           {/* Feedback Section */}
           <FeedbackSection />
