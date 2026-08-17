@@ -57,11 +57,14 @@ Quick Notes and Notes are two separate systems today, not one feature with two v
 
 Approach:
 
-1. One-time, auditable migration of that record into the main Notes system, preserving title, content, attachment, and original timestamps.
-2. Verify the migrated note appears correctly in Notes, including its attachment.
-3. Remove Quick Notes from navigation and stop all new writes to it.
-4. Keep "Quick Note" only as a Quick Add shortcut into the standard Notes add form.
-5. **Do not drop the `user_notes` table** in this update. Schema removal is a later cleanup once the migration is confirmed, so rollback stays easy.
+1. **Pre-migration count check.** Confirm the source count is exactly 1 and record the row's `user_id`, title, file reference, and timestamps before anything moves.
+2. **One-time, guarded migration** of that record into the main Notes system, preserving title, content, attachment reference, and original timestamps where technically supported.
+3. **The migration must be idempotent.** It only inserts rows that have no matching Notes record already, so re-running it can never create duplicates. Re-running is a no-op.
+4. **Post-migration verification:** migrated target count = 1; `user_id` matches the source; file reference matches the source; timestamps preserved; source count unchanged; no duplicate Notes rows created. Any mismatch stops the rollout.
+5. Verify the migrated note renders correctly in Notes, including its attachment, in the app.
+6. Remove Quick Notes from navigation and stop all new writes to it.
+7. Keep "Quick Note" only as a Quick Add shortcut into the standard Notes add form.
+8. **Do not drop the `user_notes` table** in this update. Schema removal is a later cleanup once the migration is confirmed, so rollback stays easy.
 
 The attachment file itself is not moved — it already lives in the `documents` bucket and the migrated record keeps pointing at the same path. No storage policy changes.
 
