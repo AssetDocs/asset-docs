@@ -34,6 +34,7 @@ export type AssetUploadType =
   | 'appraisal' 
   | 'title_deed' 
   | 'floorplan'
+  | 'manual_entry'
   | 'other';
 
 interface AssetTypeOption {
