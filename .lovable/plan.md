@@ -4,7 +4,7 @@ Combine Family Archive and Insights & Tools into one top-level section called Kn
 
 ## The new Knowledge Hub
 
-One flat, grouped screen with eight top-level cards. Wrapper screens only where modules are genuinely the same kind of thing.
+One flat, grouped screen with **10 top-level destinations** (Contacts, Medication List, Notes, Family Traditions & Recipes, Memory Safe, Important Locations, Paint Codes, Upgrades & Repairs, Source Websites, Smart Calendar). Wrapper screens only where modules are genuinely the same kind of thing.
 
 ```text
 Knowledge Hub
@@ -25,6 +25,10 @@ Knowledge Hub
 ```
 
 Wrappers are navigation only. Each one is a small screen of cards that link to the existing modules — no shared storage, no merged forms, no combined CRUD.
+
+**Wrapper rule (non-negotiable):** a wrapper screen preserves the current active-account/workspace context and does **not** fetch or mutate module data itself. It renders navigation choices and passes control to the existing module destination. Wrappers must not grow their own queries, counts, lists, or write actions.
+
+The 10 top-level destinations resolve to **13 underlying modules** through the three wrappers: VIP Contacts, Trusted Professionals, Medication List, Written Notes, Voice Notes, Traditions, Recipes, Memory Safe, Important Locations, Paint Codes, Upgrades & Repairs, Source Websites, Smart Calendar.
 
 ## Dashboard changes
 
