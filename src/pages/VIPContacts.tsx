@@ -442,7 +442,7 @@ const VIPContacts: React.FC = () => {
               className="bg-white text-brand-orange border-brand-orange hover:bg-brand-orange/10"
             >
               <ChevronLeft className="h-4 w-4 mr-1" />
-              Back to Family Archive
+              Back to Contacts
             </Button>
           </div>
 
