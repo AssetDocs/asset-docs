@@ -1,3 +1,7 @@
+import socialCardAsset from '@/assets/asset-safe-social-card.png.asset.json';
+
+const socialCardUrl = `https://getassetsafe.com${socialCardAsset.url}`;
+
 // Organization Schema
 export const organizationSchema = {
   "@context": "https://schema.org",
@@ -5,7 +9,7 @@ export const organizationSchema = {
   "name": "Asset Safe",
   "url": "https://getassetsafe.com",
   "logo": "https://getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg",
-  "image": "https://getassetsafe.com/images/asset-safe-social-card.png",
+  "image": socialCardUrl,
   "description": "Asset Safe helps organize and protect assets, important information, records, memories, and continuity details so they are ready when needed.",
   "foundingDate": "2024",
   "email": "support@assetsafe.net",
@@ -155,7 +159,7 @@ export const articleSchema = (
   "@type": "Article",
   "headline": title,
   "description": description,
-  "image": image || "https://getassetsafe.com/images/asset-safe-social-card.png",
+  "image": image || socialCardUrl,
   ...(url && { "url": url }),
   "author": {
     "@type": "Person",
