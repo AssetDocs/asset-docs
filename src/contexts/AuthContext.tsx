@@ -5,6 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { SecurityAlertService } from '@/services/SecurityAlertService';
 import { DELETED_ACCOUNT_MESSAGE, isDeletedAccountEmail } from '@/utils/deletedAccountGuard';
 import { clearAllDrafts } from '@/utils/formDrafts';
+import { clearAllVaultKeys } from '@/lib/vaultKey';
+import { clearIdleState } from '@/lib/idleState';
 
 
 // Helper to check if we've already alerted for this session (persisted in localStorage)
