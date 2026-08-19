@@ -14,7 +14,7 @@ const HeroSection: React.FC = () => {
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
           <div className="lg:w-2/3 mb-10 lg:mb-0">
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-2 animate-fade-in text-white">
-              Everything you own.<br />Protected in one place.
+              Everything you love.<br />Protected in one place.
             </h1>
             <p className="text-lg md:text-xl mb-4 animate-fade-in text-white/75 font-medium">
               Your family's assets — secured today, ready when it matters most.
