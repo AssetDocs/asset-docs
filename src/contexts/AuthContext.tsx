@@ -5,6 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { SecurityAlertService } from '@/services/SecurityAlertService';
 import { DELETED_ACCOUNT_MESSAGE, isDeletedAccountEmail } from '@/utils/deletedAccountGuard';
 import { clearAllDrafts } from '@/utils/formDrafts';
+import { clearAllVaultKeys } from '@/lib/vaultKey';
+import { clearIdleState } from '@/lib/idleState';
 
 
 // Helper to check if we've already alerted for this session (persisted in localStorage)
@@ -258,9 +260,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signOut = async () => {
+  const signOut = async (options?: { redirectTo?: string }) => {
     // Drop any unsaved sensitive form drafts before tearing down the session.
     clearAllDrafts();
+    // Drop in-memory vault keys and idle-timer state.
+    try { clearAllVaultKeys(); } catch { /* ignore */ }
+    clearIdleState();
     try {
       await supabase.auth.signOut({ scope: 'local' });
     } catch {
@@ -277,11 +282,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch {
       // Ignore storage errors
     }
+
+    const destination = options?.redirectTo || '/';
     // Force a full page reload regardless of current path.
-    if (window.location.pathname === '/') {
+    if (window.location.pathname + window.location.search === destination) {
       window.location.reload();
     } else {
-      window.location.href = '/';
+      window.location.href = destination;
     }
   };
 
