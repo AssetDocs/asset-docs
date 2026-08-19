@@ -122,7 +122,7 @@ const Navbar: React.FC = () => {
                       {profile?.first_name || translate('nav.account')}
                    </Link>
                    <Button
-                     onClick={signOut}
+                     onClick={() => { void signOut(); }}
                      variant="outline"
                      size="sm"
                      className="text-gray-700 hover:text-red-600"
