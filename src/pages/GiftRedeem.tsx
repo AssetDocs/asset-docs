@@ -163,9 +163,10 @@ const GiftRedeem: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <SEOHead
-        title="Redeem Your Asset Safe Gift"
-        description="You've received a gift subscription to Asset Safe. Redeem your access now."
+        title="Redeem Asset Safe Gift"
+        description="Redeem an Asset Safe gift subscription."
         canonicalUrl="https://getassetsafe.com/redeem"
+        noIndex
       />
       <Navbar />
 

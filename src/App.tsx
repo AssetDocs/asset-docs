@@ -16,6 +16,7 @@ import CookieConsent from "@/components/CookieConsent";
 import MobileCTA from "@/components/MobileCTA";
 import AskAssetSafe from "@/components/AskAssetSafe";
 import SystemMaintenanceBanner from "@/components/SystemMaintenanceBanner";
+import SEOHead from "@/components/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdminRole } from "@/hooks/useAdminRole";
 
@@ -135,6 +136,24 @@ const ScrollToTopWrapper = () => {
   useScrollToTop();
   return null;
 };
+
+const RouteMeta = ({ title, description, path, noIndex = true, children }: {
+  title: string;
+  description: string;
+  path: string;
+  noIndex?: boolean;
+  children: React.ReactNode;
+}) => (
+  <>
+    <SEOHead
+      title={title}
+      description={description}
+      canonicalUrl={`https://getassetsafe.com${path}`}
+      noIndex={noIndex}
+    />
+    {children}
+  </>
+);
 
 // Protected Route Component with Subscription Guard
 // NOTE: TOTP-based 2FA is used for sensitive actions (Secure Vault, billing, etc.) - not on every login
@@ -355,7 +374,7 @@ const AppContent = () => {
         {/* Public routes */}
         <Route path="/" element={<Index />} />
         <Route path="/features" element={<Features />} />
-        <Route path="/features-list" element={<FeaturesList />} />
+        <Route path="/features-list" element={<RouteMeta title="Features List" description="Browse Asset Safe features for organizing assets, records, property details, memories, and continuity tools." path="/features-list" noIndex={false}><FeaturesList /></RouteMeta>} />
         <Route path="/scenarios" element={<Scenarios />} />
         <Route path="/terms" element={<Terms />} />
         
@@ -365,81 +384,81 @@ const AppContent = () => {
         <Route path="/contact" element={<Contact />} />
         <Route path="/account-assistance" element={<AccountAssistance />} />
         <Route path="/legal" element={<Legal />} />
-        <Route path="/continuity/dispute" element={<ContinuityDispute />} />
+        <Route path="/continuity/dispute" element={<RouteMeta title="Continuity Dispute" description="Submit an Asset Safe continuity dispute request." path="/continuity/dispute"><ContinuityDispute /></RouteMeta>} />
         <Route path="/pricing" element={<Pricing />} />
           <Route path="/gift" element={<Gift />} />
           <Route path="/gift-checkout" element={<GiftCheckout />} />
-          <Route path="/gift-success" element={<GiftSuccess />} />
-          <Route path="/gift-claim" element={<GiftClaim />} />
+          <Route path="/gift-success" element={<RouteMeta title="Gift Purchase Complete" description="Your Asset Safe gift purchase is complete." path="/gift-success"><GiftSuccess /></RouteMeta>} />
+          <Route path="/gift-claim" element={<RouteMeta title="Claim Asset Safe Gift" description="Claim an Asset Safe gift subscription." path="/gift-claim"><GiftClaim /></RouteMeta>} />
           <Route path="/redeem" element={<GiftRedeem />} />
-        <Route path="/subscription-checkout" element={<SubscriptionCheckout />} />
+        <Route path="/subscription-checkout" element={<RouteMeta title="Subscription Checkout" description="Complete your Asset Safe subscription checkout." path="/subscription-checkout"><SubscriptionCheckout /></RouteMeta>} />
         <Route path="/video-help" element={<VideoHelp />} />
-        <Route path="/test-email" element={<TestEmail />} />
+        <Route path="/test-email" element={<RouteMeta title="Test Email" description="Internal Asset Safe email testing page." path="/test-email"><TestEmail /></RouteMeta>} />
         <Route path="/resources" element={<Resources />} />
         <Route path="/sample-dashboard" element={<SampleDashboard />} />
         
         {/* Authentication routes */}
         <Route path="/login" element={<Navigate to="/auth" replace />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/auth/continue" element={<AuthContinue />} />
-        <Route path="/auth/callback" element={<AuthCallback />} />
-        <Route path="/auth/callback/*" element={<AuthCallback />} />
-        <Route path="/email-verification" element={<EmailVerification />} />
-        <Route path="/verify-email" element={<VerifyEmail />} />
-        <Route path="/confirm-email-change" element={<ConfirmEmailChange />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/signup" element={<RouteMeta title="Create Account" description="Create an Asset Safe account." path="/signup"><Signup /></RouteMeta>} />
+        <Route path="/auth" element={<RouteMeta title="Sign In" description="Sign in to Asset Safe." path="/auth"><Auth /></RouteMeta>} />
+        <Route path="/auth/continue" element={<RouteMeta title="Continue Sign In" description="Continue signing in to Asset Safe." path="/auth/continue"><AuthContinue /></RouteMeta>} />
+        <Route path="/auth/callback" element={<RouteMeta title="Authentication Callback" description="Complete Asset Safe authentication." path="/auth/callback"><AuthCallback /></RouteMeta>} />
+        <Route path="/auth/callback/*" element={<RouteMeta title="Authentication Callback" description="Complete Asset Safe authentication." path="/auth/callback"><AuthCallback /></RouteMeta>} />
+        <Route path="/email-verification" element={<RouteMeta title="Email Verification" description="Verify your Asset Safe email address." path="/email-verification"><EmailVerification /></RouteMeta>} />
+        <Route path="/verify-email" element={<RouteMeta title="Verify Email" description="Verify your Asset Safe email address." path="/verify-email"><VerifyEmail /></RouteMeta>} />
+        <Route path="/confirm-email-change" element={<RouteMeta title="Confirm Email Change" description="Confirm your Asset Safe email address change." path="/confirm-email-change"><ConfirmEmailChange /></RouteMeta>} />
+        <Route path="/forgot-password" element={<RouteMeta title="Reset Password" description="Reset your Asset Safe password." path="/forgot-password"><ForgotPassword /></RouteMeta>} />
         {/* TOTP-based 2FA is now used instead of phone verification */}
-        <Route path="/complete-pricing" element={<CompletePricing />} />
+        <Route path="/complete-pricing" element={<RouteMeta title="Complete Pricing" description="Complete Asset Safe pricing setup." path="/complete-pricing"><CompletePricing /></RouteMeta>} />
         
         {/* Public FAQ route */}
         <Route path="/qa" element={<QA />} />
         <Route path="/testimonials" element={<Testimonials />} />
         
         {/* Welcome page - public to allow unverified users to see it */}
-        <Route path="/welcome" element={<Welcome />} />
-        <Route path="/welcome/create-password" element={<CreatePassword />} />
-        <Route path="/onboarding" element={<Onboarding />} />
-        <Route path="/invite" element={<InviteLanding />} />
+        <Route path="/welcome" element={<RouteMeta title="Welcome" description="Welcome to Asset Safe." path="/welcome"><Welcome /></RouteMeta>} />
+        <Route path="/welcome/create-password" element={<RouteMeta title="Create Password" description="Create your Asset Safe password." path="/welcome/create-password"><CreatePassword /></RouteMeta>} />
+        <Route path="/onboarding" element={<RouteMeta title="Onboarding" description="Complete Asset Safe onboarding." path="/onboarding"><Onboarding /></RouteMeta>} />
+        <Route path="/invite" element={<RouteMeta title="Accept Invite" description="Accept an Asset Safe invitation." path="/invite"><InviteLanding /></RouteMeta>} />
         
         {/* Protected routes */}
-        <Route path="/subscription-success" element={<SubscriptionSuccess />} />
-        <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
-        <Route path="/account/properties" element={<ProtectedRoute><Properties /></ProtectedRoute>} />
-        <Route path="/account/properties/new" element={<ProtectedRoute><PropertyForm /></ProtectedRoute>} />
-        <Route path="/account/properties/:propertyId/assets" element={<ProtectedRoute><PropertyAllAssets /></ProtectedRoute>} />
-        <Route path="/account/photos" element={<ProtectedRoute><PhotoGallery /></ProtectedRoute>} />
-        <Route path="/account/videos" element={<ProtectedRoute><Videos /></ProtectedRoute>} />
-        <Route path="/account/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
-        <Route path="/account/cleanup" element={<ProtectedRoute><CleanupQueue /></ProtectedRoute>} />
+        <Route path="/subscription-success" element={<RouteMeta title="Subscription Complete" description="Your Asset Safe subscription is complete." path="/subscription-success"><SubscriptionSuccess /></RouteMeta>} />
+        <Route path="/account" element={<RouteMeta title="Account Dashboard" description="Your Asset Safe account dashboard." path="/account"><ProtectedRoute><Account /></ProtectedRoute></RouteMeta>} />
+        <Route path="/account/properties" element={<RouteMeta title="Properties" description="Manage your Asset Safe property records." path="/account/properties"><ProtectedRoute><Properties /></ProtectedRoute></RouteMeta>} />
+        <Route path="/account/properties/new" element={<RouteMeta title="New Property" description="Add a property to Asset Safe." path="/account/properties/new"><ProtectedRoute><PropertyForm /></ProtectedRoute></RouteMeta>} />
+        <Route path="/account/properties/:propertyId/assets" element={<RouteMeta title="Property Assets" description="Manage property assets in Asset Safe." path="/account/properties"><ProtectedRoute><PropertyAllAssets /></ProtectedRoute></RouteMeta>} />
+        <Route path="/account/photos" element={<RouteMeta title="Photos" description="Manage Asset Safe photos." path="/account/photos"><ProtectedRoute><PhotoGallery /></ProtectedRoute></RouteMeta>} />
+        <Route path="/account/videos" element={<RouteMeta title="Videos" description="Manage Asset Safe videos." path="/account/videos"><ProtectedRoute><Videos /></ProtectedRoute></RouteMeta>} />
+        <Route path="/account/documents" element={<RouteMeta title="Documents" description="Manage Asset Safe documents." path="/account/documents"><ProtectedRoute><Documents /></ProtectedRoute></RouteMeta>} />
+        <Route path="/account/cleanup" element={<RouteMeta title="Cleanup Queue" description="Review Asset Safe cleanup tasks." path="/account/cleanup"><ProtectedRoute><CleanupQueue /></ProtectedRoute></RouteMeta>} />
 
-        <Route path="/account/media" element={<ProtectedRoute><CombinedMedia /></ProtectedRoute>} />
-        <Route path="/account/media/upload" element={<ProtectedRoute><CombinedMediaUpload /></ProtectedRoute>} />
-        <Route path="/account/media/:id/edit" element={<ProtectedRoute><MediaEdit /></ProtectedRoute>} />
+        <Route path="/account/media" element={<RouteMeta title="Media" description="Manage Asset Safe media." path="/account/media"><ProtectedRoute><CombinedMedia /></ProtectedRoute></RouteMeta>} />
+        <Route path="/account/media/upload" element={<RouteMeta title="Upload Media" description="Upload Asset Safe media." path="/account/media/upload"><ProtectedRoute><CombinedMediaUpload /></ProtectedRoute></RouteMeta>} />
+        <Route path="/account/media/:id/edit" element={<RouteMeta title="Edit Media" description="Edit Asset Safe media." path="/account/media"><ProtectedRoute><MediaEdit /></ProtectedRoute></RouteMeta>} />
         
-        <Route path="/account/insurance" element={<ProtectedRoute><Insurance /></ProtectedRoute>} />
-        <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
-        <Route path="/account/photos/upload" element={<ProtectedRoute><PhotoUpload /></ProtectedRoute>} />
-        <Route path="/account/videos/upload" element={<ProtectedRoute><VideoUpload /></ProtectedRoute>} />
-        <Route path="/account/documents/upload" element={<ProtectedRoute><DocumentUpload /></ProtectedRoute>} />
-        <Route path="/damage/photos/upload" element={<ProtectedRoute><DamagePhotoUpload /></ProtectedRoute>} />
-        <Route path="/damage/videos/upload" element={<ProtectedRoute><DamageVideoUpload /></ProtectedRoute>} />
+        <Route path="/account/insurance" element={<RouteMeta title="Insurance" description="Manage Asset Safe insurance records." path="/account/insurance"><ProtectedRoute><Insurance /></ProtectedRoute></RouteMeta>} />
+        <Route path="/inventory" element={<RouteMeta title="Inventory" description="Manage Asset Safe inventory records." path="/inventory"><ProtectedRoute><Inventory /></ProtectedRoute></RouteMeta>} />
+        <Route path="/account/photos/upload" element={<RouteMeta title="Upload Photos" description="Upload photos to Asset Safe." path="/account/photos/upload"><ProtectedRoute><PhotoUpload /></ProtectedRoute></RouteMeta>} />
+        <Route path="/account/videos/upload" element={<RouteMeta title="Upload Videos" description="Upload videos to Asset Safe." path="/account/videos/upload"><ProtectedRoute><VideoUpload /></ProtectedRoute></RouteMeta>} />
+        <Route path="/account/documents/upload" element={<RouteMeta title="Upload Documents" description="Upload documents to Asset Safe." path="/account/documents/upload"><ProtectedRoute><DocumentUpload /></ProtectedRoute></RouteMeta>} />
+        <Route path="/damage/photos/upload" element={<RouteMeta title="Upload Damage Photos" description="Upload damage photos to Asset Safe." path="/damage/photos/upload"><ProtectedRoute><DamagePhotoUpload /></ProtectedRoute></RouteMeta>} />
+        <Route path="/damage/videos/upload" element={<RouteMeta title="Upload Damage Videos" description="Upload damage videos to Asset Safe." path="/damage/videos/upload"><ProtectedRoute><DamageVideoUpload /></ProtectedRoute></RouteMeta>} />
         
-        <Route path="/account/insurance/new" element={<ProtectedRoute><InsuranceForm /></ProtectedRoute>} />
-        <Route path="/account/insurance/:id" element={<ProtectedRoute><InsuranceDetail /></ProtectedRoute>} />
-        <Route path="/account/insurance/:id/edit" element={<ProtectedRoute><InsuranceEdit /></ProtectedRoute>} />
-        <Route path="/account/documents/:id/edit" element={<ProtectedRoute><DocumentEdit /></ProtectedRoute>} />
-        <Route path="/account/memory-safe/upload" element={<ProtectedRoute><MemoryUpload /></ProtectedRoute>} />
-        <Route path="/account/memory-safe/:id/edit" element={<ProtectedRoute><MemoryEdit /></ProtectedRoute>} />
-        <Route path="/account/settings" element={<ProtectedRoute><AccountSettings /></ProtectedRoute>} />
-        <Route path="/account/contacts" element={<ProtectedRoute><VIPContacts /></ProtectedRoute>} />
-        <Route path="/schedule-professional" element={<ProtectedRoute><ScheduleProfessional /></ProtectedRoute>} />
-        <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
-        <Route path="/account/activity" element={<ProtectedRoute><ActivityLog /></ProtectedRoute>} />
+        <Route path="/account/insurance/new" element={<RouteMeta title="New Insurance Record" description="Add an insurance record to Asset Safe." path="/account/insurance/new"><ProtectedRoute><InsuranceForm /></ProtectedRoute></RouteMeta>} />
+        <Route path="/account/insurance/:id" element={<RouteMeta title="Insurance Record" description="View an Asset Safe insurance record." path="/account/insurance"><ProtectedRoute><InsuranceDetail /></ProtectedRoute></RouteMeta>} />
+        <Route path="/account/insurance/:id/edit" element={<RouteMeta title="Edit Insurance Record" description="Edit an Asset Safe insurance record." path="/account/insurance"><ProtectedRoute><InsuranceEdit /></ProtectedRoute></RouteMeta>} />
+        <Route path="/account/documents/:id/edit" element={<RouteMeta title="Edit Document" description="Edit an Asset Safe document." path="/account/documents"><ProtectedRoute><DocumentEdit /></ProtectedRoute></RouteMeta>} />
+        <Route path="/account/memory-safe/upload" element={<RouteMeta title="Upload Memory" description="Upload a memory to Asset Safe." path="/account/memory-safe/upload"><ProtectedRoute><MemoryUpload /></ProtectedRoute></RouteMeta>} />
+        <Route path="/account/memory-safe/:id/edit" element={<RouteMeta title="Edit Memory" description="Edit an Asset Safe memory." path="/account/memory-safe"><ProtectedRoute><MemoryEdit /></ProtectedRoute></RouteMeta>} />
+        <Route path="/account/settings" element={<RouteMeta title="Account Settings" description="Manage Asset Safe account settings." path="/account/settings"><ProtectedRoute><AccountSettings /></ProtectedRoute></RouteMeta>} />
+        <Route path="/account/contacts" element={<RouteMeta title="Contacts" description="Manage Asset Safe contacts." path="/account/contacts"><ProtectedRoute><VIPContacts /></ProtectedRoute></RouteMeta>} />
+        <Route path="/schedule-professional" element={<RouteMeta title="Schedule Professional" description="Schedule professional Asset Safe support." path="/schedule-professional"><ProtectedRoute><ScheduleProfessional /></ProtectedRoute></RouteMeta>} />
+        <Route path="/feedback" element={<RouteMeta title="Feedback" description="Send feedback to Asset Safe." path="/feedback"><ProtectedRoute><Feedback /></ProtectedRoute></RouteMeta>} />
+        <Route path="/account/activity" element={<RouteMeta title="Activity Log" description="Review Asset Safe account activity." path="/account/activity"><ProtectedRoute><ActivityLog /></ProtectedRoute></RouteMeta>} />
         
         <Route path="/claims" element={<Claims />} />
         <Route path="/industry-requirements" element={<IndustryRequirements />} />
-        <Route path="/checklists" element={<ProtectedRoute><Checklists /></ProtectedRoute>} />
+        <Route path="/checklists" element={<RouteMeta title="Checklists" description="Use Asset Safe checklists." path="/checklists"><ProtectedRoute><Checklists /></ProtectedRoute></RouteMeta>} />
         <Route path="/glossary" element={<Glossary />} />
         <Route path="/state-requirements" element={<StateRequirements />} />
         <Route path="/press-news" element={<PressNews />} />
@@ -456,27 +475,27 @@ const AppContent = () => {
         <Route path="/asset-documentation" element={<AssetDocumentation />} />
         
         {/* Admin Routes with Nested Workspaces */}
-        <Route path="/admin" element={<AdminShell />}>
+        <Route path="/admin" element={<RouteMeta title="Admin" description="Asset Safe admin workspace." path="/admin"><AdminShell /></RouteMeta>}>
           <Route index element={null} /> {/* Will redirect based on role */}
           <Route path="owner" element={<AdminOwnerWorkspace />} />
           <Route path="dev" element={<AdminDevWorkspace />} />
         </Route>
         
-        <Route path="/admin/crm" element={<CRM />} />
-        <Route path="/admin/compass-partnership" element={<CompassPartnership />} />
-        <Route path="/admin/home-improvement-partnership" element={<HomeImprovementPartnership />} />
-        <Route path="/admin/aha-partnership" element={<AHAPartnership />} />
-        <Route path="/admin/ara-partnership" element={<ARAPartnership />} />
-        <Route path="/admin/b2b-opportunities" element={<B2BOpportunities />} />
-        <Route path="/admin/dev-partner-strategy" element={<DevPartnerStrategy />} />
-        <Route path="/admin/habitat-partnership" element={<HabitatPartnership />} />
-        <Route path="/admin/habitat-pilot" element={<HabitatPilot />} />
-        <Route path="/admin/enterprise" element={<EnterpriseWhiteLabel />} />
-        <Route path="/admin/photographer-interest" element={<PhotographerInterest />} />
-        <Route path="/admin/lender-partnership" element={<LenderPartnership />} />
-        <Route path="/admin/dev-invite" element={<DevInviteAccept />} />
-        <Route path="/acknowledge-access" element={<AcknowledgeAccess />} />
-        <Route path="/delegate-vault" element={<DelegateVault />} />
+        <Route path="/admin/crm" element={<RouteMeta title="CRM" description="Asset Safe CRM workspace." path="/admin/crm"><CRM /></RouteMeta>} />
+        <Route path="/admin/compass-partnership" element={<RouteMeta title="Compass Partnership" description="Asset Safe partnership workspace." path="/admin/compass-partnership"><CompassPartnership /></RouteMeta>} />
+        <Route path="/admin/home-improvement-partnership" element={<RouteMeta title="Home Improvement Partnership" description="Asset Safe partnership workspace." path="/admin/home-improvement-partnership"><HomeImprovementPartnership /></RouteMeta>} />
+        <Route path="/admin/aha-partnership" element={<RouteMeta title="AHA Partnership" description="Asset Safe partnership workspace." path="/admin/aha-partnership"><AHAPartnership /></RouteMeta>} />
+        <Route path="/admin/ara-partnership" element={<RouteMeta title="ARA Partnership" description="Asset Safe partnership workspace." path="/admin/ara-partnership"><ARAPartnership /></RouteMeta>} />
+        <Route path="/admin/b2b-opportunities" element={<RouteMeta title="B2B Opportunities" description="Asset Safe partnership workspace." path="/admin/b2b-opportunities"><B2BOpportunities /></RouteMeta>} />
+        <Route path="/admin/dev-partner-strategy" element={<RouteMeta title="Dev Partner Strategy" description="Asset Safe partnership workspace." path="/admin/dev-partner-strategy"><DevPartnerStrategy /></RouteMeta>} />
+        <Route path="/admin/habitat-partnership" element={<RouteMeta title="Habitat Partnership" description="Asset Safe partnership workspace." path="/admin/habitat-partnership"><HabitatPartnership /></RouteMeta>} />
+        <Route path="/admin/habitat-pilot" element={<RouteMeta title="Habitat Pilot" description="Asset Safe partnership workspace." path="/admin/habitat-pilot"><HabitatPilot /></RouteMeta>} />
+        <Route path="/admin/enterprise" element={<RouteMeta title="Enterprise" description="Asset Safe enterprise workspace." path="/admin/enterprise"><EnterpriseWhiteLabel /></RouteMeta>} />
+        <Route path="/admin/photographer-interest" element={<RouteMeta title="Photographer Interest" description="Asset Safe partnership workspace." path="/admin/photographer-interest"><PhotographerInterest /></RouteMeta>} />
+        <Route path="/admin/lender-partnership" element={<RouteMeta title="Lender Partnership" description="Asset Safe partnership workspace." path="/admin/lender-partnership"><LenderPartnership /></RouteMeta>} />
+        <Route path="/admin/dev-invite" element={<RouteMeta title="Developer Invite" description="Accept an Asset Safe developer invite." path="/admin/dev-invite"><DevInviteAccept /></RouteMeta>} />
+        <Route path="/acknowledge-access" element={<RouteMeta title="Acknowledge Access" description="Acknowledge Asset Safe access." path="/acknowledge-access"><AcknowledgeAccess /></RouteMeta>} />
+        <Route path="/delegate-vault" element={<RouteMeta title="Delegate Vault" description="Access delegated Asset Safe vault information." path="/delegate-vault"><DelegateVault /></RouteMeta>} />
 
         
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

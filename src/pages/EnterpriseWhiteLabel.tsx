@@ -35,6 +35,8 @@ const EnterpriseWhiteLabel = () => {
       <SEOHead
         title="Asset Safe for Organizations | White-Label Enterprise"
         description="Offer your employees, members, or clients a secure, guided asset documentation system—fully branded under your organization."
+        canonicalUrl="https://getassetsafe.com/admin/enterprise"
+        noIndex
       />
       <Navbar />
 

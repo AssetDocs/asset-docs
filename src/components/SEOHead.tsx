@@ -3,7 +3,10 @@ import React from 'react';
 
 interface SEOHeadProps {
   title?: string;
+  browserTitle?: string;
   description?: string;
+  socialTitle?: string;
+  socialDescription?: string;
   keywords?: string;
   ogImage?: string;
   canonicalUrl?: string;
@@ -13,10 +16,13 @@ interface SEOHeadProps {
 }
 
 const SEOHead: React.FC<SEOHeadProps> = ({
-  title = 'Asset Safe — Protect Everything You Own',
-  description = 'Document your property, belongings, and key records in one secure platform. Insurance claims support, Legacy Locker, and estate planning tools.',
-  keywords = 'digital home inventory, property documentation, insurance claims, asset protection, legacy locker, estate planning, home inventory app, property management, homeowner documentation, digital estate vault',
-  ogImage = 'https://getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg',
+  title = 'Asset Safe | Protect What Matters',
+  browserTitle,
+  description = 'Your assets, important information, records, and memories — organized, protected, and ready when you need them.',
+  socialTitle,
+  socialDescription,
+  keywords = 'asset documentation, important records, property documentation, insurance records, secure vault, asset protection, family information, continuity planning',
+  ogImage = 'https://getassetsafe.com/images/asset-safe-social-card.png',
   canonicalUrl,
   type = 'website',
   structuredData,
@@ -24,12 +30,16 @@ const SEOHead: React.FC<SEOHeadProps> = ({
 }) => {
   const siteUrl = 'https://getassetsafe.com';
   const fullCanonicalUrl = canonicalUrl || siteUrl;
-  const fullTitle = title.includes('Asset Safe') ? title : `${title} | Asset Safe`;
+  const fullTitle = title.includes('Asset Safe') || `${title} | Asset Safe`.length > 60 ? title : `${title} | Asset Safe`;
+  const documentTitle = browserTitle || fullTitle;
+  const fullOgImage = ogImage.startsWith('http') ? ogImage : `${siteUrl}${ogImage.startsWith('/') ? ogImage : `/${ogImage}`}`;
+  const ogTitle = socialTitle || fullTitle;
+  const ogDescription = socialDescription || description;
 
   return (
     <Helmet>
       {/* Primary Meta Tags */}
-      <title>{fullTitle}</title>
+      <title>{documentTitle}</title>
       <meta name="title" content={fullTitle} />
       <meta name="description" content={description} />
       <meta name="keywords" content={keywords} />
@@ -37,25 +47,22 @@ const SEOHead: React.FC<SEOHeadProps> = ({
       <meta name="robots" content={noIndex ? "noindex, nofollow" : "index, follow"} />
       <meta name="language" content="English" />
       <meta name="author" content="Asset Safe" />
-      <meta httpEquiv="Content-Type" content="text/html; charset=utf-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <html lang="en-US" />
       
       {/* Open Graph / Facebook */}
       <meta property="og:type" content={type} />
       <meta property="og:url" content={fullCanonicalUrl} />
-      <meta property="og:title" content={fullTitle} />
-      <meta property="og:description" content={description} />
-      <meta property="og:image" content={ogImage} />
+      <meta property="og:title" content={ogTitle} />
+      <meta property="og:description" content={ogDescription} />
+      <meta property="og:image" content={fullOgImage} />
       <meta property="og:site_name" content="Asset Safe" />
       <meta property="og:locale" content="en_US" />
 
       {/* Twitter Card */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:url" content={fullCanonicalUrl} />
-      <meta name="twitter:title" content={fullTitle} />
-      <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={ogImage} />
+      <meta name="twitter:title" content={ogTitle} />
+      <meta name="twitter:description" content={ogDescription} />
+      <meta name="twitter:image" content={fullOgImage} />
 
       {/* Structured Data */}
       {structuredData && (

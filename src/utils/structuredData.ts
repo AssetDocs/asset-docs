@@ -5,8 +5,8 @@ export const organizationSchema = {
   "name": "Asset Safe",
   "url": "https://getassetsafe.com",
   "logo": "https://getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg",
-  "image": "https://getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg",
-  "description": "Digital home inventory and legacy planning platform for comprehensive property documentation and asset protection.",
+  "image": "https://getassetsafe.com/images/asset-safe-social-card.png",
+  "description": "Asset Safe helps organize and protect assets, important information, records, memories, and continuity details so they are ready when needed.",
   "foundingDate": "2024",
   "email": "support@assetsafe.net",
   "address": {
@@ -87,14 +87,14 @@ export const webApplicationSchema = {
     "price": "18.99",
     "priceCurrency": "USD"
   },
-  "description": "Digital home inventory and property documentation platform with secure cloud storage, insurance claims support, and legacy planning tools.",
+  "description": "Asset Safe helps people organize assets, important information, records, memories, and continuity details in one protected place.",
   "featureList": [
-    "Digital home inventory",
-    "Photo and video documentation",
-    "Insurance claims support",
-    "Legacy Locker for estate planning",
-    "Secure cloud storage",
-    "Multi-property management"
+    "Asset and property documentation",
+    "Photo, video, and document records",
+    "Insurance-ready records",
+    "Knowledge Hub and continuity tools",
+    "Secure Vault",
+    "Multi-property organization"
   ]
 };
 
@@ -155,7 +155,7 @@ export const articleSchema = (
   "@type": "Article",
   "headline": title,
   "description": description,
-  "image": image || "https://getassetsafe.com/lovable-uploads/asset-safe-logo-email-v2.jpg",
+  "image": image || "https://getassetsafe.com/images/asset-safe-social-card.png",
   ...(url && { "url": url }),
   "author": {
     "@type": "Person",

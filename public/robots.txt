@@ -1,34 +1,42 @@
 # Asset Safe - Robots.txt
-# Updated: 2026-02-15
+# Updated: 2026-08-18
 
 User-agent: *
 Allow: /
 
-# Disallow authentication and admin pages
+# Authentication and account workflows
 Disallow: /auth
+Disallow: /auth/*
 Disallow: /login
 Disallow: /signup
-Disallow: /admin
-Disallow: /admin/*
-Disallow: /account
-Disallow: /account-settings
-Disallow: /crm
-
-# Disallow verification and callback pages
-Disallow: /auth/callback
 Disallow: /email-verification
 Disallow: /verify-email
+Disallow: /confirm-email-change
 Disallow: /forgot-password
+Disallow: /welcome
+Disallow: /welcome/*
+Disallow: /onboarding
+Disallow: /invite
 
-# Disallow checkout and subscription flows
+# Admin and internal workspaces
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /crm
+Disallow: /test-email
+
+# Checkout, subscription, and gift workflows
 Disallow: /subscription-checkout
 Disallow: /subscription-success
 Disallow: /complete-pricing
 Disallow: /gift-checkout
 Disallow: /gift-success
 Disallow: /gift-claim
+Disallow: /redeem
 
-# Disallow user-specific dashboard pages
+# Account-specific dashboard and upload pages
+Disallow: /account
+Disallow: /account/*
+Disallow: /account-settings
 Disallow: /properties
 Disallow: /documents
 Disallow: /photos
@@ -40,20 +48,23 @@ Disallow: /vip-contacts
 Disallow: /activity-log
 Disallow: /media
 Disallow: /combined-media
+Disallow: /damage
+Disallow: /damage/*
 
-# Disallow internal/utility pages
-Disallow: /test-email
+# Transactional and continuity workflows
 Disallow: /feedback
+Disallow: /schedule-professional
+Disallow: /continuity/dispute
+Disallow: /acknowledge-access
+Disallow: /delegate-vault
 Disallow: /contributor-welcome
 Disallow: /dev-invite
-Disallow: /acknowledge-access
-Disallow: /schedule-professional
-Disallow: /damage-photo-upload
-Disallow: /damage-video-upload
+Disallow: /install
 
-# Allow all public marketing pages
+# Public marketing, help, and legal pages
 Allow: /
 Allow: /features
+Allow: /features-list
 Allow: /pricing
 Allow: /about
 Allow: /blog
@@ -62,7 +73,7 @@ Allow: /contact
 Allow: /resources
 Allow: /qa
 Allow: /gift
-Allow: /legacy-locker
+Allow: /legacy-locker-info
 Allow: /scenarios
 Allow: /claims
 Allow: /testimonials
@@ -76,12 +87,9 @@ Allow: /video-help
 Allow: /photography-guide
 Allow: /press-news
 Allow: /asset-documentation
-Allow: /install
 Allow: /partnership
 Allow: /terms
 Allow: /legal
 Allow: /cookie-policy
-Allow: /subscription-agreement
 
-# Sitemap location
 Sitemap: https://getassetsafe.com/sitemap.xml

@@ -20,10 +20,11 @@ const Install = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <SEOHead
-        title="Add to Home Screen | Asset Safe"
-        description="Add Asset Safe to your device's home screen for quick, app-like access to your dashboard."
+        title="Add Asset Safe Shortcut"
+        description="Add a shortcut to Asset Safe for quick access."
         keywords="add asset safe to home screen, home screen shortcut, quick dashboard access, asset safe mobile access"
         canonicalUrl="https://getassetsafe.com/install"
+        noIndex
       />
       <Navbar />
 

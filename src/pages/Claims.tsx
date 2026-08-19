@@ -31,8 +31,8 @@ const Claims: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <SEOHead
-        title="Insurance Claims Documentation Guide - What You Need"
-        description="Complete guide to insurance claims documentation. Learn what documents, photos, and proof you need to file property and contents insurance claims successfully."
+        title="Claims Documentation | Asset Safe"
+        description="Learn how organized photos, records, receipts, and property details can support insurance claim preparation."
         keywords="insurance claim documentation, what documents for insurance claim, proof of loss, insurance claim photos, home inventory for claim, property damage claim"
         canonicalUrl="https://getassetsafe.com/claims"
         structuredData={structuredData}

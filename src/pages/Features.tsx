@@ -53,9 +53,9 @@ const Features: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <SEOHead
-        title="Features - Documentation & Protection | Asset Safe"
-        description="Comprehensive property documentation features for homeowners, renters, businesses, and landlords. Digital inventory, insurance claims support, legacy planning, and secure cloud storage."
-        keywords="property documentation features, digital home inventory, insurance claims support, legacy locker, asset tracking, home inventory software"
+        title="Features | Asset Safe"
+        description="Explore Asset Safe tools for assets, records, property details, memories, contacts, notes, Secure Vault, and continuity planning."
+        keywords="asset safe features, asset documentation, important records, property details, secure vault, continuity tools"
         canonicalUrl="https://getassetsafe.com/features"
         structuredData={breadcrumbs}
       />

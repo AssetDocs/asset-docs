@@ -282,8 +282,8 @@ const SampleDashboard: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <SEOHead
-        title="Sample Dashboard Preview | Asset Safe"
-        description="Preview the Asset Safe dashboard before signing up. See how property documentation, inventory tracking, and security features work in action."
+        title="Sample Dashboard | Asset Safe"
+        description="Preview how Asset Safe organizes assets, records, property details, memories, and continuity tools."
         keywords="asset safe demo, sample dashboard, property documentation preview, home inventory demo, asset safe features preview"
         canonicalUrl="https://getassetsafe.com/sample-dashboard"
       />

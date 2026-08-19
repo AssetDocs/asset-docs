@@ -28,8 +28,8 @@ const Resources: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <SEOHead
-        title="Resources & Security - Guides & Trust | Asset Safe"
-        description="Access comprehensive guides on property documentation, photography tips, insurance claims, and learn about Asset Safe's enterprise-grade security and data protection."
+        title="Resources | Asset Safe"
+        description="Find Asset Safe guides for documentation, photography, insurance preparation, records, security, and account support."
         keywords="property documentation guides, home inventory tips, insurance claim resources, data security, privacy protection, photography guides"
         canonicalUrl="https://getassetsafe.com/resources"
         structuredData={structuredData}

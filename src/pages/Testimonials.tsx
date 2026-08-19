@@ -25,8 +25,8 @@ const Testimonials: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <SEOHead
-        title="Customer Testimonials - What Users Say About Asset Safe"
-        description="Read real customer reviews about Asset Safe. Homeowners, business owners, and landlords share how digital documentation helped with insurance claims and asset protection."
+        title="Testimonials | Asset Safe"
+        description="See how Asset Safe helps homeowners, families, and businesses organize important information and records."
         keywords="asset safe reviews, home inventory testimonials, property documentation reviews, insurance claim success stories, digital vault reviews"
         canonicalUrl="https://getassetsafe.com/testimonials"
         structuredData={structuredData}

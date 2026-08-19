@@ -845,11 +845,12 @@ const BlogPost = () => {
   };
 
   const post = slug ? blogPosts[slug] : null;
+  const siteUrl = 'https://getassetsafe.com';
 
   if (!post) {
     return (
       <>
-        <SEOHead title="Post Not Found | Asset Safe Blog" />
+        <SEOHead title="Post Not Found" noIndex />
         <div className="min-h-screen flex flex-col bg-background">
           <Navbar />
           <main className="flex-grow pt-20 flex items-center justify-center">
@@ -867,21 +868,24 @@ const BlogPost = () => {
     );
   }
 
+  const postDescription = post.content.substring(0, 160).replace(/<[^>]*>/g, '');
+  const postImage = post.image.startsWith('http') ? post.image : `${siteUrl}${post.image.startsWith('/') ? post.image : `/${post.image}`}`;
+
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
       articleSchema(
         post.title,
-        post.content.substring(0, 160).replace(/<[^>]*>/g, ''),
+        postDescription,
         post.date,
         post.author,
-        post.image,
-        `https://getassetsafe.com/blog/${slug}`
+        postImage,
+        `${siteUrl}/blog/${slug}`
       ),
       breadcrumbSchema([
-        { name: 'Home', url: 'https://getassetsafe.com/' },
-        { name: 'Blog', url: 'https://getassetsafe.com/blog' },
-        { name: post.title, url: `https://getassetsafe.com/blog/${slug}` }
+        { name: 'Home', url: `${siteUrl}/` },
+        { name: 'Blog', url: `${siteUrl}/blog` },
+        { name: post.title, url: `${siteUrl}/blog/${slug}` }
       ])
     ]
   };
@@ -889,11 +893,11 @@ const BlogPost = () => {
   return (
     <>
       <SEOHead 
-        title={`${post.title} | Asset Safe Blog`}
-        description={post.content.substring(0, 160).replace(/<[^>]*>/g, '')}
-        canonicalUrl={`https://getassetsafe.com/blog/${slug}`}
+        title={post.title}
+        description={postDescription}
+        canonicalUrl={`${siteUrl}/blog/${slug}`}
         type="article"
-        ogImage={post.image}
+        ogImage={postImage}
         structuredData={structuredData}
       />
       <div className="min-h-screen flex flex-col bg-background">

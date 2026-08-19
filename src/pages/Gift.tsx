@@ -56,8 +56,8 @@ const Gift: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <SEOHead
-        title="Gift Asset Safe - Give Protection & Peace of Mind"
-        description="Give the gift of property protection. One-year gift subscriptions starting at $189. Perfect for new homeowners, newlyweds, and families. No auto-renew."
+        title="Gift Asset Safe"
+        description="Give a year of Asset Safe to help someone organize assets, important records, memories, and continuity details."
         keywords="gift subscription, home inventory gift, property protection gift, estate planning gift, digital vault gift, homeowner gift ideas"
         canonicalUrl="https://getassetsafe.com/gift"
         structuredData={structuredData}

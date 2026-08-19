@@ -67,8 +67,8 @@ const Contact: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <SEOHead
-        title="Contact Us - Get Support | Asset Safe"
-        description="Reach the Asset Safe team for questions about property documentation, account support, or partnership inquiries. We're here to help you stay organized and protected."
+        title="Contact Asset Safe"
+        description="Contact Asset Safe for product questions, account support, continuity assistance, or partnership inquiries."
         keywords="contact asset safe, customer support, property documentation help, account support, partnership inquiry"
         canonicalUrl="https://getassetsafe.com/contact"
         structuredData={breadcrumbSchema([
