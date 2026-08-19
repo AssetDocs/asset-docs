@@ -11,12 +11,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { logActivity } from '@/hooks/useActivityLog';
+import { IDLE_ACTIVITY_KEY, IDLE_TIMEOUT_FLAG_KEY, clearIdleState } from '@/lib/idleState';
 
 export const IDLE_TIMEOUT_MS = 30 * 60 * 1000; // sign out after 30 min idle
 export const IDLE_WARNING_MS = 3 * 60 * 1000;  // warn 3 min before that
 
-const ACTIVITY_KEY = 'assetsafe.idle.lastActivity';
-const TIMEOUT_KEY = 'assetsafe.idle.timedOut';
+const ACTIVITY_KEY = IDLE_ACTIVITY_KEY;
+const TIMEOUT_KEY = IDLE_TIMEOUT_FLAG_KEY;
 const TICK_MS = 1000;
 
 const ACTIVITY_EVENTS: (keyof WindowEventMap)[] = [
@@ -41,15 +42,6 @@ function writeLastActivity(at: number): void {
     localStorage.setItem(ACTIVITY_KEY, String(at));
   } catch {
     /* storage unavailable — fall back to in-memory only */
-  }
-}
-
-export function clearIdleState(): void {
-  try {
-    localStorage.removeItem(ACTIVITY_KEY);
-    localStorage.removeItem(TIMEOUT_KEY);
-  } catch {
-    /* ignore */
   }
 }
 
