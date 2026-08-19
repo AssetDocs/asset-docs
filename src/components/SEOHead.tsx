@@ -1,5 +1,6 @@
 import { Helmet } from 'react-helmet-async';
 import React from 'react';
+import socialCardAsset from '@/assets/asset-safe-social-card.png.asset.json';
 
 interface SEOHeadProps {
   title?: string;
@@ -22,7 +23,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
   socialTitle,
   socialDescription,
   keywords = 'asset documentation, important records, property documentation, insurance records, secure vault, asset protection, family information, continuity planning',
-  ogImage = 'https://getassetsafe.com/images/asset-safe-social-card.png',
+  ogImage = socialCardAsset.url,
   canonicalUrl,
   type = 'website',
   structuredData,
