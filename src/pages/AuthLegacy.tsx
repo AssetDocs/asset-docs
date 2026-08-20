@@ -530,6 +530,12 @@ const Auth: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {searchParams.get('reason') === 'timeout' && (
+              <div className="mb-4 rounded-md border border-border bg-muted p-3 text-sm text-muted-foreground">
+                You were signed out due to inactivity. Please sign in again.
+              </div>
+            )}
+
             <Form {...signInForm}>
               <form onSubmit={signInForm.handleSubmit(onSignIn)} className="space-y-4">
                 <FormField
