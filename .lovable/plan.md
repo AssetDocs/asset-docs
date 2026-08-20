@@ -1,34 +1,39 @@
 # Audit: Inactivity Timeout & Logout Warning
 
-## Findings (current state)
+## Verified current state
 
-- There is **no inactivity/idle logout feature** in the app. No idle hook exists in `src/hooks/`, and no idle/inactivity timer or warning dialog appears anywhere in `src/`.
-- The only timeout-related security behavior is in `src/lib/vaultKey.ts`: in-memory vault encryption keys are cleared after the tab has been hidden for 10 minutes. This does not sign the user out and shows no warning.
-- Auth sessions currently persist and auto-refresh via Supabase, so an idle tab stays signed in indefinitely.
-- The admin Security Checklist lists "Auto logout or token expiration works correctly" as a criterion, but nothing implements it.
+- The feature is implemented and **is live in production**: the published bundle at getassetsafe.com contains both the activity storage key (`assetsafe.idle.lastActivity`) and the "Need more time" dialog copy.
+- `IdleWarningDialog` is mounted once inside the authenticated provider tree in `src/App.tsx` (line 524), so wiring is correct.
+- Thresholds in `src/hooks/useIdleLogout.ts`: warn at 27 minutes idle, sign out at 30 minutes. Activity events tracked: `mousedown`, `keydown`, `touchstart`, `scroll`, plus `visibilitychange`.
 
-Conclusion: the timeout/logout feature was never completed — nothing to fix, it needs to be built.
+So the reason no warning appeared is not missing code — it is how idle time is measured. Four defects explain the observed behavior.
 
-## Proposed implementation
+## Findings
 
-**1. Idle tracking hook** — `src/hooks/useIdleTimeout.ts`
-- Listens for user activity: `mousedown`, `keydown`, `touchstart`, `scroll`, `visibilitychange`.
-- Tracks last-activity timestamp in a ref; a single interval checks elapsed time (no per-event timer churn).
-- Two thresholds: warn at 27 minutes idle, sign out at 30 minutes (both constants, easy to tune).
-- Cross-tab sync via a `localStorage` activity key so activity in one tab keeps all tabs alive.
-- Only active when a user is signed in.
+**1. Returning to a backgrounded tab silently resets the clock (most likely cause).**
+`visibilitychange` writes a fresh activity timestamp whenever the tab becomes visible, without first checking how long the user was actually idle. Browsers also throttle or freeze timers in background tabs, so the 1-second evaluation interval may not run at all while the tab is hidden. Net effect: leave the dashboard tab in the background for hours, come back, and the timer restarts from zero with no warning and no sign-out.
 
-**2. Warning dialog** — `src/components/IdleWarningDialog.tsx`
-- Uses the existing shadcn `Dialog`, matching current dashboard styling and tokens (no hardcoded colors).
-- Copy: heading "Need more time?", body "For your security, you'll be signed out in 3:00 due to inactivity." with a live countdown.
-- Buttons: "Stay signed in" (resets the timer) and "Sign out now".
-- Not dismissible by clicking outside, so it can't be missed.
+**2. A page reload also silently extends the session.**
+On mount the hook seeds the activity timestamp to "now" before evaluating anything, so a reload after 45 idle minutes restarts a full 30-minute window instead of signing out.
 
-**3. Wiring** — mounted inside the authenticated shell (alongside the existing providers in `src/App.tsx` under `AuthProvider`), so it covers all signed-in routes and never appears on public marketing pages.
+**3. Programmatic scrolling counts as user activity.**
+`window.scrollTo` from the app's scroll-to-top behavior fires a `scroll` event, which the hook treats as real user activity. This inflates freshness on route changes.
 
-**4. Sign-out path** — reuses `signOut` from `AuthContext` (which already does the hard-reload cleanup) and clears vault keys via the existing `clearAllVaultKeys` helper. No new auth logic.
+**4. Timeout sign-out gives the user no explanation.**
+Timeout redirects to `/auth?reason=timeout`, but the sign-in page (`src/pages/AuthLegacy.tsx`) never reads `reason`, so the user lands on a plain sign-in form with no "signed out due to inactivity" notice.
 
-## Notes
+Minor: if `localStorage` is unavailable (private mode / blocked storage), `readLastActivity` returns the current time on every tick, which silently disables the whole feature. And `performLogout` is rebuilt on every `AuthContext` render, so the evaluation interval is torn down and recreated repeatedly — harmless today, but fragile.
 
-- Warning lead time and total idle window are single constants; tell me if you prefer different values (e.g. 15 min idle / 2 min warning).
-- No database, edge function, or Supabase config changes are needed.
+## Proposed fixes
+
+1. **Evaluate before reseeding.** In the `visibilitychange` handler and on mount, read the stored timestamp first: if idle already exceeds 30 minutes, sign out immediately; if it is inside the warning window, open the warning; only otherwise write a fresh timestamp.
+2. **Do not rely solely on a throttled interval.** Keep the 1-second tick for the countdown, and add the visibility-based evaluation above as the authority for long hidden periods.
+3. **Ignore programmatic scroll.** Only count `scroll` when it originates from a real user gesture (trusted event check), or drop `scroll` in favor of `wheel`/`pointerdown`/`keydown`/`touchstart`.
+4. **Show the timeout notice.** Read `reason=timeout` on the sign-in page and display an inline message: "You were signed out due to inactivity. Please sign in again."
+5. **Hardening.** In-memory fallback timestamp when `localStorage` writes fail, and stabilize `signOut` usage with a ref so the evaluation interval is created once.
+
+Scope: app code only (`src/hooks/useIdleLogout.ts`, `src/pages/AuthLegacy.tsx`, minor touch to `src/components/IdleWarningDialog.tsx` if needed). No database, edge function, or auth config changes.
+
+## Note on thresholds
+
+Current window is 30 minutes idle / 3 minute warning. Say the word if you want it shortened (e.g. 15 / 2) while I am in there.
