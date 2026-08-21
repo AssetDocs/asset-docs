@@ -952,67 +952,8 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
         onVerified={handleTOTPVerified}
         actionDescription="access your Secure Vault"
       />
-
-      {/* Remove Encryption Confirmation Dialog */}
-      <AlertDialog open={showRemoveEncryptionDialog} onOpenChange={(open) => {
-        if (!open && !isRemovingEncryption) {
-          setShowRemoveEncryptionDialog(false);
-          setRemoveEncryptionPassword('');
-        }
-      }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-destructive" />
-              Remove Vault Encryption?
-            </AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-3">
-                <p>
-                  This will <strong>permanently remove encryption</strong> from your Secure Vault. All passwords, financial accounts, and Legacy Locker data will be stored without encryption.
-                </p>
-                <p className="text-destructive font-medium">
-                  This is a security downgrade. Only proceed if you understand the risks.
-                </p>
-                {!sessionMasterPassword && (
-                  <div className="pt-2">
-                    <Label htmlFor="remove-encryption-pw" className="text-sm font-medium">
-                      Enter your vault passphrase to confirm:
-                    </Label>
-                    <Input
-                      id="remove-encryption-pw"
-                      type="password"
-                      value={removeEncryptionPassword}
-                      onChange={(e) => setRemoveEncryptionPassword(e.target.value)}
-                      placeholder="Master password"
-                      className="mt-1"
-                      disabled={isRemovingEncryption}
-                    />
-                  </div>
-                )}
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isRemovingEncryption}>Cancel</AlertDialogCancel>
-            <Button
-              variant="destructive"
-              onClick={handleRemoveEncryption}
-              disabled={isRemovingEncryption || (!sessionMasterPassword && !removeEncryptionPassword)}
-            >
-              {isRemovingEncryption ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Removing Encryption...
-                </>
-              ) : (
-                'Yes, Remove Encryption'
-              )}
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
+
   );
 };
 
