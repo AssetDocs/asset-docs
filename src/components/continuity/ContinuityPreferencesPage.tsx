@@ -95,7 +95,11 @@ const ContinuityPreferencesPage: React.FC = () => {
         .select('continuity_preferences, continuity_annual_reminder, continuity_preferences_reviewed_at, continuity_preferences_version, continuity_heartbeat_enabled, continuity_heartbeat_interval_days, continuity_last_heartbeat_at, continuity_next_heartbeat_due_at, continuity_heartbeat_status')
         .eq('user_id', user.id).maybeSingle();
       if (data) {
-        setPrefs({ ...DEFAULT_PREFS, ...(data.continuity_preferences || {}) });
+        const stored = { ...(data.continuity_preferences || {}) } as Record<string, any>;
+        // Retired feature: never re-hydrate or re-save vault segment policies.
+        delete stored.vault_segments;
+        setPrefs({ ...DEFAULT_PREFS, ...stored });
+
         setAnnual(!!data.continuity_annual_reminder);
         setHeartbeatEnabled(!!data.continuity_heartbeat_enabled);
         setHeartbeatInterval(String(data.continuity_heartbeat_interval_days || 90));
