@@ -61,7 +61,6 @@ const READINESS_LABELS: Record<string, string> = {
   mfa_enabled: 'MFA enabled',
   backup_email_verified: 'Backup email verified',
   continuity_prefs: 'Continuity preferences configured',
-  vault_prefs: 'Secure Vault preferences configured',
   export_prefs: 'Export preferences configured',
   emergency_contact: 'Emergency contact added',
   reviewed_within_12_months: 'Preferences reviewed in the last 12 months',
@@ -71,11 +70,8 @@ const DEFAULT_PREFS = {
   incapacity: { require_manual_review: true },
   permanent_incapacity: { require_legal_documentation: true, require_secondary_approval: true },
   death: { require_death_certificate: true, require_executor_docs: true },
-  vault_segments: {
-    'Password Catalog': 'requires_secondary_verification',
-    'Secure Vault': 'requires_secondary_verification',
-  },
 };
+
 
 const ContinuityPreferencesPage: React.FC = () => {
   const { user } = useAuth();
