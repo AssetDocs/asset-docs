@@ -218,29 +218,6 @@ const ContinuityPreferencesPage: React.FC = () => {
         <CardContent>{renderCheckboxes('death', DEATH_OPTIONS)}</CardContent>
       </Card>
 
-      {/* Vault segments */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2"><Lock className="h-4 w-4" /> Protected Vault Segments</CardTitle>
-          <CardDescription>Choose how each sensitive area should be handled during a continuity event.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {VAULT_SEGMENTS.map((seg) => (
-            <div key={seg} className="flex items-center justify-between gap-3">
-              <Label className="text-sm flex-1">{seg}</Label>
-              <Select
-                value={prefs.vault_segments?.[seg] || ''}
-                onValueChange={(v) => setSection('vault_segments', seg, v)}
-              >
-                <SelectTrigger className="w-72"><SelectValue placeholder="Select policy…" /></SelectTrigger>
-                <SelectContent>
-                  {SEGMENT_POLICY.map((p) => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
 
       {/* Annual review */}
       <Card>
