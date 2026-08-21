@@ -13,7 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAccount } from '@/contexts/AccountContext';
 import { toast } from 'sonner';
-import { Crown, ShieldCheck, Heart, Lock } from 'lucide-react';
+import { Crown, ShieldCheck, Heart } from 'lucide-react';
 
 const INCAPACITY_OPTIONS = [
   { key: 'allow_temporary_stewardship', label: 'Allow temporary continuity access' },
