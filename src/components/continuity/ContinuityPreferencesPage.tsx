@@ -13,7 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAccount } from '@/contexts/AccountContext';
 import { toast } from 'sonner';
-import { Crown, ShieldCheck, Heart, Lock } from 'lucide-react';
+import { Crown, ShieldCheck, Heart } from 'lucide-react';
 
 const INCAPACITY_OPTIONS = [
   { key: 'allow_temporary_stewardship', label: 'Allow temporary continuity access' },
@@ -45,19 +45,8 @@ const DEATH_OPTIONS = [
   { key: 'require_executor_docs', label: 'Require executor or legal authority documentation' },
 ];
 
-const VAULT_SEGMENTS = [
-  'Secure Vault', 'Password Catalog', 'Family Archive', 'Legacy Locker',
-  'Property Records', 'Financial Documents', 'Personal Notes',
-];
 
-const SEGMENT_POLICY = [
-  { value: 'transfer_allowed', label: 'Transfer allowed' },
-  { value: 'export_only', label: 'Export allowed only' },
-  { value: 'requires_additional_docs', label: 'Requires additional documentation' },
-  { value: 'requires_secondary_verification', label: 'Requires secondary verification' },
-  { value: 'never_transfer', label: 'Never transfer' },
-  { value: 'preserve_read_only', label: 'Preserve read-only' },
-];
+
 
 const HEARTBEAT_INTERVALS = [
   { value: '30', label: 'Every 30 days' },
@@ -72,7 +61,6 @@ const READINESS_LABELS: Record<string, string> = {
   mfa_enabled: 'MFA enabled',
   backup_email_verified: 'Backup email verified',
   continuity_prefs: 'Continuity preferences configured',
-  vault_prefs: 'Secure Vault preferences configured',
   export_prefs: 'Export preferences configured',
   emergency_contact: 'Emergency contact added',
   reviewed_within_12_months: 'Preferences reviewed in the last 12 months',
@@ -82,11 +70,8 @@ const DEFAULT_PREFS = {
   incapacity: { require_manual_review: true },
   permanent_incapacity: { require_legal_documentation: true, require_secondary_approval: true },
   death: { require_death_certificate: true, require_executor_docs: true },
-  vault_segments: {
-    'Password Catalog': 'requires_secondary_verification',
-    'Secure Vault': 'requires_secondary_verification',
-  },
 };
+
 
 const ContinuityPreferencesPage: React.FC = () => {
   const { user } = useAuth();
@@ -110,7 +95,11 @@ const ContinuityPreferencesPage: React.FC = () => {
         .select('continuity_preferences, continuity_annual_reminder, continuity_preferences_reviewed_at, continuity_preferences_version, continuity_heartbeat_enabled, continuity_heartbeat_interval_days, continuity_last_heartbeat_at, continuity_next_heartbeat_due_at, continuity_heartbeat_status')
         .eq('user_id', user.id).maybeSingle();
       if (data) {
-        setPrefs({ ...DEFAULT_PREFS, ...(data.continuity_preferences || {}) });
+        const stored = { ...(data.continuity_preferences || {}) } as Record<string, any>;
+        // Retired feature: never re-hydrate or re-save vault segment policies.
+        delete stored.vault_segments;
+        setPrefs({ ...DEFAULT_PREFS, ...stored });
+
         setAnnual(!!data.continuity_annual_reminder);
         setHeartbeatEnabled(!!data.continuity_heartbeat_enabled);
         setHeartbeatInterval(String(data.continuity_heartbeat_interval_days || 90));
@@ -229,29 +218,6 @@ const ContinuityPreferencesPage: React.FC = () => {
         <CardContent>{renderCheckboxes('death', DEATH_OPTIONS)}</CardContent>
       </Card>
 
-      {/* Vault segments */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2"><Lock className="h-4 w-4" /> Protected Vault Segments</CardTitle>
-          <CardDescription>Choose how each sensitive area should be handled during a continuity event.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {VAULT_SEGMENTS.map((seg) => (
-            <div key={seg} className="flex items-center justify-between gap-3">
-              <Label className="text-sm flex-1">{seg}</Label>
-              <Select
-                value={prefs.vault_segments?.[seg] || ''}
-                onValueChange={(v) => setSection('vault_segments', seg, v)}
-              >
-                <SelectTrigger className="w-72"><SelectValue placeholder="Select policy…" /></SelectTrigger>
-                <SelectContent>
-                  {SEGMENT_POLICY.map((p) => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
 
       {/* Annual review */}
       <Card>
