@@ -716,7 +716,7 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
               <div>
               <CardTitle className="flex items-center gap-2 text-xl">
                 <Lock className="h-6 w-6 text-yellow-600" />
-                Secure Vault (Advanced Protection) - Locked
+                Secure Vault (Advanced Protection) - {needsVaultSetup ? 'Setup Required' : 'Locked'}
                 </CardTitle>
                 <CardDescription className="text-yellow-700 dark:text-yellow-300">
                   Digital Access & Legacy Locker - Protected with End-to-End Encryption
@@ -726,19 +726,38 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
           </CardHeader>
           <CardContent className="py-12">
             <div className="text-center">
-              <Lock className="h-20 w-20 mx-auto mb-6 text-yellow-500" />
-              <h3 className="text-xl font-semibold mb-3">Secure Vault Locked</h3>
-              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Your Digital Access and Legacy Locker are encrypted with the same vault passphrase.
-                Enter your vault passphrase to access both sections.
-              </p>
-              <Button onClick={handleUnlockClick} size="lg" className="bg-yellow-500 hover:bg-yellow-600 text-black">
-                <Unlock className="h-5 w-5 mr-2" />
-                Unlock Secure Vault
-              </Button>
+              {needsVaultSetup ? (
+                <>
+                  <Shield className="h-20 w-20 mx-auto mb-6 text-yellow-500" />
+                  <h3 className="text-xl font-semibold mb-3">Secure Your Vault</h3>
+                  <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                    Digital Access and Legacy Locker are always protected. Create a vault
+                    passphrase to encrypt both sections — anything you've already saved will be
+                    encrypted at the same time. Only you know this passphrase, so store it safely.
+                  </p>
+                  <Button onClick={handleUnlockClick} size="lg" className="bg-yellow-500 hover:bg-yellow-600 text-black">
+                    <Key className="h-5 w-5 mr-2" />
+                    Secure My Vault
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Lock className="h-20 w-20 mx-auto mb-6 text-yellow-500" />
+                  <h3 className="text-xl font-semibold mb-3">Secure Vault Locked</h3>
+                  <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                    Your Digital Access and Legacy Locker are encrypted with the same vault passphrase.
+                    Enter your vault passphrase to access both sections.
+                  </p>
+                  <Button onClick={handleUnlockClick} size="lg" className="bg-yellow-500 hover:bg-yellow-600 text-black">
+                    <Unlock className="h-5 w-5 mr-2" />
+                    Unlock Secure Vault
+                  </Button>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>
+
         <MasterPasswordModal
           isOpen={showMasterPasswordModal}
           isSetup={isSetupMode}
