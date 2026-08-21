@@ -19,7 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { decryptPassword } from '@/utils/encryption';
+import { decryptPassword, encryptPassword } from '@/utils/encryption';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAccount } from '@/contexts/AccountContext';
 import { useToast } from '@/hooks/use-toast';
