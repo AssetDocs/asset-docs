@@ -554,6 +554,16 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
   // Check if admin is blocked from vault access
   const isAdminBlockedFromVault = isAdministrator && !allowAdminAccess;
 
+  // Mandatory gate: the account owner must always unlock (or first set up) the
+  // vault before Digital Access or Legacy Locker can mount. Contributors and
+  // recovery delegates keep the previous behaviour (gated only when encrypted)
+  // and never see the setup flow — only the owner can create the passphrase.
+  const isOwnerView = !isContributor && !isDelegate;
+  const needsVaultSetup = isOwnerView && !existingEncrypted && computeSetupMode();
+  const vaultLocked = isOwnerView ? !isUnlocked : (isEncrypted && !isUnlocked);
+  const childUnlocked = isOwnerView ? isUnlocked : (!isEncrypted || isUnlocked);
+
+
   // Contributor restriction - show access denied for encrypted vault or blocked admin
   if ((isEncrypted && !canAccessEncryptedVault) || isAdminBlockedFromVault) {
     // Different messaging for admin blocked vs other contributor restrictions
