@@ -355,7 +355,22 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
     // is still keyed by `password` for legacy v1 ciphertext compatibility —
     // ASV2-encrypted reads/writes added in later items use the vault key.
     if (outcome.mode === 'setup' || outcome.mode === 'upgrade') {
+      // Encrypt any pre-existing plaintext values FIRST. If this fails we abort
+      // before flipping is_encrypted, so the vault stays in its previous state
+      // and the upgrade can be retried (already-encrypted rows are skipped).
+      if (!existingEncrypted) {
+        try {
+          await encryptExistingPlaintext(password);
+        } catch (migrationError) {
+          console.error('Vault plaintext upgrade failed:', (migrationError as any)?.message || 'unknown error');
+          throw new Error(
+            'Could not finish securing your existing vault data. Nothing was changed — please try again.',
+          );
+        }
+      }
+
       try {
+
         const { data: existingRecord } = await supabase
           .from('legacy_locker')
           .select('id')
