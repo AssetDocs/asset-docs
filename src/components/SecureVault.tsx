@@ -613,8 +613,9 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
     );
   }
 
-  // Locked state - show unlock prompt (or delegate panel if user is a recovery delegate)
-  if (isEncrypted && !isUnlocked) {
+  // Locked state - show unlock/setup prompt (or delegate panel if user is a recovery delegate)
+  if (vaultLocked) {
+
     // Delegate view: show appropriate panel based on recovery status
     if (isDelegate && delegateForLockerId) {
       const isPendingOrAwaiting = delegateRecoveryStatus === 'pending' || delegateRecoveryStatus === 'awaiting_acknowledgment';
