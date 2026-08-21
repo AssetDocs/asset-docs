@@ -32,6 +32,29 @@ import { saveDraft, loadDraft, clearDraft } from '@/utils/formDrafts';
 
 const LEGACY_LOCKER_DRAFT = 'legacyLocker.form';
 
+// Sensitive free-text columns that are encrypted at rest.
+const LOCKER_TEXT_FIELDS = [
+  'full_legal_name', 'address', 'executor_name', 'executor_relationship',
+  'executor_contact', 'backup_executor_name', 'backup_executor_contact',
+  'guardian_name', 'guardian_relationship', 'guardian_contact',
+  'backup_guardian_name', 'backup_guardian_contact',
+  'spouse_name', 'spouse_contact', 'attorney_name', 'attorney_firm', 'attorney_contact',
+  'business_partner_name', 'business_partner_company', 'business_partner_contact',
+  'investment_firm_name', 'investment_advisor_name', 'investment_firm_contact',
+  'financial_advisor_name', 'financial_advisor_firm', 'financial_advisor_contact',
+  'residuary_estate', 'digital_assets', 'real_estate_instructions', 'debts_expenses',
+  'funeral_wishes', 'burial_or_cremation', 'ceremony_preferences',
+  'letters_to_loved_ones', 'pet_care_instructions', 'business_succession_plan',
+  'ethical_will',
+  'life_overview', 'digital_identity', 'personal_philosophies', 'medical_preferences',
+  'executor_instructions', 'subscriptions', 'household_operations', 'financial_crypto',
+  'parenting_preferences', 'emotional_behavioral', 'developmental_goals', 'letters_to_children',
+  'photo_video_documentation', 'physical_documents', 'sentimental_items', 'crypto_passwords',
+  'property_walkthrough', 'home_maintenance', 'neighborhood_contacts', 'rental_property',
+  'sentimental_distribution', 'legacy_messages', 'charitable_giving',
+];
+
+
 
 
 interface LegacyLockerData {
@@ -534,6 +557,33 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
       setLoading(false);
     }
   };
+
+  // When the parent Secure Vault holds the unlock state, decrypt the stored
+  // fields here (the local unlock handler never runs in that mode).
+  const decryptedForIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    const run = async () => {
+      if (!isControlledByParent || !isUnlocked || !isEncrypted) return;
+      if (!existingData?.id || !sessionMasterPassword) return;
+      if (decryptedForIdRef.current === existingData.id) return;
+      decryptedForIdRef.current = existingData.id;
+
+      const decrypted: any = { ...existingData };
+      for (const field of LOCKER_TEXT_FIELDS) {
+        const value = decrypted[field];
+        if (value && typeof value === 'string') {
+          try {
+            decrypted[field] = await decryptPassword(value, sessionMasterPassword);
+          } catch {
+            // Value may already be plaintext (pre-encryption data) — keep as is.
+          }
+        }
+      }
+      setFormData(decrypted as LegacyLockerData);
+    };
+    run();
+  }, [isControlledByParent, isUnlocked, isEncrypted, existingData, sessionMasterPassword]);
+
 
   const handleUnlockClick = () => {
     const storedHash = localStorage.getItem(MASTER_PASSWORD_HASH_KEY);

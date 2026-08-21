@@ -19,7 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { decryptPassword } from '@/utils/encryption';
+import { decryptPassword, encryptPassword } from '@/utils/encryption';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAccount } from '@/contexts/AccountContext';
 import { useToast } from '@/hooks/use-toast';
@@ -219,7 +219,129 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
     setShowMasterPasswordModal(true);
   };
 
+  // Legacy Locker text columns that hold sensitive free-text values.
+  const LOCKER_TEXT_FIELDS = [
+    'full_legal_name', 'address', 'executor_name', 'executor_relationship',
+    'executor_contact', 'backup_executor_name', 'backup_executor_contact',
+    'guardian_name', 'guardian_relationship', 'guardian_contact',
+    'backup_guardian_name', 'backup_guardian_contact',
+    'spouse_name', 'spouse_contact', 'attorney_name', 'attorney_firm', 'attorney_contact',
+    'business_partner_name', 'business_partner_company', 'business_partner_contact',
+    'investment_firm_name', 'investment_advisor_name', 'investment_firm_contact',
+    'financial_advisor_name', 'financial_advisor_firm', 'financial_advisor_contact',
+    'residuary_estate', 'digital_assets', 'real_estate_instructions', 'debts_expenses',
+    'funeral_wishes', 'burial_or_cremation', 'ceremony_preferences',
+    'letters_to_loved_ones', 'pet_care_instructions', 'business_succession_plan',
+    'ethical_will',
+    'life_overview', 'digital_identity', 'personal_philosophies', 'medical_preferences',
+    'executor_instructions', 'subscriptions', 'household_operations', 'financial_crypto',
+    'parenting_preferences', 'emotional_behavioral', 'developmental_goals', 'letters_to_children',
+    'photo_video_documentation', 'physical_documents', 'sentimental_items', 'crypto_passwords',
+    'property_walkthrough', 'home_maintenance', 'neighborhood_contacts', 'rental_property',
+    'sentimental_distribution', 'legacy_messages', 'charitable_giving',
+  ];
+
+  // Encrypt a value unless it already decrypts with this passphrase (which
+  // means a previous, interrupted migration already handled it). This keeps the
+  // upgrade idempotent and safely resumable after a mid-way failure.
+  // NOTE: never log the value itself — only field/row identifiers.
+  const encryptIfPlaintext = async (value: string, passphrase: string): Promise<string> => {
+    try {
+      await decryptPassword(value, passphrase);
+      return value; // already encrypted with this passphrase
+    } catch {
+      return await encryptPassword(value, passphrase);
+    }
+  };
+
+  /**
+   * First-time vault protection: encrypt any pre-existing plaintext Digital
+   * Access, financial account and Legacy Locker values so nothing sensitive is
+   * left readable once the vault is locked. Throws on failure so the caller can
+   * abort the setup (leaving is_encrypted false and the upgrade resumable).
+   */
+  const encryptExistingPlaintext = async (passphrase: string) => {
+    if (!user) throw new Error('Not authenticated');
+
+    // 1. Digital Access passwords
+    const { data: passwords, error: pwError } = await supabase
+      .from('password_catalog')
+      .select('id, password')
+      .eq('user_id', user.id);
+    if (pwError) throw pwError;
+
+    for (const entry of passwords || []) {
+      if (!entry.password) continue;
+      const next = await encryptIfPlaintext(entry.password, passphrase);
+      if (next !== entry.password) {
+        const { error } = await supabase
+          .from('password_catalog')
+          .update({ password: next })
+          .eq('id', entry.id);
+        if (error) {
+          console.error('Vault upgrade: failed to store password_catalog row', entry.id);
+          throw error;
+        }
+      }
+    }
+
+    // 2. Financial accounts
+    const { data: accounts, error: acctError } = await supabase
+      .from('financial_accounts')
+      .select('id, account_number, routing_number, notes')
+      .eq('user_id', user.id);
+    if (acctError) throw acctError;
+
+    for (const acct of accounts || []) {
+      const updates: any = {};
+      for (const field of ['account_number', 'routing_number', 'notes']) {
+        const value = (acct as any)[field];
+        if (value && typeof value === 'string') {
+          const next = await encryptIfPlaintext(value, passphrase);
+          if (next !== value) updates[field] = next;
+        }
+      }
+      if (Object.keys(updates).length > 0) {
+        const { error } = await supabase.from('financial_accounts').update(updates).eq('id', acct.id);
+        if (error) {
+          console.error('Vault upgrade: failed to store financial_accounts row', acct.id);
+          throw error;
+        }
+      }
+    }
+
+    // 3. Legacy Locker free-text fields
+    const { data: locker, error: lockerError } = await supabase
+      .from('legacy_locker')
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (lockerError) throw lockerError;
+
+    if (locker) {
+      const updates: any = {};
+      for (const field of LOCKER_TEXT_FIELDS) {
+        const value = (locker as any)[field];
+        if (value && typeof value === 'string') {
+          const next = await encryptIfPlaintext(value, passphrase);
+          if (next !== value) updates[field] = next;
+        }
+      }
+      if (Object.keys(updates).length > 0) {
+        const { error } = await supabase
+          .from('legacy_locker')
+          .update({ ...updates, updated_at: new Date().toISOString() })
+          .eq('user_id', user.id);
+        if (error) {
+          console.error('Vault upgrade: failed to store legacy_locker fields', Object.keys(updates));
+          throw error;
+        }
+      }
+    }
+  };
+
   const handleMasterPasswordSubmit = async (password: string) => {
+
     if (!user) throw new Error('Not authenticated');
 
     const outcome = await unlockOrUpgradeVault({
@@ -233,7 +355,22 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
     // is still keyed by `password` for legacy v1 ciphertext compatibility —
     // ASV2-encrypted reads/writes added in later items use the vault key.
     if (outcome.mode === 'setup' || outcome.mode === 'upgrade') {
+      // Encrypt any pre-existing plaintext values FIRST. If this fails we abort
+      // before flipping is_encrypted, so the vault stays in its previous state
+      // and the upgrade can be retried (already-encrypted rows are skipped).
+      if (!existingEncrypted) {
+        try {
+          await encryptExistingPlaintext(password);
+        } catch (migrationError) {
+          console.error('Vault plaintext upgrade failed:', (migrationError as any)?.message || 'unknown error');
+          throw new Error(
+            'Could not finish securing your existing vault data. Nothing was changed — please try again.',
+          );
+        }
+      }
+
       try {
+
         const { data: existingRecord } = await supabase
           .from('legacy_locker')
           .select('id')
@@ -305,159 +442,9 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
     }
   };
 
-  // Remove encryption state
-  const [showRemoveEncryptionDialog, setShowRemoveEncryptionDialog] = useState(false);
-  const [removeEncryptionPassword, setRemoveEncryptionPassword] = useState('');
-  const [isRemovingEncryption, setIsRemovingEncryption] = useState(false);
+  // Vault protection is mandatory — encryption can no longer be removed.
 
-  const handleEncryptionToggle = (checked: boolean) => {
-    if (checked && !sessionMasterPassword) {
-      handleUnlockClick();
-    } else if (!checked && existingEncrypted) {
-      setShowRemoveEncryptionDialog(true);
-      return;
-    }
-    setIsEncrypted(checked);
-  };
 
-  const handleRemoveEncryption = async () => {
-    if (!user) return;
-
-    const masterPw = sessionMasterPassword || removeEncryptionPassword;
-    if (!masterPw) {
-      toast({ title: "Error", description: "Master password is required.", variant: "destructive" });
-      return;
-    }
-
-    setIsRemovingEncryption(true);
-    try {
-      // 1. Decrypt all password_catalog entries
-      const { data: passwords, error: pwError } = await supabase
-        .from('password_catalog')
-        .select('*')
-        .eq('user_id', user.id);
-
-      if (pwError) throw pwError;
-
-      for (const entry of (passwords || [])) {
-        try {
-          const decryptedPw = await decryptPassword(entry.password, masterPw);
-          await supabase
-            .from('password_catalog')
-            .update({ password: decryptedPw })
-            .eq('id', entry.id);
-        } catch (err) {
-          console.error(`Failed to decrypt password entry ${entry.id}:`, err);
-          throw new Error('Decryption failed — incorrect vault passphrase or corrupted data.');
-        }
-      }
-
-      // 2. Decrypt all financial_accounts entries
-      const { data: accounts, error: acctError } = await supabase
-        .from('financial_accounts')
-        .select('*')
-        .eq('user_id', user.id);
-
-      if (acctError) throw acctError;
-
-      for (const acct of (accounts || [])) {
-        try {
-          const updates: any = {};
-          updates.account_number = await decryptPassword(acct.account_number, masterPw);
-          if (acct.routing_number) updates.routing_number = await decryptPassword(acct.routing_number, masterPw);
-          if (acct.notes) updates.notes = await decryptPassword(acct.notes, masterPw);
-          await supabase.from('financial_accounts').update(updates).eq('id', acct.id);
-        } catch (err) {
-          console.error(`Failed to decrypt financial account ${acct.id}:`, err);
-        }
-      }
-
-      // 3. Decrypt legacy_locker fields
-      const { data: locker, error: lockerError } = await supabase
-        .from('legacy_locker')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (lockerError) throw lockerError;
-
-      if (locker) {
-        const textFields = [
-          'full_legal_name', 'address', 'executor_name', 'executor_relationship',
-          'executor_contact', 'backup_executor_name', 'backup_executor_contact',
-          'guardian_name', 'guardian_relationship', 'guardian_contact',
-          'backup_guardian_name', 'backup_guardian_contact',
-          'spouse_name', 'spouse_contact', 'attorney_name', 'attorney_firm', 'attorney_contact',
-          'business_partner_name', 'business_partner_company', 'business_partner_contact',
-          'investment_firm_name', 'investment_advisor_name', 'investment_firm_contact',
-          'financial_advisor_name', 'financial_advisor_firm', 'financial_advisor_contact',
-          'residuary_estate', 'digital_assets', 'real_estate_instructions', 'debts_expenses',
-          'funeral_wishes', 'burial_or_cremation', 'ceremony_preferences',
-          'letters_to_loved_ones', 'pet_care_instructions', 'business_succession_plan',
-          'ethical_will'
-        ];
-
-        const decryptedLocker: any = {};
-        for (const field of textFields) {
-          const value = (locker as any)[field];
-          if (value && typeof value === 'string') {
-            try {
-              decryptedLocker[field] = await decryptPassword(value, masterPw);
-            } catch (err) {
-              console.error(`Failed to decrypt legacy locker field ${field}`);
-            }
-          }
-        }
-
-        await supabase
-          .from('legacy_locker')
-          .update({
-            ...decryptedLocker,
-            is_encrypted: false,
-            encryption_key_encrypted_for_user: null,
-            encryption_key_encrypted_for_delegate: null,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('user_id', user.id);
-      }
-
-      // 4. Log activity
-      logActivity({
-        action_type: 'remove_encryption',
-        action_category: 'vault',
-        resource_type: 'vault',
-        resource_name: 'Secure Vault',
-        details: { action: 'encryption_removed' },
-      });
-
-      // 5. Update local state
-      setExistingEncrypted(false);
-      setIsEncrypted(false);
-      setIsUnlocked(false);
-      setSessionMasterPassword(null);
-      setWrappedVaultKey(null);
-      clearVaultKey(user.id);
-      localStorage.removeItem(MASTER_PASSWORD_HASH_KEY);
-
-      setShowRemoveEncryptionDialog(false);
-      setRemoveEncryptionPassword('');
-      toast({
-        title: "Encryption Removed",
-        description: "Your Secure Vault data is no longer encrypted. Data has been saved as plaintext.",
-      });
-
-      fetchVaultStatus();
-    } catch (error: any) {
-      console.error('Error removing encryption:', error);
-      toast({
-        title: "Failed to Remove Encryption",
-        description: error.message || "An error occurred. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsRemovingEncryption(false);
-    }
-  };
 
   const handleSaveDelegate = async () => {
     if (!user || !legacyLockerId) return;
@@ -567,6 +554,16 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
   // Check if admin is blocked from vault access
   const isAdminBlockedFromVault = isAdministrator && !allowAdminAccess;
 
+  // Mandatory gate: the account owner must always unlock (or first set up) the
+  // vault before Digital Access or Legacy Locker can mount. Contributors and
+  // recovery delegates keep the previous behaviour (gated only when encrypted)
+  // and never see the setup flow — only the owner can create the passphrase.
+  const isOwnerView = !isContributor && !isDelegate;
+  const needsVaultSetup = isOwnerView && !existingEncrypted && computeSetupMode();
+  const vaultLocked = isOwnerView ? !isUnlocked : (isEncrypted && !isUnlocked);
+  const childUnlocked = isOwnerView ? isUnlocked : (!isEncrypted || isUnlocked);
+
+
   // Contributor restriction - show access denied for encrypted vault or blocked admin
   if ((isEncrypted && !canAccessEncryptedVault) || isAdminBlockedFromVault) {
     // Different messaging for admin blocked vs other contributor restrictions
@@ -616,8 +613,9 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
     );
   }
 
-  // Locked state - show unlock prompt (or delegate panel if user is a recovery delegate)
-  if (isEncrypted && !isUnlocked) {
+  // Locked state - show unlock/setup prompt (or delegate panel if user is a recovery delegate)
+  if (vaultLocked) {
+
     // Delegate view: show appropriate panel based on recovery status
     if (isDelegate && delegateForLockerId) {
       const isPendingOrAwaiting = delegateRecoveryStatus === 'pending' || delegateRecoveryStatus === 'awaiting_acknowledgment';
@@ -718,7 +716,7 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
               <div>
               <CardTitle className="flex items-center gap-2 text-xl">
                 <Lock className="h-6 w-6 text-yellow-600" />
-                Secure Vault (Advanced Protection) - Locked
+                Secure Vault (Advanced Protection) - {needsVaultSetup ? 'Setup Required' : 'Locked'}
                 </CardTitle>
                 <CardDescription className="text-yellow-700 dark:text-yellow-300">
                   Digital Access & Legacy Locker - Protected with End-to-End Encryption
@@ -728,19 +726,38 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
           </CardHeader>
           <CardContent className="py-12">
             <div className="text-center">
-              <Lock className="h-20 w-20 mx-auto mb-6 text-yellow-500" />
-              <h3 className="text-xl font-semibold mb-3">Secure Vault Locked</h3>
-              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Your Digital Access and Legacy Locker are encrypted with the same vault passphrase.
-                Enter your vault passphrase to access both sections.
-              </p>
-              <Button onClick={handleUnlockClick} size="lg" className="bg-yellow-500 hover:bg-yellow-600 text-black">
-                <Unlock className="h-5 w-5 mr-2" />
-                Unlock Secure Vault
-              </Button>
+              {needsVaultSetup ? (
+                <>
+                  <Shield className="h-20 w-20 mx-auto mb-6 text-yellow-500" />
+                  <h3 className="text-xl font-semibold mb-3">Secure Your Vault</h3>
+                  <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                    Digital Access and Legacy Locker are always protected. Create a vault
+                    passphrase to encrypt both sections — anything you've already saved will be
+                    encrypted at the same time. Only you know this passphrase, so store it safely.
+                  </p>
+                  <Button onClick={handleUnlockClick} size="lg" className="bg-yellow-500 hover:bg-yellow-600 text-black">
+                    <Key className="h-5 w-5 mr-2" />
+                    Secure My Vault
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Lock className="h-20 w-20 mx-auto mb-6 text-yellow-500" />
+                  <h3 className="text-xl font-semibold mb-3">Secure Vault Locked</h3>
+                  <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                    Your Digital Access and Legacy Locker are encrypted with the same vault passphrase.
+                    Enter your vault passphrase to access both sections.
+                  </p>
+                  <Button onClick={handleUnlockClick} size="lg" className="bg-yellow-500 hover:bg-yellow-600 text-black">
+                    <Unlock className="h-5 w-5 mr-2" />
+                    Unlock Secure Vault
+                  </Button>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>
+
         <MasterPasswordModal
           isOpen={showMasterPasswordModal}
           isSetup={isSetupMode}
@@ -772,23 +789,14 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
               </CardDescription>
             </div>
             
-            {/* Encryption Toggle - Highlighted Box */}
+            {/* Encryption status — protection is always on and can't be removed */}
             <div className="bg-yellow-100 dark:bg-yellow-800/30 border-2 border-yellow-500 rounded-lg px-4 py-3">
-              <div className="flex items-center gap-3">
-                <Label 
-                  htmlFor="vault-encryption-toggle" 
-                  className="font-semibold text-yellow-700 dark:text-yellow-300"
-                >
-                  {existingEncrypted ? "🔒 Encrypted" : "🔓 Encrypt"}
-                </Label>
-                <Switch
-                  id="vault-encryption-toggle"
-                  checked={isEncrypted}
-                  onCheckedChange={handleEncryptionToggle}
-                  disabled={false}
-                />
+              <div className="flex items-center gap-2 font-semibold text-yellow-700 dark:text-yellow-300">
+                <Lock className="h-4 w-4" />
+                Encrypted
               </div>
             </div>
+
           </div>
           
           {/* Info Alert */}
@@ -888,7 +896,8 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
               <CollapsibleContent>
                 <div className="p-4 pt-0">
                   <PasswordCatalog 
-                    isUnlockedFromParent={!isEncrypted || isUnlocked}
+                    isUnlockedFromParent={childUnlocked}
+
                     sessionMasterPasswordFromParent={sessionMasterPassword}
                     isVaultEncrypted={isEncrypted && existingEncrypted}
                   />
@@ -921,7 +930,8 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
               <CollapsibleContent>
                 <div className="p-4 pt-0">
                   <LegacyLocker 
-                    isUnlockedFromParent={!isEncrypted || isUnlocked}
+                    isUnlockedFromParent={childUnlocked}
+
                     sessionMasterPasswordFromParent={sessionMasterPassword}
                     hideEncryptionControls={true}
                   />
@@ -944,67 +954,8 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
         onVerified={handleTOTPVerified}
         actionDescription="access your Secure Vault"
       />
-
-      {/* Remove Encryption Confirmation Dialog */}
-      <AlertDialog open={showRemoveEncryptionDialog} onOpenChange={(open) => {
-        if (!open && !isRemovingEncryption) {
-          setShowRemoveEncryptionDialog(false);
-          setRemoveEncryptionPassword('');
-        }
-      }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-destructive" />
-              Remove Vault Encryption?
-            </AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-3">
-                <p>
-                  This will <strong>permanently remove encryption</strong> from your Secure Vault. All passwords, financial accounts, and Legacy Locker data will be stored without encryption.
-                </p>
-                <p className="text-destructive font-medium">
-                  This is a security downgrade. Only proceed if you understand the risks.
-                </p>
-                {!sessionMasterPassword && (
-                  <div className="pt-2">
-                    <Label htmlFor="remove-encryption-pw" className="text-sm font-medium">
-                      Enter your vault passphrase to confirm:
-                    </Label>
-                    <Input
-                      id="remove-encryption-pw"
-                      type="password"
-                      value={removeEncryptionPassword}
-                      onChange={(e) => setRemoveEncryptionPassword(e.target.value)}
-                      placeholder="Master password"
-                      className="mt-1"
-                      disabled={isRemovingEncryption}
-                    />
-                  </div>
-                )}
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isRemovingEncryption}>Cancel</AlertDialogCancel>
-            <Button
-              variant="destructive"
-              onClick={handleRemoveEncryption}
-              disabled={isRemovingEncryption || (!sessionMasterPassword && !removeEncryptionPassword)}
-            >
-              {isRemovingEncryption ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Removing Encryption...
-                </>
-              ) : (
-                'Yes, Remove Encryption'
-              )}
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
+
   );
 };
 
