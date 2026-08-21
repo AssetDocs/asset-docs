@@ -219,7 +219,129 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
     setShowMasterPasswordModal(true);
   };
 
+  // Legacy Locker text columns that hold sensitive free-text values.
+  const LOCKER_TEXT_FIELDS = [
+    'full_legal_name', 'address', 'executor_name', 'executor_relationship',
+    'executor_contact', 'backup_executor_name', 'backup_executor_contact',
+    'guardian_name', 'guardian_relationship', 'guardian_contact',
+    'backup_guardian_name', 'backup_guardian_contact',
+    'spouse_name', 'spouse_contact', 'attorney_name', 'attorney_firm', 'attorney_contact',
+    'business_partner_name', 'business_partner_company', 'business_partner_contact',
+    'investment_firm_name', 'investment_advisor_name', 'investment_firm_contact',
+    'financial_advisor_name', 'financial_advisor_firm', 'financial_advisor_contact',
+    'residuary_estate', 'digital_assets', 'real_estate_instructions', 'debts_expenses',
+    'funeral_wishes', 'burial_or_cremation', 'ceremony_preferences',
+    'letters_to_loved_ones', 'pet_care_instructions', 'business_succession_plan',
+    'ethical_will',
+    'life_overview', 'digital_identity', 'personal_philosophies', 'medical_preferences',
+    'executor_instructions', 'subscriptions', 'household_operations', 'financial_crypto',
+    'parenting_preferences', 'emotional_behavioral', 'developmental_goals', 'letters_to_children',
+    'photo_video_documentation', 'physical_documents', 'sentimental_items', 'crypto_passwords',
+    'property_walkthrough', 'home_maintenance', 'neighborhood_contacts', 'rental_property',
+    'sentimental_distribution', 'legacy_messages', 'charitable_giving',
+  ];
+
+  // Encrypt a value unless it already decrypts with this passphrase (which
+  // means a previous, interrupted migration already handled it). This keeps the
+  // upgrade idempotent and safely resumable after a mid-way failure.
+  // NOTE: never log the value itself — only field/row identifiers.
+  const encryptIfPlaintext = async (value: string, passphrase: string): Promise<string> => {
+    try {
+      await decryptPassword(value, passphrase);
+      return value; // already encrypted with this passphrase
+    } catch {
+      return await encryptPassword(value, passphrase);
+    }
+  };
+
+  /**
+   * First-time vault protection: encrypt any pre-existing plaintext Digital
+   * Access, financial account and Legacy Locker values so nothing sensitive is
+   * left readable once the vault is locked. Throws on failure so the caller can
+   * abort the setup (leaving is_encrypted false and the upgrade resumable).
+   */
+  const encryptExistingPlaintext = async (passphrase: string) => {
+    if (!user) throw new Error('Not authenticated');
+
+    // 1. Digital Access passwords
+    const { data: passwords, error: pwError } = await supabase
+      .from('password_catalog')
+      .select('id, password')
+      .eq('user_id', user.id);
+    if (pwError) throw pwError;
+
+    for (const entry of passwords || []) {
+      if (!entry.password) continue;
+      const next = await encryptIfPlaintext(entry.password, passphrase);
+      if (next !== entry.password) {
+        const { error } = await supabase
+          .from('password_catalog')
+          .update({ password: next })
+          .eq('id', entry.id);
+        if (error) {
+          console.error('Vault upgrade: failed to store password_catalog row', entry.id);
+          throw error;
+        }
+      }
+    }
+
+    // 2. Financial accounts
+    const { data: accounts, error: acctError } = await supabase
+      .from('financial_accounts')
+      .select('id, account_number, routing_number, notes')
+      .eq('user_id', user.id);
+    if (acctError) throw acctError;
+
+    for (const acct of accounts || []) {
+      const updates: any = {};
+      for (const field of ['account_number', 'routing_number', 'notes']) {
+        const value = (acct as any)[field];
+        if (value && typeof value === 'string') {
+          const next = await encryptIfPlaintext(value, passphrase);
+          if (next !== value) updates[field] = next;
+        }
+      }
+      if (Object.keys(updates).length > 0) {
+        const { error } = await supabase.from('financial_accounts').update(updates).eq('id', acct.id);
+        if (error) {
+          console.error('Vault upgrade: failed to store financial_accounts row', acct.id);
+          throw error;
+        }
+      }
+    }
+
+    // 3. Legacy Locker free-text fields
+    const { data: locker, error: lockerError } = await supabase
+      .from('legacy_locker')
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (lockerError) throw lockerError;
+
+    if (locker) {
+      const updates: any = {};
+      for (const field of LOCKER_TEXT_FIELDS) {
+        const value = (locker as any)[field];
+        if (value && typeof value === 'string') {
+          const next = await encryptIfPlaintext(value, passphrase);
+          if (next !== value) updates[field] = next;
+        }
+      }
+      if (Object.keys(updates).length > 0) {
+        const { error } = await supabase
+          .from('legacy_locker')
+          .update({ ...updates, updated_at: new Date().toISOString() })
+          .eq('user_id', user.id);
+        if (error) {
+          console.error('Vault upgrade: failed to store legacy_locker fields', Object.keys(updates));
+          throw error;
+        }
+      }
+    }
+  };
+
   const handleMasterPasswordSubmit = async (password: string) => {
+
     if (!user) throw new Error('Not authenticated');
 
     const outcome = await unlockOrUpgradeVault({
