@@ -558,6 +558,33 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
     }
   };
 
+  // When the parent Secure Vault holds the unlock state, decrypt the stored
+  // fields here (the local unlock handler never runs in that mode).
+  const decryptedForIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    const run = async () => {
+      if (!isControlledByParent || !isUnlocked || !isEncrypted) return;
+      if (!existingData?.id || !sessionMasterPassword) return;
+      if (decryptedForIdRef.current === existingData.id) return;
+      decryptedForIdRef.current = existingData.id;
+
+      const decrypted: any = { ...existingData };
+      for (const field of LOCKER_TEXT_FIELDS) {
+        const value = decrypted[field];
+        if (value && typeof value === 'string') {
+          try {
+            decrypted[field] = await decryptPassword(value, sessionMasterPassword);
+          } catch {
+            // Value may already be plaintext (pre-encryption data) — keep as is.
+          }
+        }
+      }
+      setFormData(decrypted as LegacyLockerData);
+    };
+    run();
+  }, [isControlledByParent, isUnlocked, isEncrypted, existingData, sessionMasterPassword]);
+
+
   const handleUnlockClick = () => {
     const storedHash = localStorage.getItem(MASTER_PASSWORD_HASH_KEY);
     if (!storedHash) {
