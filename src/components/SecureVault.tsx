@@ -789,23 +789,14 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
               </CardDescription>
             </div>
             
-            {/* Encryption Toggle - Highlighted Box */}
+            {/* Encryption status — protection is always on and can't be removed */}
             <div className="bg-yellow-100 dark:bg-yellow-800/30 border-2 border-yellow-500 rounded-lg px-4 py-3">
-              <div className="flex items-center gap-3">
-                <Label 
-                  htmlFor="vault-encryption-toggle" 
-                  className="font-semibold text-yellow-700 dark:text-yellow-300"
-                >
-                  {existingEncrypted ? "🔒 Encrypted" : "🔓 Encrypt"}
-                </Label>
-                <Switch
-                  id="vault-encryption-toggle"
-                  checked={isEncrypted}
-                  onCheckedChange={handleEncryptionToggle}
-                  disabled={false}
-                />
+              <div className="flex items-center gap-2 font-semibold text-yellow-700 dark:text-yellow-300">
+                <Lock className="h-4 w-4" />
+                Encrypted
               </div>
             </div>
+
           </div>
           
           {/* Info Alert */}
