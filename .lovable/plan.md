@@ -1,39 +1,37 @@
-# Audit: Inactivity Timeout & Logout Warning
+# Secure Vault: gate Legacy Locker the same way as Digital Access
 
-## Verified current state
+## What the audit found
 
-- The feature is implemented and **is live in production**: the published bundle at getassetsafe.com contains both the activity storage key (`assetsafe.idle.lastActivity`) and the "Need more time" dialog copy.
-- `IdleWarningDialog` is mounted once inside the authenticated provider tree in `src/App.tsx` (line 524), so wiring is correct.
-- Thresholds in `src/hooks/useIdleLogout.ts`: warn at 27 minutes idle, sign out at 30 minutes. Activity events tracked: `mousedown`, `keydown`, `touchstart`, `scroll`, plus `visibilitychange`.
+Both cards render through the same component, `SecureVault`, from the `legacy-locker` and `password-catalog` dashboard tabs (`src/pages/Account.tsx:420-441`). There is no second, unguarded route into Legacy Locker (`DemoLegacyLocker` and `LegacyLockerSection` are marketing stubs with no database access).
 
-So the reason no warning appeared is not missing code — it is how idle time is measured. Four defects explain the observed behavior.
+The difference is in the lock conditions:
 
-## Findings
+- `SecureVault` only shows the "Secure Vault Locked" screen when `isEncrypted && !isUnlocked` (`SecureVault.tsx:620`). The `isEncrypted` value comes from the single `legacy_locker.is_encrypted` flag. When no vault passphrase has been set, that flag is false, so the parent gate never engages.
+- `PasswordCatalog` (Digital Access) adds its own stricter check and blocks whenever the vault is not unlocked, regardless of the encryption flag (`PasswordCatalog.tsx:660-666`). That is why Digital Access still asks for a code.
+- `LegacyLocker` adds a weaker check — it blocks only when its own independently fetched `isEncrypted` is true (`LegacyLocker.tsx:120, 425-440, 738-744`), so with the flag false it renders full content immediately.
 
-**1. Returning to a backgrounded tab silently resets the clock (most likely cause).**
-`visibilitychange` writes a fresh activity timestamp whenever the tab becomes visible, without first checking how long the user was actually idle. Browsers also throttle or freeze timers in background tabs, so the 1-second evaluation interval may not run at all while the tab is hidden. Net effect: leave the dashboard tab in the background for hours, come back, and the timer restarts from zero with no warning and no sign-out.
+Root cause: the two child components implement inconsistent secondary gates, and the account's vault encryption flag is currently off, so only the stricter of the two (Digital Access) locks.
 
-**2. A page reload also silently extends the session.**
-On mount the hook seeds the activity timestamp to "now" before evaluating anything, so a reload after 45 idle minutes restarts a full 30-minute window instead of signing out.
+Note on data: Legacy Locker rows for an unencrypted vault are stored as plaintext, so this is a genuine gap rather than a cosmetic one — the fix closes the UI path, and setting a passphrase is what actually encrypts the fields.
 
-**3. Programmatic scrolling counts as user activity.**
-`window.scrollTo` from the app's scroll-to-top behavior fires a `scroll` event, which the hook treats as real user activity. This inflates freshness on route changes.
+## The fix
 
-**4. Timeout sign-out gives the user no explanation.**
-Timeout redirects to `/auth?reason=timeout`, but the sign-in page (`src/pages/AuthLegacy.tsx`) never reads `reason`, so the user lands on a plain sign-in form with no "signed out due to inactivity" notice.
+1. **One gate, applied to both.** Change `SecureVault` so the vault is treated as locked whenever the session is not unlocked — not only when `is_encrypted` is true. Both sections then sit behind the same screen.
+2. **First-open setup prompt.** When the user has no vault passphrase yet, the gate screen shows a "Secure your vault" setup state instead of an unlock prompt: explain that Legacy Locker and Digital Access are being protected, and let the user create a passphrase using the existing setup flow (`unlockOrUpgradeVault` in `src/lib/vaultKey.ts`, plus the existing modal already used for setup). After setup, the vault behaves exactly like an encrypted vault: locked on every fresh visit until the code is entered.
+3. **Make the child gates identical.** `LegacyLocker`'s self-check becomes the same condition as `PasswordCatalog`'s (`isControlledByParent && !isUnlocked` → render nothing), removing the flag-dependent branch and the drift/race it allowed. `LegacyLocker` stops deriving lock state from its own fetch and trusts the parent signal for gating; it keeps using the flag only to decide whether stored fields need decryption.
+4. **Keep existing behavior intact elsewhere.** No change to encryption/decryption, "remove encryption" path, unsaved-draft retention, contributor/admin `allow_admin_access` rules, or the auto-hide of in-memory vault keys.
 
-Minor: if `localStorage` is unavailable (private mode / blocked storage), `readLastActivity` returns the current time on every tick, which silently disables the whole feature. And `performLogout` is rebuilt on every `AuthContext` render, so the evaluation interval is torn down and recreated repeatedly — harmless today, but fragile.
+## Files touched
 
-## Proposed fixes
+- `src/components/SecureVault.tsx` — unified lock condition, setup-vs-unlock gate screen.
+- `src/components/LegacyLocker.tsx` — align the secondary gate with Digital Access.
+- Possibly the existing master-passphrase modal component, only if the setup copy needs a variant.
 
-1. **Evaluate before reseeding.** In the `visibilitychange` handler and on mount, read the stored timestamp first: if idle already exceeds 30 minutes, sign out immediately; if it is inside the warning window, open the warning; only otherwise write a fresh timestamp.
-2. **Do not rely solely on a throttled interval.** Keep the 1-second tick for the countdown, and add the visibility-based evaluation above as the authority for long hidden periods.
-3. **Ignore programmatic scroll.** Only count `scroll` when it originates from a real user gesture (trusted event check), or drop `scroll` in favor of `wheel`/`pointerdown`/`keydown`/`touchstart`.
-4. **Show the timeout notice.** Read `reason=timeout` on the sign-in page and display an inline message: "You were signed out due to inactivity. Please sign in again."
-5. **Hardening.** In-memory fallback timestamp when `localStorage` writes fail, and stabilize `signOut` usage with a ref so the evaluation interval is created once.
+No database migration, RLS, or Edge Function changes.
 
-Scope: app code only (`src/hooks/useIdleLogout.ts`, `src/pages/AuthLegacy.tsx`, minor touch to `src/components/IdleWarningDialog.tsx` if needed). No database, edge function, or auth config changes.
+## Verification
 
-## Note on thresholds
-
-Current window is 30 minutes idle / 3 minute warning. Say the word if you want it shortened (e.g. 15 / 2) while I am in there.
+- Open `/account?tab=legacy-locker` on an account with no passphrase: setup screen appears, no Legacy Locker content visible.
+- Create a passphrase, then reload: both Legacy Locker and Digital Access show the unlock screen and open together after one unlock.
+- Reload with the vault locked: neither section leaks content, and no blank screen or error boundary trip.
+- Existing encrypted account: unlock still decrypts fields correctly and drafts still survive a tab switch.
