@@ -45,19 +45,8 @@ const DEATH_OPTIONS = [
   { key: 'require_executor_docs', label: 'Require executor or legal authority documentation' },
 ];
 
-const VAULT_SEGMENTS = [
-  'Secure Vault', 'Password Catalog', 'Family Archive', 'Legacy Locker',
-  'Property Records', 'Financial Documents', 'Personal Notes',
-];
 
-const SEGMENT_POLICY = [
-  { value: 'transfer_allowed', label: 'Transfer allowed' },
-  { value: 'export_only', label: 'Export allowed only' },
-  { value: 'requires_additional_docs', label: 'Requires additional documentation' },
-  { value: 'requires_secondary_verification', label: 'Requires secondary verification' },
-  { value: 'never_transfer', label: 'Never transfer' },
-  { value: 'preserve_read_only', label: 'Preserve read-only' },
-];
+
 
 const HEARTBEAT_INTERVALS = [
   { value: '30', label: 'Every 30 days' },
