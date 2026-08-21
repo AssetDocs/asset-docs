@@ -32,6 +32,29 @@ import { saveDraft, loadDraft, clearDraft } from '@/utils/formDrafts';
 
 const LEGACY_LOCKER_DRAFT = 'legacyLocker.form';
 
+// Sensitive free-text columns that are encrypted at rest.
+const LOCKER_TEXT_FIELDS = [
+  'full_legal_name', 'address', 'executor_name', 'executor_relationship',
+  'executor_contact', 'backup_executor_name', 'backup_executor_contact',
+  'guardian_name', 'guardian_relationship', 'guardian_contact',
+  'backup_guardian_name', 'backup_guardian_contact',
+  'spouse_name', 'spouse_contact', 'attorney_name', 'attorney_firm', 'attorney_contact',
+  'business_partner_name', 'business_partner_company', 'business_partner_contact',
+  'investment_firm_name', 'investment_advisor_name', 'investment_firm_contact',
+  'financial_advisor_name', 'financial_advisor_firm', 'financial_advisor_contact',
+  'residuary_estate', 'digital_assets', 'real_estate_instructions', 'debts_expenses',
+  'funeral_wishes', 'burial_or_cremation', 'ceremony_preferences',
+  'letters_to_loved_ones', 'pet_care_instructions', 'business_succession_plan',
+  'ethical_will',
+  'life_overview', 'digital_identity', 'personal_philosophies', 'medical_preferences',
+  'executor_instructions', 'subscriptions', 'household_operations', 'financial_crypto',
+  'parenting_preferences', 'emotional_behavioral', 'developmental_goals', 'letters_to_children',
+  'photo_video_documentation', 'physical_documents', 'sentimental_items', 'crypto_passwords',
+  'property_walkthrough', 'home_maintenance', 'neighborhood_contacts', 'rental_property',
+  'sentimental_distribution', 'legacy_messages', 'charitable_giving',
+];
+
+
 
 
 interface LegacyLockerData {
