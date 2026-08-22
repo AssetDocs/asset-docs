@@ -81,7 +81,7 @@ Every support issue should include:
 - Requester name and email.
 - Account email, if different.
 - User/account ID when known.
-- Role: owner, Authorized User, Legacy Admin, Recovery Delegate, external requester, or unknown.
+- Role: owner, Authorized User, Legacy Admin, Legacy Admin, external requester, or unknown.
 - Support type and priority.
 - Short summary.
 - Affected workflow.
@@ -179,7 +179,7 @@ Default rule: support review can approve a recovery action, but no support issue
 | Lost email access, user still has MFA/session | Verify active session, billing/account facts, and ownership |
 | Lost email and MFA | Senior review; verify billing, identity, account history, and fraud risk |
 | Authorized User requests owner account recovery | Do not recover owner account; route to owner or legal/continuity path |
-| Legacy Admin/delegate requests access | Route to continuity/recovery delegate workflow, not ordinary support reset |
+| Legacy Admin/delegate requests access | Route to continuity/Legacy Admin workflow, not ordinary support reset |
 
 Identity evidence should be minimized. Do not collect government ID unless the operator/legal process explicitly requires it for a high-risk recovery.
 

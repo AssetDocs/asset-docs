@@ -193,7 +193,7 @@ Recommended support triage fields:
 - App version/build.
 - OS version.
 - Device model.
-- Role: owner, Authorized User, recovery delegate, admin.
+- Role: owner, Authorized User, Legacy Admin, admin.
 - Account/workspace being viewed.
 - Whether the same action works on desktop web.
 

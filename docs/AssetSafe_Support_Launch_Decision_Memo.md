@@ -33,7 +33,7 @@ Fill this section before final owner sign-off.
 | Billing escalation owner |  |  | Handles refunds, disputes, failed payments, and Stripe Dashboard actions |
 | Security escalation owner |  |  | Handles suspected unauthorized access, account recovery risk, and incident escalation |
 | Legal/privacy escalation owner |  |  | Handles DSAR, DMCA, legal requests, deletion disputes, and legal holds |
-| Continuity escalation owner |  |  | Handles death/incapacity/Legacy Admin/Recovery Delegate escalations |
+| Continuity escalation owner |  |  | Handles death/incapacity/Legacy Admin/Legacy Admin escalations |
 
 ## MVP Support Operating Policy
 
