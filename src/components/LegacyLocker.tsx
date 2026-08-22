@@ -25,7 +25,6 @@ import { MASTER_PASSWORD_HASH_KEY } from './PasswordCatalog';
 import LegacyLockerUploads from './LegacyLockerUploads';
 import VoiceNotesSection from './VoiceNotesSection';
 import TrustInformation from './TrustInformation';
-import { RecoveryDelegateSelector } from './RecoveryDelegateSelector';
 import { RecoveryRequestDialog } from './RecoveryRequestDialog';
 import { RecoveryRequestAlert } from './RecoveryRequestAlert';
 import { saveDraft, loadDraft, clearDraft } from '@/utils/formDrafts';
