@@ -63,11 +63,6 @@ interface DeletionRequest {
   requested_at: string;
 }
 
-interface ContributorInfo {
-  account_owner_id: string;
-  role: string;
-  status: string;
-}
 
 const CollapsiblePaymentHistory: React.FC = () => {
   const [open, setOpen] = useState(false);
