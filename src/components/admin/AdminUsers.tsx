@@ -52,6 +52,7 @@ interface OwnerWithContributors {
   contributors: ContributorRecord[];
 }
 
+
 interface GiftSubscription {
   id: string;
   purchaser_name: string;
@@ -128,17 +129,13 @@ const AdminUsers = () => {
         `)
         .order('created_at', { ascending: false });
 
-      // Fetch all contributors (legacy table)
-      const { data: contributorsData } = await supabase
-        .from('contributors')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      // Fetch active account_memberships (authoritative source for AU status)
+      // Fetch account_memberships (authoritative source for Authorized Users).
+      // All statuses are included so revoked/historical relationships stay visible.
       const { data: membershipsData } = await supabase
         .from('account_memberships')
-        .select('user_id, role, account_id, status, accounts!inner(owner_user_id, account_name)')
-        .eq('status', 'active');
+        .select('id, account_id, user_id, role, status, email, created_at, accepted_at, revoked_at, accounts!inner(owner_user_id, account_name)')
+        .order('created_at', { ascending: false });
+
 
       if (usersData) {
         // Get subscriber info (legacy, used only for email fallback)
@@ -180,21 +177,27 @@ const AdminUsers = () => {
           usersData.map(u => [u.user_id, u])
         );
 
-        // Create a map of contributor user_id to their contributor record (legacy)
-        const contributorMap = new Map<string, ContributorRecord>();
-        contributorsData?.forEach(c => {
-          if (c.contributor_user_id) {
-            contributorMap.set(c.contributor_user_id, c);
-          }
-        });
-
-        // Build a map: user_id -> first active non-owner membership (Authorized User)
+        // Build a map: user_id -> primary non-owner membership (Authorized User).
+        // Active memberships always win over historical/revoked ones; among active
+        // memberships full_access wins over read_only; among non-active ones the
+        // most recent wins (membershipsData is ordered created_at desc).
         const auMembershipMap = new Map<string, any>();
         membershipsData?.forEach((m: any) => {
           const ownerId = m.accounts?.owner_user_id;
-          if (m.role && m.role !== 'owner' && ownerId && activeOwnerIds.has(ownerId)) {
-            const existing = auMembershipMap.get(m.user_id);
-            if (!existing || (existing.role !== 'full_access' && m.role === 'full_access')) {
+          if (!m.role || m.role === 'owner' || !ownerId || !activeOwnerIds.has(ownerId)) return;
+          const existing = auMembershipMap.get(m.user_id);
+          if (!existing) {
+            auMembershipMap.set(m.user_id, m);
+            return;
+          }
+          const existingActive = existing.status === 'active';
+          const candidateActive = m.status === 'active';
+          if (candidateActive && !existingActive) {
+            auMembershipMap.set(m.user_id, m);
+            return;
+          }
+          if (candidateActive && existingActive) {
+            if (existing.role !== 'full_access' && m.role === 'full_access') {
               auMembershipMap.set(m.user_id, m);
             }
           }
@@ -202,22 +205,15 @@ const AdminUsers = () => {
 
         const mergedUsers = usersData.map(user => {
           const auMembership = auMembershipMap.get(user.user_id);
-          const contributorRecord = contributorMap.get(user.user_id);
           const entitlement = entitlementMap.get(user.user_id);
           const isActive = entitlement?.status === 'active' || entitlement?.status === 'trialing';
 
-          // AU = any active non-owner membership OR legacy contributor record
-          const isAU = !!auMembership || !!contributorRecord;
+          // AU = has a non-owner account_memberships row
+          const isAU = !!auMembership;
 
-          let ownerUserId: string | null = null;
-          let auRole: string | null = null;
-          if (auMembership) {
-            ownerUserId = auMembership.accounts?.owner_user_id || null;
-            auRole = auMembership.role;
-          } else if (contributorRecord) {
-            ownerUserId = contributorRecord.account_owner_id;
-            auRole = contributorRecord.role;
-          }
+          const ownerUserId: string | null = auMembership?.accounts?.owner_user_id || null;
+          const auRole: string | null = auMembership?.role || null;
+
 
           const ownerProfile = ownerUserId ? ownerProfileMap.get(ownerUserId) : null;
           const ownerEmail = ownerProfile
@@ -260,7 +256,7 @@ const AdminUsers = () => {
         });
         setCustomerLookup(lookup);
 
-        // Build owners with contributors data — combine legacy contributors + account_memberships
+        // Build owners with their Authorized Users from accounts + account_memberships + profiles
         const ownersMap = new Map<string, OwnerWithContributors>();
 
         const ensureOwner = (ownerId: string) => {
@@ -278,20 +274,7 @@ const AdminUsers = () => {
           return ownersMap.get(ownerId)!;
         };
 
-        contributorsData?.forEach(contributor => {
-          const bucket = ensureOwner(contributor.account_owner_id);
-          if (bucket) {
-            const auProfile = contributor.contributor_user_id
-              ? ownerProfileMap.get(contributor.contributor_user_id)
-              : null;
-            bucket.contributors.push({
-              ...contributor,
-              accepted_at: contributor.accepted_at || null,
-              contributor_account_number: auProfile?.account_number || null,
-            });
-          }
-        });
-
+        // One row per membership row, keyed by membership id (no duplication possible)
         membershipsData?.forEach((m: any) => {
           if (!m.role || m.role === 'owner') return;
           const ownerId = m.accounts?.owner_user_id;
@@ -299,14 +282,10 @@ const AdminUsers = () => {
           const bucket = ensureOwner(ownerId);
           if (!bucket) return;
           const auProfile = ownerProfileMap.get(m.user_id);
-          const auEmail = subscriberMap.get(m.user_id)?.email || authEmails[m.user_id] || null;
-          const alreadyTracked = bucket.contributors.some(c =>
-            c.contributor_user_id === m.user_id ||
-            (auEmail && c.contributor_email?.toLowerCase() === auEmail.toLowerCase())
-          );
-          if (alreadyTracked) return;
+          const auEmail =
+            subscriberMap.get(m.user_id)?.email || authEmails[m.user_id] || m.email || null;
           bucket.contributors.push({
-            id: `membership-${m.user_id}-${m.account_id}`,
+            id: m.id,
             contributor_email: auEmail || '',
             contributor_user_id: m.user_id,
             first_name: auProfile?.first_name || null,
@@ -314,11 +293,12 @@ const AdminUsers = () => {
             role: m.role,
             status: m.status,
             account_owner_id: ownerId,
-            created_at: '',
-            accepted_at: null,
+            created_at: m.created_at || '',
+            accepted_at: m.accepted_at || null,
             contributor_account_number: auProfile?.account_number || null,
           });
         });
+
 
         setOwnersWithContributors(Array.from(ownersMap.values()));
       }
@@ -420,18 +400,18 @@ const AdminUsers = () => {
 
   const renderAuthorizedUserRoleBadge = (role?: string | null) => {
     const badgeClass =
-      role === 'full_access' || role === 'administrator'
+      role === 'full_access'
         ? 'border-green-200 bg-green-50 text-green-700'
-        : role === 'read_only' || role === 'viewer'
+        : role === 'read_only'
         ? 'border-blue-200 bg-blue-50 text-blue-700'
         : '';
 
     const label =
-      role === 'full_access' || role === 'administrator'
-        ? 'FULL AU'
-        : role === 'read_only' || role === 'viewer'
-        ? 'VIEW AU'
-        : 'AU';
+      role === 'full_access'
+        ? 'Full Access'
+        : role === 'read_only'
+        ? 'Read Only'
+        : 'Authorized User';
 
     return (
       <Badge variant="outline" className={badgeClass}>
@@ -439,6 +419,7 @@ const AdminUsers = () => {
       </Badge>
     );
   };
+
 
   const renderLinkedOwner = (user: UserRecord) => {
     if (!user.isContributor || (!user.ownerAccountNumber && !user.ownerName && !user.ownerEmail)) {
@@ -1081,9 +1062,22 @@ const AdminUsers = () => {
                                 {renderAuthorizedUserRoleBadge(c.role)}
                               </TableCell>
                               <TableCell>
-                                <Badge variant={c.status === 'accepted' ? 'default' : 'secondary'}>
-                                  {c.status}
+                                <Badge
+                                  variant={
+                                    c.status === 'active' || c.status === 'accepted'
+                                      ? 'default'
+                                      : c.status === 'revoked'
+                                      ? 'destructive'
+                                      : 'secondary'
+                                  }
+                                >
+                                  {c.status === 'active' || c.status === 'accepted'
+                                    ? 'Active'
+                                    : c.status === 'revoked'
+                                    ? 'Revoked (historical)'
+                                    : c.status}
                                 </Badge>
+
                               </TableCell>
                               <TableCell className="font-medium">
                                 {owner.ownerName || 'Unknown Owner'}
