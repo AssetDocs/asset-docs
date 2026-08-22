@@ -25,7 +25,6 @@ import { MASTER_PASSWORD_HASH_KEY } from './PasswordCatalog';
 import LegacyLockerUploads from './LegacyLockerUploads';
 import VoiceNotesSection from './VoiceNotesSection';
 import TrustInformation from './TrustInformation';
-import { RecoveryDelegateSelector } from './RecoveryDelegateSelector';
 import { RecoveryRequestDialog } from './RecoveryRequestDialog';
 import { RecoveryRequestAlert } from './RecoveryRequestAlert';
 import { saveDraft, loadDraft, clearDraft } from '@/utils/formDrafts';
@@ -922,16 +921,9 @@ const LegacyLocker: React.FC<LegacyLockerProps> = ({
             </Alert>
           )}
 
-          {/* Recovery delegate selector - only show for owners when encryption is enabled and not controlled by parent */}
-          {!hideEncryptionControls && isEncrypted && !isDelegate && !isContributor && (
-            <RecoveryDelegateSelector
-              contributors={contributors}
-              selectedDelegateId={selectedDelegateId}
-              gracePeriodDays={gracePeriodDays}
-              onDelegateChange={setSelectedDelegateId}
-              onGracePeriodChange={setGracePeriodDays}
-            />
-          )}
+          {/* Secure Vault recovery participant is the Legacy Admin designation,
+              managed in Authorized Users — no delegate picker here. */}
+
 
           {/* Category Navigation Dropdown */}
           <div className="flex items-center gap-3 mb-6">
