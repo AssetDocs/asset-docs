@@ -324,7 +324,9 @@ const ManageTab: React.FC = () => {
       if (error) throw error;
       toast({
         title: action === 'approve' ? "Request Approved" : "Request Rejected",
-        description: action === 'approve' ? "The administrator can now proceed." : "The deletion request has been rejected.",
+        description: action === 'approve'
+          ? "Your response is on record. Third-party account deletion is retired — only you, the account owner, can complete a deletion."
+          : "The deletion request has been rejected.",
       });
       checkIncomingDeletionRequests();
     } catch (error: any) {
