@@ -39,7 +39,7 @@ const OwnerRiskPanel: React.FC<{ caseData: any; onChange: () => void }> = ({ cas
     const { data: acc } = await supabase.from('accounts').select('owner_user_id').eq('id', caseData.account_id).maybeSingle();
     if (acc?.owner_user_id) {
       const { data: locker } = await supabase.from('legacy_locker')
-        .select('continuity_preferences, continuity_preferences_version, continuity_preferences_reviewed_at, continuity_heartbeat_enabled, continuity_heartbeat_interval_days, continuity_last_heartbeat_at, continuity_next_heartbeat_due_at, continuity_heartbeat_status')
+        .select('continuity_preference')
         .eq('user_id', acc.owner_user_id).maybeSingle();
       setOwnerPrefs(locker);
     }
