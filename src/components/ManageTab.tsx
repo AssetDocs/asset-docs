@@ -312,47 +312,8 @@ const ManageTab: React.FC = () => {
     }
   };
 
-  const handleAdminDeleteAccount = async () => {
-    if (!user || !contributorInfo) return;
-    setIsDeleting(true);
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const { error } = await supabase.functions.invoke('delete-account', {
-        body: { target_account_id: contributorInfo.account_owner_id },
-        headers: { Authorization: `Bearer ${sessionData.session?.access_token}` }
-      });
-      if (error) throw error;
-      toast({ title: "Account Deleted", description: "The account has been permanently deleted." });
-      await signOut();
-      navigate('/');
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message || "Failed to delete account.", variant: "destructive" });
-    } finally {
-      setIsDeleting(false);
-      setShowDeleteDialog(false);
-    }
-  };
 
-  const handleSubmitDeletionRequest = async () => {
-    if (!user || !contributorInfo) return;
-    setIsSubmittingRequest(true);
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const { data, error } = await supabase.functions.invoke('submit-deletion-request', {
-        body: { account_owner_id: contributorInfo.account_owner_id, reason: deletionReason, grace_period_days: 14 },
-        headers: { Authorization: `Bearer ${sessionData.session?.access_token}` }
-      });
-      if (error) throw error;
-      toast({ title: "Deletion Request Submitted", description: "The account owner has been notified and has 14 days to respond." });
-      setPendingDeletionRequest(data.request);
-      setShowDeletionRequestDialog(false);
-      setDeletionReason('');
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message || "Failed to submit deletion request.", variant: "destructive" });
-    } finally {
-      setIsSubmittingRequest(false);
-    }
-  };
+
 
   const handleRespondDeletionRequest = async (requestId: string, action: 'approve' | 'reject') => {
     try {
