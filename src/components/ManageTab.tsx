@@ -798,75 +798,12 @@ const ManageTab: React.FC = () => {
       />
 
 
-      {/* Admin Contributor Deletion */}
-      {isContributor && contributorInfo?.role === 'administrator' && (
-        <Card className="border-destructive/20">
-          <CardHeader>
-            <CardTitle className="text-destructive">Account Deletion</CardTitle>
-            <CardDescription>Request deletion of the account you manage</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {pendingDeletionRequest ? (
-                <>
-                  {pendingDeletionRequest.status === 'pending' && (
-                    <Alert>
-                      <Clock className="h-4 w-4" />
-                      <AlertTitle>Deletion Request Pending</AlertTitle>
-                      <AlertDescription>
-                        {(() => {
-                          const gracePeriodEnds = new Date(pendingDeletionRequest.grace_period_ends_at);
-                          const daysRemaining = Math.max(0, Math.ceil((gracePeriodEnds.getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
-                          return daysRemaining > 0
-                            ? `Waiting for account owner response. ${daysRemaining} day(s) remaining.`
-                            : 'The grace period has expired. You can now proceed with deletion.';
-                        })()}
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                  {pendingDeletionRequest.status === 'approved' && (
-                    <Alert className="border-green-500 bg-green-50">
-                      <Check className="h-4 w-4 text-green-600" />
-                      <AlertTitle className="text-green-700">Request Approved</AlertTitle>
-                      <AlertDescription className="text-green-600">The account owner has approved your deletion request.</AlertDescription>
-                    </Alert>
-                  )}
-                  {pendingDeletionRequest.status === 'rejected' && (
-                    <Alert variant="destructive">
-                      <X className="h-4 w-4" />
-                      <AlertTitle>Request Rejected</AlertTitle>
-                      <AlertDescription>The account owner has rejected your deletion request.</AlertDescription>
-                    </Alert>
-                  )}
-                  {(pendingDeletionRequest.status === 'approved' ||
-                    (pendingDeletionRequest.status === 'pending' && new Date(pendingDeletionRequest.grace_period_ends_at) <= new Date())) && (
-                    <Button variant="destructive" onClick={() => setShowDeleteDialog(true)} disabled={isDeleting} className="w-full">
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      {isDeleting ? 'Deleting...' : 'Proceed with Account Deletion'}
-                    </Button>
-                  )}
-                </>
-              ) : (
-                <>
-                  <p className="text-sm text-muted-foreground">
-                    As an administrator, you can request to delete the account you manage. The account owner will be notified and given a grace period to respond.
-                  </p>
-                  <Button variant="destructive" onClick={() => setShowDeletionRequestDialog(true)} className="w-full">
-                    <Trash2 className="h-4 w-4 mr-2" /> Request Account Deletion
-                  </Button>
-                </>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Dialogs */}
       <DeleteConfirmationDialog
         isOpen={showDeleteDialog}
         onClose={() => setShowDeleteDialog(false)}
-        onConfirm={isContributor ? handleAdminDeleteAccount : handleDeleteAccount}
-        title={isContributor ? "Delete Managed Account" : "Delete Account"}
+        onConfirm={handleDeleteAccount}
+        title="Delete Account"
         description="Are you sure? This action cannot be undone. All data will be permanently removed."
       />
 
@@ -875,30 +812,6 @@ const ManageTab: React.FC = () => {
         onClose={() => { setShowAccountDeletedDialog(false); navigate('/'); }}
       />
 
-      <Dialog open={showDeletionRequestDialog} onOpenChange={setShowDeletionRequestDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Request Account Deletion</DialogTitle>
-            <DialogDescription>Submit a request to delete the account you manage. The account owner will be notified.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Reason for Deletion (Optional)</Label>
-              <Textarea value={deletionReason} onChange={(e) => setDeletionReason(e.target.value)} placeholder="Please provide a reason..." />
-            </div>
-            <Alert>
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>The account owner will have 14 days to respond before you can proceed.</AlertDescription>
-            </Alert>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeletionRequestDialog(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleSubmitDeletionRequest} disabled={isSubmittingRequest}>
-              {isSubmittingRequest ? 'Submitting...' : 'Submit Request'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
