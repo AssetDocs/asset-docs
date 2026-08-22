@@ -1,50 +1,85 @@
-# Close the Legacy Admin recovery read path and harden revoked grants
+# Change Log for External Review (Legacy Admin / Contributors Retirement)
 
-Two narrow gaps remain from the mirror-integrity pass. Both are backend-only. Nothing about Authorized User permissions, eligibility rules, the approval workflow, or the vault cryptography changes.
+Scope covered: Stage 1, Stage 2A, Stage 2B, and the Legacy Admin mirror repair + recovery hardening pass. Stage 3 (invite pipeline retirement) and Stage 4 (dropping the `contributors` table) were explicitly NOT started.
 
-## Confirmed current state (verified this turn)
+---
 
-- `legacy_locker` has exactly four SELECT/write policies: owner (`auth.uid() = user_id`) and an app-admin read gated on `allow_admin_access`. There is **no** path for an approved Legacy Admin to read the owner's row, so `DelegateVault.tsx` fails at its final read.
-- `vault_delegate_grants` delegate read policy is `Delegate reads own grants` → `auth.uid() = delegate_user_id`, with no status condition.
-- `vault_delegate_grants.wrapped_vault_key` is `text NOT NULL`, so today it is impossible to null out key material on revoke.
-- There is **no expiry column** on `vault_delegate_grants` (columns: id, legacy_locker_id, owner_user_id, delegate_user_id, wrapped_vault_key, delegate_key_version, recovery_request_id, status, issued_at, revoked_at, timestamps). Grace-period timing lives on `recovery_requests.grace_period_ends_at`, which governs the approval flow, not grant validity. So no expiry term goes in the policies.
-- Grants are inserted only by the `issue-delegate-vault-grant` edge function (service role); there is no client INSERT policy. That stays as-is.
-- The single grant-revocation path in the database is `revoke_legacy_admin_recovery_artifacts(owner, admin)`, called by `assign_legacy_admin` (reassignment), `clear_legacy_admin`, and the `enforce_legacy_admin_eligibility` trigger on `account_memberships` (covers downgrade, revocation, removal). No edge function touches the grants table. Centralizing key destruction in that one helper covers every path.
-- Existing data: `vault_delegate_grants` has 0 rows, so the one-time cleanup of revoked-rows-with-keys is expected to touch 0 rows. It will still be run and reported.
+## 1. Backend — Database Functions
 
-## Join keys for the new policy
+| Function | Change |
+| --- | --- |
+| `compute_user_verification` | Rewritten. `has_contributors` no longer reads `contributors`; it now counts active non-owner rows in `account_memberships` (`full_access` or `read_only`). Fixes the Security Progress row that never lit up. |
+| `validate_legacy_locker_delegate` | Rewritten. Previously rejected any non-NULL `delegate_user_id` on INSERT, which silently blocked the seed trigger. Now permits an INSERT value that matches the account's active Legacy Admin. |
+| `assign_legacy_admin` | Hardened. Writes the `legacy_locker.delegate_user_id` mirror when a locker exists; logs `mirror_pending: true` when no locker exists yet. Reassignment revokes the prior admin's artifacts atomically in the same call. |
+| `revoke_legacy_admin_recovery_artifacts` | Now also sets `wrapped_vault_key = NULL` in addition to `status='revoked'` and `revoked_at=now()`. This is the single choke point shared by reassignment, `clear_legacy_admin`, and the membership-eligibility trigger. |
+| `clear_legacy_admin` | Verified to route through the shared revoke helper (nulls mirror + destroys key material). |
+| `enforce_legacy_admin_eligibility` (trigger on `account_memberships`) | Verified: AU downgrade, revocation, or removal clears the Legacy Admin designation and triggers artifact revocation. |
 
-```text
-vault_delegate_grants.legacy_locker_id -> legacy_locker.id
-vault_delegate_grants.owner_user_id    -> legacy_locker.user_id
-legacy_locker.user_id                  -> accounts.owner_user_id
-accounts.id                            -> legacy_admins.account_id
-legacy_admins.legacy_admin_user_id     -> auth.uid()  (status = 'active')
-legacy_locker.delegate_user_id         -> auth.uid()  (system-maintained mirror)
-```
+## 2. Backend — Schema
 
-## Migration
+- `vault_delegate_grants.wrapped_vault_key`: `NOT NULL` constraint dropped so revoked rows can have key material destroyed while the audit row survives.
+- No tables created, renamed, or dropped. `contributors` still exists (Stage 4 out of scope).
+- `account_memberships` rows, roles, statuses, and invite-acceptance data untouched throughout.
 
-1. New SELECT policy `Legacy admin reads owner locker during active recovery` on `legacy_locker`, for role `authenticated`, requiring **all** of: mirror match (`delegate_user_id = auth.uid()`), an active `legacy_admins` row for `auth.uid()` on the account owning that locker, and an active `vault_delegate_grants` row whose `legacy_locker_id` is that locker, `owner_user_id` is the locker owner, and `delegate_user_id = auth.uid()`. Owner and app-admin policies are untouched. Because the predicate is re-evaluated per query, clearing/reassigning Legacy Admin, downgrading or revoking the AU, or revoking the grant each cut the read off immediately.
-2. `ALTER TABLE public.vault_delegate_grants ALTER COLUMN wrapped_vault_key DROP NOT NULL` so key material can be destroyed while the audit row survives.
-3. Replace `Delegate reads own grants` with a status-scoped version: `auth.uid() = delegate_user_id AND status = 'active'`. Owner read, owner update, and audit paths are unchanged; no rows are deleted.
-4. Update `revoke_legacy_admin_recovery_artifacts` to also set `wrapped_vault_key = NULL` alongside `status = 'revoked'`, `revoked_at = now()`. Keeps id, owner/delegate ids, status, `delegate_key_version`, `recovery_request_id`, and all timestamps intact. This is the shared helper the three callers already use, so no logic is duplicated.
-5. One-time cleanup: null `wrapped_vault_key` on any row already `status = 'revoked'` with a non-null key. Active grants untouched.
+## 3. Backend — RLS Policy Changes
 
-## Verification (database/authorization level, in a self-rolling-back harness)
+Removed (Stage 1) — six SELECT policies named `Administrator contributors can view ...` on `legacy_locker` and related vault tables. Zero remain.
 
-Negative set — each must return zero rows for the owner's locker: Full Access AU who is not Legacy Admin; Read Only AU; active Legacy Admin with no grant; former Legacy Admin; Legacy Admin with a revoked grant; mirror mismatch; Legacy Admin of a different account; arbitrary authenticated user.
+Added — `legacy_locker`, `Legacy admin reads owner locker during active recovery`, role `authenticated`, requiring ALL of:
+1. `delegate_user_id = auth.uid()` (mirror match)
+2. `user_id <> auth.uid()` (not self)
+3. an `active` `legacy_admins` row for `auth.uid()` on the account owning that locker
+4. an `active` `vault_delegate_grants` row matching locker id + owner + delegate with non-NULL `wrapped_vault_key`
 
-Positive set: before a grant is issued the Legacy Admin sees nothing; after an active grant exists the Legacy Admin can read exactly that one locker row and their own grant row; after revocation the locker read and the grant read both return nothing and `wrapped_vault_key` is NULL while the row remains.
+Tightened — `vault_delegate_grants`, `Delegate reads own active grants`: now `auth.uid() = delegate_user_id AND status = 'active'`.
 
-Reassignment A→B: A's designation removed, A's requests revoked, A's grant revoked with key nulled, A loses both reads, mirror points to B, and B has no locker access until a fresh request/approval/grant completes.
+Unchanged by design — owner self-access policies (`auth.uid() = user_id`), the pre-existing app-admin `allow_admin_access` policy, `vault_delegate_keypairs` self-only policies, `recovery_requests` approval policies. `vault_delegate_grants` still has no client INSERT policy (service-role only).
 
-All harness writes are rolled back, exactly as in the previous pass.
+Current live policy set on the vault/continuity tables was re-read and confirmed after all changes.
 
-## Manual browser test to hand back
+## 4. Backend — Edge Functions
 
-Lovable cannot mint owner and Legacy Admin sessions for this project (external/unmanaged Supabase), so the end-to-end UI run stays manual. The plan's report will hand back the ordered step list: owner signs in and confirms the designation, creates/unlocks the vault, Legacy Admin signs in and confirms ordinary vault access is denied, initiates recovery, owner approves, acknowledgment/grace steps complete, owner unlocks once more so the grant is issued, Legacy Admin opens the delegated vault, then the owner revokes/clears and the Legacy Admin confirms access is gone. No browser E2E success will be claimed unless actually executed.
+- Account deletion edges: contributor-initiated deletion retired; third-party deletion attempts now return **403**. Deletion is owner-only.
+- `check-subscription`: entitlement inheritance repointed from `contributors` to active `account_memberships`.
+- Account closure notification path repointed to `account_memberships`.
 
-## Out of scope
+## 5. Frontend Changes
 
-AU permissions and roles, `account_memberships`, invitations, dormant contributors infrastructure, Continuity Export, memorialization, closure, vault encryption format, passphrase derivation, recovery keypair crypto, and Legacy Admin eligibility rules.
+| File | Change |
+| --- | --- |
+| `src/pages/SecureVault.tsx` | Removed `fetchContributorsList` and all admin-contributor branches; removed dead contributor state. Vault access is owner-only or Legacy Admin recovery. Vault queries confirmed self-scoped (`.eq('user_id', user.id)`). |
+| `src/pages/LegacyLocker.tsx` | Same contributor branch removal. |
+| `src/components/admin/AdminUsers.tsx` | Contributors fetch + legacy merge removed. Owner/AU relationships now built from `accounts` + `account_memberships` + `profiles`, including inactive/revoked rows for historical visibility. Role labels standardized to "Full Access" / "Read Only" (no more administrator/contributor/viewer). |
+| `ManageTab.tsx` | Contributor-based deletion entry point removed. |
+| `ExportService`, `ProtectionScore` | Repointed to `account_memberships`. |
+| `src/components/AccountHeader.tsx` | Deleted (dead file). |
+
+## 6. Role Mapping Decisions Applied
+
+| Old contributor check | New mapping |
+| --- | --- |
+| `role === 'administrator'` → initiate account deletion | **Nobody** (owner-only) |
+| `role === 'administrator'` → view owner's Secure Vault | **Legacy Admin only**, and only during an approved active recovery |
+| contributor exists → subscription inheritance | Active `account_memberships` (either role) |
+| contributor count → verification / Security Progress | Active non-owner `account_memberships` |
+| contributor role labels in Admin CRM | Full Access / Read Only |
+
+Explicitly rejected: any blanket `administrator → full_access` conversion. Full Access AU gained no Secure Vault access as a side effect.
+
+## 7. Verification Already Performed
+
+- `account_memberships`: 17 rows / 16 active preserved; 1 active `legacy_admins` row preserved; 0 grants, 0 recovery requests, 1 locker row (clean post-rollback state).
+- Positive recovery: active Legacy Admin + mirror match + active grant reads exactly 1 locker row (the owner's).
+- Cross-locker isolation: grant for Locker 1 gives 0 rows on Locker 2 for the same Legacy Admin.
+- Reassignment A→B: A's request and grant revoked, key nulled, mirror repointed to B, B has 0 active grants until a fresh cycle.
+- Negatives all returned 0 rows: Full Access AU, Read Only AU, LA without grant, mirror mismatch, revoked grant, former LA, new LA pre-grant, arbitrary non-admin user.
+- Mirror invariants: `mismatch_active = 0`, `stale_pointer_no_admin = 0`.
+- One expected non-zero: an app-admin identity can read a locker via the pre-existing `allow_admin_access` policy — unchanged, not introduced here.
+
+## 8. Known Open Items for Codex to Confirm
+
+1. **Stage 3 not started** — the parallel contributor invite pipeline and its edge functions still exist and are still deployed.
+2. **Stage 4 not started** — the `contributors` table, its four RLS policies, and the `contributor_role` enum (`administrator`, `contributor`, `viewer`) still exist. Table has 0 rows.
+3. **Grant expiry** — the recovery SELECT policy has no time bound because `vault_delegate_grants` has no expiry column; grace-period timing lives on `recovery_requests.grace_period_ends_at` and gates approval only. Worth deciding whether grants should expire independently.
+4. **Manual browser E2E not executed** — external/unmanaged Supabase means sessions can't be minted in the sandbox. The owner → confirm LA → create vault → LA requests → owner approves → owner unlocks (issues grant) → LA opens `/delegate-vault` → owner revokes sequence still needs a human run.
+5. Pre-existing project-wide linter warnings (GraphQL exposure, SECURITY DEFINER functions) are unrelated to this work.
