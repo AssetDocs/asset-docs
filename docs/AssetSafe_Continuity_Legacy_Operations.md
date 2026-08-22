@@ -247,7 +247,6 @@ Key RPCs:
 - `set_memorialized_mode`
 - `bypass_waiting_period`
 - `enforce_continuity_execution_guard`
-- `enforce_continuity_execution_guard`
 - `create_continuity_snapshot`
 - `revoke_continuity_access`
 - `approve_closure_request`
