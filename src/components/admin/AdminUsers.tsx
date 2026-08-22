@@ -129,17 +129,13 @@ const AdminUsers = () => {
         `)
         .order('created_at', { ascending: false });
 
-      // Fetch all contributors (legacy table)
-      const { data: contributorsData } = await supabase
-        .from('contributors')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      // Fetch active account_memberships (authoritative source for AU status)
+      // Fetch account_memberships (authoritative source for Authorized Users).
+      // All statuses are included so revoked/historical relationships stay visible.
       const { data: membershipsData } = await supabase
         .from('account_memberships')
-        .select('user_id, role, account_id, status, accounts!inner(owner_user_id, account_name)')
-        .eq('status', 'active');
+        .select('id, account_id, user_id, role, status, email, created_at, accepted_at, revoked_at, accounts!inner(owner_user_id, account_name)')
+        .order('created_at', { ascending: false });
+
 
       if (usersData) {
         // Get subscriber info (legacy, used only for email fallback)
