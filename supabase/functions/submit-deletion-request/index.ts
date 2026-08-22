@@ -45,39 +45,27 @@ Deno.serve(async (req) => {
       )
     }
 
-    const body = await req.json();
-    const { account_owner_id, reason, grace_period_days = 14 } = body;
+    // RETIRED PATH (Stage 2B): contributor/Authorized-User-initiated account
+    // deletion requests no longer exist. No Authorized User role may request
+    // deletion of another person's account — only the owner can close their own
+    // account. The function stays deployed but is inert until Stage 3/4 removes
+    // the legacy infrastructure entirely.
+    console.log('[SUBMIT-DELETION-REQUEST] Retired endpoint called by', user.id);
+    return new Response(
+      JSON.stringify({
+        error: 'This request path has been retired. Only the account owner can request deletion of their account.',
+      }),
+      { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  } catch (error) {
+    console.error('[SUBMIT-DELETION-REQUEST] Error:', error);
+    return new Response(
+      JSON.stringify({ error: 'An error occurred' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+});
 
-    if (!account_owner_id) {
-      return new Response(
-        JSON.stringify({ error: 'Account owner ID is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    // Verify the requester is an administrator contributor for this account
-    const { data: contributorData, error: contributorError } = await supabaseAdmin
-      .from('contributors')
-      .select('role, status')
-      .eq('contributor_user_id', user.id)
-      .eq('account_owner_id', account_owner_id)
-      .single();
-
-    if (contributorError || !contributorData) {
-      console.log('[SUBMIT-DELETION-REQUEST] User is not a contributor:', contributorError);
-      return new Response(
-        JSON.stringify({ error: 'You do not have authorized user access to this account' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    if (contributorData.role !== 'administrator' || contributorData.status !== 'accepted') {
-      console.log('[SUBMIT-DELETION-REQUEST] User is not an administrator:', contributorData);
-      return new Response(
-        JSON.stringify({ error: 'Only administrator contributors can request account deletion' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
 
     // Check if there's already a pending request
     const { data: existingRequest } = await supabaseAdmin
