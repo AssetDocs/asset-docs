@@ -446,66 +446,9 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
 
 
 
-  const handleSaveDelegate = async () => {
-    if (!user || !legacyLockerId) return;
-    
-    setIsSavingDelegate(true);
-    try {
-      // Update the legacy locker with the delegate settings
-      const updateData: any = {
-        delegate_user_id: selectedDelegateId,
-        recovery_grace_period_days: gracePeriodDays,
-        updated_at: new Date().toISOString()
-      };
+  // The Secure Vault recovery participant is now the Legacy Admin designation,
+  // maintained server-side by assign_legacy_admin / clear_legacy_admin.
 
-      // If setting a new delegate, start the grace period countdown
-      if (selectedDelegateId && selectedDelegateId !== originalDelegateId) {
-        updateData.recovery_requested_at = new Date().toISOString();
-        updateData.recovery_status = 'grace_period_active';
-      } else if (!selectedDelegateId) {
-        // If removing delegate, clear recovery status
-        updateData.recovery_requested_at = null;
-        updateData.recovery_status = 'none';
-      }
-
-      const { error } = await supabase
-        .from('legacy_locker')
-        .update(updateData)
-        .eq('id', legacyLockerId);
-
-      if (error) throw error;
-
-      // Update original values to reflect saved state
-      setOriginalDelegateId(selectedDelegateId);
-      setOriginalGracePeriodDays(gracePeriodDays);
-
-      if (selectedDelegateId && selectedDelegateId !== originalDelegateId) {
-        toast({
-          title: "Recovery Delegate Saved",
-          description: `Grace period countdown of ${gracePeriodDays} days has started. After expiration, your delegate will receive access notification.`,
-        });
-      } else if (!selectedDelegateId && originalDelegateId) {
-        toast({
-          title: "Recovery Delegate Removed",
-          description: "Your recovery delegate has been removed.",
-        });
-      } else {
-        toast({
-          title: "Settings Saved",
-          description: "Your recovery delegate settings have been updated.",
-        });
-      }
-    } catch (error: any) {
-      console.error('Error saving delegate:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save recovery delegate settings.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSavingDelegate(false);
-    }
-  };
 
   const handleAdminAccessToggle = async (checked: boolean) => {
     if (!user || !legacyLockerId) return;
