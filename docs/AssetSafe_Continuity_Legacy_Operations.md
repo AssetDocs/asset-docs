@@ -304,6 +304,6 @@ Owner heartbeat policy:
 
 1. Should owner dispute resolution for export, closure, and ownership transfer require second-reviewer signoff before freeze removal?
 2. Should conflict resolution require a second reviewer for ownership transfer, closure, or export cases?
-3. Should missed owner heartbeats generate email reminders or remain admin-review signals only?
+3. Should `execute_ownership_transfer` be retired? It is currently orphaned (no frontend or edge-function caller).
 4. Which seeded evidence requirements need counsel-approved wording or second-reviewer signoff before launch?
 5. Who is allowed to bypass the 30-day continuity closure waiting period, and what evidence is mandatory?
