@@ -290,7 +290,7 @@ Owner heartbeat policy:
 
 ### P1 first 30 days
 
-5. Optional owner heartbeat policy exists on `legacy_locker`; missed check-ins are review signals only and do not trigger continuity actions automatically.
+5. Retired (2026-08-22): owner heartbeat check-ins. Asset Safe does not interpret account silence as a continuity signal.
 6. In-app ops reporting exists for unresolved owner disputes, external assistance backlog age, high-risk external assistance, and overdue continuity reviews.
 7. Secondary Legacy Admin UX is implemented: `legacy_admins` supports active primary/secondary designations with one active primary per account.
 
