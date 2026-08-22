@@ -7918,7 +7918,7 @@ export type Database = {
           revoked_at: string | null
           status: string
           updated_at: string
-          wrapped_vault_key: string
+          wrapped_vault_key: string | null
         }
         Insert: {
           created_at?: string
@@ -7932,7 +7932,7 @@ export type Database = {
           revoked_at?: string | null
           status?: string
           updated_at?: string
-          wrapped_vault_key: string
+          wrapped_vault_key?: string | null
         }
         Update: {
           created_at?: string
@@ -7946,7 +7946,7 @@ export type Database = {
           revoked_at?: string | null
           status?: string
           updated_at?: string
-          wrapped_vault_key?: string
+          wrapped_vault_key?: string | null
         }
         Relationships: [
           {
