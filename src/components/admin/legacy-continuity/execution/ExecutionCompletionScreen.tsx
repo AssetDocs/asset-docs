@@ -21,13 +21,13 @@ const ExecutionCompletionScreen: React.FC<{ caseData: any; history: any; snapsho
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
           <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-          {isTransfer ? 'Ownership Transfer Completed' : activeArchive ? 'Archive Custodian Access Granted' : 'Temporary Continuity Access Granted'}
+          {isTransfer ? 'Historical Ownership Transfer (retired capability)' : activeArchive ? 'Archive Custodian Access Granted' : 'Temporary Continuity Access Granted'}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-1">
         <p className="text-sm text-muted-foreground mb-3">
           {isTransfer
-            ? 'Ownership has been transferred through the Legacy Continuity workflow. The previous ownership state has been archived, the new owner has been assigned, and all actions have been recorded in the case history and audit log.'
+            ? 'This case was completed under the retired ownership-transfer capability. Asset Safe no longer transfers account ownership through Legacy Continuity. The record below is retained for audit purposes only.'
             : 'Access has been provisioned and recorded in the case history and audit log.'}
         </p>
         <Row label="Case ID" value={<span className="font-mono text-xs">{caseData.id.slice(0,8)}…</span>} />

@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
     const typeLabel: Record<string, string> = {
       closure: 'Account Closure',
       export: 'Data Export',
-      ownership_transfer: 'Ownership Transfer',
+      ownership_transfer: 'Legacy Admin Access (legacy)',
     };
     const subject = `Continuity request: ${typeLabel[reqRow.request_type] || reqRow.request_type}`;
     const body = `
