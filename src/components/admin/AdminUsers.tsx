@@ -420,18 +420,18 @@ const AdminUsers = () => {
 
   const renderAuthorizedUserRoleBadge = (role?: string | null) => {
     const badgeClass =
-      role === 'full_access' || role === 'administrator'
+      role === 'full_access'
         ? 'border-green-200 bg-green-50 text-green-700'
-        : role === 'read_only' || role === 'viewer'
+        : role === 'read_only'
         ? 'border-blue-200 bg-blue-50 text-blue-700'
         : '';
 
     const label =
-      role === 'full_access' || role === 'administrator'
-        ? 'FULL AU'
-        : role === 'read_only' || role === 'viewer'
-        ? 'VIEW AU'
-        : 'AU';
+      role === 'full_access'
+        ? 'Full Access'
+        : role === 'read_only'
+        ? 'Read Only'
+        : 'Authorized User';
 
     return (
       <Badge variant="outline" className={badgeClass}>
@@ -439,6 +439,7 @@ const AdminUsers = () => {
       </Badge>
     );
   };
+
 
   const renderLinkedOwner = (user: UserRecord) => {
     if (!user.isContributor || (!user.ownerAccountNumber && !user.ownerName && !user.ownerEmail)) {
