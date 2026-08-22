@@ -111,13 +111,8 @@ const ManageTab: React.FC = () => {
   const [showNewDeleteDialog, setShowNewDeleteDialog] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showAccountDeletedDialog, setShowAccountDeletedDialog] = useState(false);
-  const [showDeletionRequestDialog, setShowDeletionRequestDialog] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
-  const [deletionReason, setDeletionReason] = useState('');
   const [isContributor, setIsContributor] = useState(false);
-  const [contributorInfo, setContributorInfo] = useState<ContributorInfo | null>(null);
-  const [pendingDeletionRequest, setPendingDeletionRequest] = useState<DeletionRequest | null>(null);
+
   const [incomingDeletionRequests, setIncomingDeletionRequests] = useState<DeletionRequest[]>([]);
   const [subscriptionStatus, setSubscriptionStatus] = useState<{
     subscribed: boolean;
