@@ -111,7 +111,12 @@ const ManageTab: React.FC = () => {
   const [showNewDeleteDialog, setShowNewDeleteDialog] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showAccountDeletedDialog, setShowAccountDeletedDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  // True when this user is an Authorized User (non-owner member) on someone
+  // else's account. Sourced from account_memberships — the legacy contributors
+  // table is retired.
   const [isContributor, setIsContributor] = useState(false);
+
 
   const [incomingDeletionRequests, setIncomingDeletionRequests] = useState<DeletionRequest[]>([]);
   const [subscriptionStatus, setSubscriptionStatus] = useState<{
