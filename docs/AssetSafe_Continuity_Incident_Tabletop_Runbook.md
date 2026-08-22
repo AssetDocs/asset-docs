@@ -27,7 +27,7 @@ Scope: tabletop drills for disputed death reports, competing executor requests, 
 
 ## Required Setup
 
-- Use a staging account with at least one owner, one primary Legacy Admin, one secondary Legacy Admin, and one Authorized User.
+- Use a staging account with an owner, one active Legacy Admin (an active Full Access Authorized User), and one additional Authorized User.
 - Prepare sample uploaded documents in `continuity-documents`; use fake documents only.
 - Confirm the following admin surfaces are accessible:
   - Continuity Request Queue.

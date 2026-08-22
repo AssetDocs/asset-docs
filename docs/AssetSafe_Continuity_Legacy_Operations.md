@@ -32,8 +32,9 @@ User-facing component: `ContinuityRequestWizard`
 
 Legacy Admin designation policy:
 
-- Each account may have one active primary Legacy Admin.
-- Each account may have additional active secondary Legacy Admins as backups.
+- Each account may have zero or one active Legacy Admin. Primary/secondary designations are retired.
+- The Legacy Admin must already be an active Full Access Authorized User on the same account, and is assigned only through `assign_legacy_admin` / `clear_legacy_admin`.
+- The Legacy Admin is the sole Secure Vault recovery participant and does not receive automatic vault access, ownership, export, closure, or memorialization rights.
 - Adding or removing a Legacy Admin designation does not change billing, deletion, owner-profile, or Authorized User access permissions.
 - Multiple active continuity requests still require reviewer conflict resolution before high-impact actions execute.
 
@@ -293,7 +294,7 @@ Retired features (2026-08-22):
 
 5. Retired (2026-08-22): owner heartbeat check-ins. Asset Safe does not interpret account silence as a continuity signal.
 6. In-app ops reporting exists for unresolved owner disputes, external assistance backlog age, high-risk external assistance, and overdue continuity reviews.
-7. Secondary Legacy Admin UX is implemented: `legacy_admins` supports active primary/secondary designations with one active primary per account.
+7. Retired (2026-08-22): secondary Legacy Admin designations. Exactly zero or one active Legacy Admin per account; `designation_role` / `designation_priority` no longer exist.
 
 ### P2 quarter 1
 
