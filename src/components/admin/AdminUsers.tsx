@@ -52,6 +52,7 @@ interface OwnerWithContributors {
   contributors: ContributorRecord[];
 }
 
+
 interface GiftSubscription {
   id: string;
   purchaser_name: string;
