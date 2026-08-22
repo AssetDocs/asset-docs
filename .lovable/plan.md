@@ -1,52 +1,66 @@
-# Retire Ownership Transfer from Legacy Continuity
-
-Asset Safe stops offering account ownership transfer. Continuity keeps review, temporary access, archive custodian, memorialization, preservation, closure approval, and authorized export. The four remaining execution functions are not modified in this pass.
+# Merge Recovery Delegate Into Legacy Admin
 
 ## Audit findings (verified before planning)
 
-**`execute_ownership_transfer(_request_id, _reason, _senior_approver_id, _snapshot_reference)`** exists in the database, `SECURITY DEFINER`, and:
+**How Recovery Delegate exists today**
 
-- Reads: `continuity_account_snapshots`, `account_continuity_requests`, `accounts.owner_user_id`; gate via `has_any_app_role` and `enforce_continuity_execution_guard`.
-- Writes: `accounts` (`owner_user_id`, `owner_state='archived_owner'`, `continuity_setup_required`), `account_memberships` (demotes prior owner, inserts/upserts new owner), `ownership_transfer_history`, `account_ownership_metadata`, `continuity_execution_events`, `account_continuity_requests` (status `completed`, `transfer_scope='transfer'`), plus `log_continuity_event`.
-- Does change account ownership and workspace membership roles. Does not touch auth identity, Stripe/billing identifiers, Legacy Admin rows, or Secure Vault keys directly (vault access follows account role, which is why this path must go).
-- No other database function references it (checked `prosrc` across `public`).
-- Code references: only `src/integrations/supabase/types.ts` (generated) and one open question line in `docs/AssetSafe_Continuity_Legacy_Operations.md`. No frontend or edge function calls the RPC.
+- Frontend: `src/components/RecoveryDelegateSelector.tsx` (card + selector + grace period), rendered from `src/components/SecureVault.tsx` (line ~826) and `src/components/LegacyLocker.tsx` (line ~927). The selector lists people from the **contributors** table with `role = 'administrator'` — a different system from Authorized Users (`account_memberships`, roles `owner / full_access / read_only`), so today's delegate can be someone who is not a Full Access AU.
+- Supporting UI: `src/pages/DelegateVault.tsx`, `src/pages/AcknowledgeAccess.tsx`, `src/components/RecoveryRequestAlert.tsx`, delegate milestone rows in `src/components/SecurityProgress.tsx` / `src/hooks/useVerification.ts`, plus copy in `FAQAccordion.tsx`, `OnboardingProgress.tsx`, `SampleDashboard.tsx`, admin flowcharts.
+- Database: `legacy_locker.delegate_user_id`, `legacy_locker.encryption_key_encrypted_for_delegate`, `recovery_requests.delegate_user_id`, `vault_delegate_grants` (`wrapped_vault_key`, `delegate_key_version`), `vault_delegate_keypairs` (per-user public keys), `account_verification.has_recovery_delegate`.
+- Functions/triggers: `validate_legacy_locker_delegate` (self-delegate guard), `can_access_vault_path`, `get_vault_delegate_public_key`, `recovery_requests_update_guard`, `compute_user_verification` (milestone #10), `create_continuity_snapshot`, `consume_continuity_export_authorization`, `execute_temporary_stewardship`.
+- Edge functions: `submit-recovery-request`, `respond-recovery-request`, `acknowledge-delegate-access`, `check-grace-period-expiry`, `issue-delegate-vault-grant`, `send-recovery-request-email`, `send-recovery-approved-email`, `send-recovery-rejected-email`, `send-delegate-access-email`, plus cleanup paths in `delete-account`.
+- Client crypto: `src/lib/delegateKeypair.ts`, `src/lib/delegateGrants.ts`, `src/utils/recoveryEncryption.ts`.
 
-**Unexpected active dependency found — reporting before deletion, per your instruction:**
+**Security-critical dependency (important)**
 
-`src/components/admin/legacy-continuity/OwnershipTransferWizard.tsx` is **live**, not orphaned. `DecisionPanel.tsx` renders it behind a "Start Ownership Transfer Review" button (line 152-153). The wizard does not call the RPC — it performs the transfer itself with direct table writes: it inserts into `continuity_ownership_transfers`, sets `account_continuity_requests.status='ownership_transfer_pending'`, and on execute writes `accounts.owner_user_id = proposed_owner_id` straight from the client. `OwnershipTransfersTab.tsx` (a live admin tab, "Continuity Actions") lists rows from `continuity_ownership_transfers`.
+Recovery Delegate **does** carry cryptographic material: the vault key is wrapped to the delegate's public key (`vault_delegate_keypairs`) and stored in `vault_delegate_grants.wrapped_vault_key`, plus a legacy `encryption_key_encrypted_for_delegate` field. All of it is keyed by a plain **user id**, and grants are only issued after an owner-approved + acknowledged `recovery_requests` row. So the identity can be swapped to the Legacy Admin's user id without touching any crypto. Nothing will be deleted that holds wrapped keys — the wrapping/unwrapping mechanism, grace period, approval guard, MFA and passphrase controls all stay exactly as they are.
 
-So retiring the capability requires removing this client-side path too, otherwise dropping the RPC changes nothing operationally.
+**Legacy Admin today**
 
-## What this plan changes
+`legacy_admins` (account-scoped) supports primary/secondary designations and any non-owner member; `continuity_secondary_legacy_admins` also exists. Assignment happens client-side from `LegacyAdminAssignment.tsx` (inside Authorized Users tab) with no backend eligibility check.
 
-### 1. Database
-Migration that drops `public.execute_ownership_transfer`. No table drops: `continuity_ownership_transfers`, `ownership_transfer_history`, and `account_ownership_metadata` are retained read-only as historical record (they may hold review rows). No changes to `execute_archive_custodian`, `execute_temporary_stewardship`, `execute_memorialization`, `authorize_continuity_export`.
+## What will change
 
-### 2. Admin frontend
-- Delete `OwnershipTransferWizard.tsx` and the deprecated `execution/OwnershipTransferForm.tsx`.
-- `DecisionPanel.tsx`: remove the wizard import, `transferOpen` state, and the "Start Ownership Transfer Review" action button. All other decision actions untouched.
-- `OwnershipTransfersTab.tsx`: convert to a read-only historical record tab labeled "Historical Transfer Reviews", with a note that ownership transfer is retired and no new reviews can be started. Keep it so existing rows stay auditable; drop the "Open Case" wizard entry point wording only if it points at the retired flow (it opens the case detail, so it stays).
-- `constants.ts`: remove the `recommend_transfer` capability (wizard-only) and the `notify_ownership_transfer` email template. Keep `senior_approve_transfer` and `execute_transfer` capability keys — they gate memorialization and closure in `ContinuityExecutionPanel` — but reword their help text away from "Ownership Administrator"/transfer language.
-- Relabel remaining user-facing transfer wording: `ownership_transfer_pending` label, `TransferScopeSelector`/`TransferPreviewDialog` copy, workspace intro text ("manual review before ownership transfer, export…"), and `execution/executionConstants.ts` comments. `TransferScopeSelector`/`TransferPreviewDialog` component filenames stay (renaming files is churn); only their copy changes.
-- `src/components/legacy-continuity/types.ts` keeps the legacy `ownership_transfer` request-type value with its "(legacy)" label so historical rows still render.
+**One designation, one source of truth.** `legacy_admins` becomes the single record of the continuity contact. `legacy_locker.delegate_user_id` stops being an owner-editable field and becomes a system-maintained mirror of the active Legacy Admin, so every existing Secure Vault recovery path (requests, grants, wrapped keys, acknowledgment) keeps working unchanged — it simply now points at the Legacy Admin.
 
-### 3. Documentation
-- `docs/AssetSafe_Continuity_Legacy_Operations.md`: remove ownership transfer as a current outcome, replace the open question with a "Retired 2026-08-22" entry, and add the product-direction statement: Asset Safe does not transfer ownership of a user's account through Legacy Continuity; approved continuity workflows may provide access to or export of available account information; ongoing use by another family member requires a separate Asset Safe account.
-- Same correction in the other live docs that present it as a capability: `AssetSafe_Continuity_Launch_Decision_Memo.md`, `AssetSafe_Continuity_Incident_Tabletop_Runbook.md`, `AssetSafe_Support_Ops_Runbook.md`, `AssetSafe_Multi_Account_Workspace_Ops_Runbook.md`, `AssetSafe_Launch_Operator_Signoff_Checklist.md`, `AssetSafe_Operational_Readiness_Sweep.md`, `AssetSafe_Lovable_P0_Launch_Readiness_Classification.md`, `AssetSafe_Launch_Evidence_Collection_Runbook.md`. Historical migrations are left alone.
+**Backend enforcement (migration)**
 
-### 4. Explicitly not touched
-Secure Vault gating, Legacy Locker encryption, Digital Access, passphrase behavior, Recovery Delegate, Admin Access Control, Authorized Users, Legacy Admin assignment and invitations, `authorize_continuity_export`, and the three other execution functions. No successor-account, copy-forward, or subscription-transfer functionality is built.
+1. Assignment RPC `assign_legacy_admin(_account_id, _user_id)` — security definer, owner-only. Rejects unless the target has an `account_memberships` row for that account with `role = 'full_access'`, `status = 'active'`, `accepted_at` set, `revoked_at` null. Rejects self-assignment. Deactivates any existing active row, inserts the new one, mirrors `legacy_locker.delegate_user_id`, writes an activity/audit event.
+2. `clear_legacy_admin(_account_id)` — owner-only; deactivates the row, nulls the mirror, revokes any active `vault_delegate_grants` and open `recovery_requests` for the former designee.
+3. Partial unique index enforcing at most one `status = 'active'` row per `account_id`; drop `designation_role` / `designation_priority` usage and retire `continuity_secondary_legacy_admins`.
+4. Trigger on `account_memberships` (update + delete): if the affected user is the active Legacy Admin and the change makes them ineligible (role → `read_only`, status not active, revoked, removed), clear the designation atomically, null the mirror, revoke grants/open requests, and log `legacy_admin_removed_due_to_au_ineligibility`.
+5. Replace `validate_legacy_locker_delegate` with a guard that blocks direct client writes to `delegate_user_id` (only definer functions may set it); keep the self-delegate check.
+6. `compute_user_verification` milestone #10 reads "has an active Legacy Admin" from `legacy_admins` instead of `delegate_user_id`; rename the flag surfaced to the app to `has_legacy_admin` and keep the same milestone count.
+7. Drop the now-unused `legacy_locker.encryption_key_encrypted_for_delegate` only after confirming it holds no rows; otherwise leave it untouched and report it.
 
-## Closure mechanisms — informational report (no changes)
+**Frontend**
 
-Discovered surfaces to be reported in detail, not modified: `request-account-closure`, `process-account-closures`, `reverse-account-closure`, and `delete-account` edge functions; `approve_closure_request` / `complete_closure` / `cancel_closure` / `bypass_waiting_period` database functions; `account_closure_requests`, `closure_requests`, `deleted_accounts`, `storage_deletion_jobs`; and the admin `ApproveClosureForm` (30-day waiting period). The report will state, per surface, whether it cancels Stripe, whether it starts retention/deletion windows, and whether continuity cases currently connect to it. No wiring is added.
+- Delete `RecoveryDelegateSelector.tsx` and its usage in `SecureVault.tsx` and `LegacyLocker.tsx`. Remove the delegate save handlers, grace-period selector, and related state from those two components (delegate-side recovery panels in Secure Vault stay — that's the recovery participant experience, not a configuration surface).
+- Secure Vault shows a compact read-only line: `Legacy Admin: [Name] — may participate in Secure Vault recovery but cannot access the vault without the recovery process.` with a link to the single management surface.
+- Rewrite `LegacyAdminAssignment.tsx`: single designation, selector limited to active Full Access AUs (name + email), no primary/secondary, calls the new RPCs, new copy:
+  "Choose one Full Access Authorized User to serve as your trusted continuity contact. Your Legacy Admin can participate in Secure Vault recovery when needed, but does not receive automatic access to your Secure Vault."
+  Empty state: "Add a Full Access Authorized User before selecting a Legacy Admin."
+- Authorized Users tab: when downgrading or revoking the current Legacy Admin, warn that the designation will be cleared.
+- `AccountContinuityInstructions.tsx` (Legacy Instructions) keeps showing the selected Legacy Admin and links to the one management surface; drop "(secondary)" labels.
+- Update `SecurityProgress.tsx` / `useVerification.ts` milestone to "Assign a Legacy Admin"; scrub delegate wording from `FAQAccordion.tsx`, `OnboardingProgress.tsx`, `SampleDashboard.tsx`, `RecoveryRequestAlert.tsx`, `DelegateVault.tsx`, `AcknowledgeAccess.tsx`, admin flowcharts, and admin continuity panels.
 
-## Verification
-- Confirm the function is gone from `pg_proc` and that no database function, edge function, or frontend file references it.
-- Repo-wide search shows no live ownership-transfer capability, only historical migrations and retired-behavior notes.
-- Confirm the remaining admin continuity forms (Archive Custodian, Temporary Continuity Access, Memorialization, Preservation, Approve Closure, Authorize Export) still render and their capability gates resolve.
-- Typecheck/build clean.
+**Edge functions**
 
-## Follow-up (separate, read-only)
-Immediately after this pass, audit `execute_archive_custodian`, `execute_temporary_stewardship`, `execute_memorialization`, and `authorize_continuity_export` — intent, who can invoke, assumed manual review, tables touched, Secure Vault exposure, effect on access/ownership, ongoing operational burden, launch necessity, and a keep/simplify/replace/retire recommendation each. No modifications during that audit.
+- `submit-recovery-request`: authorize the caller as the account's active Legacy Admin (still cross-checked against `legacy_locker.delegate_user_id`), not an arbitrary delegate.
+- Email/notification copy in the recovery + legacy-admin functions switches to "Legacy Admin"; `send-legacy-admin-notification` stays as a post-assignment notification only (no membership invite).
+- Everything else (approval, acknowledgment, grant issuance, grace-period cron) keeps its current logic and guards.
+
+**Docs**
+
+Update `AssetSafe_Continuity_Legacy_Operations.md`, `AssetSafe_Support_Ops_Runbook.md`, `AssetSafe_Multi_Account_Workspace_Ops_Runbook.md`, `AssetSafe_Mobile_Capacitor_Ops_Runbook.md`, `AssetSafe_Support_Launch_Decision_Memo.md` to the three-role model, with a retired note: "Recovery Delegate — retired 2026-08-22; capability consolidated into Legacy Admin."
+
+## Sequence
+
+1. Frontend removal + rewritten Legacy Admin UI (reads still tolerate old columns).
+2. Migration (RPCs, unique index, triggers, verification function, write guard).
+3. Edge function eligibility + copy updates.
+4. Types regeneration, repo-wide `recovery.delegate` sweep, typecheck/build, and verification pass against the checklist (Read Only ineligible, ineligible assignment rejected backend-side, downgrade clears designation, vault still locked for Legacy Admin, export/closure/memorialization unchanged).
+
+## Not changing
+
+Full Access / Read Only AU permissions, `authorize_continuity_export`, memorialization, account closure, MFA/passphrase/recovery cryptography, and the retired Ownership Transfer / Temporary Stewardship / Archive Custodian roles.
