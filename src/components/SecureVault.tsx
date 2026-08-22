@@ -548,10 +548,10 @@ const SecureVault: React.FC<SecureVaultProps> = ({ initialTab }) => {
     );
   }
 
-  // Locked state - show unlock/setup prompt (or delegate panel if user is a Legacy Admin)
+  // Locked state - show unlock/setup prompt (or the Legacy Admin recovery panel)
   if (vaultLocked) {
 
-    // Delegate view: show appropriate panel based on recovery status
+    // Legacy Admin view: show appropriate panel based on recovery status
     if (isDelegate && delegateForLockerId) {
       const isPendingOrAwaiting = delegateRecoveryStatus === 'pending' || delegateRecoveryStatus === 'awaiting_acknowledgment';
       const isAcknowledged = delegateRecoveryStatus === 'delegate_acknowledged';
