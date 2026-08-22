@@ -1,57 +1,52 @@
-# Simplify Legacy Continuity and Secure Vault
+# Retire Ownership Transfer from Legacy Continuity
 
-Remove the continuity policy/automation layer from the Legacy Locker tab, keep a single simplified "Legacy Instructions" card, and leave Secure Vault, Digital Access, Recovery Delegate, Admin Access Control, and Legacy Admin assignment untouched.
+Asset Safe stops offering account ownership transfer. Continuity keeps review, temporary access, archive custodian, memorialization, preservation, closure approval, and authorized export. The four remaining execution functions are not modified in this pass.
 
-## Pre-work audit findings (verified now)
+## Audit findings (verified before planning)
 
-Account preference dropdown (item 5)
-- Current options: `maintain` (keep account active), `export` (release data to Legacy Admin / family), `close` (wind down and close).
-- Stored in `public.legacy_locker.continuity_preference` (text), written by the instructions card.
-- No database function contains any reference to `continuity_preference` (checked every function body in `public`), and no edge function or other frontend file reads it. It is a stored, human-read value only — no execution, no ownership-transfer or custodian semantics.
-- Conclusion: the dropdown carries no automation liability. Recommendation is to keep the three options as-is and only soften the label wording ("Export — make my data available to my Legacy Admin / family" instead of "release"). No option is removed in this pass unless you say so.
+**`execute_ownership_transfer(_request_id, _reason, _senior_approver_id, _snapshot_reference)`** exists in the database, `SECURITY DEFINER`, and:
 
-Continuity Heartbeat (item 3)
-- The heartbeat columns (`continuity_heartbeat_enabled`, `_interval_days`, `_last_heartbeat_at`, `_next_heartbeat_due_at`, `_status`) **do not exist** on `legacy_locker`, and `record_continuity_owner_heartbeat` does not exist in the database. The UI was reading and writing fields that were never created, so the whole card is dead code today.
-- No cron job references heartbeat (all 16 scheduled jobs reviewed: gift, billing, storage, retention, closure, restore-drill). No edge function, email, or notification exists for it.
+- Reads: `continuity_account_snapshots`, `account_continuity_requests`, `accounts.owner_user_id`; gate via `has_any_app_role` and `enforce_continuity_execution_guard`.
+- Writes: `accounts` (`owner_user_id`, `owner_state='archived_owner'`, `continuity_setup_required`), `account_memberships` (demotes prior owner, inserts/upserts new owner), `ownership_transfer_history`, `account_ownership_metadata`, `continuity_execution_events`, `account_continuity_requests` (status `completed`, `transfer_scope='transfer'`), plus `log_continuity_event`.
+- Does change account ownership and workspace membership roles. Does not touch auth identity, Stripe/billing identifiers, Legacy Admin rows, or Secure Vault keys directly (vault access follows account role, which is why this path must go).
+- No other database function references it (checked `prosrc` across `public`).
+- Code references: only `src/integrations/supabase/types.ts` (generated) and one open question line in `docs/AssetSafe_Continuity_Legacy_Operations.md`. No frontend or edge function calls the RPC.
 
-Readiness (items 1 and 12)
-- `compute_continuity_readiness` still exists and is called from exactly one place, the Continuity Preferences page. Nothing else in the frontend, edge functions, or other database functions calls it. It becomes orphaned once the page is removed; it will be reported, not dropped, in this pass.
+**Unexpected active dependency found — reporting before deletion, per your instruction:**
 
-Continuity execution functions (item 11)
-- `execute_ownership_transfer`: no caller anywhere in the frontend or edge functions — orphaned.
-- `execute_archive_custodian`, `execute_temporary_stewardship`, `execute_memorialization`, `authorize_continuity_export`: each still called from the admin Legacy Continuity execution forms (`ArchiveCustodianForm`, `TemporaryContinuityAccessForm`, `MemorializationForm`, `AuthorizeExportForm`). These are admin-review flows, not user-preference driven, so they stay untouched.
-- Admin Access Control has no dependency on the removed preference structures.
+`src/components/admin/legacy-continuity/OwnershipTransferWizard.tsx` is **live**, not orphaned. `DecisionPanel.tsx` renders it behind a "Start Ownership Transfer Review" button (line 152-153). The wizard does not call the RPC — it performs the transfer itself with direct table writes: it inserts into `continuity_ownership_transfers`, sets `account_continuity_requests.status='ownership_transfer_pending'`, and on execute writes `accounts.owner_user_id = proposed_owner_id` straight from the client. `OwnershipTransfersTab.tsx` (a live admin tab, "Continuity Actions") lists rows from `continuity_ownership_transfers`.
 
-## Changes
+So retiring the capability requires removing this client-side path too, otherwise dropping the RPC changes nothing operationally.
 
-Frontend
-- Delete `src/components/continuity/ContinuityPreferencesPage.tsx` and its import/render in `src/pages/Account.tsx`. This removes the readiness bar and checklist, the temporary-incapacity, permanent-incapacity, and death cards, the Annual Review Reminder toggle, and the Continuity Heartbeat card in one step.
-- Rename `AccountContinuityInstructions` heading to **Legacy Instructions** with the supporting copy "Leave guidance for the people you trust if you are ever unable to manage your account yourself." Keep Selected Legacy Admin, Account preference, Notes for family or support, and Save Instructions exactly as they work today. Add a short line making clear these are stored instructions Asset Safe does not execute automatically.
-- Resulting Legacy Locker tab order: Continuity request banner (unchanged) → Legacy Instructions → Secure Vault (Recovery Delegate, Admin Access Control, Digital Access, Legacy Locker).
-- Admin `OwnerRiskPanel`: drop the heartbeat badges and the heartbeat/annual columns from its `select`, and drop the `continuity_preferences` JSON dump plus the "Last reviewed / Version" line, since those preferences no longer exist. Leave the rest of the panel intact.
+## What this plan changes
 
-Sequencing
-1. Frontend removal and the Legacy Instructions rename first.
-2. Verify the simplified Legacy Locker tab (checkpoint).
-3. Then run the database migration.
-4. Then update the continuity operations doc in the same pass.
+### 1. Database
+Migration that drops `public.execute_ownership_transfer`. No table drops: `continuity_ownership_transfers`, `ownership_transfer_history`, and `account_ownership_metadata` are retained read-only as historical record (they may hold review rows). No changes to `execute_archive_custodian`, `execute_temporary_stewardship`, `execute_memorialization`, `authorize_continuity_export`.
 
-Database (step 3)
-- One migration: drop the now-unused `legacy_locker` columns `continuity_preferences`, `continuity_preferences_version`, `continuity_preferences_reviewed_at`, `continuity_annual_reminder` (verified: no function, trigger, view, or policy references them), and drop `compute_continuity_readiness`.
-- Keep `continuity_preference`, `continuity_notes`, `continuity_notes_encrypted` (Legacy Instructions), and all continuity request/execution tables and functions.
-- `execute_ownership_transfer` is flagged as orphaned and left in place for a separate review; it is not dropped here.
+### 2. Admin frontend
+- Delete `OwnershipTransferWizard.tsx` and the deprecated `execution/OwnershipTransferForm.tsx`.
+- `DecisionPanel.tsx`: remove the wizard import, `transferOpen` state, and the "Start Ownership Transfer Review" action button. All other decision actions untouched.
+- `OwnershipTransfersTab.tsx`: convert to a read-only historical record tab labeled "Historical Transfer Reviews", with a note that ownership transfer is retired and no new reviews can be started. Keep it so existing rows stay auditable; drop the "Open Case" wizard entry point wording only if it points at the retired flow (it opens the case detail, so it stays).
+- `constants.ts`: remove the `recommend_transfer` capability (wizard-only) and the `notify_ownership_transfer` email template. Keep `senior_approve_transfer` and `execute_transfer` capability keys — they gate memorialization and closure in `ContinuityExecutionPanel` — but reword their help text away from "Ownership Administrator"/transfer language.
+- Relabel remaining user-facing transfer wording: `ownership_transfer_pending` label, `TransferScopeSelector`/`TransferPreviewDialog` copy, workspace intro text ("manual review before ownership transfer, export…"), and `execution/executionConstants.ts` comments. `TransferScopeSelector`/`TransferPreviewDialog` component filenames stay (renaming files is churn); only their copy changes.
+- `src/components/legacy-continuity/types.ts` keeps the legacy `ownership_transfer` request-type value with its "(legacy)" label so historical rows still render.
 
-Docs (step 4)
-- Update `docs/AssetSafe_Continuity_Legacy_Operations.md` to remove Heartbeat, readiness scoring, and the three event-preference sections, so no doc describes them as current behavior.
+### 3. Documentation
+- `docs/AssetSafe_Continuity_Legacy_Operations.md`: remove ownership transfer as a current outcome, replace the open question with a "Retired 2026-08-22" entry, and add the product-direction statement: Asset Safe does not transfer ownership of a user's account through Legacy Continuity; approved continuity workflows may provide access to or export of available account information; ongoing use by another family member requires a separate Asset Safe account.
+- Same correction in the other live docs that present it as a capability: `AssetSafe_Continuity_Launch_Decision_Memo.md`, `AssetSafe_Continuity_Incident_Tabletop_Runbook.md`, `AssetSafe_Support_Ops_Runbook.md`, `AssetSafe_Multi_Account_Workspace_Ops_Runbook.md`, `AssetSafe_Launch_Operator_Signoff_Checklist.md`, `AssetSafe_Operational_Readiness_Sweep.md`, `AssetSafe_Lovable_P0_Launch_Readiness_Classification.md`, `AssetSafe_Launch_Evidence_Collection_Runbook.md`. Historical migrations are left alone.
 
-Disclaimer copy under Legacy Instructions
-"These instructions are stored for reference and do not automatically trigger account access, transfer, or other actions."
+### 4. Explicitly not touched
+Secure Vault gating, Legacy Locker encryption, Digital Access, passphrase behavior, Recovery Delegate, Admin Access Control, Authorized Users, Legacy Admin assignment and invitations, `authorize_continuity_export`, and the three other execution functions. No successor-account, copy-forward, or subscription-transfer functionality is built.
 
-Not touched
-Secure Vault gating and passphrase flow, encryption/decryption, vault relock, Digital Access, Legacy Locker fields, Recovery Delegate, Admin Access Control, Authorized User permissions, Legacy Admin assignment, `account_continuity_requests` and the admin review workflow.
+## Closure mechanisms — informational report (no changes)
+
+Discovered surfaces to be reported in detail, not modified: `request-account-closure`, `process-account-closures`, `reverse-account-closure`, and `delete-account` edge functions; `approve_closure_request` / `complete_closure` / `cancel_closure` / `bypass_waiting_period` database functions; `account_closure_requests`, `closure_requests`, `deleted_accounts`, `storage_deletion_jobs`; and the admin `ApproveClosureForm` (30-day waiting period). The report will state, per surface, whether it cancels Stripe, whether it starts retention/deletion windows, and whether continuity cases currently connect to it. No wiring is added.
 
 ## Verification
-- Checkpoint after frontend: simplified tab renders, Legacy Instructions saves and reloads (including encrypted notes when the vault is unlocked), Legacy Admin badge still renders, Secure Vault still locks and unlocks, admin Owner & Risk panel renders without the removed fields, typecheck clean.
-- Repo-wide search for `readiness`, `heartbeat`, `annual_reminder`, `continuity_preferences`, `vault_segments`, `incapacit` returns no live references outside migration history.
-- Final report: `execute_ownership_transfer` orphan status for separate review, and confirmation that `compute_continuity_readiness` was dropped.
+- Confirm the function is gone from `pg_proc` and that no database function, edge function, or frontend file references it.
+- Repo-wide search shows no live ownership-transfer capability, only historical migrations and retired-behavior notes.
+- Confirm the remaining admin continuity forms (Archive Custodian, Temporary Continuity Access, Memorialization, Preservation, Approve Closure, Authorize Export) still render and their capability gates resolve.
+- Typecheck/build clean.
 
+## Follow-up (separate, read-only)
+Immediately after this pass, audit `execute_archive_custodian`, `execute_temporary_stewardship`, `execute_memorialization`, and `authorize_continuity_export` — intent, who can invoke, assumed manual review, tables touched, Secure Vault exposure, effect on access/ownership, ongoing operational burden, launch necessity, and a keep/simplify/replace/retire recommendation each. No modifications during that audit.
