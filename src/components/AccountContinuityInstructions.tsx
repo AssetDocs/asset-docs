@@ -142,7 +142,7 @@ const AccountContinuityInstructions: React.FC<Props> = ({ vaultPassphrase }) => 
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="maintain">Maintain — keep the account active</SelectItem>
-              <SelectItem value="export">Export — release data to my Legacy Admin / family</SelectItem>
+              <SelectItem value="export">Export — make my data available to my Legacy Admin / family</SelectItem>
               <SelectItem value="close">Close — wind down and close the account</SelectItem>
             </SelectContent>
           </Select>
