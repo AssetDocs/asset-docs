@@ -246,7 +246,7 @@ Key RPCs:
 - `remove_account_freeze`
 - `set_memorialized_mode`
 - `bypass_waiting_period`
-- `compute_continuity_readiness`
+- `enforce_continuity_execution_guard`
 - `enforce_continuity_execution_guard`
 - `create_continuity_snapshot`
 - `revoke_continuity_access`
