@@ -177,21 +177,27 @@ const AdminUsers = () => {
           usersData.map(u => [u.user_id, u])
         );
 
-        // Create a map of contributor user_id to their contributor record (legacy)
-        const contributorMap = new Map<string, ContributorRecord>();
-        contributorsData?.forEach(c => {
-          if (c.contributor_user_id) {
-            contributorMap.set(c.contributor_user_id, c);
-          }
-        });
-
-        // Build a map: user_id -> first active non-owner membership (Authorized User)
+        // Build a map: user_id -> primary non-owner membership (Authorized User).
+        // Active memberships always win over historical/revoked ones; among active
+        // memberships full_access wins over read_only; among non-active ones the
+        // most recent wins (membershipsData is ordered created_at desc).
         const auMembershipMap = new Map<string, any>();
         membershipsData?.forEach((m: any) => {
           const ownerId = m.accounts?.owner_user_id;
-          if (m.role && m.role !== 'owner' && ownerId && activeOwnerIds.has(ownerId)) {
-            const existing = auMembershipMap.get(m.user_id);
-            if (!existing || (existing.role !== 'full_access' && m.role === 'full_access')) {
+          if (!m.role || m.role === 'owner' || !ownerId || !activeOwnerIds.has(ownerId)) return;
+          const existing = auMembershipMap.get(m.user_id);
+          if (!existing) {
+            auMembershipMap.set(m.user_id, m);
+            return;
+          }
+          const existingActive = existing.status === 'active';
+          const candidateActive = m.status === 'active';
+          if (candidateActive && !existingActive) {
+            auMembershipMap.set(m.user_id, m);
+            return;
+          }
+          if (candidateActive && existingActive) {
+            if (existing.role !== 'full_access' && m.role === 'full_access') {
               auMembershipMap.set(m.user_id, m);
             }
           }
@@ -199,22 +205,15 @@ const AdminUsers = () => {
 
         const mergedUsers = usersData.map(user => {
           const auMembership = auMembershipMap.get(user.user_id);
-          const contributorRecord = contributorMap.get(user.user_id);
           const entitlement = entitlementMap.get(user.user_id);
           const isActive = entitlement?.status === 'active' || entitlement?.status === 'trialing';
 
-          // AU = any active non-owner membership OR legacy contributor record
-          const isAU = !!auMembership || !!contributorRecord;
+          // AU = has a non-owner account_memberships row
+          const isAU = !!auMembership;
 
-          let ownerUserId: string | null = null;
-          let auRole: string | null = null;
-          if (auMembership) {
-            ownerUserId = auMembership.accounts?.owner_user_id || null;
-            auRole = auMembership.role;
-          } else if (contributorRecord) {
-            ownerUserId = contributorRecord.account_owner_id;
-            auRole = contributorRecord.role;
-          }
+          const ownerUserId: string | null = auMembership?.accounts?.owner_user_id || null;
+          const auRole: string | null = auMembership?.role || null;
+
 
           const ownerProfile = ownerUserId ? ownerProfileMap.get(ownerUserId) : null;
           const ownerEmail = ownerProfile
