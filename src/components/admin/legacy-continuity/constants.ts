@@ -165,7 +165,7 @@ export const MESSAGE_TEMPLATES = [
   { key: 'notify_approval', subject: 'Continuity request approved', body: 'Asset Safe has approved your continuity request. Next steps will be communicated separately.' },
   { key: 'notify_denial', subject: 'Continuity request denied', body: 'After review, Asset Safe was unable to approve your continuity request at this time. Please contact us if you have additional information.' },
   { key: 'notify_temp_access', subject: 'Temporary access granted', body: 'Asset Safe has granted limited temporary access in connection with your continuity request. Please review the access details and expiration date.' },
-  { key: 'notify_ownership_transfer', subject: 'Ownership transfer review next steps', body: 'Asset Safe has begun the ownership transfer review for the account. Ownership will not transfer until you complete the acceptance steps that will be sent to you.' },
+  
 ];
 
 export const DENIAL_REASONS = [
@@ -236,6 +236,8 @@ export const TEMP_ACCESS_STATUS_BADGE: Record<string, string> = {
   revoked: 'bg-rose-50 text-rose-900 border-rose-200',
 };
 
+// Retained for historical `continuity_ownership_transfers` rows only.
+// Ownership transfer was retired 2026-08-22 — no new records can be created.
 export const TRANSFER_STATUS_LABEL: Record<string, string> = {
   recommended: 'Recommended',
   awaiting_senior_approval: 'Awaiting Senior Approval',
@@ -260,7 +262,7 @@ export const TRANSFER_STATUS_BADGE: Record<string, string> = {
 // Role -> capability mapping
 export type AdminCap =
   | 'view' | 'add_notes' | 'send_messages' | 'review_documents' | 'complete_checklist'
-  | 'recommend_transfer' | 'apply_preservation_hold' | 'approve_temp_access'
+  | 'apply_preservation_hold' | 'approve_temp_access'
   | 'senior_approve_transfer' | 'execute_transfer' | 'revoke_temp_access' | 'archive';
 
 export function capabilitiesForRole(role: string | null): Set<AdminCap> {
@@ -271,7 +273,7 @@ export function capabilitiesForRole(role: string | null): Set<AdminCap> {
     caps.add('add_notes'); caps.add('send_messages');
   }
   if (['developer', 'dev_lead', 'admin', 'owner'].includes(role)) {
-    caps.add('review_documents'); caps.add('complete_checklist'); caps.add('recommend_transfer');
+    caps.add('review_documents'); caps.add('complete_checklist');
   }
   if (['dev_lead', 'admin', 'owner'].includes(role)) {
     caps.add('apply_preservation_hold'); caps.add('approve_temp_access'); caps.add('senior_approve_transfer');
@@ -288,11 +290,11 @@ export const CAP_REQUIREMENT_HELP: Record<AdminCap, string> = {
   send_messages: 'Requires Support Admin permission.',
   review_documents: 'Requires Continuity Reviewer permission.',
   complete_checklist: 'Requires Continuity Reviewer permission.',
-  recommend_transfer: 'Requires Continuity Reviewer permission.',
   apply_preservation_hold: 'Requires Senior Reviewer permission.',
   approve_temp_access: 'Requires Senior Reviewer permission.',
   senior_approve_transfer: 'Requires Senior Reviewer permission.',
-  execute_transfer: 'Requires Ownership Administrator permission.',
-  revoke_temp_access: 'Requires Ownership Administrator permission.',
-  archive: 'Requires Ownership Administrator permission.',
+  execute_transfer: 'Requires Continuity Administrator permission.',
+  revoke_temp_access: 'Requires Continuity Administrator permission.',
+  archive: 'Requires Continuity Administrator permission.',
 };
+
