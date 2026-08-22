@@ -109,10 +109,12 @@ const AccountContinuityInstructions: React.FC<Props> = ({ vaultPassphrase }) => 
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileText className="h-5 w-5" />
-          Account Continuity Instructions
+          Legacy Instructions
         </CardTitle>
         <CardDescription>
-          Document your wishes for what should happen to this account if something happens to you.
+          Leave guidance for the people you trust if you are ever unable to manage your account yourself.
+          These instructions are stored for reference and do not automatically trigger account access,
+          transfer, or other actions.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -140,7 +142,7 @@ const AccountContinuityInstructions: React.FC<Props> = ({ vaultPassphrase }) => 
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="maintain">Maintain — keep the account active</SelectItem>
-              <SelectItem value="export">Export — release data to my Legacy Admin / family</SelectItem>
+              <SelectItem value="export">Export — make my data available to my Legacy Admin / family</SelectItem>
               <SelectItem value="close">Close — wind down and close the account</SelectItem>
             </SelectContent>
           </Select>
