@@ -54,12 +54,20 @@ Recovery Delegate **does** carry cryptographic material: the vault key is wrappe
 
 Update `AssetSafe_Continuity_Legacy_Operations.md`, `AssetSafe_Support_Ops_Runbook.md`, `AssetSafe_Multi_Account_Workspace_Ops_Runbook.md`, `AssetSafe_Mobile_Capacitor_Ops_Runbook.md`, `AssetSafe_Support_Launch_Decision_Memo.md` to the three-role model, with a retired note: "Recovery Delegate — retired 2026-08-22; capability consolidated into Legacy Admin."
 
-## Sequence
+## Sequence (backend first)
 
-1. Frontend removal + rewritten Legacy Admin UI (reads still tolerate old columns).
-2. Migration (RPCs, unique index, triggers, verification function, write guard).
-3. Edge function eligibility + copy updates.
-4. Types regeneration, repo-wide `recovery.delegate` sweep, typecheck/build, and verification pass against the checklist (Read Only ineligible, ineligible assignment rejected backend-side, downgrade clears designation, vault still locked for Legacy Admin, export/closure/memorialization unchanged).
+1. **Migration first**: `assign_legacy_admin` / `clear_legacy_admin` RPCs, one-active-per-account unique index, AU ineligibility trigger, mirror enforcement on `legacy_locker.delegate_user_id`, verification-function update, and RLS lockdown — revoke direct client insert/update/delete on `legacy_admins` and block client writes to `delegate_user_id` so both are reachable only through the definer RPCs and trigger logic.
+2. Update the frontend to use only the new RPC-based Legacy Admin flow.
+3. Remove the Recovery Delegate configuration UI (`RecoveryDelegateSelector.tsx` and its two call sites) and the delegate save handlers.
+4. Update recovery edge functions to require an active Legacy Admin.
+5. Regenerate types, repo-wide `recovery.delegate` terminology scrub, typecheck/build, end-to-end verification.
+
+## Verification additions
+
+- **Desynchronization test**: manually create a mismatch between `legacy_admins` and `legacy_locker.delegate_user_id` in the test environment and confirm the recovery request path **rejects loudly** instead of trusting either side. `submit-recovery-request` will require both the active `legacy_admins` row and the mirror to agree, and raise/fail closed on mismatch rather than falling back.
+- Confirm no client role can write `legacy_admins` or `delegate_user_id` directly (attempt a direct insert/update as an authenticated owner and expect a permission error).
+- Plus the standard checks: Read Only ineligible, ineligible assignment rejected backend-side, downgrade/revocation clears the designation and revokes grants, one Legacy Admin maximum, vault still locked for the Legacy Admin, export/closure/memorialization unchanged.
+
 
 ## Not changing
 
