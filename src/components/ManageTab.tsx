@@ -143,32 +143,21 @@ const ManageTab: React.FC = () => {
     if (!userId) return;
     try {
       const { data, error } = await supabase
-        .from('contributors')
-        .select('account_owner_id, role, status')
-        .eq('contributor_user_id', userId)
-        .eq('status', 'accepted')
-        .neq('account_owner_id', userId);
+        .from('account_memberships')
+        .select('account_id, role, status, accounts!inner(owner_user_id)')
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .neq('role', 'owner');
       if (error) return;
-      if (data && data.length > 0) {
-        setIsContributor(true);
-        setContributorInfo(data[0] as ContributorInfo);
-        if (data[0].role === 'administrator') {
-          const { data: requestData } = await supabase
-            .from('account_deletion_requests')
-            .select('*')
-            .eq('account_owner_id', data[0].account_owner_id)
-            .eq('requester_user_id', userId)
-            .order('created_at', { ascending: false })
-            .limit(1);
-          if (requestData && requestData.length > 0) {
-            setPendingDeletionRequest(requestData[0] as DeletionRequest);
-          }
-        }
-      }
+      const sharedMembership = (data || []).find(
+        (m: any) => m.accounts?.owner_user_id && m.accounts.owner_user_id !== userId
+      );
+      setIsContributor(!!sharedMembership);
     } catch (error) {
-      console.error('Error checking contributor status:', error);
+      console.error('Error checking authorized user status:', error);
     }
   };
+
 
   const checkIncomingDeletionRequests = async () => {
     if (!userId) return;
