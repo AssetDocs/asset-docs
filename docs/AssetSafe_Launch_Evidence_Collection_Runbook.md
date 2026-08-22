@@ -377,7 +377,7 @@ Evidence:
 Collect:
 
 - Product owner acceptance of MVP activation/churn metrics.
-- Operator acceptance of manual-review-only ownership transfer posture.
+- Ownership transfer retired 2026-08-22; no operator acceptance required.
 - Operator acceptance of Authorized User over-limit downgrade posture.
 - Mobile decision: app-store launch deferred or native build/privacy labels completed.
 

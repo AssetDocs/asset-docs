@@ -6,11 +6,12 @@ Scope: Legacy Admin requests, Recovery Delegates, continuity review, owner dispu
 
 ## 1. Operating Principles
 
-1. Continuity actions are manual-review actions. No ownership transfer, export, preservation, memorialization, or closure should execute solely because a Legacy Admin submits a request.
+1. Continuity actions are manual-review actions. No export, preservation, memorialization, or closure should execute solely because a Legacy Admin submits a request.
+1a. Asset Safe does not transfer ownership of a user's account through Legacy Continuity. Approved continuity workflows may provide access to or export of available account information, after which the original account and subscription can proceed toward closure. Ongoing use by another family member requires a separate Asset Safe account.
 2. Account owner protection comes first. Owner notifications, dispute links, waiting periods, account freezes, and audit logs are safety controls, not optional decoration.
 3. The account should remain reversible until the final continuity action is executed. Preservation, temporary access, export authorization, and closure waiting periods must leave a review trail.
 4. Continuity records are retained as legal/security evidence. They should not be swept by ordinary account-deletion cleanup unless explicitly anonymized through the deletion/tombstone policy.
-5. Owner-requested or business/legal ownership transfer outside death/incapacity continuity is covered separately in `docs/AssetSafe_Multi_Account_Workspace_Ops_Runbook.md`.
+5. Owner-requested or business/legal account reassignment outside death/incapacity continuity is a manual operations process covered separately in `docs/AssetSafe_Multi_Account_Workspace_Ops_Runbook.md`. It is not a continuity outcome.
 
 ## 2. Primary Roles
 
@@ -140,7 +141,7 @@ Default reviewer policy:
 
 - Treat all competing requests as elevated risk until reviewed.
 - Compare requester authority, owner preferences, submitted evidence, request type, and timeline.
-- Do not approve export, temporary access, preservation, closure, memorialization, or ownership transfer until the conflict is resolved on the case.
+- Do not approve export, temporary access, preservation, closure, or memorialization until the conflict is resolved on the case.
 - Record conflict resolution notes explaining why the selected case may proceed or why the request should be denied/paused.
 
 ## 5. State Machines
@@ -273,6 +274,8 @@ Recommended default SLAs:
 
 Retired features (2026-08-22):
 
+- Full ownership transfer. The database function `execute_ownership_transfer` was dropped and the admin Ownership Transfer Review wizard (which wrote `accounts.owner_user_id` directly from the client) was removed. Asset Safe no longer changes account ownership, moves the subscription/billing relationship to another person, or transfers Secure Vault rights, Authorized Users, or audit history to a successor. The tables `continuity_ownership_transfers`, `ownership_transfer_history`, and `account_ownership_metadata` are retained read-only as historical audit material and are surfaced in the admin Historical Transfers tab.
+
 - Continuity Preferences (temporary incapacity, permanent incapacity, and death event options), Legacy Continuity Readiness scoring, the Annual Review Reminder, and the Continuity Heartbeat have all been removed from the product. The `legacy_locker` columns `continuity_preferences`, `continuity_preferences_version`, `continuity_preferences_reviewed_at`, and `continuity_annual_reminder` and the function `compute_continuity_readiness` were dropped.
 - Asset Safe does not monitor wellbeing, determine incapacity or death, or interpret inactivity as a continuity concern. Every continuity action remains an evidence-based, manually reviewed admin decision.
 - What remains user-facing is Legacy Instructions on the Legacy Locker tab: Legacy Admin designation, a stored account preference (`legacy_locker.continuity_preference`, human-read only, no automation consumes it), and notes for family or support. These are stored for reference and do not trigger access, transfer, or other actions.
@@ -300,8 +303,8 @@ Retired features (2026-08-22):
 
 ## 10. Open Questions
 
-1. Should owner dispute resolution for export, closure, and ownership transfer require second-reviewer signoff before freeze removal?
-2. Should conflict resolution require a second reviewer for ownership transfer, closure, or export cases?
-3. Should `execute_ownership_transfer` be retired? It is currently orphaned (no frontend or edge-function caller).
+1. Should owner dispute resolution for export and closure require second-reviewer signoff before freeze removal?
+2. Should conflict resolution require a second reviewer for closure or export cases?
+3. Should the retained ownership-transfer history tables be dropped in a later schema cleanup, once the remaining continuity workflows are settled?
 4. Which seeded evidence requirements need counsel-approved wording or second-reviewer signoff before launch?
 5. Who is allowed to bypass the 30-day continuity closure waiting period, and what evidence is mandatory?

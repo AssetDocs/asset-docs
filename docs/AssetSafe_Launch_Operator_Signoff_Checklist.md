@@ -81,7 +81,7 @@ Use `docs/AssetSafe_Lovable_P0_Launch_Readiness_Classification.md` as the curren
 | Legal/compliance | DMCA/content complaint intake path approved | Accepted MVP | Michael Lewis / support owner | `docs/AssetSafe_Legal_Privacy_MVP_Decision_Memo.md` and `docs/AssetSafe_DMCA_Takedown_Runbook.md`: manual intake through `support@assetsafe.net`; operator review, evidence logging, access restriction/quarantine when needed, and counsel escalation for formal DMCA/counter-notice or disputed legal issues | 2026-07-05 |
 | Legal/compliance | Legal request intake path approved | Accepted MVP | Michael Lewis / legal reviewer | `docs/AssetSafe_Legal_Privacy_MVP_Decision_Memo.md` and `docs/AssetSafe_Legal_Request_Runbook.md`: manual intake through `support@assetsafe.net`; counsel required for subpoenas, law enforcement, court orders, preservation demands, disclosure decisions, and breach/privacy notice questions; legal hold overrides cleanup | 2026-07-05 |
 | Growth | MVP activation/churn metrics accepted | Accepted MVP |  |  |  |
-| Workspace | Manual-review-only ownership transfer posture accepted | Accepted MVP |  |  |  |
+| Workspace | Ownership transfer retired 2026-08-22 — not offered | Retired |  |  |  |
 | Workspace | Authorized User over-limit downgrade posture accepted | Accepted MVP |  |  |  |
 | Mobile | App-store launch deferred, or native build/privacy-label gate completed | Deferred |  |  |  |
 

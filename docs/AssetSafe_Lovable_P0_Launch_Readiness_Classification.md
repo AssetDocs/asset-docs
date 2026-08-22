@@ -57,7 +57,7 @@ First-pass recommendation:
 | 31 | Legal/compliance | DMCA intake path approved | Operator action required | None by default |
 | 32 | Legal/compliance | Legal request intake path approved | Operator action required | None by default |
 | 33 | Growth | MVP activation/churn metrics accepted | Accepted MVP | None by default |
-| 34 | Workspace | Manual-review-only ownership transfer | Accepted MVP | None by default |
+| 34 | Workspace | Ownership transfer retired 2026-08-22 — not offered | Retired | None |
 | 35 | Workspace | Authorized User over-limit downgrade posture | Accepted MVP | None by default |
 | 36 | Mobile | App-store launch | Deferred | None by default |
 
@@ -126,7 +126,7 @@ Use `docs/AssetSafe_Launch_Evidence_Collection_Runbook.md` for exact queries and
 ### 08 Growth / Workspace / Mobile
 
 - Product/ops acceptance notes for activation/churn.
-- Ownership transfer acceptance note.
+- Ownership transfer retired 2026-08-22 (continuity provides export, not transfer).
 - Authorized User over-limit downgrade acceptance note.
 - Mobile app-store deferral note.
 

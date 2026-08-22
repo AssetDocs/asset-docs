@@ -100,7 +100,7 @@ Do not paste passwords, MFA codes, backup recovery codes, full card numbers, gov
 | Security incident | Security lead | Unauthorized access, data exposure, credential leak, suspicious admin activity |
 | Legal request | Legal/operator | Subpoena, warrant, preservation, civil discovery |
 | Privacy request | Legal/operator | DSAR, deletion, correction, opt-out, authorized agent |
-| Continuity | Continuity reviewer | Death, incapacity, executor, ownership transfer, memorialization |
+| Continuity | Continuity reviewer | Death, incapacity, executor, export, memorialization |
 | Data deletion/export | Privacy/legal or data lifecycle owner | Account deletion, export failure, retained evidence question |
 | Mobile app issue | Mobile release owner | App-store build, mobile-only auth/export/billing issue |
 
@@ -143,7 +143,7 @@ If a future view-as-user feature is added, it must be:
 - Read-only by default.
 - Explicitly logged with admin user, target user, reason, timestamp, and expiry.
 - Clearly visually labeled as support/admin context.
-- Blocked for high-impact actions: billing changes, deletion, export, MFA/email change, Authorized User changes, continuity actions, legal hold changes, and ownership transfer.
+- Blocked for high-impact actions: billing changes, deletion, export, MFA/email change, Authorized User changes, continuity actions, and legal hold changes.
 - Restricted to approved support/admin roles.
 - Reviewable in audit logs.
 

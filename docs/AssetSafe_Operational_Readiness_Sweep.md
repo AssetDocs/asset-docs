@@ -263,7 +263,7 @@ Covered:
 
 Remaining:
 
-- Operator accepts manual-review-only ownership transfer posture.
+- Ownership transfer retired 2026-08-22; continuity provides export, not transfer.
 - Review AU over-limit incidents after launch.
 
 ### 10. Mobile / Capacitor Ops
