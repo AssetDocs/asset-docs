@@ -1,47 +1,57 @@
-# Cleanup Pass: Admin Access Copy, Deletion Banner, Stale Identifiers
+# Final Continuity/AU Cleanup Pass
 
-Codex's three remaining findings are accepted with one important correction, then all three get fixed in a single cosmetic/copy pass. No authorization behavior changes.
+Frontend copy and naming only. No migration, no authorization change.
 
-## Correction on the P2 finding
+## Requested verification first: exact RLS scope of `allow_admin_access`
 
-`legacy_locker.allow_admin_access` is **not** dead. It is still enforced by a live policy on `legacy_locker`:
+Queried live policies. An `app_role = 'admin'` identity with `allow_admin_access = true` can SELECT **only the `legacy_locker` row itself**. Nothing else in the vault surface has an admin SELECT path:
 
-```text
-"Admins can view legacy lockers when permitted"
-  has_app_role(auth.uid(), 'admin') AND allow_admin_access = true
-```
+| Object | Admin SELECT path when `allow_admin_access = true` |
+| --- | --- |
+| `legacy_locker` | **Yes** — `Admins can view legacy lockers when permitted`: `has_app_role(auth.uid(),'admin') AND allow_admin_access = true` |
+| `legacy_locker_files` | No — only `auth.uid() = user_id` |
+| `legacy_locker_folders` | No — only `auth.uid() = user_id` |
+| `legacy_locker_voice_notes` | No — only `auth.uid() = user_id` |
+| `voice_note_attachments` | No — only `auth.uid() = user_id` |
+| `trust_information` | No — only `auth.uid() = user_id` (the old admin-contributor policy was dropped in Stage 1) |
+| `password_catalog` | No — only `auth.uid() = user_id` |
+| Vault storage objects (`documents/legacy-locker/...`) | No — `Vault: read locker objects` routes through `can_access_vault_path`, which allows only the owner or a delegate with an `acknowledged` recovery request. It does not consult `allow_admin_access`. |
 
-So the toggle really does control something: whether a **platform/support admin** (an `app_role = 'admin'` staff account) can read the owner's locker row. What is wrong is the wording. The card and its toasts say "Administrators (authorized user)", which is leftover contributor-era language and describes the wrong actor entirely. The column is also unrelated to the new Legacy Admin recovery policy, which is correct — recovery is gated by mirror match + active `legacy_admins` row + active grant, and deliberately ignores this flag.
+So the toggle governs support-staff visibility of the single locker record (settings/state row), not vault contents, files, passwords, trust info, or storage. The proposed copy is accurate. Vault payloads remain end-to-end encrypted regardless.
 
-Codex is right that `isManualAdminRestriction = false` at line 458 makes the branch at 479-487 unreachable dead code.
+Side note, no change this pass: one legacy storage policy on `documents` still references the `contributors` table — Stage 4 cleanup item.
 
-Worth stating in the UI: even when the flag is on, vault contents stay end-to-end encrypted, so a support admin sees the row, not the decrypted secrets.
+## 1. Secure Vault — Support Staff Access (`src/components/SecureVault.tsx`)
 
-## Changes
+- Retitle the card "Admin Access Control" to **Support Staff Access**.
+- Body copy: "Allow authorized Asset Safe support staff to access the Secure Vault record when needed for account support. Vault contents remain encrypted and cannot be decrypted without the required vault recovery credentials."
+- Status label stays Allowed / Restricted; toggle, `allow_admin_access` write, and owner-only visibility unchanged.
+- Toast titles become "Support Staff Access Enabled/Disabled" with matching support-staff wording; no mention of Authorized User, Legacy Admin, or Recovery Delegate.
+- Remove the dead `isManualAdminRestriction` constant (line 458) and its unreachable branch (479-487), keeping the "Authorized Users cannot access the account owner's encrypted vault" message.
 
-**1. `src/components/SecureVault.tsx`**
-- Reword the "Admin Access Control" card to describe the real actor: Asset Safe support/platform staff, not authorized users. Retitle to "Support Staff Access" (or similar), and replace the body text with a statement that turning it off blocks support-staff record access, and that vault contents remain end-to-end encrypted either way.
-- Fix the two toast messages in `handleAdminAccessToggle` to match.
-- Keep the toggle, the column write, and the owner-only visibility condition unchanged.
-- Delete the dead `isManualAdminRestriction` constant and its unreachable branch, keeping only the "Authorized Users cannot access the account owner's encrypted vault" message.
+## 2. Legacy deletion banner (`src/components/ManageTab.tsx`)
 
-**2. `src/components/ManageTab.tsx`** — replace "administrator" in the owner-facing deletion-request banner and toast (lines 327, 685, 691, 692) with wording that matches the current model: an authorized user can no longer delete the account, so the banner should describe a legacy pending request and state that only the owner can complete a deletion. The banner stays, since old `account_deletion_requests` rows may exist.
+- Line 685: replace "An administrator has requested to delete your account." with wording for a legacy request from an authorized user, noting third-party deletion is retired and only the account owner can complete a deletion.
+- Lines 691-692: drop "before the administrator can proceed" / "The administrator can now proceed"; state that the request is on record and that only the owner can complete deletion.
+- Line 327 toast: same correction.
+- Approve/Reject controls and owner self-deletion behavior untouched.
 
-**3. `src/components/admin/AdminUsers.tsx`** — rename `ContributorRecord` to `MembershipRecord`, the bucket field `contributors` to `authorizedUsers`, and the tab value `contributors` to `authorized-users`. Display strings already read "Authorized Users".
+## 3. Admin CRM naming (`src/components/admin/AdminUsers.tsx`)
 
-**4. `src/services/ExportService.ts`** — rename the `assets.contributors` field to `assets.authorizedUsers` and update the interface plus the three read sites (PDF summary count, section render, initializer).
+- `ContributorRecord` → `MembershipRecord` (lines 33, 52).
+- Bucket field `contributors` → `authorizedUsers` (lines 52, 271, 287, 355, 993).
+- Tab value `contributors` → `authorized-users` (lines 618, 988).
+- Queries, membership derivation, role/status mapping, counts, and revoked historical display unchanged.
+
+## 4. Export naming (`src/services/ExportService.ts`)
+
+- Interface field `contributors` → `authorizedUsers` (line 268), initializer (1148), summary count (468), section render (928-950), assignment from memberships (1959).
+- The `account_memberships` query and export output content stay the same.
 
 ## Out of scope
 
-- No RLS, function, trigger, or grant changes.
-- No touching the Legacy Admin recovery path, `vault_delegate_grants`, or the mirror.
-- Stage 3 (contributor invite edge functions) and Stage 4 (drop the `contributors` table, `has_contributor_access`, `contributor_role` enum) remain unstarted; `delete-account`'s contributor cleanup deletes stay until Stage 4.
-- `AccountContext`'s legacy aliases (`useContributor`, `ContributorProvider`, `isContributor`) are load-bearing across many files; renaming them is a separate, larger refactor.
+AU permissions, `account_memberships`, roles, invitations, Legacy Admin eligibility/recovery, `delegate_user_id`, `vault_delegate_grants`, vault recovery RLS, encryption/passphrase behavior, Continuity Export, memorialization, closure logic, Stage 3 invite pipeline, Stage 4 table/enum/`has_contributor_access`, and `AccountContext` legacy aliases.
 
 ## Verification
 
-- Typecheck and build.
-- Owner view: the reworded support-access card renders, the toggle still persists `allow_admin_access` both ways.
-- Authorized User view on an encrypted owner vault: still sees the single "Access Restricted" message.
-- Admin CRM: Authorized Users tab still lists the same rows and counts, including the revoked historical membership.
-- Export: authorized-user count and section still populate from active `account_memberships`.
+Typecheck and production build clean apart from the known Browserslist / mixed-import / bundle-size warnings; owner sees Support Staff Access and the toggle persists both directions; Authorized User still blocked from the owner's encrypted vault; Legacy Admin recovery unchanged; deletion banner no longer says an administrator can delete the account; Admin CRM rows, counts, and the revoked historical AU unchanged; export authorized-user count and section unchanged; repo-wide search confirms the renamed identifiers are gone from the touched files. Changes are committed to the canonical branch for an independent audit.
