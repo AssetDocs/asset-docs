@@ -23,11 +23,11 @@ const CurrentOwnershipSummary: React.FC<{ accountId: string }> = ({ accountId })
       const { count: memberCount } = await supabase.from('account_memberships').select('id', { count: 'exact', head: true }).eq('account_id', accountId).eq('status', 'active');
       const { data: legacyAdmins } = await supabase
         .from('legacy_admins')
-        .select('legacy_admin_user_id,status,designation_role,designation_priority')
+        .select('legacy_admin_user_id,status')
         .eq('account_id', accountId)
         .eq('status', 'active')
-        .order('designation_priority', { ascending: true })
-        .order('assigned_at', { ascending: true });
+        .order('assigned_at', { ascending: true })
+        .limit(1);
       setData({ account: acc, profile, memberCount, legacyAdmins: legacyAdmins || [] });
     })();
   }, [accountId]);
@@ -35,9 +35,7 @@ const CurrentOwnershipSummary: React.FC<{ accountId: string }> = ({ accountId })
   if (!data) return <div className="text-sm text-muted-foreground p-4">Loading account...</div>;
   const { account, profile, memberCount, legacyAdmins } = data;
   const legacyAdminSummary = legacyAdmins?.length
-    ? legacyAdmins
-      .map((admin: any) => `${admin.designation_role || 'legacy'}:${admin.legacy_admin_user_id?.slice(0, 8)}...`)
-      .join(', ')
+    ? `${legacyAdmins[0].legacy_admin_user_id?.slice(0, 8)}...`
     : 'None designated';
 
   return (
@@ -60,7 +58,7 @@ const CurrentOwnershipSummary: React.FC<{ accountId: string }> = ({ accountId })
         <Row label="Storage quota" value={`${profile?.storage_quota_gb ?? '-'} GB`} />
         <Row label="Owner state" value={account.owner_state || 'active'} />
         <Row label="Active authorized users" value={memberCount ?? 0} />
-        <Row label="Legacy Admins" value={legacyAdminSummary} />
+        <Row label="Legacy Admin" value={legacyAdminSummary} />
         <Row label="Preservation hold" value={account.continuity_setup_required ? 'Required' : 'No'} />
       </CardContent>
     </Card>
